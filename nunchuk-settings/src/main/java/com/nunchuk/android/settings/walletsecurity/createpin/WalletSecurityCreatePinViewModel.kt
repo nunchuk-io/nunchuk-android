@@ -26,8 +26,10 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.CheckWalletPinUseCase
 import com.nunchuk.android.core.domain.CreateOrUpdateWalletPinUseCase
+import androidx.navigation.toRoute
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.settings.R
+import com.nunchuk.android.settings.walletsecurity.WalletSecurityCreatePinRoute
 import com.nunchuk.android.usecase.pin.DecoyPinExistUseCase
 import com.nunchuk.android.usecase.pin.SetCustomPinConfigUseCase
 import com.nunchuk.android.usecase.wallet.CreateDecoyPinUseCase
@@ -53,7 +55,7 @@ class WalletSecurityCreatePinViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
-    private val args = WalletSecurityCreatePinFragmentArgs.fromSavedStateHandle(savedStateHandle)
+    private val route = savedStateHandle.toRoute<WalletSecurityCreatePinRoute>()
 
     private val _event = MutableSharedFlow<WalletSecurityCreatePinEvent>()
     val event = _event.asSharedFlow()
@@ -61,7 +63,7 @@ class WalletSecurityCreatePinViewModel @Inject constructor(
     private val _state = MutableStateFlow(WalletSecurityCreatePinState())
     val state = _state.asStateFlow()
 
-    private val createPinFlow = args.isEnable.not()
+    private val createPinFlow = route.isEnable.not()
     private val account = accountManager.getAccount()
     private val decoyPin = account.decoyPin
 

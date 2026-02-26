@@ -19,10 +19,7 @@
 
 package com.nunchuk.android.settings.walletsecurity.decoy
 
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import androidx.fragment.app.FragmentActivity
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -45,11 +42,12 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.Fragment
-import androidx.fragment.compose.content
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.fragment.findNavController
+import androidx.navigation.NavController
+import androidx.navigation.NavGraphBuilder
+import androidx.navigation.compose.composable
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.nunchuk.android.compose.NcHighlightText
 import com.nunchuk.android.compose.NcHintMessage
 import com.nunchuk.android.compose.NcImageAppBar
@@ -57,41 +55,11 @@ import com.nunchuk.android.compose.NcPasswordTextField
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcScaffold
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.core.data.model.QuickWalletParam
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.nav.args.AddWalletArgs
 import com.nunchuk.android.settings.R
-import com.nunchuk.android.settings.walletsecurity.WalletSecuritySettingActivity
-import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
-
-@AndroidEntryPoint
-class DecoyPinFragment : Fragment() {
-    @Inject
-    lateinit var navigator: NunchukNavigator
-
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
-    ): View = content {
-        DecoyPinScreen(
-            onContinueClick = { hasWallet, pin ->
-                if (hasWallet) {
-                    findNavController().navigate(
-                        DecoyPinFragmentDirections.actionDecoyPinFragmentToDecoyWalletCreateFragment(
-                            pin
-                        )
-                    )
-                } else {
-                    navigator.openAddWalletScreen(
-                        activityContext = requireContext(), args = AddWalletArgs(
-                            decoyPin = pin,
-                            quickWalletParam = (requireActivity() as? WalletSecuritySettingActivity)?.args?.quickWalletParam
-                        )
-                    )
-                }
-            }
-        )
-    }
-}
+import com.nunchuk.android.settings.walletsecurity.DecoyPinRoute
 
 @Composable
 fun DecoyPinScreen(
@@ -215,4 +183,34 @@ private fun DecoyPinContent(
 @Composable
 private fun DecoyPinScreenPreview() {
     DecoyPinContent()
+}
+
+fun NavController.navigateToDecoyPin() {
+    navigate(DecoyPinRoute)
+}
+
+fun NavGraphBuilder.decoyPinScreen(
+    activity: FragmentActivity,
+    navigator: NunchukNavigator,
+    quickWalletParam: QuickWalletParam?,
+    onOpenDecoyWalletCreate: (String) -> Unit,
+) {
+    composable<DecoyPinRoute> {
+        val viewModel = hiltViewModel<DecoyPinViewModel>()
+        DecoyPinScreen(
+            viewModel = viewModel,
+            onContinueClick = { hasWallet, pin ->
+                if (hasWallet) {
+                    onOpenDecoyWalletCreate(pin)
+                } else {
+                    navigator.openAddWalletScreen(
+                        activityContext = activity, args = AddWalletArgs(
+                            decoyPin = pin,
+                            quickWalletParam = quickWalletParam
+                        )
+                    )
+                }
+            }
+        )
+    }
 }

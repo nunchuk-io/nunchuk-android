@@ -21,6 +21,8 @@ import com.nunchuk.android.share.InitNunchukUseCase
 import com.nunchuk.android.usecase.GetBiometricConfigUseCase
 import com.nunchuk.android.usecase.GetWalletSecuritySettingUseCase
 import com.nunchuk.android.usecase.pin.DecoyPinExistUseCase
+import androidx.navigation.toRoute
+import com.nunchuk.android.settings.walletsecurity.UnlockPinRoute
 import com.nunchuk.android.usecase.pin.SetCustomPinConfigUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
@@ -54,7 +56,7 @@ class UnlockPinViewModel @Inject constructor(
     val state = _state.asStateFlow()
     private var walletPin: String = ""
 
-    private val args = UnlockPinFragmentArgs.fromSavedStateHandle(savedStateHandle)
+    private val route = savedStateHandle.toRoute<UnlockPinRoute>()
 
     init {
         viewModelScope.launch {
@@ -145,7 +147,7 @@ class UnlockPinViewModel @Inject constructor(
                     }
                 } else {
                     checkPin(pin) {
-                        if (args.sourceFlow == UnlockPinSourceFlow.SIGN_IN_UNKNOWN_MODE) {
+                        if (route.sourceFlow == UnlockPinSourceFlow.SIGN_IN_UNKNOWN_MODE) {
                             _state.update { it.copy(event = UnlockPinEvent.PinMatched) }
                             return@checkPin
                         }
@@ -161,7 +163,7 @@ class UnlockPinViewModel @Inject constructor(
                             account.email
                         }
                         initNunchukUseCase(InitNunchukUseCase.Param(accountId = accountId))
-                        if (_state.value.biometricConfig.enabled && args.isRemovePin.not() && account.loginType == SignInMode.EMAIL.value
+                        if (_state.value.biometricConfig.enabled && route.isRemovePin.not() && account.loginType == SignInMode.EMAIL.value
                             && account.id.isNotEmpty() && account.id == _state.value.biometricConfig.userId
                         ) {
                             _state.update { it.copy(showBiometricPrompt = true) }

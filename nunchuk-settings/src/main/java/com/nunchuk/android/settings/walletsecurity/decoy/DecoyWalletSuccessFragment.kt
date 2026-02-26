@@ -1,8 +1,5 @@
 package com.nunchuk.android.settings.walletsecurity.decoy
 
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.ViewGroup
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,30 +13,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.Fragment
-import androidx.fragment.compose.content
-import androidx.navigation.fragment.findNavController
+import androidx.navigation.NavController
+import androidx.navigation.NavGraphBuilder
+import androidx.navigation.compose.composable
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcScaffold
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.settings.R
-import dagger.hilt.android.AndroidEntryPoint
-
-@AndroidEntryPoint
-class DecoyWalletSuccessFragment : Fragment() {
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ) = content {
-        DecoyWalletSuccessView {
-            findNavController().navigate(
-                DecoyWalletSuccessFragmentDirections.actionDecoyWalletSuccessFragmentToDecoyPinNoteFragment()
-            )
-        }
-    }
-}
+import com.nunchuk.android.settings.walletsecurity.DecoyWalletSuccessRoute
 
 @Composable
 fun DecoyWalletSuccessView(
@@ -90,4 +72,18 @@ fun DecoyWalletSuccessView(
 @Composable
 private fun DecoyWalletSuccessPreview() {
     DecoyWalletSuccessView()
+}
+
+fun NavController.navigateToDecoyWalletSuccess() {
+    navigate(DecoyWalletSuccessRoute)
+}
+
+fun NavGraphBuilder.decoyWalletSuccessScreen(
+    onContinueClick: () -> Unit,
+) {
+    composable<DecoyWalletSuccessRoute> {
+        DecoyWalletSuccessView(
+            onContinueClicked = onContinueClick,
+        )
+    }
 }

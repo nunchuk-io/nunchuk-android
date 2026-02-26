@@ -19,10 +19,7 @@
 
 package com.nunchuk.android.settings.walletsecurity.createpin
 
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import androidx.fragment.app.FragmentActivity
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -39,21 +36,20 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.fragment.findNavController
-import androidx.navigation.fragment.navArgs
+import androidx.navigation.NavController
+import androidx.navigation.NavGraphBuilder
+import androidx.navigation.compose.composable
+import androidx.navigation.toRoute
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.nunchuk.android.compose.NcHighlightText
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPasswordTextField
@@ -61,65 +57,13 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcScaffold
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.manager.NcToastManager
-import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showOrHideLoading
-import com.nunchuk.android.core.wallet.WalletSecurityArgs
 import com.nunchuk.android.core.wallet.WalletSecurityType
 import com.nunchuk.android.settings.R
+import com.nunchuk.android.settings.walletsecurity.WalletSecurityCreatePinRoute
 import com.nunchuk.android.widget.NCToastMessage
-import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
-
-@AndroidEntryPoint
-class WalletSecurityCreatePinFragment : Fragment() {
-    private val activityArgs by lazy {
-        requireActivity().intent.extras?.let { extras ->
-            WalletSecurityArgs.fromBundle(extras)
-        } ?: WalletSecurityArgs()
-    }
-    private val viewModel: WalletSecurityCreatePinViewModel by viewModels()
-    private val args: WalletSecurityCreatePinFragmentArgs by navArgs()
-
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
-    ): View {
-        return ComposeView(requireContext()).apply {
-            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-
-            setContent {
-                WalletSecurityCreatePinScreen(viewModel, args.isEnable.not())
-            }
-        }
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        flowObserver(viewModel.event) { event ->
-            when (event) {
-                is WalletSecurityCreatePinEvent.Error -> NCToastMessage(requireActivity()).showError(
-                    message = event.message
-                )
-
-                is WalletSecurityCreatePinEvent.Loading -> showOrHideLoading(loading = event.loading)
-                WalletSecurityCreatePinEvent.CreateOrUpdateSuccess -> {
-                    if (activityArgs.type == WalletSecurityType.CREATE_PIN) {
-                        val message = if (args.isEnable.not()) {
-                            getString(R.string.nc_pin_created)
-                        } else {
-                            getString(R.string.nc_pin_updated)
-                        }
-                        NcToastManager.scheduleShowMessage(message)
-                        findNavController().popBackStack()
-                    } else {
-                        findNavController().navigate(
-                            WalletSecurityCreatePinFragmentDirections.actionWalletSecurityCreatePinFragmentToDecoyPinFragment()
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
+import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun WalletSecurityCreatePinScreen(
@@ -260,4 +204,54 @@ private fun WalletSecurityCreatePinScreenPreview() {
             stringResource(id = R.string.nc_confirm_pin)
         )
     )
+}
+
+fun NavController.navigateToWalletSecurityCreatePin(isEnable: Boolean = false) {
+    navigate(WalletSecurityCreatePinRoute(isEnable = isEnable))
+}
+
+fun NavGraphBuilder.walletSecurityCreatePinScreen(
+    activity: FragmentActivity,
+    activityType: WalletSecurityType,
+    onNavigateBack: () -> Unit,
+    onNavigateToDecoyPin: () -> Unit,
+) {
+    composable<WalletSecurityCreatePinRoute> { backStackEntry ->
+        val route = backStackEntry.toRoute<WalletSecurityCreatePinRoute>()
+        val isEnable = route.isEnable
+        val viewModel = hiltViewModel<WalletSecurityCreatePinViewModel>()
+
+        LaunchedEffect(viewModel, activityType, isEnable) {
+            viewModel.event.collectLatest { event ->
+                when (event) {
+                    is WalletSecurityCreatePinEvent.Error -> {
+                        NCToastMessage(activity).showError(message = event.message)
+                    }
+
+                    is WalletSecurityCreatePinEvent.Loading -> {
+                        activity.showOrHideLoading(loading = event.loading)
+                    }
+
+                    WalletSecurityCreatePinEvent.CreateOrUpdateSuccess -> {
+                        if (activityType == WalletSecurityType.CREATE_PIN) {
+                            val message = if (isEnable.not()) {
+                                activity.getString(R.string.nc_pin_created)
+                            } else {
+                                activity.getString(R.string.nc_pin_updated)
+                            }
+                            NcToastManager.scheduleShowMessage(message)
+                            onNavigateBack()
+                        } else {
+                            onNavigateToDecoyPin()
+                        }
+                    }
+                }
+            }
+        }
+
+        WalletSecurityCreatePinScreen(
+            viewModel = viewModel,
+            createPinFlow = isEnable.not(),
+        )
+    }
 }

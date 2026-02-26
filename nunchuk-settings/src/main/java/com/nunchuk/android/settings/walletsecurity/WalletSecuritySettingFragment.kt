@@ -19,18 +19,52 @@
 
 package com.nunchuk.android.settings.walletsecurity
 
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.view.isVisible
-import androidx.fragment.app.viewModels
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
-import androidx.navigation.fragment.findNavController
-import com.nunchuk.android.core.base.BaseFragment
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import androidx.fragment.app.FragmentActivity
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Observer
+import androidx.lifecycle.compose.LifecycleResumeEffect
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.navigation.NavController
+import androidx.navigation.NavGraphBuilder
+import androidx.navigation.compose.composable
+import com.nunchuk.android.compose.NcIcon
+import com.nunchuk.android.compose.NcScaffold
+import com.nunchuk.android.compose.NcSwitch
+import com.nunchuk.android.compose.NcTopAppBar
+import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.biometric.BiometricPromptManager
 import com.nunchuk.android.core.domain.membership.PasswordVerificationHelper
 import com.nunchuk.android.core.domain.membership.TargetAction
@@ -39,316 +73,478 @@ import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.model.setting.BiometricConfig
 import com.nunchuk.android.settings.R
-import com.nunchuk.android.settings.databinding.FragmentWalletSecuritySettingBinding
 import com.nunchuk.android.widget.NCInputDialog
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningDialog
 import com.nunchuk.android.widget.NCWarningVerticalDialog
-import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
-@AndroidEntryPoint
-class WalletSecuritySettingFragment : BaseFragment<FragmentWalletSecuritySettingBinding>() {
+fun NavController.navigateToWalletSecuritySetting() {
+    navigate(WalletSecuritySettingRoute)
+}
 
-    @Inject
-    lateinit var signInModeHolder: SignInModeHolder
-    
-    @Inject
-    lateinit var passwordVerificationHelper: PasswordVerificationHelper
+fun NavGraphBuilder.walletSecuritySettingScreen(
+    activity: FragmentActivity,
+    signInModeHolder: SignInModeHolder,
+    passwordVerificationHelper: PasswordVerificationHelper,
+    onBack: () -> Unit,
+    onOpenPinStatus: () -> Unit,
+) {
+    composable<WalletSecuritySettingRoute> {
+        val viewModel = hiltViewModel<WalletSecuritySettingViewModel>()
+        val lifecycleOwner = LocalLifecycleOwner.current
+        val coroutineScope = rememberCoroutineScope()
+        val biometricPromptManager = remember(activity) {
+            BiometricPromptManager(activity)
+        }
+        val enrollLauncher = rememberLauncherForActivityResult(
+            ActivityResultContracts.StartActivityForResult()
+        ) { }
 
-    private val viewModel: WalletSecuritySettingViewModel by viewModels()
+        var state by remember {
+            mutableStateOf(WalletSecuritySettingState())
+        }
+        var isTurningOnBiometric by rememberSaveable { mutableStateOf(true) }
+        var biometricCheckedOverride by rememberSaveable { mutableStateOf<Boolean?>(null) }
 
-    // Add variable to track biometric operation intent
-    private var isTurningOnBiometric = true
-
-    private val enrollLauncher =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-
+        fun showInputPinDialog() {
+            NCInputDialog(activity).showDialog(
+                title = activity.getString(R.string.nc_enter_your_pin),
+                onCanceled = {
+                    viewModel.updateProtectWalletPin(true)
+                },
+                onConfirmed = {
+                    viewModel.checkWalletPin(it)
+                },
+            )
         }
 
-    private val biometricPromptManager: BiometricPromptManager by lazy {
-        BiometricPromptManager(requireActivity())
-    }
+        fun showPassphraseDialog() {
+            NCInputDialog(activity).showDialog(
+                title = activity.getString(R.string.nc_re_enter_your_passphrase),
+                descMessage = activity.getString(R.string.nc_re_enter_your_passphrase_dialog_desc),
+                onCanceled = {
+                    viewModel.updateProtectWalletPassphrase(true)
+                },
+                onConfirmed = {
+                    viewModel.confirmPassphrase(it)
+                },
+            )
+        }
 
-    override fun initializeBinding(
-        inflater: LayoutInflater,
-        container: ViewGroup?
-    ): FragmentWalletSecuritySettingBinding {
-        return FragmentWalletSecuritySettingBinding.inflate(inflater, container, false)
-    }
+        DisposableEffect(viewModel, lifecycleOwner) {
+            val stateObserver = Observer<WalletSecuritySettingState> {
+                state = it
+            }
+            viewModel.state.observe(lifecycleOwner, stateObserver)
+            onDispose {
+                viewModel.state.removeObserver(stateObserver)
+            }
+        }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        setupViews()
-        observeEvent()
-    }
+        DisposableEffect(viewModel, lifecycleOwner, activity) {
+            val eventObserver = Observer<WalletSecuritySettingEvent> { event ->
+                when (event) {
+                    is WalletSecuritySettingEvent.Error -> {
+                        NCToastMessage(activity).showError(message = event.message)
+                    }
 
-    override fun onResume() {
-        super.onResume()
-        viewModel.checkCustomPinConfig()
-    }
+                    is WalletSecuritySettingEvent.Loading -> {
+                        activity.showOrHideLoading(loading = event.loading)
+                    }
 
-    private fun observeEvent() {
-        viewModel.event.observe(viewLifecycleOwner, ::handleEvent)
-        viewModel.state.observe(viewLifecycleOwner, ::handleState)
+                    WalletSecuritySettingEvent.UpdateConfigSuccess -> Unit
 
+                    is WalletSecuritySettingEvent.CheckWalletPin -> {
+                        if (event.match.not()) {
+                            NCToastMessage(activity).showError(
+                                message = activity.getString(R.string.nc_incorrect_current_pin),
+                            )
+                        } else if (event.isHideWalletDetailFlow) {
+                            viewModel.updateHideWalletDetail()
+                        }
+                    }
 
-        lifecycleScope.launch {
-            lifecycle.repeatOnLifecycle(Lifecycle.State.CREATED) {
-                biometricPromptManager.promptResults.collect { result ->
-                    when (result) {
-                        is BiometricPromptManager.BiometricResult.AuthenticationSuccess -> {
-                            if (isTurningOnBiometric) {
-                                viewModel.requestFederatedToken(false)
-                            } else {
-                                // Authentication successful, turn off biometric protection
+                    WalletSecuritySettingEvent.None -> Unit
+
+                    WalletSecuritySettingEvent.CheckPasswordSuccess,
+                    WalletSecuritySettingEvent.CheckPassphraseSuccess -> {
+                        if (viewModel.getWalletSecuritySetting().protectWalletPin && viewModel.isAppPinEnable()) {
+                            showInputPinDialog()
+                        } else {
+                            viewModel.updateHideWalletDetail()
+                        }
+                    }
+
+                    WalletSecuritySettingEvent.ShowBiometric -> {
+                        biometricPromptManager.showBiometricPrompt()
+                    }
+
+                    is WalletSecuritySettingEvent.RequestFederatedTokenSuccess -> {
+                        NCInputDialog(activity).showDialog(
+                            title = activity.getString(R.string.nc_enter_confirmation_code),
+                            descMessage = String.format(
+                                activity.getString(R.string.nc_enter_confirmation_code_desc),
+                                event.email,
+                            ),
+                            inputBoxTitle = activity.getString(R.string.nc_confirmation_code),
+                            clickablePhrases = listOf(
+                                "Resend code" to {
+                                    viewModel.requestFederatedToken(true)
+                                },
+                            ),
+                            confirmText = activity.getString(R.string.nc_text_continue),
+                            onConfirmed = {
+                                viewModel.registerBiometric(it)
+                            },
+                            onCanceled = {
+                                biometricCheckedOverride = false
                                 viewModel.updateProtectWalletBiometric(false)
-                            }
+                            },
+                        )
+                    }
+                }
+                viewModel.clearEvent()
+            }
+
+            viewModel.event.observe(lifecycleOwner, eventObserver)
+            onDispose {
+                viewModel.event.removeObserver(eventObserver)
+            }
+        }
+
+        LifecycleResumeEffect(Unit) {
+            viewModel.checkCustomPinConfig()
+            onPauseOrDispose { }
+        }
+
+        LaunchedEffect(biometricPromptManager) {
+            biometricPromptManager.promptResults.collectLatest { result ->
+                when (result) {
+                    is BiometricPromptManager.BiometricResult.AuthenticationSuccess -> {
+                        if (isTurningOnBiometric) {
+                            viewModel.requestFederatedToken(false)
+                        } else {
+                            biometricCheckedOverride = false
+                            viewModel.updateProtectWalletBiometric(false)
                         }
-                        is BiometricPromptManager.BiometricResult.AuthenticationError -> {
-                            if (isTurningOnBiometric) {
-                                viewModel.updateProtectWalletBiometric(false)
-                                NCToastMessage(requireActivity()).showError(message = result.error)
-                            } else {
-                                // Authentication failed, keep biometric option on
-                                binding.protectWalletFingerprintOption.setOptionChecked(true)
-                                NCToastMessage(requireActivity()).showError(message = result.error)
-                            }
+                    }
+
+                    is BiometricPromptManager.BiometricResult.AuthenticationError -> {
+                        if (isTurningOnBiometric) {
+                            biometricCheckedOverride = false
+                            viewModel.updateProtectWalletBiometric(false)
+                            NCToastMessage(activity).showError(message = result.error)
+                        } else {
+                            biometricCheckedOverride = true
+                            NCToastMessage(activity).showError(message = result.error)
                         }
-                        is BiometricPromptManager.BiometricResult.AuthenticationFailed -> {
-                            if (!isTurningOnBiometric) {
-                                // Authentication failed, keep biometric option on
-                                binding.protectWalletFingerprintOption.setOptionChecked(true)
-                            }
+                    }
+
+                    is BiometricPromptManager.BiometricResult.AuthenticationFailed -> {
+                        if (!isTurningOnBiometric) {
+                            biometricCheckedOverride = true
                         }
-                        else -> {
-                            if (!isTurningOnBiometric) {
-                                // Any other result (like cancelled), keep biometric option on
-                                binding.protectWalletFingerprintOption.setOptionChecked(true)
-                            }
+                    }
+
+                    else -> {
+                        if (!isTurningOnBiometric) {
+                            biometricCheckedOverride = true
                         }
                     }
                 }
             }
         }
-    }
 
-    private fun handleState(state: WalletSecuritySettingState) {
-        binding.passwordOption.setOptionChecked(state.walletSecuritySetting.protectWalletPassword)
-        binding.pinStatus.text =
-            if (state.isAppPinEnable && state.isCustomPinEnable) getString(R.string.nc_on) else getString(
-                R.string.nc_off
-            )
-        binding.passphraseOption.setOptionChecked(state.walletSecuritySetting.protectWalletPassphrase)
-        binding.passwordOption.isVisible = signInModeHolder.getCurrentMode() == SignInMode.EMAIL
-        binding.passphraseOption.isVisible =
-            signInModeHolder.getCurrentMode() == SignInMode.PRIMARY_KEY
-        binding.passphraseOption.enableSwitchButton(state.isEnablePassphrase)
-
+        val currentMode = signInModeHolder.getCurrentMode()
         val biometricConfig = viewModel.getCurrentBiometricConfig()
         val isCurrentAccount = biometricConfig?.userId == viewModel.getCurrentAccountId()
         val isDefaultBiometric = biometricConfig == BiometricConfig.DEFAULT
+        val biometricCheckedByState = isCurrentAccount && biometricConfig?.enabled == true
+        val biometricChecked = biometricCheckedOverride ?: biometricCheckedByState
 
-        binding.protectWalletFingerprintOption.setOptionChecked(isCurrentAccount && biometricConfig?.enabled == true)
+        LaunchedEffect(biometricCheckedByState) {
+            if (biometricCheckedOverride == biometricCheckedByState) {
+                biometricCheckedOverride = null
+            }
+        }
 
-        // Enable if DEFAULT or current account has biometric enabled, otherwise disable
-        binding.protectWalletFingerprintOption.setEnable(
+        val biometricEnabledByConfig =
             isDefaultBiometric || (isCurrentAccount && biometricConfig?.enabled == true)
-        )
+        val isBiometricOptionEnabled = biometricEnabledByConfig &&
+            biometricPromptManager.checkHardwareSupport() &&
+            currentMode != SignInMode.GUEST_MODE &&
+            currentMode != SignInMode.PRIMARY_KEY
 
-        if (
-            biometricPromptManager.checkHardwareSupport().not() ||
-            signInModeHolder.getCurrentMode() == SignInMode.GUEST_MODE ||
-            signInModeHolder.getCurrentMode() == SignInMode.PRIMARY_KEY
-        ) {
-            binding.protectWalletFingerprintOption.setEnable(false)
+        val pinStatus = if (state.isAppPinEnable && state.isCustomPinEnable) {
+            activity.getString(R.string.nc_on)
+        } else {
+            activity.getString(R.string.nc_off)
         }
-    }
 
-    private fun handleEvent(event: WalletSecuritySettingEvent) {
-        when (event) {
-            is WalletSecuritySettingEvent.Error -> NCToastMessage(requireActivity()).showError(
-                message = event.message
-            )
-
-            is WalletSecuritySettingEvent.Loading -> showOrHideLoading(loading = event.loading)
-            WalletSecuritySettingEvent.UpdateConfigSuccess -> {
-
-            }
-
-            is WalletSecuritySettingEvent.CheckWalletPin -> {
-                if (event.match.not()) {
-                    NCToastMessage(requireActivity()).showError(
-                        message = getString(R.string.nc_incorrect_current_pin)
+        WalletSecuritySettingContentCompose(
+            state = state,
+            pinStatus = pinStatus,
+            showPasswordOption = currentMode == SignInMode.EMAIL,
+            showPassphraseOption = currentMode == SignInMode.PRIMARY_KEY,
+            isPassphraseSwitchEnabled = state.isEnablePassphrase,
+            biometricChecked = biometricChecked,
+            isBiometricOptionEnabled = isBiometricOptionEnabled,
+            onBack = onBack,
+            onOpenPinStatus = onOpenPinStatus,
+            onPasswordChanged = { enabled ->
+                if (enabled.not()) {
+                    passwordVerificationHelper.showPasswordVerificationDialog(
+                        context = activity,
+                        targetAction = TargetAction.PROTECT_WALLET,
+                        coroutineScope = coroutineScope,
+                        onSuccess = {
+                            viewModel.updateProtectWalletPassword(false)
+                        },
+                        onError = { errorMessage ->
+                            viewModel.updateProtectWalletPassword(true)
+                            NCToastMessage(activity).showError(errorMessage)
+                        },
+                        onCancel = {
+                            viewModel.updateProtectWalletPassword(true)
+                        },
                     )
-                } else if (event.isHideWalletDetailFlow) {
-                    viewModel.updateHideWalletDetail()
-                }
-            }
-
-            WalletSecuritySettingEvent.None -> {}
-            WalletSecuritySettingEvent.CheckPasswordSuccess, WalletSecuritySettingEvent.CheckPassphraseSuccess -> {
-                if (viewModel.getWalletSecuritySetting().protectWalletPin && viewModel.isAppPinEnable()) {
-                    showInputPinDialog()
-                } else {
-                    viewModel.updateHideWalletDetail()
-                }
-            }
-
-            WalletSecuritySettingEvent.ShowBiometric -> {
-                biometricPromptManager.showBiometricPrompt()
-            }
-
-            is WalletSecuritySettingEvent.RequestFederatedTokenSuccess -> {
-                NCInputDialog(requireContext()).showDialog(
-                    title = getString(R.string.nc_enter_confirmation_code),
-                    descMessage = String.format(
-                        getString(R.string.nc_enter_confirmation_code_desc),
-                        event.email
-                    ),
-                    inputBoxTitle = getString(R.string.nc_confirmation_code),
-                    clickablePhrases = listOf(
-                        "Resend code" to {
-                            viewModel.requestFederatedToken(true)
-                        },
-                    ),
-                    confirmText = getString(R.string.nc_text_continue),
-                    onConfirmed = {
-                        viewModel.registerBiometric(it)
-                    },
-                    onCanceled = {
-                        viewModel.updateProtectWalletBiometric(false)
-                    }
-                )
-            }
-        }
-        viewModel.clearEvent()
-    }
-
-    private fun setupViews() {
-        binding.toolbar.setNavigationOnClickListener { requireActivity().finish() }
-        binding.passwordOption.setOptionChangeListener { it ->
-            if (it.not()) {
-                passwordVerificationHelper.showPasswordVerificationDialog(
-                    context = requireContext(),
-                    targetAction = TargetAction.PROTECT_WALLET,
-                    coroutineScope = lifecycleScope,
-                    onSuccess = { token ->
-                        // Handle success directly - disable password protection
-                        viewModel.updateProtectWalletPassword(false)
-                    },
-                    onError = { errorMessage ->
-                        // Handle error - revert to password protection enabled
-                        viewModel.updateProtectWalletPassword(true)
-                        NCToastMessage(requireActivity()).showError(errorMessage)
-                    },
-                    onCancel = {
-                        viewModel.updateProtectWalletPassword(true)
-                    }
-                )
-            } else if (viewModel.isAppPinEnable()) {
-                NCWarningDialog(requireActivity()).showDialog(
-                    title = getString(R.string.nc_text_confirmation),
-                    message = getString(R.string.nc_disable_pin_warning),
-                    btnNo = getString(R.string.nc_cancel),
-                    btnYes = getString(R.string.nc_text_continue),
-                    onYesClick = {
-                        lifecycleScope.launch {
-                            viewModel.updateProtectWalletPin(false).join()
-                            viewModel.updateProtectWalletPassword(it)
-                        }
-                    }
-                )
-            } else {
-                viewModel.updateProtectWalletPassword(it)
-            }
-        }
-        binding.passphraseOption.setOptionChangeListener {
-            if (it.not()) {
-                enterPassphraseDialog()
-            } else if (viewModel.isAppPinEnable()) {
-                NCWarningDialog(requireActivity()).showDialog(
-                    title = getString(R.string.nc_text_confirmation),
-                    message = getString(R.string.nc_disable_pin_warning),
-                    btnNo = getString(R.string.nc_cancel),
-                    btnYes = getString(R.string.nc_text_continue),
-                    onYesClick = {
-                        lifecycleScope.launch {
-                            viewModel.updateProtectWalletPin(false).join()
-                            viewModel.updateProtectWalletPassphrase(it)
-                        }
-                    }
-                )
-            } else {
-                viewModel.updateProtectWalletPassphrase(it)
-            }
-        }
-        binding.pinOption.setOnClickListener {
-            findNavController().navigate(R.id.pinStatusFragment)
-        }
-        binding.protectWalletFingerprintOption.setOptionChangeListener {
-            if (it) {
-                isTurningOnBiometric = true
-                if (biometricPromptManager.checkDeviceHasBiometricEnrolled().not()) {
-                    NCWarningVerticalDialog(requireActivity()).showDialog(
-                        title = getString(R.string.nc_fingerprint_not_set_up_yet),
-                        message = getString(R.string.nc_fingerprint_not_set_up_yet_desc),
-                        btnYes = getString(R.string.nc_try_again),
-                        btnNo = getString(R.string.nc_go_settings),
-                        btnNeutral = getString(R.string.nc_text_cancel),
-                        onNoClick = {
-                            biometricPromptManager.enrollBiometric(enrollLauncher)
-                        },
+                } else if (viewModel.isAppPinEnable()) {
+                    NCWarningDialog(activity).showDialog(
+                        title = activity.getString(R.string.nc_text_confirmation),
+                        message = activity.getString(R.string.nc_disable_pin_warning),
+                        btnNo = activity.getString(R.string.nc_cancel),
+                        btnYes = activity.getString(R.string.nc_text_continue),
                         onYesClick = {
-                            binding.protectWalletFingerprintOption.setOptionChecked(false)
+                            coroutineScope.launch {
+                                viewModel.updateProtectWalletPin(false).join()
+                                viewModel.updateProtectWalletPassword(true)
+                            }
                         },
-                        onNeutralClick = {
-                            binding.protectWalletFingerprintOption.setOptionChecked(false)
-                        })
-                    return@setOptionChangeListener
+                    )
+                } else {
+                    viewModel.updateProtectWalletPassword(true)
                 }
-                NCWarningDialog(requireActivity()).showDialog(
-                    title = getString(R.string.nc_do_you_want_allow_use_fingerprint),
-                    message = getString(R.string.nc_do_you_want_allow_use_fingerprint_desc),
-                    btnYes = getString(R.string.nc_allow),
-                    btnNo = getString(R.string.nc_do_not_allow),
-                    onYesClick = {
-                        biometricPromptManager.showBiometricPrompt()
-                    },
-                    onNoClick = {
-                        binding.protectWalletFingerprintOption.setOptionChecked(false)
-                    }
-                )
-            } else {
-                isTurningOnBiometric = false
-                biometricPromptManager.showBiometricPrompt()
-            }
-        }
-    }
-
-    private fun showInputPinDialog() {
-        NCInputDialog(requireContext()).showDialog(
-            title = getString(R.string.nc_enter_your_pin),
-            onCanceled = {
-                viewModel.updateProtectWalletPin(true)
             },
-            onConfirmed = {
-                viewModel.checkWalletPin(it)
-            }
+            onPassphraseChanged = { enabled ->
+                if (enabled.not()) {
+                    showPassphraseDialog()
+                } else if (viewModel.isAppPinEnable()) {
+                    NCWarningDialog(activity).showDialog(
+                        title = activity.getString(R.string.nc_text_confirmation),
+                        message = activity.getString(R.string.nc_disable_pin_warning),
+                        btnNo = activity.getString(R.string.nc_cancel),
+                        btnYes = activity.getString(R.string.nc_text_continue),
+                        onYesClick = {
+                            coroutineScope.launch {
+                                viewModel.updateProtectWalletPin(false).join()
+                                viewModel.updateProtectWalletPassphrase(true)
+                            }
+                        },
+                    )
+                } else {
+                    viewModel.updateProtectWalletPassphrase(true)
+                }
+            },
+            onBiometricChanged = { enabled ->
+                biometricCheckedOverride = enabled
+                if (enabled) {
+                    isTurningOnBiometric = true
+                    if (biometricPromptManager.checkDeviceHasBiometricEnrolled().not()) {
+                        NCWarningVerticalDialog(activity).showDialog(
+                            title = activity.getString(R.string.nc_fingerprint_not_set_up_yet),
+                            message = activity.getString(R.string.nc_fingerprint_not_set_up_yet_desc),
+                            btnYes = activity.getString(R.string.nc_try_again),
+                            btnNo = activity.getString(R.string.nc_go_settings),
+                            btnNeutral = activity.getString(R.string.nc_text_cancel),
+                            onNoClick = {
+                                biometricPromptManager.enrollBiometric(enrollLauncher)
+                            },
+                            onYesClick = {
+                                biometricCheckedOverride = false
+                            },
+                            onNeutralClick = {
+                                biometricCheckedOverride = false
+                            },
+                        )
+                        return@WalletSecuritySettingContentCompose
+                    }
+                    NCWarningDialog(activity).showDialog(
+                        title = activity.getString(R.string.nc_do_you_want_allow_use_fingerprint),
+                        message = activity.getString(R.string.nc_do_you_want_allow_use_fingerprint_desc),
+                        btnYes = activity.getString(R.string.nc_allow),
+                        btnNo = activity.getString(R.string.nc_do_not_allow),
+                        onYesClick = {
+                            biometricPromptManager.showBiometricPrompt()
+                        },
+                        onNoClick = {
+                            biometricCheckedOverride = false
+                        },
+                    )
+                } else {
+                    isTurningOnBiometric = false
+                    biometricPromptManager.showBiometricPrompt()
+                }
+            },
         )
     }
+}
 
-    private fun enterPassphraseDialog() {
-        NCInputDialog(requireContext()).showDialog(
-            title = getString(R.string.nc_re_enter_your_passphrase),
-            descMessage = getString(R.string.nc_re_enter_your_passphrase_dialog_desc),
-            onCanceled = {
-                viewModel.updateProtectWalletPassphrase(true)
+@Composable
+private fun WalletSecuritySettingContentCompose(
+    state: WalletSecuritySettingState,
+    pinStatus: String,
+    showPasswordOption: Boolean,
+    showPassphraseOption: Boolean,
+    isPassphraseSwitchEnabled: Boolean,
+    biometricChecked: Boolean,
+    isBiometricOptionEnabled: Boolean,
+    onBack: () -> Unit,
+    onOpenPinStatus: () -> Unit,
+    onPasswordChanged: (Boolean) -> Unit,
+    onPassphraseChanged: (Boolean) -> Unit,
+    onBiometricChanged: (Boolean) -> Unit,
+) {
+    NunchukTheme {
+        NcScaffold(
+            modifier = Modifier.statusBarsPadding(),
+            topBar = {
+                NcTopAppBar(
+                    title = stringResource(R.string.nc_security_settings),
+                    textStyle = NunchukTheme.typography.titleLarge,
+                    onBackPress = onBack,
+                )
             },
-            onConfirmed = {
-                viewModel.confirmPassphrase(it)
+        ) { innerPadding ->
+            Column(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .padding(horizontal = 16.dp)
+                    .navigationBarsPadding()
+                    .fillMaxHeight()
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                WalletSecuritySwitchItemCompose(
+                    title = stringResource(R.string.nc_protect_wallets_with_fingerprint),
+                    description = stringResource(R.string.nc_protect_wallets_with_fingerprint_desc),
+                    checked = biometricChecked,
+                    enabled = isBiometricOptionEnabled,
+                    dimWhenDisabled = true,
+                    onCheckedChange = onBiometricChanged,
+                )
+
+                WalletSecurityPinItemCompose(
+                    status = pinStatus,
+                    onClick = onOpenPinStatus,
+                )
+
+                if (showPasswordOption) {
+                    WalletSecuritySwitchItemCompose(
+                        title = stringResource(R.string.nc_protect_wallet_with_account_password),
+                        description = stringResource(R.string.nc_protect_wallet_with_account_password_desc),
+                        checked = state.walletSecuritySetting.protectWalletPassword,
+                        enabled = true,
+                        dimWhenDisabled = false,
+                        onCheckedChange = onPasswordChanged,
+                    )
+                }
+
+                if (showPassphraseOption) {
+                    WalletSecuritySwitchItemCompose(
+                        title = stringResource(R.string.nc_protect_wallet_with_account_passphrase),
+                        description = stringResource(R.string.nc_protect_wallet_with_account_passphrase_desc),
+                        checked = state.walletSecuritySetting.protectWalletPassphrase,
+                        enabled = isPassphraseSwitchEnabled,
+                        dimWhenDisabled = false,
+                        onCheckedChange = onPassphraseChanged,
+                    )
+                }
             }
+        }
+    }
+}
+
+@Composable
+private fun WalletSecuritySwitchItemCompose(
+    title: String,
+    description: String,
+    checked: Boolean,
+    enabled: Boolean,
+    dimWhenDisabled: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+) {
+    val alpha = if (enabled || !dimWhenDisabled) 1f else 0.5f
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .alpha(alpha)
+            .padding(vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .padding(end = 12.dp),
+        ) {
+            Text(
+                text = title,
+                style = NunchukTheme.typography.body,
+            )
+            Text(
+                modifier = Modifier.padding(top = 4.dp),
+                text = description,
+                style = NunchukTheme.typography.bodySmall.copy(
+                    color = MaterialTheme.colorScheme.textSecondary,
+                ),
+            )
+        }
+        NcSwitch(
+            checked = checked,
+            onCheckedChange = onCheckedChange,
+            enabled = enabled,
+        )
+    }
+}
+
+@Composable
+private fun WalletSecurityPinItemCompose(
+    status: String,
+    onClick: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .padding(end = 12.dp),
+        ) {
+            Text(
+                text = stringResource(R.string.nc_protect_app_with_pin),
+                style = NunchukTheme.typography.body,
+            )
+            Text(
+                modifier = Modifier.padding(top = 4.dp),
+                text = stringResource(R.string.nc_protect_app_with_pin_desc),
+                style = NunchukTheme.typography.bodySmall.copy(
+                    color = MaterialTheme.colorScheme.textSecondary,
+                ),
+            )
+        }
+        Text(
+            text = status,
+            style = NunchukTheme.typography.body,
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        NcIcon(
+            painter = painterResource(id = R.drawable.ic_right_arrow_dark),
+            contentDescription = stringResource(R.string.nc_protect_app_with_pin),
         )
     }
 }

@@ -22,46 +22,45 @@ package com.nunchuk.android.settings.walletsecurity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import androidx.compose.ui.platform.ComposeView
 import androidx.activity.enableEdgeToEdge
-import androidx.navigation.fragment.NavHostFragment
-import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.base.BaseComposeActivity
+import com.nunchuk.android.core.domain.membership.PasswordVerificationHelper
+import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.wallet.WalletSecurityArgs
-import com.nunchuk.android.core.wallet.WalletSecurityType
-import com.nunchuk.android.settings.R
-import com.nunchuk.android.widget.databinding.ActivityNavigationBinding
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
-class WalletSecuritySettingActivity : BaseActivity<ActivityNavigationBinding>() {
+class WalletSecuritySettingActivity : BaseComposeActivity() {
+    @Inject
+    lateinit var signInModeHolder: SignInModeHolder
+
+    @Inject
+    lateinit var passwordVerificationHelper: PasswordVerificationHelper
+
     val args: WalletSecurityArgs by lazy {
         intent.extras?.let { extras ->
             WalletSecurityArgs.fromBundle(extras)
         } ?: WalletSecurityArgs()
     }
 
-    override fun initializeBinding() = ActivityNavigationBinding.inflate(layoutInflater).also {
-        enableEdgeToEdge()
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        val navHostFragment =
-            supportFragmentManager.findFragmentById(R.id.nav_host) as NavHostFragment
-        val inflater = navHostFragment.navController.navInflater
-        val graph = inflater.inflate(R.navigation.wallet_security_setting_nav)
-        when (args.type) {
-            WalletSecurityType.CREATE_DECOY_WALLET -> {
-                graph.setStartDestination(R.id.decoyWalletIntroFragment)
-            }
-            WalletSecurityType.CREATE_DECOY_SUCCESS -> {
-                graph.setStartDestination(R.id.decoyWalletSuccessFragment)
-            }
-            else -> {
-                graph.setStartDestination(R.id.walletSecuritySettingFragment)
-            }
-        }
-        navHostFragment.navController.setGraph(graph, intent.extras ?: Bundle())
+        enableEdgeToEdge()
+        setContentView(
+            ComposeView(this).apply {
+                setContent {
+                    WalletSecuritySettingNavHost(
+                        args = args,
+                        activity = this@WalletSecuritySettingActivity,
+                        navigator = navigator,
+                        signInModeHolder = signInModeHolder,
+                        passwordVerificationHelper = passwordVerificationHelper,
+                    )
+                }
+            },
+        )
     }
 
     companion object {

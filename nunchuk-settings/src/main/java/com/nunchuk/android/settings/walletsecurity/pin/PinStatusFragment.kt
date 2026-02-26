@@ -1,8 +1,6 @@
 package com.nunchuk.android.settings.walletsecurity.pin
 
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.ViewGroup
+import androidx.fragment.app.FragmentActivity
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -20,11 +18,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
-import androidx.fragment.compose.content
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.fragment.findNavController
+import androidx.lifecycle.compose.LifecycleResumeEffect
+import androidx.navigation.NavController
+import androidx.navigation.NavGraphBuilder
+import androidx.navigation.compose.composable
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcScaffold
 import com.nunchuk.android.compose.NcSwitch
@@ -32,83 +31,8 @@ import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.settings.R
+import com.nunchuk.android.settings.walletsecurity.PinStatusRoute
 import com.nunchuk.android.widget.NCWarningDialog
-import dagger.hilt.android.AndroidEntryPoint
-
-@AndroidEntryPoint
-class PinStatusFragment : Fragment() {
-    val viewModel by viewModels<PinStatusViewModel>()
-
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ) = content {
-        val uiState by viewModel.state.collectAsStateWithLifecycle()
-
-        PinStatusContent(
-            state = uiState,
-            onEnablePinChange = { enable ->
-                if (enable) {
-                    val currentMode = viewModel.getCurrentMode()
-                    when {
-                        currentMode == SignInMode.EMAIL && uiState.settings.protectWalletPassword -> {
-                            NCWarningDialog(requireActivity())
-                                .showDialog(
-                                    title = getString(R.string.nc_text_confirmation),
-                                    message = getString(R.string.nc_text_disable_password),
-                                    btnNo = getString(R.string.nc_cancel),
-                                    btnYes = getString(R.string.nc_text_continue),
-                                    onYesClick = {
-                                        viewModel.disablePasswordOrPassphrase()
-                                        openCreateWalletPin()
-                                    }
-                                )
-                        }
-                        currentMode == SignInMode.PRIMARY_KEY && uiState.settings.protectWalletPassphrase -> {
-                            NCWarningDialog(requireActivity())
-                                .showDialog(
-                                    title = getString(R.string.nc_text_confirmation),
-                                    message = getString(R.string.nc_text_disable_passphrase),
-                                    btnNo = getString(R.string.nc_cancel),
-                                    btnYes = getString(R.string.nc_text_continue),
-                                    onYesClick = {
-                                        viewModel.disablePasswordOrPassphrase()
-                                        openCreateWalletPin()
-                                    }
-                                )
-                        }
-                        else -> openCreateWalletPin()
-                    }
-                } else {
-                    findNavController().navigate(
-                        PinStatusFragmentDirections.actionPinStatusFragmentToUnlockPinFragment(
-                            isRemovePin = true
-                        )
-                    )
-                }
-            },
-            onChangePin = {
-                findNavController().navigate(
-                    PinStatusFragmentDirections.actionPinStatusFragmentToWalletSecurityCreatePinFragment(
-                        isEnable = uiState.isAppPinEnable
-                    )
-                )
-            }
-        )
-    }
-
-    private fun openCreateWalletPin() {
-        findNavController().navigate(
-            PinStatusFragmentDirections.actionPinStatusFragmentToWalletSecurityCreatePinFragment()
-        )
-    }
-
-    override fun onResume() {
-        super.onResume()
-        viewModel.checkCustomPinConfig()
-    }
-}
 
 @Composable
 fun PinStatusContent(
@@ -179,4 +103,69 @@ fun PinStatusContent(
 @Composable
 private fun PinStatusContentPreview() {
     PinStatusContent()
+}
+
+fun NavController.navigateToPinStatus() {
+    navigate(PinStatusRoute)
+}
+
+fun NavGraphBuilder.pinStatusScreen(
+    activity: FragmentActivity,
+    onOpenCreatePin: (Boolean) -> Unit,
+    onOpenUnlockPin: () -> Unit,
+) {
+    composable<PinStatusRoute> {
+        val viewModel = hiltViewModel<PinStatusViewModel>()
+        val uiState by viewModel.state.collectAsStateWithLifecycle()
+
+        LifecycleResumeEffect(Unit) {
+            viewModel.checkCustomPinConfig()
+            onPauseOrDispose { }
+        }
+
+        PinStatusContent(
+            state = uiState,
+            onEnablePinChange = { enable ->
+                if (enable) {
+                    val currentMode = viewModel.getCurrentMode()
+                    when {
+                        currentMode == SignInMode.EMAIL && uiState.settings.protectWalletPassword -> {
+                            NCWarningDialog(activity).showDialog(
+                                title = activity.getString(R.string.nc_text_confirmation),
+                                message = activity.getString(R.string.nc_text_disable_password),
+                                btnNo = activity.getString(R.string.nc_cancel),
+                                btnYes = activity.getString(R.string.nc_text_continue),
+                                onYesClick = {
+                                    viewModel.disablePasswordOrPassphrase()
+                                    onOpenCreatePin(false)
+                                }
+                            )
+                        }
+
+                        currentMode == SignInMode.PRIMARY_KEY && uiState.settings.protectWalletPassphrase -> {
+                            NCWarningDialog(activity).showDialog(
+                                title = activity.getString(R.string.nc_text_confirmation),
+                                message = activity.getString(R.string.nc_text_disable_passphrase),
+                                btnNo = activity.getString(R.string.nc_cancel),
+                                btnYes = activity.getString(R.string.nc_text_continue),
+                                onYesClick = {
+                                    viewModel.disablePasswordOrPassphrase()
+                                    onOpenCreatePin(false)
+                                }
+                            )
+                        }
+
+                        else -> {
+                            onOpenCreatePin(false)
+                        }
+                    }
+                } else {
+                    onOpenUnlockPin()
+                }
+            },
+            onChangePin = {
+                onOpenCreatePin(uiState.isAppPinEnable)
+            }
+        )
+    }
 }

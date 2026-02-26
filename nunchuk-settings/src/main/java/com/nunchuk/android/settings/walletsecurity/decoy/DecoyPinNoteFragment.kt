@@ -1,9 +1,6 @@
 package com.nunchuk.android.settings.walletsecurity.decoy
 
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import androidx.fragment.app.FragmentActivity
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,48 +14,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.Fragment
-import androidx.fragment.compose.content
+import androidx.navigation.NavController
+import androidx.navigation.NavGraphBuilder
+import androidx.navigation.compose.composable
 import com.nunchuk.android.compose.NCLabelWithIndex
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcScaffold
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.core.data.model.QuickWalletParam
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.util.navigateToSelectWallet
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.settings.R
-import com.nunchuk.android.settings.walletsecurity.WalletSecuritySettingActivity
-import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
-
-@AndroidEntryPoint
-class DecoyPinNoteFragment : Fragment() {
-    @Inject
-    lateinit var signInModeHolder: SignInModeHolder
-
-    @Inject
-    lateinit var navigator: NunchukNavigator
-
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View = content {
-        DecoyPinNoteScreen(
-            isSignedAccount = signInModeHolder.getCurrentMode() == SignInMode.EMAIL
-        ) {
-            requireActivity().navigateToSelectWallet(
-                navigator = navigator,
-                quickWalletParam = (activity as? WalletSecuritySettingActivity)?.args?.quickWalletParam,
-            ) {
-                navigator.returnToMainScreen(requireActivity())
-                navigator.openUnlockPinScreen(requireActivity())
-            }
-        }
-    }
-}
+import com.nunchuk.android.settings.walletsecurity.DecoyPinNoteRoute
 
 @Composable
 fun DecoyPinNoteScreen(
@@ -137,4 +107,29 @@ private fun DecoyPinNoteScreenPreview() {
 @Composable
 private fun DecoyPinNoteScreenGuestPreview() {
     DecoyPinNoteScreen(isSignedAccount = false)
+}
+
+fun NavController.navigateToDecoyPinNote() {
+    navigate(DecoyPinNoteRoute)
+}
+
+fun NavGraphBuilder.decoyPinNoteScreen(
+    activity: FragmentActivity,
+    signInModeHolder: SignInModeHolder,
+    navigator: NunchukNavigator,
+    quickWalletParam: QuickWalletParam?,
+) {
+    composable<DecoyPinNoteRoute> {
+        DecoyPinNoteScreen(
+            isSignedAccount = signInModeHolder.getCurrentMode() == SignInMode.EMAIL
+        ) {
+            activity.navigateToSelectWallet(
+                navigator = navigator,
+                quickWalletParam = quickWalletParam,
+            ) {
+                navigator.returnToMainScreen(activity)
+                navigator.openUnlockPinScreen(activity)
+            }
+        }
+    }
 }

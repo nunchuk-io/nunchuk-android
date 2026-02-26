@@ -1,8 +1,5 @@
 package com.nunchuk.android.settings.walletsecurity.unlock
 
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.ViewGroup
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -31,12 +28,15 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.datasource.CollectionPreviewParameterProvider
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.Fragment
-import androidx.fragment.compose.content
+import androidx.fragment.app.FragmentActivity
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.fragment.findNavController
-import androidx.navigation.fragment.navArgs
+import androidx.navigation.NavController
+import androidx.navigation.NavGraphBuilder
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
 import com.nunchuk.android.compose.NcCircleImage2
 import com.nunchuk.android.compose.NcPasswordTextField
 import com.nunchuk.android.compose.NcPrimaryDarkButton
@@ -46,129 +46,28 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.dialog.NcInfoDialog
 import com.nunchuk.android.compose.dialog.NcLoadingDialog
 import com.nunchuk.android.core.biometric.BiometricPromptManager
-import com.nunchuk.android.core.util.showSuccess
 import com.nunchuk.android.model.setting.WalletSecuritySetting
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.settings.R
-import dagger.hilt.android.AndroidEntryPoint
+import com.nunchuk.android.settings.walletsecurity.UnlockPinRoute
+import com.nunchuk.android.widget.NCToastMessage
 import kotlinx.coroutines.delay
-import javax.inject.Inject
 
-@AndroidEntryPoint
-class UnlockPinFragment : Fragment() {
-    @Inject
-    lateinit var navigator: NunchukNavigator
-
-    private val args: UnlockPinFragmentArgs by navArgs()
-
-    private val biometricPromptManager by lazy {
-        BiometricPromptManager(requireActivity())
-    }
-
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ) = content {
-        val viewModel = viewModel<UnlockPinViewModel>()
-        val state by viewModel.state.collectAsStateWithLifecycle()
-        val biometricResult by biometricPromptManager.promptResults.collectAsStateWithLifecycle(null)
-
-        var showBiometricNotEnrolledDialog by rememberSaveable {
-            mutableStateOf(false)
-        }
-
-
-        if (state.isLoading) {
-            NcLoadingDialog()
-        }
-
-        LaunchedEffect(state.event) {
-            val event = state.event
-            if (event != null) {
-                when (event) {
-                    UnlockPinEvent.PinMatched -> {
-                        if (args.isRemovePin) {
-                            showSuccess("PIN has been turned off")
-                            findNavController().popBackStack()
-                        } else {
-                            requireActivity().finish()
-                        }
-                    }
-
-                    UnlockPinEvent.GoToMain -> navigator.openMainScreen(
-                        activityContext = requireActivity(),
-                        isClearTask = true
-                    )
-
-                    UnlockPinEvent.GoToSignIn -> navigator.openSignInScreen(requireActivity())
-                }
-                viewModel.markEventHandled()
-            }
-        }
-
-        LaunchedEffect(biometricResult) {
-            if (biometricResult != null) {
-                when (biometricResult) {
-                    is BiometricPromptManager.BiometricResult.AuthenticationSuccess -> {
-                        requireActivity().finish()
-                    }
-
-                    is BiometricPromptManager.BiometricResult.AuthenticationNotSet -> {
-                        showBiometricNotEnrolledDialog = true
-                    }
-
-                    is BiometricPromptManager.BiometricResult.AuthenticationFailed -> {
-                        viewModel.signOut()
-                    }
-
-                    is BiometricPromptManager.BiometricResult.AuthenticationError -> {
-                        viewModel.signOut()
-                    }
-
-                    else -> {}
-                }
-            }
-        }
-
-        if (state.showBiometricPrompt) {
-            if (biometricPromptManager.checkDeviceHasBiometricEnrolled().not()) {
-                showBiometricNotEnrolledDialog = true
-            } else {
-                viewModel.setShowBiometricPrompt(false)
-                biometricPromptManager.showBiometricPrompt()
-            }
-        }
-
-        if (showBiometricNotEnrolledDialog) {
-            NcInfoDialog(
-                message = stringResource(R.string.nc_biometric_is_not_enable_this_device),
-                positiveButtonText = stringResource(R.string.nc_try_again),
-                negativeButtonText = stringResource(R.string.nc_sign_in_using_password),
-                onPositiveClick = {
-                    viewModel.setShowBiometricPrompt(true)
-                    showBiometricNotEnrolledDialog = false
-                },
-                onNegativeClick = {
-                    viewModel.signOut()
-                    showBiometricNotEnrolledDialog = false
-                },
-                onDismiss = {
-                    showBiometricNotEnrolledDialog = false
-                }
-            )
-        }
-
-        UnlockPinContent(
-            isRemovePinFlow = args.isRemovePin,
-            state = state,
-            onUnlock = { pin ->
-                if (args.isRemovePin) {
-                    viewModel.removePin(pin)
-                } else {
-                    viewModel.unlockPin(pin)
-                }
-            }
+@Composable
+internal fun UnlockPinActivityNavHost(
+    activity: FragmentActivity,
+    navigator: NunchukNavigator,
+    route: UnlockPinRoute,
+) {
+    val navController = rememberNavController()
+    NavHost(
+        navController = navController,
+        startDestination = route,
+    ) {
+        unlockPinScreen(
+            activity = activity,
+            navigator = navigator,
+            onPinRemoved = { activity.finish() },
         )
     }
 }
@@ -298,3 +197,119 @@ class SettingProvider : CollectionPreviewParameterProvider<WalletSecuritySetting
         WalletSecuritySetting.DEFAULT.copy(protectWalletPassphrase = true)
     )
 )
+
+fun NavController.navigateToUnlockPin(
+    isRemovePin: Boolean = false,
+    sourceFlow: Int = 0,
+) {
+    navigate(UnlockPinRoute(isRemovePin = isRemovePin, sourceFlow = sourceFlow))
+}
+
+fun NavGraphBuilder.unlockPinScreen(
+    activity: FragmentActivity,
+    navigator: NunchukNavigator,
+    onPinRemoved: () -> Unit,
+) {
+    composable<UnlockPinRoute> { backStackEntry ->
+        val route = backStackEntry.toRoute<UnlockPinRoute>()
+        val viewModel = hiltViewModel<UnlockPinViewModel>()
+        val state by viewModel.state.collectAsStateWithLifecycle()
+        val biometricPromptManager = remember(activity) {
+            BiometricPromptManager(activity)
+        }
+        val biometricResult by biometricPromptManager.promptResults.collectAsStateWithLifecycle(initialValue = null)
+
+        var showBiometricNotEnrolledDialog by rememberSaveable {
+            mutableStateOf(false)
+        }
+
+        if (state.isLoading) {
+            NcLoadingDialog()
+        }
+
+        LaunchedEffect(state.event) {
+            when (state.event) {
+                UnlockPinEvent.PinMatched -> {
+                    if (route.isRemovePin) {
+                        NCToastMessage(activity).show("PIN has been turned off")
+                        onPinRemoved()
+                    } else {
+                        activity.finish()
+                    }
+                }
+
+                UnlockPinEvent.GoToMain -> navigator.openMainScreen(
+                    activityContext = activity,
+                    isClearTask = true
+                )
+
+                UnlockPinEvent.GoToSignIn -> navigator.openSignInScreen(activity)
+                null -> Unit
+            }
+            if (state.event != null) {
+                viewModel.markEventHandled()
+            }
+        }
+
+        LaunchedEffect(biometricResult) {
+            if (biometricResult != null) {
+                when (biometricResult) {
+                    is BiometricPromptManager.BiometricResult.AuthenticationSuccess -> {
+                        activity.finish()
+                    }
+
+                    is BiometricPromptManager.BiometricResult.AuthenticationNotSet -> {
+                        showBiometricNotEnrolledDialog = true
+                    }
+
+                    is BiometricPromptManager.BiometricResult.AuthenticationFailed,
+                    is BiometricPromptManager.BiometricResult.AuthenticationError -> {
+                        viewModel.signOut()
+                    }
+
+                    else -> {}
+                }
+            }
+        }
+
+        if (state.showBiometricPrompt) {
+            if (biometricPromptManager.checkDeviceHasBiometricEnrolled().not()) {
+                showBiometricNotEnrolledDialog = true
+            } else {
+                viewModel.setShowBiometricPrompt(false)
+                biometricPromptManager.showBiometricPrompt()
+            }
+        }
+
+        if (showBiometricNotEnrolledDialog) {
+            NcInfoDialog(
+                message = stringResource(R.string.nc_biometric_is_not_enable_this_device),
+                positiveButtonText = stringResource(R.string.nc_try_again),
+                negativeButtonText = stringResource(R.string.nc_sign_in_using_password),
+                onPositiveClick = {
+                    viewModel.setShowBiometricPrompt(true)
+                    showBiometricNotEnrolledDialog = false
+                },
+                onNegativeClick = {
+                    viewModel.signOut()
+                    showBiometricNotEnrolledDialog = false
+                },
+                onDismiss = {
+                    showBiometricNotEnrolledDialog = false
+                }
+            )
+        }
+
+        UnlockPinContent(
+            isRemovePinFlow = route.isRemovePin,
+            state = state,
+            onUnlock = { pin ->
+                if (route.isRemovePin) {
+                    viewModel.removePin(pin)
+                } else {
+                    viewModel.unlockPin(pin)
+                }
+            }
+        )
+    }
+}

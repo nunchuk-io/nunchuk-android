@@ -1,9 +1,7 @@
 package com.nunchuk.android.settings.walletsecurity.decoy
 
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import androidx.fragment.app.FragmentActivity
+import androidx.fragment.app.FragmentManager
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -13,95 +11,37 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
-import androidx.fragment.compose.content
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.fragment.findNavController
-import androidx.navigation.fragment.navArgs
+import androidx.navigation.NavController
+import androidx.navigation.NavGraphBuilder
+import androidx.navigation.compose.composable
+import androidx.navigation.toRoute
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcScaffold
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.controlTextPrimary
-import com.nunchuk.android.core.util.flowObserver
-import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.core.wallet.WalletBottomSheetResult
 import com.nunchuk.android.core.wallet.WalletComposeBottomSheet
+import com.nunchuk.android.core.data.model.QuickWalletParam
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.nav.args.AddWalletArgs
 import com.nunchuk.android.settings.R
-import com.nunchuk.android.settings.walletsecurity.WalletSecuritySettingActivity
+import com.nunchuk.android.settings.walletsecurity.DecoyWalletCreateRoute
 import com.nunchuk.android.utils.parcelable
-import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
-
-@AndroidEntryPoint
-class DecoyWalletCreateFragment : Fragment() {
-
-    @Inject
-    lateinit var navigator: NunchukNavigator
-
-    private val viewModel by viewModels<DecoyWalletCreateViewModel>()
-    private val args: DecoyWalletCreateFragmentArgs by navArgs()
-
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View = content {
-        val state by viewModel.state.collectAsStateWithLifecycle()
-        DecoyWalletCreateScreen(onCreateDecoyWallet = {
-            navigator.openAddWalletScreen(
-                activityContext = requireContext(),
-                args = AddWalletArgs(
-                    decoyPin = args.decoyPin,
-                    quickWalletParam = (requireActivity() as? WalletSecuritySettingActivity)?.args?.quickWalletParam
-                ),
-            )
-        }, onUseExistingWallet = {
-            WalletComposeBottomSheet.show(
-                fragmentManager = childFragmentManager,
-                exclusiveAssistedWalletIds = state.assistedWalletIds,
-                configArgs = WalletComposeBottomSheet.ConfigArgs()
-            )
-        })
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        childFragmentManager.setFragmentResultListener(
-            WalletComposeBottomSheet.TAG,
-            this
-        ) { _, bundle ->
-            val result = bundle.parcelable<WalletBottomSheetResult>(WalletComposeBottomSheet.RESULT)
-                ?: return@setFragmentResultListener
-            if (result.walletId != null) {
-                viewModel.createDecoyWallet(result.walletId.orEmpty(), args.decoyPin)
-            }
-            childFragmentManager.clearFragmentResult(WalletComposeBottomSheet.TAG)
-        }
-
-        flowObserver(viewModel.event) { event ->
-            when (event) {
-                is DecoyWalletCreateEvent.Error -> showError(event.message)
-                DecoyWalletCreateEvent.WalletCreated -> {
-                    findNavController().navigate(DecoyWalletCreateFragmentDirections.actionDecoyWalletCreateFragmentToDecoyWalletSuccessFragment())
-                }
-
-                is DecoyWalletCreateEvent.Loading -> showOrHideLoading(event.loading)
-            }
-        }
-    }
-}
-
+import com.nunchuk.android.widget.NCToastMessage
+import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun DecoyWalletCreateScreen(
@@ -179,4 +119,79 @@ fun DecoyWalletCreateScreen(
 @Composable
 private fun DecoyWalletCreateScreenPreview() {
     DecoyWalletCreateScreen()
+}
+
+fun NavController.navigateToDecoyWalletCreate(decoyPin: String) {
+    navigate(DecoyWalletCreateRoute(decoyPin = decoyPin))
+}
+
+fun NavGraphBuilder.decoyWalletCreateScreen(
+    activity: FragmentActivity,
+    fragmentManager: FragmentManager,
+    navigator: NunchukNavigator,
+    quickWalletParam: QuickWalletParam?,
+    onNavigateToSuccess: () -> Unit,
+) {
+    composable<DecoyWalletCreateRoute> { backStackEntry ->
+        val route = backStackEntry.toRoute<DecoyWalletCreateRoute>()
+        val decoyPin = route.decoyPin
+        val viewModel = hiltViewModel<DecoyWalletCreateViewModel>()
+        val state by viewModel.state.collectAsStateWithLifecycle()
+        val lifecycleOwner = LocalLifecycleOwner.current
+
+        DisposableEffect(fragmentManager, lifecycleOwner, decoyPin) {
+            val listener = androidx.fragment.app.FragmentResultListener { _, bundle ->
+                val result =
+                    bundle.parcelable<WalletBottomSheetResult>(WalletComposeBottomSheet.RESULT)
+                        ?: return@FragmentResultListener
+                result.walletId?.let { walletId ->
+                    viewModel.createDecoyWallet(walletId = walletId, decoyPin = decoyPin)
+                }
+                fragmentManager.clearFragmentResult(WalletComposeBottomSheet.TAG)
+            }
+
+            fragmentManager.setFragmentResultListener(
+                WalletComposeBottomSheet.TAG,
+                lifecycleOwner,
+                listener,
+            )
+            onDispose {
+                fragmentManager.clearFragmentResultListener(WalletComposeBottomSheet.TAG)
+            }
+        }
+
+        LaunchedEffect(viewModel) {
+            viewModel.event.collectLatest { event ->
+                when (event) {
+                    is DecoyWalletCreateEvent.Error -> {
+                        NCToastMessage(activity).showError(event.message)
+                    }
+
+                    DecoyWalletCreateEvent.WalletCreated -> {
+                        onNavigateToSuccess()
+                    }
+
+                    is DecoyWalletCreateEvent.Loading -> {
+                        activity.showOrHideLoading(event.loading)
+                    }
+                }
+            }
+        }
+
+        DecoyWalletCreateScreen(onCreateDecoyWallet = {
+            navigator.openAddWalletScreen(
+                activityContext = activity,
+                args = AddWalletArgs(
+                    decoyPin = decoyPin,
+                    quickWalletParam = quickWalletParam
+                ),
+            )
+        }, onUseExistingWallet = {
+            WalletComposeBottomSheet.show(
+                fragmentManager = fragmentManager,
+                exclusiveAssistedWalletIds = state.assistedWalletIds,
+                configArgs = WalletComposeBottomSheet.ConfigArgs()
+            )
+        })
+    }
 }
