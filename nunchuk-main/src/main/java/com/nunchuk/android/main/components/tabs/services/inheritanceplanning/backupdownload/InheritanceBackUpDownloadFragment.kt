@@ -50,7 +50,7 @@ class InheritanceBackUpDownloadFragment : MembershipFragment() {
 }
 
 @Composable
-private fun InheritanceBackUpDownloadContent(
+internal fun InheritanceBackUpDownloadContent(
     onContinueClicked: () -> Unit = {}
 ) {
     NunchukTheme {

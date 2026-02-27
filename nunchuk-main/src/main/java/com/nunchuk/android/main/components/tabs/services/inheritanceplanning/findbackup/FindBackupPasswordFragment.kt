@@ -48,7 +48,6 @@ import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.fragment.findNavController
-import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcSpannedText
@@ -65,7 +64,8 @@ import dagger.hilt.android.AndroidEntryPoint
 class FindBackupPasswordFragment : MembershipFragment() {
     private val viewModel: FindBackupPasswordViewModel by viewModels()
     private val inheritanceViewModel: InheritancePlanningViewModel by activityViewModels()
-    private val args by navArgs<FindBackupPasswordFragmentArgs>()
+    private val stepNumber: Int
+        get() = arguments?.getInt(ARG_STEP_NUMBER, 1) ?: 1
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -78,32 +78,24 @@ class FindBackupPasswordFragment : MembershipFragment() {
                 val uiState by inheritanceViewModel.state.collectAsStateWithLifecycle()
                 FindBackupPasswordContent(
                     remainTime = remainTime,
-                    inheritanceKeyType = if (uiState.keyTypes.isNotEmpty()) uiState.keyTypes[args.stepNumber - 1] else InheritanceKeyType.TAPSIGNER,
+                    inheritanceKeyType = if (uiState.keyTypes.isNotEmpty()) uiState.keyTypes[stepNumber - 1] else InheritanceKeyType.TAPSIGNER,
                     numOfKeys = uiState.keyTypes.size,
                     keyTypes = uiState.keyTypes,
-                    stepNumber = args.stepNumber
+                    stepNumber = stepNumber
                 ) {
-                    if (uiState.keyTypes.size == 2 && args.stepNumber == 1) {
-                        findNavController().navigate(
-                            FindBackupPasswordFragmentDirections.actionFindBackupPasswordFragmentSelf(
-                                2
-                            )
-                        )
-                    } else if (inheritanceViewModel.getGroupWalletType() == GroupWalletType.THREE_OF_FIVE_INHERITANCE) {
-                        findNavController().navigate(FindBackupPasswordFragmentDirections.actionFindBackupPasswordFragmentToInheritanceActivationDateFragment())
-                    } else {
-                        findNavController().navigate(
-                            FindBackupPasswordFragmentDirections.actionFindBackupPasswordFragmentToInheritanceKeyTipFragment()
-                        )
-                    }
+                    findNavController().navigateUp()
                 }
             }
         }
     }
+
+    companion object {
+        private const val ARG_STEP_NUMBER = "step_number"
+    }
 }
 
 @Composable
-private fun FindBackupPasswordContent(
+internal fun FindBackupPasswordContent(
     remainTime: Int = 0,
     keyTypes: List<InheritanceKeyType> = emptyList(),
     inheritanceKeyType: InheritanceKeyType = InheritanceKeyType.TAPSIGNER,

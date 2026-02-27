@@ -76,9 +76,7 @@ class InheritancePlanOverviewFragment : MembershipFragment() {
                     groupWalletType = inheritanceViewModel.getGroupWalletType(),
                     isMiniscriptWallet = sharedState.isMiniscriptWallet
                 ) {
-                    findNavController().navigate(
-                        InheritancePlanOverviewFragmentDirections.actionInheritancePlanOverviewFragmentToMagicalPhraseIntroFragment()
-                    )
+                    findNavController().navigateUp()
                 }
             }
         }
@@ -86,7 +84,7 @@ class InheritancePlanOverviewFragment : MembershipFragment() {
 }
 
 @Composable
-private fun InheritancePlanOverviewScreen(
+internal fun InheritancePlanOverviewScreen(
     viewModel: InheritancePlanOverviewViewModel = viewModel(),
     groupWalletType: GroupWalletType? = null,
     isMiniscriptWallet: Boolean,

@@ -73,16 +73,7 @@ class InheritanceKeyTipFragment : MembershipFragment() {
                     numberOfKey = sharedState.keyTypes.size,
                     isMiniscriptWallet = sharedState.isMiniscriptWallet,
                     onContinueClicked = {
-                        if (inheritanceViewModel.isMiniscriptWallet()) {
-                            findNavController().navigate(
-                                InheritanceKeyTipFragmentDirections
-                                    .actionInheritanceKeyTipFragmentToInheritanceTimelockInfoFragment()
-                            )
-                        } else {
-                            findNavController().navigate(
-                                InheritanceKeyTipFragmentDirections.actionInheritanceKeyTipFragmentToInheritanceActivationDateFragment()
-                            )
-                        }
+                        findNavController().navigateUp()
                     }
                 )
             }
@@ -91,7 +82,7 @@ class InheritanceKeyTipFragment : MembershipFragment() {
 }
 
 @Composable
-private fun InheritanceKeyTipContent(
+internal fun InheritanceKeyTipContent(
     remainTime: Int = 0,
     numberOfKey: Int = 1,
     isMiniscriptWallet: Boolean = false,

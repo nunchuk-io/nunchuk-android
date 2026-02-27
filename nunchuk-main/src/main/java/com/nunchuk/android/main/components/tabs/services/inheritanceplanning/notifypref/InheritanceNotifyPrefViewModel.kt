@@ -19,7 +19,6 @@
 
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.notifypref
 
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.contact.components.add.EmailWithState
@@ -34,10 +33,7 @@ import javax.inject.Inject
 @HiltViewModel
 class InheritanceNotifyPrefViewModel @Inject constructor(
     private val membershipStepManager: MembershipStepManager,
-    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
-
-    private val args = InheritanceNotifyPrefFragmentArgs.fromSavedStateHandle(savedStateHandle)
 
     private val _event = MutableSharedFlow<InheritanceNotifyPrefEvent>()
     val event = _event.asSharedFlow()
@@ -47,8 +43,8 @@ class InheritanceNotifyPrefViewModel @Inject constructor(
 
     val remainTime = membershipStepManager.remainingTime
 
-    fun init(param: InheritancePlanningParam.SetupOrReview) {
-        if (args.isUpdateRequest) {
+    fun init(param: InheritancePlanningParam.SetupOrReview, isUpdateRequest: Boolean) {
+        if (isUpdateRequest) {
             _state.update {
                 it.copy(
                     isNotify = param.isNotify,

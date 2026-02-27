@@ -70,10 +70,7 @@ class InheritanceTimelockInfoFragment : MembershipFragment() {
                 InheritanceTimelockInfoContent(
                     remainTime = remainTime,
                     onContinueClicked = {
-                        findNavController().navigate(
-                            InheritanceTimelockInfoFragmentDirections
-                                .actionInheritanceTimelockInfoFragmentToInheritanceNoteFragment()
-                        )
+                        findNavController().navigateUp()
                     }
                 )
             }
@@ -83,7 +80,7 @@ class InheritanceTimelockInfoFragment : MembershipFragment() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun InheritanceTimelockInfoContent(
+internal fun InheritanceTimelockInfoContent(
     remainTime: Int = 0,
     onContinueClicked: () -> Unit = {}
 ) {

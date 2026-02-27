@@ -82,10 +82,7 @@ import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.util.InheritancePlanFlow
-import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.openExternalLink
-import com.nunchuk.android.core.util.showError
-import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.main.BuildConfig
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningParam
@@ -146,38 +143,19 @@ class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionLis
                     viewModel = viewModel,
                     inheritanceViewModel = inheritanceViewModel,
                     onEditActivationDateClick = {
-                        findNavController().navigate(
-                            InheritanceReviewPlanFragmentDirections.actionInheritanceReviewPlanFragmentToInheritanceActivationDateFragment(
-                                isUpdateRequest = true,
-                            )
-                        )
+                        findNavController().navigateUp()
                     },
                     onEditNoteClick = {
-                        findNavController().navigate(
-                            InheritanceReviewPlanFragmentDirections.actionInheritanceReviewPlanFragmentToInheritanceNoteFragment(
-                                isUpdateRequest = true,
-                            )
-                        )
+                        findNavController().navigateUp()
                     },
                     onNotifyPrefClick = { _, _ ->
-                        findNavController().navigate(
-                            InheritanceReviewPlanFragmentDirections.actionInheritanceReviewPlanFragmentToInheritanceNotifyPrefFragment(
-                                isUpdateRequest = true,
-                            )
-                        )
+                        findNavController().navigateUp()
                     },
                     onDiscardChange = {
                         showDiscardDialog()
                     },
                     onShareSecretClicked = {
-                        findNavController().navigate(
-                            InheritanceReviewPlanFragmentDirections.actionInheritanceReviewPlanFragmentToInheritanceShareSecretFragment(
-                                magicalPhrase = inheritanceViewModel.setupOrReviewParam.magicalPhrase,
-                                planFlow = inheritanceViewModel.setupOrReviewParam.planFlow,
-                                walletId = inheritanceViewModel.setupOrReviewParam.walletId,
-                                sourceFlow = inheritanceViewModel.setupOrReviewParam.sourceFlow
-                            )
-                        )
+                        findNavController().navigateUp()
                     },
                     onActionTopBarClick = {
                         if (inheritanceViewModel.setupOrReviewParam.planFlow == InheritancePlanFlow.VIEW) {
@@ -190,16 +168,10 @@ class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionLis
                         requireActivity().openExternalLink(link)
                     },
                     onEditBufferPeriodClick = {
-                        findNavController().navigate(
-                            InheritanceReviewPlanFragmentDirections.actionInheritanceReviewPlanFragmentToInheritanceBufferPeriodFragment(
-                                isUpdateRequest = true,
-                            )
-                        )
+                        findNavController().navigateUp()
                     },
                     onBackUpPasswordInfoClick = {
-                        findNavController().navigate(
-                            InheritanceReviewPlanFragmentDirections.actionInheritanceReviewPlanFragmentToInheritanceBackUpDownloadFragment()
-                        )
+                        findNavController().navigateUp()
                     },
                 )
             }
@@ -216,47 +188,12 @@ class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionLis
         )
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        flowObserver(viewModel.event) { event ->
-            when (event) {
-                is InheritanceReviewPlanEvent.CalculateRequiredSignaturesSuccess -> {
-                    navigator.openWalletAuthentication(
-                        walletId = event.walletId,
-                        userData = event.userData,
-                        requiredSignatures = event.requiredSignatures,
-                        type = event.type,
-                        groupId = inheritanceViewModel.setupOrReviewParam.groupId,
-                        dummyTransactionId = event.dummyTransactionId,
-                        launcher = launcher,
-                        activityContext = requireActivity()
-                    )
-                    if (event.dummyTransactionId.isNotEmpty() && inheritanceViewModel.setupOrReviewParam.planFlow == InheritancePlanFlow.VIEW) {
-                        requireActivity().finish()
-                    }
-                }
-
-                is InheritanceReviewPlanEvent.CreateOrUpdateInheritanceSuccess -> handleFlow()
-                is InheritanceReviewPlanEvent.Loading -> showOrHideLoading(loading = event.loading)
-                is InheritanceReviewPlanEvent.ProcessFailure -> showError(message = event.message)
-                is InheritanceReviewPlanEvent.CancelInheritanceSuccess, InheritanceReviewPlanEvent.MarkSetupInheritance -> handleFlow()
-            }
-        }
-    }
-
     private fun handleFlow() {
         if (viewModel.reviewFlow == InheritanceReviewPlanViewModel.ReviewFlow.CANCEL) {
             NcToastManager.scheduleShowMessage(message = getString(R.string.nc_inheritance_plan_cancelled_notify))
             handleResult()
         } else if (inheritanceViewModel.setupOrReviewParam.planFlow == InheritancePlanFlow.SETUP) {
-            findNavController().navigate(
-                InheritanceReviewPlanFragmentDirections.actionInheritanceReviewPlanFragmentToInheritanceCreateSuccessFragment(
-                    magicalPhrase = inheritanceViewModel.setupOrReviewParam.magicalPhrase,
-                    planFlow = inheritanceViewModel.setupOrReviewParam.planFlow,
-                    walletId = inheritanceViewModel.setupOrReviewParam.walletId,
-                    sourceFlow = inheritanceViewModel.setupOrReviewParam.sourceFlow
-                )
-            )
+            requireActivity().finish()
         } else if (inheritanceViewModel.setupOrReviewParam.planFlow == InheritancePlanFlow.VIEW) {
             NcToastManager.scheduleShowMessage(message = getString(R.string.nc_inheritance_plan_updated_notify))
             handleResult()

@@ -60,8 +60,6 @@ import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.fragment.findNavController
-import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcDatePickerDialog
 import com.nunchuk.android.compose.NcHighlightText
 import com.nunchuk.android.compose.NcHintMessage
@@ -75,7 +73,6 @@ import com.nunchuk.android.core.ui.TimeZoneDetail
 import com.nunchuk.android.core.ui.toTimeZoneDetail
 import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.core.util.InheritancePlanFlow
-import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.reviewplan.formatDateInTimezone
@@ -88,7 +85,8 @@ class InheritanceActivationDateFragment : MembershipFragment() {
 
     private val viewModel: InheritanceActivationDateViewModel by viewModels()
     private val inheritanceViewModel: InheritancePlanningViewModel by activityViewModels()
-    private val args: InheritanceActivationDateFragmentArgs by navArgs()
+    private val isUpdateRequest: Boolean
+        get() = arguments?.getBoolean(ARG_IS_UPDATE_REQUEST, false) ?: false
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
@@ -99,41 +97,22 @@ class InheritanceActivationDateFragment : MembershipFragment() {
             setContent {
                 InheritanceActivationDateScreen(
                     viewModel = viewModel,
-                    args = args,
+                    isUpdateRequest = isUpdateRequest,
                     inheritanceViewModel = inheritanceViewModel
                 )
             }
         }
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        flowObserver(viewModel.event) { event ->
-            when (event) {
-                is InheritanceActivationDateEvent.ContinueClick -> {
-                    inheritanceViewModel.setOrUpdate(
-                        inheritanceViewModel.setupOrReviewParam.copy(
-                            activationDate = event.date,
-                            selectedZoneId = event.selectedZoneId
-                        )
-                    )
-                    if (args.isUpdateRequest || inheritanceViewModel.setupOrReviewParam.planFlow == InheritancePlanFlow.VIEW) {
-                        findNavController().popBackStack()
-                    } else {
-                        findNavController().navigate(
-                            InheritanceActivationDateFragmentDirections.actionInheritanceActivationDateFragmentToInheritanceNoteFragment()
-                        )
-                    }
-                }
-            }
-        }
+    companion object {
+        private const val ARG_IS_UPDATE_REQUEST = "is_update_request"
     }
 }
 
 @Composable
 fun InheritanceActivationDateScreen(
     viewModel: InheritanceActivationDateViewModel = viewModel(),
-    args: InheritanceActivationDateFragmentArgs,
+    isUpdateRequest: Boolean,
     inheritanceViewModel: InheritancePlanningViewModel,
 ) {
     val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
@@ -161,7 +140,7 @@ fun InheritanceActivationDateScreen(
             selectedTimeZone = timeZone
         },
         planFlow = inheritanceViewModel.setupOrReviewParam.planFlow,
-        isUpdateRequest = args.isUpdateRequest,
+        isUpdateRequest = isUpdateRequest,
         onContinueClick = {
             viewModel.onContinueClicked(selectedTimeZone, selectedDate)
         },

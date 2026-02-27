@@ -48,8 +48,6 @@ import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.fragment.findNavController
-import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcRadioButton
 import com.nunchuk.android.compose.NcTag
@@ -57,9 +55,6 @@ import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.SelectableContainer
 import com.nunchuk.android.core.util.InheritancePlanFlow
-import com.nunchuk.android.core.util.flowObserver
-import com.nunchuk.android.core.util.showError
-import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
 import com.nunchuk.android.model.Period
 import com.nunchuk.android.share.membership.MembershipFragment
@@ -71,7 +66,8 @@ class InheritanceBufferPeriodFragment : MembershipFragment() {
 
     private val viewModel: InheritanceBufferPeriodViewModel by viewModels()
     private val inheritanceViewModel: InheritancePlanningViewModel by activityViewModels()
-    private val args: InheritanceBufferPeriodFragmentArgs by navArgs()
+    private val isUpdateRequest: Boolean
+        get() = arguments?.getBoolean(ARG_IS_UPDATE_REQUEST, false) ?: false
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -80,41 +76,32 @@ class InheritanceBufferPeriodFragment : MembershipFragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
-                InheritanceBufferPeriodScreen(viewModel, args, inheritanceViewModel)
+                InheritanceBufferPeriodScreen(
+                    viewModel = viewModel,
+                    isUpdateRequest = isUpdateRequest,
+                    inheritanceViewModel = inheritanceViewModel
+                )
             }
         }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        viewModel.init(inheritanceViewModel.setupOrReviewParam)
-        flowObserver(viewModel.event) { event ->
-            when (event) {
-                is InheritanceBufferPeriodEvent.Loading -> showOrHideLoading(loading = event.isLoading)
-                is InheritanceBufferPeriodEvent.Error -> showError(message = event.message)
-                is InheritanceBufferPeriodEvent.OnContinueClick -> {
-                    inheritanceViewModel.setOrUpdate(
-                        inheritanceViewModel.setupOrReviewParam.copy(
-                            bufferPeriod = event.period
-                        )
-                    )
-                    if (args.isUpdateRequest || inheritanceViewModel.setupOrReviewParam.planFlow == InheritancePlanFlow.VIEW) {
-                        findNavController().popBackStack()
-                    } else {
-                        findNavController().navigate(
-                            InheritanceBufferPeriodFragmentDirections.actionInheritanceBufferPeriodFragmentToInheritanceNotifyPrefFragment()
-                        )
-                    }
-                }
-            }
-        }
+        viewModel.init(
+            param = inheritanceViewModel.setupOrReviewParam,
+            isUpdateRequest = isUpdateRequest
+        )
+    }
+
+    companion object {
+        private const val ARG_IS_UPDATE_REQUEST = "is_update_request"
     }
 }
 
 @Composable
-private fun InheritanceBufferPeriodScreen(
+internal fun InheritanceBufferPeriodScreen(
     viewModel: InheritanceBufferPeriodViewModel = viewModel(),
-    args: InheritanceBufferPeriodFragmentArgs,
+    isUpdateRequest: Boolean,
     inheritanceViewModel: InheritancePlanningViewModel
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -124,7 +111,7 @@ private fun InheritanceBufferPeriodScreen(
         remainTime = remainTime,
         planFlow = inheritanceViewModel.setupOrReviewParam.planFlow,
         options = state.options,
-        isUpdateRequest = args.isUpdateRequest,
+        isUpdateRequest = isUpdateRequest,
         onOptionClick = viewModel::onOptionClick,
         onContinueClick = viewModel::onContinueClick
     )
@@ -245,4 +232,3 @@ private fun InheritanceBufferPeriodFragmentContentPreview() {
         )
     )
 }
-

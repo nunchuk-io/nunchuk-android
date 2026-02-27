@@ -69,9 +69,7 @@ class InheritanceSetupIntroFragment : MembershipFragment() {
 
             setContent {
                 InheritanceSetupIntroScreen(viewModel) {
-                    findNavController().navigate(
-                        InheritanceSetupIntroFragmentDirections.actionInheritanceSetupIntroFragmentToInheritancePlanOverviewFragment()
-                    )
+                    findNavController().navigateUp()
                 }
             }
         }
@@ -79,7 +77,10 @@ class InheritanceSetupIntroFragment : MembershipFragment() {
 }
 
 @Composable
-private fun InheritanceSetupIntroScreen(viewModel: InheritanceSetupIntroViewModel = viewModel(), onContinueClicked: () -> Unit) {
+internal fun InheritanceSetupIntroScreen(
+    viewModel: InheritanceSetupIntroViewModel = viewModel(),
+    onContinueClicked: () -> Unit
+) {
     val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
     InheritanceSetupIntroContent(remainTime, onContinueClicked)
 }

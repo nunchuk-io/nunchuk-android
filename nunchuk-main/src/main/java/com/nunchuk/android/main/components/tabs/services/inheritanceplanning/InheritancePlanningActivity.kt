@@ -22,16 +22,17 @@ package com.nunchuk.android.main.components.tabs.services.inheritanceplanning
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import androidx.compose.ui.platform.ComposeView
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.viewModels
 import androidx.core.view.WindowCompat
-import androidx.navigation.fragment.NavHostFragment
+import androidx.viewbinding.ViewBinding
 import com.nunchuk.android.core.base.BaseShareSaveFileActivity
+import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.InheritanceSourceFlow
 import com.nunchuk.android.core.util.flowObserver
-import com.nunchuk.android.main.R
 import com.nunchuk.android.model.Inheritance
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.byzantine.GroupWalletType
@@ -39,19 +40,23 @@ import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.widget.NCToastMessage
-import com.nunchuk.android.widget.databinding.ActivityNavigationBinding
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class InheritancePlanningActivity : BaseShareSaveFileActivity<ActivityNavigationBinding>() {
+class InheritancePlanningActivity : BaseShareSaveFileActivity<ViewBinding>() {
 
     @Inject
     internal lateinit var membershipStepManager: MembershipStepManager
 
     private val viewModel by viewModels<InheritancePlanningViewModel>()
+    private var planFlow: Int = InheritancePlanFlow.NONE
+    private var startDestination: Int = START_DESTINATION_DEFAULT
+    private var bottomSheetOptionListener: ((SheetOption) -> Unit)? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        planFlow = intent.getIntExtra(EXTRA_INHERITANCE_PLAN_FLOW, InheritancePlanFlow.NONE)
+        startDestination = intent.getIntExtra(EXTRA_START_DESTINATION, START_DESTINATION_DEFAULT)
         super.onCreate(savedInstanceState)
 
         val groupId = intent.getStringExtra(MembershipFragment.EXTRA_GROUP_ID).orEmpty()
@@ -60,18 +65,6 @@ class InheritancePlanningActivity : BaseShareSaveFileActivity<ActivityNavigation
         }
         membershipStepManager.setCurrentStep(MembershipStep.SETUP_INHERITANCE)
 
-        val navHostFragment =
-            supportFragmentManager.findFragmentById(R.id.nav_host) as NavHostFragment
-        val inflater = navHostFragment.navController.navInflater
-        val graph = inflater.inflate(R.navigation.inheritance_planning_navigation)
-        graph.setStartDestination(R.id.inheritanceReviewPlanFragment)
-        val planFlow = intent.getIntExtra(EXTRA_INHERITANCE_PLAN_FLOW, InheritancePlanFlow.NONE)
-        when (planFlow) {
-            InheritancePlanFlow.SETUP -> graph.setStartDestination(R.id.inheritanceSetupIntroFragment)
-            InheritancePlanFlow.VIEW -> graph.setStartDestination(R.id.inheritanceReviewPlanFragment)
-            InheritancePlanFlow.SIGN_DUMMY_TX -> graph.setStartDestination(R.id.inheritanceReviewPlanGroupGroupFragment)
-            InheritancePlanFlow.REQUEST -> graph.setStartDestination(R.id.inheritanceRequestPlanningConfirmFragment)
-        }
         when (planFlow) {
             InheritancePlanFlow.SETUP -> {
                 viewModel.setOrUpdate(
@@ -128,19 +121,22 @@ class InheritancePlanningActivity : BaseShareSaveFileActivity<ActivityNavigation
                 )
             }
         }
-        navHostFragment.navController.setGraph(graph, intent.extras)
-        navHostFragment.navController.addOnDestinationChangedListener { _, destination, _ ->
-            when (destination.id) {
-                R.id.selectWalletFragment -> WindowCompat.setDecorFitsSystemWindows(window, true)
-                else -> WindowCompat.setDecorFitsSystemWindows(window, false)
-            }
-        }
+        WindowCompat.setDecorFitsSystemWindows(window, false)
         observer()
         observeEvent()
     }
 
     fun showSaveShareOption() {
         super.showSaveShareOption(false)
+    }
+
+    fun setBottomSheetOptionListener(listener: ((SheetOption) -> Unit)?) {
+        bottomSheetOptionListener = listener
+    }
+
+    override fun onOptionClicked(option: SheetOption) {
+        super.onOptionClicked(option)
+        bottomSheetOptionListener?.invoke(option)
     }
 
     override fun shareFile() {
@@ -179,10 +175,21 @@ class InheritancePlanningActivity : BaseShareSaveFileActivity<ActivityNavigation
         controller.shareFile(event.filePath)
     }
 
-    override fun initializeBinding(): ActivityNavigationBinding {
-        return ActivityNavigationBinding.inflate(layoutInflater).also {
-            enableEdgeToEdge()
+    override fun initializeBinding(): ViewBinding = ViewBinding {
+        ComposeView(this).apply {
+            setContent {
+                InheritancePlanningGraph(
+                    activity = this@InheritancePlanningActivity,
+                    navigator = navigator,
+                    membershipStepManager = membershipStepManager,
+                    activityViewModel = viewModel,
+                    planFlow = planFlow,
+                    startDestination = startDestination,
+                )
+            }
         }
+    }.also {
+        enableEdgeToEdge()
     }
 
     companion object {
@@ -193,8 +200,11 @@ class InheritancePlanningActivity : BaseShareSaveFileActivity<ActivityNavigation
         private const val EXTRA_SOURCE_FLOW = "extra_source_flow"
         const val EXTRA_WALLET_ID = "wallet_id"
         private const val EXTRA_DUMMY_TRANSACTION_ID = "dummy_transaction_id"
+        private const val EXTRA_START_DESTINATION = "extra_start_destination"
 
         const val RESULT_REQUEST_PLANNING = "result_request_planning"
+        const val START_DESTINATION_DEFAULT = 0
+        const val START_DESTINATION_CREATE_SUCCESS = 1
 
         fun navigate(
             launcher: ActivityResultLauncher<Intent>? = null,
@@ -205,7 +215,8 @@ class InheritancePlanningActivity : BaseShareSaveFileActivity<ActivityNavigation
             @InheritancePlanFlow.InheritancePlanFlowInfo flowInfo: Int,
             @InheritanceSourceFlow.InheritanceSourceFlowInfo sourceFlow: Int,
             groupId: String?,
-            dummyTransactionId: String?
+            dummyTransactionId: String?,
+            startDestination: Int = START_DESTINATION_DEFAULT,
         ) {
             val intent = Intent(activity, InheritancePlanningActivity::class.java)
                 .putExtra(EXTRA_INHERITANCE_PLAN_FLOW, flowInfo)
@@ -215,6 +226,7 @@ class InheritancePlanningActivity : BaseShareSaveFileActivity<ActivityNavigation
                 .putExtra(EXTRA_WALLET_ID, walletId)
                 .putExtra(MembershipFragment.EXTRA_GROUP_ID, groupId)
                 .putExtra(EXTRA_DUMMY_TRANSACTION_ID, dummyTransactionId)
+                .putExtra(EXTRA_START_DESTINATION, startDestination)
             if (launcher != null) {
                 launcher.launch(intent)
             } else {

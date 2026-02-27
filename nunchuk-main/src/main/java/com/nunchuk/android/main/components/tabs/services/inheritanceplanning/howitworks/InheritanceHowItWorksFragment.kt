@@ -41,7 +41,6 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.navigation.fragment.findNavController
-import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NCLabelWithIndex
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
@@ -53,12 +52,15 @@ import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.sharesecret.InheritanceShareSecretType
 import com.nunchuk.android.main.membership.byzantine.groupdashboard.GroupDashboardActivity
 import com.nunchuk.android.share.membership.MembershipFragment
+import com.nunchuk.android.utils.serializable
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class InheritanceHowItWorksFragment : MembershipFragment() {
 
-    private val args: InheritanceHowItWorksFragmentArgs by navArgs()
+    private val shareSecretType: InheritanceShareSecretType
+        get() = arguments?.serializable<InheritanceShareSecretType>(ARG_TYPE)
+            ?: InheritanceShareSecretType.DIRECT
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -68,7 +70,7 @@ class InheritanceHowItWorksFragment : MembershipFragment() {
 
             setContent {
                 InheritanceHowItWorksScreen(
-                    type = args.type,
+                    type = shareSecretType,
                     onDoneClick = {
                         if (activity is GroupDashboardActivity) {
                             findNavController().popBackStack(R.id.groupDashboardFragment, false)
@@ -80,10 +82,14 @@ class InheritanceHowItWorksFragment : MembershipFragment() {
             }
         }
     }
+
+    companion object {
+        private const val ARG_TYPE = "type"
+    }
 }
 
 @Composable
-private fun InheritanceHowItWorksScreen(
+internal fun InheritanceHowItWorksScreen(
     type: InheritanceShareSecretType,
     onDoneClick: () -> Unit = {}
 ) {
@@ -221,4 +227,3 @@ private fun InheritanceHowItWorksScreenIndirectPreview() {
 private fun InheritanceHowItWorksScreenJointPreview() {
     InheritanceHowItWorksContent(type = InheritanceShareSecretType.JOINT_CONTROL)
 }
-

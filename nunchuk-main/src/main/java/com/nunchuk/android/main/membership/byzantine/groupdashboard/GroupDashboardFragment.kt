@@ -362,13 +362,16 @@ class GroupDashboardFragment : BaseFragment<ViewBinding>(), BottomSheetOptionLis
                 is GroupDashboardEvent.GetInheritanceSuccess -> {
                     if (event.isAlertFlow) {
                         viewModel.dismissCurrentAlert()
-                        findNavController().navigate(
-                            GroupDashboardFragmentDirections.actionGroupDashboardFragmentToInheritanceCreateSuccessFragment(
-                                magicalPhrase = event.inheritance.magic,
-                                planFlow = InheritancePlanFlow.VIEW,
-                                walletId = args.walletId.orEmpty(),
-                                sourceFlow = InheritanceSourceFlow.GROUP_DASHBOARD,
-                            )
+                        InheritancePlanningActivity.navigate(
+                            walletId = viewModel.getWalletId(),
+                            activity = requireContext(),
+                            verifyToken = event.token,
+                            inheritance = event.inheritance,
+                            flowInfo = InheritancePlanFlow.VIEW,
+                            sourceFlow = InheritanceSourceFlow.GROUP_DASHBOARD,
+                            groupId = viewModel.getGroupId(),
+                            dummyTransactionId = null,
+                            startDestination = InheritancePlanningActivity.START_DESTINATION_CREATE_SUCCESS,
                         )
                     } else {
                         if (event.token.isNotEmpty()) {

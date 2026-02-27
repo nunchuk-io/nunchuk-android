@@ -1,6 +1,5 @@
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.requestplanningsent.confirm
 
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.membership.RequestPlanningInheritanceUseCase
@@ -16,24 +15,22 @@ import javax.inject.Inject
 class InheritanceRequestPlanningConfirmViewModel @Inject constructor(
     private val requestPlanningInheritanceUserDataUseCase: RequestPlanningInheritanceUserDataUseCase,
     private val requestPlanningInheritanceUseCase: RequestPlanningInheritanceUseCase,
-    saveStateHandle: SavedStateHandle,
 ) : ViewModel() {
-    private val args = InheritanceRequestPlanningConfirmFragmentArgs.fromSavedStateHandle(saveStateHandle)
     private val _event = MutableSharedFlow<InheritanceRequestPlanningConfirmEvent>()
     val event = _event.asSharedFlow()
 
-    fun requestInheritancePlanning() = viewModelScope.launch {
+    fun requestInheritancePlanning(walletId: String, groupId: String) = viewModelScope.launch {
         val userData = requestPlanningInheritanceUserDataUseCase(
             RequestPlanningInheritanceUserDataUseCase.Param(
-                walletId = args.walletId,
-                groupId = args.groupId
+                walletId = walletId,
+                groupId = groupId
             )
         )
         requestPlanningInheritanceUseCase(
             RequestPlanningInheritanceUseCase.Param(
                 userData = userData.getOrThrow(),
-                walletId = args.walletId,
-                groupId = args.groupId
+                walletId = walletId,
+                groupId = groupId
             )
         ).onSuccess {
             _event.emit(

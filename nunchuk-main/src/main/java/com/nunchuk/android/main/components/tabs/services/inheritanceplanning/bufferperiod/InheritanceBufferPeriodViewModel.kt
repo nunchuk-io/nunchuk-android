@@ -20,7 +20,6 @@
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.bufferperiod
 
 import android.content.Context
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.membership.GetInheritanceBufferPeriodUseCase
@@ -40,10 +39,9 @@ class InheritanceBufferPeriodViewModel @Inject constructor(
     private val getInheritanceBufferPeriodUseCase: GetInheritanceBufferPeriodUseCase,
     @ApplicationContext private val context: Context,
     membershipStepManager: MembershipStepManager,
-    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private val args = InheritanceBufferPeriodFragmentArgs.fromSavedStateHandle(savedStateHandle)
+    private var isUpdateRequest: Boolean = false
     private lateinit var param: InheritancePlanningParam.SetupOrReview
 
     private val _event = MutableSharedFlow<InheritanceBufferPeriodEvent>()
@@ -54,8 +52,9 @@ class InheritanceBufferPeriodViewModel @Inject constructor(
 
     val remainTime = membershipStepManager.remainingTime
 
-    fun init(param: InheritancePlanningParam.SetupOrReview) {
+    fun init(param: InheritancePlanningParam.SetupOrReview, isUpdateRequest: Boolean) {
         this.param = param
+        this.isUpdateRequest = isUpdateRequest
         getBufferPeriod()
     }
 
@@ -69,7 +68,7 @@ class InheritanceBufferPeriodViewModel @Inject constructor(
             _state.update {
                 it.copy(options = options)
             }
-            if (args.isUpdateRequest) {
+            if (isUpdateRequest) {
                 onOptionClick(param.bufferPeriod?.id ?: NO_NEED_PERIOD_ITEM_ID)
             }
         } else {

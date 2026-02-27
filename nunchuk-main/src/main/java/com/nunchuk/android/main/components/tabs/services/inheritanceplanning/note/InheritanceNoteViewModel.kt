@@ -19,7 +19,6 @@
 
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.note
 
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningParam
@@ -32,7 +31,6 @@ import javax.inject.Inject
 @HiltViewModel
 class InheritanceNoteViewModel @Inject constructor(
     membershipStepManager: MembershipStepManager,
-    savedStateHandle: SavedStateHandle
 ) :
     ViewModel() {
 
@@ -44,10 +42,8 @@ class InheritanceNoteViewModel @Inject constructor(
     private val _state = MutableStateFlow(InheritanceNoteState())
     val state = _state.asStateFlow()
 
-    private val args = InheritanceNoteFragmentArgs.fromSavedStateHandle(savedStateHandle)
-
-    fun init(param: InheritancePlanningParam.SetupOrReview) {
-        if (args.isUpdateRequest) {
+    fun init(param: InheritancePlanningParam.SetupOrReview, isUpdateRequest: Boolean) {
+        if (isUpdateRequest) {
             updateNote(param.note)
         }
     }

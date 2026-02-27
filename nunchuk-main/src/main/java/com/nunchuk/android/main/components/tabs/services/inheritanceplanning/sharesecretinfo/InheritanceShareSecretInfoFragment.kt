@@ -56,7 +56,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
-import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.HighlightMessageType
 import com.nunchuk.android.compose.NCLabelWithIndex
 import com.nunchuk.android.compose.NcClickableText
@@ -85,9 +84,18 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class InheritanceShareSecretInfoFragment : MembershipFragment() {
 
-    private val args: InheritanceShareSecretInfoFragmentArgs by navArgs()
     private val viewModel: InheritanceShareSecretInfoViewModel by viewModels()
     private val sharedViewModel: InheritancePlanningViewModel by activityViewModels()
+    private val typeArg: Int
+        get() = arguments?.getInt(ARG_TYPE, 0) ?: 0
+    private val magicalPhraseArg: String
+        get() = arguments?.getString(ARG_MAGICAL_PHRASE).orEmpty()
+    private val planFlowArg: Int
+        get() = arguments?.getInt(ARG_PLAN_FLOW, InheritancePlanFlow.NONE) ?: InheritancePlanFlow.NONE
+    private val sourceFlowArg: Int
+        get() = arguments?.getInt(ARG_SOURCE_FLOW, InheritanceSourceFlow.NONE) ?: InheritanceSourceFlow.NONE
+    private val walletIdArg: String
+        get() = arguments?.getString(ARG_WALLET_ID).orEmpty()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -99,24 +107,20 @@ class InheritanceShareSecretInfoFragment : MembershipFragment() {
                 InheritanceShareSecretInfoScreen(
                     sharedViewModel = sharedViewModel,
                     viewModel = viewModel,
-                    args = args,
+                    type = typeArg,
+                    magicalPhrase = magicalPhraseArg,
+                    planFlow = planFlowArg,
                     onContinue = {
                         if (sharedViewModel.isMiniscriptWallet()) {
-                            findNavController().navigate(
-                                InheritanceShareSecretInfoFragmentDirections.actionInheritanceShareSecretInfoFragmentToInheritanceHowItWorksFragment(
-                                    type = InheritanceShareSecretType.entries[args.type]
-                                )
-                            )
-                        } else if (args.planFlow == InheritancePlanFlow.SETUP) {
+                            findNavController().navigateUp()
+                        } else if (planFlowArg == InheritancePlanFlow.SETUP) {
                             showDialogInfo()
                         } else {
                             handleBack()
                         }
                     },
                     onLearnMoreClicked = {
-                        findNavController().navigate(
-                            InheritanceShareSecretInfoFragmentDirections.actionInheritanceShareSecretInfoFragmentToInheritanceBackUpDownloadFragment()
-                        )
+                        findNavController().navigateUp()
                     },
                     onSaveBsms = {
                         (activity as? InheritancePlanningActivity)?.showSaveShareOption()
@@ -136,7 +140,7 @@ class InheritanceShareSecretInfoFragment : MembershipFragment() {
     }
 
     private fun handleBack() {
-        when (args.sourceFlow) {
+        when (sourceFlowArg) {
             InheritanceSourceFlow.GROUP_DASHBOARD -> {
                 if (requireActivity() is GroupDashboardActivity) {
                     findNavController().popBackStack(R.id.groupDashboardFragment, false)
@@ -148,19 +152,29 @@ class InheritanceShareSecretInfoFragment : MembershipFragment() {
             InheritanceSourceFlow.SERVICE_TAB -> requireActivity().finish()
             else -> {
                 ActivityManager.popUntilRoot()
-                if (args.planFlow == InheritancePlanFlow.SETUP && args.sourceFlow == InheritanceSourceFlow.WIZARD) {
-                    navigator.openWalletDetailsScreen(requireContext(), args.walletId)
+                if (planFlowArg == InheritancePlanFlow.SETUP && sourceFlowArg == InheritanceSourceFlow.WIZARD) {
+                    navigator.openWalletDetailsScreen(requireContext(), walletIdArg)
                 }
             }
         }
     }
+
+    companion object {
+        private const val ARG_SOURCE_FLOW = "source_flow"
+        private const val ARG_MAGICAL_PHRASE = "magical_phrase"
+        private const val ARG_TYPE = "type"
+        private const val ARG_PLAN_FLOW = "plan_flow"
+        private const val ARG_WALLET_ID = "wallet_id"
+    }
 }
 
 @Composable
-private fun InheritanceShareSecretInfoScreen(
+internal fun InheritanceShareSecretInfoScreen(
     viewModel: InheritanceShareSecretInfoViewModel = viewModel(),
     sharedViewModel: InheritancePlanningViewModel = hiltViewModel(),
-    args: InheritanceShareSecretInfoFragmentArgs,
+    type: Int,
+    magicalPhrase: String,
+    planFlow: Int,
     onContinue: () -> Unit = {},
     onLearnMoreClicked: () -> Unit = {},
     onSaveBsms: () -> Unit = {},
@@ -170,9 +184,9 @@ private fun InheritanceShareSecretInfoScreen(
     InheritanceShareSecretInfoContent(
         isMiniscriptWallet = sharedUiState.isMiniscriptWallet,
         remainTime = remainTime,
-        type = args.type,
-        magicalPhrase = args.magicalPhrase,
-        planFlow = args.planFlow,
+        type = type,
+        magicalPhrase = magicalPhrase,
+        planFlow = planFlow,
         onContinue = onContinue,
         onLearnMoreClicked = onLearnMoreClicked,
         onSaveBsms = onSaveBsms

@@ -44,15 +44,12 @@ import androidx.compose.ui.unit.dp
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.fragment.findNavController
-import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcRadioButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.SelectableContainer
 import com.nunchuk.android.core.util.InheritancePlanFlow
-import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.signer.R
 import dagger.hilt.android.AndroidEntryPoint
@@ -61,7 +58,8 @@ import dagger.hilt.android.AndroidEntryPoint
 class InheritanceShareSecretFragment : MembershipFragment() {
 
     private val viewModel: InheritanceShareSecretViewModel by viewModels()
-    private val args: InheritanceShareSecretFragmentArgs by navArgs()
+    private val planFlow: Int
+        get() = arguments?.getInt(ARG_PLAN_FLOW, InheritancePlanFlow.NONE) ?: InheritancePlanFlow.NONE
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -70,35 +68,23 @@ class InheritanceShareSecretFragment : MembershipFragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
-                InheritanceShareSecretScreen(viewModel, args)
+                InheritanceShareSecretScreen(
+                    viewModel = viewModel,
+                    planFlow = planFlow
+                )
             }
         }
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        flowObserver(viewModel.event) { event ->
-            when (event) {
-                is InheritanceShareSecretEvent.ContinueClick -> {
-                    findNavController().navigate(
-                        InheritanceShareSecretFragmentDirections.actionInheritanceShareSecretFragmentToInheritanceShareSecretInfoFragment(
-                            magicalPhrase = args.magicalPhrase,
-                            type = event.type,
-                            planFlow = args.planFlow,
-                            walletId = args.walletId,
-                            sourceFlow = args.sourceFlow
-                        )
-                    )
-                }
-            }
-        }
+    companion object {
+        private const val ARG_PLAN_FLOW = "plan_flow"
     }
 }
 
 @Composable
-private fun InheritanceShareSecretScreen(
+internal fun InheritanceShareSecretScreen(
     viewModel: InheritanceShareSecretViewModel = viewModel(),
-    args: InheritanceShareSecretFragmentArgs
+    planFlow: Int
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
@@ -106,7 +92,7 @@ private fun InheritanceShareSecretScreen(
     InheritanceShareSecretContent(
         remainTime = remainTime,
         options = state.options,
-        planFlow = args.planFlow,
+        planFlow = planFlow,
         onOptionClick = viewModel::onOptionClick,
         onContinueClicked = viewModel::onContinueClick
     )

@@ -1,7 +1,5 @@
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.reviewplan
 
-import android.app.Activity
-import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -57,11 +55,8 @@ import com.nunchuk.android.compose.whisper
 import com.nunchuk.android.core.data.model.byzantine.InheritanceDataExtended
 import com.nunchuk.android.core.data.model.byzantine.InheritancePayload
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
-import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.orDefault
 import com.nunchuk.android.core.util.orFalse
-import com.nunchuk.android.core.util.showError
-import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningParam
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningState
@@ -70,7 +65,6 @@ import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.DummyTransactionType
 import com.nunchuk.android.model.inheritance.InheritanceNotificationSettings
 import com.nunchuk.android.share.membership.MembershipFragment
-import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.utils.simpleGlobalDateFormat
 import dagger.hilt.android.AndroidEntryPoint
 import java.util.Date
@@ -652,6 +646,5 @@ private fun InheritanceReviewPlanGroupScreenPreview() {
         groupId = "group123"
     )
 }
-
 
 

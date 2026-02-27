@@ -50,15 +50,12 @@ import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.fragment.findNavController
-import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.util.InheritancePlanFlow
-import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
 import com.nunchuk.android.share.membership.MembershipFragment
@@ -69,7 +66,8 @@ class InheritanceNoteFragment : MembershipFragment() {
 
     private val viewModel: InheritanceNoteViewModel by viewModels()
     private val inheritanceViewModel: InheritancePlanningViewModel by activityViewModels()
-    private val args: InheritanceNoteFragmentArgs by navArgs()
+    private val isUpdateRequest: Boolean
+        get() = arguments?.getBoolean(ARG_IS_UPDATE_REQUEST, false) ?: false
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
@@ -78,45 +76,32 @@ class InheritanceNoteFragment : MembershipFragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
-                InheritanceNoteScreen(viewModel, args, inheritanceViewModel)
+                InheritanceNoteScreen(
+                    viewModel = viewModel,
+                    isUpdateRequest = isUpdateRequest,
+                    inheritanceViewModel = inheritanceViewModel
+                )
             }
         }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        viewModel.init(inheritanceViewModel.setupOrReviewParam)
-        flowObserver(viewModel.event) { event ->
-            when (event) {
-                is InheritanceNoteEvent.ContinueClick -> {
-                    inheritanceViewModel.setOrUpdate(
-                        inheritanceViewModel.setupOrReviewParam.copy(
-                            note = event.note
-                        )
-                    )
-                    if (args.isUpdateRequest || inheritanceViewModel.setupOrReviewParam.planFlow == InheritancePlanFlow.VIEW) {
-                        findNavController().popBackStack()
-                    } else if (inheritanceViewModel.isMiniscriptWallet()) {
-                        findNavController().navigate(
-                            InheritanceNoteFragmentDirections.actionInheritanceNoteFragmentToInheritanceNotifyPrefFragment(
-                                isUpdateRequest = args.isUpdateRequest
-                            )
-                        )
-                    } else {
-                        findNavController().navigate(
-                            InheritanceNoteFragmentDirections.actionInheritanceNoteFragmentToInheritanceBufferPeriodFragment()
-                        )
-                    }
-                }
-            }
-        }
+        viewModel.init(
+            param = inheritanceViewModel.setupOrReviewParam,
+            isUpdateRequest = isUpdateRequest
+        )
+    }
+
+    companion object {
+        private const val ARG_IS_UPDATE_REQUEST = "is_update_request"
     }
 }
 
 @Composable
 fun InheritanceNoteScreen(
     viewModel: InheritanceNoteViewModel = viewModel(),
-    args: InheritanceNoteFragmentArgs,
+    isUpdateRequest: Boolean,
     inheritanceViewModel: InheritancePlanningViewModel
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -126,7 +111,7 @@ fun InheritanceNoteScreen(
         remainTime = remainTime,
         note = state.note,
         planFlow = inheritanceViewModel.setupOrReviewParam.planFlow,
-        isUpdateRequest = args.isUpdateRequest,
+        isUpdateRequest = isUpdateRequest,
         onContinueClick = viewModel::onContinueClicked,
         onTextChange = viewModel::updateNote
     )

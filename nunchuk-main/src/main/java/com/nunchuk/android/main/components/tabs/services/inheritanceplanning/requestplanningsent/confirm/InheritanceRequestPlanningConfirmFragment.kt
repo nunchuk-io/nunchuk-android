@@ -1,7 +1,5 @@
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.requestplanningsent.confirm
 
-import android.app.Activity
-import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -24,23 +22,19 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.flowWithLifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.fragment.findNavController
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
-import com.nunchuk.android.core.util.showOrHideLoading
-import com.nunchuk.android.core.util.showSuccess
 import com.nunchuk.android.main.R
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningActivity
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class InheritanceRequestPlanningConfirmFragment : Fragment() {
     private val viewModel: InheritanceRequestPlanningConfirmViewModel by viewModels()
+    private val walletId: String
+        get() = arguments?.getString(ARG_WALLET_ID).orEmpty()
+    private val groupId: String
+        get() = arguments?.getString(ARG_GROUP_ID).orEmpty()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
@@ -52,54 +46,34 @@ class InheritanceRequestPlanningConfirmFragment : Fragment() {
                     onCancel = {
                         requireActivity().finish()
                     },
+                    onContinue = {
+                        viewModel.requestInheritancePlanning(
+                            walletId = walletId,
+                            groupId = groupId
+                        )
+                    }
                 )
             }
-        }
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewModel.event.flowWithLifecycle(viewLifecycleOwner.lifecycle)
-                .collect { event ->
-                    when (event) {
-                        is InheritanceRequestPlanningConfirmEvent.Loading -> {
-                            showOrHideLoading(event.isLoading)
-                        }
-
-                        is InheritanceRequestPlanningConfirmEvent.Error -> {
-                            showSuccess(event.message)
-                        }
-
-                        InheritanceRequestPlanningConfirmEvent.RequestInheritanceSuccess -> {
-                            requireActivity().setResult(Activity.RESULT_OK, Intent().apply {
-                                putExtra(InheritancePlanningActivity.RESULT_REQUEST_PLANNING, true)
-                            })
-                            findNavController().navigate(
-                                InheritanceRequestPlanningConfirmFragmentDirections
-                                    .actionInheritanceRequestPlanningConfirmFragmentToInheritanceRequestPlanningSentSuccessFragment()
-                            )
-                        }
-                    }
-                }
         }
     }
 
     companion object {
         const val REQUEST_KEY = "InheritanceRequestPlanningConfirmFragment"
         const val EXTRA_REQUEST_SUCCESS = "EXTRA_REQUEST_SUCCESS"
+        private const val ARG_WALLET_ID = "wallet_id"
+        private const val ARG_GROUP_ID = "group_id"
     }
 }
 
 
 @Composable
-private fun InheritanceRequestPlanningConfirmScreen(
-    viewModel: InheritanceRequestPlanningConfirmViewModel = viewModel(),
+internal fun InheritanceRequestPlanningConfirmScreen(
     onCancel: () -> Unit,
+    onContinue: () -> Unit,
 ) {
     InheritanceRequestPlanningConfirmContent(
         onCancelRequest = onCancel,
-        onContinue = viewModel::requestInheritancePlanning,
+        onContinue = onContinue,
     )
 }
 

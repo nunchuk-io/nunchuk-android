@@ -57,23 +57,17 @@ import androidx.compose.ui.unit.dp
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.flowWithLifecycle
-import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.fragment.findNavController
 import com.nunchuk.android.compose.NcHighlightText
 import com.nunchuk.android.compose.NcHintMessage
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.fillDenim
-import com.nunchuk.android.core.util.showError
-import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
 import com.nunchuk.android.share.membership.MembershipFragment
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MagicalPhraseIntroFragment : MembershipFragment() {
@@ -99,38 +93,11 @@ class MagicalPhraseIntroFragment : MembershipFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         viewModel.init(inheritanceViewModel.setupOrReviewParam)
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewModel.event.flowWithLifecycle(viewLifecycleOwner.lifecycle)
-                .collect { event ->
-                    when (event) {
-                        is MagicalPhraseIntroEvent.OnContinueClicked -> {
-                            inheritanceViewModel.setOrUpdate(
-                                inheritanceViewModel.setupOrReviewParam.copy(
-                                    magicalPhrase = event.magicalPhrase,
-                                    inheritanceKeys = event.inheritanceKeys
-                                )
-                            )
-                            if (inheritanceViewModel.isMiniscriptWallet()) {
-                                findNavController().navigate(
-                                    MagicalPhraseIntroFragmentDirections.actionMagicalPhraseIntroFragmentToInheritanceKeyTipFragment()
-                                )
-                            } else {
-                                findNavController().navigate(
-                                    MagicalPhraseIntroFragmentDirections.actionMagicalPhraseIntroFragmentToFindBackupPasswordFragment()
-                                )
-                            }
-                        }
-
-                        is MagicalPhraseIntroEvent.Error -> showError(message = event.message)
-                        is MagicalPhraseIntroEvent.Loading -> showOrHideLoading(loading = event.loading)
-                    }
-                }
-        }
     }
 }
 
 @Composable
-private fun MagicalPhraseIntroScreen(
+internal fun MagicalPhraseIntroScreen(
     viewModel: MagicalPhraseIntroViewModel = viewModel(),
     isMiniscriptWallet: Boolean = false
 ) {

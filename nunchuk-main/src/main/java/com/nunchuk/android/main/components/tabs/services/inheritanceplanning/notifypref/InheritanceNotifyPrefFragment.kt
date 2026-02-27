@@ -73,7 +73,6 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
-import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.HighlightMessageType
 import com.nunchuk.android.compose.NcCheckBox
 import com.nunchuk.android.compose.NcHintMessage
@@ -99,8 +98,9 @@ import dagger.hilt.android.AndroidEntryPoint
 class InheritanceNotifyPrefFragment : MembershipFragment() {
 
     private val viewModel: InheritanceNotifyPrefViewModel by viewModels()
-    private val args: InheritanceNotifyPrefFragmentArgs by navArgs()
     private val inheritanceViewModel: InheritancePlanningViewModel by activityViewModels()
+    private val isUpdateRequest: Boolean
+        get() = arguments?.getBoolean(ARG_IS_UPDATE_REQUEST, false) ?: false
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
@@ -111,7 +111,7 @@ class InheritanceNotifyPrefFragment : MembershipFragment() {
             setContent {
                 InheritanceNotifyPrefScreen(
                     viewModel = viewModel,
-                    args = args,
+                    isUpdateRequest = isUpdateRequest,
                     inheritanceViewModel = inheritanceViewModel,
                     onSkipClick = {
                         openReviewPlanScreen(isDiscard = true, emptyList(), false)
@@ -130,7 +130,10 @@ class InheritanceNotifyPrefFragment : MembershipFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        viewModel.init(inheritanceViewModel.setupOrReviewParam)
+        viewModel.init(
+            param = inheritanceViewModel.setupOrReviewParam,
+            isUpdateRequest = isUpdateRequest
+        )
     }
 
     private fun openReviewPlanScreen(isDiscard: Boolean, emails: List<String>, isNotify: Boolean) {
@@ -142,32 +145,18 @@ class InheritanceNotifyPrefFragment : MembershipFragment() {
                 )
             )
         }
-        if (args.isUpdateRequest || inheritanceViewModel.setupOrReviewParam.planFlow == InheritancePlanFlow.VIEW) {
-            if (inheritanceViewModel.isMiniscriptWallet()) {
-                findNavController().navigate(
-                    InheritanceNotifyPrefFragmentDirections.actionInheritanceNotifyPrefFragmentToInheritanceNotificationSettingsFragment(
-                        isUpdateRequest = args.isUpdateRequest
-                    )
-                )
-            } else {
-                findNavController().popBackStack()
-            }
-        } else if (inheritanceViewModel.isMiniscriptWallet()) {
-            findNavController().navigate(
-                InheritanceNotifyPrefFragmentDirections.actionInheritanceNotifyPrefFragmentToInheritanceNotificationSettingsFragment()
-            )
-        } else {
-            findNavController().navigate(
-                InheritanceNotifyPrefFragmentDirections.actionInheritanceNotifyPrefFragmentToInheritanceReviewPlanFragment()
-            )
-        }
+        findNavController().popBackStack()
+    }
+
+    companion object {
+        private const val ARG_IS_UPDATE_REQUEST = "is_update_request"
     }
 }
 
 @Composable
 fun InheritanceNotifyPrefScreen(
     viewModel: InheritanceNotifyPrefViewModel = viewModel(),
-    args: InheritanceNotifyPrefFragmentArgs,
+    isUpdateRequest: Boolean,
     inheritanceViewModel: InheritancePlanningViewModel,
     onSkipClick: () -> Unit = {},
     onContinueClick: (List<String>, Boolean) -> Unit,
@@ -221,7 +210,7 @@ fun InheritanceNotifyPrefScreen(
         showError = showError,
         isEmptyError = isEmptyError,
         planFlow = inheritanceViewModel.setupOrReviewParam.planFlow,
-        isUpdateRequest = args.isUpdateRequest,
+        isUpdateRequest = isUpdateRequest,
         onInputTextChange = { inputText = it },
         onAddEmail = { email ->
             viewModel.handleAddEmail(email)

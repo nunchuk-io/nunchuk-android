@@ -54,7 +54,6 @@ import androidx.compose.ui.unit.dp
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.fragment.findNavController
-import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
@@ -71,8 +70,9 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class InheritanceNotificationSettingsFragment : MembershipFragment() {
 
-    private val args: InheritanceNotificationSettingsFragmentArgs by navArgs()
     private val inheritanceViewModel: InheritancePlanningViewModel by activityViewModels()
+    private val isUpdateRequest: Boolean
+        get() = arguments?.getBoolean(ARG_IS_UPDATE_REQUEST, false) ?: false
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
@@ -83,7 +83,7 @@ class InheritanceNotificationSettingsFragment : MembershipFragment() {
             setContent {
                 InheritanceNotificationSettingsScreen(
                     membershipStepManager = membershipStepManager,
-                    args = args,
+                    isUpdateRequest = isUpdateRequest,
                     inheritanceViewModel = inheritanceViewModel,
                     onContinueClick = { emailSettings, emailMeWalletConfig ->
                         openReviewPlanScreen(emailSettings, emailMeWalletConfig)
@@ -107,19 +107,17 @@ class InheritanceNotificationSettingsFragment : MembershipFragment() {
                 notificationSettings = notificationSettings
             )
         )
-        if (args.isUpdateRequest || inheritanceViewModel.setupOrReviewParam.planFlow == InheritancePlanFlow.VIEW) {
-            findNavController().popBackStack(R.id.inheritanceReviewPlanFragment, false)
-        } else {
-            findNavController().navigate(
-                InheritanceNotificationSettingsFragmentDirections.actionInheritanceNotificationSettingsFragmentToInheritanceReviewPlanFragment()
-            )
-        }
+        findNavController().popBackStack()
+    }
+
+    companion object {
+        private const val ARG_IS_UPDATE_REQUEST = "is_update_request"
     }
 }
 
 @Composable
 fun InheritanceNotificationSettingsScreen(
-    args: InheritanceNotificationSettingsFragmentArgs,
+    isUpdateRequest: Boolean,
     inheritanceViewModel: InheritancePlanningViewModel,
     onContinueClick: (List<EmailNotificationSettings>, Boolean) -> Unit,
     membershipStepManager: MembershipStepManager
@@ -160,7 +158,7 @@ fun InheritanceNotificationSettingsScreen(
         remainTime = remainTime,
         emailSettingsList = emailSettingsList,
         planFlow = inheritanceViewModel.setupOrReviewParam.planFlow,
-        isUpdateRequest = args.isUpdateRequest,
+        isUpdateRequest = isUpdateRequest,
         emailMeWalletConfig = emailMeWalletConfig,
         onEmailSettingsChange = { index, settings ->
             emailSettingsList = emailSettingsList.toMutableList().apply {

@@ -38,22 +38,14 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
-import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.main.R
-import com.nunchuk.android.nav.NunchukNavigator
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class InheritanceCreateSuccessFragment : Fragment() {
-
-    @Inject
-    lateinit var navigator: NunchukNavigator
-
-    private val args: InheritanceCreateSuccessFragmentArgs by navArgs()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
@@ -63,14 +55,7 @@ class InheritanceCreateSuccessFragment : Fragment() {
 
             setContent {
                 InheritanceCreateSuccessScreenContent {
-                    findNavController().navigate(
-                        InheritanceCreateSuccessFragmentDirections.actionInheritanceCreateSuccessFragmentToInheritanceShareSecretFragment(
-                            magicalPhrase = args.magicalPhrase,
-                            planFlow = args.planFlow,
-                            walletId = args.walletId,
-                            sourceFlow = args.sourceFlow
-                        )
-                    )
+                    findNavController().navigateUp()
                 }
             }
         }
