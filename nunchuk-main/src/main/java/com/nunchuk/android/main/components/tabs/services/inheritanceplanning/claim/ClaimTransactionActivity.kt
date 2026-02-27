@@ -28,7 +28,6 @@ import com.nunchuk.android.compose.NcToastType
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.dialog.NcLoadingDialog
 import com.nunchuk.android.compose.showNunchukSnackbar
-import com.nunchuk.android.core.R as CoreR
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.NfcActionListener
 import com.nunchuk.android.core.nfc.NfcViewModel
@@ -50,6 +49,7 @@ import com.nunchuk.android.widget.NCInputDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
+import com.nunchuk.android.core.R as CoreR
 
 @AndroidEntryPoint
 class ClaimTransactionActivity : BaseNfcActivity<ViewBinding>() {
@@ -151,7 +151,7 @@ private fun ClaimTransactionScreen(
     ) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             val transaction = result.data?.parcelable<Transaction>(GlobalResultKey.TRANSACTION_EXTRA)
-            transaction?.let { viewModel.updateTransactionFromImport(it) }
+            transaction?.let { viewModel.updateTransaction(it) }
         }
     }
 
@@ -225,7 +225,7 @@ private fun ClaimTransactionScreen(
             state = state,
             miniscriptUiState = miniscriptState,
             snackbarHostState = snackbarHostState,
-            onShowMore = { /* Handle menu more */ },
+            onShowMore = { showColdCardOptionsSheet = true },
             onSignClick = { signerModel ->
                 when {
                     signerModel.type == SignerType.COLDCARD_NFC || signerModel.tags.contains(

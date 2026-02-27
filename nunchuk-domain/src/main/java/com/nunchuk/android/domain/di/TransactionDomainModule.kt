@@ -31,13 +31,10 @@ import com.nunchuk.android.usecase.GetAddressesUseCase
 import com.nunchuk.android.usecase.GetAddressesUseCaseImpl
 import com.nunchuk.android.usecase.GetTransactionHistoryUseCase
 import com.nunchuk.android.usecase.GetTransactionHistoryUseCaseImpl
-import com.nunchuk.android.usecase.GetTransactionUseCase
 import com.nunchuk.android.usecase.ImportKeystoneTransactionUseCase
 import com.nunchuk.android.usecase.ImportKeystoneTransactionUseCaseImpl
 import com.nunchuk.android.usecase.NewAddressUseCase
 import com.nunchuk.android.usecase.NewAddressUseCaseImpl
-import com.nunchuk.android.usecase.ValueFromAmountUseCase
-import com.nunchuk.android.usecase.ValueFromAmountUseCaseImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -64,9 +61,6 @@ internal interface TransactionDomainModule {
 
     @Binds
     fun bindNewAddressUseCase(useCase: NewAddressUseCaseImpl): NewAddressUseCase
-
-    @Binds
-    fun bindValueFromAmountUseCase(useCase: ValueFromAmountUseCaseImpl): ValueFromAmountUseCase
 
     @Binds
     fun bindImportKeystoneTransactionUseCase(useCase: ImportKeystoneTransactionUseCaseImpl): ImportKeystoneTransactionUseCase

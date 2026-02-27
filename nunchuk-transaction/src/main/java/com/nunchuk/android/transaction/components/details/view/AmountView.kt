@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.util.getBTCAmount
@@ -14,6 +15,7 @@ import com.nunchuk.android.model.Amount
 fun AmountView(amount: Amount, hideFiatCurrency: Boolean = false) {
     Column(
         verticalArrangement = Arrangement.spacedBy(4.dp),
+        horizontalAlignment = Alignment.End,
     ) {
         Text(
             text = amount.getBTCAmount(),

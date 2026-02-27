@@ -21,6 +21,7 @@ import com.nunchuk.android.usecase.CreateShareFileUseCase
 import com.nunchuk.android.usecase.GetMasterSignerUseCase
 import com.nunchuk.android.usecase.SaveLocalFileUseCase
 import com.nunchuk.android.usecase.SendSignerPassphraseUseCase
+import com.nunchuk.android.usecase.ValueFromAmountUseCase
 import com.nunchuk.android.usecase.membership.InheritanceClaimingClaimUseCase
 import com.nunchuk.android.usecase.signer.GetPsbtFromMk4UseCase
 import com.nunchuk.android.usecase.signer.GetRemoteOrMasterSignerUseCase
@@ -54,6 +55,7 @@ class ClaimTransactionViewModel @AssistedInject constructor(
     private val exportRawPsbtToMk4UseCase: ExportRawPsbtToMk4UseCase,
     private val getPsbtFromMk4UseCase: GetPsbtFromMk4UseCase,
     private val decodeTxUseCase: DecodeTxUseCase,
+    private val valueFromAmountUseCase: ValueFromAmountUseCase,
     @Assisted private val args: ClaimTransactionArgs
 ) : ViewModel() {
 
@@ -172,9 +174,9 @@ class ClaimTransactionViewModel @AssistedInject constructor(
                     masterSignerId = singleSigner.masterSignerId,
                     signers = _singleSigners,
                     psbt = transaction.psbt,
-                    subAmount = transaction.subAmount.value.toString(),
-                    feeRate = transaction.feeRate.value.toString(),
-                    fee = transaction.fee.value.toString(),
+                    subAmount = valueFromAmountUseCase(transaction.subAmount).getOrThrow(),
+                    feeRate = valueFromAmountUseCase(transaction.feeRate).getOrThrow(),
+                    fee = valueFromAmountUseCase(transaction.fee).getOrThrow(),
                     subtractFeeFromAmount = transaction.subtractFeeFromAmount
                 )
             )
@@ -183,12 +185,7 @@ class ClaimTransactionViewModel @AssistedInject constructor(
 
             if (result.isSuccess) {
                 val signedTransaction = result.getOrThrow()
-                _state.update { currentState ->
-                    currentState.copy(
-                        transaction = signedTransaction
-                    )
-                }
-                checkAndClaimIfAllSigned(signedTransaction)
+                updateTransaction(signedTransaction)
             } else {
                 Timber.e(result.exceptionOrNull(), "Failed to sign PSBT with software signer")
             }
@@ -206,9 +203,9 @@ class ClaimTransactionViewModel @AssistedInject constructor(
                     cvc = cvc,
                     signers = _singleSigners,
                     psbt = transaction.psbt,
-                    subAmount = transaction.subAmount.value.toString(),
-                    feeRate = transaction.feeRate.value.toString(),
-                    fee = transaction.fee.value.toString(),
+                    subAmount = valueFromAmountUseCase(transaction.subAmount).getOrThrow(),
+                    feeRate = valueFromAmountUseCase(transaction.feeRate).getOrThrow(),
+                    fee = valueFromAmountUseCase(transaction.fee).getOrThrow(),
                     subtractFeeFromAmount = transaction.subtractFeeFromAmount
                 )
             )
@@ -217,12 +214,7 @@ class ClaimTransactionViewModel @AssistedInject constructor(
 
             if (result.isSuccess) {
                 val signedTransaction = result.getOrThrow()
-                _state.update { currentState ->
-                    currentState.copy(
-                        transaction = signedTransaction
-                    )
-                }
-                checkAndClaimIfAllSigned(signedTransaction)
+                updateTransaction(signedTransaction)
             } else {
                 Timber.e(result.exceptionOrNull(), "Failed to sign PSBT with tap signer")
             }
@@ -255,8 +247,8 @@ class ClaimTransactionViewModel @AssistedInject constructor(
         }
     }
 
-    fun updateTransactionFromImport(transaction: Transaction) {
-        _state.update { it.copy(transaction = transaction) }
+    fun updateTransaction(transaction: Transaction) {
+        _state.update { it.copy(transaction = transaction.copy(changeIndex = args.transaction.changeIndex)) }
         checkAndClaimIfAllSigned(transaction)
     }
 
@@ -327,13 +319,13 @@ class ClaimTransactionViewModel @AssistedInject constructor(
                     DecodeTxUseCase.Param(
                         signers = _singleSigners,
                         psbt = importedPsbt,
-                        subAmount = currentTx.subAmount.value.toString(),
-                        feeRate = currentTx.feeRate.value.toString(),
-                        fee = currentTx.fee.value.toString(),
+                        subAmount = valueFromAmountUseCase(currentTx.subAmount).getOrThrow(),
+                        feeRate = valueFromAmountUseCase(currentTx.feeRate).getOrThrow(),
+                        fee = valueFromAmountUseCase(currentTx.fee).getOrThrow(),
                         subtractFeeFromAmount = currentTx.subtractFeeFromAmount
                     )
                 ).onSuccess { transaction ->
-                    updateTransactionFromImport(transaction)
+                    updateTransaction(transaction)
                     _event.emit(ClaimTransactionEvent.ImportTransactionFromMk4Success)
                 }.onFailure {
                     _event.emit(ClaimTransactionEvent.ShowError(it.message.orUnknownError()))
