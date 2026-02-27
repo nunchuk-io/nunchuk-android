@@ -206,20 +206,31 @@ private fun ClaimInheritanceGraph(
                     navController.navigateToVerifyInheritanceMessage()
                 }
 
-                ClaimInheritanceEvent.GenerateChallengeSuccess -> {
-                    val flags = if (claimData.isOnChainClaim) {
-                        OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER
-                    } else {
-                        OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER or OnChainAddSignerParam.FLAG_ADD_INHERITANCE_OFF_CHAIN_SIGNER
+                is ClaimInheritanceEvent.GenerateChallengeSuccess -> {
+                    when(event.option) {
+                        InheritanceOption.HARDWARE_DEVICE -> {
+                            val flags = if (claimData.isOnChainClaim) {
+                                OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER
+                            } else {
+                                OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER or OnChainAddSignerParam.FLAG_ADD_INHERITANCE_OFF_CHAIN_SIGNER
+                            }
+                            navigator.openSignerIntroScreen(
+                                launcher = signerIntroLauncher,
+                                activityContext = activity,
+                                onChainAddSignerParam = OnChainAddSignerParam(
+                                    flags = flags,
+                                    magic = claimData.magic
+                                )
+                            )
+                        }
+                        InheritanceOption.SEED_PHRASE -> {
+                            if (claimData.isOnChainClaim) {
+                                navController.navigateToRecoverInheritanceKey()
+                            } else {
+                                navController.navigateToClaimBackupPassword()
+                            }
+                        }
                     }
-                    navigator.openSignerIntroScreen(
-                        launcher = signerIntroLauncher,
-                        activityContext = activity,
-                        onChainAddSignerParam = OnChainAddSignerParam(
-                            flags = flags,
-                            magic = claimData.magic
-                        )
-                    )
                 }
 
                 ClaimInheritanceEvent.ImportFile -> return@LaunchedEffect
@@ -270,19 +281,7 @@ private fun ClaimInheritanceGraph(
                     navController.popBackStack()
                 },
                 onContinue = { option ->
-                    when (option) {
-                        InheritanceOption.HARDWARE_DEVICE -> {
-                            activityViewModel.generateClaimSigningChallengeIfNeeded()
-                        }
-
-                        InheritanceOption.SEED_PHRASE -> {
-                            if (claimData.isOnChainClaim) {
-                                navController.navigateToRecoverInheritanceKey()
-                            } else {
-                                navController.navigateToClaimBackupPassword()
-                            }
-                        }
-                    }
+                    activityViewModel.generateClaimSigningChallengeIfNeeded(option)
                 },
             )
             recoverInheritanceKey(

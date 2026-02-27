@@ -129,7 +129,7 @@ fun ClaimBackupPasswordScreen(
         },
         onContinueClick = {
             keyboardController?.hide()
-            viewModel.downloadBackupKey(claimData.magic, claimData.signers.isNotEmpty())
+            viewModel.downloadBackupKey(claimData.magic, claimData.requiredKeyCount)
         },
     )
 }

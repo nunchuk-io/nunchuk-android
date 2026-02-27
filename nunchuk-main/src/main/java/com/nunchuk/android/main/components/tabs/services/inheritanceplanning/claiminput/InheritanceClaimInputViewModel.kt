@@ -56,7 +56,7 @@ class InheritanceClaimInputViewModel @Inject constructor(
     private val _state = MutableStateFlow(InheritanceClaimInputState())
     val state = _state.asStateFlow()
 
-    fun downloadBackupKey(passphrase: String, hasExistingSigners: Boolean) = viewModelScope.launch {
+    fun downloadBackupKey(passphrase: String, totalRequiredKey: Int) = viewModelScope.launch {
         val stateValue = _state.value
         _event.emit(InheritanceClaimInputEvent.Loading(true))
         val result = inheritanceClaimDownloadBackupUseCase(
@@ -102,7 +102,7 @@ class InheritanceClaimInputViewModel @Inject constructor(
                 return@launch
             }
             val signers = importMasterSigners.map { masterSignerMapper(it) }
-            if (hasExistingSigners) {
+            if (signers.size < totalRequiredKey) {
                 _event.emit(InheritanceClaimInputEvent.BackupSignersImported(signers))
             } else {
                 getStatus(importMasterSigners, passphrase, backupKeys)

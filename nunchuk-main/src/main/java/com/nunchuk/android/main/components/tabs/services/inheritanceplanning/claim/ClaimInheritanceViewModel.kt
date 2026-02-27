@@ -18,6 +18,7 @@ import com.nunchuk.android.core.network.NunchukApiException
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toSingleSigner
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.preparerecover.InheritanceOption
 import com.nunchuk.android.model.InheritanceAdditional
 import com.nunchuk.android.model.InheritanceClaimingInit
 import com.nunchuk.android.model.KeyOrigin
@@ -349,7 +350,7 @@ class ClaimInheritanceViewModel @Inject constructor(
         }
     }
 
-    fun generateClaimSigningChallengeIfNeeded() {
+    fun generateClaimSigningChallengeIfNeeded(option: InheritanceOption) {
         viewModelScope.launch {
             val currentData = _claimData.value
             if (currentData.challenge == null && currentData.magic.isNotEmpty() && !currentData.isOnChainClaim) {
@@ -357,7 +358,7 @@ class ClaimInheritanceViewModel @Inject constructor(
                     .onSuccess { challenge ->
                         _uiState.update {
                             it.copy(
-                                event = ClaimInheritanceEvent.GenerateChallengeSuccess,
+                                event = ClaimInheritanceEvent.GenerateChallengeSuccess(option),
                             )
                         }
                         _claimData.update { it.copy(challenge = challenge) }
@@ -373,7 +374,7 @@ class ClaimInheritanceViewModel @Inject constructor(
             } else {
                 _uiState.update {
                     it.copy(
-                        event = ClaimInheritanceEvent.GenerateChallengeSuccess,
+                        event = ClaimInheritanceEvent.GenerateChallengeSuccess(option),
                     )
                 }
             }
@@ -417,7 +418,7 @@ sealed class ClaimInheritanceEvent {
     data object KeyAlreadyAdded : ClaimInheritanceEvent()
     data object SignerAdded : ClaimInheritanceEvent()
     data class SignMessage(val signer: SignerModel) : ClaimInheritanceEvent()
-    data object GenerateChallengeSuccess : ClaimInheritanceEvent()
+    data class GenerateChallengeSuccess(val option: InheritanceOption) : ClaimInheritanceEvent()
     data object ImportFile : ClaimInheritanceEvent()
 }
 
