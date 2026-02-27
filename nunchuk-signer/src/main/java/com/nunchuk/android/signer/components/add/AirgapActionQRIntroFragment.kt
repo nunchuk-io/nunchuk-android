@@ -91,16 +91,17 @@ internal fun AirgapActionQRIntroScreen(
     onOpenGuideClicked: () -> Unit = {},
     onContinueClicked: () -> Unit = {},
 ) {
+    val addKeyToWalletInProgress = isMembershipFlow && !isReplaceKey && remainTime > 0
     NunchukTheme {
         Scaffold(topBar = {
             NcImageAppBar(
                 backgroundRes = R.drawable.bg_airgap_jade_intro,
-                title = if (isMembershipFlow && !isReplaceKey && remainTime > 0) stringResource(
+                title = if (addKeyToWalletInProgress) stringResource(
                     id = R.string.nc_estimate_remain_time,
                     remainTime
                 ) else "",
                 actions = {
-                    if (isMembershipFlow && !isReplaceKey) {
+                    if (addKeyToWalletInProgress) {
                         IconButton(onClick = onMoreClicked) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_more),

@@ -163,7 +163,7 @@ private fun ClaimBackupPasswordContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
-                enabled = visiblePasswords.all { it.countWords() >= 1 } && !isLoading,
+                enabled = visiblePasswords.any { it.countWords() >= 1 } && !isLoading,
                 onClick = onContinueClick,
             ) {
                 Text(text = stringResource(id = SignerR.string.nc_text_continue))

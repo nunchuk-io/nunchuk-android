@@ -94,6 +94,7 @@ private fun AirgapIntroContent(
     onMoreClicked: () -> Unit = {},
     onContinueClicked: () -> Unit = {},
 ) {
+    val addKeyToWalletInProgress = isMembershipFlow && !isReplaceKey && remainTime > 0
     val bgResId = when (signerTag) {
         SignerTag.SEEDSIGNER -> R.drawable.bg_airgap_seedsigner_intro
         SignerTag.JADE -> R.drawable.bg_airgap_jade_intro
@@ -115,12 +116,12 @@ private fun AirgapIntroContent(
             topBar = {
                 NcImageAppBar(
                     backgroundRes = bgResId,
-                    title = if (isMembershipFlow && !isReplaceKey && remainTime > 0) stringResource(
+                    title = if (addKeyToWalletInProgress) stringResource(
                         id = R.string.nc_estimate_remain_time,
                         remainTime
                     ) else "",
                     actions = {
-                        if (isMembershipFlow && !isReplaceKey) {
+                        if (addKeyToWalletInProgress) {
                             IconButton(onClick = onMoreClicked) {
                                 Icon(
                                     painter = painterResource(id = R.drawable.ic_more),

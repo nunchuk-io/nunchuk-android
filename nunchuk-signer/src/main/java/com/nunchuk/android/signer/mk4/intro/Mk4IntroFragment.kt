@@ -426,18 +426,19 @@ private fun Mk4IntroContent(
     isReplaceKey: Boolean = false,
     onMoreClicked: () -> Unit = {},
     onContinueClicked: () -> Unit = {},
-) =
+) {
+    val addKeyToWalletInProgress = isMembershipFlow && !isReplaceKey && remainTime > 0
     NunchukTheme {
         NunchukTheme {
             Scaffold(topBar = {
                 NcImageAppBar(
                     backgroundRes = R.drawable.nc_bg_coldcard_intro,
-                    title = if (isMembershipFlow && !isReplaceKey && remainTime > 0) stringResource(
+                    title = if (addKeyToWalletInProgress) stringResource(
                         id = R.string.nc_estimate_remain_time,
                         remainTime
                     ) else "",
                     actions = {
-                        if (isMembershipFlow && !isReplaceKey) {
+                        if (addKeyToWalletInProgress) {
                             IconButton(onClick = onMoreClicked) {
                                 Icon(
                                     painter = painterResource(id = R.drawable.ic_more),
@@ -477,6 +478,7 @@ private fun Mk4IntroContent(
             }
         }
     }
+}
 
 @Preview
 @Composable
