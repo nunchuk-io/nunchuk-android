@@ -57,7 +57,7 @@ class ClaimTransactionViewModel @AssistedInject constructor(
     @Assisted private val args: ClaimTransactionArgs
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(TransactionDetailsState())
+    private val _state = MutableStateFlow(TransactionDetailsState(transaction = args.transaction))
     val state: StateFlow<TransactionDetailsState> = _state.asStateFlow()
     private val _singleSigners = mutableListOf<SingleSigner>()
 
@@ -165,7 +165,7 @@ class ClaimTransactionViewModel @AssistedInject constructor(
     private fun signSoftwarePsbt(singleSigner: SingleSigner) {
         viewModelScope.launch {
             _loadingType.update { LoadingType.Normal }
-            val transaction = args.transaction
+            val transaction = _state.value.transaction
 
             val result = signSoftwarePsbtUseCase(
                 SignSoftwarePsbtUseCase.Param(
@@ -198,7 +198,7 @@ class ClaimTransactionViewModel @AssistedInject constructor(
     fun signTapSignerPsbt(isoDep: IsoDep, cvc: String) {
         viewModelScope.launch {
             _loadingType.update { LoadingType.Nfc }
-            val transaction = args.transaction
+            val transaction = _state.value.transaction
 
             val result = signTapSignerPsbtUseCase(
                 SignTapSignerPsbtUseCase.Data(
