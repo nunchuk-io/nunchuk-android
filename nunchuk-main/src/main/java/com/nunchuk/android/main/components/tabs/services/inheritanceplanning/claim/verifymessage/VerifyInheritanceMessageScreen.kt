@@ -304,7 +304,7 @@ fun VerifyInheritanceMessageScreen(
                 coroutineScope.launch {
                     val data = viewModel.generateColdCardSignedDataIfNeeded()
                     if (data.isNotEmpty()) {
-                        (activity as NfcActionListener).startNfcFlow(BaseNfcActivity.REQUEST_MK4_EXPORT_TRANSACTION)
+                        (activity as NfcActionListener).startNfcFlow(BaseNfcActivity.REQUEST_GENERATE_HEAL_CHECK_MSG)
                     }
                 }
             },
