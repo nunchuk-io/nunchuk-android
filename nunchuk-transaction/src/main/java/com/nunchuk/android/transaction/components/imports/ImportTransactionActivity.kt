@@ -104,7 +104,7 @@ class ImportTransactionActivity : BaseCameraActivity<ActivityImportTransactionBi
             )
             finish()
         } else {
-            NCToastMessage(this).showWarning(getString(R.string.nc_transaction_imported_failed) + event.message)
+            NCToastMessage(this).showError(getString(R.string.nc_transaction_imported_failed) + event.message)
         }
     }
 

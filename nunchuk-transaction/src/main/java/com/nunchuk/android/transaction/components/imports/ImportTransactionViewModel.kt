@@ -38,10 +38,10 @@ import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.onCompletion
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -58,7 +58,7 @@ internal class ImportTransactionViewModel @Inject constructor(
     val uiState = _state.asStateFlow()
 
     private lateinit var args: ImportTransactionArgs
-    private var isProcessing = false
+    private val importMutex = Mutex()
 
     private val qrDataList = HashSet<String>()
 
@@ -71,11 +71,15 @@ internal class ImportTransactionViewModel @Inject constructor(
     fun importTransactionViaQR(qrData: String) {
         if (!qrDataList.contains(qrData)) {
             qrDataList.add(qrData)
-            analyzeQr()
-            if (isDummyFlow) {
-                parseDummyTransaction()
-            } else {
-                parseNormalTransaction()
+            viewModelScope.launch {
+                importMutex.withLock {
+                    analyzeQr()
+                    if (isDummyFlow) {
+                        parseDummyTransaction()
+                    } else {
+                        parseNormalTransaction()
+                    }
+                }
             }
         }
     }
@@ -90,79 +94,65 @@ internal class ImportTransactionViewModel @Inject constructor(
         }
     }
 
-    private fun analyzeQr() {
-        viewModelScope.launch {
-            val result = analyzeQrUseCase(qrDataList.toList())
-            if (result.isSuccess) {
-                Timber.d("analyzeQrUseCase: ${result.getOrThrow()}")
-                _state.update { it.copy(progress = result.getOrThrow().times(100.0)) }
-            }
+    private suspend fun analyzeQr() {
+        val result = analyzeQrUseCase(qrDataList.toList())
+        if (result.isSuccess) {
+            Timber.d("analyzeQrUseCase: ${result.getOrThrow()}")
+            _state.update { it.copy(progress = result.getOrThrow().times(100.0)) }
         }
     }
 
-    private fun parseDummyTransaction() {
-        if (isProcessing) return
-        viewModelScope.launch {
-            isProcessing = true
-            when (args.signFlowType) {
-                is SignFlowType.SignInDummy, is SignFlowType.NormalDummy -> {
-                    parseKeystoneDummyTransactionSignIn(
-                        ParseKeystoneDummyTransactionSignIn.Param(
-                            qrDataList.toList()
-                        )
-                    ).onSuccess {
-                        setEvent(ImportTransactionSuccess(it))
-                    }
-                }
-                is SignFlowType.ClaimDummy -> {
-                    extractColdcardMessageSignatureFromQrUseCase(
+    private suspend fun parseDummyTransaction() {
+        when (args.signFlowType) {
+            is SignFlowType.SignInDummy, is SignFlowType.NormalDummy -> {
+                parseKeystoneDummyTransactionSignIn(
+                    ParseKeystoneDummyTransactionSignIn.Param(
                         qrDataList.toList()
-                    ).onSuccess {
-                        setEvent(ImportTransactionSuccess(signature = it))
-                    }
-                }
-                else -> {
-                    parseKeystoneDummyTransaction(
-                        ParseKeystoneDummyTransaction.Param(
-                            args.walletId,
-                            qrDataList.toList()
-                        )
-                    ).onSuccess {
-                        setEvent(ImportTransactionSuccess(it))
-                    }
-                }
-            }.onFailure { e ->
-                if (_state.value.progress >= 100) {
-                    setEvent(ImportTransactionEvent.ImportTransactionError(e.message.orUnknownError()))
+                    )
+                ).onSuccess {
+                    setEvent(ImportTransactionSuccess(it))
                 }
             }
-            isProcessing = false
+            is SignFlowType.ClaimDummy -> {
+                extractColdcardMessageSignatureFromQrUseCase(
+                    qrDataList.toList()
+                ).onSuccess {
+                    setEvent(ImportTransactionSuccess(signature = it))
+                }
+            }
+            else -> {
+                parseKeystoneDummyTransaction(
+                    ParseKeystoneDummyTransaction.Param(
+                        args.walletId,
+                        qrDataList.toList()
+                    )
+                ).onSuccess {
+                    setEvent(ImportTransactionSuccess(it))
+                }
+            }
+        }.onFailure { e ->
+            if (_state.value.progress >= 100) {
+                setEvent(ImportTransactionEvent.ImportTransactionError("Invalid or unreadable QR code. Please try again."))
+            }
         }
     }
 
-    private fun parseNormalTransaction() {
-        Timber.d("[ImportTransaction]isProcessing::$isProcessing")
-        if (!isProcessing) {
-            viewModelScope.launch {
-                Timber.d("[ImportTransaction]execute($args.walletId, $qrDataList)")
-                importKeystoneTransactionUseCase.execute(
-                    walletId = args.walletId,
-                    qrData = qrDataList.toList(),
-                    initEventId = args.initEventId,
-                    masterFingerPrint = args.masterFingerPrint
-                )
-                    .onStart { isProcessing = true }
-                    .flowOn(IO)
-                    .onException {
-                        if (_state.value.progress >= 100) {
-                            setEvent(ImportTransactionEvent.ImportTransactionError(it.message.orUnknownError()))
-                        }
-                    }
-                    .flowOn(Main)
-                    .onCompletion { isProcessing = false }
-                    .collect { event(ImportTransactionSuccess()) }
+    private suspend fun parseNormalTransaction() {
+        Timber.d("[ImportTransaction]execute($args.walletId, $qrDataList)")
+        importKeystoneTransactionUseCase.execute(
+            walletId = args.walletId,
+            qrData = qrDataList.toList(),
+            initEventId = args.initEventId,
+            masterFingerPrint = args.masterFingerPrint
+        )
+            .flowOn(IO)
+            .onException {
+                if (_state.value.progress >= 100) {
+                    setEvent(ImportTransactionEvent.ImportTransactionError(it.message.orUnknownError()))
+                }
             }
-        }
+            .flowOn(Main)
+            .collect { event(ImportTransactionSuccess()) }
     }
 
     private val isDummyFlow: Boolean

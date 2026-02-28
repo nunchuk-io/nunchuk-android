@@ -35,29 +35,6 @@
         app:zxing_scanner_layout="@layout/view_scanner"
         app:zxing_use_texture_view="true" />
 
-    <TextView
-        android:id="@+id/tv_percentage"
-        style="@style/NCText.Body"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="@dimen/nc_padding_16"
-        android:textColor="@color/nc_white_color"
-        app:layout_constraintBottom_toBottomOf="@+id/barcodeView"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        tools:text="45%" />
-
-    <com.google.android.material.progressindicator.LinearProgressIndicator
-        android:id="@+id/progress_bar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:max="100"
-        app:indicatorColor="@color/nc_red_color"
-        android:layout_marginBottom="5dp"
-        app:layout_constraintBottom_toTopOf="@+id/scannerActionView"
-        app:trackColor="@color/nc_bg_mid_gray"
-        tools:progress="50" />
-
     <androidx.camera.view.PreviewView
         android:id="@+id/previewView"
         android:layout_width="match_parent"
@@ -67,6 +44,29 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/toolbar"
         tools:visibility="visible" />
+
+    <TextView
+        android:id="@+id/tv_percentage"
+        style="@style/NCText.Body"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/nc_padding_16"
+        android:textColor="@color/nc_white_color"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/progress_bar"
+        tools:text="45%" />
+
+    <com.google.android.material.progressindicator.LinearProgressIndicator
+        android:id="@+id/progress_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="5dp"
+        android:max="100"
+        app:indicatorColor="@color/nc_red_color"
+        app:layout_constraintBottom_toTopOf="@+id/scannerActionView"
+        app:trackColor="@color/nc_bg_mid_gray"
+        tools:progress="50" />
 
     <com.nunchuk.android.core.scanner.CenteredSquareView
         android:layout_width="match_parent"
