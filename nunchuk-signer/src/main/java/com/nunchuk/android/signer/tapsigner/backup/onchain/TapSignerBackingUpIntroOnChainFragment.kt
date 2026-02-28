@@ -112,11 +112,10 @@ class TapSignerBackingUpIntroOnChainFragment : MembershipFragment() {
 
                     TapSignerBackingUpIntroOnChainEvent.OnGetSingleWalletDone -> requireActivity().finish()
                     is TapSignerBackingUpIntroOnChainEvent.ReturnSignerModel -> {
-                        val signerModel = event.singleSigner.toModel()
                         requireActivity().setResult(
                             android.app.Activity.RESULT_OK,
                             android.content.Intent().apply {
-                                putExtra(GlobalResultKey.EXTRA_SIGNER, signerModel)
+                                putExtra(GlobalResultKey.EXTRA_SIGNER, event.signerModel)
                             }
                         )
                         requireActivity().finish()

@@ -25,8 +25,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.GetTapSignerBackupUseCase
 import com.nunchuk.android.core.domain.signer.GetSignerFromTapsignerMasterSignerUseCase
+import com.nunchuk.android.core.mapper.SingleSignerMapper
+import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.CardIdManager
-import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.membership.SetKeyVerifiedUseCase
@@ -46,6 +47,7 @@ import javax.inject.Inject
 class TapSignerBackingUpIntroOnChainViewModel @Inject constructor(
     private val getTapSignerBackupUseCase: GetTapSignerBackupUseCase,
     private val getSignerFromTapsignerMasterSignerUseCase: GetSignerFromTapsignerMasterSignerUseCase,
+    private val singleSignerMapper: SingleSignerMapper,
     private val setKeyVerifiedUseCase: SetKeyVerifiedUseCase,
     private val setReplaceKeyVerifiedUseCase: SetReplaceKeyVerifiedUseCase,
     cardIdManager: CardIdManager,
@@ -99,7 +101,7 @@ class TapSignerBackingUpIntroOnChainViewModel @Inject constructor(
             ).onSuccess { singleSigner ->
                 _event.emit(TapSignerBackingUpIntroOnChainEvent.NfcLoading(false))
                 singleSigner?.let {
-                    _event.emit(TapSignerBackingUpIntroOnChainEvent.ReturnSignerModel(it))
+                    _event.emit(TapSignerBackingUpIntroOnChainEvent.ReturnSignerModel(singleSignerMapper(it)))
                 } ?: run {
                     _event.emit(TapSignerBackingUpIntroOnChainEvent.GetTapSignerBackupKeyError(Exception("Signer not found")))
                 }
@@ -165,7 +167,7 @@ sealed class TapSignerBackingUpIntroOnChainEvent {
     data class NfcLoading(val isLoading: Boolean) : TapSignerBackingUpIntroOnChainEvent()
     data class GetTapSignerBackupKeyEvent(val filePath: String) : TapSignerBackingUpIntroOnChainEvent()
     data class GetTapSignerBackupKeyError(val e: Throwable?) : TapSignerBackingUpIntroOnChainEvent()
-    data class ReturnSignerModel(val singleSigner: SingleSigner) : TapSignerBackingUpIntroOnChainEvent()
+    data class ReturnSignerModel(val signerModel: SignerModel) : TapSignerBackingUpIntroOnChainEvent()
     data class ShowError(val throwable: Throwable?) : TapSignerBackingUpIntroOnChainEvent()
 }
 

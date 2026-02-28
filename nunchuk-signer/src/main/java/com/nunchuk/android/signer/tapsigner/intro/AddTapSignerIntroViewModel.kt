@@ -25,8 +25,9 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.BaseNfcUseCase
 import com.nunchuk.android.core.domain.GetTapSignerStatusUseCase
 import com.nunchuk.android.core.helper.CheckAssistedSignerExistenceHelper
+import com.nunchuk.android.core.mapper.SingleSignerMapper
+import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.model.MasterSigner
-import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.TapSignerStatus
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.AddressType
@@ -51,6 +52,7 @@ class AddTapSignerIntroViewModel @Inject constructor(
     private val checkAssistedSignerExistenceHelper: CheckAssistedSignerExistenceHelper,
     private val getReplaceSignerNameUseCase: GetReplaceSignerNameUseCase,
     private val getSignerFromMasterSignerByIndexUseCase: GetSignerFromMasterSignerByIndexUseCase,
+    private val singleSignerMapper: SingleSignerMapper,
 ) : ViewModel() {
     private val _event = MutableSharedFlow<AddTapSignerIntroEvent>()
     val event = _event.asSharedFlow()
@@ -125,7 +127,7 @@ class AddTapSignerIntroViewModel @Inject constructor(
             )
         ).onSuccess { singleSigner ->
             singleSigner?.let {
-                _event.emit(AddTapSignerIntroEvent.ReturnSignerModel(it))
+                _event.emit(AddTapSignerIntroEvent.ReturnSignerModel(singleSignerMapper(it)))
             } ?: run {
                 _event.emit(AddTapSignerIntroEvent.GetTapSignerStatusError(Exception("Signer not found")))
             }
@@ -144,5 +146,5 @@ sealed class AddTapSignerIntroEvent {
     data class GetTapSignerStatusError(val e: Throwable?) : AddTapSignerIntroEvent()
     data object ContinueEventAddTapSigner : AddTapSignerIntroEvent()
     data class GetMasterSignerSuccess(val masterSigner: MasterSigner) : AddTapSignerIntroEvent()
-    data class ReturnSignerModel(val singleSigner: SingleSigner) : AddTapSignerIntroEvent()
+    data class ReturnSignerModel(val signerModel: SignerModel) : AddTapSignerIntroEvent()
 }

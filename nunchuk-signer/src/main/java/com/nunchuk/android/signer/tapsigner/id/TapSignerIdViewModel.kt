@@ -25,10 +25,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.GetTapSignerBackupUseCase
 import com.nunchuk.android.core.domain.signer.GetSignerFromTapsignerMasterSignerUseCase
+import com.nunchuk.android.core.mapper.SingleSignerMapper
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
+import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.CardIdManager
-import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -44,6 +45,7 @@ import javax.inject.Inject
 class TapSignerIdViewModel @Inject constructor(
     private val getTapSignerBackupUseCase: GetTapSignerBackupUseCase,
     private val getSignerFromTapsignerMasterSignerUseCase: GetSignerFromTapsignerMasterSignerUseCase,
+    private val singleSignerMapper: SingleSignerMapper,
     private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
     private val pushEventManager: PushEventManager,
     cardIdManager: CardIdManager,
@@ -134,7 +136,7 @@ class TapSignerIdViewModel @Inject constructor(
             ).onSuccess { singleSigner ->
                 _event.emit(TapSignerIdEvent.NfcLoading(false))
                 singleSigner?.let {
-                    _event.emit(TapSignerIdEvent.ReturnSignerModel(it))
+                    _event.emit(TapSignerIdEvent.ReturnSignerModel(singleSignerMapper(it)))
                 } ?: run {
                     _event.emit(TapSignerIdEvent.GetTapSignerBackupKeyError(Exception("Signer not found")))
                 }
@@ -167,5 +169,5 @@ sealed class TapSignerIdEvent {
     data class NfcLoading(val isLoading: Boolean) : TapSignerIdEvent()
     data class GetTapSignerBackupKeyEvent(val filePath: String) : TapSignerIdEvent()
     data class GetTapSignerBackupKeyError(val e: Throwable?) : TapSignerIdEvent()
-    data class ReturnSignerModel(val singleSigner: SingleSigner) : TapSignerIdEvent()
+    data class ReturnSignerModel(val signerModel: SignerModel) : TapSignerIdEvent()
 }

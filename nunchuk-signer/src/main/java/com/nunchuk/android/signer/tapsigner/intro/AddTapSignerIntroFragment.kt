@@ -213,11 +213,10 @@ class AddTapSignerIntroFragment : BaseChangeTapSignerNameFragment() {
                 }
 
                 is AddTapSignerIntroEvent.ReturnSignerModel -> {
-                    val signerModel = it.singleSigner.toModel()
                     requireActivity().setResult(
                         Activity.RESULT_OK,
                         android.content.Intent().apply {
-                            putExtra(GlobalResultKey.EXTRA_SIGNER, signerModel)
+                            putExtra(GlobalResultKey.EXTRA_SIGNER, it.signerModel)
                         }
                     )
                     requireActivity().finish()
