@@ -102,6 +102,7 @@ import java.util.Date
 @Composable
 fun TransactionDetailView(
     isDummyTx: Boolean = false,
+    isHideChangeIndex: Boolean = false,
     inheritanceClaimTxDetailInfo: InheritanceClaimTxDetailInfo? = null,
     walletId: String,
     txId: String,
@@ -250,7 +251,7 @@ fun TransactionDetailView(
                     }
                 }
 
-                if (hasChange && inheritanceClaimTxDetailInfo == null) {
+                if (hasChange && inheritanceClaimTxDetailInfo == null && !isHideChangeIndex) {
                     item {
                         Box(
                             modifier = Modifier

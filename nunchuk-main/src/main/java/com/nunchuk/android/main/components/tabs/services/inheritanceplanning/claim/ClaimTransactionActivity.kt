@@ -219,6 +219,7 @@ private fun ClaimTransactionScreen(
 
     NunchukTheme {
         TransactionDetailView(
+            isHideChangeIndex = true, // claim off chain transaction is hide change index
             isDummyTx = false,
             walletId = "",
             txId = args.transaction.txId,
