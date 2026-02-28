@@ -42,6 +42,7 @@ import com.nunchuk.android.signer.software.R
 import com.nunchuk.android.signer.software.components.recover.RecoverSeedEvent.CanGoNextStepEvent
 import com.nunchuk.android.signer.software.components.recover.RecoverSeedEvent.InvalidMnemonicEvent
 import com.nunchuk.android.signer.software.components.recover.RecoverSeedEvent.MnemonicRequiredEvent
+import com.nunchuk.android.signer.software.components.recover.RecoverSeedEvent.SetPassphraseResultEvent
 import com.nunchuk.android.signer.software.components.recover.RecoverSeedEvent.UpdateMnemonicEvent
 import com.nunchuk.android.signer.software.components.recover.RecoverSeedEvent.ValidMnemonicEvent
 import com.nunchuk.android.signer.software.databinding.ActivityRecoverSeedBinding
@@ -92,13 +93,8 @@ class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (result.resultCode == RESULT_OK) {
-            setResult(
-                RESULT_OK,
-                Intent().apply {
-                    putExtra(GlobalResultKey.MNEMONIC, viewModel.getMnemonic())
-                },
-            )
-            finish()
+            val passphrase = result.data?.getStringExtra(GlobalResultKey.PASSPHRASE).orEmpty()
+            viewModel.onSetPassphraseResult(viewModel.getMnemonic(), passphrase)
         }
     }
 
@@ -208,21 +204,46 @@ class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
             }
 
             is RecoverSeedEvent.ExistingSignerEvent -> {
-                NCInfoDialog(this)
-                    .showDialog(
-                        message = String.format(
-                            getString(R.string.nc_existing_key_change_key_type),
-                            event.fingerprint.uppercase(Locale.getDefault())
-                        ),
-                        btnYes = getString(R.string.nc_text_yes),
-                        btnInfo = getString(R.string.nc_text_no),
-                        onYesClick = {
-                            viewModel.recoverHotWallet(true)
-                        },
-                        onInfoClick = {}
-                    )
+                showExistingSignerWarning(event.fingerprint) {
+                    viewModel.recoverHotWallet(true)
+                }
+            }
+
+            is SetPassphraseResultEvent -> {
+                if (event.shouldShowWarning) {
+                    showExistingSignerWarning(event.existingFingerprint) {
+                        returnResult(event)
+                    }
+                } else {
+                    returnResult(event)
+                }
             }
         }
+    }
+
+    private fun returnResult(event: SetPassphraseResultEvent) {
+        setResult(
+            RESULT_OK,
+            Intent().apply {
+                putExtra(GlobalResultKey.MNEMONIC, event.mnemonic)
+                putExtra(GlobalResultKey.PASSPHRASE, event.passphrase)
+            },
+        )
+        finish()
+    }
+
+    private fun showExistingSignerWarning(fingerprint: String, onConfirmReplace: () -> Unit) {
+        NCInfoDialog(this)
+            .showDialog(
+                message = String.format(
+                    getString(R.string.nc_existing_key_change_key_type),
+                    fingerprint.uppercase(Locale.getDefault())
+                ),
+                btnYes = getString(R.string.nc_text_yes),
+                btnInfo = getString(R.string.nc_text_no),
+                onYesClick = onConfirmReplace,
+                onInfoClick = {}
+            )
     }
 
     private fun updateMnemonic(mnemonic: String) {
