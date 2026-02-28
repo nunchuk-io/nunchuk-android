@@ -220,7 +220,7 @@ fun VerifyInheritanceMessageScreen(
 
     LaunchedEffect(Unit) {
         nfcViewModel.nfcScanInfo
-            .filter { it.requestCode == BaseNfcActivity.REQUEST_MK4_EXPORT_TRANSACTION }
+            .filter { it.requestCode == BaseNfcActivity.REQUEST_GENERATE_HEAL_CHECK_MSG }
             .collect { scanInfo ->
                 val ndef = Ndef.get(scanInfo.tag) ?: return@collect
                 viewModel.handleExportTransactionToMk4(ndef)

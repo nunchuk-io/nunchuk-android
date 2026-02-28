@@ -33,7 +33,7 @@ class SendDataToMk4UseCase @Inject constructor(
 ) : BaseMk4UseCase<SendDataToMk4UseCase.Data>(dispatcher) {
 
     override suspend fun executeNfc(parameters: Data): Array<NdefRecord> {
-        return nativeSdk.exportRawPsbtToMk4(parameters.data)
+        return nativeSdk.sendDataToMk4(parameters.data)
     }
 
     class Data(val data: String, ndef: Ndef) : BaseMk4UseCase.Data(ndef)
