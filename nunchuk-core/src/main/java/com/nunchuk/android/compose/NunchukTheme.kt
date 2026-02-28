@@ -81,6 +81,7 @@ data class NunchukTypography(
     val body: TextStyle,
     val bold: TextStyle,
     val caption: TextStyle,
+    val captionSmall: TextStyle,
     val captionTitle: TextStyle,
     val bodySmall: TextStyle,
     val textLink: TextStyle,
@@ -108,6 +109,7 @@ val LocalNunchukTypography = staticCompositionLocalOf {
         titleSmall = TextStyle.Default,
         bodySmall = TextStyle.Default,
         caption = TextStyle.Default,
+        captionSmall = TextStyle.Default,
         captionTitle = TextStyle.Default,
         textLink = TextStyle.Default
     )
@@ -204,6 +206,14 @@ private fun NunchukThemeContent(
             fontFamily = latoBold,
             color = textColor,
             fontWeight = FontWeight.Medium
+        ),
+        captionSmall = TextStyle(
+            fontSize = 10.sp,
+            lineHeight = 16.sp,
+            letterSpacing = 0.8.sp,
+            fontFamily = latoRegular,
+            color = textColor,
+            fontWeight = FontWeight.Normal
         ),
         captionTitle = TextStyle(
             fontSize = 12.sp,

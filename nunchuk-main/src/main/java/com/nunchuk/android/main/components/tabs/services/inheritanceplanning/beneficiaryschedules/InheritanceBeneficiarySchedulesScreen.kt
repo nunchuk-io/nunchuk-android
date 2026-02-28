@@ -1,0 +1,442 @@
+/**************************************************************************
+ * This file is part of the Nunchuk software (https://nunchuk.io/)        *
+ * Copyright (C) 2022, 2023 Nunchuk                                       *
+ *                                                                        *
+ * This program is free software; you can redistribute it and/or          *
+ * modify it under the terms of the GNU General Public License            *
+ * as published by the Free Software Foundation; either version 3         *
+ * of the License, or (at your option) any later version.                 *
+ *                                                                        *
+ * This program is distributed in the hope that it will be useful,        *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of         *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the          *
+ * GNU General Public License for more details.                           *
+ *                                                                        *
+ * You should have received a copy of the GNU General Public License      *
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.  *
+ *                                                                        *
+ **************************************************************************/
+
+package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.beneficiaryschedules
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.tooling.preview.PreviewLightDark
+import androidx.compose.ui.unit.dp
+import com.nunchuk.android.compose.NcHighlightText
+import com.nunchuk.android.compose.NcOutlineButton
+import com.nunchuk.android.compose.NcPrimaryDarkButton
+import com.nunchuk.android.compose.NcTopAppBar
+import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.fillDenim2
+import com.nunchuk.android.compose.strokePrimary
+import com.nunchuk.android.compose.textPrimary
+import com.nunchuk.android.compose.textSecondary
+import com.nunchuk.android.main.R
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceBeneficiaryAllocation
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasemethod.InheritanceReleaseMethod
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasescheduledetail.ReleaseScheduleSummaryProgress
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasescheduledetail.ReleaseScheduleUiState
+import com.nunchuk.android.widget.R as WidgetR
+import com.nunchuk.android.core.R as CoreR
+
+@Composable
+internal fun InheritanceBeneficiarySchedulesScreen(
+    remainTime: Int,
+    releaseMethod: InheritanceReleaseMethod,
+    beneficiaries: List<InheritanceBeneficiaryAllocation>,
+    releaseScheduleUiState: ReleaseScheduleUiState = ReleaseScheduleUiState(),
+    sharedBufferPeriodSummaryText: String? = null,
+    isSharedScheduleConfigured: Boolean = false,
+    onBackClicked: () -> Unit = {},
+    onEditReleaseMethodClicked: () -> Unit = {},
+    onAddReleaseScheduleClicked: () -> Unit = {},
+    onEditSharedScheduleClicked: () -> Unit = {},
+    onEditBeneficiaryScheduleClicked: (String) -> Unit = {},
+    onContinueClicked: () -> Unit = {},
+) {
+    NunchukTheme {
+        Scaffold(
+            topBar = {
+                NcTopAppBar(
+                    title = stringResource(id = R.string.nc_estimate_remain_time, remainTime),
+                    onBackPress = onBackClicked
+                )
+            },
+            bottomBar = {
+                BottomActionSection(
+                    releaseMethod = releaseMethod,
+                    isSharedScheduleConfigured = isSharedScheduleConfigured,
+                    onAddReleaseScheduleClicked = onAddReleaseScheduleClicked,
+                    onContinueClicked = onContinueClicked
+                )
+            }
+        ) { innerPadding ->
+            Column(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(16.dp)
+            ) {
+                Text(
+                    text = stringResource(id = R.string.nc_beneficiary_schedules_title),
+                    style = NunchukTheme.typography.heading
+                )
+
+                ReleaseMethodSummaryCard(
+                    modifier = Modifier.padding(top = 16.dp),
+                    releaseMethod = releaseMethod,
+                    onEditClicked = onEditReleaseMethodClicked
+                )
+
+                Text(
+                    modifier = Modifier.padding(top = 20.dp),
+                    text = stringResource(
+                        id = if (releaseMethod == InheritanceReleaseMethod.SHARED_SCHEDULE) {
+                            R.string.nc_beneficiary_schedules_shared_desc
+                        } else {
+                            R.string.nc_beneficiary_schedules_individual_desc
+                        }
+                    ),
+                    style = NunchukTheme.typography.body
+                )
+
+                if (releaseMethod == InheritanceReleaseMethod.SHARED_SCHEDULE) {
+                    if (isSharedScheduleConfigured) {
+                        SharedScheduleConfiguredCard(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 20.dp),
+                            uiState = releaseScheduleUiState,
+                            bufferPeriodSummaryText = sharedBufferPeriodSummaryText,
+                            onEditClick = onEditSharedScheduleClicked
+                        )
+                    } else {
+                        SharedScheduleEmptyState(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(460.dp)
+                        )
+                    }
+                } else {
+                    IndividualScheduleList(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 20.dp),
+                        beneficiaries = beneficiaries,
+                        onEditBeneficiaryScheduleClicked = onEditBeneficiaryScheduleClicked
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ReleaseMethodSummaryCard(
+    modifier: Modifier = Modifier,
+    releaseMethod: InheritanceReleaseMethod,
+    onEditClicked: () -> Unit,
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(
+                color = MaterialTheme.colorScheme.fillDenim2,
+                shape = RoundedCornerShape(12.dp)
+            )
+            .padding(horizontal = 14.dp, vertical = 16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = stringResource(id = R.string.nc_beneficiary_schedules_release_method_prefix),
+            style = NunchukTheme.typography.title
+        )
+        Text(
+            modifier = Modifier.padding(start = 6.dp),
+            text = stringResource(
+                id = if (releaseMethod == InheritanceReleaseMethod.SHARED_SCHEDULE) {
+                    R.string.nc_release_method_shared_schedule
+                } else {
+                    R.string.nc_release_method_individual_schedules
+                }
+            ),
+            style = NunchukTheme.typography.body
+        )
+        Spacer(modifier = Modifier.weight(1f))
+        Text(
+            modifier = Modifier.clickable(onClick = onEditClicked),
+            text = stringResource(id = CoreR.string.nc_edit),
+            style = NunchukTheme.typography.titleSmall.copy(textDecoration = TextDecoration.Underline)
+        )
+    }
+}
+
+@Composable
+private fun SharedScheduleConfiguredCard(
+    modifier: Modifier = Modifier,
+    uiState: ReleaseScheduleUiState,
+    bufferPeriodSummaryText: String?,
+    onEditClick: () -> Unit,
+) {
+    val firstStage = uiState.stages.firstOrNull()
+    Box(
+        modifier = modifier
+            .border(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.strokePrimary,
+                shape = RoundedCornerShape(16.dp)
+            )
+            .padding(16.dp)
+    ) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    painter = painterResource(id = WidgetR.drawable.ic_calendar_blank),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.textPrimary
+                )
+                Text(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(start = 8.dp),
+                    text = if (firstStage != null) {
+                        stringResource(
+                            id = R.string.nc_release_schedule_first_withdrawal,
+                            firstStage.firstWithdrawalDate.display()
+                        )
+                    } else {
+                        stringResource(id = R.string.nc_beneficiary_schedules_not_set_up_yet)
+                    },
+                    style = NunchukTheme.typography.body
+                )
+                Icon(
+                    modifier = Modifier
+                        .size(20.dp)
+                        .clickable(onClick = onEditClick),
+                    painter = painterResource(id = WidgetR.drawable.ic_edit_small),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.textPrimary
+                )
+            }
+
+            if (bufferPeriodSummaryText != null) {
+                Row(
+                    modifier = Modifier.padding(top = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        painter = painterResource(id = WidgetR.drawable.ic_buffer_period),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.textPrimary
+                    )
+                    Text(
+                        modifier = Modifier.padding(start = 8.dp),
+                        text = bufferPeriodSummaryText,
+                        style = NunchukTheme.typography.body
+                    )
+                }
+            }
+
+            ReleaseScheduleSummaryProgress(
+                modifier = Modifier.padding(top = 12.dp),
+                segments = uiState.allocationSegments,
+                summaryScalePercent = uiState.summaryScalePercent,
+                remainingSummaryPercent = uiState.remainingSummaryPercent,
+            )
+        }
+    }
+}
+
+@Composable
+private fun SharedScheduleEmptyState(
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Spacer(modifier = Modifier.weight(1f))
+        Icon(
+            modifier = Modifier.size(60.dp),
+            painter = painterResource(id = WidgetR.drawable.ic_plus_square),
+            contentDescription = null,
+            tint = Color.Unspecified
+        )
+        NcHighlightText(
+            modifier = Modifier
+                .padding(top = 24.dp)
+                .fillMaxWidth(),
+            text = stringResource(id = R.string.nc_beneficiary_schedules_empty_hint),
+            style = NunchukTheme.typography.body.copy(
+                color = MaterialTheme.colorScheme.textSecondary,
+                textAlign = TextAlign.Center
+            )
+        )
+        Spacer(modifier = Modifier.weight(1f))
+    }
+}
+
+@Composable
+private fun IndividualScheduleList(
+    modifier: Modifier = Modifier,
+    beneficiaries: List<InheritanceBeneficiaryAllocation>,
+    onEditBeneficiaryScheduleClicked: (String) -> Unit,
+) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        beneficiaries.forEach { beneficiary ->
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.strokePrimary,
+                        shape = RoundedCornerShape(16.dp)
+                    )
+                    .padding(16.dp)
+            ) {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.Top
+                    ) {
+                        Text(
+                            modifier = Modifier.weight(1f),
+                            text = beneficiary.email,
+                            style = NunchukTheme.typography.title
+                        )
+                        Icon(
+                            modifier = Modifier
+                                .size(22.dp)
+                                .clickable { onEditBeneficiaryScheduleClicked(beneficiary.email) },
+                            painter = painterResource(id = WidgetR.drawable.ic_edit_small),
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.textPrimary
+                        )
+                    }
+                    Row(
+                        modifier = Modifier.padding(top = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            painter = painterResource(id = WidgetR.drawable.ic_calendar_blank),
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.textPrimary
+                        )
+                        Text(
+                            modifier = Modifier.padding(start = 8.dp),
+                            text = stringResource(id = R.string.nc_beneficiary_schedules_not_set_up_yet),
+                            style = NunchukTheme.typography.body.copy(color = MaterialTheme.colorScheme.textSecondary)
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun BottomActionSection(
+    releaseMethod: InheritanceReleaseMethod,
+    isSharedScheduleConfigured: Boolean,
+    onAddReleaseScheduleClicked: () -> Unit,
+    onContinueClicked: () -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color(0xFFF6F6F6))
+            .padding(horizontal = 16.dp, vertical = 14.dp)
+            .navigationBarsPadding()
+    ) {
+        if (releaseMethod == InheritanceReleaseMethod.SHARED_SCHEDULE && !isSharedScheduleConfigured) {
+            NcOutlineButton(
+                modifier = Modifier.fillMaxWidth(),
+                onClick = onAddReleaseScheduleClicked,
+            ) {
+                Icon(
+                    painter = painterResource(id = WidgetR.drawable.ic_add_dark),
+                    contentDescription = null,
+                    tint = Color.Unspecified
+                )
+                Text(
+                    modifier = Modifier.padding(start = 8.dp),
+                    text = stringResource(id = R.string.nc_add_release_schedule)
+                )
+            }
+        }
+
+        NcPrimaryDarkButton(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = if (releaseMethod == InheritanceReleaseMethod.SHARED_SCHEDULE && !isSharedScheduleConfigured) 14.dp else 0.dp),
+            enabled = releaseMethod == InheritanceReleaseMethod.SHARED_SCHEDULE && isSharedScheduleConfigured,
+            onClick = onContinueClicked,
+        ) {
+            Text(text = stringResource(id = R.string.nc_text_continue))
+        }
+    }
+}
+
+@PreviewLightDark
+@Composable
+private fun InheritanceBeneficiarySchedulesSharedPreview() {
+    InheritanceBeneficiarySchedulesScreen(
+        remainTime = 20,
+        releaseMethod = InheritanceReleaseMethod.SHARED_SCHEDULE,
+        beneficiaries = listOf(
+            InheritanceBeneficiaryAllocation("Wife@gmail.com", 50),
+            InheritanceBeneficiaryAllocation("Son@gmail.com", 25),
+            InheritanceBeneficiaryAllocation("Daughter@gmail.com", 25),
+        ),
+        isSharedScheduleConfigured = true,
+    )
+}
+
+@PreviewLightDark
+@Composable
+private fun InheritanceBeneficiarySchedulesIndividualPreview() {
+    InheritanceBeneficiarySchedulesScreen(
+        remainTime = 20,
+        releaseMethod = InheritanceReleaseMethod.INDIVIDUAL_SCHEDULES,
+        beneficiaries = listOf(
+            InheritanceBeneficiaryAllocation("Wife@gmail.com", 50),
+            InheritanceBeneficiaryAllocation("Son@gmail.com", 25),
+            InheritanceBeneficiaryAllocation("Daughter@gmail.com", 25),
+        ),
+    )
+}

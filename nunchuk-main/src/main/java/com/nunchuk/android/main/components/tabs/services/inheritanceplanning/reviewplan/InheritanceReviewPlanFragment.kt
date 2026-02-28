@@ -74,6 +74,7 @@ import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.fillDenim
 import com.nunchuk.android.compose.greyLight
 import com.nunchuk.android.compose.whisper
 import com.nunchuk.android.core.manager.NcToastManager
@@ -85,8 +86,12 @@ import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.openExternalLink
 import com.nunchuk.android.main.BuildConfig
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceBufferPeriodApplyType
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningParam
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceSetupFlowType
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasescheduledetail.ReleaseScheduleSummaryProgress
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasescheduledetail.ReleaseScheduleUiState
 import com.nunchuk.android.model.Period
 import com.nunchuk.android.model.TimelockBased
 import com.nunchuk.android.model.byzantine.isMasterOrAdmin
@@ -236,6 +241,7 @@ class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionLis
 fun InheritanceReviewPlanScreen(
     viewModel: InheritanceReviewPlanViewModel = viewModel(),
     inheritanceViewModel: InheritancePlanningViewModel,
+    releaseScheduleUiState: ReleaseScheduleUiState = ReleaseScheduleUiState(stages = emptyList()),
     onEditActivationDateClick: (date: Long) -> Unit,
     onEditNoteClick: (note: String) -> Unit,
     onNotifyPrefClick: (isNotifyToday: Boolean, emails: List<String>) -> Unit,
@@ -263,6 +269,7 @@ fun InheritanceReviewPlanScreen(
         planFlow = setupOrReviewParam.planFlow,
         magicalPhrase = setupOrReviewParam.magicalPhrase,
         groupId = setupOrReviewParam.groupId,
+        releaseScheduleUiState = releaseScheduleUiState,
         setupOrReviewParam = setupOrReviewParam,
         state = state,
         isContinueButtonEnabled = isContinueButtonEnabled,
@@ -295,6 +302,7 @@ fun InheritanceReviewPlanScreenContent(
     planFlow: Int = InheritancePlanFlow.VIEW,
     magicalPhrase: String = "",
     groupId: String = "",
+    releaseScheduleUiState: ReleaseScheduleUiState = ReleaseScheduleUiState(stages = emptyList()),
     state: InheritanceReviewPlanState = InheritanceReviewPlanState(),
     setupOrReviewParam: InheritancePlanningParam.SetupOrReview = InheritancePlanningParam.SetupOrReview(
         walletId = ""
@@ -312,6 +320,8 @@ fun InheritanceReviewPlanScreenContent(
     onBackUpPasswordInfoClick: () -> Unit = {},
 ) {
     val isEditable = groupId.isEmpty() || state.currentUserRole.toRole.isMasterOrAdmin
+    val isSingleBeneficiaryFlow =
+        setupOrReviewParam.setupFlowType == InheritanceSetupFlowType.SINGLE_BENEFICIARY
     val magicalPhraseMask = if (groupId.isNotEmpty() && magicalPhrase.isEmpty()) {
         Utils.maskValue("", isMask = true)
     } else {
@@ -545,6 +555,21 @@ fun InheritanceReviewPlanScreenContent(
                     }
                 }
 
+                if (isSingleBeneficiaryFlow) {
+                    item(key = "single_beneficiary_release_schedule") {
+                        SingleBeneficiaryReleaseScheduleSection(
+                            isEditable = isEditable,
+                            releaseScheduleUiState = releaseScheduleUiState,
+                            bufferSummaryText = getReviewBufferSummaryText(setupOrReviewParam),
+                            timeZoneText = getTimezoneDisplay(setupOrReviewParam.selectedZoneId),
+                            onEditReleaseScheduleClick = {
+                                onEditBufferPeriodClick(setupOrReviewParam.bufferPeriod)
+                            },
+                            onEditTimeZoneClick = onEditActivationDateClick
+                        )
+                    }
+                }
+
                 item {
                     Column(
                         modifier = Modifier.padding(
@@ -589,7 +614,7 @@ fun InheritanceReviewPlanScreenContent(
                     }
                 }
 
-                if (!isMiniscriptWallet) {
+                if (!isMiniscriptWallet && !isSingleBeneficiaryFlow) {
                     item(key = "divider_1") {
                         HorizontalDivider(
                             modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 24.dp),
@@ -710,6 +735,122 @@ fun InheritanceReviewPlanScreenContent(
             }
         }
     }
+}
+
+@Composable
+private fun SingleBeneficiaryReleaseScheduleSection(
+    isEditable: Boolean,
+    releaseScheduleUiState: ReleaseScheduleUiState,
+    bufferSummaryText: String,
+    timeZoneText: String,
+    onEditReleaseScheduleClick: () -> Unit,
+    onEditTimeZoneClick: () -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.fillDenim)
+            .padding(horizontal = 16.dp, vertical = 16.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    color = MaterialTheme.colorScheme.greyLight,
+                    shape = RoundedCornerShape(12.dp)
+                )
+                .padding(16.dp)
+        ) {
+            Column {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = stringResource(id = com.nunchuk.android.main.R.string.nc_release_schedule_title),
+                        style = NunchukTheme.typography.title
+                    )
+                    Spacer(modifier = Modifier.weight(1f))
+                    if (isEditable) {
+                        Text(
+                            text = stringResource(id = R.string.nc_edit),
+                            style = NunchukTheme.typography.title,
+                            textDecoration = TextDecoration.Underline,
+                            modifier = Modifier.clickable(onClick = onEditReleaseScheduleClick)
+                        )
+                    }
+                }
+                Text(
+                    modifier = Modifier.padding(top = 12.dp),
+                    text = bufferSummaryText,
+                    style = NunchukTheme.typography.titleSmall
+                )
+                ReleaseScheduleSummaryProgress(
+                    modifier = Modifier.padding(top = 12.dp),
+                    segments = releaseScheduleUiState.allocationSegments,
+                    summaryScalePercent = releaseScheduleUiState.summaryScalePercent,
+                    remainingSummaryPercent = releaseScheduleUiState.remainingSummaryPercent,
+                    surfaceColor = MaterialTheme.colorScheme.greyLight
+                )
+            }
+        }
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 16.dp)
+                .background(
+                    color = MaterialTheme.colorScheme.greyLight,
+                    shape = RoundedCornerShape(12.dp)
+                )
+                .padding(16.dp)
+        ) {
+            Column {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = stringResource(id = com.nunchuk.android.core.R.string.nc_time_zone),
+                        style = NunchukTheme.typography.title
+                    )
+                    Spacer(modifier = Modifier.weight(1f))
+                    if (isEditable) {
+                        Text(
+                            text = stringResource(id = R.string.nc_edit),
+                            style = NunchukTheme.typography.title,
+                            textDecoration = TextDecoration.Underline,
+                            modifier = Modifier.clickable(onClick = onEditTimeZoneClick)
+                        )
+                    }
+                }
+                Text(
+                    modifier = Modifier.padding(top = 12.dp),
+                    text = timeZoneText,
+                    style = NunchukTheme.typography.body
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun getReviewBufferSummaryText(
+    setupOrReviewParam: InheritancePlanningParam.SetupOrReview,
+): String {
+    val period = setupOrReviewParam.bufferPeriod
+    if (period == null) return stringResource(id = R.string.nc_no_buffer)
+
+    val applyType = setupOrReviewParam.bufferPeriodApplyType
+    if (applyType == null) return period.displayName
+
+    val applyTypeText = when (applyType) {
+        InheritanceBufferPeriodApplyType.FIRST_WITHDRAWAL_ONLY ->
+            stringResource(id = com.nunchuk.android.main.R.string.nc_release_schedule_buffer_period_first_withdrawal_only)
+
+        InheritanceBufferPeriodApplyType.EVERY_WITHDRAWAL ->
+            stringResource(id = com.nunchuk.android.main.R.string.nc_release_schedule_buffer_period_every_withdrawal)
+    }
+
+    return stringResource(
+        id = com.nunchuk.android.main.R.string.nc_release_schedule_buffer_period_summary,
+        period.intervalCount,
+        applyTypeText
+    )
 }
 
 @Composable

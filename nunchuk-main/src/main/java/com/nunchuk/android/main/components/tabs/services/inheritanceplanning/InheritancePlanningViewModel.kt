@@ -209,6 +209,31 @@ enum class InheritanceKeyType {
     TAPSIGNER, COLDCARD
 }
 
+@Keep
+enum class InheritanceSetupFlowType {
+    OLD_FLOW,
+    SINGLE_BENEFICIARY,
+    MULTI_BENEFICIARY,
+}
+
+@Keep
+enum class InheritanceBufferPeriodApplyType {
+    FIRST_WITHDRAWAL_ONLY,
+    EVERY_WITHDRAWAL,
+}
+
+@Keep
+enum class InheritanceReleaseMethodType {
+    SHARED_SCHEDULE,
+    INDIVIDUAL_SCHEDULES,
+}
+
+@Keep
+data class InheritanceBeneficiaryAllocation(
+    val email: String,
+    val allocationPercent: Int,
+)
+
 sealed class InheritancePlanningParam {
     data class SetupOrReview(
         val activationDate: Long = 0L,
@@ -226,8 +251,12 @@ sealed class InheritancePlanningParam {
         val groupId: String = "",
         val dummyTransactionId: String = "",
         val inheritanceKeys: List<String> = emptyList(),
+        val setupFlowType: InheritanceSetupFlowType = InheritanceSetupFlowType.OLD_FLOW,
+        val releaseMethodType: InheritanceReleaseMethodType = InheritanceReleaseMethodType.SHARED_SCHEDULE,
+        val beneficiaryAllocations: List<InheritanceBeneficiaryAllocation> = emptyList(),
+        val isSharedScheduleConfigured: Boolean = false,
+        val bufferPeriodApplyType: InheritanceBufferPeriodApplyType? = null,
         val timelockBased: TimelockBased = TimelockBased.TIME_LOCK,
         val blockHeight: Long? = null,
     ) : InheritancePlanningParam()
 }
-
