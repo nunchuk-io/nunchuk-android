@@ -36,7 +36,6 @@ import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.CheckMnemonicUseCase
 import com.nunchuk.android.usecase.GetBip39WordListUseCase
 import com.nunchuk.android.usecase.GetMasterFingerprintUseCase
-import com.nunchuk.android.usecase.signer.GetMasterSigners2UseCase
 import com.nunchuk.android.usecase.byzantine.GetReplaceSignerNameUseCase
 import com.nunchuk.android.usecase.wallet.RecoverHotWalletUseCase
 import com.nunchuk.android.utils.onException
@@ -54,7 +53,6 @@ internal class RecoverSeedViewModel @Inject constructor(
     private val checkMnemonicUseCase: CheckMnemonicUseCase,
     private val recoverHotWalletUseCase: RecoverHotWalletUseCase,
     private val getMasterFingerprintUseCase: GetMasterFingerprintUseCase,
-    private val getMasterSigners2UseCase: GetMasterSigners2UseCase,
     private val getReplaceSignerNameUseCase: GetReplaceSignerNameUseCase,
 ) : NunchukViewModel<RecoverSeedState, RecoverSeedEvent>() {
 
@@ -158,29 +156,6 @@ internal class RecoverSeedViewModel @Inject constructor(
     }
 
     fun getMnemonic() = getState().mnemonic
-
-    fun onSetPassphraseResult(mnemonic: String, passphrase: String) {
-        viewModelScope.launch {
-            val existingFingerprint = checkExistingMasterSigner(mnemonic, passphrase)
-            setEvent(
-                RecoverSeedEvent.SetPassphraseResultEvent(
-                    mnemonic = mnemonic,
-                    passphrase = passphrase,
-                    shouldShowWarning = existingFingerprint != null,
-                    existingFingerprint = existingFingerprint ?: "",
-                )
-            )
-        }
-    }
-
-    private suspend fun checkExistingMasterSigner(mnemonic: String, passphrase: String): String? {
-        val fingerprint = getMasterFingerprintUseCase(
-            GetMasterFingerprintUseCase.Param(mnemonic = mnemonic, passphrase = passphrase)
-        ).getOrNull().orEmpty()
-        if (fingerprint.isEmpty()) return null
-        val masterSigners = getMasterSigners2UseCase(Unit).getOrDefault(emptyList())
-        return if (masterSigners.any { it.id == fingerprint }) fingerprint else null
-    }
 
     companion object {
         private const val MAX_ACCEPTED_NUM_WORDS = 24
