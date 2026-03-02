@@ -3,6 +3,7 @@ package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.cl
 import android.nfc.NdefRecord
 import android.nfc.tech.IsoDep
 import android.nfc.tech.Ndef
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.SignTapSignerPsbtUseCase
@@ -56,10 +57,13 @@ class ClaimTransactionViewModel @AssistedInject constructor(
     private val getPsbtFromMk4UseCase: GetPsbtFromMk4UseCase,
     private val decodeTxUseCase: DecodeTxUseCase,
     private val valueFromAmountUseCase: ValueFromAmountUseCase,
+    private val savedStateHandle: SavedStateHandle,
     @Assisted private val args: ClaimTransactionArgs
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(TransactionDetailsState(transaction = args.transaction))
+    private val initialTransaction =
+        savedStateHandle.get<Transaction>(KEY_SAVED_TRANSACTION) ?: args.transaction
+    private val _state = MutableStateFlow(TransactionDetailsState(transaction = initialTransaction))
     val state: StateFlow<TransactionDetailsState> = _state.asStateFlow()
     private val _singleSigners = mutableListOf<SingleSigner>()
 
@@ -110,7 +114,7 @@ class ClaimTransactionViewModel @AssistedInject constructor(
 
                 _state.update { currentState ->
                     currentState.copy(
-                        transaction = args.transaction,
+                        transaction = currentState.transaction,
                         signers = signers,
                         enabledSigners = emptySet()
                     )
@@ -248,6 +252,7 @@ class ClaimTransactionViewModel @AssistedInject constructor(
     }
 
     fun updateTransaction(transaction: Transaction) {
+        savedStateHandle[KEY_SAVED_TRANSACTION] = transaction
         _state.update { it.copy(transaction = transaction.copy(changeIndex = args.transaction.changeIndex)) }
         checkAndClaimIfAllSigned(transaction)
     }
@@ -339,6 +344,10 @@ class ClaimTransactionViewModel @AssistedInject constructor(
 
     enum class LoadingType {
         Normal, Nfc, ColdCard
+    }
+
+    companion object {
+        private const val KEY_SAVED_TRANSACTION = "saved_transaction"
     }
 
     @AssistedFactory
