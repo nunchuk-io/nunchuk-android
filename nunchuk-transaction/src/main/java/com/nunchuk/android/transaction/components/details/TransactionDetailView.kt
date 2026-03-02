@@ -109,6 +109,8 @@ fun TransactionDetailView(
     state: TransactionDetailsState = TransactionDetailsState(),
     miniscriptUiState: TransactionMiniscriptUiState = TransactionMiniscriptUiState(),
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
+    isShowRetryButton: Boolean = false,
+    onRetryClick: () -> Unit = {},
     onShowMore: () -> Unit = {},
     onSignClick: (SignerModel) -> Unit = {},
     onBroadcastClick: () -> Unit = {},
@@ -176,6 +178,8 @@ fun TransactionDetailView(
                 inheritanceClaimTxDetailInfo = inheritanceClaimTxDetailInfo,
                 state = state,
                 miniscriptUiState = miniscriptUiState,
+                isShowRetryButton = isShowRetryButton,
+                onRetryClick = onRetryClick,
                 onBroadcastClick = onBroadcastClick,
                 onViewOnBlockExplorer = onViewOnBlockExplorer
             )
@@ -576,36 +580,50 @@ private fun TransactionDetailBottomBar(
     inheritanceClaimTxDetailInfo: InheritanceClaimTxDetailInfo?,
     state: TransactionDetailsState,
     miniscriptUiState: TransactionMiniscriptUiState,
+    isShowRetryButton: Boolean = false,
+    onRetryClick: () -> Unit = {},
     onBroadcastClick: () -> Unit,
     onViewOnBlockExplorer: () -> Unit
 ) {
-    if ((transaction.status.canBroadCast() || transaction.status.isRejected())
-        && (inheritanceClaimTxDetailInfo == null || state.userRole.isObserver.not())
-        && isServerBroadcastTime(transaction, state.serverTransaction).not()
-    ) {
-        NcPrimaryDarkButton(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth(),
-            enabled = !miniscriptUiState.isTimelockedActive,
-            onClick = onBroadcastClick
-        ) {
-            Text(
-                text = if (transaction.status.isRejected()) stringResource(R.string.nc_re_broadcast_transaction) else stringResource(
-                    R.string.nc_transaction_broadcast
-                ),
-            )
+    when {
+        isShowRetryButton -> {
+            NcPrimaryDarkButton(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .fillMaxWidth(),
+                onClick = onRetryClick
+            ) {
+                Text(stringResource(R.string.nc_retry))
+            }
         }
-    } else if (transaction.status.hadBroadcast()) {
-        NcPrimaryDarkButton(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth(),
-            onClick = onViewOnBlockExplorer
-        ) {
-            Text(
-                text = stringResource(R.string.nc_transaction_view_blockchain),
-            )
+        (transaction.status.canBroadCast() || transaction.status.isRejected())
+            && (inheritanceClaimTxDetailInfo == null || state.userRole.isObserver.not())
+            && isServerBroadcastTime(transaction, state.serverTransaction).not() -> {
+            NcPrimaryDarkButton(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .fillMaxWidth(),
+                enabled = !miniscriptUiState.isTimelockedActive,
+                onClick = onBroadcastClick
+            ) {
+                Text(
+                    text = if (transaction.status.isRejected()) stringResource(R.string.nc_re_broadcast_transaction) else stringResource(
+                        R.string.nc_transaction_broadcast
+                    ),
+                )
+            }
+        }
+        transaction.status.hadBroadcast() -> {
+            NcPrimaryDarkButton(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .fillMaxWidth(),
+                onClick = onViewOnBlockExplorer
+            ) {
+                Text(
+                    text = stringResource(R.string.nc_transaction_view_blockchain),
+                )
+            }
         }
     }
 }

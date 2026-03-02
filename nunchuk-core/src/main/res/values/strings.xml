@@ -1081,4 +1081,5 @@
     <string name="nc_recover_key_via_xprv">Recover key via XPRV</string>
     <string name="nc_recover_key_via_seed">Recover key via seed</string>
     <string name="nc_export_message">Export message</string>
+    <string name="nc_retry">Retry</string>
 </resources>

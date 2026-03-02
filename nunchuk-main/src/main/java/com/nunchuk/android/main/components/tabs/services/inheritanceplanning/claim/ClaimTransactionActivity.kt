@@ -78,9 +78,10 @@ private fun ClaimTransactionScreen(
     activity: ClaimTransactionActivity,
     navigator: NunchukNavigator
 ) {
-    val viewModel = hiltViewModel<ClaimTransactionViewModel, ClaimTransactionViewModel.Factory> { factory ->
-        factory.create(args)
-    }
+    val viewModel =
+        hiltViewModel<ClaimTransactionViewModel, ClaimTransactionViewModel.Factory> { factory ->
+            factory.create(args)
+        }
 
     val nfcViewModel = hiltViewModel<NfcViewModel>(viewModelStoreOwner = activity)
 
@@ -90,9 +91,19 @@ private fun ClaimTransactionScreen(
     val miniscriptState by viewModel.miniscriptState.collectAsStateWithLifecycle()
     val needPassphrase by viewModel.needPassphrase.collectAsStateWithLifecycle()
     val loadingType by viewModel.loadingType.collectAsStateWithLifecycle()
+    val claimError by viewModel.claimError.collectAsStateWithLifecycle()
     var showColdCardOptionsSheet by remember { mutableStateOf(false) }
-    val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(claimError) {
+        claimError?.let { error ->
+            snackbarHostState.showNunchukSnackbar(
+                message = error,
+                type = NcToastType.ERROR
+            )
+        }
+    }
+    val coroutineScope = rememberCoroutineScope()
 
     val requestPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -121,21 +132,25 @@ private fun ClaimTransactionScreen(
                         )
                     }
                 }
+
                 is ClaimTransactionEvent.ExportToFileSuccess -> {
                     IntentSharingController.from(activity).shareFile(event.filePath)
                 }
+
                 is ClaimTransactionEvent.ShowError -> {
                     snackbarHostState.showNunchukSnackbar(
                         message = event.message,
                         type = NcToastType.ERROR
                     )
                 }
+
                 ClaimTransactionEvent.ExportTransactionToMk4Success -> {
                     snackbarHostState.showNunchukSnackbar(
                         message = context.getString(R.string.nc_transaction_exported),
                         type = NcToastType.SUCCESS
                     )
                 }
+
                 ClaimTransactionEvent.ImportTransactionFromMk4Success -> {
                     snackbarHostState.showNunchukSnackbar(
                         message = context.getString(com.nunchuk.android.transaction.R.string.nc_signed_transaction),
@@ -150,7 +165,8 @@ private fun ClaimTransactionScreen(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
-            val transaction = result.data?.parcelable<Transaction>(GlobalResultKey.TRANSACTION_EXTRA)
+            val transaction =
+                result.data?.parcelable<Transaction>(GlobalResultKey.TRANSACTION_EXTRA)
             transaction?.let { viewModel.updateTransaction(it) }
         }
     }
@@ -201,23 +217,22 @@ private fun ClaimTransactionScreen(
             )
         }
     }
-
-    val type = loadingType
-    if (type != null) {
-        when (type) {
-            LoadingType.Normal -> NcLoadingDialog()
-            LoadingType.Nfc -> NcLoadingDialog(
-                title = context.getString(R.string.nc_please_wait),
-                customMessage = context.getString(R.string.nc_keep_holding_nfc)
-            )
-            LoadingType.ColdCard -> NcLoadingDialog(
-                title = context.getString(CoreR.string.nc_data_transfer_in_progress),
-                customMessage = context.getString(CoreR.string.nc_keep_hold_coldcard_until_finish)
-            )
-        }
-    }
-
     NunchukTheme {
+        val type = loadingType
+        if (type != null) {
+            when (type) {
+                LoadingType.Normal -> NcLoadingDialog()
+                LoadingType.Nfc -> NcLoadingDialog(
+                    title = context.getString(R.string.nc_please_wait),
+                    customMessage = context.getString(R.string.nc_keep_holding_nfc)
+                )
+
+                LoadingType.ColdCard -> NcLoadingDialog(
+                    title = context.getString(CoreR.string.nc_data_transfer_in_progress),
+                    customMessage = context.getString(CoreR.string.nc_keep_hold_coldcard_until_finish)
+                )
+            }
+        }
         TransactionDetailView(
             isHideChangeIndex = true, // claim off chain transaction is hide change index
             isDummyTx = false,
@@ -226,15 +241,11 @@ private fun ClaimTransactionScreen(
             state = state,
             miniscriptUiState = miniscriptState,
             snackbarHostState = snackbarHostState,
+            isShowRetryButton = claimError != null,
+            onRetryClick = { viewModel.checkAndClaimIfAllSigned(state.transaction) },
             onShowMore = { showColdCardOptionsSheet = true },
             onSignClick = { signerModel ->
                 when {
-                    signerModel.type == SignerType.COLDCARD_NFC || signerModel.tags.contains(
-                        SignerTag.COLDCARD
-                    ) -> {
-                        showColdCardOptionsSheet = true
-                    }
-
                     signerModel.type == SignerType.NFC -> {
                         (activity as NfcActionListener).startNfcFlow(
                             BaseNfcActivity.REQUEST_NFC_SIGN_TRANSACTION
@@ -243,6 +254,12 @@ private fun ClaimTransactionScreen(
 
                     signerModel.type == SignerType.SOFTWARE -> {
                         viewModel.checkSoftwarePassphrase(signerModel)
+                    }
+
+                    signerModel.type == SignerType.COLDCARD_NFC || signerModel.tags.contains(
+                        SignerTag.COLDCARD
+                    ) -> {
+                        showColdCardOptionsSheet = true
                     }
                 }
             },

@@ -10,8 +10,10 @@ import com.nunchuk.android.core.domain.SignTapSignerPsbtUseCase
 import com.nunchuk.android.core.domain.coldcard.ExportRawPsbtToMk4UseCase
 import com.nunchuk.android.core.mapper.SingleSignerMapper
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.util.isNoInternetException
 import com.nunchuk.android.core.util.messageOrUnknownError
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.core.util.readableMessage
 import com.nunchuk.android.model.Result
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Transaction
@@ -78,6 +80,9 @@ class ClaimTransactionViewModel @AssistedInject constructor(
 
     private val _event = MutableSharedFlow<ClaimTransactionEvent>()
     val event = _event.asSharedFlow()
+
+    private val _claimError = MutableStateFlow<String?>(null)
+    val claimError: StateFlow<String?> = _claimError.asStateFlow()
 
     init {
         loadSigners()
@@ -225,29 +230,41 @@ class ClaimTransactionViewModel @AssistedInject constructor(
         }
     }
 
-    private fun checkAndClaimIfAllSigned(transaction: Transaction) {
+    fun checkAndClaimIfAllSigned(transaction: Transaction) {
         val signedCount = transaction.signers.values.count { it }
         if (signedCount == args.masterSignerIds.size) {
-            viewModelScope.launch {
-                _loadingType.update { LoadingType.Normal }
-                inheritanceClaimingClaimUseCase(
-                    InheritanceClaimingClaimUseCase.Param(
-                        magic = args.magic,
-                        psbt = transaction.psbt,
-                    )
-                ).onSuccess { transactionAdditional ->
-                    _state.update { currentState ->
-                        currentState.copy(
-                            transaction = currentState.transaction.copy(
-                                status = transactionAdditional.status
-                            )
+            performClaim(transaction)
+        }
+    }
+
+    private fun performClaim(transaction: Transaction) {
+        viewModelScope.launch {
+            _claimError.update { null }
+            _loadingType.update { LoadingType.Normal }
+            inheritanceClaimingClaimUseCase(
+                InheritanceClaimingClaimUseCase.Param(
+                    magic = args.magic,
+                    psbt = transaction.psbt,
+                )
+            ).onSuccess { transactionAdditional ->
+                _claimError.update { null }
+                _state.update { currentState ->
+                    currentState.copy(
+                        transaction = currentState.transaction.copy(
+                            status = transactionAdditional.status
                         )
-                    }
-                }.onFailure { exception ->
-                    Timber.e(exception, "Failed to claim inheritance transaction")
+                    )
                 }
-                _loadingType.update { null }
+            }.onFailure { exception ->
+                Timber.e(exception, "Failed to claim inheritance transaction")
+                val errorMessage = if (exception.isNoInternetException) {
+                    "Network unreachable. Please try again later."
+                } else {
+                    exception.readableMessage()
+                }
+                _claimError.update { errorMessage }
             }
+            _loadingType.update { null }
         }
     }
 
