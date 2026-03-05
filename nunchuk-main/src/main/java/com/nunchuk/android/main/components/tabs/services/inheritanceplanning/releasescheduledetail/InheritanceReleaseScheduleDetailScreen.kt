@@ -76,6 +76,7 @@ import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.lightGray
 import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.main.R
 import com.nunchuk.android.widget.R as WidgetR
@@ -87,7 +88,6 @@ private val SUMMARY_STAGE_COLORS = listOf(
     Color(0xFF57B7D9),
     Color(0xFFE88767),
 )
-private val SUMMARY_SURFACE_COLOR = Color(0xFFF6F6F6)
 private val SUMMARY_EDGE_FADE_WIDTH = 56.dp
 private val SUMMARY_ARROW_SIZE = 24.dp
 private val SUMMARY_ARROW_SPACING = 8.dp
@@ -249,7 +249,7 @@ private fun InheritanceReleaseScheduleDetailContent(
                                 .fillMaxWidth()
                                 .padding(horizontal = 16.dp, vertical = 24.dp)
                                 .background(
-                                    color = Color(0xFFF1F1F1),
+                                    color = MaterialTheme.colorScheme.lightGray,
                                     shape = RoundedCornerShape(999.dp)
                                 )
                                 .clickable(onClick = onAddStageClicked)
@@ -340,7 +340,7 @@ private fun EmptyStateBottomActionSection(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFFF6F6F6))
+            .background(MaterialTheme.colorScheme.lightGray)
             .padding(horizontal = 16.dp, vertical = 14.dp)
             .navigationBarsPadding()
     ) {
@@ -349,7 +349,7 @@ private fun EmptyStateBottomActionSection(
             onClick = onAddStageClicked,
         ) {
             Icon(
-                painter = painterResource(id = WidgetR.drawable.ic_add_dark),
+                painter = painterResource(id = WidgetR.drawable.ic_add_2),
                 contentDescription = null,
                 tint = Color.Unspecified
             )
@@ -429,7 +429,7 @@ private fun StageCard(
                     modifier = Modifier
                         .size(20.dp)
                         .clickable(onClick = onEditClick),
-                    painter = painterResource(id = WidgetR.drawable.ic_edit_small),
+                    painter = painterResource(id = WidgetR.drawable.ic_edit_small_2),
                     contentDescription = stringResource(id = R.string.nc_release_schedule_edit_stage),
                     tint = Color.Unspecified
                 )
@@ -598,10 +598,11 @@ private fun BottomSummarySection(
     uiState: ReleaseScheduleUiState,
     onContinueClicked: () -> Unit,
 ) {
+    val summarySurfaceColor = MaterialTheme.colorScheme.lightGray
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(SUMMARY_SURFACE_COLOR)
+            .background(summarySurfaceColor)
             .padding(horizontal = 16.dp, vertical = 14.dp)
             .navigationBarsPadding()
     ) {
@@ -614,7 +615,7 @@ private fun BottomSummarySection(
             segments = uiState.allocationSegments,
             summaryScalePercent = uiState.summaryScalePercent,
             remainingSummaryPercent = uiState.remainingSummaryPercent,
-            surfaceColor = SUMMARY_SURFACE_COLOR,
+            surfaceColor = summarySurfaceColor,
         )
 
         NcPrimaryDarkButton(
@@ -635,8 +636,13 @@ internal fun ReleaseScheduleSummaryProgress(
     segments: List<ReleaseScheduleAllocationSegment>,
     summaryScalePercent: Int,
     remainingSummaryPercent: Int,
-    surfaceColor: Color = SUMMARY_SURFACE_COLOR,
+    surfaceColor: Color = Color.Unspecified,
 ) {
+    val effectiveSurfaceColor = if (surfaceColor == Color.Unspecified) {
+        MaterialTheme.colorScheme.lightGray
+    } else {
+        surfaceColor
+    }
     val pageStartIndexes = remember(segments.size) {
         buildSummaryPageStartIndexes(
             totalSegments = segments.size,
@@ -712,7 +718,7 @@ internal fun ReleaseScheduleSummaryProgress(
                 modifier = Modifier.matchParentSize(),
                 horizontalInset = startArrowInset,
                 side = SummaryEdgeFadeSide.START,
-                surfaceColor = surfaceColor,
+                surfaceColor = effectiveSurfaceColor,
             )
         }
 
@@ -721,7 +727,7 @@ internal fun ReleaseScheduleSummaryProgress(
                 modifier = Modifier.matchParentSize(),
                 horizontalInset = endArrowInset,
                 side = SummaryEdgeFadeSide.END,
-                surfaceColor = surfaceColor,
+                surfaceColor = effectiveSurfaceColor,
             )
         }
     }
@@ -776,13 +782,18 @@ private fun SummaryEdgeFadeOverlay(
     modifier: Modifier = Modifier,
     horizontalInset: Dp = 0.dp,
     side: SummaryEdgeFadeSide,
-    surfaceColor: Color = SUMMARY_SURFACE_COLOR,
+    surfaceColor: Color = Color.Unspecified,
 ) {
+    val effectiveSurfaceColor = if (surfaceColor == Color.Unspecified) {
+        MaterialTheme.colorScheme.lightGray
+    } else {
+        surfaceColor
+    }
     val brush = when (side) {
         SummaryEdgeFadeSide.START -> Brush.horizontalGradient(
             colorStops = arrayOf(
-                0f to surfaceColor,
-                0.55f to surfaceColor.copy(alpha = 0.92f),
+                0f to effectiveSurfaceColor,
+                0.55f to effectiveSurfaceColor.copy(alpha = 0.92f),
                 1f to Color.Transparent
             )
         )
@@ -790,8 +801,8 @@ private fun SummaryEdgeFadeOverlay(
         SummaryEdgeFadeSide.END -> Brush.horizontalGradient(
             colorStops = arrayOf(
                 0f to Color.Transparent,
-                0.45f to surfaceColor.copy(alpha = 0.92f),
-                1f to surfaceColor
+                0.45f to effectiveSurfaceColor.copy(alpha = 0.92f),
+                1f to effectiveSurfaceColor
             )
         )
     }

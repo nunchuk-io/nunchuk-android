@@ -56,6 +56,7 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.fillDenim2
+import com.nunchuk.android.compose.greyLight
 import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.textSecondary
@@ -64,8 +65,8 @@ import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.Inh
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasemethod.InheritanceReleaseMethod
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasescheduledetail.ReleaseScheduleSummaryProgress
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasescheduledetail.ReleaseScheduleUiState
-import com.nunchuk.android.widget.R as WidgetR
 import com.nunchuk.android.core.R as CoreR
+import com.nunchuk.android.widget.R as WidgetR
 
 @Composable
 internal fun InheritanceBeneficiarySchedulesScreen(
@@ -379,7 +380,7 @@ private fun BottomActionSection(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFFF6F6F6))
+            .background(MaterialTheme.colorScheme.greyLight)
             .padding(horizontal = 16.dp, vertical = 14.dp)
             .navigationBarsPadding()
     ) {
@@ -389,7 +390,7 @@ private fun BottomActionSection(
                 onClick = onAddReleaseScheduleClicked,
             ) {
                 Icon(
-                    painter = painterResource(id = WidgetR.drawable.ic_add_dark),
+                    painter = painterResource(id = WidgetR.drawable.ic_add_2),
                     contentDescription = null,
                     tint = Color.Unspecified
                 )
