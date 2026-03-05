@@ -45,10 +45,10 @@ fun AllocationDonutChart(
 ) {
     Row(
         modifier = modifier,
-        verticalAlignment = Alignment.Companion.CenterVertically,
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         val totalAllocation = beneficiaries.sumOf { it.allocationPercent }.coerceAtLeast(1)
-        Canvas(modifier = Modifier.Companion.size(60.dp)) {
+        Canvas(modifier = Modifier.size(60.dp)) {
             val strokeWidth = 10.dp.toPx()
             val arcSize = Size(size.width - strokeWidth, size.height - strokeWidth)
             val topLeft = Offset(strokeWidth / 2, strokeWidth / 2)
@@ -70,22 +70,22 @@ fun AllocationDonutChart(
         val scrollState = rememberScrollState()
         val scrollbarColor = MaterialTheme.colorScheme.textPrimary
         Box(
-            modifier = Modifier.Companion
+            modifier = Modifier
                 .weight(1f)
                 .heightIn(max = 60.dp)
                 .padding(start = 16.dp)
         ) {
             Column(
-                modifier = Modifier.Companion
+                modifier = Modifier
                     .fillMaxWidth()
                     .verticalScroll(scrollState)
                     .padding(end = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 beneficiaries.forEachIndexed { index, beneficiary ->
-                    Row(verticalAlignment = Alignment.Companion.CenterVertically) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
                         Box(
-                            modifier = Modifier.Companion
+                            modifier = Modifier
                                 .size(12.dp)
                                 .background(
                                     color = chartColors[index % chartColors.size],
@@ -96,9 +96,9 @@ fun AllocationDonutChart(
                             stringResource(R.string.nc_beneficiary_n, index + 1)
                         }
                         Text(
-                            modifier = Modifier.Companion.padding(start = 8.dp),
+                            modifier = Modifier.padding(start = 8.dp),
                             text = "$label: ${beneficiary.allocationPercent}%",
-                            style = NunchukTheme.typography.bodySmall.copy(fontWeight = FontWeight.Companion.W600),
+                            style = NunchukTheme.typography.bodySmall.copy(fontWeight = FontWeight.W600),
                             maxLines = 1,
                         )
                     }
@@ -106,8 +106,8 @@ fun AllocationDonutChart(
             }
             if (scrollState.maxValue > 0) {
                 Canvas(
-                    modifier = Modifier.Companion
-                        .align(Alignment.Companion.CenterEnd)
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
                         .fillMaxHeight()
                         .width(3.dp)
                 ) {
