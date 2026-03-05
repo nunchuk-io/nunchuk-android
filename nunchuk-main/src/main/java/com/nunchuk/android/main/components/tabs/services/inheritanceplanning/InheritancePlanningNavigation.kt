@@ -15,12 +15,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hasRoute
-import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -32,13 +31,12 @@ import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.InheritanceSourceFlow
-import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.openExternalLink
-import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.main.BuildConfig
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.activationdate.InheritanceActivationDateEvent
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.activationdate.InheritanceActivationDateScreen
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.assetallocation.InheritanceAssetAllocationScreen
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.backupdownload.InheritanceBackUpDownloadContent
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.beneficiaryschedules.InheritanceBeneficiarySchedulesScreen
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.bufferperiod.InheritanceBufferPeriodEvent
@@ -58,26 +56,26 @@ import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.mag
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.magicalphrase.MagicalPhraseIntroScreen
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.note.InheritanceNoteEvent
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.note.InheritanceNoteScreen
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.notifypref.InheritanceNotifyPrefScreen
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.notificationsettings.InheritanceNotificationSettingsScreen
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.notifypref.InheritanceNotifyPrefScreen
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.planoverview.InheritancePlanOverviewScreen
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.requestplanningsent.confirm.InheritanceRequestPlanningConfirmEvent
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.requestplanningsent.confirm.InheritanceRequestPlanningConfirmScreen
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.requestplanningsent.confirm.InheritanceRequestPlanningConfirmViewModel
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.requestplanningsent.sent.InheritanceRequestPlanningSentSuccessScreen
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.reviewplan.InheritanceReviewPlanEvent
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.reviewplan.InheritanceReviewPlanFragment
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.reviewplan.InheritanceReviewPlanGroupEvent
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.reviewplan.InheritanceReviewPlanGroupScreen
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.reviewplan.InheritanceReviewPlanGroupViewModel
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.reviewplan.InheritanceReviewPlanScreen
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.reviewplan.InheritanceReviewPlanViewModel
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.planoverview.InheritancePlanOverviewViewModel
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasemethod.InheritanceReleaseMethod
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasemethod.InheritanceReleaseMethodScreen
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releaseschedule.InheritanceReleaseScheduleScreen
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasescheduledetail.InheritanceReleaseScheduleDetailScreen
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasescheduledetail.ReleaseScheduleUiState
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releaseschedulestageedit.InheritanceReleaseScheduleStageEditScreen
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.requestplanningsent.confirm.InheritanceRequestPlanningConfirmEvent
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.requestplanningsent.confirm.InheritanceRequestPlanningConfirmScreen
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.requestplanningsent.confirm.InheritanceRequestPlanningConfirmViewModel
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.requestplanningsent.sent.InheritanceRequestPlanningSentSuccessScreen
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.reviewplan.InheritanceReviewPlanEvent
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.reviewplan.InheritanceReviewPlanGroupEvent
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.reviewplan.InheritanceReviewPlanGroupScreen
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.reviewplan.InheritanceReviewPlanGroupViewModel
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.reviewplan.InheritanceReviewPlanScreen
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.reviewplan.InheritanceReviewPlanViewModel
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.sharesecret.InheritanceShareSecretEvent
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.sharesecret.InheritanceShareSecretScreen
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.sharesecret.InheritanceShareSecretType
@@ -98,13 +96,16 @@ import kotlinx.serialization.Serializable
 data object InheritanceSetupIntroRoute
 
 @Serializable
-data object InheritancePlanOverviewRoute
+data class InheritancePlanOverviewRoute(val setupFlowType: InheritanceSetupFlowType = InheritanceSetupFlowType.OLD_FLOW)
 
 @Serializable
 data object InheritanceDistributionMethodRoute
 
 @Serializable
 data object InheritanceCustomizedDistributionRoute
+
+@Serializable
+data object InheritanceAssetAllocationRoute
 
 @Serializable
 data object InheritanceReleaseMethodRoute
@@ -258,7 +259,6 @@ fun InheritancePlanningGraph(
             startDestination = startDestination,
         )
     }
-    val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     var releaseScheduleUiState by remember { mutableStateOf(ReleaseScheduleUiState()) }
     var pendingNewStage by remember { mutableStateOf<com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasescheduledetail.ReleaseScheduleStage?>(null) }
@@ -282,19 +282,21 @@ fun InheritancePlanningGraph(
                 }
             )
         }
-        composable<InheritancePlanOverviewRoute> {
+        composable<InheritancePlanOverviewRoute> { backStackEntry ->
             MembershipStepEffect(membershipStepManager)
-            val viewModel = hiltViewModel<com.nunchuk.android.main.components.tabs.services.inheritanceplanning.planoverview.InheritancePlanOverviewViewModel>()
+            val route = backStackEntry.toRoute<InheritancePlanOverviewRoute>()
+            val viewModel = hiltViewModel<InheritancePlanOverviewViewModel>()
             val sharedState by activityViewModel.state.collectAsStateWithLifecycle()
             InheritancePlanOverviewScreen(
                 viewModel = viewModel,
                 groupWalletType = activityViewModel.getGroupWalletType(),
                 isMiniscriptWallet = sharedState.isMiniscriptWallet,
+                setupFlowType = route.setupFlowType,
                 onContinueClicked = {
-                    if (activityViewModel.setupOrReviewParam.setupFlowType == InheritanceSetupFlowType.MULTI_BENEFICIARY) {
-                        navController.navigate(InheritanceReleaseMethodRoute)
-                    } else {
-                        navController.navigate(MagicalPhraseIntroRoute)
+                    when (route.setupFlowType) {
+                        InheritanceSetupFlowType.MULTI_BENEFICIARY -> navController.navigate(InheritanceAssetAllocationRoute)
+                        InheritanceSetupFlowType.SINGLE_BENEFICIARY -> navController.navigate(InheritanceReleaseMethodRoute)
+                        else -> navController.navigate(MagicalPhraseIntroRoute)
                     }
                 }
             )
@@ -313,7 +315,11 @@ fun InheritancePlanningGraph(
                                 setupFlowType = InheritanceSetupFlowType.OLD_FLOW
                             )
                         )
-                        navController.navigate(InheritancePlanOverviewRoute)
+                        navController.navigate(
+                            InheritancePlanOverviewRoute(
+                                setupFlowType = InheritanceSetupFlowType.OLD_FLOW
+                            )
+                        )
                     }
                 }
             )
@@ -324,15 +330,34 @@ fun InheritancePlanningGraph(
             InheritanceCustomizedDistributionScreen(
                 remainTime = remainTime,
                 onContinueClicked = { type ->
+                    val flowType = when (type) {
+                        BeneficiaryType.SINGLE -> InheritanceSetupFlowType.SINGLE_BENEFICIARY
+                        BeneficiaryType.MULTI -> InheritanceSetupFlowType.MULTI_BENEFICIARY
+                    }
                     activityViewModel.setOrUpdate(
                         activityViewModel.setupOrReviewParam.copy(
-                            setupFlowType = when (type) {
-                                BeneficiaryType.SINGLE -> InheritanceSetupFlowType.SINGLE_BENEFICIARY
-                                BeneficiaryType.MULTI -> InheritanceSetupFlowType.MULTI_BENEFICIARY
-                            }
+                            setupFlowType = flowType
                         )
                     )
-                    navController.navigate(InheritancePlanOverviewRoute)
+                    navController.navigate(
+                        InheritancePlanOverviewRoute(setupFlowType = flowType)
+                    )
+                }
+            )
+        }
+        composable<InheritanceAssetAllocationRoute> {
+            MembershipStepEffect(membershipStepManager)
+            val remainTime by membershipStepManager.remainingTime.collectAsStateWithLifecycle()
+            val setupOrReviewParam = activityViewModel.setupOrReviewParam
+            InheritanceAssetAllocationScreen(
+                remainTime = remainTime,
+                initialBeneficiaries = setupOrReviewParam.beneficiaryAllocations,
+                onBackClicked = { navController.popBackStack() },
+                onContinueClicked = { allocations ->
+                    activityViewModel.setOrUpdate(
+                        setupOrReviewParam.copy(beneficiaryAllocations = allocations)
+                    )
+                    navController.navigate(MagicalPhraseIntroRoute)
                 }
             )
         }

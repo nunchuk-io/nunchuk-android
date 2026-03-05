@@ -25,7 +25,16 @@
     <string name="nc_inheritance_claim_trustee">The inheritance can be claimed directly by the Beneficiary or indirectly through a third-party Trustee.</string>
     <string name="nc_plan_overview">Plan overview</string>
     <string name="nc_plan_overview_desc">The inheritance plan will have these main components:</string>
+    <string name="nc_plan_overview_multi_beneficiary_desc">The multi-beneficiary plan will have these main components:</string>
     <string name="nc_plan_overview_bottom_desc">We will now go through them one-by-one.</string>
+    <string name="nc_asset_allocation">Asset allocation</string>
+    <string name="nc_asset_allocation_desc">Add beneficiaries and decide how the asset is shared between them. [B]The total across all beneficiaries must be 100%.[/B]</string>
+    <string name="nc_beneficiary_n">Beneficiary %1$d</string>
+    <string name="nc_enter_email">Enter email</string>
+    <string name="nc_add_beneficiary">Add beneficiary</string>
+    <string name="nc_release_schedules">Release schedules</string>
+    <string name="nc_magic_phrases">Magic phrases</string>
+    <string name="nc_release_schedule">Release schedule</string>
     <string name="nc_choose_distribution_method">Choose distribution method</string>
     <string name="nc_choose_distribution_method_desc">Decide how your assets should be distributed.</string>
     <string name="nc_inheritance_distribution_lump_sum">Lump-sum</string>

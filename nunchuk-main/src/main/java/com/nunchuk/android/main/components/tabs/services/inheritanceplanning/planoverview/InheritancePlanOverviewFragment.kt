@@ -54,6 +54,7 @@ import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceSetupFlowType
 import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.share.membership.MembershipFragment
 import dagger.hilt.android.AndroidEntryPoint
@@ -74,7 +75,8 @@ class InheritancePlanOverviewFragment : MembershipFragment() {
                 InheritancePlanOverviewScreen(
                     viewModel = viewModel,
                     groupWalletType = inheritanceViewModel.getGroupWalletType(),
-                    isMiniscriptWallet = sharedState.isMiniscriptWallet
+                    isMiniscriptWallet = sharedState.isMiniscriptWallet,
+                    setupFlowType = inheritanceViewModel.setupOrReviewParam.setupFlowType
                 ) {
                     findNavController().navigateUp()
                 }
@@ -88,6 +90,7 @@ internal fun InheritancePlanOverviewScreen(
     viewModel: InheritancePlanOverviewViewModel = viewModel(),
     groupWalletType: GroupWalletType? = null,
     isMiniscriptWallet: Boolean,
+    setupFlowType: InheritanceSetupFlowType = InheritanceSetupFlowType.OLD_FLOW,
     onContinueClicked: () -> Unit = {},
 ) {
     val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
@@ -95,6 +98,7 @@ internal fun InheritancePlanOverviewScreen(
         isMiniscriptWallet = isMiniscriptWallet,
         remainTime = remainTime,
         groupWalletType = groupWalletType,
+        setupFlowType = setupFlowType,
         onContinueClicked = onContinueClicked
     )
 }
@@ -104,6 +108,7 @@ private fun InheritancePlanOverviewContent(
     isMiniscriptWallet: Boolean,
     remainTime: Int = 0,
     groupWalletType: GroupWalletType? = null,
+    setupFlowType: InheritanceSetupFlowType = InheritanceSetupFlowType.OLD_FLOW,
     onContinueClicked: () -> Unit = {},
 ) {
     NunchukTheme {
@@ -134,43 +139,24 @@ private fun InheritancePlanOverviewContent(
                 )
                 Text(
                     modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
-                    text = stringResource(R.string.nc_plan_overview_desc),
+                    text = if (!isMiniscriptWallet && setupFlowType == InheritanceSetupFlowType.MULTI_BENEFICIARY) {
+                        stringResource(R.string.nc_plan_overview_multi_beneficiary_desc)
+                    } else {
+                        stringResource(R.string.nc_plan_overview_desc)
+                    },
                     style = NunchukTheme.typography.body
                 )
-                NCLabelWithIndex(
-                    modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
-                    index = 1,
-                    label = stringResource(R.string.nc_a_magical_phrase),
-                )
-                NCLabelWithIndex(
-                    modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
-                    index = 2,
-                    label = if (isMiniscriptWallet) {
-                        if (groupWalletType == GroupWalletType.THREE_OF_FIVE_INHERITANCE) stringResource(
-                            R.string.nc_two_inheritance_keys
-                        )
-                        else stringResource(R.string.nc_an_inheritance_key)
-                    } else {
-                        if (groupWalletType == GroupWalletType.THREE_OF_FIVE_INHERITANCE) stringResource(
-                            id = R.string.nc_two_backup_password
-                        )
-                        else stringResource(id = R.string.nc_a_backup_password)
-                    },
-                )
-                NCLabelWithIndex(
-                    modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
-                    index = 3,
-                    label = if (isMiniscriptWallet) {
-                        stringResource(R.string.nc_an_on_chain_timelock)
-                    } else {
-                        stringResource(R.string.nc_an_off_chain_timelock)
-                    },
-                )
-                Text(
-                    modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
-                    text = stringResource(R.string.nc_plan_overview_bottom_desc),
-                    style = NunchukTheme.typography.body
-                )
+                if (isMiniscriptWallet) {
+                    MiniscriptOverviewItems(groupWalletType = groupWalletType)
+                } else when (setupFlowType) {
+                    InheritanceSetupFlowType.OLD_FLOW -> OldFlowOverviewItems(groupWalletType = groupWalletType)
+                    InheritanceSetupFlowType.SINGLE_BENEFICIARY -> SingleBeneficiaryOverviewItems(
+                        groupWalletType = groupWalletType
+                    )
+
+                    InheritanceSetupFlowType.MULTI_BENEFICIARY -> MultiBeneficiaryOverviewItems()
+                }
+
                 Spacer(modifier = Modifier.weight(1.0f))
                 NcPrimaryDarkButton(
                     modifier = Modifier
@@ -185,10 +171,122 @@ private fun InheritancePlanOverviewContent(
     }
 }
 
+@Composable
+private fun MiniscriptOverviewItems(groupWalletType: GroupWalletType? = null) {
+    NCLabelWithIndex(
+        modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
+        index = 1,
+        label = stringResource(R.string.nc_a_magical_phrase),
+    )
+    NCLabelWithIndex(
+        modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
+        index = 2,
+        label = if (groupWalletType == GroupWalletType.THREE_OF_FIVE_INHERITANCE) {
+            stringResource(R.string.nc_two_inheritance_keys)
+        } else {
+            stringResource(R.string.nc_an_inheritance_key)
+        },
+    )
+    NCLabelWithIndex(
+        modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
+        index = 3,
+        label = stringResource(R.string.nc_an_on_chain_timelock),
+    )
+    Text(
+        modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
+        text = stringResource(R.string.nc_plan_overview_bottom_desc),
+        style = NunchukTheme.typography.body
+    )
+}
+
+@Composable
+private fun OldFlowOverviewItems(groupWalletType: GroupWalletType? = null) {
+    NCLabelWithIndex(
+        modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
+        index = 1,
+        label = stringResource(R.string.nc_a_magical_phrase),
+    )
+    NCLabelWithIndex(
+        modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
+        index = 2,
+        label = if (groupWalletType == GroupWalletType.THREE_OF_FIVE_INHERITANCE) {
+            stringResource(id = R.string.nc_two_backup_password)
+        } else {
+            stringResource(id = R.string.nc_a_backup_password)
+        },
+    )
+    NCLabelWithIndex(
+        modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
+        index = 3,
+        label = stringResource(R.string.nc_an_off_chain_timelock),
+    )
+    Text(
+        modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
+        text = stringResource(R.string.nc_plan_overview_bottom_desc),
+        style = NunchukTheme.typography.body
+    )
+}
+
+@Composable
+private fun SingleBeneficiaryOverviewItems(groupWalletType: GroupWalletType? = null) {
+    NCLabelWithIndex(
+        modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
+        index = 1,
+        label = stringResource(R.string.nc_a_magical_phrase),
+    )
+    NCLabelWithIndex(
+        modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
+        index = 2,
+        label = if (groupWalletType == GroupWalletType.THREE_OF_FIVE_INHERITANCE) {
+            stringResource(id = R.string.nc_two_backup_password)
+        } else {
+            stringResource(id = R.string.nc_a_backup_password)
+        },
+    )
+    NCLabelWithIndex(
+        modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
+        index = 3,
+        label = stringResource(R.string.nc_release_schedule),
+    )
+}
+
+@Composable
+private fun MultiBeneficiaryOverviewItems() {
+    NCLabelWithIndex(
+        modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
+        index = 1,
+        label = stringResource(R.string.nc_asset_allocation),
+    )
+    NCLabelWithIndex(
+        modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
+        index = 2,
+        label = stringResource(R.string.nc_release_schedules),
+    )
+    NCLabelWithIndex(
+        modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
+        index = 3,
+        label = stringResource(R.string.nc_magic_phrases),
+    )
+    NCLabelWithIndex(
+        modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
+        index = 4,
+        label = stringResource(R.string.nc_a_backup_password),
+    )
+}
+
 @PreviewLightDark
 @Composable
 private fun InheritancePlanOverviewScreenPreview() {
     InheritancePlanOverviewContent(isMiniscriptWallet = false)
+}
+
+@PreviewLightDark
+@Composable
+private fun InheritancePlanOverviewScreenMultiBeneficiaryPreview() {
+    InheritancePlanOverviewContent(
+        isMiniscriptWallet = false,
+        setupFlowType = InheritanceSetupFlowType.MULTI_BENEFICIARY
+    )
 }
 
 @PreviewLightDark
