@@ -168,7 +168,7 @@ fun InheritancePlanningGraph(
             onContinueClicked = { setupFlowType ->
                 when (setupFlowType) {
                     InheritanceSetupFlowType.MULTI_BENEFICIARY -> navController.navigateToInheritanceAssetAllocation()
-                    InheritanceSetupFlowType.SINGLE_BENEFICIARY -> navController.navigateToInheritanceReleaseMethod()
+                    InheritanceSetupFlowType.SINGLE_BENEFICIARY -> navController.navigateToMagicalPhraseIntro()
                     else -> navController.navigateToMagicalPhraseIntro()
                 }
             },
