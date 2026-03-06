@@ -210,7 +210,7 @@ fun InheritancePlanningGraph(
                 activityViewModel.setOrUpdate(
                     activityViewModel.setupOrReviewParam.copy(beneficiaryAllocations = allocations)
                 )
-                navController.navigateToMagicalPhraseIntro()
+                navController.navigateToInheritanceReleaseMethod()
             },
         )
 

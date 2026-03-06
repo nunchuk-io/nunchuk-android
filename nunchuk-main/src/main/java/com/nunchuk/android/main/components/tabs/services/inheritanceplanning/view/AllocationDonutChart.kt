@@ -16,7 +16,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -26,10 +25,14 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.nunchuk.android.compose.NcSpannedText
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.SpanIndicator
 import com.nunchuk.android.compose.textPrimary
+import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceBeneficiaryAllocation
 import com.nunchuk.android.utils.CoinTagColorUtil
@@ -95,11 +98,23 @@ fun AllocationDonutChart(
                         val label = beneficiary.email.ifEmpty {
                             stringResource(R.string.nc_beneficiary_n, index + 1)
                         }
-                        Text(
+                        val secondaryColor = MaterialTheme.colorScheme.textSecondary
+                        val primaryColor = MaterialTheme.colorScheme.textPrimary
+                        NcSpannedText(
                             modifier = Modifier.padding(start = 8.dp),
-                            text = "$label: ${beneficiary.allocationPercent}%",
-                            style = NunchukTheme.typography.bodySmall.copy(fontWeight = FontWeight.W600),
-                            maxLines = 1,
+                            text = stringResource(
+                                R.string.nc_beneficiary_allocation,
+                                label,
+                                beneficiary.allocationPercent
+                            ),
+                            baseStyle = NunchukTheme.typography.bodySmall,
+                            styles = mapOf(
+                                SpanIndicator('A') to SpanStyle(color = secondaryColor),
+                                SpanIndicator('B') to SpanStyle(
+                                    color = primaryColor,
+                                    fontWeight = FontWeight.Bold,
+                                ),
+                            ),
                         )
                     }
                 }

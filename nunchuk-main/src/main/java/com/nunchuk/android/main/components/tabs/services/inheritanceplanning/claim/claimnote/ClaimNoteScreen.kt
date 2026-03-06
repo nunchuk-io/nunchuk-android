@@ -43,9 +43,11 @@ fun ClaimNoteScreen(
     inheritanceAdditional: InheritanceAdditional,
     modifier: Modifier = Modifier,
     isOnChainClaim: Boolean = false,
+    isReleaseScheduleWithdraw: Boolean = false,
     onDoneClick: () -> Unit = {},
     onViewWallet: () -> Unit = {},
     onWithdrawClick: () -> Unit = { },
+    onViewReleaseSchedule: () -> Unit = {},
 ) {
     ClaimNoteContent(
         modifier = modifier,
@@ -55,7 +57,9 @@ fun ClaimNoteScreen(
         onWithdrawClick = onWithdrawClick,
         onDoneClick = onDoneClick,
         isOnChainClaim = isOnChainClaim,
+        isReleaseScheduleWithdraw = isReleaseScheduleWithdraw,
         onViewWallet = onViewWallet,
+        onViewReleaseSchedule = onViewReleaseSchedule,
     )
 }
 
@@ -63,12 +67,14 @@ fun ClaimNoteScreen(
 private fun ClaimNoteContent(
     modifier: Modifier = Modifier,
     isOnChainClaim: Boolean = false,
+    isReleaseScheduleWithdraw: Boolean = false,
     snackState: SnackbarHostState = remember { SnackbarHostState() },
     note: String = "",
     balance: Double = 0.0,
     onWithdrawClick: () -> Unit = {},
     onViewWallet: () -> Unit = {},
     onDoneClick: () -> Unit = {},
+    onViewReleaseSchedule: () -> Unit = {},
 ) {
 
     NunchukTheme {
@@ -83,14 +89,25 @@ private fun ClaimNoteContent(
             },
             bottomBar = {
                 Column {
-                    NcPrimaryDarkButton(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        enabled = balance > 0,
-                        onClick = onWithdrawClick,
-                    ) {
-                        Text(text = stringResource(id = R.string.nc_withdraw_bitcoin))
+                    if (isReleaseScheduleWithdraw) {
+                        NcPrimaryDarkButton(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            onClick = onViewReleaseSchedule,
+                        ) {
+                            Text(text = stringResource(id = MainR.string.nc_view_release_schedule))
+                        }
+                    } else {
+                        NcPrimaryDarkButton(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            enabled = balance > 0,
+                            onClick = onWithdrawClick,
+                        ) {
+                            Text(text = stringResource(id = R.string.nc_withdraw_bitcoin))
+                        }
                     }
                     NcOutlineButton(
                         modifier = Modifier

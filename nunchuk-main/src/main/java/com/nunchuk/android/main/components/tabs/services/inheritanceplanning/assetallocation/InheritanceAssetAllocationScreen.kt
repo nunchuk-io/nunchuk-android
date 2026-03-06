@@ -68,7 +68,6 @@ import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceBeneficiaryAllocation
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.view.AllocationDonutChart
-import com.nunchuk.android.utils.CoinTagColorUtil
 import kotlin.math.roundToInt
 import com.nunchuk.android.widget.R as WidgetR
 

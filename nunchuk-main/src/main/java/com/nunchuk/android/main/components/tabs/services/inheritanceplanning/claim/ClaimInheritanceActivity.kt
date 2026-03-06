@@ -53,6 +53,8 @@ import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.cla
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.magicphrase.claimMagicPhrase
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.noinheritancefound.inheritanceError
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.noinheritancefound.navigateToInheritanceError
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.releaseintro.claimReleaseIntro
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.releaseintro.navigateToClaimReleaseIntro
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.preparerecover.InheritanceOption
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.preparerecover.navigateToPrepareInheritanceKey
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.preparerecover.navigateToRecoverInheritanceKey
@@ -398,6 +400,18 @@ private fun ClaimInheritanceGraph(
                             type = UploadConfigurationType.RegisterOnly
                         )
                     }
+                },
+                onViewReleaseSchedule = {
+                    navController.navigateToClaimReleaseIntro()
+                },
+            )
+            claimReleaseIntro(
+                snackState = snackbarHostState,
+                onBackPressed = {
+                    navController.popBackStack()
+                },
+                onContinueClicked = {
+                    activity.finish()
                 },
             )
             verifyInheritanceMessage(

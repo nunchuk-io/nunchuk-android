@@ -18,9 +18,11 @@ data object ClaimNoteRoute
 
 fun NavGraphBuilder.claimNote(
     snackState: SnackbarHostState,
+    isReleaseScheduleWithdraw: Boolean = false,
     onDoneClick: () -> Unit = {},
     onWithdrawClick: () -> Unit = {},
     onViewWallet: () -> Unit = {},
+    onViewReleaseSchedule: () -> Unit = {},
 ) {
     composable<ClaimNoteRoute> {
         val activity = LocalActivity.current as ComponentActivity
@@ -34,8 +36,10 @@ fun NavGraphBuilder.claimNote(
                 inheritanceAdditional = inheritanceAdditional,
                 onDoneClick = onDoneClick,
                 isOnChainClaim = claimData.isOnChainClaim,
+                isReleaseScheduleWithdraw = isReleaseScheduleWithdraw,
                 onWithdrawClick = onWithdrawClick,
-                onViewWallet = onViewWallet
+                onViewWallet = onViewWallet,
+                onViewReleaseSchedule = onViewReleaseSchedule,
             )
         }
     }
