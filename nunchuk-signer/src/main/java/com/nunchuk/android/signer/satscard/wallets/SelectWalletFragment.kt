@@ -30,7 +30,7 @@ import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.data.model.TxReceipt
 import com.nunchuk.android.core.data.model.isInheritanceClaimFlow
-import com.nunchuk.android.core.manager.ActivityManager
+import com.nunchuk.android.core.data.model.isOffChainClaim
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.NfcActionListener
 import com.nunchuk.android.core.nfc.NfcViewModel
@@ -103,8 +103,14 @@ class SelectWalletFragment : BaseFragment<FragmentSelectWalletSweepBinding>() {
     }
 
     private fun initViews() {
-        binding.toolbarTitle.text = if (args.claimParam != null) getString(R.string.nc_withdraw_nunchuk_wallet) else getString(R.string.nc_withdraw_to_a_wallet)
-        binding.tvQuestion.text = if (args.claimParam != null) getString(R.string.nc_which_wallet_do_you_want_to_withdraw_bitcoin) else getString(R.string.nc_which_wallet_do_you_want_to_deposit_into)
+        binding.toolbarTitle.text =
+            if (args.claimParam != null) getString(R.string.nc_withdraw_nunchuk_wallet) else getString(
+                R.string.nc_withdraw_to_a_wallet
+            )
+        binding.tvQuestion.text =
+            if (args.claimParam != null) getString(R.string.nc_which_wallet_do_you_want_to_withdraw_bitcoin) else getString(
+                R.string.nc_which_wallet_do_you_want_to_deposit_into
+            )
         binding.btnContinueSweep.text = getString(R.string.nc_continue_to_withdraw)
         binding.recyclerView.adapter = adapter
     }
@@ -141,15 +147,21 @@ class SelectWalletFragment : BaseFragment<FragmentSelectWalletSweepBinding>() {
             is SelectWalletEvent.Loading -> {
                 showOrHideLoading(
                     event.isLoading,
-                    title = if (event.isClaimInheritance) getString(R.string.nc_please_wait) else getString(R.string.nc_sweeping_is_progress),
-                    message = if (event.isClaimInheritance) getString(R.string.nc_withdrawal_in_progress) else getString(R.string.nc_make_sure_internet)
+                    title = if (event.isClaimInheritance) getString(R.string.nc_please_wait) else getString(
+                        R.string.nc_sweeping_is_progress
+                    ),
+                    message = if (event.isClaimInheritance) getString(R.string.nc_withdrawal_in_progress) else getString(
+                        R.string.nc_make_sure_internet
+                    )
                 )
             }
+
             is SelectWalletEvent.GetAddressSuccess -> if (event.isCreateTransaction) {
                 viewModel.getEstimateFeeRates()
             } else {
                 navigateToEstimateFee(event.address)
             }
+
             is SelectWalletEvent.GetFeeRateSuccess -> {
                 if (isInheritanceWalletFlow()) {
                     viewModel.createInheritanceTransaction()
@@ -159,6 +171,7 @@ class SelectWalletFragment : BaseFragment<FragmentSelectWalletSweepBinding>() {
                     )
                 }
             }
+
             is SelectWalletEvent.CreateTransactionSuccessEvent -> {
                 navigateToTransactionDetail(event.extendTransaction)
             }
@@ -168,7 +181,7 @@ class SelectWalletFragment : BaseFragment<FragmentSelectWalletSweepBinding>() {
     private fun navigateToTransactionDetail(extendTransaction: ExtendTransaction) {
         navigator.returnToMainScreen(requireActivity())
         val transaction = extendTransaction.transaction
-        if (transaction.isPendingSignatures()) {
+        if (transaction.isPendingSignatures() && args.claimParam.isOffChainClaim()) {
             navigator.openClaimTransactionScreen(
                 activityContext = requireActivity(),
                 args = ClaimTransactionArgs(

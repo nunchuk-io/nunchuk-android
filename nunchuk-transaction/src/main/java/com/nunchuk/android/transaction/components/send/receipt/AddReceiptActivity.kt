@@ -45,6 +45,7 @@ import androidx.navigation.toRoute
 import com.nunchuk.android.core.data.model.ClaimInheritanceTxParam
 import com.nunchuk.android.core.data.model.RollOverWalletParam
 import com.nunchuk.android.core.data.model.TxReceipt
+import com.nunchuk.android.core.data.model.isOffChainClaim
 import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.nfc.BaseComposeNfcActivity
@@ -387,7 +388,7 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
                 hideLoading()
                 if (transactionConfirmViewModel.isInheritanceClaimingFlow()) {
                     ActivityManager.popUntilRoot()
-                    if (event.transaction.isPendingSignatures()) {
+                    if (event.transaction.isPendingSignatures() && args.claimInheritanceTxParam.isOffChainClaim()) {
                         navigator.openClaimTransactionScreen(
                             activityContext = this,
                             args = ClaimTransactionArgs(

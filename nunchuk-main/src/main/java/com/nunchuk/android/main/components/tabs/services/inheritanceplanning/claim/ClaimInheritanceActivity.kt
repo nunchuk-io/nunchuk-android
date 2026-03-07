@@ -458,7 +458,8 @@ private fun ClaimInheritanceGraph(
                                 totalAmount = walletBalance,
                                 isUseWallet = true,
                                 bsms = claimData.bsms,
-                                signatures = claimData.signatures
+                                signatures = claimData.signatures,
+                                messageId = claimData.challenge?.id
                             )
                         )
                     }
@@ -502,7 +503,8 @@ private fun ClaimInheritanceGraph(
                                 totalAmount = walletBalance,
                                 isUseWallet = false,
                                 bsms = claimData.bsms,
-                                signatures = claimData.signatures
+                                signatures = claimData.signatures,
+                                messageId = claimData.challenge?.id
                             )
                         )
                     }

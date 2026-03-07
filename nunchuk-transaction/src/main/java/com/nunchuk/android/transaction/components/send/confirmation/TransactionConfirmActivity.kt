@@ -29,6 +29,7 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import com.nunchuk.android.core.data.model.ClaimInheritanceTxParam
 import com.nunchuk.android.core.data.model.TxReceipt
+import com.nunchuk.android.core.data.model.isOffChainClaim
 import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.nfc.BaseNfcActivity
@@ -197,7 +198,7 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
             is CreateTxSuccessEvent -> {
                 navigator.returnToMainScreen(this)
                 val transaction = event.transaction
-                if (transaction.isPendingSignatures()) {
+                if (transaction.isPendingSignatures() && args.claimInheritanceTxParam.isOffChainClaim()) {
                     navigator.openClaimTransactionScreen(
                         activityContext = this,
                         args = ClaimTransactionArgs(

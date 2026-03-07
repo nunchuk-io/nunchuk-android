@@ -209,6 +209,7 @@ import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.utils.SERVER_KEY_NAME
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
@@ -219,7 +220,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
-import kotlin.coroutines.coroutineContext
 
 internal class PremiumWalletRepositoryImpl @Inject constructor(
     private val userWalletApiManager: UserWalletApiManager,
@@ -496,7 +496,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     private suspend fun saveWalletToLib(
         walletServer: WalletDto, assistedKeys: MutableSet<String>,
     ): Boolean {
-        coroutineContext.ensureActive()
+        currentCoroutineContext().ensureActive()
         var isNeedReload = false
         val newSignerMap = hashMapOf<String, Boolean>()
         val isRemoveKey =

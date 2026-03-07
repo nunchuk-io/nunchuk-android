@@ -826,7 +826,7 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
 
     private fun handleClaimWalletWarning() {
         binding.tvWalletWarning.makeTextLink(
-            getString(R.string.nc_inheritance_unlocked_warning),
+            getString(R.string.nc_inheritance_unlocked_warning) + " " + getString(R.string.nc_do_it_now),
             ClickAbleText(content = getString(R.string.nc_do_it_now), onClick = {
                 openClaiInheritance()
             })
