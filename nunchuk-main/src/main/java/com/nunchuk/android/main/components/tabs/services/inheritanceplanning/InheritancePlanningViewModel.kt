@@ -10,6 +10,7 @@ import com.nunchuk.android.core.util.InheritanceSourceFlow
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.main.membership.model.toGroupWalletType
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.beneficiaryschedules.InheritanceBeneficiaryScheduleConfig
 import com.nunchuk.android.model.Period
 import com.nunchuk.android.model.TimelockBased
 import com.nunchuk.android.model.Wallet
@@ -256,6 +257,7 @@ sealed class InheritancePlanningParam {
         val setupFlowType: InheritanceSetupFlowType = InheritanceSetupFlowType.OLD_FLOW,
         val releaseMethodType: InheritanceReleaseMethodType = InheritanceReleaseMethodType.SHARED_SCHEDULE,
         val beneficiaryAllocations: List<InheritanceBeneficiaryAllocation> = emptyList(),
+        val individualScheduleConfigs: Map<String, InheritanceBeneficiaryScheduleConfig> = emptyMap(),
         val isSharedScheduleConfigured: Boolean = false,
         val bufferPeriodApplyType: InheritanceBufferPeriodApplyType? = null,
         val timelockBased: TimelockBased = TimelockBased.TIME_LOCK,

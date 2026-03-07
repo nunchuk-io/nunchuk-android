@@ -15,6 +15,7 @@ import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.rel
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasescheduledetail.ReleaseScheduleUiState
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.toReleaseMethodOption
 import kotlinx.serialization.Serializable
+import timber.log.Timber
 
 @Serializable
 data object InheritanceBeneficiarySchedulesRoute
@@ -33,7 +34,18 @@ fun NavGraphBuilder.inheritanceBeneficiarySchedules(
             hiltViewModel(viewModelStoreOwner = activity)
         MembershipStepEffect(activity.membershipStepManager)
         val remainTime by activity.membershipStepManager.remainingTime.collectAsStateWithLifecycle()
-        val setupOrReviewParam = activityViewModel.setupOrReviewParam
+        val planningState by activityViewModel.state.collectAsStateWithLifecycle()
+        val setupOrReviewParam = planningState.setupOrReviewParam
+        val individualScheduleCardDataByEmail =
+            setupOrReviewParam.individualScheduleConfigs.mapValues { (_, config) ->
+                InheritanceBeneficiaryScheduleCardData(
+                    releaseScheduleUiState = config.releaseScheduleUiState,
+                    bufferPeriodSummaryText = releaseScheduleBufferPeriodSummaryText(
+                        period = config.bufferPeriod,
+                        applyType = config.bufferPeriodApplyType,
+                    ),
+                )
+            }
         InheritanceBeneficiarySchedulesScreen(
             remainTime = remainTime,
             releaseMethod = setupOrReviewParam.releaseMethodType.toReleaseMethodOption(),
@@ -41,6 +53,7 @@ fun NavGraphBuilder.inheritanceBeneficiarySchedules(
                 defaultBeneficiaryAllocations()
             },
             releaseScheduleUiState = releaseScheduleUiState,
+            individualScheduleCardDataByEmail = individualScheduleCardDataByEmail,
             sharedBufferPeriodSummaryText = releaseScheduleBufferPeriodSummaryText(
                 period = setupOrReviewParam.bufferPeriod,
                 applyType = setupOrReviewParam.bufferPeriodApplyType,

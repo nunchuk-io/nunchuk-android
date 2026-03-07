@@ -20,6 +20,7 @@ import kotlinx.serialization.Serializable
 data class InheritanceReleaseScheduleDetailRoute(
     val isPostBufferPeriodMethod: Boolean = false,
     val fromBeneficiarySchedules: Boolean = false,
+    val beneficiaryEmail: String = "",
 )
 
 fun NavGraphBuilder.inheritanceReleaseScheduleDetail(
@@ -62,11 +63,13 @@ fun NavGraphBuilder.inheritanceReleaseScheduleDetail(
 fun NavController.navigateToInheritanceReleaseScheduleDetail(
     isPostBufferPeriodMethod: Boolean = false,
     fromBeneficiarySchedules: Boolean = false,
+    beneficiaryEmail: String = "",
 ) {
     navigate(
         InheritanceReleaseScheduleDetailRoute(
             isPostBufferPeriodMethod = isPostBufferPeriodMethod,
             fromBeneficiarySchedules = fromBeneficiarySchedules,
+            beneficiaryEmail = beneficiaryEmail,
         )
     )
 }

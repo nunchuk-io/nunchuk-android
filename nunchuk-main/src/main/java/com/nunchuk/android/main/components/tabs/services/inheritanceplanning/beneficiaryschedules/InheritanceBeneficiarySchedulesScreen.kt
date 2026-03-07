@@ -74,6 +74,7 @@ internal fun InheritanceBeneficiarySchedulesScreen(
     releaseMethod: InheritanceReleaseMethod,
     beneficiaries: List<InheritanceBeneficiaryAllocation>,
     releaseScheduleUiState: ReleaseScheduleUiState = ReleaseScheduleUiState(),
+    individualScheduleCardDataByEmail: Map<String, InheritanceBeneficiaryScheduleCardData> = emptyMap(),
     sharedBufferPeriodSummaryText: String? = null,
     isSharedScheduleConfigured: Boolean = false,
     onBackClicked: () -> Unit = {},
@@ -83,6 +84,13 @@ internal fun InheritanceBeneficiarySchedulesScreen(
     onEditBeneficiaryScheduleClicked: (String) -> Unit = {},
     onContinueClicked: () -> Unit = {},
 ) {
+    val isIndividualSchedulesConfigured = releaseMethod == InheritanceReleaseMethod.INDIVIDUAL_SCHEDULES &&
+        beneficiaries.isNotEmpty() &&
+        beneficiaries.all {
+            individualScheduleCardDataByEmail.containsKey(it.email) ||
+                individualScheduleCardDataByEmail.containsKey(it.email.trim().lowercase())
+        }
+
     NunchukTheme {
         Scaffold(
             topBar = {
@@ -95,6 +103,7 @@ internal fun InheritanceBeneficiarySchedulesScreen(
                 BottomActionSection(
                     releaseMethod = releaseMethod,
                     isSharedScheduleConfigured = isSharedScheduleConfigured,
+                    isIndividualSchedulesConfigured = isIndividualSchedulesConfigured,
                     onAddReleaseScheduleClicked = onAddReleaseScheduleClicked,
                     onContinueClicked = onContinueClicked
                 )
@@ -153,6 +162,7 @@ internal fun InheritanceBeneficiarySchedulesScreen(
                             .fillMaxWidth()
                             .padding(top = 20.dp),
                         beneficiaries = beneficiaries,
+                        individualScheduleCardDataByEmail = individualScheduleCardDataByEmail,
                         onEditBeneficiaryScheduleClicked = onEditBeneficiaryScheduleClicked
                     )
                 }
@@ -313,6 +323,7 @@ private fun SharedScheduleEmptyState(
 private fun IndividualScheduleList(
     modifier: Modifier = Modifier,
     beneficiaries: List<InheritanceBeneficiaryAllocation>,
+    individualScheduleCardDataByEmail: Map<String, InheritanceBeneficiaryScheduleCardData>,
     onEditBeneficiaryScheduleClicked: (String) -> Unit,
 ) {
     Column(
@@ -320,6 +331,10 @@ private fun IndividualScheduleList(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         beneficiaries.forEach { beneficiary ->
+            val beneficiaryKey = beneficiary.email.trim().lowercase()
+            val scheduleCardData = individualScheduleCardDataByEmail[beneficiary.email]
+                ?: individualScheduleCardDataByEmail[beneficiaryKey]
+            val firstStage = scheduleCardData?.releaseScheduleUiState?.stages?.firstOrNull()
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -360,8 +375,48 @@ private fun IndividualScheduleList(
                         )
                         Text(
                             modifier = Modifier.padding(start = 8.dp),
-                            text = stringResource(id = R.string.nc_beneficiary_schedules_not_set_up_yet),
-                            style = NunchukTheme.typography.body.copy(color = MaterialTheme.colorScheme.textSecondary)
+                            text = if (firstStage == null) {
+                                stringResource(id = R.string.nc_beneficiary_schedules_not_set_up_yet)
+                            } else {
+                                stringResource(
+                                    id = R.string.nc_release_schedule_first_withdrawal,
+                                    firstStage.firstWithdrawalDate.display()
+                                )
+                            },
+                            style = NunchukTheme.typography.body.copy(
+                                color = if (firstStage == null) {
+                                    MaterialTheme.colorScheme.textSecondary
+                                } else {
+                                    MaterialTheme.colorScheme.textPrimary
+                                }
+                            )
+                        )
+                    }
+
+                    if (firstStage != null && scheduleCardData.bufferPeriodSummaryText != null) {
+                        Row(
+                            modifier = Modifier.padding(top = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                painter = painterResource(id = WidgetR.drawable.ic_buffer_period),
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.textPrimary
+                            )
+                            Text(
+                                modifier = Modifier.padding(start = 8.dp),
+                                text = scheduleCardData.bufferPeriodSummaryText,
+                                style = NunchukTheme.typography.body
+                            )
+                        }
+                    }
+
+                    if (firstStage != null) {
+                        ReleaseScheduleSummaryProgress(
+                            modifier = Modifier.padding(top = 12.dp),
+                            segments = scheduleCardData.releaseScheduleUiState.allocationSegments,
+                            summaryScalePercent = scheduleCardData.releaseScheduleUiState.summaryScalePercent,
+                            remainingSummaryPercent = scheduleCardData.releaseScheduleUiState.remainingSummaryPercent,
                         )
                     }
                 }
@@ -374,6 +429,7 @@ private fun IndividualScheduleList(
 private fun BottomActionSection(
     releaseMethod: InheritanceReleaseMethod,
     isSharedScheduleConfigured: Boolean,
+    isIndividualSchedulesConfigured: Boolean,
     onAddReleaseScheduleClicked: () -> Unit,
     onContinueClicked: () -> Unit,
 ) {
@@ -405,7 +461,10 @@ private fun BottomActionSection(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = if (releaseMethod == InheritanceReleaseMethod.SHARED_SCHEDULE && !isSharedScheduleConfigured) 14.dp else 0.dp),
-            enabled = releaseMethod == InheritanceReleaseMethod.SHARED_SCHEDULE && isSharedScheduleConfigured,
+            enabled = when (releaseMethod) {
+                InheritanceReleaseMethod.SHARED_SCHEDULE -> isSharedScheduleConfigured
+                InheritanceReleaseMethod.INDIVIDUAL_SCHEDULES -> isIndividualSchedulesConfigured
+            },
             onClick = onContinueClicked,
         ) {
             Text(text = stringResource(id = R.string.nc_text_continue))
@@ -438,6 +497,14 @@ private fun InheritanceBeneficiarySchedulesIndividualPreview() {
             InheritanceBeneficiaryAllocation("Wife@gmail.com", 50),
             InheritanceBeneficiaryAllocation("Son@gmail.com", 25),
             InheritanceBeneficiaryAllocation("Daughter@gmail.com", 25),
+        ),
+        individualScheduleCardDataByEmail = mapOf(
+            "Wife@gmail.com" to InheritanceBeneficiaryScheduleCardData(
+                releaseScheduleUiState = ReleaseScheduleUiState(
+                    stages = ReleaseScheduleUiState.largeDataPreviewStages()
+                ),
+                bufferPeriodSummaryText = "Buffer period: 7 days (first withdrawal only)",
+            ),
         ),
     )
 }

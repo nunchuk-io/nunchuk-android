@@ -21,10 +21,16 @@ import kotlinx.serialization.Serializable
 data class InheritanceBufferPeriodRoute(
     val isUpdateRequest: Boolean = false,
     val fromBeneficiarySchedules: Boolean = false,
+    val beneficiaryEmail: String = "",
 )
 
 fun NavGraphBuilder.inheritanceBufferPeriod(
-    onContinueClick: (isUpdateRequest: Boolean, fromBeneficiarySchedules: Boolean, period: Period?) -> Unit,
+    onContinueClick: (
+        isUpdateRequest: Boolean,
+        fromBeneficiarySchedules: Boolean,
+        beneficiaryEmail: String,
+        period: Period?,
+    ) -> Unit,
 ) {
     composable<InheritanceBufferPeriodRoute> { backStackEntry ->
         val activity = LocalActivity.current as InheritancePlanningActivity
@@ -49,7 +55,12 @@ fun NavGraphBuilder.inheritanceBufferPeriod(
                         is InheritanceBufferPeriodEvent.Loading -> activity.showOrHideLoading(event.isLoading)
                         is InheritanceBufferPeriodEvent.Error -> NCToastMessage(activity).showError(event.message)
                         is InheritanceBufferPeriodEvent.OnContinueClick -> {
-                            onContinueClick(route.isUpdateRequest, route.fromBeneficiarySchedules, event.period)
+                            onContinueClick(
+                                route.isUpdateRequest,
+                                route.fromBeneficiarySchedules,
+                                route.beneficiaryEmail,
+                                event.period
+                            )
                         }
                     }
                 }
@@ -66,11 +77,13 @@ fun NavGraphBuilder.inheritanceBufferPeriod(
 fun NavController.navigateToInheritanceBufferPeriod(
     isUpdateRequest: Boolean = false,
     fromBeneficiarySchedules: Boolean = false,
+    beneficiaryEmail: String = "",
 ) {
     navigate(
         InheritanceBufferPeriodRoute(
             isUpdateRequest = isUpdateRequest,
             fromBeneficiarySchedules = fromBeneficiarySchedules,
+            beneficiaryEmail = beneficiaryEmail,
         )
     )
 }
