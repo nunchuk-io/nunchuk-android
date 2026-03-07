@@ -15,13 +15,12 @@ import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.rel
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasescheduledetail.ReleaseScheduleUiState
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.toReleaseMethodOption
 import kotlinx.serialization.Serializable
-import timber.log.Timber
 
 @Serializable
 data object InheritanceBeneficiarySchedulesRoute
 
 fun NavGraphBuilder.inheritanceBeneficiarySchedules(
-    releaseScheduleUiState: ReleaseScheduleUiState,
+    releaseScheduleUiStateProvider: () -> ReleaseScheduleUiState,
     onBackClicked: () -> Unit,
     onEditReleaseMethodClicked: () -> Unit,
     onAddReleaseScheduleClicked: () -> Unit,
@@ -36,6 +35,7 @@ fun NavGraphBuilder.inheritanceBeneficiarySchedules(
         val remainTime by activity.membershipStepManager.remainingTime.collectAsStateWithLifecycle()
         val planningState by activityViewModel.state.collectAsStateWithLifecycle()
         val setupOrReviewParam = planningState.setupOrReviewParam
+        val releaseScheduleUiState = releaseScheduleUiStateProvider()
         val individualScheduleCardDataByEmail =
             setupOrReviewParam.individualScheduleConfigs.mapValues { (_, config) ->
                 InheritanceBeneficiaryScheduleCardData(

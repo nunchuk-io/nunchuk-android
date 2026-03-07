@@ -276,7 +276,7 @@ fun InheritancePlanningGraph(
         )
 
         inheritanceBeneficiarySchedules(
-            releaseScheduleUiState = releaseScheduleUiState,
+            releaseScheduleUiStateProvider = { releaseScheduleUiState },
             onBackClicked = { navController.popBackStack() },
             onEditReleaseMethodClicked = { navController.navigateToInheritanceReleaseMethod() },
             onAddReleaseScheduleClicked = {
@@ -320,7 +320,7 @@ fun InheritancePlanningGraph(
         )
 
         inheritanceReleaseScheduleDetail(
-            releaseScheduleUiState = releaseScheduleUiState,
+            releaseScheduleUiStateProvider = { releaseScheduleUiState },
             onUiStateChanged = { releaseScheduleUiState = it },
             onEditStage = { stage ->
                 navController.navigate(
@@ -409,8 +409,8 @@ fun InheritancePlanningGraph(
         )
 
         inheritanceReleaseScheduleStageEdit(
-            releaseScheduleUiState = releaseScheduleUiState,
-            pendingNewStage = pendingNewStage,
+            releaseScheduleUiStateProvider = { releaseScheduleUiState },
+            pendingNewStageProvider = { pendingNewStage },
             onBackClicked = { isNewStage ->
                 returnToReleaseScheduleDetail(navController)
                 if (isNewStage) pendingNewStage = null
@@ -597,7 +597,7 @@ fun InheritancePlanningGraph(
 
         inheritanceReviewPlan(
             navigator = navigator,
-            releaseScheduleUiState = releaseScheduleUiState,
+            releaseScheduleUiStateProvider = { releaseScheduleUiState },
             onCreateOrUpdateSuccess = {
                 val param = activityViewModel.setupOrReviewParam
                 navController.navigate(

@@ -34,7 +34,7 @@ data object InheritanceReviewPlanRoute
 
 fun NavGraphBuilder.inheritanceReviewPlan(
     navigator: NunchukNavigator,
-    releaseScheduleUiState: ReleaseScheduleUiState,
+    releaseScheduleUiStateProvider: () -> ReleaseScheduleUiState,
     onCreateOrUpdateSuccess: () -> Unit,
     onCancelSuccess: () -> Unit,
     onMarkSetupInheritance: () -> Unit,
@@ -54,6 +54,7 @@ fun NavGraphBuilder.inheritanceReviewPlan(
         MembershipStepEffect(activity.membershipStepManager)
         val viewModel = hiltViewModel<InheritanceReviewPlanViewModel>()
         val lifecycleOwner = LocalLifecycleOwner.current
+        val releaseScheduleUiState = releaseScheduleUiStateProvider()
 
         DisposableEffect(activity, viewModel) {
             activity.setBottomSheetOptionListener { option ->

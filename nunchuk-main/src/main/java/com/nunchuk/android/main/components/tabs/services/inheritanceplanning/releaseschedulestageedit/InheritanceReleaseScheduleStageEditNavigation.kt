@@ -21,8 +21,8 @@ data class InheritanceReleaseScheduleStageEditRoute(
 )
 
 fun NavGraphBuilder.inheritanceReleaseScheduleStageEdit(
-    releaseScheduleUiState: ReleaseScheduleUiState,
-    pendingNewStage: ReleaseScheduleStage?,
+    releaseScheduleUiStateProvider: () -> ReleaseScheduleUiState,
+    pendingNewStageProvider: () -> ReleaseScheduleStage?,
     onBackClicked: (isNewStage: Boolean) -> Unit,
     onStageNotFound: () -> Unit,
     onDeleteStage: (stageId: Int, isNewStage: Boolean) -> Unit,
@@ -33,6 +33,8 @@ fun NavGraphBuilder.inheritanceReleaseScheduleStageEdit(
         MembershipStepEffect(activity.membershipStepManager)
         val route = backStackEntry.toRoute<InheritanceReleaseScheduleStageEditRoute>()
         val remainTime by activity.membershipStepManager.remainingTime.collectAsStateWithLifecycle()
+        val releaseScheduleUiState = releaseScheduleUiStateProvider()
+        val pendingNewStage = pendingNewStageProvider()
 
         val stage = if (route.isNewStage) {
             pendingNewStage
@@ -40,8 +42,8 @@ fun NavGraphBuilder.inheritanceReleaseScheduleStageEdit(
             releaseScheduleUiState.getStage(route.stageId)
         }
 
-        if (stage == null && route.isNewStage.not()) {
-            LaunchedEffect(route.stageId) {
+        if (stage == null) {
+            LaunchedEffect(route.stageId, route.isNewStage) {
                 onStageNotFound()
             }
         } else if (stage != null) {

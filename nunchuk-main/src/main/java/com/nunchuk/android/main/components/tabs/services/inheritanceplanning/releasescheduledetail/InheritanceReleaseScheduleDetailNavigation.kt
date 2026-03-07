@@ -24,7 +24,7 @@ data class InheritanceReleaseScheduleDetailRoute(
 )
 
 fun NavGraphBuilder.inheritanceReleaseScheduleDetail(
-    releaseScheduleUiState: ReleaseScheduleUiState,
+    releaseScheduleUiStateProvider: () -> ReleaseScheduleUiState,
     onUiStateChanged: (ReleaseScheduleUiState) -> Unit,
     onEditStage: (ReleaseScheduleStage) -> Unit,
     onEditBufferPeriodClicked: (InheritanceReleaseScheduleDetailRoute) -> Unit,
@@ -39,6 +39,7 @@ fun NavGraphBuilder.inheritanceReleaseScheduleDetail(
         val remainTime by activity.membershipStepManager.remainingTime.collectAsStateWithLifecycle()
         val setupOrReviewParam = activityViewModel.setupOrReviewParam
         val route = backStackEntry.toRoute<InheritanceReleaseScheduleDetailRoute>()
+        val releaseScheduleUiState = releaseScheduleUiStateProvider()
         InheritanceReleaseScheduleDetailScreen(
             remainTime = remainTime,
             uiState = releaseScheduleUiState,
