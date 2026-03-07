@@ -11,6 +11,7 @@ import androidx.lifecycle.flowWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceBeneficiaryAllocation
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningActivity
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.MembershipStepEffect
@@ -21,7 +22,7 @@ import kotlinx.serialization.Serializable
 data object MagicalPhraseIntroRoute
 
 fun NavGraphBuilder.magicalPhraseIntro(
-    onContinueClicked: (magicalPhrase: String, inheritanceKeys: List<String>) -> Unit,
+    onContinueClicked: (magicalPhrase: String, inheritanceKeys: List<String>, beneficiaryAllocations: List<InheritanceBeneficiaryAllocation>) -> Unit,
 ) {
     composable<MagicalPhraseIntroRoute> {
         val activity = LocalActivity.current as InheritancePlanningActivity
@@ -41,7 +42,7 @@ fun NavGraphBuilder.magicalPhraseIntro(
                 .collect { event ->
                     when (event) {
                         is MagicalPhraseIntroEvent.OnContinueClicked -> {
-                            onContinueClicked(event.magicalPhrase, event.inheritanceKeys)
+                            onContinueClicked(event.magicalPhrase, event.inheritanceKeys, event.beneficiaryAllocations)
                         }
                         is MagicalPhraseIntroEvent.Error -> NCToastMessage(activity).showError(event.message)
                         is MagicalPhraseIntroEvent.Loading -> activity.showOrHideLoading(event.loading)

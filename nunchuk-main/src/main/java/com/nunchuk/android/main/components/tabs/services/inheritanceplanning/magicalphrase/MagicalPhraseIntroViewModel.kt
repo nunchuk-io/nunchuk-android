@@ -22,7 +22,9 @@ package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.ma
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceBeneficiaryAllocation
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningParam
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceSetupFlowType
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.usecase.membership.GetInheritanceUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -48,6 +50,12 @@ class MagicalPhraseIntroViewModel @Inject constructor(
     val remainTime = membershipStepManager.remainingTime
 
     fun init(param: InheritancePlanningParam.SetupOrReview) {
+        _state.update {
+            it.copy(
+                beneficiaryAllocations = param.beneficiaryAllocations,
+                setupFlowType = param.setupFlowType,
+            )
+        }
         getInheritance(param)
     }
 
@@ -75,13 +83,25 @@ class MagicalPhraseIntroViewModel @Inject constructor(
         }
 
     fun onContinueClicked() = viewModelScope.launch {
-        if (_state.value.magicalPhrase.isNullOrBlank()) return@launch
-        _event.emit(
-            MagicalPhraseIntroEvent.OnContinueClicked(
-                magicalPhrase = _state.value.magicalPhrase.orEmpty(),
-                inheritanceKeys = _state.value.inheritanceKeys
+        val currentState = _state.value
+        if (currentState.setupFlowType == InheritanceSetupFlowType.MULTI_BENEFICIARY) {
+            _event.emit(
+                MagicalPhraseIntroEvent.OnContinueClicked(
+                    magicalPhrase = currentState.magicalPhrase.orEmpty(),
+                    inheritanceKeys = currentState.inheritanceKeys,
+                    beneficiaryAllocations = currentState.beneficiaryAllocations,
+                )
             )
-        )
+        } else {
+            if (currentState.magicalPhrase.isNullOrBlank()) return@launch
+            _event.emit(
+                MagicalPhraseIntroEvent.OnContinueClicked(
+                    magicalPhrase = currentState.magicalPhrase.orEmpty(),
+                    inheritanceKeys = currentState.inheritanceKeys,
+                    beneficiaryAllocations = emptyList(),
+                )
+            )
+        }
     }
 }
 
@@ -90,11 +110,14 @@ sealed class MagicalPhraseIntroEvent {
     data class Error(val message: String) : MagicalPhraseIntroEvent()
     data class OnContinueClicked(
         val magicalPhrase: String,
-        val inheritanceKeys: List<String>
+        val inheritanceKeys: List<String>,
+        val beneficiaryAllocations: List<InheritanceBeneficiaryAllocation> = emptyList(),
     ) : MagicalPhraseIntroEvent()
 }
 
 data class MagicalPhraseIntroState(
     val magicalPhrase: String? = null,
     val inheritanceKeys: List<String> = emptyList(),
+    val beneficiaryAllocations: List<InheritanceBeneficiaryAllocation> = emptyList(),
+    val setupFlowType: InheritanceSetupFlowType = InheritanceSetupFlowType.OLD_FLOW,
 )

@@ -215,11 +215,14 @@ fun InheritancePlanningGraph(
         )
 
         magicalPhraseIntro(
-            onContinueClicked = { magicalPhrase, inheritanceKeys ->
+            onContinueClicked = { magicalPhrase, inheritanceKeys, beneficiaryAllocations ->
                 activityViewModel.setOrUpdate(
                     activityViewModel.setupOrReviewParam.copy(
                         magicalPhrase = magicalPhrase,
                         inheritanceKeys = inheritanceKeys,
+                        beneficiaryAllocations = beneficiaryAllocations.ifEmpty {
+                            activityViewModel.setupOrReviewParam.beneficiaryAllocations
+                        },
                     )
                 )
                 if (activityViewModel.isMiniscriptWallet()) {
