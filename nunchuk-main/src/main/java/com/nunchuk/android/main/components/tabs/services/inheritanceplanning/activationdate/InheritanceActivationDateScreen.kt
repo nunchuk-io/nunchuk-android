@@ -19,10 +19,6 @@
 
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.activationdate
 
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -49,15 +45,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalViewConfiguration
-import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
-import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.nunchuk.android.compose.NcDatePickerDialog
@@ -76,38 +68,7 @@ import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.reviewplan.formatDateInTimezone
-import com.nunchuk.android.share.membership.MembershipFragment
-import dagger.hilt.android.AndroidEntryPoint
 import java.util.TimeZone
-
-@AndroidEntryPoint
-class InheritanceActivationDateFragment : MembershipFragment() {
-
-    private val viewModel: InheritanceActivationDateViewModel by viewModels()
-    private val inheritanceViewModel: InheritancePlanningViewModel by activityViewModels()
-    private val isUpdateRequest: Boolean
-        get() = arguments?.getBoolean(ARG_IS_UPDATE_REQUEST, false) ?: false
-
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
-    ): View {
-        return ComposeView(requireContext()).apply {
-            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-
-            setContent {
-                InheritanceActivationDateScreen(
-                    viewModel = viewModel,
-                    isUpdateRequest = isUpdateRequest,
-                    inheritanceViewModel = inheritanceViewModel
-                )
-            }
-        }
-    }
-
-    companion object {
-        private const val ARG_IS_UPDATE_REQUEST = "is_update_request"
-    }
-}
 
 @Composable
 fun InheritanceActivationDateScreen(

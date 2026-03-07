@@ -19,10 +19,6 @@
 
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.howitworks
 
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -33,14 +29,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import androidx.navigation.fragment.findNavController
 import com.nunchuk.android.compose.NCLabelWithIndex
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
@@ -50,43 +43,6 @@ import com.nunchuk.android.compose.SpanIndicator
 import com.nunchuk.android.core.util.openExternalLink
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.sharesecret.InheritanceShareSecretType
-import com.nunchuk.android.main.membership.byzantine.groupdashboard.GroupDashboardActivity
-import com.nunchuk.android.share.membership.MembershipFragment
-import com.nunchuk.android.utils.serializable
-import dagger.hilt.android.AndroidEntryPoint
-
-@AndroidEntryPoint
-class InheritanceHowItWorksFragment : MembershipFragment() {
-
-    private val shareSecretType: InheritanceShareSecretType
-        get() = arguments?.serializable<InheritanceShareSecretType>(ARG_TYPE)
-            ?: InheritanceShareSecretType.DIRECT
-
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
-    ): View {
-        return ComposeView(requireContext()).apply {
-            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-
-            setContent {
-                InheritanceHowItWorksScreen(
-                    type = shareSecretType,
-                    onDoneClick = {
-                        if (activity is GroupDashboardActivity) {
-                            findNavController().popBackStack(R.id.groupDashboardFragment, false)
-                        } else {
-                            activity?.finish()
-                        }
-                    }
-                )
-            }
-        }
-    }
-
-    companion object {
-        private const val ARG_TYPE = "type"
-    }
-}
 
 @Composable
 internal fun InheritanceHowItWorksScreen(

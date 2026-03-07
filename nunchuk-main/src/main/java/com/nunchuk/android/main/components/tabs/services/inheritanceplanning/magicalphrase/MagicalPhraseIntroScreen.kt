@@ -19,10 +19,6 @@
 
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.magicalphrase
 
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -49,15 +45,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalViewConfiguration
-import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.nunchuk.android.compose.NcHighlightText
@@ -72,35 +64,6 @@ import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceBeneficiaryAllocation
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceSetupFlowType
-import com.nunchuk.android.share.membership.MembershipFragment
-import dagger.hilt.android.AndroidEntryPoint
-
-@AndroidEntryPoint
-class MagicalPhraseIntroFragment : MembershipFragment() {
-    private val viewModel: MagicalPhraseIntroViewModel by viewModels()
-    private val inheritanceViewModel: InheritancePlanningViewModel by activityViewModels()
-
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
-    ): View {
-        return ComposeView(requireContext()).apply {
-            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-
-            setContent {
-                val sharedState by inheritanceViewModel.state.collectAsStateWithLifecycle()
-                MagicalPhraseIntroScreen(
-                    viewModel = viewModel,
-                    isMiniscriptWallet = sharedState.isMiniscriptWallet
-                )
-            }
-        }
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        viewModel.init(inheritanceViewModel.setupOrReviewParam)
-    }
-}
 
 @Composable
 internal fun MagicalPhraseIntroScreen(

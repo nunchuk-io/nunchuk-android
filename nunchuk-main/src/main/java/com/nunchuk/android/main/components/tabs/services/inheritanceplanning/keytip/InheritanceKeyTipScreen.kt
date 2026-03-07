@@ -19,10 +19,6 @@
 
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.keytip
 
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -33,17 +29,11 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.fragment.findNavController
 import com.nunchuk.android.compose.NcHighlightText
 import com.nunchuk.android.compose.NcHintMessage
 import com.nunchuk.android.compose.NcImageAppBar
@@ -51,35 +41,6 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.main.R
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
-import com.nunchuk.android.share.membership.MembershipFragment
-import dagger.hilt.android.AndroidEntryPoint
-
-@AndroidEntryPoint
-class InheritanceKeyTipFragment : MembershipFragment() {
-    private val inheritanceViewModel: InheritancePlanningViewModel by activityViewModels()
-
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
-    ): View {
-        return ComposeView(requireContext()).apply {
-            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-
-            setContent {
-                val remainTime by membershipStepManager.remainingTime.collectAsStateWithLifecycle()
-                val sharedState by inheritanceViewModel.state.collectAsStateWithLifecycle()
-                InheritanceKeyTipContent(
-                    remainTime = remainTime,
-                    numberOfKey = sharedState.keyTypes.size,
-                    isMiniscriptWallet = sharedState.isMiniscriptWallet,
-                    onContinueClicked = {
-                        findNavController().navigateUp()
-                    }
-                )
-            }
-        }
-    }
-}
 
 @Composable
 internal fun InheritanceKeyTipContent(

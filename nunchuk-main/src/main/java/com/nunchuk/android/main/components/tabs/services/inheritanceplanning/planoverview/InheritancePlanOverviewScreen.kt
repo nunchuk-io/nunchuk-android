@@ -19,10 +19,6 @@
 
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.planoverview
 
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -37,17 +33,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalViewConfiguration
-import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.fragment.findNavController
 import com.nunchuk.android.compose.NCLabelWithIndex
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
@@ -56,34 +47,6 @@ import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceSetupFlowType
 import com.nunchuk.android.model.byzantine.GroupWalletType
-import com.nunchuk.android.share.membership.MembershipFragment
-import dagger.hilt.android.AndroidEntryPoint
-
-@AndroidEntryPoint
-class InheritancePlanOverviewFragment : MembershipFragment() {
-    private val viewModel: InheritancePlanOverviewViewModel by viewModels()
-    private val inheritanceViewModel: InheritancePlanningViewModel by activityViewModels()
-
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
-    ): View {
-        return ComposeView(requireContext()).apply {
-            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-
-            setContent {
-                val sharedState by inheritanceViewModel.state.collectAsStateWithLifecycle()
-                InheritancePlanOverviewScreen(
-                    viewModel = viewModel,
-                    groupWalletType = inheritanceViewModel.getGroupWalletType(),
-                    isMiniscriptWallet = sharedState.isMiniscriptWallet,
-                    setupFlowType = inheritanceViewModel.setupOrReviewParam.setupFlowType
-                ) {
-                    findNavController().navigateUp()
-                }
-            }
-        }
-    }
-}
 
 @Composable
 internal fun InheritancePlanOverviewScreen(

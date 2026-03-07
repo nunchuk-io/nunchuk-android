@@ -17,74 +17,26 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.requestplanningsent.sent
+package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.createsuccess
 
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.Fragment
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.main.R
-import com.nunchuk.android.nav.NunchukNavigator
-import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
-
-@AndroidEntryPoint
-class InheritanceRequestPlanningSentSuccessFragment : Fragment() {
-
-    @Inject
-    lateinit var navigator: NunchukNavigator
-
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
-    ): View {
-        return ComposeView(requireContext()).apply {
-            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-
-            setContent {
-                InheritanceRequestPlanningSentSuccessScreen(onGotItClick = {
-                    requireActivity().finish()
-                })
-            }
-        }
-    }
-}
 
 @Composable
-fun InheritanceRequestPlanningSentSuccessScreen(
-    onGotItClick: () -> Unit
-) {
-    InheritanceRequestPlanningSentSuccessScreenContent(
-        onGotItClick = onGotItClick
-    )
-}
-
-@Composable
-fun InheritanceRequestPlanningSentSuccessScreenContent(
-    onGotItClick: () -> Unit = {},
+fun InheritanceCreateSuccessScreenContent(
+    onContinueClick: () -> Unit = {},
 ) {
     NunchukTheme {
         Scaffold { innerPadding ->
@@ -93,7 +45,7 @@ fun InheritanceRequestPlanningSentSuccessScreenContent(
                     .statusBarsPadding()
                     .navigationBarsPadding()
             ) {
-                NcTopAppBar(title = "", isBack = false)
+                NcTopAppBar(title = "")
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center
@@ -105,7 +57,7 @@ fun InheritanceRequestPlanningSentSuccessScreenContent(
                 }
                 Text(
                     modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
-                    text = stringResource(id = R.string.nc_inheritance_planning_request_sent),
+                    text = stringResource(R.string.nc_inheritance_create_success),
                     style = NunchukTheme.typography.heading
                 )
 
@@ -115,9 +67,9 @@ fun InheritanceRequestPlanningSentSuccessScreenContent(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp),
-                    onClick = onGotItClick,
+                    onClick = onContinueClick,
                 ) {
-                    Text(text = stringResource(id = R.string.nc_text_got_it))
+                    Text(text = stringResource(id = R.string.nc_text_continue))
                 }
             }
         }
@@ -126,6 +78,6 @@ fun InheritanceRequestPlanningSentSuccessScreenContent(
 
 @PreviewLightDark
 @Composable
-private fun InheritanceRequestPlanningSentSuccessScreenContentPreview() {
-    InheritanceRequestPlanningSentSuccessScreenContent()
+private fun InheritanceCreateSuccessScreenContentPreview() {
+    InheritanceCreateSuccessScreenContent()
 }

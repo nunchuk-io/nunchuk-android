@@ -19,10 +19,6 @@
 
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.bufferperiod
 
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -39,13 +35,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.nunchuk.android.compose.NcPrimaryDarkButton
@@ -57,46 +49,7 @@ import com.nunchuk.android.compose.SelectableContainer
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
 import com.nunchuk.android.model.Period
-import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.signer.R
-import dagger.hilt.android.AndroidEntryPoint
-
-@AndroidEntryPoint
-class InheritanceBufferPeriodFragment : MembershipFragment() {
-
-    private val viewModel: InheritanceBufferPeriodViewModel by viewModels()
-    private val inheritanceViewModel: InheritancePlanningViewModel by activityViewModels()
-    private val isUpdateRequest: Boolean
-        get() = arguments?.getBoolean(ARG_IS_UPDATE_REQUEST, false) ?: false
-
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
-    ): View {
-        return ComposeView(requireContext()).apply {
-            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-
-            setContent {
-                InheritanceBufferPeriodScreen(
-                    viewModel = viewModel,
-                    isUpdateRequest = isUpdateRequest,
-                    inheritanceViewModel = inheritanceViewModel
-                )
-            }
-        }
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        viewModel.init(
-            param = inheritanceViewModel.setupOrReviewParam,
-            isUpdateRequest = isUpdateRequest
-        )
-    }
-
-    companion object {
-        private const val ARG_IS_UPDATE_REQUEST = "is_update_request"
-    }
-}
 
 @Composable
 internal fun InheritanceBufferPeriodScreen(

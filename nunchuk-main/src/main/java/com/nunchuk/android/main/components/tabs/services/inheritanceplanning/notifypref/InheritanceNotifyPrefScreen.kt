@@ -19,10 +19,6 @@
 
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.notifypref
 
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -59,20 +55,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalViewConfiguration
-import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.fragment.findNavController
 import com.nunchuk.android.compose.HighlightMessageType
 import com.nunchuk.android.compose.NcCheckBox
 import com.nunchuk.android.compose.NcHintMessage
@@ -89,69 +80,8 @@ import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
-import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.utils.EmailValidator
-import dagger.hilt.android.AndroidEntryPoint
-
-@AndroidEntryPoint
-class InheritanceNotifyPrefFragment : MembershipFragment() {
-
-    private val viewModel: InheritanceNotifyPrefViewModel by viewModels()
-    private val inheritanceViewModel: InheritancePlanningViewModel by activityViewModels()
-    private val isUpdateRequest: Boolean
-        get() = arguments?.getBoolean(ARG_IS_UPDATE_REQUEST, false) ?: false
-
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
-    ): View {
-        return ComposeView(requireContext()).apply {
-            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-
-            setContent {
-                InheritanceNotifyPrefScreen(
-                    viewModel = viewModel,
-                    isUpdateRequest = isUpdateRequest,
-                    inheritanceViewModel = inheritanceViewModel,
-                    onSkipClick = {
-                        openReviewPlanScreen(isDiscard = true, emptyList(), false)
-                    },
-                    onContinueClick = { emails, isNotify ->
-                        openReviewPlanScreen(
-                            isDiscard = false,
-                            emails,
-                            isNotify
-                        )
-                    }
-                )
-            }
-        }
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        viewModel.init(
-            param = inheritanceViewModel.setupOrReviewParam,
-            isUpdateRequest = isUpdateRequest
-        )
-    }
-
-    private fun openReviewPlanScreen(isDiscard: Boolean, emails: List<String>, isNotify: Boolean) {
-        if (!isDiscard) {
-            inheritanceViewModel.setOrUpdate(
-                inheritanceViewModel.setupOrReviewParam.copy(
-                    isNotify = isNotify,
-                    emails = emails
-                )
-            )
-        }
-        findNavController().popBackStack()
-    }
-
-    companion object {
-        private const val ARG_IS_UPDATE_REQUEST = "is_update_request"
-    }
-}
 
 @Composable
 fun InheritanceNotifyPrefScreen(

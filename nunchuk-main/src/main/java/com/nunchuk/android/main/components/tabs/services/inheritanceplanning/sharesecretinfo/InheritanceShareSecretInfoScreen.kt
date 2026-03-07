@@ -19,10 +19,6 @@
 
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.sharesecretinfo
 
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -49,19 +45,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.fragment.findNavController
 import com.nunchuk.android.compose.HighlightMessageType
 import com.nunchuk.android.compose.NCLabelWithIndex
 import com.nunchuk.android.compose.NcClickableText
@@ -74,108 +65,14 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.greyLight
 import com.nunchuk.android.compose.strokePrimary
-import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.core.util.InheritancePlanFlow
-import com.nunchuk.android.core.util.InheritanceSourceFlow
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceBeneficiaryAllocation
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningActivity
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceSetupFlowType
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.sharesecret.InheritanceShareSecretType
-import com.nunchuk.android.main.membership.byzantine.groupdashboard.GroupDashboardActivity
-import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.utils.Utils
-import com.nunchuk.android.widget.NCInfoDialog
-import dagger.hilt.android.AndroidEntryPoint
-
-@AndroidEntryPoint
-class InheritanceShareSecretInfoFragment : MembershipFragment() {
-
-    private val viewModel: InheritanceShareSecretInfoViewModel by viewModels()
-    private val sharedViewModel: InheritancePlanningViewModel by activityViewModels()
-    private val typeArg: Int
-        get() = arguments?.getInt(ARG_TYPE, 0) ?: 0
-    private val magicalPhraseArg: String
-        get() = arguments?.getString(ARG_MAGICAL_PHRASE).orEmpty()
-    private val planFlowArg: Int
-        get() = arguments?.getInt(ARG_PLAN_FLOW, InheritancePlanFlow.NONE) ?: InheritancePlanFlow.NONE
-    private val sourceFlowArg: Int
-        get() = arguments?.getInt(ARG_SOURCE_FLOW, InheritanceSourceFlow.NONE) ?: InheritanceSourceFlow.NONE
-    private val walletIdArg: String
-        get() = arguments?.getString(ARG_WALLET_ID).orEmpty()
-
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
-    ): View {
-        return ComposeView(requireContext()).apply {
-            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-
-            setContent {
-                InheritanceShareSecretInfoScreen(
-                    sharedViewModel = sharedViewModel,
-                    viewModel = viewModel,
-                    type = typeArg,
-                    magicalPhrase = magicalPhraseArg,
-                    planFlow = planFlowArg,
-                    onContinue = {
-                        if (sharedViewModel.isMiniscriptWallet()) {
-                            findNavController().navigateUp()
-                        } else if (planFlowArg == InheritancePlanFlow.SETUP) {
-                            showDialogInfo()
-                        } else {
-                            handleBack()
-                        }
-                    },
-                    onLearnMoreClicked = {
-                        findNavController().navigateUp()
-                    },
-                    onSaveBsms = {
-                        (activity as? InheritancePlanningActivity)?.showSaveShareOption()
-                    }
-                )
-            }
-        }
-    }
-
-    private fun showDialogInfo() {
-        NCInfoDialog(requireActivity()).showDialog(
-            message = getString(R.string.nc_inheritance_share_secret_info_dialog_desc),
-            onYesClick = {
-                handleBack()
-            }
-        )
-    }
-
-    private fun handleBack() {
-        when (sourceFlowArg) {
-            InheritanceSourceFlow.GROUP_DASHBOARD -> {
-                if (requireActivity() is GroupDashboardActivity) {
-                    findNavController().popBackStack(R.id.groupDashboardFragment, false)
-                } else {
-                    ActivityManager.popUntil(GroupDashboardActivity::class.java)
-                }
-            }
-
-            InheritanceSourceFlow.SERVICE_TAB -> requireActivity().finish()
-            else -> {
-                ActivityManager.popUntilRoot()
-                if (planFlowArg == InheritancePlanFlow.SETUP && sourceFlowArg == InheritanceSourceFlow.WIZARD) {
-                    navigator.openWalletDetailsScreen(requireContext(), walletIdArg)
-                }
-            }
-        }
-    }
-
-    companion object {
-        private const val ARG_SOURCE_FLOW = "source_flow"
-        private const val ARG_MAGICAL_PHRASE = "magical_phrase"
-        private const val ARG_TYPE = "type"
-        private const val ARG_PLAN_FLOW = "plan_flow"
-        private const val ARG_WALLET_ID = "wallet_id"
-    }
-}
 
 @Composable
 internal fun InheritanceShareSecretInfoScreen(

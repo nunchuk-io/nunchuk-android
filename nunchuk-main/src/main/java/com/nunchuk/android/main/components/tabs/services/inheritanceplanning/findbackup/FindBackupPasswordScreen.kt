@@ -19,10 +19,6 @@
 
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.findbackup
 
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -34,20 +30,13 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.fragment.findNavController
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcSpannedText
@@ -55,44 +44,6 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.SpanIndicator
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceKeyType
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
-import com.nunchuk.android.model.byzantine.GroupWalletType
-import com.nunchuk.android.share.membership.MembershipFragment
-import dagger.hilt.android.AndroidEntryPoint
-
-@AndroidEntryPoint
-class FindBackupPasswordFragment : MembershipFragment() {
-    private val viewModel: FindBackupPasswordViewModel by viewModels()
-    private val inheritanceViewModel: InheritancePlanningViewModel by activityViewModels()
-    private val stepNumber: Int
-        get() = arguments?.getInt(ARG_STEP_NUMBER, 1) ?: 1
-
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
-    ): View {
-        return ComposeView(requireContext()).apply {
-            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-
-            setContent {
-                val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
-                val uiState by inheritanceViewModel.state.collectAsStateWithLifecycle()
-                FindBackupPasswordContent(
-                    remainTime = remainTime,
-                    inheritanceKeyType = if (uiState.keyTypes.isNotEmpty()) uiState.keyTypes[stepNumber - 1] else InheritanceKeyType.TAPSIGNER,
-                    numOfKeys = uiState.keyTypes.size,
-                    keyTypes = uiState.keyTypes,
-                    stepNumber = stepNumber
-                ) {
-                    findNavController().navigateUp()
-                }
-            }
-        }
-    }
-
-    companion object {
-        private const val ARG_STEP_NUMBER = "step_number"
-    }
-}
 
 @Composable
 internal fun FindBackupPasswordContent(

@@ -19,10 +19,6 @@
 
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.notificationsettings
 
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -45,15 +41,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalViewConfiguration
-import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.fragment.findNavController
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
@@ -63,57 +55,7 @@ import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
 import com.nunchuk.android.model.inheritance.EmailNotificationSettings
 import com.nunchuk.android.model.inheritance.InheritanceNotificationSettings
-import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.membership.MembershipStepManager
-import dagger.hilt.android.AndroidEntryPoint
-
-@AndroidEntryPoint
-class InheritanceNotificationSettingsFragment : MembershipFragment() {
-
-    private val inheritanceViewModel: InheritancePlanningViewModel by activityViewModels()
-    private val isUpdateRequest: Boolean
-        get() = arguments?.getBoolean(ARG_IS_UPDATE_REQUEST, false) ?: false
-
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
-    ): View {
-        return ComposeView(requireContext()).apply {
-            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-
-            setContent {
-                InheritanceNotificationSettingsScreen(
-                    membershipStepManager = membershipStepManager,
-                    isUpdateRequest = isUpdateRequest,
-                    inheritanceViewModel = inheritanceViewModel,
-                    onContinueClick = { emailSettings, emailMeWalletConfig ->
-                        openReviewPlanScreen(emailSettings, emailMeWalletConfig)
-                    }
-                )
-            }
-        }
-    }
-
-    private fun openReviewPlanScreen(
-        emailSettings: List<EmailNotificationSettings>,
-        emailMeWalletConfig: Boolean
-    ) {
-        val notificationSettings = InheritanceNotificationSettings(
-            emailMeWalletConfig = emailMeWalletConfig,
-            perEmailSettings = emailSettings
-        )
-
-        inheritanceViewModel.setOrUpdate(
-            inheritanceViewModel.setupOrReviewParam.copy(
-                notificationSettings = notificationSettings
-            )
-        )
-        findNavController().popBackStack()
-    }
-
-    companion object {
-        private const val ARG_IS_UPDATE_REQUEST = "is_update_request"
-    }
-}
 
 @Composable
 fun InheritanceNotificationSettingsScreen(

@@ -19,13 +19,6 @@
 
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.reviewplan
 
-import android.app.Activity
-import android.content.Intent
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -55,8 +48,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -64,12 +55,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.DialogFragment
-import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.fragment.findNavController
 import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
@@ -77,14 +64,7 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.fillDenim
 import com.nunchuk.android.compose.greyLight
 import com.nunchuk.android.compose.whisper
-import com.nunchuk.android.core.manager.NcToastManager
-import com.nunchuk.android.core.sheet.BottomSheetOption
-import com.nunchuk.android.core.sheet.BottomSheetOptionListener
-import com.nunchuk.android.core.sheet.SheetOption
-import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.util.InheritancePlanFlow
-import com.nunchuk.android.core.util.openExternalLink
-import com.nunchuk.android.main.BuildConfig
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceBufferPeriodApplyType
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningParam
@@ -97,144 +77,7 @@ import com.nunchuk.android.model.TimelockBased
 import com.nunchuk.android.model.byzantine.isMasterOrAdmin
 import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.model.inheritance.EmailNotificationSettings
-import com.nunchuk.android.share.membership.MembershipFragment
-import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.utils.Utils
-import com.nunchuk.android.utils.serializable
-import com.nunchuk.android.widget.NCWarningDialog
-import dagger.hilt.android.AndroidEntryPoint
-
-@AndroidEntryPoint
-class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionListener {
-
-    private val viewModel: InheritanceReviewPlanViewModel by viewModels()
-    private val inheritanceViewModel: InheritancePlanningViewModel by activityViewModels()
-
-    private val launcher =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            val data = it.data?.extras
-            if (it.resultCode == Activity.RESULT_OK && data != null) {
-                val isDoLater = data.getBoolean(GlobalResultKey.DUMMY_TX_INTRO_DO_LATER, false)
-                if (isDoLater) {
-                    requireActivity().finish()
-                } else {
-                    val signatureMap =
-                        data.serializable<HashMap<String, String>>(GlobalResultKey.SIGNATURE_EXTRA)
-                            ?: return@registerForActivityResult
-                    val securityQuestionToken =
-                        data.getString(GlobalResultKey.SECURITY_QUESTION_TOKEN).orEmpty()
-                    if (signatureMap.isNotEmpty() || securityQuestionToken.isNotEmpty()) {
-                        viewModel.handleFlow(signatureMap, securityQuestionToken)
-                    } else if (inheritanceViewModel.setupOrReviewParam.groupId.isNotEmpty()) {
-                        viewModel.markSetupInheritance()
-                    }
-                }
-            }
-        }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        viewModel.init(inheritanceViewModel.setupOrReviewParam)
-    }
-
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
-    ): View {
-        return ComposeView(requireContext()).apply {
-            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-
-            setContent {
-                InheritanceReviewPlanScreen(
-                    viewModel = viewModel,
-                    inheritanceViewModel = inheritanceViewModel,
-                    onEditActivationDateClick = {
-                        findNavController().navigateUp()
-                    },
-                    onEditNoteClick = {
-                        findNavController().navigateUp()
-                    },
-                    onNotifyPrefClick = { _, _ ->
-                        findNavController().navigateUp()
-                    },
-                    onDiscardChange = {
-                        showDiscardDialog()
-                    },
-                    onShareSecretClicked = {
-                        findNavController().navigateUp()
-                    },
-                    onActionTopBarClick = {
-                        if (inheritanceViewModel.setupOrReviewParam.planFlow == InheritancePlanFlow.VIEW) {
-                            showActionOptions()
-                        }
-                    },
-                    onViewClaimingInstruction = {
-                        val link =
-                            if (BuildConfig.DEBUG) "https://stg-www.nunchuk.io/howtoclaim" else "https://www.nunchuk.io/howtoclaim"
-                        requireActivity().openExternalLink(link)
-                    },
-                    onEditBufferPeriodClick = {
-                        findNavController().navigateUp()
-                    },
-                    onBackUpPasswordInfoClick = {
-                        findNavController().navigateUp()
-                    },
-                )
-            }
-        }
-    }
-
-    private fun showDiscardDialog() {
-        NCWarningDialog(requireActivity()).showDialog(
-            title = getString(com.nunchuk.android.wallet.R.string.nc_confirmation),
-            message = getString(R.string.nc_are_you_sure_discard_the_change),
-            onYesClick = {
-                requireActivity().finish()
-            }
-        )
-    }
-
-    private fun handleFlow() {
-        if (viewModel.reviewFlow == InheritanceReviewPlanViewModel.ReviewFlow.CANCEL) {
-            NcToastManager.scheduleShowMessage(message = getString(R.string.nc_inheritance_plan_cancelled_notify))
-            handleResult()
-        } else if (inheritanceViewModel.setupOrReviewParam.planFlow == InheritancePlanFlow.SETUP) {
-            requireActivity().finish()
-        } else if (inheritanceViewModel.setupOrReviewParam.planFlow == InheritancePlanFlow.VIEW) {
-            NcToastManager.scheduleShowMessage(message = getString(R.string.nc_inheritance_plan_updated_notify))
-            handleResult()
-        }
-    }
-
-    private fun showActionOptions() {
-        (childFragmentManager.findFragmentByTag("BottomSheetOption") as? DialogFragment)?.dismiss()
-        val dialog = BottomSheetOption.newInstance(
-            listOf(
-                SheetOption(
-                    SheetOptionType.TYPE_CANCEL,
-                    R.drawable.ic_close_red,
-                    R.string.nc_cancel_inheritance_plan,
-                    isDeleted = true
-                ),
-            )
-        )
-        dialog.show(childFragmentManager, "BottomSheetOption")
-    }
-
-    override fun onOptionClicked(option: SheetOption) {
-        super.onOptionClicked(option)
-        if (option.type == SheetOptionType.TYPE_CANCEL) {
-            viewModel.calculateRequiredSignatures(flow = InheritanceReviewPlanViewModel.ReviewFlow.CANCEL)
-        }
-    }
-
-    private fun handleResult() {
-        requireActivity().setResult(Activity.RESULT_OK, Intent().apply {
-            putExtra(GlobalResultKey.UPDATE_INHERITANCE, viewModel.isDataChanged())
-            putExtra(GlobalResultKey.WALLET_ID, inheritanceViewModel.setupOrReviewParam.walletId)
-        })
-        requireActivity().finish()
-    }
-}
 
 
 @Composable

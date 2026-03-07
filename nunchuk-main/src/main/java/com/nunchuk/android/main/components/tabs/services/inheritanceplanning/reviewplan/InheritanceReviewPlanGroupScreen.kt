@@ -1,9 +1,5 @@
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.reviewplan
 
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,16 +26,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.nunchuk.android.compose.NcPrimaryDarkButton
@@ -54,7 +46,6 @@ import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.whisper
 import com.nunchuk.android.core.data.model.byzantine.InheritanceDataExtended
 import com.nunchuk.android.core.data.model.byzantine.InheritancePayload
-import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.util.orDefault
 import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.main.R
@@ -64,62 +55,8 @@ import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.Inh
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.DummyTransactionType
 import com.nunchuk.android.model.inheritance.InheritanceNotificationSettings
-import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.utils.simpleGlobalDateFormat
-import dagger.hilt.android.AndroidEntryPoint
 import java.util.Date
-
-@AndroidEntryPoint
-class InheritanceReviewPlanGroupFragment : MembershipFragment(), BottomSheetOptionListener {
-
-    private val viewModel: InheritanceReviewPlanGroupViewModel by viewModels()
-    private val inheritanceViewModel: InheritancePlanningViewModel by activityViewModels()
-    private val groupId by lazy { inheritanceViewModel.state.value.groupId }
-
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
-    ): View {
-        return ComposeView(requireContext()).apply {
-            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-
-            setContent {
-                InheritanceReviewPlanGroupScreen(
-                    viewModel = viewModel,
-                    sharedViewModel = inheritanceViewModel,
-                    groupId = groupId,
-                    onCancelChangeClicked = viewModel::cancelChange,
-                )
-            }
-        }
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        viewModel.init(inheritanceViewModel.setupOrReviewParam)
-        flowObserver(viewModel.event) { event ->
-            when (event) {
-                is InheritanceReviewPlanGroupEvent.OnContinue -> {
-                    requireActivity().setResult(Activity.RESULT_OK, Intent().apply {
-                        putExtra(GlobalResultKey.DUMMY_TX_ID, event.dummyTransactionId)
-                        putExtra(
-                            GlobalResultKey.REQUIRED_SIGNATURES,
-                            event.requiredSignatures.requiredSignatures
-                        )
-                    })
-                    requireActivity().finish()
-                }
-
-                is InheritanceReviewPlanGroupEvent.Loading -> showOrHideLoading(loading = event.loading)
-                is InheritanceReviewPlanGroupEvent.ProcessFailure -> showError(message = event.message)
-                InheritanceReviewPlanGroupEvent.CancelInheritanceSuccess -> {}
-                InheritanceReviewPlanGroupEvent.CreateOrUpdateInheritanceSuccess -> {}
-                InheritanceReviewPlanGroupEvent.CancelChangeSuccess -> {
-                    requireActivity().finish()
-                }
-            }
-        }
-    }
-}
 
 @Composable
 fun InheritanceReviewPlanGroupScreen(
