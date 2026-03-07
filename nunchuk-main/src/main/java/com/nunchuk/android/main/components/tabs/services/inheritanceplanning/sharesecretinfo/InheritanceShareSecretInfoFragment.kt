@@ -24,20 +24,26 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -67,13 +73,16 @@ import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.greyLight
+import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.InheritanceSourceFlow
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceBeneficiaryAllocation
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningActivity
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceSetupFlowType
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.sharesecret.InheritanceShareSecretType
 import com.nunchuk.android.main.membership.byzantine.groupdashboard.GroupDashboardActivity
 import com.nunchuk.android.share.membership.MembershipFragment
@@ -189,7 +198,9 @@ internal fun InheritanceShareSecretInfoScreen(
         planFlow = planFlow,
         onContinue = onContinue,
         onLearnMoreClicked = onLearnMoreClicked,
-        onSaveBsms = onSaveBsms
+        onSaveBsms = onSaveBsms,
+        beneficiaryAllocations = sharedUiState.setupOrReviewParam.beneficiaryAllocations,
+        setupFlowType = sharedUiState.setupOrReviewParam.setupFlowType,
     )
 }
 
@@ -204,6 +215,8 @@ private fun InheritanceShareSecretInfoContent(
     onContinue: () -> Unit = {},
     onLearnMoreClicked: () -> Unit = {},
     onSaveBsms: () -> Unit = {},
+    beneficiaryAllocations: List<InheritanceBeneficiaryAllocation> = emptyList(),
+    setupFlowType: InheritanceSetupFlowType = InheritanceSetupFlowType.OLD_FLOW,
 ) {
     if (isMiniscriptWallet) {
         InheritanceOnChainShareSecretInfoContent(
@@ -213,6 +226,15 @@ private fun InheritanceShareSecretInfoContent(
             planFlow = planFlow,
             onContinue = onContinue,
             onSaveBsms = onSaveBsms
+        )
+    } else if (setupFlowType == InheritanceSetupFlowType.MULTI_BENEFICIARY && beneficiaryAllocations.isNotEmpty()) {
+        InheritanceOffChainMultiBeneficiaryContent(
+            remainTime = remainTime,
+            beneficiaryAllocations = beneficiaryAllocations,
+            type = type,
+            planFlow = planFlow,
+            onActionClick = onContinue,
+            onLearnMoreClicked = onLearnMoreClicked
         )
     } else {
         InheritanceOffChainShareSecretInfoContent(
@@ -363,6 +385,178 @@ private fun InheritanceOffChainShareSecretInfoContent(
                     Text(text = stringResource(R.string.nc_text_do_this_later))
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun InheritanceOffChainMultiBeneficiaryContent(
+    remainTime: Int = 0,
+    beneficiaryAllocations: List<InheritanceBeneficiaryAllocation> = emptyList(),
+    type: Int = 0,
+    planFlow: Int = InheritancePlanFlow.NONE,
+    onActionClick: () -> Unit = {},
+    onLearnMoreClicked: () -> Unit = {}
+) {
+    NunchukTheme {
+        Scaffold(
+            modifier = Modifier.navigationBarsPadding(),
+            contentWindowInsets = ScaffoldDefaults.contentWindowInsets.exclude(
+                WindowInsets.statusBars
+            ),
+            bottomBar = {
+                Column {
+                    val warningDesc = when (type) {
+                        InheritanceShareSecretType.DIRECT.ordinal -> stringResource(id = R.string.nc_beneficiary)
+                        InheritanceShareSecretType.INDIRECT.ordinal -> stringResource(id = R.string.nc_trustee)
+                        InheritanceShareSecretType.JOINT_CONTROL.ordinal -> stringResource(id = R.string.nc_beneficiary_trustee)
+                        else -> ""
+                    }
+                    NcHintMessage(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        messages = listOf(
+                            ClickAbleText(
+                                content = stringResource(
+                                    R.string.nc_inheritance_share_secret_info_warning,
+                                    warningDesc
+                                )
+                            )
+                        ),
+                        type = HighlightMessageType.WARNING,
+                    )
+                    NcPrimaryDarkButton(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        onClick = onActionClick,
+                    ) {
+                        Text(text = stringResource(id = R.string.nc_text_done))
+                    }
+                    NcOutlineButton(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp)
+                            .padding(bottom = 16.dp)
+                            .height(48.dp),
+                        onClick = onActionClick,
+                    ) {
+                        Text(text = stringResource(R.string.nc_text_do_this_later))
+                    }
+                }
+            }
+        ) { innerPadding ->
+            LazyColumn(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
+                item {
+                    val title = if (planFlow == InheritancePlanFlow.SETUP) {
+                        stringResource(
+                            id = R.string.nc_estimate_remain_time,
+                            remainTime
+                        )
+                    } else {
+                        ""
+                    }
+                    NcImageAppBar(
+                        backgroundRes = R.drawable.nc_bg_backup_password_share_secret,
+                        title = title,
+                    )
+                }
+                item {
+                    val typeDesc = when (type) {
+                        InheritanceShareSecretType.DIRECT.ordinal -> stringResource(id = R.string.nc_multi_beneficiary_share_secret_title_direct)
+                        InheritanceShareSecretType.INDIRECT.ordinal -> stringResource(id = R.string.nc_multi_beneficiary_share_secret_title_indirect)
+                        InheritanceShareSecretType.JOINT_CONTROL.ordinal -> stringResource(id = R.string.nc_multi_beneficiary_share_secret_title_joint_control)
+                        else -> ""
+                    }
+
+                    NcHighlightText(
+                        modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
+                        text = typeDesc,
+                        style = NunchukTheme.typography.body
+                    )
+                }
+
+                items(beneficiaryAllocations) { allocation ->
+                    BeneficiarySecretCard(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 16.dp, end = 16.dp, top = 16.dp),
+                        email = allocation.email,
+                        magicalPhrase = allocation.magic,
+                        onLearnMoreClicked = onLearnMoreClicked,
+                    )
+                }
+
+                item {
+                    Spacer(modifier = Modifier.height(20.dp))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun BeneficiarySecretCard(
+    modifier: Modifier = Modifier,
+    email: String,
+    magicalPhrase: String,
+    onLearnMoreClicked: () -> Unit = {},
+) {
+    Column(
+        modifier = modifier
+            .border(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.strokePrimary,
+                shape = RoundedCornerShape(12.dp)
+            )
+            .padding(16.dp)
+    ) {
+        Text(
+            text = email,
+            style = NunchukTheme.typography.title,
+        )
+
+        NCLabelWithIndex(
+            modifier = Modifier.padding(top = 16.dp),
+            index = 1,
+            label = stringResource(R.string.nc_plan_magical_phrase),
+        )
+
+        Box(
+            modifier = Modifier
+                .padding(start = 34.dp, top = 12.dp)
+                .fillMaxWidth()
+                .background(
+                    color = MaterialTheme.colorScheme.greyLight,
+                    shape = RoundedCornerShape(12.dp)
+                )
+        ) {
+            Text(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .fillMaxWidth(),
+                text = magicalPhrase.ifEmpty {
+                    Utils.maskValue("", isMask = true)
+                },
+                style = NunchukTheme.typography.body,
+                textAlign = TextAlign.Center
+            )
+        }
+
+        NCLabelWithIndex(
+            modifier = Modifier.padding(top = 16.dp),
+            index = 2,
+        ) {
+            NcClickableText(
+                modifier = Modifier.padding(top = 0.dp),
+                messages = listOf(
+                    ClickAbleText(content = stringResource(id = R.string.nc_inheritance_share_secret_info_2)),
+                    ClickAbleText(
+                        content = stringResource(id = R.string.nc_learn_more),
+                        onLearnMoreClicked
+                    )
+                ),
+                style = NunchukTheme.typography.body
+            )
         }
     }
 }
@@ -537,6 +731,51 @@ private fun InheritanceShareSecretInfoScreenPreview() {
         isMiniscriptWallet = false
     )
 }
+
+@PreviewLightDark
+@Composable
+private fun InheritanceOffChainMultiBeneficiaryDirectPreview() {
+    InheritanceOffChainMultiBeneficiaryContent(
+        type = InheritanceShareSecretType.DIRECT.ordinal,
+        beneficiaryAllocations = previewBeneficiaryAllocations(),
+    )
+}
+
+@PreviewLightDark
+@Composable
+private fun InheritanceOffChainMultiBeneficiaryIndirectPreview() {
+    InheritanceOffChainMultiBeneficiaryContent(
+        type = InheritanceShareSecretType.INDIRECT.ordinal,
+        beneficiaryAllocations = previewBeneficiaryAllocations(),
+    )
+}
+
+@PreviewLightDark
+@Composable
+private fun InheritanceOffChainMultiBeneficiaryJointPreview() {
+    InheritanceOffChainMultiBeneficiaryContent(
+        type = InheritanceShareSecretType.JOINT_CONTROL.ordinal,
+        beneficiaryAllocations = previewBeneficiaryAllocations(),
+    )
+}
+
+private fun previewBeneficiaryAllocations() = listOf(
+    InheritanceBeneficiaryAllocation(
+        email = "wife@gmail.com",
+        allocationPercent = 50,
+        magic = "dolphin concert apple mirror",
+    ),
+    InheritanceBeneficiaryAllocation(
+        email = "son@gmail.com",
+        allocationPercent = 25,
+        magic = "galaxy piano silver ocean",
+    ),
+    InheritanceBeneficiaryAllocation(
+        email = "daughter@gmail.com",
+        allocationPercent = 25,
+        magic = "nebula violin pearl forest",
+    ),
+)
 
 @PreviewLightDark
 @Composable

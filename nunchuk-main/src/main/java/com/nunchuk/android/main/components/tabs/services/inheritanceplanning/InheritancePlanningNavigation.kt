@@ -721,14 +721,17 @@ internal fun defaultBeneficiaryAllocations(): List<InheritanceBeneficiaryAllocat
         InheritanceBeneficiaryAllocation(
             email = "Wife@gmail.com",
             allocationPercent = 50,
+            magic = "dolphin concert apple mirror",
         ),
         InheritanceBeneficiaryAllocation(
             email = "Son@gmail.com",
             allocationPercent = 25,
+            magic = "galaxy piano silver ocean",
         ),
         InheritanceBeneficiaryAllocation(
             email = "Daughter@gmail.com",
             allocationPercent = 25,
+            magic = "nebula violin pearl forest",
         ),
     )
 }

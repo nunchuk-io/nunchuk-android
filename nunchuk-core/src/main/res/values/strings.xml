@@ -533,6 +533,9 @@
     <string name="nc_inheritance_share_secret_info_title_direct">Please share these two secrets with the Beneficiary:</string>
     <string name="nc_inheritance_share_secret_info_title_indirect">Please share these two secrets with the Trustee:</string>
     <string name="nc_inheritance_share_secret_info_title_joint_control">Please share one secret with the Beneficiary and the other secret with the Trustee. [B]Neither party should have both secrets.[/B]</string>
+    <string name="nc_multi_beneficiary_share_secret_title_direct">Please share the following secrets with each Beneficiary.</string>
+    <string name="nc_multi_beneficiary_share_secret_title_indirect">Each Beneficiary has two secrets. Please share the following secrets with the Trustee:</string>
+    <string name="nc_multi_beneficiary_share_secret_title_joint_control">For each beneficiary, share the Magic Phrase with the beneficiary and the Backup Password with a trustee, [B]ensuring that no individual has access to both secrets.[/B]</string>
     <string name="nc_continue_to_finalize_changes">Continue to finalize changes</string>
     <string name="nc_inheritance_share_secret_info_dialog_desc">You can review these information again by navigating to Services → View inheritance plan.</string>
     <string name="nc_claim_inheritance">Claim inheritance</string>
