@@ -22,11 +22,10 @@ package com.nunchuk.android.main.components.tabs.services.inheritanceplanning
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import androidx.compose.ui.platform.ComposeView
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.viewModels
-import androidx.core.view.WindowCompat
+import androidx.compose.ui.platform.ComposeView
 import androidx.viewbinding.ViewBinding
 import com.nunchuk.android.core.base.BaseShareSaveFileActivity
 import com.nunchuk.android.core.sheet.SheetOption
@@ -121,7 +120,6 @@ class InheritancePlanningActivity : BaseShareSaveFileActivity<ViewBinding>() {
                 )
             }
         }
-        WindowCompat.setDecorFitsSystemWindows(window, false)
         observer()
         observeEvent()
     }
@@ -181,7 +179,6 @@ class InheritancePlanningActivity : BaseShareSaveFileActivity<ViewBinding>() {
                 InheritancePlanningGraph(
                     activity = this@InheritancePlanningActivity,
                     navigator = navigator,
-                    membershipStepManager = membershipStepManager,
                     activityViewModel = viewModel,
                     planFlow = planFlow,
                     startDestination = startDestination,

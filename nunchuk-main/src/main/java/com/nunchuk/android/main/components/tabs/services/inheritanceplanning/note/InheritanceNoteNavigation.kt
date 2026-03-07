@@ -10,6 +10,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceBeneficiaryAllocation
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningActivity
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.MembershipStepEffect
@@ -19,7 +20,7 @@ import kotlinx.serialization.Serializable
 data class InheritanceNoteRoute(val isUpdateRequest: Boolean = false)
 
 fun NavGraphBuilder.inheritanceNote(
-    onContinueClick: (isUpdateRequest: Boolean, note: String) -> Unit,
+    onContinueClick: (isUpdateRequest: Boolean, note: String, beneficiaryAllocations: List<InheritanceBeneficiaryAllocation>) -> Unit,
 ) {
     composable<InheritanceNoteRoute> { backStackEntry ->
         val activity = LocalActivity.current as InheritancePlanningActivity
@@ -42,7 +43,7 @@ fun NavGraphBuilder.inheritanceNote(
                 .collect { event ->
                     when (event) {
                         is InheritanceNoteEvent.ContinueClick -> {
-                            onContinueClick(route.isUpdateRequest, event.note)
+                            onContinueClick(route.isUpdateRequest, event.note, event.beneficiaryAllocations)
                         }
                     }
                 }

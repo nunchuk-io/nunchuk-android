@@ -233,6 +233,7 @@ data class InheritanceBeneficiaryAllocation(
     val email: String,
     val allocationPercent: Int,
     val magic: String = "",
+    val note: String = "",
 )
 
 sealed class InheritancePlanningParam {

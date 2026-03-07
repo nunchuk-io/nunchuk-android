@@ -116,7 +116,6 @@ fun getInheritancePlanningStartRoute(
 fun InheritancePlanningGraph(
     activity: InheritancePlanningActivity,
     navigator: NunchukNavigator,
-    membershipStepManager: MembershipStepManager,
     activityViewModel: InheritancePlanningViewModel,
     @InheritancePlanFlow.InheritancePlanFlowInfo planFlow: Int,
     startDestination: Int = InheritancePlanningActivity.START_DESTINATION_DEFAULT,
@@ -138,16 +137,6 @@ fun InheritancePlanningGraph(
     }
     var releaseScheduleUiState by remember { mutableStateOf(ReleaseScheduleUiState()) }
     var pendingNewStage by remember { mutableStateOf<com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasescheduledetail.ReleaseScheduleStage?>(null) }
-
-    fun returnToReleaseScheduleDetail() {
-        val isShowingReleaseScheduleDetail =
-            navController.currentDestination?.hasRoute<InheritanceReleaseScheduleDetailRoute>() == true
-        if (isShowingReleaseScheduleDetail) return
-        val didPop = navController.popBackStack<InheritanceReleaseScheduleDetailRoute>(inclusive = false)
-        if (!didPop) {
-            navController.navigate(InheritanceReleaseScheduleDetailRoute())
-        }
-    }
 
     NavHost(
         navController = navController,
@@ -365,16 +354,16 @@ fun InheritancePlanningGraph(
             releaseScheduleUiState = releaseScheduleUiState,
             pendingNewStage = pendingNewStage,
             onBackClicked = { isNewStage ->
-                returnToReleaseScheduleDetail()
+                returnToReleaseScheduleDetail(navController)
                 if (isNewStage) pendingNewStage = null
             },
-            onStageNotFound = { returnToReleaseScheduleDetail() },
+            onStageNotFound = { returnToReleaseScheduleDetail(navController) },
             onDeleteStage = { stageId, isNewStage ->
                 if (isNewStage) {
-                    returnToReleaseScheduleDetail()
+                    returnToReleaseScheduleDetail(navController)
                     pendingNewStage = null
                 } else {
-                    returnToReleaseScheduleDetail()
+                    returnToReleaseScheduleDetail(navController)
                     releaseScheduleUiState = releaseScheduleUiState.deleteStage(stageId)
                     val firstStageTimeZoneId =
                         releaseScheduleUiState.stages.firstOrNull()?.timeZoneId
@@ -395,7 +384,7 @@ fun InheritancePlanningGraph(
                         activityViewModel.setupOrReviewParam.copy(selectedZoneId = updatedStage.timeZoneId)
                     )
                 }
-                returnToReleaseScheduleDetail()
+                returnToReleaseScheduleDetail(navController)
                 if (isNewStage) pendingNewStage = null
             },
         )
@@ -423,9 +412,14 @@ fun InheritancePlanningGraph(
         )
 
         inheritanceNote(
-            onContinueClick = { isUpdateRequest, note ->
+            onContinueClick = { isUpdateRequest, note, beneficiaryAllocations ->
                 activityViewModel.setOrUpdate(
-                    activityViewModel.setupOrReviewParam.copy(note = note)
+                    activityViewModel.setupOrReviewParam.copy(
+                        note = note,
+                        beneficiaryAllocations = beneficiaryAllocations.ifEmpty {
+                            activityViewModel.setupOrReviewParam.beneficiaryAllocations
+                        },
+                    )
                 )
                 if (isUpdateRequest || activityViewModel.setupOrReviewParam.planFlow == InheritancePlanFlow.VIEW) {
                     navController.popBackStack()
@@ -659,6 +653,16 @@ internal fun MembershipStepEffect(membershipStepManager: MembershipStepManager) 
         onDispose {
             membershipStepManager.updateStep(false)
         }
+    }
+}
+
+fun returnToReleaseScheduleDetail(navController: NavController) {
+    val isShowingReleaseScheduleDetail =
+        navController.currentDestination?.hasRoute<InheritanceReleaseScheduleDetailRoute>() == true
+    if (isShowingReleaseScheduleDetail) return
+    val didPop = navController.popBackStack<InheritanceReleaseScheduleDetailRoute>(inclusive = false)
+    if (!didPop) {
+        navController.navigate(InheritanceReleaseScheduleDetailRoute())
     }
 }
 

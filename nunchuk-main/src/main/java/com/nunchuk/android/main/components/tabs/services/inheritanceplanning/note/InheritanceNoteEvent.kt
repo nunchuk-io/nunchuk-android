@@ -19,8 +19,18 @@
 
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.note
 
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceBeneficiaryAllocation
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceSetupFlowType
+
 sealed class InheritanceNoteEvent {
-    data class ContinueClick(val note: String) : InheritanceNoteEvent()
+    data class ContinueClick(
+        val note: String,
+        val beneficiaryAllocations: List<InheritanceBeneficiaryAllocation> = emptyList(),
+    ) : InheritanceNoteEvent()
 }
 
-data class InheritanceNoteState(val note: String = "")
+data class InheritanceNoteState(
+    val note: String = "",
+    val beneficiaryAllocations: List<InheritanceBeneficiaryAllocation> = emptyList(),
+    val setupFlowType: InheritanceSetupFlowType = InheritanceSetupFlowType.OLD_FLOW,
+)

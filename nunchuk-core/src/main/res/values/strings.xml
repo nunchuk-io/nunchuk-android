@@ -444,6 +444,7 @@
     <string name="nc_inheritance_leave_message_desc">After the Beneficiary or Trustee claims the inheritance, they will see this message.</string>
     <string name="nc_update_message">Update message</string>
     <string name="nc_note">Note</string>
+    <string name="nc_note_for">Note for %s</string>
     <string name="nc_optional">(optional)</string>
     <string name="nc_inheritance_notify_pref_desc">After the timelock expires, would you like us to notify the Beneficiary or Trustee of the inheritance plan? If so, please provide an email address.</string>
     <string name="nc_notify_them_today">Also notify them today</string>

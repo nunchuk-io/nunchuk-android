@@ -21,7 +21,9 @@ package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.no
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceBeneficiaryAllocation
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningParam
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceSetupFlowType
 import com.nunchuk.android.share.membership.MembershipStepManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
@@ -43,14 +45,25 @@ class InheritanceNoteViewModel @Inject constructor(
     val state = _state.asStateFlow()
 
     fun init(param: InheritancePlanningParam.SetupOrReview, isUpdateRequest: Boolean) {
+        _state.update {
+            it.copy(
+                beneficiaryAllocations = param.beneficiaryAllocations,
+                setupFlowType = param.setupFlowType,
+            )
+        }
         if (isUpdateRequest) {
             updateNote(param.note)
         }
     }
 
     fun onContinueClicked() = viewModelScope.launch {
-        val note = _state.value.note
-        _event.emit(InheritanceNoteEvent.ContinueClick(note))
+        val currentState = _state.value
+        _event.emit(
+            InheritanceNoteEvent.ContinueClick(
+                note = currentState.note,
+                beneficiaryAllocations = currentState.beneficiaryAllocations,
+            )
+        )
     }
 
     fun updateNote(note: String) =
@@ -58,4 +71,13 @@ class InheritanceNoteViewModel @Inject constructor(
             it.copy(note = note)
         }
 
+    fun updateBeneficiaryNote(index: Int, note: String) {
+        _state.update { state ->
+            val updated = state.beneficiaryAllocations.toMutableList()
+            if (index in updated.indices) {
+                updated[index] = updated[index].copy(note = note)
+            }
+            state.copy(beneficiaryAllocations = updated)
+        }
+    }
 }

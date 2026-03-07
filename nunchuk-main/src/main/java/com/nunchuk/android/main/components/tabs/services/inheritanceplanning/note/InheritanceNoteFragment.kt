@@ -57,7 +57,9 @@ import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceBeneficiaryAllocation
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceSetupFlowType
 import com.nunchuk.android.share.membership.MembershipFragment
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -107,14 +109,25 @@ fun InheritanceNoteScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
 
-    InheritanceNoteScreenContent(
-        remainTime = remainTime,
-        note = state.note,
-        planFlow = inheritanceViewModel.setupOrReviewParam.planFlow,
-        isUpdateRequest = isUpdateRequest,
-        onContinueClick = viewModel::onContinueClicked,
-        onTextChange = viewModel::updateNote
-    )
+    if (state.setupFlowType == InheritanceSetupFlowType.MULTI_BENEFICIARY && state.beneficiaryAllocations.isNotEmpty()) {
+        MultiBeneficiaryNoteContent(
+            remainTime = remainTime,
+            beneficiaryAllocations = state.beneficiaryAllocations,
+            planFlow = inheritanceViewModel.setupOrReviewParam.planFlow,
+            isUpdateRequest = isUpdateRequest,
+            onContinueClick = viewModel::onContinueClicked,
+            onBeneficiaryNoteChange = viewModel::updateBeneficiaryNote,
+        )
+    } else {
+        InheritanceNoteScreenContent(
+            remainTime = remainTime,
+            note = state.note,
+            planFlow = inheritanceViewModel.setupOrReviewParam.planFlow,
+            isUpdateRequest = isUpdateRequest,
+            onContinueClick = viewModel::onContinueClicked,
+            onTextChange = viewModel::updateNote,
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -222,8 +235,128 @@ fun InheritanceNoteScreenContent(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MultiBeneficiaryNoteContent(
+    remainTime: Int = 0,
+    beneficiaryAllocations: List<InheritanceBeneficiaryAllocation> = emptyList(),
+    planFlow: Int = InheritancePlanFlow.NONE,
+    isUpdateRequest: Boolean = false,
+    onContinueClick: () -> Unit = {},
+    onBeneficiaryNoteChange: (index: Int, note: String) -> Unit = { _, _ -> },
+) {
+    val isSetupFlow = planFlow == InheritancePlanFlow.SETUP && !isUpdateRequest
+    val title = if (isSetupFlow) stringResource(
+        id = R.string.nc_estimate_remain_time,
+        remainTime
+    ) else ""
+    val continueBtnText =
+        if (isSetupFlow) stringResource(id = R.string.nc_text_continue) else stringResource(
+            id = R.string.nc_update_message
+        )
+    NunchukTheme {
+        Scaffold(
+            modifier = Modifier.navigationBarsPadding(),
+            topBar = {
+                NcTopAppBar(
+                    title = title,
+                    actions = {
+                        Spacer(modifier = Modifier.size(LocalViewConfiguration.current.minimumTouchTargetSize))
+                    },
+                )
+            },
+            bottomBar = {
+                Column {
+                    NcPrimaryDarkButton(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        onClick = onContinueClick,
+                    ) {
+                        Text(text = continueBtnText)
+                    }
+                    if (isSetupFlow) {
+                        NcOutlineButton(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp)
+                                .padding(bottom = 16.dp),
+                            onClick = onContinueClick,
+                        ) {
+                            Text(text = stringResource(R.string.nc_text_skip))
+                        }
+                    }
+                }
+            }
+        ) { innerPadding ->
+            Column(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+            ) {
+                Text(
+                    modifier = Modifier.padding(top = 0.dp, start = 16.dp, end = 16.dp),
+                    text = stringResource(R.string.nc_inheritance_leave_message),
+                    style = NunchukTheme.typography.heading
+                )
+                Text(
+                    modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp),
+                    text = stringResource(R.string.nc_inheritance_leave_message_desc),
+                    style = NunchukTheme.typography.body
+                )
+
+                beneficiaryAllocations.forEachIndexed { index, allocation ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 24.dp)
+                            .padding(horizontal = 16.dp)
+                    ) {
+                        Text(
+                            modifier = Modifier.padding(bottom = 4.dp),
+                            text = stringResource(id = R.string.nc_note_for, allocation.email),
+                            style = NunchukTheme.typography.titleSmall
+                        )
+                        Text(
+                            modifier = Modifier.padding(bottom = 4.dp, start = 4.dp),
+                            text = stringResource(id = R.string.nc_optional),
+                            style = NunchukTheme.typography.bodySmall
+                        )
+                    }
+
+                    NcTextField(
+                        value = allocation.note,
+                        onValueChange = { onBeneficiaryNoteChange(index, it) },
+                        title = "",
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp)
+                            .fillMaxWidth(),
+                        singleLine = false,
+                        minLines = 5,
+                        keyboardOptions = KeyboardOptions.Default,
+                    )
+                }
+            }
+        }
+    }
+}
+
 @PreviewLightDark
 @Composable
 private fun InheritanceNoteScreenPreview() {
     InheritanceNoteScreenContent()
+}
+
+@PreviewLightDark
+@Composable
+private fun MultiBeneficiaryNotePreview() {
+    MultiBeneficiaryNoteContent(
+        beneficiaryAllocations = listOf(
+            InheritanceBeneficiaryAllocation(email = "wife@gmail.com", allocationPercent = 50),
+            InheritanceBeneficiaryAllocation(email = "son@gmail.com", allocationPercent = 25),
+            InheritanceBeneficiaryAllocation(email = "daughter@gmail.com", allocationPercent = 25),
+        ),
+        planFlow = InheritancePlanFlow.SETUP,
+    )
 }
