@@ -27,7 +27,6 @@ import com.nunchuk.android.model.CalculateRequiredSignaturesAction
 import com.nunchuk.android.model.CalculateRequiredSignaturesExt
 import com.nunchuk.android.model.ConvertedTimelock
 import com.nunchuk.android.model.CreateWalletResult
-import com.nunchuk.android.model.TimelockBased
 import com.nunchuk.android.model.DefaultPermissions
 import com.nunchuk.android.model.FinalizeReplaceWalletResult
 import com.nunchuk.android.model.GroupChat
@@ -47,6 +46,7 @@ import com.nunchuk.android.model.SavedAddress
 import com.nunchuk.android.model.SecurityQuestion
 import com.nunchuk.android.model.SeverWallet
 import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.model.TimelockBased
 import com.nunchuk.android.model.TransactionAdditional
 import com.nunchuk.android.model.UserWalletConfigsSetup
 import com.nunchuk.android.model.WalletConfig
@@ -106,10 +106,10 @@ interface PremiumWalletRepository {
 
     suspend fun getServerWallets(): WalletServerSync
     suspend fun createServerTransaction(
-        groupId: String?,
+        groupId: String? = null,
         walletId: String,
         psbt: String,
-        note: String?
+        note: String? = null
     )
 
     suspend fun updateServerTransaction(

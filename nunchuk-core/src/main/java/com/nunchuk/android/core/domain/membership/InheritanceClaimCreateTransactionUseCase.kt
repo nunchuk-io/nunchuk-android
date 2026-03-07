@@ -114,6 +114,7 @@ class InheritanceClaimCreateTransactionUseCase @Inject constructor(
             )
         } else {
             val wallet = nunchukNativeSdk.parseWalletDescriptor(parameters.bsms)
+            userWalletRepository.createServerTransaction(walletId = wallet.id, psbt = transaction.psbt)
             val finalTransaction = transaction.copy(changeIndex = transactionResponse.changePos)
             runCatching {
                 nunchukNativeSdk.importPsbt(walletId = wallet.id, psbt = finalTransaction.psbt)

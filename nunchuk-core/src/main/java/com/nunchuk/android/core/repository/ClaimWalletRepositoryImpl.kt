@@ -58,16 +58,18 @@ internal class ClaimWalletRepositoryImpl @Inject constructor(
 
             response.data.transactions
                 .forEach { transaction ->
-                    if (transaction.psbt.isNullOrEmpty().not()) {
-                        val importTx = nunchukNativeSdk.importPsbt(walletId, transaction.psbt)
-                        if (transaction.note.isNullOrEmpty()
-                                .not() && importTx.memo != transaction.note
-                        ) {
-                            nunchukNativeSdk.updateTransactionMemo(
-                                walletId, importTx.txId, transaction.note
-                            )
+                    runCatching {
+                        if (transaction.psbt.isNullOrEmpty().not()) {
+                            val importTx = nunchukNativeSdk.importPsbt(walletId, transaction.psbt)
+                            if (transaction.note.isNullOrEmpty()
+                                    .not() && importTx.memo != transaction.note
+                            ) {
+                                nunchukNativeSdk.updateTransactionMemo(
+                                    walletId, importTx.txId, transaction.note
+                                )
+                            }
+                            updateReplaceTransactionIdIfNeed(walletId, importTx, transaction)
                         }
-                        updateReplaceTransactionIdIfNeed(walletId, importTx, transaction)
                     }
                 }
             if (response.data.transactions.size < TRANSACTION_PAGE_COUNT) return
