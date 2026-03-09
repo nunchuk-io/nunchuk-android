@@ -186,6 +186,13 @@ fun InheritancePlanningGraph(
             },
         )
 
+        inheritanceFallbackSettings(
+            onBackClicked = { navController.popBackStack() },
+            onContinueClicked = {
+                navController.popBackStack()
+            },
+        )
+
         inheritanceCustomizedDistribution(
             onContinueClicked = { type ->
                 val flowType = when (type) {
@@ -347,14 +354,6 @@ fun InheritancePlanningGraph(
                 val setupOrReviewParam = activityViewModel.setupOrReviewParam
                 val activeBeneficiaryEmail =
                     beneficiaryScheduleKey(route.beneficiaryEmail.ifBlank { editingBeneficiaryEmail.orEmpty() })
-                Timber.d(
-                    "Detail continue fromBeneficiarySchedules=%s isPostBufferPeriodMethod=%s routeEmail=%s activeEmail=%s stages=%d",
-                    route.fromBeneficiarySchedules,
-                    route.isPostBufferPeriodMethod,
-                    route.beneficiaryEmail,
-                    activeBeneficiaryEmail,
-                    releaseScheduleUiState.stages.size
-                )
                 val firstStageTimeZoneId = releaseScheduleUiState.stages.firstOrNull()?.timeZoneId.orEmpty()
                 if (firstStageTimeZoneId.isNotEmpty() && firstStageTimeZoneId != setupOrReviewParam.selectedZoneId) {
                     activityViewModel.setOrUpdate(

@@ -1,0 +1,522 @@
+/**************************************************************************
+ * This file is part of the Nunchuk software (https://nunchuk.io/)        *
+ * Copyright (C) 2022, 2023 Nunchuk                                       *
+ *                                                                        *
+ * This program is free software; you can redistribute it and/or          *
+ * modify it under the terms of the GNU General Public License            *
+ * as published by the Free Software Foundation; either version 3         *
+ * of the License, or (at your option) any later version.                 *
+ *                                                                        *
+ * This program is distributed in the hope that it will be useful,        *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of         *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the          *
+ * GNU General Public License for more details.                           *
+ *                                                                        *
+ * You should have received a copy of the GNU General Public License      *
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.  *
+ *                                                                        *
+ **************************************************************************/
+
+package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.fallbacksettings
+
+import androidx.annotation.StringRes
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.PreviewLightDark
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.dp
+import com.nunchuk.android.compose.NcPrimaryDarkButton
+import com.nunchuk.android.compose.NcRadioButton
+import com.nunchuk.android.compose.NcTag
+import com.nunchuk.android.compose.NcTopAppBar
+import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.fillInputText
+import com.nunchuk.android.compose.strokePrimary
+import com.nunchuk.android.compose.textPrimary
+import com.nunchuk.android.compose.textSecondary
+import com.nunchuk.android.main.R
+import com.nunchuk.android.widget.R as WidgetR
+
+internal enum class InheritanceFallbackOption(
+    @StringRes val titleRes: Int,
+    @StringRes val descRes: Int,
+) {
+    NO_FALLBACK(
+        titleRes = R.string.nc_fallback_option_none_title,
+        descRes = R.string.nc_fallback_option_none_desc,
+    ),
+    INACTIVITY_FALLBACK(
+        titleRes = R.string.nc_fallback_option_inactivity_title,
+        descRes = R.string.nc_fallback_option_inactivity_desc,
+    ),
+    DATE_BASED_FALLBACK(
+        titleRes = R.string.nc_fallback_option_date_based_title,
+        descRes = R.string.nc_fallback_option_date_based_desc,
+    ),
+}
+
+internal enum class FallbackTriggerUnit(@StringRes val labelRes: Int) {
+    YEAR(labelRes = R.string.nc_release_schedule_repeat_year),
+    MONTH(labelRes = R.string.nc_release_schedule_repeat_month),
+    WEEK(labelRes = R.string.nc_release_schedule_repeat_week),
+    DAY(labelRes = R.string.nc_release_schedule_repeat_day),
+}
+
+internal data class InheritanceFallbackSettingsValue(
+    val selectedOption: InheritanceFallbackOption,
+    val triggerValue: String,
+    val triggerUnit: FallbackTriggerUnit,
+    val fallbackDate: String,
+)
+
+@Composable
+internal fun InheritanceFallbackSettingsScreen(
+    remainTime: Int,
+    initialValue: InheritanceFallbackSettingsValue = InheritanceFallbackSettingsValue(
+        selectedOption = InheritanceFallbackOption.INACTIVITY_FALLBACK,
+        triggerValue = "5",
+        triggerUnit = FallbackTriggerUnit.YEAR,
+        fallbackDate = "05/29/2050",
+    ),
+    onBackClicked: () -> Unit = {},
+    onContinueClicked: (InheritanceFallbackSettingsValue) -> Unit = {},
+) {
+    var selectedOption by rememberSaveable { mutableStateOf(initialValue.selectedOption) }
+    var triggerValue by rememberSaveable { mutableStateOf(initialValue.triggerValue) }
+    var triggerUnit by rememberSaveable { mutableStateOf(initialValue.triggerUnit) }
+    var fallbackDate by rememberSaveable { mutableStateOf(initialValue.fallbackDate) }
+    var showTriggerUnitMenu by rememberSaveable { mutableStateOf(false) }
+
+    InheritanceFallbackSettingsContent(
+        remainTime = remainTime,
+        selectedOption = selectedOption,
+        triggerValue = triggerValue,
+        triggerUnit = triggerUnit,
+        fallbackDate = fallbackDate,
+        showTriggerUnitMenu = showTriggerUnitMenu,
+        onBackClicked = onBackClicked,
+        onOptionClick = {
+            selectedOption = it
+            showTriggerUnitMenu = false
+        },
+        onTriggerValueChange = { value ->
+            triggerValue = value.filter(Char::isDigit).take(3)
+        },
+        onTriggerFieldClick = {
+            showTriggerUnitMenu = !showTriggerUnitMenu
+        },
+        onTriggerUnitSelected = { unit ->
+            triggerUnit = unit
+            showTriggerUnitMenu = false
+        },
+        onDismissTriggerMenu = { showTriggerUnitMenu = false },
+        onDateClick = {},
+        onContinueClicked = {
+            onContinueClicked(
+                InheritanceFallbackSettingsValue(
+                    selectedOption = selectedOption,
+                    triggerValue = triggerValue.ifBlank { "1" },
+                    triggerUnit = triggerUnit,
+                    fallbackDate = fallbackDate,
+                )
+            )
+        },
+    )
+}
+
+@Composable
+private fun InheritanceFallbackSettingsContent(
+    remainTime: Int = 0,
+    selectedOption: InheritanceFallbackOption = InheritanceFallbackOption.INACTIVITY_FALLBACK,
+    triggerValue: String = "5",
+    triggerUnit: FallbackTriggerUnit = FallbackTriggerUnit.YEAR,
+    fallbackDate: String = "05/29/2050",
+    showTriggerUnitMenu: Boolean = false,
+    onBackClicked: () -> Unit = {},
+    onOptionClick: (InheritanceFallbackOption) -> Unit = {},
+    onTriggerValueChange: (String) -> Unit = {},
+    onTriggerFieldClick: () -> Unit = {},
+    onTriggerUnitSelected: (FallbackTriggerUnit) -> Unit = {},
+    onDismissTriggerMenu: () -> Unit = {},
+    onDateClick: () -> Unit = {},
+    onContinueClicked: () -> Unit = {},
+) {
+    NunchukTheme {
+        Scaffold(
+            topBar = {
+                NcTopAppBar(
+                    title = stringResource(id = R.string.nc_estimate_remain_time, remainTime),
+                    onBackPress = onBackClicked,
+                )
+            },
+            bottomBar = {
+                NcPrimaryDarkButton(
+                    modifier = Modifier
+                        .navigationBarsPadding()
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    onClick = onContinueClicked,
+                ) {
+                    Text(text = stringResource(id = R.string.nc_text_continue))
+                }
+            },
+        ) { innerPadding ->
+            Column(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 16.dp)
+            ) {
+                Text(
+                    modifier = Modifier.padding(top = 16.dp),
+                    text = stringResource(id = R.string.nc_fallback_settings_title),
+                    style = NunchukTheme.typography.heading,
+                )
+                Text(
+                    modifier = Modifier.padding(top = 16.dp),
+                    text = stringResource(id = R.string.nc_fallback_settings_desc),
+                    style = NunchukTheme.typography.body,
+                )
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 24.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                ) {
+                    FallbackOptionCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        isSelected = selectedOption == InheritanceFallbackOption.NO_FALLBACK,
+                        title = stringResource(id = InheritanceFallbackOption.NO_FALLBACK.titleRes),
+                        description = stringResource(id = InheritanceFallbackOption.NO_FALLBACK.descRes),
+                        onClick = { onOptionClick(InheritanceFallbackOption.NO_FALLBACK) },
+                    )
+
+                    FallbackOptionCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        isSelected = selectedOption == InheritanceFallbackOption.INACTIVITY_FALLBACK,
+                        title = stringResource(id = InheritanceFallbackOption.INACTIVITY_FALLBACK.titleRes),
+                        description = stringResource(id = InheritanceFallbackOption.INACTIVITY_FALLBACK.descRes),
+                        showRecommendedTag = true,
+                        onClick = { onOptionClick(InheritanceFallbackOption.INACTIVITY_FALLBACK) },
+                    ) {
+                        InactivityFallbackConfig(
+                            triggerValue = triggerValue,
+                            triggerUnit = triggerUnit,
+                            showUnitMenu = showTriggerUnitMenu,
+                            onTriggerValueChange = onTriggerValueChange,
+                            onTriggerFieldClick = onTriggerFieldClick,
+                            onTriggerUnitSelected = onTriggerUnitSelected,
+                            onDismissUnitMenu = onDismissTriggerMenu,
+                        )
+                    }
+
+                    FallbackOptionCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        isSelected = selectedOption == InheritanceFallbackOption.DATE_BASED_FALLBACK,
+                        title = stringResource(id = InheritanceFallbackOption.DATE_BASED_FALLBACK.titleRes),
+                        description = stringResource(id = InheritanceFallbackOption.DATE_BASED_FALLBACK.descRes),
+                        onClick = { onOptionClick(InheritanceFallbackOption.DATE_BASED_FALLBACK) },
+                    ) {
+                        DateBasedFallbackConfig(
+                            date = fallbackDate,
+                            onDateClick = onDateClick,
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+            }
+        }
+    }
+}
+
+@Composable
+private fun FallbackOptionCard(
+    modifier: Modifier = Modifier,
+    isSelected: Boolean,
+    title: String,
+    description: String,
+    showRecommendedTag: Boolean = false,
+    onClick: () -> Unit,
+    selectedContent: @Composable (() -> Unit)? = null,
+) {
+    Box(
+        modifier = modifier
+            .clickable(onClick = onClick)
+            .border(
+                width = if (isSelected) 2.dp else 1.dp,
+                color = if (isSelected) MaterialTheme.colorScheme.textPrimary else MaterialTheme.colorScheme.strokePrimary,
+                shape = RoundedCornerShape(20.dp),
+            )
+            .padding(16.dp)
+    ) {
+        Row(verticalAlignment = Alignment.Top) {
+            NcRadioButton(
+                modifier = Modifier
+                    .size(24.dp)
+                    .padding(top = 2.dp),
+                selected = isSelected,
+                onClick = onClick,
+            )
+            Column(
+                modifier = Modifier
+                    .padding(start = 12.dp)
+                    .fillMaxWidth()
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = title,
+                        style = NunchukTheme.typography.title,
+                    )
+                    if (showRecommendedTag) {
+                        NcTag(
+                            modifier = Modifier.padding(start = 8.dp),
+                            label = stringResource(id = R.string.nc_recommended),
+                        )
+                    }
+                }
+                Text(
+                    modifier = Modifier.padding(top = 8.dp),
+                    text = description,
+                    style = NunchukTheme.typography.body,
+                )
+                if (isSelected && selectedContent != null) {
+                    selectedContent()
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun InactivityFallbackConfig(
+    triggerValue: String,
+    triggerUnit: FallbackTriggerUnit,
+    showUnitMenu: Boolean,
+    onTriggerValueChange: (String) -> Unit,
+    onTriggerFieldClick: () -> Unit,
+    onTriggerUnitSelected: (FallbackTriggerUnit) -> Unit,
+    onDismissUnitMenu: () -> Unit,
+) {
+    var triggerFieldWidth by remember { mutableStateOf(0.dp) }
+    val density = LocalDensity.current
+
+    Text(
+        modifier = Modifier.padding(top = 16.dp),
+        text = stringResource(id = R.string.nc_fallback_trigger),
+        style = NunchukTheme.typography.title,
+    )
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .onGloballyPositioned { coordinates ->
+                    triggerFieldWidth = with(density) { coordinates.size.width.toDp() }
+                }
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.strokePrimary,
+                        shape = RoundedCornerShape(16.dp),
+                    )
+                    .background(
+                        color = MaterialTheme.colorScheme.fillInputText,
+                        shape = RoundedCornerShape(16.dp),
+                    )
+                    .padding(horizontal = 16.dp, vertical = 14.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                BasicTextField(
+                    modifier = Modifier.width(56.dp),
+                    value = triggerValue,
+                    textStyle = NunchukTheme.typography.heading.copy(color = MaterialTheme.colorScheme.textPrimary),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    singleLine = true,
+                    onValueChange = onTriggerValueChange,
+                    decorationBox = { innerTextField ->
+                        if (triggerValue.isBlank()) {
+                            Text(
+                                text = "1",
+                                style = NunchukTheme.typography.heading.copy(color = MaterialTheme.colorScheme.textSecondary)
+                            )
+                        }
+                        innerTextField()
+                    }
+                )
+                Spacer(modifier = Modifier.weight(1f))
+                Text(
+                    text = stringResource(id = triggerUnit.labelRes),
+                    style = NunchukTheme.typography.heading.copy(color = MaterialTheme.colorScheme.textSecondary),
+                )
+                Icon(
+                    modifier = Modifier
+                        .padding(start = 8.dp)
+                        .size(24.dp)
+                        .clickable(onClick = onTriggerFieldClick),
+                    painter = painterResource(
+                        id = if (showUnitMenu) {
+                            WidgetR.drawable.ic_caret_up
+                        } else {
+                            WidgetR.drawable.ic_caret_down
+                        }
+                    ),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.textPrimary,
+                )
+            }
+            DropdownMenu(
+                expanded = showUnitMenu,
+                modifier = Modifier.width(triggerFieldWidth),
+                onDismissRequest = onDismissUnitMenu,
+                shape = RoundedCornerShape(16.dp),
+                containerColor = MaterialTheme.colorScheme.fillInputText,
+                tonalElevation = 0.dp,
+                shadowElevation = 12.dp,
+            ) {
+                FallbackTriggerUnit.entries.forEach { unit ->
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                text = stringResource(id = unit.labelRes),
+                                style = NunchukTheme.typography.heading,
+                            )
+                        },
+                        contentPadding = PaddingValues(horizontal = 20.dp, vertical = 18.dp),
+                        onClick = { onTriggerUnitSelected(unit) },
+                    )
+                }
+            }
+        }
+
+        Text(
+            modifier = Modifier.padding(start = 10.dp),
+            text = stringResource(id = R.string.nc_fallback_after_last_payout),
+            style = NunchukTheme.typography.title,
+        )
+    }
+}
+
+@Composable
+private fun DateBasedFallbackConfig(
+    date: String,
+    onDateClick: () -> Unit,
+) {
+    Text(
+        modifier = Modifier.padding(top = 16.dp),
+        text = stringResource(id = R.string.nc_fallback_date),
+        style = NunchukTheme.typography.title,
+    )
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 8.dp)
+            .border(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.strokePrimary,
+                shape = RoundedCornerShape(16.dp),
+            )
+            .background(
+                color = MaterialTheme.colorScheme.fillInputText,
+                shape = RoundedCornerShape(16.dp),
+            )
+            .clickable(onClick = onDateClick)
+            .padding(horizontal = 16.dp, vertical = 14.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = date,
+            style = NunchukTheme.typography.heading,
+        )
+        Spacer(modifier = Modifier.weight(1f))
+        Icon(
+            modifier = Modifier.size(24.dp),
+            painter = painterResource(id = WidgetR.drawable.ic_calendar_blank),
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.textPrimary,
+        )
+    }
+}
+
+@PreviewLightDark
+@Composable
+private fun InactivityFallbackSelectedPreview() {
+    InheritanceFallbackSettingsContent(
+        remainTime = 20,
+        selectedOption = InheritanceFallbackOption.INACTIVITY_FALLBACK,
+        triggerValue = "5",
+        triggerUnit = FallbackTriggerUnit.YEAR,
+        showTriggerUnitMenu = false,
+    )
+}
+
+@PreviewLightDark
+@Composable
+private fun DateBasedFallbackSelectedPreview() {
+    InheritanceFallbackSettingsContent(
+        remainTime = 20,
+        selectedOption = InheritanceFallbackOption.DATE_BASED_FALLBACK,
+        triggerValue = "5",
+        triggerUnit = FallbackTriggerUnit.YEAR,
+        fallbackDate = "05/29/2050",
+        showTriggerUnitMenu = false,
+    )
+}
+
+@PreviewLightDark
+@Composable
+private fun InactivityDropdownExpandedPreview() {
+    InheritanceFallbackSettingsContent(
+        remainTime = 20,
+        selectedOption = InheritanceFallbackOption.INACTIVITY_FALLBACK,
+        triggerValue = "1",
+        triggerUnit = FallbackTriggerUnit.YEAR,
+        showTriggerUnitMenu = true,
+    )
+}
