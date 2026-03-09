@@ -14,6 +14,7 @@ import kotlinx.serialization.Serializable
 data object InheritanceFallbackSettingsRoute
 
 internal fun NavGraphBuilder.inheritanceFallbackSettings(
+    initialValueProvider: () -> InheritanceFallbackSettingsValue?,
     onBackClicked: () -> Unit,
     onContinueClicked: (InheritanceFallbackSettingsValue) -> Unit,
 ) {
@@ -23,6 +24,12 @@ internal fun NavGraphBuilder.inheritanceFallbackSettings(
         val remainTime by activity.membershipStepManager.remainingTime.collectAsStateWithLifecycle()
         InheritanceFallbackSettingsScreen(
             remainTime = remainTime,
+            initialValue = initialValueProvider() ?: InheritanceFallbackSettingsValue(
+                selectedOption = InheritanceFallbackOption.INACTIVITY_FALLBACK,
+                triggerValue = "5",
+                triggerUnit = FallbackTriggerUnit.YEAR,
+                fallbackDate = "05/29/2050",
+            ),
             onBackClicked = onBackClicked,
             onContinueClicked = onContinueClicked,
         )

@@ -38,7 +38,11 @@ import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.cus
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.distributionmethod.InheritanceDistributionMethod
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.distributionmethod.inheritanceDistributionMethod
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.distributionmethod.navigateToInheritanceDistributionMethod
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.fallbacksettings.FallbackTriggerUnit
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.fallbacksettings.InheritanceFallbackOption
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.fallbacksettings.InheritanceFallbackSettingsValue
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.fallbacksettings.inheritanceFallbackSettings
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.fallbacksettings.navigateToInheritanceFallbackSettings
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.findbackup.FindBackupPasswordRoute
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.findbackup.findBackupPassword
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.howitworks.InheritanceHowItWorksRoute
@@ -184,9 +188,19 @@ fun InheritancePlanningGraph(
         )
 
         inheritanceFallbackSettings(
+            initialValueProvider = { activityViewModel.setupOrReviewParam.fallbackSettings },
             onBackClicked = { navController.popBackStack() },
-            onContinueClicked = {
-                navController.popBackStack()
+            onContinueClicked = { value ->
+                activityViewModel.setOrUpdate(
+                    activityViewModel.setupOrReviewParam.copy(
+                        fallbackSettings = value
+                    )
+                )
+                val didPopToBeneficiarySchedules =
+                    navController.popBackStack<InheritanceBeneficiarySchedulesRoute>(inclusive = false)
+                if (!didPopToBeneficiarySchedules) {
+                    navController.popBackStack()
+                }
             },
         )
 
@@ -282,6 +296,7 @@ fun InheritancePlanningGraph(
         inheritanceBeneficiarySchedules(
             onBackClicked = { navController.popBackStack() },
             onEditReleaseMethodClicked = { navController.navigateToInheritanceReleaseMethod() },
+            onEditFallbackSettingsClicked = { navController.navigateToInheritanceFallbackSettings() },
             onEditAssetAllocationClicked = { navController.navigateToInheritanceAssetAllocation() },
             onAddReleaseScheduleClicked = {
                 releaseScheduleFlowViewModel.setEditingBeneficiaryEmail(null)
@@ -317,6 +332,13 @@ fun InheritancePlanningGraph(
                         beneficiaryEmail = beneficiaryKey,
                     )
                 )
+            },
+            onContinueClicked = {
+                if (activityViewModel.setupOrReviewParam.fallbackSettings == null) {
+                    navController.navigateToInheritanceFallbackSettings()
+                } else {
+                    navController.navigateToMagicalPhraseIntro()
+                }
             },
         )
 
@@ -840,4 +862,65 @@ internal fun releaseScheduleBufferPeriodSummaryText(
         period.intervalCount,
         applyTypeText,
     )
+}
+
+@Composable
+internal fun fallbackSettingsSummaryText(
+    fallbackSettings: InheritanceFallbackSettingsValue?,
+): String? {
+    if (fallbackSettings == null) return null
+    return when (fallbackSettings.selectedOption) {
+        InheritanceFallbackOption.NO_FALLBACK -> {
+            stringResource(id = R.string.nc_fallback_summary_no_fallback)
+        }
+
+        InheritanceFallbackOption.INACTIVITY_FALLBACK -> {
+            val count = fallbackSettings.triggerValue.toIntOrNull()?.coerceAtLeast(1) ?: 1
+            val unitText = when (fallbackSettings.triggerUnit) {
+                FallbackTriggerUnit.YEAR -> {
+                    if (count == 1) {
+                        stringResource(id = R.string.nc_fallback_unit_year)
+                    } else {
+                        stringResource(id = R.string.nc_fallback_unit_years)
+                    }
+                }
+
+                FallbackTriggerUnit.MONTH -> {
+                    if (count == 1) {
+                        stringResource(id = R.string.nc_fallback_unit_month)
+                    } else {
+                        stringResource(id = R.string.nc_fallback_unit_months)
+                    }
+                }
+
+                FallbackTriggerUnit.WEEK -> {
+                    if (count == 1) {
+                        stringResource(id = R.string.nc_fallback_unit_week)
+                    } else {
+                        stringResource(id = R.string.nc_fallback_unit_weeks)
+                    }
+                }
+
+                FallbackTriggerUnit.DAY -> {
+                    if (count == 1) {
+                        stringResource(id = R.string.nc_fallback_unit_day)
+                    } else {
+                        stringResource(id = R.string.nc_fallback_unit_days)
+                    }
+                }
+            }
+            stringResource(
+                id = R.string.nc_fallback_summary_inactivity,
+                count,
+                unitText,
+            )
+        }
+
+        InheritanceFallbackOption.DATE_BASED_FALLBACK -> {
+            stringResource(
+                id = R.string.nc_fallback_summary_date_based,
+                fallbackSettings.fallbackDate,
+            )
+        }
+    }
 }

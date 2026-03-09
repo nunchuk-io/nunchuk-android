@@ -11,6 +11,7 @@ import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.main.membership.model.toGroupWalletType
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.beneficiaryschedules.InheritanceBeneficiaryScheduleConfig
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.fallbacksettings.InheritanceFallbackSettingsValue
 import com.nunchuk.android.model.Period
 import com.nunchuk.android.model.TimelockBased
 import com.nunchuk.android.model.Wallet
@@ -247,6 +248,7 @@ sealed class InheritancePlanningParam {
         val notificationSettings: InheritanceNotificationSettings? = null,
         val magicalPhrase: String = "",
         val bufferPeriod: Period? = null,
+        val fallbackSettings: InheritanceFallbackSettingsValue? = null,
         val note: String = "",
         val verifyToken: String = "",
         val planFlow: Int = 0,

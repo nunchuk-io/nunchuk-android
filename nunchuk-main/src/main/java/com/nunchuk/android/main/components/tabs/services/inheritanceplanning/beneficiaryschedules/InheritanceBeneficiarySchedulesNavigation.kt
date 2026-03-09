@@ -12,6 +12,7 @@ import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.Inh
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.MembershipStepEffect
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.defaultBeneficiaryAllocations
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.fallbackSettingsSummaryText
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releaseScheduleBufferPeriodSummaryText
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.toReleaseMethodOption
 import kotlinx.serialization.Serializable
@@ -22,10 +23,12 @@ data object InheritanceBeneficiarySchedulesRoute
 fun NavGraphBuilder.inheritanceBeneficiarySchedules(
     onBackClicked: () -> Unit,
     onEditReleaseMethodClicked: () -> Unit,
+    onEditFallbackSettingsClicked: () -> Unit,
     onEditAssetAllocationClicked: () -> Unit,
     onAddReleaseScheduleClicked: () -> Unit,
     onEditSharedScheduleClicked: () -> Unit,
     onEditBeneficiaryScheduleClicked: (String) -> Unit,
+    onContinueClicked: () -> Unit,
 ) {
     composable<InheritanceBeneficiarySchedulesRoute> {
         val activity = LocalActivity.current as InheritancePlanningActivity
@@ -61,13 +64,16 @@ fun NavGraphBuilder.inheritanceBeneficiarySchedules(
                 period = setupOrReviewParam.bufferPeriod,
                 applyType = setupOrReviewParam.bufferPeriodApplyType,
             ),
+            fallbackSummaryText = fallbackSettingsSummaryText(setupOrReviewParam.fallbackSettings),
             isSharedScheduleConfigured = setupOrReviewParam.isSharedScheduleConfigured,
             onBackClicked = onBackClicked,
             onEditReleaseMethodClicked = onEditReleaseMethodClicked,
+            onEditFallbackSettingsClicked = onEditFallbackSettingsClicked,
             onEditAssetAllocationClicked = onEditAssetAllocationClicked,
             onAddReleaseScheduleClicked = onAddReleaseScheduleClicked,
             onEditSharedScheduleClicked = onEditSharedScheduleClicked,
             onEditBeneficiaryScheduleClicked = onEditBeneficiaryScheduleClicked,
+            onContinueClicked = onContinueClicked,
         )
     }
 }

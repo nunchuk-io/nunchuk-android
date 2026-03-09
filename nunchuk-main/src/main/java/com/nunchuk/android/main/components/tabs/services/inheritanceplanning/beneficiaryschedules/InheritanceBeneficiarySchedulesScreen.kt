@@ -77,12 +77,14 @@ internal fun InheritanceBeneficiarySchedulesScreen(
     releaseScheduleUiState: ReleaseScheduleUiState = ReleaseScheduleUiState(),
     individualScheduleCardDataByEmail: Map<String, InheritanceBeneficiaryScheduleCardData> = emptyMap(),
     sharedBufferPeriodSummaryText: String? = null,
+    fallbackSummaryText: String? = null,
     isSharedScheduleConfigured: Boolean = false,
     onBackClicked: () -> Unit = {},
     onEditReleaseMethodClicked: () -> Unit = {},
     onAddReleaseScheduleClicked: () -> Unit = {},
     onEditSharedScheduleClicked: () -> Unit = {},
     onEditBeneficiaryScheduleClicked: (String) -> Unit = {},
+    onEditFallbackSettingsClicked: () -> Unit = {},
     onEditAssetAllocationClicked: () -> Unit = {},
     onContinueClicked: () -> Unit = {},
 ) {
@@ -168,6 +170,16 @@ internal fun InheritanceBeneficiarySchedulesScreen(
                         beneficiaries = beneficiaries,
                         individualScheduleCardDataByEmail = individualScheduleCardDataByEmail,
                         onEditBeneficiaryScheduleClicked = onEditBeneficiaryScheduleClicked
+                    )
+                }
+
+                if (fallbackSummaryText != null) {
+                    FallbackSettingsSummaryCard(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 16.dp),
+                        summaryText = fallbackSummaryText,
+                        onEditClicked = onEditFallbackSettingsClicked,
                     )
                 }
             }
@@ -482,6 +494,44 @@ private fun BottomActionSection(
         ) {
             Text(text = stringResource(id = R.string.nc_text_continue))
         }
+    }
+}
+
+@Composable
+private fun FallbackSettingsSummaryCard(
+    modifier: Modifier = Modifier,
+    summaryText: String,
+    onEditClicked: () -> Unit,
+) {
+    Column(
+        modifier = modifier
+            .background(
+                color = Color(0xFFF1F1F1),
+                shape = RoundedCornerShape(12.dp)
+            )
+            .padding(horizontal = 12.dp, vertical = 10.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = stringResource(id = R.string.nc_fallback_settings_title_with_colon),
+                style = NunchukTheme.typography.titleSmall
+            )
+            Spacer(modifier = Modifier.weight(1f))
+            Text(
+                modifier = Modifier.clickable(onClick = onEditClicked),
+                text = stringResource(id = CoreR.string.nc_edit),
+                style = NunchukTheme.typography.titleSmall.copy(textDecoration = TextDecoration.Underline)
+            )
+        }
+
+        Text(
+            modifier = Modifier.padding(top = 8.dp),
+            text = summaryText,
+            style = NunchukTheme.typography.bodySmall
+        )
     }
 }
 

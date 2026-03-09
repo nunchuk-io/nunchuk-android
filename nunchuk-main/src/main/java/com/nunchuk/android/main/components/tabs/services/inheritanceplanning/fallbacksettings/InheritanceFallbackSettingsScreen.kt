@@ -74,7 +74,7 @@ import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.main.R
 import com.nunchuk.android.widget.R as WidgetR
 
-internal enum class InheritanceFallbackOption(
+enum class InheritanceFallbackOption(
     @StringRes val titleRes: Int,
     @StringRes val descRes: Int,
 ) {
@@ -92,14 +92,14 @@ internal enum class InheritanceFallbackOption(
     ),
 }
 
-internal enum class FallbackTriggerUnit(@StringRes val labelRes: Int) {
+enum class FallbackTriggerUnit(@StringRes val labelRes: Int) {
     YEAR(labelRes = R.string.nc_release_schedule_repeat_year),
     MONTH(labelRes = R.string.nc_release_schedule_repeat_month),
     WEEK(labelRes = R.string.nc_release_schedule_repeat_week),
     DAY(labelRes = R.string.nc_release_schedule_repeat_day),
 }
 
-internal data class InheritanceFallbackSettingsValue(
+data class InheritanceFallbackSettingsValue(
     val selectedOption: InheritanceFallbackOption,
     val triggerValue: String,
     val triggerUnit: FallbackTriggerUnit,
