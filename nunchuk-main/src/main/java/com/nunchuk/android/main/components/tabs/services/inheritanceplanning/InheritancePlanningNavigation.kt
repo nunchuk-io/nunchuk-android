@@ -3,10 +3,9 @@ package com.nunchuk.android.main.components.tabs.services.inheritanceplanning
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hasRoute
@@ -39,6 +38,7 @@ import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.cus
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.distributionmethod.InheritanceDistributionMethod
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.distributionmethod.inheritanceDistributionMethod
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.distributionmethod.navigateToInheritanceDistributionMethod
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.fallbacksettings.inheritanceFallbackSettings
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.findbackup.FindBackupPasswordRoute
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.findbackup.findBackupPassword
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.howitworks.InheritanceHowItWorksRoute
@@ -87,7 +87,6 @@ import com.nunchuk.android.model.inheritance.InheritanceNotificationSettings
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.widget.NCWarningDialog
-import timber.log.Timber
 
 fun getInheritancePlanningStartRoute(
     @InheritancePlanFlow.InheritancePlanFlowInfo planFlow: Int,
@@ -125,6 +124,8 @@ fun InheritancePlanningGraph(
 ) {
     val planningState by activityViewModel.state.collectAsStateWithLifecycle()
     val setupOrReviewParam = planningState.setupOrReviewParam
+    val releaseScheduleFlowViewModel: InheritanceReleaseScheduleFlowViewModel =
+        hiltViewModel(viewModelStoreOwner = activity)
     val navController = rememberNavController()
     val startRoute = remember(
         planFlow,
@@ -140,10 +141,6 @@ fun InheritancePlanningGraph(
             startDestination = startDestination,
         )
     }
-    var releaseScheduleUiState by remember { mutableStateOf(ReleaseScheduleUiState()) }
-    var editingBeneficiaryEmail by remember { mutableStateOf<String?>(null) }
-    var pendingNewStage by remember { mutableStateOf<com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasescheduledetail.ReleaseScheduleStage?>(null) }
-
     NavHost(
         navController = navController,
         startDestination = startRoute,
@@ -283,26 +280,28 @@ fun InheritancePlanningGraph(
         )
 
         inheritanceBeneficiarySchedules(
-            releaseScheduleUiStateProvider = { releaseScheduleUiState },
             onBackClicked = { navController.popBackStack() },
             onEditReleaseMethodClicked = { navController.navigateToInheritanceReleaseMethod() },
             onAddReleaseScheduleClicked = {
-                editingBeneficiaryEmail = null
+                releaseScheduleFlowViewModel.setEditingBeneficiaryEmail(null)
                 activityViewModel.setOrUpdate(
                     activityViewModel.setupOrReviewParam.copy(isSharedScheduleConfigured = false)
                 )
                 navController.navigate(InheritanceReleaseScheduleDetailRoute(fromBeneficiarySchedules = true))
             },
             onEditSharedScheduleClicked = {
-                editingBeneficiaryEmail = null
+                releaseScheduleFlowViewModel.setEditingBeneficiaryEmail(null)
                 navController.navigate(InheritanceReleaseScheduleDetailRoute(fromBeneficiarySchedules = true))
             },
             onEditBeneficiaryScheduleClicked = { beneficiaryEmail ->
                 val beneficiaryKey = beneficiaryScheduleKey(beneficiaryEmail)
                 val scheduleConfig = activityViewModel.setupOrReviewParam.individualScheduleConfigs[beneficiaryKey]
-                editingBeneficiaryEmail = beneficiaryKey
-                releaseScheduleUiState = scheduleConfig?.releaseScheduleUiState ?: ReleaseScheduleUiState()
-                val firstStageTimeZoneId = releaseScheduleUiState.stages.firstOrNull()?.timeZoneId
+                releaseScheduleFlowViewModel.setEditingBeneficiaryEmail(beneficiaryKey)
+                releaseScheduleFlowViewModel.setReleaseScheduleUiState(
+                    scheduleConfig?.releaseScheduleUiState
+                        ?: ReleaseScheduleUiState()
+                )
+                val firstStageTimeZoneId = releaseScheduleFlowViewModel.releaseScheduleUiState.stages.firstOrNull()?.timeZoneId
                     ?: activityViewModel.setupOrReviewParam.selectedZoneId
                 activityViewModel.setOrUpdate(
                     activityViewModel.setupOrReviewParam.copy(
@@ -327,8 +326,6 @@ fun InheritancePlanningGraph(
         )
 
         inheritanceReleaseScheduleDetail(
-            releaseScheduleUiStateProvider = { releaseScheduleUiState },
-            onUiStateChanged = { releaseScheduleUiState = it },
             onEditStage = { stage ->
                 navController.navigate(
                     InheritanceReleaseScheduleStageEditRoute(stageId = stage.id, isNewStage = false)
@@ -344,16 +341,21 @@ fun InheritancePlanningGraph(
                 )
             },
             onAddStageRequested = {
-                val newStage = releaseScheduleUiState.buildNewStage()
-                pendingNewStage = newStage
+                val newStage = releaseScheduleFlowViewModel.releaseScheduleUiState.buildNewStage()
+                releaseScheduleFlowViewModel.setPendingNewStage(newStage)
                 navController.navigate(
                     InheritanceReleaseScheduleStageEditRoute(stageId = newStage.id, isNewStage = true)
                 )
             },
             onContinueClicked = { route ->
                 val setupOrReviewParam = activityViewModel.setupOrReviewParam
+                val releaseScheduleUiState = releaseScheduleFlowViewModel.releaseScheduleUiState
                 val activeBeneficiaryEmail =
-                    beneficiaryScheduleKey(route.beneficiaryEmail.ifBlank { editingBeneficiaryEmail.orEmpty() })
+                    beneficiaryScheduleKey(
+                        route.beneficiaryEmail.ifBlank {
+                            releaseScheduleFlowViewModel.editingBeneficiaryEmail.orEmpty()
+                        }
+                    )
                 val firstStageTimeZoneId = releaseScheduleUiState.stages.firstOrNull()?.timeZoneId.orEmpty()
                 if (firstStageTimeZoneId.isNotEmpty() && firstStageTimeZoneId != setupOrReviewParam.selectedZoneId) {
                     activityViewModel.setOrUpdate(
@@ -382,7 +384,7 @@ fun InheritancePlanningGraph(
                         navController.navigateToInheritanceBeneficiarySchedules()
                     }
                     if (activeBeneficiaryEmail.isNotBlank()) {
-                        editingBeneficiaryEmail = null
+                        releaseScheduleFlowViewModel.setEditingBeneficiaryEmail(null)
                     }
                 } else if (route.fromBeneficiarySchedules) {
                     navController.navigate(
@@ -408,22 +410,21 @@ fun InheritancePlanningGraph(
         )
 
         inheritanceReleaseScheduleStageEdit(
-            releaseScheduleUiStateProvider = { releaseScheduleUiState },
-            pendingNewStageProvider = { pendingNewStage },
             onBackClicked = { isNewStage ->
                 returnToReleaseScheduleDetail(navController)
-                if (isNewStage) pendingNewStage = null
+                if (isNewStage) releaseScheduleFlowViewModel.setPendingNewStage(null)
             },
             onStageNotFound = { returnToReleaseScheduleDetail(navController) },
             onDeleteStage = { stageId, isNewStage ->
                 if (isNewStage) {
                     returnToReleaseScheduleDetail(navController)
-                    pendingNewStage = null
+                    releaseScheduleFlowViewModel.setPendingNewStage(null)
                 } else {
                     returnToReleaseScheduleDetail(navController)
-                    releaseScheduleUiState = releaseScheduleUiState.deleteStage(stageId)
+                    val updatedUiState = releaseScheduleFlowViewModel.releaseScheduleUiState.deleteStage(stageId)
+                    releaseScheduleFlowViewModel.setReleaseScheduleUiState(updatedUiState)
                     val firstStageTimeZoneId =
-                        releaseScheduleUiState.stages.firstOrNull()?.timeZoneId
+                        updatedUiState.stages.firstOrNull()?.timeZoneId
                             ?: activityViewModel.setupOrReviewParam.selectedZoneId
                     activityViewModel.setOrUpdate(
                         activityViewModel.setupOrReviewParam.copy(selectedZoneId = firstStageTimeZoneId)
@@ -431,18 +432,19 @@ fun InheritancePlanningGraph(
                 }
             },
             onConfirmStage = { updatedStage, isNewStage ->
-                releaseScheduleUiState = if (isNewStage) {
-                    releaseScheduleUiState.appendStage(updatedStage)
+                val nextUiState = if (isNewStage) {
+                    releaseScheduleFlowViewModel.releaseScheduleUiState.appendStage(updatedStage)
                 } else {
-                    releaseScheduleUiState.updateStage(updatedStage)
+                    releaseScheduleFlowViewModel.releaseScheduleUiState.updateStage(updatedStage)
                 }
+                releaseScheduleFlowViewModel.setReleaseScheduleUiState(nextUiState)
                 if (updatedStage.stageNumber == 1) {
                     activityViewModel.setOrUpdate(
                         activityViewModel.setupOrReviewParam.copy(selectedZoneId = updatedStage.timeZoneId)
                     )
                 }
                 returnToReleaseScheduleDetail(navController)
-                if (isNewStage) pendingNewStage = null
+                if (isNewStage) releaseScheduleFlowViewModel.setPendingNewStage(null)
             },
         )
 
@@ -493,7 +495,11 @@ fun InheritancePlanningGraph(
         inheritanceBufferPeriod(
             onContinueClick = { isUpdateRequest, fromBeneficiarySchedules, beneficiaryEmail, period ->
                 val activeBeneficiaryEmail =
-                    beneficiaryScheduleKey(beneficiaryEmail.ifBlank { editingBeneficiaryEmail.orEmpty() })
+                    beneficiaryScheduleKey(
+                        beneficiaryEmail.ifBlank {
+                            releaseScheduleFlowViewModel.editingBeneficiaryEmail.orEmpty()
+                        }
+                    )
                 activityViewModel.setOrUpdate(
                     activityViewModel.setupOrReviewParam.copy(
                         bufferPeriod = period,
@@ -538,7 +544,11 @@ fun InheritancePlanningGraph(
         inheritanceBufferPeriodMethod(
             onContinueClicked = { option, fromBeneficiarySchedules, beneficiaryEmail ->
                 val activeBeneficiaryEmail =
-                    beneficiaryScheduleKey(beneficiaryEmail.ifBlank { editingBeneficiaryEmail.orEmpty() })
+                    beneficiaryScheduleKey(
+                        beneficiaryEmail.ifBlank {
+                            releaseScheduleFlowViewModel.editingBeneficiaryEmail.orEmpty()
+                        }
+                    )
                 activityViewModel.setOrUpdate(
                     activityViewModel.setupOrReviewParam.copy(
                         bufferPeriodApplyType = option.toBufferPeriodApplyType()
@@ -596,7 +606,6 @@ fun InheritancePlanningGraph(
 
         inheritanceReviewPlan(
             navigator = navigator,
-            releaseScheduleUiStateProvider = { releaseScheduleUiState },
             onCreateOrUpdateSuccess = {
                 val param = activityViewModel.setupOrReviewParam
                 navController.navigate(

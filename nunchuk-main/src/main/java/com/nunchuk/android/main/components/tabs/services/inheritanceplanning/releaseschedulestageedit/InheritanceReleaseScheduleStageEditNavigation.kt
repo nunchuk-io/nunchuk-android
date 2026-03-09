@@ -3,15 +3,16 @@ package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.re
 import androidx.activity.compose.LocalActivity
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningActivity
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceReleaseScheduleFlowViewModel
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.MembershipStepEffect
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasescheduledetail.ReleaseScheduleStage
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasescheduledetail.ReleaseScheduleUiState
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -21,8 +22,6 @@ data class InheritanceReleaseScheduleStageEditRoute(
 )
 
 fun NavGraphBuilder.inheritanceReleaseScheduleStageEdit(
-    releaseScheduleUiStateProvider: () -> ReleaseScheduleUiState,
-    pendingNewStageProvider: () -> ReleaseScheduleStage?,
     onBackClicked: (isNewStage: Boolean) -> Unit,
     onStageNotFound: () -> Unit,
     onDeleteStage: (stageId: Int, isNewStage: Boolean) -> Unit,
@@ -30,11 +29,14 @@ fun NavGraphBuilder.inheritanceReleaseScheduleStageEdit(
 ) {
     composable<InheritanceReleaseScheduleStageEditRoute> { backStackEntry ->
         val activity = LocalActivity.current as InheritancePlanningActivity
+        val releaseScheduleFlowViewModel: InheritanceReleaseScheduleFlowViewModel =
+            hiltViewModel(viewModelStoreOwner = activity)
         MembershipStepEffect(activity.membershipStepManager)
         val route = backStackEntry.toRoute<InheritanceReleaseScheduleStageEditRoute>()
         val remainTime by activity.membershipStepManager.remainingTime.collectAsStateWithLifecycle()
-        val releaseScheduleUiState = releaseScheduleUiStateProvider()
-        val pendingNewStage = pendingNewStageProvider()
+        val releaseScheduleFlowState by releaseScheduleFlowViewModel.state.collectAsStateWithLifecycle()
+        val releaseScheduleUiState = releaseScheduleFlowState.releaseScheduleUiState
+        val pendingNewStage = releaseScheduleFlowState.pendingNewStage
 
         val stage = if (route.isNewStage) {
             pendingNewStage

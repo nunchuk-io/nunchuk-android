@@ -7,8 +7,10 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.flowWithLifecycle
 import androidx.navigation.NavController
@@ -20,8 +22,8 @@ import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningActivity
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceReleaseScheduleFlowViewModel
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.MembershipStepEffect
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasescheduledetail.ReleaseScheduleUiState
 import com.nunchuk.android.model.Period
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.result.GlobalResultKey
@@ -34,7 +36,6 @@ data object InheritanceReviewPlanRoute
 
 fun NavGraphBuilder.inheritanceReviewPlan(
     navigator: NunchukNavigator,
-    releaseScheduleUiStateProvider: () -> ReleaseScheduleUiState,
     onCreateOrUpdateSuccess: () -> Unit,
     onCancelSuccess: () -> Unit,
     onMarkSetupInheritance: () -> Unit,
@@ -51,10 +52,13 @@ fun NavGraphBuilder.inheritanceReviewPlan(
         val activity = LocalActivity.current as InheritancePlanningActivity
         val activityViewModel: InheritancePlanningViewModel =
             hiltViewModel(viewModelStoreOwner = activity)
+        val releaseScheduleFlowViewModel: InheritanceReleaseScheduleFlowViewModel =
+            hiltViewModel(viewModelStoreOwner = activity)
         MembershipStepEffect(activity.membershipStepManager)
         val viewModel = hiltViewModel<InheritanceReviewPlanViewModel>()
         val lifecycleOwner = LocalLifecycleOwner.current
-        val releaseScheduleUiState = releaseScheduleUiStateProvider()
+        val releaseScheduleFlowState by releaseScheduleFlowViewModel.state.collectAsStateWithLifecycle()
+        val releaseScheduleUiState = releaseScheduleFlowState.releaseScheduleUiState
 
         DisposableEffect(activity, viewModel) {
             activity.setBottomSheetOptionListener { option ->

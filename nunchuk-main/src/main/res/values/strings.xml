@@ -52,6 +52,17 @@
     <string name="nc_release_method_shared_schedule_desc">Apply the same release schedule to all Beneficiaries. Simple and easy to manage.</string>
     <string name="nc_release_method_individual_schedules">Individual schedules</string>
     <string name="nc_release_method_individual_schedules_desc">Customize release schedules for each Beneficiary to suit their individual needs.</string>
+    <string name="nc_fallback_settings_title">Fallback settings</string>
+    <string name="nc_fallback_settings_desc">Decide what happens if a beneficiary doesn\'t claim their funds within a certain period</string>
+    <string name="nc_fallback_option_none_title">No fallback</string>
+    <string name="nc_fallback_option_none_desc">If a beneficiary does not withdraw, the funds remain in the owner’s wallet. No automatic redistribution will occur.</string>
+    <string name="nc_fallback_option_inactivity_title">Inactivity fallback</string>
+    <string name="nc_fallback_option_inactivity_desc">If a beneficiary makes no withdrawals for the selected time after the final payout, their unclaimed share is redistributed to the other beneficiaries.</string>
+    <string name="nc_fallback_option_date_based_title">Date-based fallback</string>
+    <string name="nc_fallback_option_date_based_desc">On a date you choose after the final payout, any unclaimed shares are redistributed to the other beneficiaries.</string>
+    <string name="nc_fallback_trigger">Trigger</string>
+    <string name="nc_fallback_after_last_payout">after last payout</string>
+    <string name="nc_fallback_date">Date</string>
     <string name="nc_beneficiary_schedules_title">Beneficiary schedules</string>
     <string name="nc_beneficiary_schedules_release_method_prefix">Release method:</string>
     <string name="nc_beneficiary_schedules_shared_desc">Set one release schedule for all beneficiaries. This schedule applies equally to everyone.</string>

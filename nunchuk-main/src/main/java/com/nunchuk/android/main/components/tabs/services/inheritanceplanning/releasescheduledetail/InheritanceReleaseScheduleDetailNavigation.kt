@@ -11,6 +11,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningActivity
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceReleaseScheduleFlowViewModel
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.MembershipStepEffect
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releaseScheduleBufferPeriodSummaryText
@@ -24,8 +25,6 @@ data class InheritanceReleaseScheduleDetailRoute(
 )
 
 fun NavGraphBuilder.inheritanceReleaseScheduleDetail(
-    releaseScheduleUiStateProvider: () -> ReleaseScheduleUiState,
-    onUiStateChanged: (ReleaseScheduleUiState) -> Unit,
     onEditStage: (ReleaseScheduleStage) -> Unit,
     onEditBufferPeriodClicked: (InheritanceReleaseScheduleDetailRoute) -> Unit,
     onAddStageRequested: () -> Unit,
@@ -35,11 +34,14 @@ fun NavGraphBuilder.inheritanceReleaseScheduleDetail(
         val activity = LocalActivity.current as InheritancePlanningActivity
         val activityViewModel: InheritancePlanningViewModel =
             hiltViewModel(viewModelStoreOwner = activity)
+        val releaseScheduleFlowViewModel: InheritanceReleaseScheduleFlowViewModel =
+            hiltViewModel(viewModelStoreOwner = activity)
         MembershipStepEffect(activity.membershipStepManager)
         val remainTime by activity.membershipStepManager.remainingTime.collectAsStateWithLifecycle()
         val setupOrReviewParam = activityViewModel.setupOrReviewParam
         val route = backStackEntry.toRoute<InheritanceReleaseScheduleDetailRoute>()
-        val releaseScheduleUiState = releaseScheduleUiStateProvider()
+        val releaseScheduleFlowState by releaseScheduleFlowViewModel.state.collectAsStateWithLifecycle()
+        val releaseScheduleUiState = releaseScheduleFlowState.releaseScheduleUiState
         InheritanceReleaseScheduleDetailScreen(
             remainTime = remainTime,
             uiState = releaseScheduleUiState,
@@ -52,7 +54,7 @@ fun NavGraphBuilder.inheritanceReleaseScheduleDetail(
                 period = setupOrReviewParam.bufferPeriod,
                 applyType = setupOrReviewParam.bufferPeriodApplyType,
             ),
-            onUiStateChanged = onUiStateChanged,
+            onUiStateChanged = releaseScheduleFlowViewModel::setReleaseScheduleUiState,
             onEditStage = onEditStage,
             onEditBufferPeriodClicked = { onEditBufferPeriodClicked(route) },
             onAddStageRequested = onAddStageRequested,
