@@ -22,6 +22,7 @@ data object InheritanceBeneficiarySchedulesRoute
 fun NavGraphBuilder.inheritanceBeneficiarySchedules(
     onBackClicked: () -> Unit,
     onEditReleaseMethodClicked: () -> Unit,
+    onEditAssetAllocationClicked: () -> Unit,
     onAddReleaseScheduleClicked: () -> Unit,
     onEditSharedScheduleClicked: () -> Unit,
     onEditBeneficiaryScheduleClicked: (String) -> Unit,
@@ -63,6 +64,7 @@ fun NavGraphBuilder.inheritanceBeneficiarySchedules(
             isSharedScheduleConfigured = setupOrReviewParam.isSharedScheduleConfigured,
             onBackClicked = onBackClicked,
             onEditReleaseMethodClicked = onEditReleaseMethodClicked,
+            onEditAssetAllocationClicked = onEditAssetAllocationClicked,
             onAddReleaseScheduleClicked = onAddReleaseScheduleClicked,
             onEditSharedScheduleClicked = onEditSharedScheduleClicked,
             onEditBeneficiaryScheduleClicked = onEditBeneficiaryScheduleClicked,

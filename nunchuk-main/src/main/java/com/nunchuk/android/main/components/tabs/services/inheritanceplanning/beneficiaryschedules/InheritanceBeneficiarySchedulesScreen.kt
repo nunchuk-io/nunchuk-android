@@ -65,6 +65,7 @@ import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.Inh
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasemethod.InheritanceReleaseMethod
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasescheduledetail.ReleaseScheduleSummaryProgress
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasescheduledetail.ReleaseScheduleUiState
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.view.AllocationDonutChart
 import com.nunchuk.android.core.R as CoreR
 import com.nunchuk.android.widget.R as WidgetR
 
@@ -82,6 +83,7 @@ internal fun InheritanceBeneficiarySchedulesScreen(
     onAddReleaseScheduleClicked: () -> Unit = {},
     onEditSharedScheduleClicked: () -> Unit = {},
     onEditBeneficiaryScheduleClicked: (String) -> Unit = {},
+    onEditAssetAllocationClicked: () -> Unit = {},
     onContinueClicked: () -> Unit = {},
 ) {
     val isIndividualSchedulesConfigured = releaseMethod == InheritanceReleaseMethod.INDIVIDUAL_SCHEDULES &&
@@ -102,8 +104,10 @@ internal fun InheritanceBeneficiarySchedulesScreen(
             bottomBar = {
                 BottomActionSection(
                     releaseMethod = releaseMethod,
+                    beneficiaries = beneficiaries,
                     isSharedScheduleConfigured = isSharedScheduleConfigured,
                     isIndividualSchedulesConfigured = isIndividualSchedulesConfigured,
+                    onEditAssetAllocationClicked = onEditAssetAllocationClicked,
                     onAddReleaseScheduleClicked = onAddReleaseScheduleClicked,
                     onContinueClicked = onContinueClicked
                 )
@@ -428,8 +432,10 @@ private fun IndividualScheduleList(
 @Composable
 private fun BottomActionSection(
     releaseMethod: InheritanceReleaseMethod,
+    beneficiaries: List<InheritanceBeneficiaryAllocation>,
     isSharedScheduleConfigured: Boolean,
     isIndividualSchedulesConfigured: Boolean,
+    onEditAssetAllocationClicked: () -> Unit,
     onAddReleaseScheduleClicked: () -> Unit,
     onContinueClicked: () -> Unit,
 ) {
@@ -440,9 +446,16 @@ private fun BottomActionSection(
             .padding(horizontal = 16.dp, vertical = 14.dp)
             .navigationBarsPadding()
     ) {
+        AssetAllocationSection(
+            beneficiaries = beneficiaries,
+            onEditClicked = onEditAssetAllocationClicked,
+        )
+
         if (releaseMethod == InheritanceReleaseMethod.SHARED_SCHEDULE && !isSharedScheduleConfigured) {
             NcOutlineButton(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 16.dp),
                 onClick = onAddReleaseScheduleClicked,
             ) {
                 Icon(
@@ -460,7 +473,7 @@ private fun BottomActionSection(
         NcPrimaryDarkButton(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = if (releaseMethod == InheritanceReleaseMethod.SHARED_SCHEDULE && !isSharedScheduleConfigured) 14.dp else 0.dp),
+                .padding(top = 14.dp),
             enabled = when (releaseMethod) {
                 InheritanceReleaseMethod.SHARED_SCHEDULE -> isSharedScheduleConfigured
                 InheritanceReleaseMethod.INDIVIDUAL_SCHEDULES -> isIndividualSchedulesConfigured
@@ -468,6 +481,40 @@ private fun BottomActionSection(
             onClick = onContinueClicked,
         ) {
             Text(text = stringResource(id = R.string.nc_text_continue))
+        }
+    }
+}
+
+@Composable
+private fun AssetAllocationSection(
+    beneficiaries: List<InheritanceBeneficiaryAllocation>,
+    onEditClicked: () -> Unit,
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = stringResource(id = R.string.nc_asset_allocation),
+                style = NunchukTheme.typography.title
+            )
+            Spacer(modifier = Modifier.weight(1f))
+            Text(
+                modifier = Modifier.clickable(onClick = onEditClicked),
+                text = stringResource(id = CoreR.string.nc_edit),
+                style = NunchukTheme.typography.titleSmall.copy(textDecoration = TextDecoration.Underline)
+            )
+        }
+        if (beneficiaries.isNotEmpty()) {
+            AllocationDonutChart(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 10.dp),
+                beneficiaries = beneficiaries,
+            )
         }
     }
 }

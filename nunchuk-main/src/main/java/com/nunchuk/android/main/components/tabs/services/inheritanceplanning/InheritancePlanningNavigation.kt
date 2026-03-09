@@ -282,6 +282,7 @@ fun InheritancePlanningGraph(
         inheritanceBeneficiarySchedules(
             onBackClicked = { navController.popBackStack() },
             onEditReleaseMethodClicked = { navController.navigateToInheritanceReleaseMethod() },
+            onEditAssetAllocationClicked = { navController.navigateToInheritanceAssetAllocation() },
             onAddReleaseScheduleClicked = {
                 releaseScheduleFlowViewModel.setEditingBeneficiaryEmail(null)
                 activityViewModel.setOrUpdate(
