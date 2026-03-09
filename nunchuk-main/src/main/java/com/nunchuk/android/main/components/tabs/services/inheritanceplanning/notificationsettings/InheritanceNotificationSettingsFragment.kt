@@ -58,7 +58,7 @@ import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
-import com.nunchuk.android.compose.backgroundMidGray
+import com.nunchuk.android.compose.greyLight
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
@@ -238,7 +238,7 @@ fun InheritanceNotificationSettingsScreenContent(
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 8.dp)
                         .background(
-                            color = MaterialTheme.colorScheme.backgroundMidGray,
+                            color = MaterialTheme.colorScheme.greyLight,
                             shape = RoundedCornerShape(8.dp)
                         )
                         .padding(12.dp)

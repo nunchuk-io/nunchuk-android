@@ -1,6 +1,8 @@
 package com.nunchuk.android.compose
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchColors
@@ -19,18 +21,18 @@ fun NcSwitch(
     thumbContent: (@Composable () -> Unit)? = null,
     enabled: Boolean = true,
     colors: SwitchColors = SwitchDefaults.colors(
-        uncheckedThumbColor = Color.White,
         checkedThumbColor = Color.White,
-        uncheckedTrackColor = Color.Transparent,
+        uncheckedTrackColor = MaterialTheme.colorScheme.backgroundMidGray,
         checkedTrackColor = MaterialTheme.colorScheme.controlActivated,
+        uncheckedThumbColor = Color.White,
         uncheckedBorderColor = MaterialTheme.colorScheme.backgroundMidGray,
         checkedBorderColor = MaterialTheme.colorScheme.controlActivated,
-        disabledCheckedThumbColor = Color.White.copy(alpha = 0.4f),
-        disabledCheckedTrackColor = MaterialTheme.colorScheme.controlActivated.copy(alpha = 0.4f),
-        disabledCheckedBorderColor = MaterialTheme.colorScheme.controlActivated.copy(alpha = 0.4f),
-        disabledUncheckedThumbColor = Color.White.copy(alpha = 0.4f),
+        disabledCheckedThumbColor = Color.White,
+        disabledCheckedTrackColor = MaterialTheme.colorScheme.backgroundMidGray,
+        disabledCheckedBorderColor = MaterialTheme.colorScheme.backgroundMidGray,
+        disabledUncheckedThumbColor = MaterialTheme.colorScheme.backgroundMidGray.copy(alpha = 0.8f),
         disabledUncheckedTrackColor = Color.Transparent,
-        disabledUncheckedBorderColor = MaterialTheme.colorScheme.backgroundMidGray.copy(alpha = 0.4f),
+        disabledUncheckedBorderColor = MaterialTheme.colorScheme.backgroundMidGray.copy(alpha = 0.8f),
     ),
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
 ) {
@@ -49,10 +51,14 @@ fun NcSwitch(
 @PreviewLightDark
 fun NcSwitchPreview() {
     NunchukTheme {
-        NcSwitch(
-            checked = true,
-            onCheckedChange = {},
-        )
+        Box(
+            modifier = Modifier.background(MaterialTheme.colorScheme.background)
+        ) {
+            NcSwitch(
+                checked = true,
+                onCheckedChange = {},
+            )
+        }
     }
 }
 
@@ -60,10 +66,15 @@ fun NcSwitchPreview() {
 @PreviewLightDark
 fun NcSwitchDefaultEnablePreview() {
     NunchukTheme {
-        NcSwitch(
-            checked = false,
-            onCheckedChange = {},
-        )
+        Box(
+            modifier = Modifier.background(MaterialTheme.colorScheme.background)
+        ) {
+            NcSwitch(
+                checked = true,
+                onCheckedChange = {},
+                enabled = false
+            )
+        }
     }
 }
 
@@ -71,10 +82,29 @@ fun NcSwitchDefaultEnablePreview() {
 @PreviewLightDark
 fun NcSwitchDefaultPreview() {
     NunchukTheme {
-        NcSwitch(
-            checked = false,
-            enabled = false,
-            onCheckedChange = {},
-        )
+        Box(
+            modifier = Modifier.background(MaterialTheme.colorScheme.background)
+        ) {
+            NcSwitch(
+                checked = false,
+                enabled = false,
+                onCheckedChange = {},
+            )
+        }
+    }
+}
+
+@Composable
+@PreviewLightDark
+fun NcSwitchNotEnableFalsePreview() {
+    NunchukTheme {
+        Box(
+            modifier = Modifier.background(MaterialTheme.colorScheme.background)
+        ) {
+            NcSwitch(
+                checked = false,
+                onCheckedChange = {},
+            )
+        }
     }
 }

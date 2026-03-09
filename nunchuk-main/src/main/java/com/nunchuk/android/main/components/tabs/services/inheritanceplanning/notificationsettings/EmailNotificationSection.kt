@@ -13,6 +13,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,6 +34,12 @@ fun EmailNotificationSection(
     onSettingsChange: (EmailNotificationSettings) -> Unit
 ) {
     var isExpanded by remember { mutableStateOf(true) }
+
+    LaunchedEffect(emailSettings.notifyOnWalletChanges, emailSettings.notifyOnTimelockExpiry) {
+        if (!emailSettings.notifyOnWalletChanges && !emailSettings.notifyOnTimelockExpiry) {
+            onSettingsChange(emailSettings.copy(includeWalletConfiguration = false))
+        }
+    }
 
     Column(
         modifier = Modifier
