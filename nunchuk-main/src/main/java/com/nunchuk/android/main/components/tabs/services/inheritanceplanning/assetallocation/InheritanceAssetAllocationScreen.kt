@@ -153,10 +153,11 @@ private fun InheritanceAssetAllocationContent(
                             beneficiaries = beneficiaries,
                         )
                     }
+                    val allEmailsFilled = beneficiaries.all { it.email.isNotBlank() }
                     NcPrimaryDarkButton(
                         modifier = Modifier
                             .fillMaxWidth(),
-                        enabled = totalAllocation == 100,
+                        enabled = totalAllocation == 100 && allEmailsFilled,
                         onClick = onContinueClicked,
                     ) {
                         Text(text = stringResource(id = R.string.nc_text_continue))
