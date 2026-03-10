@@ -375,10 +375,18 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
                     }
                 }
 
-                AddKeyListEvent.OnAddAllKey -> findNavController().popBackStack()
+                AddKeyListEvent.OnAddAllKey -> onAddAllKey()
                 is AddKeyListEvent.ShowError -> showError(event.message)
                 AddKeyListEvent.SelectAirgapType -> showAirgapOptions()
             }
+        }
+    }
+
+    private fun onAddAllKey() {
+        if ((activity as MembershipActivity).changeTimelockFlow != -1) {
+            findNavController().popBackStack(R.id.addKeyStepFragment, false)
+        } else {
+            findNavController().popBackStack()
         }
     }
 

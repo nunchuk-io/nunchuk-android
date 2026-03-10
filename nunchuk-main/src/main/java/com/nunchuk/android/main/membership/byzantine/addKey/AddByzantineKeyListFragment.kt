@@ -405,7 +405,7 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
                         openVerifyColdCard(event)
                     }
                 }
-                AddKeyListEvent.OnAddAllKey -> findNavController().popBackStack()
+                AddKeyListEvent.OnAddAllKey -> onAddAllKey()
                 is AddKeyListEvent.ShowError -> showError(event.message)
                 AddKeyListEvent.SelectAirgapType -> showAirgapOptions()
 
@@ -424,6 +424,14 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
                 )
                 viewModel.markHandledShowKeyAdded()
             }
+        }
+    }
+
+    private fun onAddAllKey() {
+        if ((activity as MembershipActivity).changeTimelockFlow != -1) {
+            findNavController().popBackStack(R.id.addGroupKeyStepFragment, false)
+        } else {
+            findNavController().popBackStack()
         }
     }
 
