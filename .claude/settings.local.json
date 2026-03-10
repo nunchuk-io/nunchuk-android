@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls -la /Users/mega_lh/MyProject/my-android/nunchuk-*/src/ 2>/dev/null | head -30)"
+    ]
+  }
+}
