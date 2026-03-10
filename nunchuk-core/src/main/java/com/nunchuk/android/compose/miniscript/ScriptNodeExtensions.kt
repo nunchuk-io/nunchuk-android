@@ -98,20 +98,24 @@ val ScriptNode.descriptionText: String
                             val hours = totalMinutes / 60
                             val minutes = totalMinutes % 60
 
-                            val parts = mutableListOf<String>()
-                            if (hours > 0) {
-                                val hourText = if (hours == 1) "hour" else "hours"
-                                parts.add("$hours $hourText")
-                            }
-                            if (minutes > 0) {
-                                val minuteText = if (minutes == 1) "minute" else "minutes"
-                                parts.add("$minutes $minuteText")
-                            }
-
-                            if (parts.isEmpty()) {
-                                ""
+                            if (hours >= 24) {
+                                "1 day from today."
                             } else {
-                                "${parts.joinToString(" ")} from now."
+                                val parts = mutableListOf<String>()
+                                if (hours > 0) {
+                                    val hourText = if (hours == 1) "hour" else "hours"
+                                    parts.add("$hours $hourText")
+                                }
+                                if (minutes > 0) {
+                                    val minuteText = if (minutes == 1) "minute" else "minutes"
+                                    parts.add("$minutes $minuteText")
+                                }
+
+                                if (parts.isEmpty()) {
+                                    ""
+                                } else {
+                                    "${parts.joinToString(" ")} from now."
+                                }
                             }
                         }
                     }
