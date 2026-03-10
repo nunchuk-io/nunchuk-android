@@ -69,8 +69,11 @@ class CoinSearchViewModel @Inject constructor(
     private val defaultFilter = CoinFilterUiState(showLockedCoin = isCustomizeCoinFlow.not(), sortByCoinAge = args.isRelativeWallet)
     val filter = savedStateHandle.getStateFlow(KEY_FILTER, defaultFilter)
 
+    private val _isFilterApplied = savedStateHandle.getStateFlow(KEY_FILTER_APPLIED, false)
+
     fun updateFilter(filter: CoinFilterUiState) {
         savedStateHandle[KEY_FILTER] = filter
+        savedStateHandle[KEY_FILTER_APPLIED] = true
         viewModelScope.launch {
             handleSearch(queryState.value)
         }
@@ -217,13 +220,14 @@ class CoinSearchViewModel @Inject constructor(
         get() = !args.inputs.isNullOrEmpty()
 
     val isFilteringOrSearch: Boolean
-        get() = defaultFilter != filter.value || queryState.value.isNotEmpty()
+        get() = _isFilterApplied.value || queryState.value.isNotEmpty()
 
     val isFiltering: Boolean
-        get() = defaultFilter != filter.value
+        get() = _isFilterApplied.value
 
     companion object {
         private const val KEY_FILTER = "filter"
+        private const val KEY_FILTER_APPLIED = "filter_applied"
     }
 }
 

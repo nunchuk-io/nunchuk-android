@@ -36,7 +36,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -116,7 +116,7 @@ class CoinFilterFragment : Fragment() {
                     onSelectDate = { isStart ->
                         val oldCalUtc = Calendar.getInstance().apply {
                             val time =
-                                if (isStart) viewModel.startTime.value else viewModel.endTime.value
+                                if (isStart) viewModel.startTime.longValue else viewModel.endTime.longValue
                             val actualTime = if (time < 0L) System.currentTimeMillis() else time
                             timeInMillis = actualTime
                             timeZone = TimeZone.getTimeZone("UTC")
@@ -136,8 +136,8 @@ class CoinFilterFragment : Fragment() {
                                 CoinFilterUiState(
                                     selectTags = viewModel.selectTags.value,
                                     selectCollections = viewModel.selectCollections.value,
-                                    startTime = viewModel.startTime.value,
-                                    endTime = viewModel.endTime.value,
+                                    startTime = viewModel.startTime.longValue,
+                                    endTime = viewModel.endTime.longValue,
                                     min = min,
                                     isMinBtc = isMinBtc,
                                     max = max,
@@ -189,8 +189,8 @@ private fun CoinFilterScreen(
         initValue = initValue,
         selectTags = viewModel.selectTags.value,
         selectCollections = viewModel.selectCollections.value,
-        startTime = viewModel.startTime.value,
-        endTime = viewModel.endTime.value,
+        startTime = viewModel.startTime.longValue,
+        endTime = viewModel.endTime.longValue,
         onOpenSelectTagScreen = onOpenSelectTagScreen,
         onOpenSelectCollectionScreen = onOpenSelectCollectionScreen,
         onSelectDate = onSelectDate,
@@ -198,8 +198,8 @@ private fun CoinFilterScreen(
         onClearAll = {
             viewModel.selectTags.value = emptySet()
             viewModel.selectCollections.value = emptySet()
-            viewModel.startTime.value = -1L
-            viewModel.endTime.value = -1L
+            viewModel.startTime.longValue = -1L
+            viewModel.endTime.longValue = -1L
         }
     )
 }
@@ -554,7 +554,7 @@ fun FilterRow(modifier: Modifier, title: String, content: @Composable ColumnScop
     Column(modifier = modifier.padding(top = 24.dp)) {
         Text(text = title, style = NunchukTheme.typography.title)
         content()
-        Divider(modifier = Modifier.padding(top = 24.dp))
+        HorizontalDivider(modifier = Modifier.padding(top = 24.dp))
     }
 }
 
