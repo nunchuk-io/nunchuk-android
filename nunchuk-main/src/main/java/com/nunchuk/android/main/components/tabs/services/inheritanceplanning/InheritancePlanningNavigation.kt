@@ -15,8 +15,8 @@ import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.openExternalLink
 import com.nunchuk.android.main.BuildConfig
 import com.nunchuk.android.main.R
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.activationdate.InheritanceActivationDateRoute
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.activationdate.inheritanceActivationDate
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.activationdate.navigateToInheritanceActivationDate
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.assetallocation.inheritanceAssetAllocation
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.assetallocation.navigateToInheritanceAssetAllocation
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.backupdownload.inheritanceBackUpDownload
@@ -25,13 +25,14 @@ import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.ben
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.beneficiaryschedules.InheritanceBeneficiarySchedulesRoute
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.beneficiaryschedules.inheritanceBeneficiarySchedules
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.beneficiaryschedules.navigateToInheritanceBeneficiarySchedules
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.bufferperiod.InheritanceBufferPeriodRoute
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.bufferperiod.inheritanceBufferPeriod
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.bufferperiod.navigateToInheritanceBufferPeriod
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.bufferperiodmethod.BufferPeriodMethodOption
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.bufferperiodmethod.InheritanceBufferPeriodMethodRoute
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.bufferperiodmethod.inheritanceBufferPeriodMethod
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.bufferperiodmethod.navigateToInheritanceBufferPeriodMethod
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.createsuccess.InheritanceCreateSuccessRoute
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.createsuccess.inheritanceCreateSuccess
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.createsuccess.navigateToInheritanceCreateSuccess
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.customizeddistribution.BeneficiaryType
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.customizeddistribution.inheritanceCustomizedDistribution
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.customizeddistribution.navigateToInheritanceCustomizedDistribution
@@ -43,24 +44,24 @@ import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.fal
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.fallbacksettings.InheritanceFallbackSettingsValue
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.fallbacksettings.inheritanceFallbackSettings
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.fallbacksettings.navigateToInheritanceFallbackSettings
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.findbackup.FindBackupPasswordRoute
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.findbackup.findBackupPassword
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.howitworks.InheritanceHowItWorksRoute
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.findbackup.navigateToFindBackupPassword
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.howitworks.inheritanceHowItWorks
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.howitworks.navigateToInheritanceHowItWorks
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.intro.InheritanceSetupIntroRoute
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.intro.inheritanceSetupIntro
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.keytip.inheritanceKeyTip
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.keytip.navigateToInheritanceKeyTip
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.magicalphrase.magicalPhraseIntro
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.magicalphrase.navigateToMagicalPhraseIntro
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.note.InheritanceNoteRoute
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.note.inheritanceNote
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.notificationsettings.InheritanceNotificationSettingsRoute
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.note.navigateToInheritanceNote
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.notificationsettings.inheritanceNotificationSettings
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.notifypref.InheritanceNotifyPrefRoute
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.notificationsettings.navigateToInheritanceNotificationSettings
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.notifypref.inheritanceNotifyPref
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.planoverview.InheritancePlanOverviewRoute
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.notifypref.navigateToInheritanceNotifyPref
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.planoverview.inheritancePlanOverview
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.planoverview.navigateToInheritancePlanOverview
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasemethod.InheritanceReleaseMethod
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasemethod.inheritanceReleaseMethod
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasemethod.navigateToInheritanceReleaseMethod
@@ -69,21 +70,22 @@ import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.rel
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasescheduledetail.InheritanceReleaseScheduleDetailRoute
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasescheduledetail.ReleaseScheduleUiState
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasescheduledetail.inheritanceReleaseScheduleDetail
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releaseschedulestageedit.InheritanceReleaseScheduleStageEditRoute
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasescheduledetail.navigateToInheritanceReleaseScheduleDetail
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releaseschedulestageedit.inheritanceReleaseScheduleStageEdit
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releaseschedulestageedit.navigateToInheritanceReleaseScheduleStageEdit
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.requestplanningsent.confirm.InheritanceRequestPlanningConfirmRoute
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.requestplanningsent.confirm.inheritanceRequestPlanningConfirm
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.requestplanningsent.sent.InheritanceRequestPlanningSentSuccessRoute
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.requestplanningsent.sent.inheritanceRequestPlanningSentSuccess
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.requestplanningsent.sent.navigateToInheritanceRequestPlanningSentSuccess
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.reviewplan.InheritanceReviewPlanGroupRoute
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.reviewplan.InheritanceReviewPlanRoute
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.reviewplan.inheritanceReviewPlan
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.reviewplan.inheritanceReviewPlanGroup
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.reviewplan.navigateToInheritanceReviewPlan
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.sharesecret.InheritanceShareSecretRoute
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.sharesecret.inheritanceShareSecret
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.sharesecretinfo.InheritanceShareSecretInfoRoute
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.sharesecret.navigateToInheritanceShareSecret
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.sharesecretinfo.inheritanceShareSecretInfo
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.sharesecretinfo.navigateToInheritanceShareSecretInfo
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.timelockinfo.inheritanceTimelockInfo
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.timelockinfo.navigateToInheritanceTimelockInfo
 import com.nunchuk.android.model.Period
@@ -114,6 +116,7 @@ fun getInheritancePlanningStartRoute(
             walletId = param.walletId,
             groupId = param.groupId,
         )
+
         else -> InheritanceReviewPlanRoute
     }
 }
@@ -145,6 +148,7 @@ fun InheritancePlanningGraph(
             startDestination = startDestination,
         )
     }
+
     NavHost(
         navController = navController,
         startDestination = startRoute,
@@ -180,9 +184,7 @@ fun InheritancePlanningGraph(
                             setupFlowType = InheritanceSetupFlowType.OLD_FLOW
                         )
                     )
-                    navController.navigate(
-                        InheritancePlanOverviewRoute(setupFlowType = InheritanceSetupFlowType.OLD_FLOW)
-                    )
+                    navController.navigateToInheritancePlanOverview(setupFlowType = InheritanceSetupFlowType.OLD_FLOW)
                 }
             },
         )
@@ -213,7 +215,7 @@ fun InheritancePlanningGraph(
                 activityViewModel.setOrUpdate(
                     activityViewModel.setupOrReviewParam.copy(setupFlowType = flowType)
                 )
-                navController.navigate(InheritancePlanOverviewRoute(setupFlowType = flowType))
+                navController.navigateToInheritancePlanOverview(setupFlowType = flowType)
             },
         )
 
@@ -241,7 +243,7 @@ fun InheritancePlanningGraph(
                 if (activityViewModel.isMiniscriptWallet()) {
                     navController.navigateToInheritanceKeyTip()
                 } else {
-                    navController.navigate(FindBackupPasswordRoute())
+                    navController.navigateToFindBackupPassword()
                 }
             },
         )
@@ -250,9 +252,9 @@ fun InheritancePlanningGraph(
             onContinueClicked = { stepNumber ->
                 val uiState = activityViewModel.state.value
                 if (uiState.keyTypes.size == 2 && stepNumber == 1) {
-                    navController.navigate(FindBackupPasswordRoute(stepNumber = 2))
+                    navController.navigateToFindBackupPassword(stepNumber = 2)
                 } else if (activityViewModel.getGroupWalletType() == com.nunchuk.android.model.byzantine.GroupWalletType.THREE_OF_FIVE_INHERITANCE) {
-                    navController.navigate(InheritanceActivationDateRoute())
+                    navController.navigateToInheritanceActivationDate()
                 } else {
                     navController.navigateToInheritanceKeyTip()
                 }
@@ -268,7 +270,7 @@ fun InheritancePlanningGraph(
                 } else if (activityViewModel.isMiniscriptWallet()) {
                     navController.navigateToInheritanceTimelockInfo()
                 } else {
-                    navController.navigate(InheritanceActivationDateRoute())
+                    navController.navigateToInheritanceActivationDate()
                 }
             },
         )
@@ -303,22 +305,24 @@ fun InheritancePlanningGraph(
                 activityViewModel.setOrUpdate(
                     activityViewModel.setupOrReviewParam.copy(isSharedScheduleConfigured = false)
                 )
-                navController.navigate(InheritanceReleaseScheduleDetailRoute(fromBeneficiarySchedules = true))
+                navController.navigateToInheritanceReleaseScheduleDetail(fromBeneficiarySchedules = true)
             },
             onEditSharedScheduleClicked = {
                 releaseScheduleFlowViewModel.setEditingBeneficiaryEmail(null)
-                navController.navigate(InheritanceReleaseScheduleDetailRoute(fromBeneficiarySchedules = true))
+                navController.navigateToInheritanceReleaseScheduleDetail(fromBeneficiarySchedules = true)
             },
             onEditBeneficiaryScheduleClicked = { beneficiaryEmail ->
                 val beneficiaryKey = beneficiaryScheduleKey(beneficiaryEmail)
-                val scheduleConfig = activityViewModel.setupOrReviewParam.individualScheduleConfigs[beneficiaryKey]
+                val scheduleConfig =
+                    activityViewModel.setupOrReviewParam.individualScheduleConfigs[beneficiaryKey]
                 releaseScheduleFlowViewModel.setEditingBeneficiaryEmail(beneficiaryKey)
                 releaseScheduleFlowViewModel.setReleaseScheduleUiState(
                     scheduleConfig?.releaseScheduleUiState
                         ?: ReleaseScheduleUiState()
                 )
-                val firstStageTimeZoneId = releaseScheduleFlowViewModel.releaseScheduleUiState.stages.firstOrNull()?.timeZoneId
-                    ?: activityViewModel.setupOrReviewParam.selectedZoneId
+                val firstStageTimeZoneId =
+                    releaseScheduleFlowViewModel.releaseScheduleUiState.stages.firstOrNull()?.timeZoneId
+                        ?: activityViewModel.setupOrReviewParam.selectedZoneId
                 activityViewModel.setOrUpdate(
                     activityViewModel.setupOrReviewParam.copy(
                         bufferPeriod = scheduleConfig?.bufferPeriod,
@@ -344,30 +348,30 @@ fun InheritancePlanningGraph(
 
         inheritanceReleaseSchedule(
             onContinueClicked = {
-                navController.navigate(InheritanceReleaseScheduleDetailRoute())
+                navController.navigateToInheritanceReleaseScheduleDetail()
             },
         )
 
         inheritanceReleaseScheduleDetail(
             onEditStage = { stage ->
-                navController.navigate(
-                    InheritanceReleaseScheduleStageEditRoute(stageId = stage.id, isNewStage = false)
+                navController.navigateToInheritanceReleaseScheduleStageEdit(
+                    stageId = stage.id,
+                    isNewStage = false
                 )
             },
             onEditBufferPeriodClicked = { route ->
-                navController.navigate(
-                    InheritanceBufferPeriodRoute(
-                        isUpdateRequest = true,
-                        fromBeneficiarySchedules = route.fromBeneficiarySchedules,
-                        beneficiaryEmail = route.beneficiaryEmail,
-                    )
+                navController.navigateToInheritanceBufferPeriod(
+                    isUpdateRequest = true,
+                    fromBeneficiarySchedules = route.fromBeneficiarySchedules,
+                    beneficiaryEmail = route.beneficiaryEmail,
                 )
             },
             onAddStageRequested = {
                 val newStage = releaseScheduleFlowViewModel.releaseScheduleUiState.buildNewStage()
                 releaseScheduleFlowViewModel.setPendingNewStage(newStage)
-                navController.navigate(
-                    InheritanceReleaseScheduleStageEditRoute(stageId = newStage.id, isNewStage = true)
+                navController.navigateToInheritanceReleaseScheduleStageEdit(
+                    stageId = newStage.id,
+                    isNewStage = true
                 )
             },
             onContinueClicked = { route ->
@@ -379,7 +383,8 @@ fun InheritancePlanningGraph(
                             releaseScheduleFlowViewModel.editingBeneficiaryEmail.orEmpty()
                         }
                     )
-                val firstStageTimeZoneId = releaseScheduleUiState.stages.firstOrNull()?.timeZoneId.orEmpty()
+                val firstStageTimeZoneId =
+                    releaseScheduleUiState.stages.firstOrNull()?.timeZoneId.orEmpty()
                 if (firstStageTimeZoneId.isNotEmpty() && firstStageTimeZoneId != setupOrReviewParam.selectedZoneId) {
                     activityViewModel.setOrUpdate(
                         setupOrReviewParam.copy(selectedZoneId = firstStageTimeZoneId)
@@ -402,7 +407,8 @@ fun InheritancePlanningGraph(
                             activityViewModel.setupOrReviewParam.copy(isSharedScheduleConfigured = true)
                         )
                     }
-                    val didPop = navController.popBackStack<InheritanceBeneficiarySchedulesRoute>(inclusive = false)
+                    val didPop =
+                        navController.popBackStack<InheritanceBeneficiarySchedulesRoute>(inclusive = false)
                     if (!didPop) {
                         navController.navigateToInheritanceBeneficiarySchedules()
                     }
@@ -410,24 +416,22 @@ fun InheritancePlanningGraph(
                         releaseScheduleFlowViewModel.setEditingBeneficiaryEmail(null)
                     }
                 } else if (route.fromBeneficiarySchedules) {
-                    navController.navigate(
-                        InheritanceBufferPeriodRoute(
-                            fromBeneficiarySchedules = true,
-                            beneficiaryEmail = activeBeneficiaryEmail,
-                        )
+                    navController.navigateToInheritanceBufferPeriod(
+                        fromBeneficiarySchedules = true,
+                        beneficiaryEmail = activeBeneficiaryEmail,
                     )
                 } else if (setupOrReviewParam.setupFlowType == InheritanceSetupFlowType.SINGLE_BENEFICIARY &&
                     route.isPostBufferPeriodMethod &&
                     setupOrReviewParam.bufferPeriod != null &&
                     setupOrReviewParam.bufferPeriodApplyType != null
                 ) {
-                    navController.navigate(InheritanceNoteRoute())
+                    navController.navigateToInheritanceNote()
                 } else if (setupOrReviewParam.setupFlowType == InheritanceSetupFlowType.SINGLE_BENEFICIARY) {
-                    navController.navigate(InheritanceBufferPeriodRoute())
+                    navController.navigateToInheritanceBufferPeriod()
                 } else if (activityViewModel.isMiniscriptWallet()) {
                     navController.navigateToInheritanceTimelockInfo()
                 } else {
-                    navController.navigate(InheritanceActivationDateRoute())
+                    navController.navigateToInheritanceActivationDate()
                 }
             },
         )
@@ -444,7 +448,8 @@ fun InheritancePlanningGraph(
                     releaseScheduleFlowViewModel.setPendingNewStage(null)
                 } else {
                     returnToReleaseScheduleDetail(navController)
-                    val updatedUiState = releaseScheduleFlowViewModel.releaseScheduleUiState.deleteStage(stageId)
+                    val updatedUiState =
+                        releaseScheduleFlowViewModel.releaseScheduleUiState.deleteStage(stageId)
                     releaseScheduleFlowViewModel.setReleaseScheduleUiState(updatedUiState)
                     val firstStageTimeZoneId =
                         updatedUiState.stages.firstOrNull()?.timeZoneId
@@ -473,7 +478,7 @@ fun InheritancePlanningGraph(
 
         inheritanceTimelockInfo(
             onContinueClicked = {
-                navController.navigate(InheritanceNoteRoute())
+                navController.navigateToInheritanceNote()
             },
         )
 
@@ -488,7 +493,7 @@ fun InheritancePlanningGraph(
                 if (isUpdateRequest || activityViewModel.setupOrReviewParam.planFlow == InheritancePlanFlow.VIEW) {
                     navController.popBackStack()
                 } else {
-                    navController.navigate(InheritanceNoteRoute())
+                    navController.navigateToInheritanceNote()
                 }
             },
         )
@@ -506,11 +511,11 @@ fun InheritancePlanningGraph(
                 if (isUpdateRequest || activityViewModel.setupOrReviewParam.planFlow == InheritancePlanFlow.VIEW) {
                     navController.popBackStack()
                 } else if (activityViewModel.setupOrReviewParam.setupFlowType == InheritanceSetupFlowType.SINGLE_BENEFICIARY) {
-                    navController.navigate(InheritanceNotifyPrefRoute(isUpdateRequest = isUpdateRequest))
+                    navController.navigateToInheritanceNotifyPref(isUpdateRequest = isUpdateRequest)
                 } else if (activityViewModel.isMiniscriptWallet()) {
-                    navController.navigate(InheritanceNotifyPrefRoute(isUpdateRequest = isUpdateRequest))
+                    navController.navigateToInheritanceNotifyPref(isUpdateRequest = isUpdateRequest)
                 } else {
-                    navController.navigate(InheritanceBufferPeriodRoute())
+                    navController.navigateToInheritanceBufferPeriod()
                 }
             },
         )
@@ -537,29 +542,25 @@ fun InheritancePlanningGraph(
                     navController.popBackStack()
                 } else if (fromBeneficiarySchedules) {
                     if (period == null) {
-                        navController.navigate(
-                            InheritanceReleaseScheduleDetailRoute(
-                                isPostBufferPeriodMethod = true,
-                                fromBeneficiarySchedules = true,
-                                beneficiaryEmail = activeBeneficiaryEmail,
-                            )
+                        navController.navigateToInheritanceReleaseScheduleDetail(
+                            isPostBufferPeriodMethod = true,
+                            fromBeneficiarySchedules = true,
+                            beneficiaryEmail = activeBeneficiaryEmail,
                         )
                     } else {
-                        navController.navigate(
-                            InheritanceBufferPeriodMethodRoute(
-                                fromBeneficiarySchedules = true,
-                                beneficiaryEmail = activeBeneficiaryEmail,
-                            )
+                        navController.navigateToInheritanceBufferPeriodMethod(
+                            fromBeneficiarySchedules = true,
+                            beneficiaryEmail = activeBeneficiaryEmail,
                         )
                     }
                 } else if (activityViewModel.setupOrReviewParam.setupFlowType == InheritanceSetupFlowType.SINGLE_BENEFICIARY) {
                     if (period == null) {
-                        navController.navigate(InheritanceNoteRoute())
+                        navController.navigateToInheritanceNote()
                     } else {
-                        navController.navigate(InheritanceBufferPeriodMethodRoute())
+                        navController.navigateToInheritanceBufferPeriodMethod()
                     }
                 } else {
-                    navController.navigate(InheritanceNotifyPrefRoute())
+                    navController.navigateToInheritanceNotifyPref()
                 }
             },
         )
@@ -577,12 +578,10 @@ fun InheritancePlanningGraph(
                         bufferPeriodApplyType = option.toBufferPeriodApplyType()
                     )
                 )
-                navController.navigate(
-                    InheritanceReleaseScheduleDetailRoute(
-                        isPostBufferPeriodMethod = true,
-                        fromBeneficiarySchedules = fromBeneficiarySchedules,
-                        beneficiaryEmail = activeBeneficiaryEmail,
-                    )
+                navController.navigateToInheritanceReleaseScheduleDetail(
+                    isPostBufferPeriodMethod = true,
+                    fromBeneficiarySchedules = fromBeneficiarySchedules,
+                    beneficiaryEmail = activeBeneficiaryEmail,
                 )
             },
         )
@@ -631,25 +630,23 @@ fun InheritancePlanningGraph(
             navigator = navigator,
             onCreateOrUpdateSuccess = {
                 val param = activityViewModel.setupOrReviewParam
-                navController.navigate(
-                    InheritanceCreateSuccessRoute(
-                        magicalPhrase = param.magicalPhrase,
-                        planFlow = param.planFlow,
-                        walletId = param.walletId,
-                        sourceFlow = param.sourceFlow,
-                    )
+                navController.navigateToInheritanceCreateSuccess(
+                    magicalPhrase = param.magicalPhrase,
+                    planFlow = param.planFlow,
+                    walletId = param.walletId,
+                    sourceFlow = param.sourceFlow,
                 )
             },
             onCancelSuccess = {},
             onMarkSetupInheritance = {},
             onEditActivationDateClick = {
-                navController.navigate(InheritanceActivationDateRoute(isUpdateRequest = true))
+                navController.navigateToInheritanceActivationDate(isUpdateRequest = true)
             },
             onEditNoteClick = {
-                navController.navigate(InheritanceNoteRoute(isUpdateRequest = true))
+                navController.navigateToInheritanceNote(isUpdateRequest = true)
             },
             onNotifyPrefClick = {
-                navController.navigate(InheritanceNotifyPrefRoute(isUpdateRequest = true))
+                navController.navigateToInheritanceNotifyPref(isUpdateRequest = true)
             },
             onDiscardChange = {
                 NCWarningDialog(activity).showDialog(
@@ -660,13 +657,11 @@ fun InheritancePlanningGraph(
             },
             onShareSecretClicked = {
                 val param = activityViewModel.setupOrReviewParam
-                navController.navigate(
-                    InheritanceShareSecretRoute(
-                        magicalPhrase = param.magicalPhrase,
-                        planFlow = param.planFlow,
-                        walletId = param.walletId,
-                        sourceFlow = param.sourceFlow,
-                    )
+                navController.navigateToInheritanceShareSecret(
+                    magicalPhrase = param.magicalPhrase,
+                    planFlow = param.planFlow,
+                    walletId = param.walletId,
+                    sourceFlow = param.sourceFlow,
                 )
             },
             onViewClaimingInstruction = {
@@ -678,7 +673,7 @@ fun InheritancePlanningGraph(
                 activity.openExternalLink(link)
             },
             onEditBufferPeriodClick = {
-                navController.navigate(InheritanceBufferPeriodRoute(isUpdateRequest = true))
+                navController.navigateToInheritanceBufferPeriod(isUpdateRequest = true)
             },
             onBackUpPasswordInfoClick = {
                 navController.navigateToInheritanceBackUpDownload()
@@ -689,27 +684,23 @@ fun InheritancePlanningGraph(
 
         inheritanceCreateSuccess(
             onContinueClick = { route ->
-                navController.navigate(
-                    InheritanceShareSecretRoute(
-                        magicalPhrase = route.magicalPhrase,
-                        planFlow = route.planFlow,
-                        walletId = route.walletId,
-                        sourceFlow = route.sourceFlow,
-                    )
+                navController.navigateToInheritanceShareSecret(
+                    magicalPhrase = route.magicalPhrase,
+                    planFlow = route.planFlow,
+                    walletId = route.walletId,
+                    sourceFlow = route.sourceFlow,
                 )
             },
         )
 
         inheritanceShareSecret(
             onContinueClick = { route, type ->
-                navController.navigate(
-                    InheritanceShareSecretInfoRoute(
-                        magicalPhrase = route.magicalPhrase,
-                        type = type,
-                        planFlow = route.planFlow,
-                        walletId = route.walletId,
-                        sourceFlow = route.sourceFlow,
-                    )
+                navController.navigateToInheritanceShareSecretInfo(
+                    magicalPhrase = route.magicalPhrase,
+                    type = type,
+                    planFlow = route.planFlow,
+                    walletId = route.walletId,
+                    sourceFlow = route.sourceFlow,
                 )
             },
         )
@@ -717,7 +708,7 @@ fun InheritancePlanningGraph(
         inheritanceShareSecretInfo(
             navigator = navigator,
             onNavigateToHowItWorks = { type ->
-                navController.navigate(InheritanceHowItWorksRoute(type = type))
+                navController.navigateToInheritanceHowItWorks(type = type)
             },
             onNavigateToBackUpDownload = {
                 navController.navigateToInheritanceBackUpDownload()
@@ -734,7 +725,7 @@ fun InheritancePlanningGraph(
 
         inheritanceRequestPlanningConfirm(
             onRequestSuccess = {
-                navController.navigate(InheritanceRequestPlanningSentSuccessRoute)
+                navController.navigateToInheritanceRequestPlanningSentSuccess()
             },
         )
 
@@ -758,7 +749,8 @@ fun returnToReleaseScheduleDetail(navController: NavController) {
     val isShowingReleaseScheduleDetail =
         navController.currentDestination?.hasRoute<InheritanceReleaseScheduleDetailRoute>() == true
     if (isShowingReleaseScheduleDetail) return
-    val didPop = navController.popBackStack<InheritanceReleaseScheduleDetailRoute>(inclusive = false)
+    val didPop =
+        navController.popBackStack<InheritanceReleaseScheduleDetailRoute>(inclusive = false)
     if (!didPop) {
         navController.navigate(InheritanceReleaseScheduleDetailRoute())
     }
@@ -782,12 +774,12 @@ private fun openReviewPlanScreen(
     }
     if (isUpdateRequest || activityViewModel.setupOrReviewParam.planFlow == InheritancePlanFlow.VIEW) {
         if (activityViewModel.isMiniscriptWallet()) {
-            navController.navigate(InheritanceNotificationSettingsRoute(isUpdateRequest = isUpdateRequest))
+            navController.navigateToInheritanceNotificationSettings(isUpdateRequest = isUpdateRequest)
         } else {
             navController.popBackStack()
         }
     } else if (activityViewModel.isMiniscriptWallet()) {
-        navController.navigate(InheritanceNotificationSettingsRoute())
+        navController.navigateToInheritanceNotificationSettings()
     } else {
         navController.navigateToInheritanceReviewPlan()
     }
@@ -853,6 +845,7 @@ internal fun releaseScheduleBufferPeriodSummaryText(
         InheritanceBufferPeriodApplyType.FIRST_WITHDRAWAL_ONLY -> {
             stringResource(id = R.string.nc_release_schedule_buffer_period_first_withdrawal_only)
         }
+
         InheritanceBufferPeriodApplyType.EVERY_WITHDRAWAL -> {
             stringResource(id = R.string.nc_release_schedule_buffer_period_every_withdrawal)
         }
