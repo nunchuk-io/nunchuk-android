@@ -23,7 +23,6 @@ import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -62,6 +61,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcRadioButton
 import com.nunchuk.android.compose.NcTag
@@ -358,64 +358,40 @@ private fun InactivityFallbackConfig(
                     triggerFieldWidth = with(density) { coordinates.size.width.toDp() }
                 }
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .border(
-                        width = 1.dp,
-                        color = MaterialTheme.colorScheme.strokePrimary,
-                        shape = RoundedCornerShape(16.dp),
-                    )
-                    .background(
-                        color = MaterialTheme.colorScheme.fillInputText,
-                        shape = RoundedCornerShape(16.dp),
-                    )
-                    .padding(horizontal = 16.dp, vertical = 14.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                BasicTextField(
-                    modifier = Modifier.width(56.dp),
-                    value = triggerValue,
-                    textStyle = NunchukTheme.typography.heading.copy(color = MaterialTheme.colorScheme.textPrimary),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    singleLine = true,
-                    onValueChange = onTriggerValueChange,
-                    decorationBox = { innerTextField ->
-                        if (triggerValue.isBlank()) {
-                            Text(
-                                text = "1",
-                                style = NunchukTheme.typography.heading.copy(color = MaterialTheme.colorScheme.textSecondary)
-                            )
-                        }
-                        innerTextField()
+            NcTextField(
+                title = "",
+                value = triggerValue,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                rightContent = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = stringResource(id = triggerUnit.labelRes),
+                            style = NunchukTheme.typography.body.copy(color = MaterialTheme.colorScheme.textSecondary)
+                        )
+                        Icon(
+                            modifier = Modifier
+                                .padding(start = 8.dp, end = 12.dp)
+                                .clickable(onClick = onTriggerFieldClick),
+                            painter = painterResource(
+                                id = if (showUnitMenu) {
+                                    WidgetR.drawable.ic_caret_up
+                                } else {
+                                    WidgetR.drawable.ic_caret_down
+                                }
+                            ),
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.textPrimary,
+                        )
                     }
-                )
-                Spacer(modifier = Modifier.weight(1f))
-                Text(
-                    text = stringResource(id = triggerUnit.labelRes),
-                    style = NunchukTheme.typography.heading.copy(color = MaterialTheme.colorScheme.textSecondary),
-                )
-                Icon(
-                    modifier = Modifier
-                        .padding(start = 8.dp)
-                        .size(24.dp)
-                        .clickable(onClick = onTriggerFieldClick),
-                    painter = painterResource(
-                        id = if (showUnitMenu) {
-                            WidgetR.drawable.ic_caret_up
-                        } else {
-                            WidgetR.drawable.ic_caret_down
-                        }
-                    ),
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.textPrimary,
-                )
-            }
+                },
+                onValueChange = { onTriggerValueChange(it.filter(Char::isDigit).take(3)) }
+            )
             DropdownMenu(
                 expanded = showUnitMenu,
-                modifier = Modifier.width(triggerFieldWidth),
+                modifier = Modifier
+                    .then(if (triggerFieldWidth > 0.dp) Modifier.width(triggerFieldWidth) else Modifier),
                 onDismissRequest = onDismissUnitMenu,
-                shape = RoundedCornerShape(16.dp),
+                shape = RoundedCornerShape(20.dp),
                 containerColor = MaterialTheme.colorScheme.fillInputText,
                 tonalElevation = 0.dp,
                 shadowElevation = 12.dp,
@@ -425,7 +401,7 @@ private fun InactivityFallbackConfig(
                         text = {
                             Text(
                                 text = stringResource(id = unit.labelRes),
-                                style = NunchukTheme.typography.heading,
+                                style = NunchukTheme.typography.body,
                             )
                         },
                         contentPadding = PaddingValues(horizontal = 20.dp, vertical = 18.dp),
@@ -448,40 +424,28 @@ private fun DateBasedFallbackConfig(
     date: String,
     onDateClick: () -> Unit,
 ) {
-    Text(
-        modifier = Modifier.padding(top = 16.dp),
-        text = stringResource(id = R.string.nc_fallback_date),
-        style = NunchukTheme.typography.title,
-    )
-    Row(
+    NcTextField(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 8.dp)
-            .border(
-                width = 1.dp,
-                color = MaterialTheme.colorScheme.strokePrimary,
-                shape = RoundedCornerShape(16.dp),
+            .padding(top = 16.dp),
+        title = stringResource(id = R.string.nc_fallback_date),
+        value = date,
+        readOnly = true,
+        enabled = false,
+        disableBackgroundColor = MaterialTheme.colorScheme.fillInputText,
+        onClick = onDateClick,
+        rightContent = {
+            Icon(
+                modifier = Modifier
+                    .padding(end = 12.dp)
+                    .clickable(onClick = onDateClick),
+                painter = painterResource(id = WidgetR.drawable.ic_calendar_blank),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.textPrimary,
             )
-            .background(
-                color = MaterialTheme.colorScheme.fillInputText,
-                shape = RoundedCornerShape(16.dp),
-            )
-            .clickable(onClick = onDateClick)
-            .padding(horizontal = 16.dp, vertical = 14.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(
-            text = date,
-            style = NunchukTheme.typography.heading,
-        )
-        Spacer(modifier = Modifier.weight(1f))
-        Icon(
-            modifier = Modifier.size(24.dp),
-            painter = painterResource(id = WidgetR.drawable.ic_calendar_blank),
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.textPrimary,
-        )
-    }
+        },
+        onValueChange = {},
+    )
 }
 
 @PreviewLightDark
