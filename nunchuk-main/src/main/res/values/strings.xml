@@ -33,6 +33,8 @@
     <string name="nc_beneficiary_allocation">[A]%1$s:[/A] [B]%2$d%%[/B]</string>
     <string name="nc_enter_email">Enter email</string>
     <string name="nc_add_beneficiary">Add beneficiary</string>
+    <string name="nc_asset_allocation_email_empty_error">Email cannot be empty.</string>
+    <string name="nc_asset_allocation_email_duplicate_error">Each beneficiary must use a unique email.</string>
     <string name="nc_release_schedules">Release schedules</string>
     <string name="nc_how_your_inheritance_is_released">How your inheritance is released</string>
     <string name="nc_release_intro_desc_1">Your inheritance is released over time, not all at once.</string>

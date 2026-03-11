@@ -27,6 +27,8 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.NcSpannedText
 import com.nunchuk.android.compose.NunchukTheme
@@ -108,6 +110,8 @@ fun AllocationDonutChart(
                                 beneficiary.allocationPercent
                             ),
                             baseStyle = NunchukTheme.typography.bodySmall,
+                            maxLines = 1,
+                            overflow = TextOverflow.MiddleEllipsis,
                             styles = mapOf(
                                 SpanIndicator('A') to SpanStyle(color = secondaryColor),
                                 SpanIndicator('B') to SpanStyle(
@@ -149,5 +153,89 @@ fun AllocationDonutChart(
                 }
             }
         }
+    }
+}
+
+@PreviewLightDark
+@Composable
+private fun AllocationDonutChartTwoBeneficiariesPreview() {
+    NunchukTheme {
+        AllocationDonutChart(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            beneficiaries = listOf(
+                InheritanceBeneficiaryAllocation(email = "wife@gmail.com", allocationPercent = 50),
+                InheritanceBeneficiaryAllocation(email = "son@gmail.com", allocationPercent = 50),
+            ),
+        )
+    }
+}
+
+@PreviewLightDark
+@Composable
+private fun AllocationDonutChartEmptyEmailsPreview() {
+    NunchukTheme {
+        AllocationDonutChart(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            beneficiaries = listOf(
+                InheritanceBeneficiaryAllocation(email = "", allocationPercent = 50),
+                InheritanceBeneficiaryAllocation(email = "", allocationPercent = 50),
+            ),
+        )
+    }
+}
+
+@PreviewLightDark
+@Composable
+private fun AllocationDonutChartLongEmailPreview() {
+    NunchukTheme {
+        AllocationDonutChart(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            beneficiaries = listOf(
+                InheritanceBeneficiaryAllocation(email = "thisisaverylongemailaddress@gmail.com", allocationPercent = 50),
+                InheritanceBeneficiaryAllocation(email = "", allocationPercent = 50),
+                InheritanceBeneficiaryAllocation(email = "", allocationPercent = 0),
+            ),
+        )
+    }
+}
+
+@PreviewLightDark
+@Composable
+private fun AllocationDonutChartManyBeneficiariesPreview() {
+    NunchukTheme {
+        AllocationDonutChart(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            beneficiaries = listOf(
+                InheritanceBeneficiaryAllocation(email = "wife@gmail.com", allocationPercent = 30),
+                InheritanceBeneficiaryAllocation(email = "son@gmail.com", allocationPercent = 25),
+                InheritanceBeneficiaryAllocation(email = "daughter@gmail.com", allocationPercent = 25),
+                InheritanceBeneficiaryAllocation(email = "brother@gmail.com", allocationPercent = 10),
+                InheritanceBeneficiaryAllocation(email = "sister@gmail.com", allocationPercent = 10),
+            ),
+        )
+    }
+}
+
+@PreviewLightDark
+@Composable
+private fun AllocationDonutChartUnevenPreview() {
+    NunchukTheme {
+        AllocationDonutChart(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            beneficiaries = listOf(
+                InheritanceBeneficiaryAllocation(email = "main@gmail.com", allocationPercent = 90),
+                InheritanceBeneficiaryAllocation(email = "other@gmail.com", allocationPercent = 10),
+            ),
+        )
     }
 }

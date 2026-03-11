@@ -11,6 +11,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withAnnotation
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
@@ -25,13 +26,17 @@ fun NcSpannedText(
     text: String,
     baseStyle: TextStyle,
     textAlign: TextAlign? = null,
+    maxLines: Int = Int.MAX_VALUE,
+    overflow: TextOverflow = TextOverflow.Clip,
     styles: Map<SpanIndicator, SpanStyle> = emptyMap(),
 ) {
     Text(
         modifier = modifier,
         text = spannedText(text, styles),
         style = baseStyle,
-        textAlign = textAlign
+        textAlign = textAlign,
+        maxLines = maxLines,
+        overflow = overflow,
     )
 }
 
