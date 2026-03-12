@@ -121,7 +121,7 @@ private fun InheritanceFallbackPolicyDto.toInheritancePlanFallbackPolicy(): Inhe
     )
 }
 
-private fun InheritanceStageDto.toInheritancePlanStage(): InheritancePlanStage {
+internal fun InheritanceStageDto.toInheritancePlanStage(): InheritancePlanStage {
     return InheritancePlanStage(
         amountPerReleasePercentage = amountPerReleasePercentage ?: 0,
         repeatInterval = repeatInterval.orEmpty(),

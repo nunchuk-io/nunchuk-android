@@ -43,7 +43,6 @@ fun ClaimNoteScreen(
     inheritanceAdditional: InheritanceAdditional,
     modifier: Modifier = Modifier,
     isOnChainClaim: Boolean = false,
-    isReleaseScheduleWithdraw: Boolean = false,
     onDoneClick: () -> Unit = {},
     onViewWallet: () -> Unit = {},
     onWithdrawClick: () -> Unit = { },
@@ -57,9 +56,9 @@ fun ClaimNoteScreen(
         onWithdrawClick = onWithdrawClick,
         onDoneClick = onDoneClick,
         isOnChainClaim = isOnChainClaim,
-        isReleaseScheduleWithdraw = isReleaseScheduleWithdraw,
         onViewWallet = onViewWallet,
         onViewReleaseSchedule = onViewReleaseSchedule,
+        isReleaseScheduleWithdraw = inheritanceAdditional.inheritance?.isCustomizeDistribution == true
     )
 }
 

@@ -112,6 +112,7 @@ import com.nunchuk.android.core.mapper.toGroupChat
 import com.nunchuk.android.core.mapper.toGroupEntity
 import com.nunchuk.android.core.mapper.toHistoryPeriod
 import com.nunchuk.android.core.mapper.toInheritance
+import com.nunchuk.android.core.mapper.toInheritancePlanStage
 import com.nunchuk.android.core.mapper.toMemberRequest
 import com.nunchuk.android.core.mapper.toPeriod
 import com.nunchuk.android.core.mapper.toSavedAddress
@@ -930,6 +931,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         } else {
             BufferPeriodCountdown(
                 activationTimeMilis = response.bufferPeriodCountdown.activationTimeMilis ?: 0,
+                claimableTimeMilis = response.bufferPeriodCountdown.claimableTimeMilis ?: 0,
                 bufferInterval = response.bufferPeriodCountdown.bufferInterval.orEmpty(),
                 bufferIntervalCount = response.bufferPeriodCountdown.bufferIntervalCount ?: 0,
                 remainingCount = response.bufferPeriodCountdown.remainingCount ?: 0,
@@ -940,7 +942,11 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         return InheritanceAdditional(
             inheritance = response.inheritance?.toInheritance(),
             balance = response.balance ?: 0.0,
-            bufferPeriodCountdown = bufferPeriodCountdown
+            availableToWithdraw = response.availableToWithdraw ?: 0.0,
+            bufferPeriodCountdown = bufferPeriodCountdown,
+            currentStageIndex = response.currentStageIndex ?: 0,
+            currentInstallmentIndex = response.currentInstallmentIndex ?: 0,
+            stages = response.stages?.map { it.toInheritancePlanStage() }.orEmpty(),
         )
     }
 

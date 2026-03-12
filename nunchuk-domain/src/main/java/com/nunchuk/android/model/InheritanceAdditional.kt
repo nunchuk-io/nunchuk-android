@@ -20,13 +20,18 @@
 package com.nunchuk.android.model
 
 import android.os.Parcelable
+import com.nunchuk.android.model.inheritance.InheritancePlanStage
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class InheritanceAdditional(
     val inheritance: Inheritance?,
     val balance: Double,
-    val bufferPeriodCountdown: BufferPeriodCountdown?
+    val availableToWithdraw: Double,
+    val bufferPeriodCountdown: BufferPeriodCountdown?,
+    val currentStageIndex: Int,
+    val currentInstallmentIndex: Int,
+    val stages: List<InheritancePlanStage> = emptyList(),
 ) : Parcelable
 
 @Parcelize
@@ -35,5 +40,6 @@ data class BufferPeriodCountdown(
     val bufferInterval: String,
     val bufferIntervalCount: Int,
     val remainingCount: Int,
-    val remainingDisplayName: String
+    val remainingDisplayName: String,
+    val claimableTimeMilis: Long = 0L
 ) : Parcelable

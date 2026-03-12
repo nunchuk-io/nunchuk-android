@@ -26,13 +26,23 @@ class InheritanceClaimStatusResponse(
     val inheritance: InheritanceDto? = null,
     @SerializedName("balance")
     val balance: Double? = null,
+    @SerializedName("available_to_withdraw")
+    val availableToWithdraw: Double? = null,
     @SerializedName("buffer_period_countdown")
-    val bufferPeriodCountdown: BufferPeriodCountdownResponse? = null
+    val bufferPeriodCountdown: BufferPeriodCountdownResponse? = null,
+    @SerializedName("current_stage_index")
+    val currentStageIndex: Int? = null,
+    @SerializedName("current_installment_index")
+    val currentInstallmentIndex: Int? = null,
+    @SerializedName("stages")
+    val stages: List<InheritanceStageDto>? = null,
 )
 
 class BufferPeriodCountdownResponse(
     @SerializedName("activation_time_milis")
     val activationTimeMilis: Long? = null,
+    @SerializedName("claimable_time_milis")
+    val claimableTimeMilis: Long? = null,
     @SerializedName("buffer_interval")
     val bufferInterval: String? = null,
     @SerializedName("buffer_interval_count")

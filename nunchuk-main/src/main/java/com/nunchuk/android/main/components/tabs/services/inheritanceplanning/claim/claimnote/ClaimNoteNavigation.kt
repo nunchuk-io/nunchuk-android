@@ -18,7 +18,6 @@ data object ClaimNoteRoute
 
 fun NavGraphBuilder.claimNote(
     snackState: SnackbarHostState,
-    isReleaseScheduleWithdraw: Boolean = false,
     onDoneClick: () -> Unit = {},
     onWithdrawClick: () -> Unit = {},
     onViewWallet: () -> Unit = {},
@@ -36,7 +35,6 @@ fun NavGraphBuilder.claimNote(
                 inheritanceAdditional = inheritanceAdditional,
                 onDoneClick = onDoneClick,
                 isOnChainClaim = claimData.isOnChainClaim,
-                isReleaseScheduleWithdraw = isReleaseScheduleWithdraw,
                 onWithdrawClick = onWithdrawClick,
                 onViewWallet = onViewWallet,
                 onViewReleaseSchedule = onViewReleaseSchedule,

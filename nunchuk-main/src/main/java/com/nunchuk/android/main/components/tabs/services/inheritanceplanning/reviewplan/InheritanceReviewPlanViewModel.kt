@@ -38,6 +38,7 @@ import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.fal
 import com.nunchuk.android.model.CalculateRequiredSignatures
 import com.nunchuk.android.model.CalculateRequiredSignaturesAction
 import com.nunchuk.android.model.VerificationType
+import com.nunchuk.android.model.inheritance.InheritanceDistributionMethod
 import com.nunchuk.android.model.inheritance.InheritancePlanFallbackPolicy
 import com.nunchuk.android.model.inheritance.InheritanceNotificationSettings
 import com.nunchuk.android.share.membership.MembershipStepManager
@@ -388,9 +389,9 @@ class InheritanceReviewPlanViewModel @Inject constructor(
 
     private fun toDistributionMethod(param: InheritancePlanningParam.SetupOrReview): String {
         return when (param.setupFlowType) {
-            InheritanceSetupFlowType.OLD_FLOW -> "LUMP_SUM"
+            InheritanceSetupFlowType.OLD_FLOW -> InheritanceDistributionMethod.LUMP_SUM
             InheritanceSetupFlowType.SINGLE_BENEFICIARY,
-            InheritanceSetupFlowType.MULTI_BENEFICIARY -> "CUSTOMIZED"
+            InheritanceSetupFlowType.MULTI_BENEFICIARY -> InheritanceDistributionMethod.CUSTOMIZE
         }
     }
 

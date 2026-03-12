@@ -20,11 +20,13 @@
 package com.nunchuk.android.model
 
 import android.os.Parcelable
+import com.nunchuk.android.model.inheritance.InheritanceDistributionMethod
+import com.nunchuk.android.model.inheritance.InheritanceNotificationSettings
 import com.nunchuk.android.model.inheritance.InheritancePlanBeneficiary
 import com.nunchuk.android.model.inheritance.InheritancePlanFallbackPolicy
 import com.nunchuk.android.model.inheritance.InheritancePlanStage
-import com.nunchuk.android.model.inheritance.InheritanceNotificationSettings
 import com.nunchuk.android.type.WalletType
+import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
@@ -52,7 +54,10 @@ class Inheritance(
     val fallbackPolicy: InheritancePlanFallbackPolicy? = null,
     val stages: List<InheritancePlanStage> = emptyList(),
     val beneficiaries: List<InheritancePlanBeneficiary> = emptyList(),
-) : Parcelable
+) : Parcelable {
+    @IgnoredOnParcel
+    val isCustomizeDistribution = distributionMethod == InheritanceDistributionMethod.CUSTOMIZE
+}
 
 @Parcelize
 class InheritancePendingRequest(
