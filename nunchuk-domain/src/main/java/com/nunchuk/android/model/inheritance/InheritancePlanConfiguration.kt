@@ -34,5 +34,7 @@ data class InheritancePlanBeneficiary(
     val assetPercentage: Int,
     val magic: String,
     val note: String,
+    val bufferPeriodId: String? = null,
+    val bufferApplyOn: String? = null,
     val stages: List<InheritancePlanStage> = emptyList(),
 ) : Parcelable

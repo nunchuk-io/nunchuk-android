@@ -829,6 +829,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         stages: List<InheritancePlanStage>?,
         beneficiaries: List<InheritancePlanBeneficiary>?,
     ): String {
+        val safeGroupId = groupId?.takeIf { it.isNotBlank() }
         val body = CreateUpdateInheritancePlanRequest.Body(
             note = note,
             notifyToday = notifyToday,
@@ -836,7 +837,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             activationTimeMilis = activationTimeMilis,
             bufferPeriodId = bufferPeriodId,
             walletId = walletId,
-            groupId = groupId,
+            groupId = safeGroupId,
             notificationPreferences = notificationPreferences?.let { prefs ->
                 NotificationPreferencesRequest(
                     emailMeWalletConfig = prefs.emailMeWalletConfig,
@@ -1022,11 +1023,12 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         stages: List<InheritancePlanStage>?,
         beneficiaries: List<InheritancePlanBeneficiary>?,
     ): CalculateRequiredSignatures {
+        val safeGroupId = groupId?.takeIf { it.isNotBlank() }
         val response =
             if (action == CalculateRequiredSignaturesAction.CANCEL || action == CalculateRequiredSignaturesAction.REQUEST_PLANNING) {
                 userWalletApiManager.walletApi.calculateRequiredSignaturesInheritance(
                     CreateUpdateInheritancePlanRequest.Body(
-                        walletId = walletId, groupId = groupId, timezone = timezone
+                        walletId = walletId, groupId = safeGroupId, timezone = timezone
                     )
                 )
             } else {
@@ -1038,7 +1040,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                         notifyToday = notifyToday,
                         activationTimeMilis = activationTimeMilis,
                         bufferPeriodId = bufferPeriodId,
-                        groupId = groupId,
+                        groupId = safeGroupId,
                         notificationPreferences = notificationPreferences?.let { prefs ->
                             NotificationPreferencesRequest(
                                 emailMeWalletConfig = prefs.emailMeWalletConfig,
@@ -3275,6 +3277,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             assetPercentage = assetPercentage,
             magic = magic,
             note = note,
+            bufferPeriodId = bufferPeriodId,
+            bufferApplyOn = bufferApplyOn,
             stages = stages.map { it.toRequest() },
         )
     }

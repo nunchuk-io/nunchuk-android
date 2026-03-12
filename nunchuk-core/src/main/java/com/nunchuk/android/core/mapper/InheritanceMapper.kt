@@ -147,6 +147,8 @@ private fun InheritanceBeneficiaryDto.toInheritancePlanBeneficiary(): Inheritanc
         assetPercentage = assetPercentage ?: 0,
         magic = magic.orEmpty(),
         note = note.orEmpty(),
+        bufferPeriodId = bufferPeriodId,
+        bufferApplyOn = bufferApplyOn,
         stages = stages?.map { it.toInheritancePlanStage() }.orEmpty(),
     )
 }

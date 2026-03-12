@@ -153,6 +153,8 @@ private fun InheritanceBeneficiaryRequest.toDomainModel(): InheritancePlanBenefi
         assetPercentage = assetPercentage ?: 0,
         magic = magic.orEmpty(),
         note = note.orEmpty(),
+        bufferPeriodId = bufferPeriodId,
+        bufferApplyOn = bufferApplyOn,
         stages = stages?.map { it.toDomainModel() }.orEmpty(),
     )
 }

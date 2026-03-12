@@ -137,6 +137,11 @@ data class ReleaseScheduleStage(
             )
         }
     }
+
+    fun finalWithdrawalDate(baseAllocatedPercent: Int = 0): ReleaseScheduleDate {
+        return buildInstallmentLines(baseAllocatedPercent).lastOrNull()?.availableBy
+            ?: firstWithdrawalDate
+    }
 }
 
 data class ReleaseScheduleAllocationSegment(
@@ -244,15 +249,30 @@ data class ReleaseScheduleUiState(
         return stages.firstOrNull { it.stageNumber == stageNumber - 1 }?.firstWithdrawalDate
     }
 
+    fun previousStageFinalDate(stageNumber: Int): ReleaseScheduleDate? {
+        if (stageNumber <= 1) return null
+        val previousStage = stages.firstOrNull { it.stageNumber == stageNumber - 1 } ?: return null
+        return previousStage.finalWithdrawalDate()
+    }
+
     fun buildNewStage(): ReleaseScheduleStage {
         val nextStageNumber = (stages.maxOfOrNull { it.stageNumber } ?: 0) + 1
-        val previousDate = stages.lastOrNull()?.firstWithdrawalDate
-            ?: ReleaseScheduleDate(month = 5, day = 29, year = 2028)
+        val previousStage = stages.maxByOrNull { it.stageNumber }
+        val firstWithdrawalDate = if (previousStage == null) {
+            ReleaseScheduleDate(month = 5, day = 29, year = 2028)
+        } else {
+            val previousFinalDate = previousStage.finalWithdrawalDate()
+            previousFinalDate.plus(
+                frequency = previousStage.installmentConfig.frequency,
+                repeatEvery = previousStage.installmentConfig.repeatEvery,
+                times = 1,
+            )
+        }
         return ReleaseScheduleStage(
             id = (stages.maxOfOrNull { it.id } ?: 0) + 1,
             stageNumber = nextStageNumber,
             allocationPercent = 0,
-            firstWithdrawalDate = previousDate.plusYears(1),
+            firstWithdrawalDate = firstWithdrawalDate,
             installmentConfig = ReleaseInstallmentConfig(
                 installmentPercent = 20,
                 repeatEvery = 1,

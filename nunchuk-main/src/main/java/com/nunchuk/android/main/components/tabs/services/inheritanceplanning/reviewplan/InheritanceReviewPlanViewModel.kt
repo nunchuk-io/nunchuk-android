@@ -35,9 +35,16 @@ import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.Inh
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceSetupFlowType
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.fallbacksettings.FallbackTriggerUnit
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.fallbacksettings.InheritanceFallbackOption
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasescheduledetail.ReleaseInstallmentFrequency
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasescheduledetail.ReleaseScheduleDate
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasescheduledetail.ReleaseScheduleTime
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasescheduledetail.ReleaseScheduleUiState
 import com.nunchuk.android.model.CalculateRequiredSignatures
 import com.nunchuk.android.model.CalculateRequiredSignaturesAction
 import com.nunchuk.android.model.VerificationType
+import com.nunchuk.android.model.inheritance.InheritancePlanBeneficiary
+import com.nunchuk.android.model.inheritance.InheritancePlanExpandedInstallment
+import com.nunchuk.android.model.inheritance.InheritancePlanStage
 import com.nunchuk.android.model.inheritance.InheritanceDistributionMethod
 import com.nunchuk.android.model.inheritance.InheritancePlanFallbackPolicy
 import com.nunchuk.android.model.inheritance.InheritanceNotificationSettings
@@ -57,6 +64,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
@@ -162,9 +170,13 @@ class InheritanceReviewPlanViewModel @Inject constructor(
             }
     }
 
-    fun calculateRequiredSignatures(flow: ReviewFlow) = viewModelScope.launch {
+    fun calculateRequiredSignatures(
+        flow: ReviewFlow,
+        releaseScheduleUiState: ReleaseScheduleUiState? = null,
+    ) = viewModelScope.launch {
         savedStateHandle[EXTRA_REVIEW_FLOW] = flow
         val walletId = param.walletId
+        val scheduleRequestData = buildScheduleRequestData(param, releaseScheduleUiState)
         _event.emit(InheritanceReviewPlanEvent.Loading(true))
         val resultCalculate = calculateRequiredSignaturesInheritanceUseCase(
             CalculateRequiredSignaturesInheritanceUseCase.Param(
@@ -183,9 +195,11 @@ class InheritanceReviewPlanViewModel @Inject constructor(
                 bufferApplyOn = toBufferApplyOn(param),
                 releaseMethod = toReleaseMethod(param),
                 fallbackPolicy = toFallbackPolicy(param),
+                stages = scheduleRequestData.stages,
+                beneficiaries = scheduleRequestData.beneficiaries,
             )
         )
-        val userData = getUserData()
+        val userData = getUserData(releaseScheduleUiState)
         _event.emit(InheritanceReviewPlanEvent.Loading(false))
         if (resultCalculate.isSuccess) {
             handleCalculateRequiredSignatures(resultCalculate.getOrThrow(), userData)
@@ -272,7 +286,10 @@ class InheritanceReviewPlanViewModel @Inject constructor(
         }
     }
 
-    private suspend fun getUserData(): String {
+    private suspend fun getUserData(
+        releaseScheduleUiState: ReleaseScheduleUiState? = null,
+    ): String {
+        val scheduleRequestData = buildScheduleRequestData(param, releaseScheduleUiState)
         val resultUserData = if (reviewFlow == ReviewFlow.CANCEL) {
             cancelInheritanceUserDataUseCase(
                 CancelInheritanceUserDataUseCase.Param(
@@ -297,6 +314,8 @@ class InheritanceReviewPlanViewModel @Inject constructor(
                     bufferApplyOn = toBufferApplyOn(param),
                     releaseMethod = toReleaseMethod(param),
                     fallbackPolicy = toFallbackPolicy(param),
+                    stages = scheduleRequestData.stages,
+                    beneficiaries = scheduleRequestData.beneficiaries,
                 )
             )
         }
@@ -387,6 +406,58 @@ class InheritanceReviewPlanViewModel @Inject constructor(
         _event.emit(InheritanceReviewPlanEvent.MarkSetupInheritance)
     }
 
+    private data class ScheduleRequestData(
+        val stages: List<InheritancePlanStage>?,
+        val beneficiaries: List<InheritancePlanBeneficiary>?,
+    )
+
+    private fun buildScheduleRequestData(
+        param: InheritancePlanningParam.SetupOrReview,
+        releaseScheduleUiState: ReleaseScheduleUiState?,
+    ): ScheduleRequestData {
+        return when (param.setupFlowType) {
+            InheritanceSetupFlowType.OLD_FLOW -> {
+                ScheduleRequestData(stages = null, beneficiaries = null)
+            }
+
+            InheritanceSetupFlowType.SINGLE_BENEFICIARY -> {
+                ScheduleRequestData(
+                    stages = releaseScheduleUiState.toInheritancePlanStages(param.selectedZoneId),
+                    beneficiaries = null,
+                )
+            }
+
+            InheritanceSetupFlowType.MULTI_BENEFICIARY -> {
+                val beneficiaries = param.beneficiaryAllocations.map { allocation ->
+                    val emailKey = allocation.email.trim().lowercase()
+                    val scheduleConfig = param.individualScheduleConfigs[emailKey]
+                    InheritancePlanBeneficiary(
+                        email = allocation.email,
+                        assetPercentage = allocation.allocationPercent,
+                        magic = allocation.magic,
+                        note = allocation.note,
+                        bufferPeriodId = scheduleConfig?.bufferPeriod?.id,
+                        bufferApplyOn = scheduleConfig?.bufferPeriodApplyType?.toApiBufferApplyOn(),
+                        stages = if (param.releaseMethodType == InheritanceReleaseMethodType.INDIVIDUAL_SCHEDULES) {
+                            scheduleConfig?.releaseScheduleUiState
+                                .toInheritancePlanStages(param.selectedZoneId)
+                        } else {
+                            emptyList()
+                        },
+                    )
+                }
+
+                val sharedStages = if (param.releaseMethodType == InheritanceReleaseMethodType.SHARED_SCHEDULE) {
+                    releaseScheduleUiState.toInheritancePlanStages(param.selectedZoneId)
+                } else {
+                    null
+                }
+
+                ScheduleRequestData(stages = sharedStages, beneficiaries = beneficiaries)
+            }
+        }
+    }
+
     private fun toDistributionMethod(param: InheritancePlanningParam.SetupOrReview): String {
         return when (param.setupFlowType) {
             InheritanceSetupFlowType.OLD_FLOW -> InheritanceDistributionMethod.LUMP_SUM
@@ -397,7 +468,7 @@ class InheritanceReviewPlanViewModel @Inject constructor(
 
     private fun toBeneficiaryMode(param: InheritancePlanningParam.SetupOrReview): String {
         return if (param.setupFlowType == InheritanceSetupFlowType.MULTI_BENEFICIARY) {
-            "MULTI"
+            "MULTIPLE"
         } else {
             "SINGLE"
         }
@@ -427,15 +498,14 @@ class InheritanceReviewPlanViewModel @Inject constructor(
             }
 
             InheritanceFallbackOption.INACTIVITY_FALLBACK -> {
+                val intervalMapping = mapFallbackTrigger(
+                    unit = settings.triggerUnit,
+                    value = settings.triggerValue.toIntOrNull()?.coerceAtLeast(1),
+                )
                 InheritancePlanFallbackPolicy(
                     type = "INACTIVITY",
-                    inactivityInterval = when (settings.triggerUnit) {
-                        FallbackTriggerUnit.DAY -> "DAY"
-                        FallbackTriggerUnit.WEEK -> "WEEK"
-                        FallbackTriggerUnit.MONTH -> "MONTH"
-                        FallbackTriggerUnit.YEAR -> "YEAR"
-                    },
-                    inactivityIntervalCount = settings.triggerValue.toIntOrNull()?.coerceAtLeast(1),
+                    inactivityInterval = intervalMapping.interval,
+                    inactivityIntervalCount = intervalMapping.count,
                 )
             }
 
@@ -463,6 +533,99 @@ class InheritanceReviewPlanViewModel @Inject constructor(
                 .toInstant()
                 .toEpochMilli()
         }.getOrNull()
+    }
+
+    private data class IntervalMapping(
+        val interval: String,
+        val count: Int?,
+    )
+
+    private fun mapFallbackTrigger(
+        unit: FallbackTriggerUnit,
+        value: Int?,
+    ): IntervalMapping {
+        val safeValue = value?.coerceAtLeast(1)
+        return when (unit) {
+            FallbackTriggerUnit.DAY -> IntervalMapping(interval = "DAY", count = safeValue)
+            FallbackTriggerUnit.WEEK -> IntervalMapping(
+                interval = "DAY",
+                count = safeValue?.times(7),
+            )
+            FallbackTriggerUnit.MONTH -> IntervalMapping(interval = "MONTH", count = safeValue)
+            FallbackTriggerUnit.YEAR -> IntervalMapping(interval = "YEAR", count = safeValue)
+        }
+    }
+
+    private fun ReleaseScheduleUiState?.toInheritancePlanStages(fallbackZoneId: String): List<InheritancePlanStage> {
+        val uiState = this ?: return emptyList()
+        return uiState.stages
+            .sortedBy { it.stageNumber }
+            .map { stage ->
+                val zoneId = stage.timeZoneId.ifBlank { fallbackZoneId }
+                val firstWithdrawalTimeMillis = toEpochMillis(
+                    date = stage.firstWithdrawalDate,
+                    time = stage.firstWithdrawalTime,
+                    zoneId = zoneId,
+                )
+                val baseAllocatedPercent = uiState.allocatedBeforeStage(stage.id)
+                val installments = stage.buildInstallmentLines(baseAllocatedPercent = baseAllocatedPercent)
+                    .map { line ->
+                        InheritancePlanExpandedInstallment(
+                            index = (line.order - 1).coerceAtLeast(0),
+                            withdrawalTimeMillis = toEpochMillis(
+                                date = line.availableBy,
+                                time = stage.firstWithdrawalTime,
+                                zoneId = zoneId,
+                            ),
+                            allocationPercentage = line.availablePercent,
+                        )
+                    }
+                val repeatInterval =
+                    stage.installmentConfig.frequency.toApiRepeatInterval(stage.installmentConfig.repeatEvery)
+
+                InheritancePlanStage(
+                    amountPerReleasePercentage = stage.installmentConfig.installmentPercent,
+                    repeatInterval = repeatInterval.interval,
+                    repeatIntervalCount = repeatInterval.count ?: 1,
+                    totalStageAllocationPercentage = stage.allocationPercent,
+                    firstWithdrawalTimeMillis = firstWithdrawalTimeMillis,
+                    expandedInstallments = installments,
+                )
+            }
+    }
+
+    private fun ReleaseInstallmentFrequency.toApiRepeatInterval(repeatEvery: Int): IntervalMapping {
+        val safeRepeatEvery = repeatEvery.coerceAtLeast(1)
+        return when (this) {
+            ReleaseInstallmentFrequency.DAILY -> IntervalMapping("DAY", safeRepeatEvery)
+            ReleaseInstallmentFrequency.WEEKLY -> IntervalMapping("DAY", safeRepeatEvery * 7)
+            ReleaseInstallmentFrequency.MONTHLY -> IntervalMapping("MONTH", safeRepeatEvery)
+            ReleaseInstallmentFrequency.ANNUALLY -> IntervalMapping("YEAR", safeRepeatEvery)
+        }
+    }
+
+    private fun InheritanceBufferPeriodApplyType.toApiBufferApplyOn(): String {
+        return when (this) {
+            InheritanceBufferPeriodApplyType.FIRST_WITHDRAWAL_ONLY -> "FIRST_WITHDRAWAL"
+            InheritanceBufferPeriodApplyType.EVERY_WITHDRAWAL -> "EVERY_WITHDRAWAL"
+        }
+    }
+
+    private fun toEpochMillis(
+        date: ReleaseScheduleDate,
+        time: ReleaseScheduleTime,
+        zoneId: String,
+    ): Long {
+        val safeZoneId = runCatching {
+            if (zoneId.isBlank()) ZoneId.systemDefault() else ZoneId.of(zoneId)
+        }.getOrDefault(ZoneId.systemDefault())
+        return LocalDateTime.of(
+            date.year,
+            date.month,
+            date.day,
+            time.hour,
+            time.minute,
+        ).atZone(safeZoneId).toInstant().toEpochMilli()
     }
 
     enum class ReviewFlow {

@@ -49,7 +49,7 @@ fun NavGraphBuilder.inheritanceReleaseScheduleStageEdit(
                 onStageNotFound()
             }
         } else if (stage != null) {
-            val previousStageDate = releaseScheduleUiState.previousStageDate(stage.stageNumber)
+            val previousStageDate = releaseScheduleUiState.previousStageFinalDate(stage.stageNumber)
             InheritanceReleaseScheduleStageEditScreen(
                 remainTime = remainTime,
                 stage = stage,

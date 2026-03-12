@@ -106,6 +106,10 @@ data class InheritanceBeneficiaryRequest(
     val magic: String? = null,
     @SerializedName("note")
     val note: String? = null,
+    @SerializedName("buffer_period_id")
+    val bufferPeriodId: String? = null,
+    @SerializedName("buffer_apply_on")
+    val bufferApplyOn: String? = null,
     @SerializedName("stages")
     val stages: List<InheritanceStageRequest>? = null,
 )

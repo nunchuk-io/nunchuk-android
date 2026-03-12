@@ -117,7 +117,10 @@ fun InheritanceReviewPlanScreen(
         state = state,
         isContinueButtonEnabled = isContinueButtonEnabled,
         onContinueClicked = {
-            viewModel.calculateRequiredSignatures(flow = InheritanceReviewPlanViewModel.ReviewFlow.CREATE_OR_UPDATE)
+            viewModel.calculateRequiredSignatures(
+                flow = InheritanceReviewPlanViewModel.ReviewFlow.CREATE_OR_UPDATE,
+                releaseScheduleUiState = releaseScheduleUiState,
+            )
         },
         onEditActivationDateClick = {
             onEditActivationDateClick(setupOrReviewParam.activationDate)
