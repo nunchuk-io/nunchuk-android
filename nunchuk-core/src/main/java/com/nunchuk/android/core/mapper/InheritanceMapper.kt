@@ -2,11 +2,15 @@ package com.nunchuk.android.core.mapper
 
 import com.nunchuk.android.core.data.model.byzantine.toWalletType
 import com.nunchuk.android.core.data.model.membership.BeneficiaryNotificationDto
+import com.nunchuk.android.core.data.model.membership.InheritanceBeneficiaryDto
 import com.nunchuk.android.core.data.model.membership.InheritanceClaimSigningChallengeResponse
 import com.nunchuk.android.core.data.model.membership.InheritanceClaimingInitResponse
 import com.nunchuk.android.core.data.model.membership.InheritanceDto
+import com.nunchuk.android.core.data.model.membership.InheritanceExpandedInstallmentDto
+import com.nunchuk.android.core.data.model.membership.InheritanceFallbackPolicyDto
 import com.nunchuk.android.core.data.model.membership.InheritanceKeyDto
 import com.nunchuk.android.core.data.model.membership.InheritanceNotificationPreferencesDto
+import com.nunchuk.android.core.data.model.membership.InheritanceStageDto
 import com.nunchuk.android.core.data.model.membership.KeyOriginDto
 import com.nunchuk.android.model.Inheritance
 import com.nunchuk.android.model.InheritanceClaimingInit
@@ -16,6 +20,10 @@ import com.nunchuk.android.model.InheritanceStatus
 import com.nunchuk.android.model.KeyOrigin
 import com.nunchuk.android.model.inheritance.ClaimSigningChallenge
 import com.nunchuk.android.model.inheritance.EmailNotificationSettings
+import com.nunchuk.android.model.inheritance.InheritancePlanBeneficiary
+import com.nunchuk.android.model.inheritance.InheritancePlanExpandedInstallment
+import com.nunchuk.android.model.inheritance.InheritancePlanFallbackPolicy
+import com.nunchuk.android.model.inheritance.InheritancePlanStage
 import com.nunchuk.android.model.inheritance.InheritanceNotificationSettings
 import com.nunchuk.android.type.WalletType
 
@@ -53,7 +61,14 @@ internal fun InheritanceDto.toInheritance(): Inheritance {
         walletType = walletType.toWalletType() ?: WalletType.MULTI_SIG,
         notificationPreferences = notificationSettings,
         inheritanceKeys = inheritanceKeys,
-        timezone = timezone.orEmpty()
+        timezone = timezone.orEmpty(),
+        distributionMethod = distributionMethod,
+        beneficiaryMode = beneficiaryMode,
+        bufferApplyOn = bufferApplyOn,
+        releaseMethod = releaseMethod,
+        fallbackPolicy = fallbackPolicy?.toInheritancePlanFallbackPolicy(),
+        stages = stages?.map { it.toInheritancePlanStage() }.orEmpty(),
+        beneficiaries = beneficiaries?.map { it.toInheritancePlanBeneficiary() }.orEmpty(),
     )
 }
 
@@ -94,6 +109,45 @@ internal fun BeneficiaryNotificationDto.toEmailNotificationSettings(): EmailNoti
 private fun InheritanceKeyDto.toInheritanceKey(): InheritanceKey {
     return InheritanceKey(
         xfp = xfp.orEmpty()
+    )
+}
+
+private fun InheritanceFallbackPolicyDto.toInheritancePlanFallbackPolicy(): InheritancePlanFallbackPolicy {
+    return InheritancePlanFallbackPolicy(
+        type = type.orEmpty(),
+        inactivityInterval = inactivityInterval,
+        inactivityIntervalCount = inactivityIntervalCount,
+        fallbackTimeMillis = fallbackTimeMillis,
+    )
+}
+
+private fun InheritanceStageDto.toInheritancePlanStage(): InheritancePlanStage {
+    return InheritancePlanStage(
+        amountPerReleasePercentage = amountPerReleasePercentage ?: 0,
+        repeatInterval = repeatInterval.orEmpty(),
+        repeatIntervalCount = repeatIntervalCount ?: 0,
+        totalStageAllocationPercentage = totalStageAllocationPercentage ?: 0,
+        firstWithdrawalTimeMillis = firstWithdrawalTimeMillis ?: 0,
+        expandedInstallments = expandedInstallments?.map { it.toInheritancePlanExpandedInstallment() }
+            .orEmpty(),
+    )
+}
+
+private fun InheritanceExpandedInstallmentDto.toInheritancePlanExpandedInstallment(): InheritancePlanExpandedInstallment {
+    return InheritancePlanExpandedInstallment(
+        index = index ?: 0,
+        withdrawalTimeMillis = withdrawalTimeMillis ?: 0,
+        allocationPercentage = allocationPercentage ?: 0,
+    )
+}
+
+private fun InheritanceBeneficiaryDto.toInheritancePlanBeneficiary(): InheritancePlanBeneficiary {
+    return InheritancePlanBeneficiary(
+        email = email.orEmpty(),
+        assetPercentage = assetPercentage ?: 0,
+        magic = magic.orEmpty(),
+        note = note.orEmpty(),
+        stages = stages?.map { it.toInheritancePlanStage() }.orEmpty(),
     )
 }
 

@@ -20,6 +20,9 @@
 package com.nunchuk.android.core.domain.membership
 
 import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.model.inheritance.InheritancePlanBeneficiary
+import com.nunchuk.android.model.inheritance.InheritancePlanFallbackPolicy
+import com.nunchuk.android.model.inheritance.InheritancePlanStage
 import com.nunchuk.android.model.inheritance.InheritanceNotificationSettings
 import com.nunchuk.android.repository.PremiumWalletRepository
 import com.nunchuk.android.usecase.UseCase
@@ -42,7 +45,14 @@ class GetInheritanceUserDataUseCase @Inject constructor(
             activationTimeMilis = parameters.activationTimeMilis,
             groupId = parameters.groupId,
             notificationPreferences = parameters.notificationPreferences,
-            timezone = parameters.timezone
+            timezone = parameters.timezone,
+            distributionMethod = parameters.distributionMethod,
+            beneficiaryMode = parameters.beneficiaryMode,
+            bufferApplyOn = parameters.bufferApplyOn,
+            releaseMethod = parameters.releaseMethod,
+            fallbackPolicy = parameters.fallbackPolicy,
+            stages = parameters.stages,
+            beneficiaries = parameters.beneficiaries,
         )
     }
 
@@ -55,6 +65,13 @@ class GetInheritanceUserDataUseCase @Inject constructor(
         val bufferPeriodId: String?,
         val groupId: String?,
         val notificationPreferences: InheritanceNotificationSettings? = null,
-        val timezone: String
+        val timezone: String,
+        val distributionMethod: String? = null,
+        val beneficiaryMode: String? = null,
+        val bufferApplyOn: String? = null,
+        val releaseMethod: String? = null,
+        val fallbackPolicy: InheritancePlanFallbackPolicy? = null,
+        val stages: List<InheritancePlanStage>? = null,
+        val beneficiaries: List<InheritancePlanBeneficiary>? = null,
     )
 }

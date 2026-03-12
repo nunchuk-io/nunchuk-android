@@ -58,6 +58,20 @@ class InheritanceDto(
     val walletType: String? = null,
     @SerializedName("notification_preferences")
     val notificationPreferences: InheritanceNotificationPreferencesDto? = null,
+    @SerializedName("distribution_method")
+    val distributionMethod: String? = null,
+    @SerializedName("beneficiary_mode")
+    val beneficiaryMode: String? = null,
+    @SerializedName("buffer_apply_on")
+    val bufferApplyOn: String? = null,
+    @SerializedName("release_method")
+    val releaseMethod: String? = null,
+    @SerializedName("fallback_policy")
+    val fallbackPolicy: InheritanceFallbackPolicyDto? = null,
+    @SerializedName("stages")
+    val stages: List<InheritanceStageDto>? = null,
+    @SerializedName("beneficiaries")
+    val beneficiaries: List<InheritanceBeneficiaryDto>? = null,
     @SerializedName("inheritance_keys")
     val inheritanceKeys: List<InheritanceKeyDto>? = null,
     @SerializedName("timezone")
@@ -94,4 +108,52 @@ class BeneficiaryNotificationDto(
 class InheritanceKeyDto(
     @SerializedName("xfp")
     val xfp: String? = null,
+)
+
+class InheritanceFallbackPolicyDto(
+    @SerializedName("type")
+    val type: String? = null,
+    @SerializedName("inactivity_interval")
+    val inactivityInterval: String? = null,
+    @SerializedName("inactivity_interval_count")
+    val inactivityIntervalCount: Int? = null,
+    @SerializedName("fallback_time_millis")
+    val fallbackTimeMillis: Long? = null,
+)
+
+class InheritanceStageDto(
+    @SerializedName("amount_per_release_percentage")
+    val amountPerReleasePercentage: Int? = null,
+    @SerializedName("repeat_interval")
+    val repeatInterval: String? = null,
+    @SerializedName("repeat_interval_count")
+    val repeatIntervalCount: Int? = null,
+    @SerializedName("total_stage_allocation_percentage")
+    val totalStageAllocationPercentage: Int? = null,
+    @SerializedName("first_withdrawal_time_millis")
+    val firstWithdrawalTimeMillis: Long? = null,
+    @SerializedName("expanded_installments")
+    val expandedInstallments: List<InheritanceExpandedInstallmentDto>? = null,
+)
+
+class InheritanceExpandedInstallmentDto(
+    @SerializedName("index")
+    val index: Int? = null,
+    @SerializedName("withdrawal_time_millis")
+    val withdrawalTimeMillis: Long? = null,
+    @SerializedName("allocation_percentage")
+    val allocationPercentage: Int? = null,
+)
+
+class InheritanceBeneficiaryDto(
+    @SerializedName("email")
+    val email: String? = null,
+    @SerializedName("asset_percentage")
+    val assetPercentage: Int? = null,
+    @SerializedName("magic")
+    val magic: String? = null,
+    @SerializedName("note")
+    val note: String? = null,
+    @SerializedName("stages")
+    val stages: List<InheritanceStageDto>? = null,
 )

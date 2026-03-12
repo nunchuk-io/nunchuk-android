@@ -56,6 +56,9 @@ import com.nunchuk.android.model.WalletServerSync
 import com.nunchuk.android.model.byzantine.AssistedMember
 import com.nunchuk.android.model.byzantine.DummyTransactionPayload
 import com.nunchuk.android.model.byzantine.GroupWalletType
+import com.nunchuk.android.model.inheritance.InheritancePlanBeneficiary
+import com.nunchuk.android.model.inheritance.InheritancePlanFallbackPolicy
+import com.nunchuk.android.model.inheritance.InheritancePlanStage
 import com.nunchuk.android.model.inheritance.InheritanceNotificationSettings
 import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.model.membership.GroupConfig
@@ -241,7 +244,14 @@ interface PremiumWalletRepository {
         walletId: String,
         groupId: String?,
         notificationPreferences: InheritanceNotificationSettings? = null,
-        timezone: String
+        timezone: String,
+        distributionMethod: String? = null,
+        beneficiaryMode: String? = null,
+        bufferApplyOn: String? = null,
+        releaseMethod: String? = null,
+        fallbackPolicy: InheritancePlanFallbackPolicy? = null,
+        stages: List<InheritancePlanStage>? = null,
+        beneficiaries: List<InheritancePlanBeneficiary>? = null,
     ): String
 
     suspend fun generateInheritanceClaimStatusUserData(magic: String, bsms: String? = null, messageId: String? = null): String
@@ -289,7 +299,14 @@ interface PremiumWalletRepository {
         action: CalculateRequiredSignaturesAction,
         groupId: String?,
         notificationPreferences: InheritanceNotificationSettings? = null,
-        timezone: String
+        timezone: String,
+        distributionMethod: String? = null,
+        beneficiaryMode: String? = null,
+        bufferApplyOn: String? = null,
+        releaseMethod: String? = null,
+        fallbackPolicy: InheritancePlanFallbackPolicy? = null,
+        stages: List<InheritancePlanStage>? = null,
+        beneficiaries: List<InheritancePlanBeneficiary>? = null,
     ): CalculateRequiredSignatures
 
     suspend fun createOrUpdateInheritance(

@@ -1,12 +1,18 @@
 package com.nunchuk.android.core.data.model.byzantine
 
 import com.google.gson.annotations.SerializedName
+import com.nunchuk.android.core.data.model.inheritance.InheritanceBeneficiaryRequest
+import com.nunchuk.android.core.data.model.inheritance.InheritanceFallbackPolicyRequest
+import com.nunchuk.android.core.data.model.inheritance.InheritanceStageRequest
 import com.nunchuk.android.core.data.model.membership.InheritanceNotificationPreferencesDto
 import com.nunchuk.android.core.data.model.membership.PeriodResponse
 import com.nunchuk.android.core.mapper.toInheritanceNotificationSettings
 import com.nunchuk.android.core.mapper.toPeriod
 import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.model.Period
+import com.nunchuk.android.model.inheritance.InheritancePlanBeneficiary
+import com.nunchuk.android.model.inheritance.InheritancePlanFallbackPolicy
+import com.nunchuk.android.model.inheritance.InheritancePlanStage
 import com.nunchuk.android.model.inheritance.InheritanceNotificationSettings
 
 class InheritancePayloadDto(
@@ -40,7 +46,21 @@ class InheritanceDataExtendedDto(
     @SerializedName("notification_preferences")
     val notificationPreferences: InheritanceNotificationPreferencesDto? = null,
     @SerializedName("timezone")
-    val timezone: String? = null
+    val timezone: String? = null,
+    @SerializedName("distribution_method")
+    val distributionMethod: String? = null,
+    @SerializedName("beneficiary_mode")
+    val beneficiaryMode: String? = null,
+    @SerializedName("buffer_apply_on")
+    val bufferApplyOn: String? = null,
+    @SerializedName("release_method")
+    val releaseMethod: String? = null,
+    @SerializedName("fallback_policy")
+    val fallbackPolicy: InheritanceFallbackPolicyRequest? = null,
+    @SerializedName("stages")
+    val stages: List<InheritanceStageRequest>? = null,
+    @SerializedName("beneficiaries")
+    val beneficiaries: List<InheritanceBeneficiaryRequest>? = null,
 )
 
 class InheritancePayload(
@@ -60,7 +80,14 @@ class InheritanceDataExtended(
     val groupId: String,
     val bufferPeriod: Period?,
     val notificationPreferences: InheritanceNotificationSettings? = null,
-    val timezone: String = ""
+    val timezone: String = "",
+    val distributionMethod: String? = null,
+    val beneficiaryMode: String? = null,
+    val bufferApplyOn: String? = null,
+    val releaseMethod: String? = null,
+    val fallbackPolicy: InheritancePlanFallbackPolicy? = null,
+    val stages: List<InheritancePlanStage> = emptyList(),
+    val beneficiaries: List<InheritancePlanBeneficiary> = emptyList(),
 )
 
 fun InheritancePayloadDto.toInheritancePayload(): InheritancePayload {
@@ -83,6 +110,49 @@ fun InheritanceDataExtendedDto.toInheritanceDataExtended(): InheritanceDataExten
         groupId = groupId.orEmpty(),
         bufferPeriod = bufferPeriod?.toPeriod(),
         notificationPreferences = notificationPreferences?.toInheritanceNotificationSettings(),
-        timezone = timezone.orEmpty()
+        timezone = timezone.orEmpty(),
+        distributionMethod = distributionMethod,
+        beneficiaryMode = beneficiaryMode,
+        bufferApplyOn = bufferApplyOn,
+        releaseMethod = releaseMethod,
+        fallbackPolicy = fallbackPolicy?.toDomainModel(),
+        stages = stages?.map { it.toDomainModel() }.orEmpty(),
+        beneficiaries = beneficiaries?.map { it.toDomainModel() }.orEmpty(),
+    )
+}
+
+private fun InheritanceFallbackPolicyRequest.toDomainModel(): InheritancePlanFallbackPolicy {
+    return InheritancePlanFallbackPolicy(
+        type = type.orEmpty(),
+        inactivityInterval = inactivityInterval,
+        inactivityIntervalCount = inactivityIntervalCount,
+        fallbackTimeMillis = fallbackTimeMillis,
+    )
+}
+
+private fun InheritanceStageRequest.toDomainModel(): InheritancePlanStage {
+    return InheritancePlanStage(
+        amountPerReleasePercentage = amountPerReleasePercentage ?: 0,
+        repeatInterval = repeatInterval.orEmpty(),
+        repeatIntervalCount = repeatIntervalCount ?: 0,
+        totalStageAllocationPercentage = totalStageAllocationPercentage ?: 0,
+        firstWithdrawalTimeMillis = firstWithdrawalTimeMillis ?: 0,
+        expandedInstallments = expandedInstallments?.map { installment ->
+            com.nunchuk.android.model.inheritance.InheritancePlanExpandedInstallment(
+                index = installment.index ?: 0,
+                withdrawalTimeMillis = installment.withdrawalTimeMillis ?: 0,
+                allocationPercentage = installment.allocationPercentage ?: 0,
+            )
+        }.orEmpty(),
+    )
+}
+
+private fun InheritanceBeneficiaryRequest.toDomainModel(): InheritancePlanBeneficiary {
+    return InheritancePlanBeneficiary(
+        email = email.orEmpty(),
+        assetPercentage = assetPercentage ?: 0,
+        magic = magic.orEmpty(),
+        note = note.orEmpty(),
+        stages = stages?.map { it.toDomainModel() }.orEmpty(),
     )
 }

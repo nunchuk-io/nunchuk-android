@@ -20,10 +20,15 @@
 package com.nunchuk.android.core.data.model.membership
 
 import com.google.gson.annotations.SerializedName
+import com.nunchuk.android.core.data.model.byzantine.DummyTransactionDto
 
 data class CalculateRequiredSignaturesResponse(
     @SerializedName("result")
     val result: Data? = null,
+    @SerializedName("inheritance")
+    val inheritance: InheritanceDto? = null,
+    @SerializedName("dummy_transaction")
+    val dummyTransaction: DummyTransactionDto? = null,
     @SerializedName("step")
     val step: String? = null,
 ) {

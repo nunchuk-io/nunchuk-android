@@ -30,9 +30,15 @@ import com.nunchuk.android.core.domain.membership.GetInheritanceUserDataUseCase
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningParam
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceBufferPeriodApplyType
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceReleaseMethodType
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceSetupFlowType
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.fallbacksettings.FallbackTriggerUnit
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.fallbacksettings.InheritanceFallbackOption
 import com.nunchuk.android.model.CalculateRequiredSignatures
 import com.nunchuk.android.model.CalculateRequiredSignaturesAction
 import com.nunchuk.android.model.VerificationType
+import com.nunchuk.android.model.inheritance.InheritancePlanFallbackPolicy
 import com.nunchuk.android.model.inheritance.InheritanceNotificationSettings
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.usecase.GetWalletUseCase
@@ -49,6 +55,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
 @HiltViewModel
@@ -167,7 +176,12 @@ class InheritanceReviewPlanViewModel @Inject constructor(
                 action = if (flow == ReviewFlow.CREATE_OR_UPDATE) CalculateRequiredSignaturesAction.CREATE_OR_UPDATE else CalculateRequiredSignaturesAction.CANCEL,
                 groupId = param.groupId,
                 notificationPreferences = param.notificationSettings,
-                timezone = param.selectedZoneId
+                timezone = param.selectedZoneId,
+                distributionMethod = toDistributionMethod(param),
+                beneficiaryMode = toBeneficiaryMode(param),
+                bufferApplyOn = toBufferApplyOn(param),
+                releaseMethod = toReleaseMethod(param),
+                fallbackPolicy = toFallbackPolicy(param),
             )
         )
         val userData = getUserData()
@@ -276,7 +290,12 @@ class InheritanceReviewPlanViewModel @Inject constructor(
                     bufferPeriodId = param.bufferPeriod?.id,
                     groupId = param.groupId,
                     notificationPreferences = param.notificationSettings,
-                    timezone = param.selectedZoneId
+                    timezone = param.selectedZoneId,
+                    distributionMethod = toDistributionMethod(param),
+                    beneficiaryMode = toBeneficiaryMode(param),
+                    bufferApplyOn = toBufferApplyOn(param),
+                    releaseMethod = toReleaseMethod(param),
+                    fallbackPolicy = toFallbackPolicy(param),
                 )
             )
         }
@@ -365,6 +384,84 @@ class InheritanceReviewPlanViewModel @Inject constructor(
             )
         )
         _event.emit(InheritanceReviewPlanEvent.MarkSetupInheritance)
+    }
+
+    private fun toDistributionMethod(param: InheritancePlanningParam.SetupOrReview): String {
+        return when (param.setupFlowType) {
+            InheritanceSetupFlowType.OLD_FLOW -> "LUMP_SUM"
+            InheritanceSetupFlowType.SINGLE_BENEFICIARY,
+            InheritanceSetupFlowType.MULTI_BENEFICIARY -> "CUSTOMIZED"
+        }
+    }
+
+    private fun toBeneficiaryMode(param: InheritancePlanningParam.SetupOrReview): String {
+        return if (param.setupFlowType == InheritanceSetupFlowType.MULTI_BENEFICIARY) {
+            "MULTI"
+        } else {
+            "SINGLE"
+        }
+    }
+
+    private fun toBufferApplyOn(param: InheritancePlanningParam.SetupOrReview): String? {
+        return when (param.bufferPeriodApplyType) {
+            InheritanceBufferPeriodApplyType.FIRST_WITHDRAWAL_ONLY -> "FIRST_WITHDRAWAL"
+            InheritanceBufferPeriodApplyType.EVERY_WITHDRAWAL -> "EVERY_WITHDRAWAL"
+            null -> null
+        }
+    }
+
+    private fun toReleaseMethod(param: InheritancePlanningParam.SetupOrReview): String? {
+        if (param.setupFlowType != InheritanceSetupFlowType.MULTI_BENEFICIARY) return null
+        return when (param.releaseMethodType) {
+            InheritanceReleaseMethodType.SHARED_SCHEDULE -> "SHARED"
+            InheritanceReleaseMethodType.INDIVIDUAL_SCHEDULES -> "INDIVIDUAL"
+        }
+    }
+
+    private fun toFallbackPolicy(param: InheritancePlanningParam.SetupOrReview): InheritancePlanFallbackPolicy? {
+        val settings = param.fallbackSettings ?: return null
+        return when (settings.selectedOption) {
+            InheritanceFallbackOption.NO_FALLBACK -> {
+                InheritancePlanFallbackPolicy(type = "NONE")
+            }
+
+            InheritanceFallbackOption.INACTIVITY_FALLBACK -> {
+                InheritancePlanFallbackPolicy(
+                    type = "INACTIVITY",
+                    inactivityInterval = when (settings.triggerUnit) {
+                        FallbackTriggerUnit.DAY -> "DAY"
+                        FallbackTriggerUnit.WEEK -> "WEEK"
+                        FallbackTriggerUnit.MONTH -> "MONTH"
+                        FallbackTriggerUnit.YEAR -> "YEAR"
+                    },
+                    inactivityIntervalCount = settings.triggerValue.toIntOrNull()?.coerceAtLeast(1),
+                )
+            }
+
+            InheritanceFallbackOption.DATE_BASED_FALLBACK -> {
+                InheritancePlanFallbackPolicy(
+                    type = "DATE_BASED",
+                    fallbackTimeMillis = parseDateToMillis(
+                        date = settings.fallbackDate,
+                        zoneId = param.selectedZoneId
+                    ),
+                )
+            }
+        }
+    }
+
+    private fun parseDateToMillis(date: String, zoneId: String): Long? {
+        val formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy")
+        val actualZoneId = runCatching {
+            if (zoneId.isBlank()) ZoneId.systemDefault() else ZoneId.of(zoneId)
+        }.getOrDefault(ZoneId.systemDefault())
+
+        return runCatching {
+            LocalDate.parse(date, formatter)
+                .atStartOfDay(actualZoneId)
+                .toInstant()
+                .toEpochMilli()
+        }.getOrNull()
     }
 
     enum class ReviewFlow {

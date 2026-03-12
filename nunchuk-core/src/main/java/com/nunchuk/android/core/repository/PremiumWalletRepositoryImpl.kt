@@ -67,6 +67,10 @@ import com.nunchuk.android.core.data.model.byzantine.toSavedAddress
 import com.nunchuk.android.core.data.model.byzantine.toWalletType
 import com.nunchuk.android.core.data.model.coin.CoinDataContent
 import com.nunchuk.android.core.data.model.inheritance.BeneficiaryNotificationRequest
+import com.nunchuk.android.core.data.model.inheritance.InheritanceBeneficiaryRequest
+import com.nunchuk.android.core.data.model.inheritance.InheritanceExpandedInstallmentRequest
+import com.nunchuk.android.core.data.model.inheritance.InheritanceFallbackPolicyRequest
+import com.nunchuk.android.core.data.model.inheritance.InheritanceStageRequest
 import com.nunchuk.android.core.data.model.inheritance.CreateUpdateInheritancePlanRequest
 import com.nunchuk.android.core.data.model.inheritance.NotificationPreferencesRequest
 import com.nunchuk.android.core.data.model.membership.ConfirmationCodeRequest
@@ -174,6 +178,10 @@ import com.nunchuk.android.model.byzantine.AssistedMember
 import com.nunchuk.android.model.byzantine.DraftWallet
 import com.nunchuk.android.model.byzantine.DummyTransactionPayload
 import com.nunchuk.android.model.byzantine.GroupWalletType
+import com.nunchuk.android.model.inheritance.InheritancePlanBeneficiary
+import com.nunchuk.android.model.inheritance.InheritancePlanExpandedInstallment
+import com.nunchuk.android.model.inheritance.InheritancePlanFallbackPolicy
+import com.nunchuk.android.model.inheritance.InheritancePlanStage
 import com.nunchuk.android.model.inheritance.InheritanceNotificationSettings
 import com.nunchuk.android.model.isAddInheritanceKey
 import com.nunchuk.android.model.isAllowSetupInheritance
@@ -701,7 +709,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             })
         val response =
             userWalletApiManager.walletApi.calculateRequiredSignaturesSecurityQuestions(request)
-        return response.data.result.toCalculateRequiredSignatures()
+        return response.data.toCalculateRequiredSignatures()
     }
 
     override suspend fun calculateRequiredSignaturesUpdateKeyPolicy(
@@ -812,6 +820,13 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         groupId: String?,
         notificationPreferences: InheritanceNotificationSettings?,
         timezone: String,
+        distributionMethod: String?,
+        beneficiaryMode: String?,
+        bufferApplyOn: String?,
+        releaseMethod: String?,
+        fallbackPolicy: InheritancePlanFallbackPolicy?,
+        stages: List<InheritancePlanStage>?,
+        beneficiaries: List<InheritancePlanBeneficiary>?,
     ): String {
         val body = CreateUpdateInheritancePlanRequest.Body(
             note = note,
@@ -834,7 +849,14 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                     }
                 )
             },
-            timezone = timezone
+            timezone = timezone,
+            distributionMethod = distributionMethod,
+            beneficiaryMode = beneficiaryMode,
+            bufferApplyOn = bufferApplyOn,
+            releaseMethod = releaseMethod,
+            fallbackPolicy = fallbackPolicy?.toRequest(),
+            stages = stages?.map { it.toRequest() },
+            beneficiaries = beneficiaries?.map { it.toRequest() },
         )
         val nonce = getNonce()
         val request = CreateUpdateInheritancePlanRequest(
@@ -986,6 +1008,13 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         groupId: String?,
         notificationPreferences: InheritanceNotificationSettings?,
         timezone: String,
+        distributionMethod: String?,
+        beneficiaryMode: String?,
+        bufferApplyOn: String?,
+        releaseMethod: String?,
+        fallbackPolicy: InheritancePlanFallbackPolicy?,
+        stages: List<InheritancePlanStage>?,
+        beneficiaries: List<InheritancePlanBeneficiary>?,
     ): CalculateRequiredSignatures {
         val response =
             if (action == CalculateRequiredSignaturesAction.CANCEL || action == CalculateRequiredSignaturesAction.REQUEST_PLANNING) {
@@ -1017,7 +1046,14 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                                 }
                             )
                         },
-                        timezone = timezone
+                        timezone = timezone,
+                        distributionMethod = distributionMethod,
+                        beneficiaryMode = beneficiaryMode,
+                        bufferApplyOn = bufferApplyOn,
+                        releaseMethod = releaseMethod,
+                        fallbackPolicy = fallbackPolicy?.toRequest(),
+                        stages = stages?.map { it.toRequest() },
+                        beneficiaries = beneficiaries?.map { it.toRequest() },
                     )
                 )
             }
@@ -3199,6 +3235,44 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         return response.data.convertedTimelock?.toConvertedTimelock() ?: throw NullPointerException("convertedTimelock is null")
     }
 
+    private fun InheritancePlanFallbackPolicy.toRequest(): InheritanceFallbackPolicyRequest {
+        return InheritanceFallbackPolicyRequest(
+            type = type,
+            inactivityInterval = inactivityInterval,
+            inactivityIntervalCount = inactivityIntervalCount,
+            fallbackTimeMillis = fallbackTimeMillis,
+        )
+    }
+
+    private fun InheritancePlanStage.toRequest(): InheritanceStageRequest {
+        return InheritanceStageRequest(
+            amountPerReleasePercentage = amountPerReleasePercentage,
+            repeatInterval = repeatInterval,
+            repeatIntervalCount = repeatIntervalCount,
+            totalStageAllocationPercentage = totalStageAllocationPercentage,
+            firstWithdrawalTimeMillis = firstWithdrawalTimeMillis,
+            expandedInstallments = expandedInstallments.map { it.toRequest() },
+        )
+    }
+
+    private fun InheritancePlanExpandedInstallment.toRequest(): InheritanceExpandedInstallmentRequest {
+        return InheritanceExpandedInstallmentRequest(
+            index = index,
+            withdrawalTimeMillis = withdrawalTimeMillis,
+            allocationPercentage = allocationPercentage,
+        )
+    }
+
+    private fun InheritancePlanBeneficiary.toRequest(): InheritanceBeneficiaryRequest {
+        return InheritanceBeneficiaryRequest(
+            email = email,
+            assetPercentage = assetPercentage,
+            magic = magic,
+            note = note,
+            stages = stages.map { it.toRequest() },
+        )
+    }
+
     private fun getHeaders(
         authorizations: List<String>,
         verifyToken: String,
@@ -3223,4 +3297,3 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         internal const val CONFIRMATION_TOKEN = "Confirmation-token"
     }
 }
-

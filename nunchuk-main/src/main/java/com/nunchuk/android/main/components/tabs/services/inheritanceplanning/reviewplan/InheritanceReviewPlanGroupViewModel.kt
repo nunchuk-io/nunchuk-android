@@ -149,7 +149,14 @@ class InheritanceReviewPlanGroupViewModel @Inject constructor(
                             bufferPeriodId = state.value.payload.newData?.bufferPeriod?.id,
                             groupId = param.groupId,
                             notificationPreferences = state.value.payload.newData?.notificationPreferences,
-                            timezone = state.value.payload.newData?.timezone.orEmpty()
+                            timezone = state.value.payload.newData?.timezone.orEmpty(),
+                            distributionMethod = state.value.payload.newData?.distributionMethod,
+                            beneficiaryMode = state.value.payload.newData?.beneficiaryMode,
+                            bufferApplyOn = state.value.payload.newData?.bufferApplyOn,
+                            releaseMethod = state.value.payload.newData?.releaseMethod,
+                            fallbackPolicy = state.value.payload.newData?.fallbackPolicy,
+                            stages = state.value.payload.newData?.stages,
+                            beneficiaries = state.value.payload.newData?.beneficiaries,
                         )
                     )
                 }
@@ -214,4 +221,3 @@ data class InheritanceReviewPlanGroupState(
     val type: DummyTransactionType = DummyTransactionType.NONE,
     val userEmail: String = "",
 )
-

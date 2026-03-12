@@ -73,6 +73,18 @@ internal fun CalculateRequiredSignaturesResponse.Data?.toCalculateRequiredSignat
     )
 }
 
+internal fun CalculateRequiredSignaturesResponse.toCalculateRequiredSignatures(): CalculateRequiredSignatures {
+    result?.let { return it.toCalculateRequiredSignatures() }
+    dummyTransaction?.let {
+        return CalculateRequiredSignatures(
+            type = it.type.orEmpty(),
+            requiredSignatures = it.requiredSignatures,
+            requiredAnswers = 0,
+        )
+    }
+    return CalculateRequiredSignatures()
+}
+
 internal fun CalculateRequiredSignaturesResponse.toCalculateRequiredSignaturesEx(): CalculateRequiredSignaturesExt {
     val step = when (this.step) {
         "REQUEST_RECOVER" -> CalculateRequiredSignatureStep.REQUEST_RECOVER
