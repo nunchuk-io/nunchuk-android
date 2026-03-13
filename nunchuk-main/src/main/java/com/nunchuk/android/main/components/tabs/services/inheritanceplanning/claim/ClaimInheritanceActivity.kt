@@ -352,7 +352,7 @@ private fun ClaimInheritanceGraph(
                 onSuccess = { signers, magic, inheritanceAdditional ->
                     val bufferPeriodCountdown = inheritanceAdditional.bufferPeriodCountdown
                     if (bufferPeriodCountdown == null) {
-                        activityViewModel.setClaimNoteData(
+                        activityViewModel.setClaimDataByBackup(
                             signers,
                             magic,
                             inheritanceAdditional,

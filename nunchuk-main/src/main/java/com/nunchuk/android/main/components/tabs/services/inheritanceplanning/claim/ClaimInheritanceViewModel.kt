@@ -74,7 +74,7 @@ class ClaimInheritanceViewModel @Inject constructor(
         handledRequestIds.clear()
     }
 
-    fun setClaimNoteData(
+    fun setClaimDataByBackup(
         signers: List<SignerModel>,
         magic: String,
         inheritanceAdditional: InheritanceAdditional,
@@ -85,6 +85,7 @@ class ClaimInheritanceViewModel @Inject constructor(
                 signers = signers.toSet(),
                 magic = magic,
                 inheritanceAdditional = inheritanceAdditional,
+                challenge = null
             )
         }
     }
