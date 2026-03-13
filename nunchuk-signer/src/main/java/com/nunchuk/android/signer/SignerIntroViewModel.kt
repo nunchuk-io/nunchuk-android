@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
 import com.nunchuk.android.core.mapper.MasterSignerMapper
-import com.nunchuk.android.core.mapper.SingleSignerMapper
 import com.nunchuk.android.core.signer.KeyFlow
 import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.core.signer.SignerModel
@@ -271,6 +270,7 @@ class SignerIntroViewModel @Inject constructor(
                 CreateSoftwareSignerUseCase.Param(
                     name = signerName,
                     mnemonic = mnemonic,
+                    replace = true
                 )
             ).onSuccess { signer ->
                 _event.emit(SignerIntroEvent.CreateSoftwareSignerSuccess(masterSignerMapper(signer)))
