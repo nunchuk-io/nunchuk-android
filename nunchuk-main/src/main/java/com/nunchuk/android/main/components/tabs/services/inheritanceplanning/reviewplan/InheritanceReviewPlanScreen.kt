@@ -70,6 +70,10 @@ import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.Inh
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningParam
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceSetupFlowType
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasescheduledetail.ReleaseInstallmentConfig
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasescheduledetail.ReleaseInstallmentFrequency
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasescheduledetail.ReleaseScheduleDate
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasescheduledetail.ReleaseScheduleStage
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasescheduledetail.ReleaseScheduleSummaryProgress
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasescheduledetail.ReleaseScheduleUiState
 import com.nunchuk.android.model.Period
@@ -422,41 +426,15 @@ fun InheritanceReviewPlanScreenContent(
                             start = 16.dp, end = 16.dp, top = 24.dp
                         )
                     ) {
-                        Row(horizontalArrangement = Arrangement.Center) {
-                            Text(
-                                text = stringResource(id = R.string.nc_note_to_beneficiary_trustee),
-                                style = NunchukTheme.typography.title
-                            )
-                            Spacer(modifier = Modifier.weight(weight = 1f))
-                            if (isEditable) {
-                                Text(
-                                    text = stringResource(id = R.string.nc_edit),
-                                    style = NunchukTheme.typography.title,
-                                    textDecoration = TextDecoration.Underline,
-                                    modifier = Modifier.clickable {
-                                        onEditNoteClick()
-                                    }
-                                )
-                            }
-                        }
+                        ReviewPlanSectionHeader(
+                            title = stringResource(id = R.string.nc_note_to_beneficiary_trustee),
+                            editable = isEditable,
+                            onEditClick = onEditNoteClick,
+                        )
 
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        Box(
-                            modifier = Modifier.background(
-                                color = MaterialTheme.colorScheme.greyLight,
-                                shape = RoundedCornerShape(8.dp)
-                            ),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Text(
-                                text = setupOrReviewParam.note.ifBlank { stringResource(id = R.string.nc_no_note) },
-                                style = NunchukTheme.typography.body,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp)
-                            )
-                        }
+                        NoteDisplayBox(note = setupOrReviewParam.note)
                     }
                 }
 
@@ -475,42 +453,18 @@ fun InheritanceReviewPlanScreenContent(
                                 start = 16.dp, end = 16.dp, top = 24.dp
                             )
                         ) {
-                            Row(horizontalArrangement = Arrangement.Center) {
-                                Text(
-                                    text = stringResource(id = R.string.nc_buffer_period),
-                                    style = NunchukTheme.typography.title
-                                )
-                                Spacer(modifier = Modifier.weight(weight = 1f))
-                                if (isEditable) {
-                                    Text(
-                                        text = stringResource(id = R.string.nc_edit),
-                                        style = NunchukTheme.typography.title,
-                                        textDecoration = TextDecoration.Underline,
-                                        modifier = Modifier.clickable {
-                                            onEditBufferPeriodClick(setupOrReviewParam.bufferPeriod)
-                                        }
-                                    )
-                                }
-                            }
+                            ReviewPlanSectionHeader(
+                                title = stringResource(id = R.string.nc_buffer_period),
+                                editable = isEditable,
+                                onEditClick = { onEditBufferPeriodClick(setupOrReviewParam.bufferPeriod) },
+                            )
 
                             Spacer(modifier = Modifier.height(16.dp))
 
-                            Box(
-                                modifier = Modifier.background(
-                                    color = MaterialTheme.colorScheme.greyLight,
-                                    shape = RoundedCornerShape(8.dp)
-                                ),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                Text(
-                                    text = setupOrReviewParam.bufferPeriod?.displayName.orEmpty()
-                                        .ifBlank { stringResource(id = R.string.nc_no_buffer) },
-                                    style = NunchukTheme.typography.body,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(16.dp)
-                                )
-                            }
+                            NoteDisplayBox(
+                                note = setupOrReviewParam.bufferPeriod?.displayName.orEmpty()
+                                    .ifBlank { stringResource(id = R.string.nc_no_buffer) }
+                            )
                         }
                     }
                 }
@@ -526,52 +480,26 @@ fun InheritanceReviewPlanScreenContent(
 
                 // Notification Preferences Header
                 item(key = "notification_preferences_header") {
-                    Row(
+                    ReviewPlanSectionHeader(
                         modifier = Modifier.padding(
                             start = 16.dp, end = 16.dp, top = 24.dp
                         ),
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Text(
-                            text = stringResource(id = R.string.nc_notification_preferences),
-                            style = NunchukTheme.typography.title,
-                        )
-                        Spacer(modifier = Modifier.weight(weight = 1f))
-                        if (isEditable) {
-                            Text(
-                                text = stringResource(id = R.string.nc_edit),
-                                style = NunchukTheme.typography.title,
-                                textDecoration = TextDecoration.Underline,
-                                modifier = Modifier.clickable {
-                                    onNotifyPrefClick()
-                                }
-                            )
-                        }
-                    }
+                        title = stringResource(id = R.string.nc_notification_preferences),
+                        editable = isEditable,
+                        onEditClick = onNotifyPrefClick,
+                    )
                 }
 
-                // Provider Notification Settings (Beneficiary/Trustee Emails)
-                if (setupOrReviewParam.notificationSettings != null && isMiniscriptWallet) {
-                    // User Notification Settings (Owner Email)
-                    item {
-                        UserNotificationSettingsContent(
-                            emailMeWalletConfig = setupOrReviewParam.notificationSettings.emailMeWalletConfig,
-                            userEmail = userEmail
-                        )
-                    }
-
-                    setupOrReviewParam.notificationSettings.perEmailSettings.forEachIndexed { index, emailSettings ->
-                        item {
-                            ProviderNotificationSettingsContent(emailSettings = emailSettings)
-                        }
-                    }
-                } else {
-                    item {
-                        SimpleNotificationCard(
-                            emails = setupOrReviewParam.emails,
-                            isNotifyToday = setupOrReviewParam.isNotify
-                        )
-                    }
+                // Notification Settings
+                item {
+                    NotificationPreferencesSection(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        isMiniscriptWallet = isMiniscriptWallet,
+                        notificationPreferences = setupOrReviewParam.notificationSettings,
+                        userEmail = userEmail,
+                        emails = setupOrReviewParam.emails,
+                        isNotifyToday = setupOrReviewParam.isNotify,
+                    )
                 }
 
                 // Bottom spacing
@@ -678,11 +606,10 @@ private fun SingleBeneficiaryReleaseScheduleSection(
 private fun getReviewBufferSummaryText(
     setupOrReviewParam: InheritancePlanningParam.SetupOrReview,
 ): String {
-    val period = setupOrReviewParam.bufferPeriod
-    if (period == null) return stringResource(id = R.string.nc_no_buffer)
+    val period =
+        setupOrReviewParam.bufferPeriod ?: return stringResource(id = R.string.nc_no_buffer)
 
-    val applyType = setupOrReviewParam.bufferPeriodApplyType
-    if (applyType == null) return period.displayName
+    val applyType = setupOrReviewParam.bufferPeriodApplyType ?: return period.displayName
 
     val applyTypeText = when (applyType) {
         InheritanceBufferPeriodApplyType.FIRST_WITHDRAWAL_ONLY ->
@@ -699,63 +626,6 @@ private fun getReviewBufferSummaryText(
     )
 }
 
-@Composable
-fun SimpleNotificationCard(
-    emails: List<String>,
-    isNotifyToday: Boolean
-) {
-    Box(
-        modifier = Modifier
-            .padding(start = 16.dp, end = 16.dp, top = 16.dp)
-            .background(
-                color = MaterialTheme.colorScheme.greyLight,
-                shape = RoundedCornerShape(8.dp)
-            )
-            .padding(16.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        Column {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = stringResource(id = R.string.nc_beneficiary_trustee_email_address),
-                    style = NunchukTheme.typography.body,
-                    modifier = Modifier.fillMaxWidth(0.3f),
-                )
-                Spacer(modifier = Modifier.weight(1f))
-                Text(
-                    text = emails.joinToString("\n")
-                        .ifEmpty { "(${stringResource(id = R.string.nc_none)})" },
-                    style = NunchukTheme.typography.title
-                )
-            }
-
-            HorizontalDivider(
-                modifier = Modifier.padding(
-                    start = 16.dp,
-                    end = 16.dp,
-                    top = 24.dp,
-                    bottom = 24.dp
-                ),
-                thickness = 1.dp,
-                color = MaterialTheme.colorScheme.whisper
-            )
-
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = stringResource(id = R.string.nc_notify_them_today),
-                    style = NunchukTheme.typography.body,
-                    modifier = Modifier.fillMaxWidth(0.3f),
-                )
-                Spacer(modifier = Modifier.weight(1f))
-                Text(
-                    text = if (isNotifyToday) stringResource(id = R.string.nc_text_yes) else stringResource(
-                        id = R.string.nc_text_no
-                    ), style = NunchukTheme.typography.title
-                )
-            }
-        }
-    }
-}
 
 @Composable
 fun SpecialDetailPlanItem(
@@ -871,8 +741,9 @@ private fun ProviderNotificationSettingsPreview() {
 private fun SimpleNotificationCardPreview() {
     NunchukTheme {
         SimpleNotificationCard(
+            modifier = Modifier.padding(16.dp),
             emails = listOf("email1@example.com", "email2@example.com"),
-            isNotifyToday = true
+            isNotifyToday = true,
         )
     }
 }
@@ -892,5 +763,60 @@ private fun InheritanceReviewPlanScreenPreview() {
             isNotify = true,
             magicalPhrase = "sample magical phrase"
         ),
+    )
+}
+
+@PreviewLightDark
+@Composable
+private fun InheritanceReviewPlanSingleBeneficiaryPreview() {
+    val stages = listOf(
+        ReleaseScheduleStage(
+            id = 1,
+            stageNumber = 1,
+            allocationPercent = 50,
+            firstWithdrawalDate = ReleaseScheduleDate(month = 6, day = 15, year = 2027),
+            installmentConfig = ReleaseInstallmentConfig(
+                installmentPercent = 25,
+                repeatEvery = 1,
+                frequency = ReleaseInstallmentFrequency.ANNUALLY,
+            ),
+        ),
+        ReleaseScheduleStage(
+            id = 2,
+            stageNumber = 2,
+            allocationPercent = 50,
+            firstWithdrawalDate = ReleaseScheduleDate(month = 6, day = 15, year = 2029),
+            installmentConfig = ReleaseInstallmentConfig(
+                installmentPercent = 50,
+                repeatEvery = 6,
+                frequency = ReleaseInstallmentFrequency.MONTHLY,
+            ),
+        ),
+    )
+    InheritanceReviewPlanScreenContent(
+        state = InheritanceReviewPlanState(
+            walletName = "Iron Hand Multisig"
+        ),
+        setupOrReviewParam = InheritancePlanningParam.SetupOrReview(
+            walletId = "wallet456",
+            activationDate = System.currentTimeMillis(),
+            note = "Please contact lawyer John Doe at (555) 123-4567 before claiming.",
+            emails = listOf("beneficiary@example.com"),
+            isNotify = true,
+            magicalPhrase = "dolphin concert apple orange mountain",
+            setupFlowType = InheritanceSetupFlowType.SINGLE_BENEFICIARY,
+            bufferPeriod = Period(
+                id = "30_days",
+                interval = "DAYS",
+                intervalCount = 30,
+                enabled = true,
+                displayName = "30 days",
+                isRecommended = true,
+            ),
+            bufferPeriodApplyType = InheritanceBufferPeriodApplyType.FIRST_WITHDRAWAL_ONLY,
+            selectedZoneId = "America/New_York",
+        ),
+        releaseScheduleUiState = ReleaseScheduleUiState(stages = stages),
+        planFlow = InheritancePlanFlow.VIEW,
     )
 }

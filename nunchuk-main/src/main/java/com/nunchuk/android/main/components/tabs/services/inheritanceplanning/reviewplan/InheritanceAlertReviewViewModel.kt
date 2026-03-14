@@ -32,7 +32,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class InheritanceReviewPlanGroupViewModel @Inject constructor(
+class InheritanceAlertReviewViewModel @Inject constructor(
     private val getDummyTransactionPayloadUseCase: GetDummyTransactionPayloadUseCase,
     private val parseInheritancePayloadUseCase: ParseInheritancePayloadUseCase,
     private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
@@ -45,16 +45,16 @@ class InheritanceReviewPlanGroupViewModel @Inject constructor(
 
     private lateinit var param: InheritancePlanningParam.SetupOrReview
 
-    private val _event = MutableSharedFlow<InheritanceReviewPlanGroupEvent>()
+    private val _event = MutableSharedFlow<InheritanceAlertReviewEvent>()
     val event = _event.asSharedFlow()
 
-    private val _state = MutableStateFlow(InheritanceReviewPlanGroupState())
+    private val _state = MutableStateFlow(InheritanceAlertReviewState())
     val state = _state.asStateFlow()
 
     fun init(param: InheritancePlanningParam.SetupOrReview) {
         viewModelScope.launch {
-            this@InheritanceReviewPlanGroupViewModel.param = param
-            _event.emit(InheritanceReviewPlanGroupEvent.Loading(true))
+            this@InheritanceAlertReviewViewModel.param = param
+            _event.emit(InheritanceAlertReviewEvent.Loading(true))
             loadMembers()
             if (param.dummyTransactionId.isNotEmpty()) {
                 getDummyTransactionPayloadUseCase(
@@ -91,10 +91,10 @@ class InheritanceReviewPlanGroupViewModel @Inject constructor(
                         }
                     }
                 }.onFailure {
-                    _event.emit(InheritanceReviewPlanGroupEvent.ProcessFailure(it.message.orEmpty()))
+                    _event.emit(InheritanceAlertReviewEvent.ProcessFailure(it.message.orEmpty()))
                 }
             }
-            _event.emit(InheritanceReviewPlanGroupEvent.Loading(false))
+            _event.emit(InheritanceAlertReviewEvent.Loading(false))
         }
     }
 
@@ -161,7 +161,7 @@ class InheritanceReviewPlanGroupViewModel @Inject constructor(
                     )
                 }
                 _event.emit(
-                    InheritanceReviewPlanGroupEvent.OnContinue(
+                    InheritanceAlertReviewEvent.OnContinue(
                         resultUserData.getOrThrow(),
                         _state.value.requiredSignature,
                         _state.value.dummyTransactionId
@@ -194,21 +194,21 @@ class InheritanceReviewPlanGroupViewModel @Inject constructor(
         state.value.type != DummyTransactionType.CANCEL_INHERITANCE_PLAN
 }
 
-sealed class InheritanceReviewPlanGroupEvent {
-    data class Loading(val loading: Boolean) : InheritanceReviewPlanGroupEvent()
+sealed class InheritanceAlertReviewEvent {
+    data class Loading(val loading: Boolean) : InheritanceAlertReviewEvent()
     data class OnContinue(
         val userData: String,
         val requiredSignatures: CalculateRequiredSignatures,
         val dummyTransactionId: String
-    ) : InheritanceReviewPlanGroupEvent()
+    ) : InheritanceAlertReviewEvent()
 
-    data class ProcessFailure(val message: String) : InheritanceReviewPlanGroupEvent()
-    data object CreateOrUpdateInheritanceSuccess : InheritanceReviewPlanGroupEvent()
-    data object CancelInheritanceSuccess : InheritanceReviewPlanGroupEvent()
+    data class ProcessFailure(val message: String) : InheritanceAlertReviewEvent()
+    data object CreateOrUpdateInheritanceSuccess : InheritanceAlertReviewEvent()
+    data object CancelInheritanceSuccess : InheritanceAlertReviewEvent()
     data object CancelChangeSuccess : InheritanceReviewPlanGroupEvent()
 }
 
-data class InheritanceReviewPlanGroupState(
+data class InheritanceAlertReviewState(
     val payload: InheritancePayload = InheritancePayload(),
     val members: List<AssistedMember> = emptyList(),
     val dummyTransactionId: String = "",

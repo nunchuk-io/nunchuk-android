@@ -31,7 +31,7 @@ fun ProviderNotificationSettingsContent(
 ) {
     Box(
         modifier = Modifier
-            .padding(start = 16.dp, end = 16.dp, top = 16.dp)
+            .padding(top = 16.dp)
             .background(
                 color = MaterialTheme.colorScheme.greyLight,
                 shape = RoundedCornerShape(8.dp)

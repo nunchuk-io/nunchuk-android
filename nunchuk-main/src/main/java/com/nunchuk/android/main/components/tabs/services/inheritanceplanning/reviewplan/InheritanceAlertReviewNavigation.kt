@@ -19,15 +19,15 @@ import com.nunchuk.android.widget.NCToastMessage
 import kotlinx.serialization.Serializable
 
 @Serializable
-data object InheritanceReviewPlanGroupRoute
+data object InheritanceAlertReviewRoute
 
 fun NavGraphBuilder.inheritanceReviewPlanGroup() {
-    composable<InheritanceReviewPlanGroupRoute> {
+    composable<InheritanceAlertReviewRoute> {
         val activity = LocalActivity.current as InheritancePlanningActivity
         val activityViewModel: InheritancePlanningViewModel =
             hiltViewModel(viewModelStoreOwner = activity)
         MembershipStepEffect(activity.membershipStepManager)
-        val viewModel = hiltViewModel<InheritanceReviewPlanGroupViewModel>()
+        val viewModel = hiltViewModel<InheritanceAlertReviewViewModel>()
         val groupId = activityViewModel.state.value.groupId
         val lifecycleOwner = LocalLifecycleOwner.current
 
@@ -39,7 +39,7 @@ fun NavGraphBuilder.inheritanceReviewPlanGroup() {
             viewModel.event.flowWithLifecycle(lifecycleOwner.lifecycle, Lifecycle.State.STARTED)
                 .collect { event ->
                     when (event) {
-                        is InheritanceReviewPlanGroupEvent.OnContinue -> {
+                        is InheritanceAlertReviewEvent.OnContinue -> {
                             activity.setResult(Activity.RESULT_OK, Intent().apply {
                                 putExtra(GlobalResultKey.DUMMY_TX_ID, event.dummyTransactionId)
                                 putExtra(
@@ -49,15 +49,15 @@ fun NavGraphBuilder.inheritanceReviewPlanGroup() {
                             })
                             activity.finish()
                         }
-                        is InheritanceReviewPlanGroupEvent.Loading -> activity.showOrHideLoading(event.loading)
-                        is InheritanceReviewPlanGroupEvent.ProcessFailure -> NCToastMessage(activity).showError(event.message)
-                        InheritanceReviewPlanGroupEvent.CancelInheritanceSuccess -> Unit
-                        InheritanceReviewPlanGroupEvent.CreateOrUpdateInheritanceSuccess -> Unit
+                        is InheritanceAlertReviewEvent.Loading -> activity.showOrHideLoading(event.loading)
+                        is InheritanceAlertReviewEvent.ProcessFailure -> NCToastMessage(activity).showError(event.message)
+                        InheritanceAlertReviewEvent.CancelInheritanceSuccess -> Unit
+                        InheritanceAlertReviewEvent.CreateOrUpdateInheritanceSuccess -> Unit
                     }
                 }
         }
 
-        InheritanceReviewPlanGroupScreen(
+        InheritanceAlertReviewScreen(
             viewModel = viewModel,
             sharedViewModel = activityViewModel,
             groupId = groupId,

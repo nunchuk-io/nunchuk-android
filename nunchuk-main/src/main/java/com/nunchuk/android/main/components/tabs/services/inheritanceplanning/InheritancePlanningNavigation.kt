@@ -77,7 +77,7 @@ import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.req
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.requestplanningsent.confirm.inheritanceRequestPlanningConfirm
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.requestplanningsent.sent.inheritanceRequestPlanningSentSuccess
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.requestplanningsent.sent.navigateToInheritanceRequestPlanningSentSuccess
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.reviewplan.InheritanceReviewPlanGroupRoute
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.reviewplan.InheritanceAlertReviewRoute
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.reviewplan.InheritanceReviewPlanRoute
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.reviewplan.inheritanceReviewPlan
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.reviewplan.inheritanceReviewPlanGroup
@@ -111,7 +111,7 @@ fun getInheritancePlanningStartRoute(
     return when (planFlow) {
         InheritancePlanFlow.SETUP -> InheritanceSetupIntroRoute
         InheritancePlanFlow.VIEW -> InheritanceReviewPlanRoute
-        InheritancePlanFlow.SIGN_DUMMY_TX -> InheritanceReviewPlanGroupRoute
+        InheritancePlanFlow.SIGN_DUMMY_TX -> InheritanceAlertReviewRoute
         InheritancePlanFlow.REQUEST -> InheritanceRequestPlanningConfirmRoute(
             walletId = param.walletId,
             groupId = param.groupId,
