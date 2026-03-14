@@ -71,6 +71,7 @@ import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.utils.parcelableArrayList
 import com.nunchuk.android.widget.NCInfoDialog
+import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -529,6 +530,7 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
                 }
 
                 is SignerIntroEvent.Error -> {
+                    NCToastMessage(this).showError(event.message)
                 }
 
                 else -> {}
