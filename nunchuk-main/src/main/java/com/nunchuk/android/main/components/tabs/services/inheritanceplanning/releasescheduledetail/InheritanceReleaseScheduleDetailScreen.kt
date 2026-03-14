@@ -211,6 +211,7 @@ private fun InheritanceReleaseScheduleDetailContent(
                         StageCard(
                             modifier = Modifier.padding(top = 24.dp),
                             stage = stage,
+                            isExpanded = stage.isExpanded,
                             baseAllocatedPercent = uiState.allocatedBeforeStage(stage.id),
                             showConnector = index != uiState.stages.lastIndex,
                             onEditClick = { onEditStage(stage) },
@@ -371,14 +372,21 @@ private fun EmptyStateBottomActionSection(
 }
 
 @Composable
-private fun StageCard(
+internal fun StageCard(
     modifier: Modifier = Modifier,
     stage: ReleaseScheduleStage,
+    isExpanded: Boolean,
     baseAllocatedPercent: Int,
     showConnector: Boolean = false,
+    showEditIcon: Boolean = true,
+    isDisabled: Boolean = false,
+    currentInstallmentIndex: Int = Int.MAX_VALUE,
     onEditClick: () -> Unit = {},
     onToggleExpand: () -> Unit = {},
 ) {
+    val textColor = if (isDisabled) MaterialTheme.colorScheme.textSecondary else Color.Unspecified
+    val installmentLines = stage.buildInstallmentLines(baseAllocatedPercent)
+
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -394,7 +402,10 @@ private fun StageCard(
             Box(
                 modifier = Modifier
                     .size(10.dp)
-                    .background(color = Color(0xFFD8D8D8), shape = CircleShape)
+                    .background(
+                        color = if (isDisabled) Color(0xFFE3E3E3) else Color(0xFFD8D8D8),
+                        shape = CircleShape
+                    )
             )
             if (showConnector) {
                 Box(
@@ -422,17 +433,22 @@ private fun StageCard(
                         stage.stageNumber,
                         stage.allocationPercent
                     ),
-                    style = NunchukTheme.typography.title.copy(fontWeight = FontWeight.Bold)
+                    style = NunchukTheme.typography.title.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = textColor
+                    )
                 )
-                Spacer(modifier = Modifier.weight(1f))
-                Icon(
-                    modifier = Modifier
-                        .size(20.dp)
-                        .clickable(onClick = onEditClick),
-                    painter = painterResource(id = WidgetR.drawable.ic_edit_small_2),
-                    contentDescription = stringResource(id = R.string.nc_release_schedule_edit_stage),
-                    tint = Color.Unspecified
-                )
+                if (showEditIcon) {
+                    Spacer(modifier = Modifier.weight(1f))
+                    Icon(
+                        modifier = Modifier
+                            .size(20.dp)
+                            .clickable(onClick = onEditClick),
+                        painter = painterResource(id = WidgetR.drawable.ic_edit_small_2),
+                        contentDescription = stringResource(id = R.string.nc_release_schedule_edit_stage),
+                        tint = Color.Unspecified
+                    )
+                }
             }
 
             Row(
@@ -445,7 +461,7 @@ private fun StageCard(
                     modifier = Modifier.size(20.dp),
                     painter = painterResource(id = WidgetR.drawable.ic_calendar_blank),
                     contentDescription = null,
-                    tint = Color.Unspecified
+                    tint = if (isDisabled) MaterialTheme.colorScheme.textSecondary else Color.Unspecified
                 )
                 Text(
                     modifier = Modifier.padding(start = 10.dp),
@@ -453,7 +469,7 @@ private fun StageCard(
                         id = R.string.nc_release_schedule_first_withdrawal,
                         stage.firstWithdrawalDate.display()
                     ),
-                    style = NunchukTheme.typography.bodySmall
+                    style = NunchukTheme.typography.bodySmall.copy(color = textColor)
                 )
             }
 
@@ -467,7 +483,7 @@ private fun StageCard(
                     modifier = Modifier.size(20.dp),
                     painter = painterResource(id = WidgetR.drawable.ic_release_installment),
                     contentDescription = null,
-                    tint = Color.Unspecified
+                    tint = if (isDisabled) MaterialTheme.colorScheme.textSecondary else Color.Unspecified
                 )
                 Text(
                     modifier = Modifier.padding(start = 10.dp),
@@ -477,38 +493,40 @@ private fun StageCard(
                         frequencyText(stage.installmentConfig),
                         stage.installmentCount
                     ),
-                    style = NunchukTheme.typography.bodySmall
+                    style = NunchukTheme.typography.bodySmall.copy(color = textColor)
                 )
                 Spacer(modifier = Modifier.weight(1f))
-                Row(
-                    modifier = Modifier
-                        .clickable(onClick = onToggleExpand)
-                        .padding(start = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        text = stringResource(
-                            id = if (stage.isExpanded) {
-                                R.string.nc_release_schedule_collapse
-                            } else {
-                                R.string.nc_release_schedule_expand
-                            }
-                        ),
-                        style = NunchukTheme.typography.titleSmall.copy(textDecoration = TextDecoration.Underline)
-                    )
-                    Icon(
+                if (installmentLines.isNotEmpty()) {
+                    Row(
                         modifier = Modifier
-                            .padding(start = 6.dp)
-                            .size(18.dp)
-                            .rotate(if (stage.isExpanded) 180f else 0f),
-                        painter = painterResource(id = WidgetR.drawable.ic_arrow_down),
-                        contentDescription = null,
-                        tint = Color.Unspecified
-                    )
+                            .clickable(onClick = onToggleExpand)
+                            .padding(start = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            text = stringResource(
+                                id = if (isExpanded) R.string.nc_release_schedule_collapse
+                                else R.string.nc_release_schedule_expand
+                            ),
+                            style = NunchukTheme.typography.titleSmall.copy(
+                                textDecoration = TextDecoration.Underline,
+                                color = textColor,
+                            )
+                        )
+                        Icon(
+                            modifier = Modifier
+                                .padding(start = 6.dp)
+                                .size(18.dp)
+                                .rotate(if (isExpanded) 180f else 0f),
+                            painter = painterResource(id = WidgetR.drawable.ic_arrow_down),
+                            contentDescription = null,
+                            tint = if (isDisabled) MaterialTheme.colorScheme.textSecondary else Color.Unspecified
+                        )
+                    }
                 }
             }
 
-            if (stage.isExpanded) {
+            if (isExpanded && installmentLines.isNotEmpty()) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -523,19 +541,24 @@ private fun StageCard(
                             .background(Color(0xFFD5D5D5))
                     )
                     Column(modifier = Modifier.padding(start = 12.dp)) {
-                        stage.buildInstallmentLines(baseAllocatedPercent = baseAllocatedPercent)
-                            .forEach { line ->
-                                Text(
-                                    modifier = Modifier.padding(bottom = 10.dp),
-                                    text = stringResource(
-                                        id = R.string.nc_release_schedule_installment_line,
-                                        line.orderLabel,
-                                        line.availablePercent,
-                                        line.availableBy.display()
-                                    ),
-                                    style = NunchukTheme.typography.bodySmall
-                                )
+                        installmentLines.forEach { line ->
+                            val isInstallmentActive = line.order - 1 <= currentInstallmentIndex
+                            val lineColor = if (!isInstallmentActive || isDisabled) {
+                                MaterialTheme.colorScheme.textSecondary
+                            } else {
+                                Color.Unspecified
                             }
+                            Text(
+                                modifier = Modifier.padding(bottom = 10.dp),
+                                text = stringResource(
+                                    id = R.string.nc_release_schedule_installment_line,
+                                    line.orderLabel,
+                                    line.availablePercent,
+                                    line.availableBy.display()
+                                ),
+                                style = NunchukTheme.typography.bodySmall.copy(color = lineColor)
+                            )
+                        }
                     }
                 }
             }
@@ -544,7 +567,7 @@ private fun StageCard(
 }
 
 @Composable
-private fun frequencyText(config: ReleaseInstallmentConfig): String {
+internal fun frequencyText(config: ReleaseInstallmentConfig): String {
     val repeatEvery = config.repeatEvery.coerceAtLeast(1)
     return when (config.frequency) {
         ReleaseInstallmentFrequency.DAILY -> {

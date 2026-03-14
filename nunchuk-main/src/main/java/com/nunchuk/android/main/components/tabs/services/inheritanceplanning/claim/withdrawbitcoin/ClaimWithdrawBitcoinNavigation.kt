@@ -21,6 +21,7 @@ fun NavGraphBuilder.claimWithdrawBitcoin(
     onNavigateToSelectWallet: () -> Unit = {},
     onNavigateToWalletIntermediary: () -> Unit = {},
     onNavigateToAddReceipt: () -> Unit = {},
+    onViewReleaseSchedule: () -> Unit = {},
 ) {
     composable<ClaimWithdrawBitcoinRoute> {
         val activity = LocalActivity.current as ComponentActivity
@@ -29,15 +30,18 @@ fun NavGraphBuilder.claimWithdrawBitcoin(
         val claimData by activityViewModel.claimData.collectAsStateWithLifecycle()
 
         val walletBalance = claimData.inheritanceAdditional?.balance
-        walletBalance?.let { walletBalance ->
+        walletBalance?.let {
             ClaimWithdrawBitcoinScreen(
                 snackState = snackState,
                 bsms = claimData.bsms,
-                balance = walletBalance,
+                balance = it,
+                availableToWithdraw = claimData.inheritanceAdditional?.availableToWithdraw ?: it,
+                hasStages = claimData.inheritanceAdditional?.stages?.isNotEmpty() == true,
                 onNavigateToInputAmount = onNavigateToInputAmount,
                 onNavigateToSelectWallet = onNavigateToSelectWallet,
                 onNavigateToWalletIntermediary = onNavigateToWalletIntermediary,
                 onNavigateToAddReceipt = onNavigateToAddReceipt,
+                onViewReleaseSchedule = onViewReleaseSchedule,
             )
         }
     }
@@ -46,4 +50,3 @@ fun NavGraphBuilder.claimWithdrawBitcoin(
 fun NavController.navigateToClaimWithdrawBitcoin() {
     navigate(ClaimWithdrawBitcoinRoute)
 }
-

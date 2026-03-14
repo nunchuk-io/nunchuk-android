@@ -152,6 +152,8 @@
     <string name="nc_release_schedule_buffer_period_summary">Buffer period: %1$d days (%2$s)</string>
     <string name="nc_release_schedule_buffer_period_first_withdrawal_only">first withdrawal only</string>
     <string name="nc_release_schedule_buffer_period_every_withdrawal">every withdrawal</string>
+    <string name="nc_claim_release_schedule_desc">This schedule shows when and how much of your inheritance becomes available to withdraw over time.</string>
+    <string name="nc_claim_available_balance">Available balance: %1$d%% (%2$s)</string>
     <string name="nc_find_backup_password_desc">In your wallet, you have designated a TAPSIGNER to be the inheritance key. An encrypted backup of this key is stored on the server.\n\nAfter the timelock, the Beneficiary or Trustee can recover this key using the Backup Password printed on the back of the TAPSIGNER.\n\n[B]Make note of this Backup Password[/B]. You will need to share it with the Beneficiary or Trustee.</string>
     <string name="nc_find_backup_password_desc_1">In your wallet, you have designated a TAPSIGNER to be [A]the first inheritance key.[/A] An encrypted backup of this key is stored on the server.\n\nAfter the timelock, the Beneficiary or Trustee can recover this key using the Backup Password printed on the back of the TAPSIGNER.\n\n[B]Make note of this Backup Password[/B]. You will need to share it with the Beneficiary or Trustee.</string>
     <string name="nc_find_backup_password_desc_2">Additionally, you have designated %1$s TAPSIGNER to be [A]the second inheritance key.[/A] An encrypted backup of this key is also stored on the server.\n\nSimilarly, after the timelock, the Beneficiary or Trustee can recover this key using the Backup Password printed on the back of the second TAPSIGNER.\n\n[B]Make note of this Backup Password[/B]. You will need to share it with the Beneficiary or Trustee</string>
@@ -669,6 +671,10 @@
     <string name="nc_inheritance_notify_pref_on_chain_desc">Would you like us to notify the Beneficiary or Trustee about the inheritance plan?</string>
     <string name="nc_view_wallet">View wallet</string>
     <string name="nc_view_release_schedule">View release schedule</string>
+    <string name="nc_available_to_withdraw_now">Available to withdraw now</string>
+    <string name="nc_from_btc_total">from %s total</string>
+    <string name="nc_from_currency_total">from %s total</string>
+    <string name="nc_withdraw_all_available_balance">Withdraw all available balance</string>
     <string name="nc_platform_key_policies">Platform key policies</string>
     <string name="nc_new_platform_key_added">New platform key added.</string>
     <string name="nc_platform_key_policies_saved">Platform key policies saved.</string>

@@ -53,13 +53,15 @@ import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.cla
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.magicphrase.claimMagicPhrase
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.noinheritancefound.inheritanceError
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.noinheritancefound.navigateToInheritanceError
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.releaseintro.claimReleaseIntro
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.releaseintro.navigateToClaimReleaseIntro
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.preparerecover.InheritanceOption
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.preparerecover.navigateToPrepareInheritanceKey
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.preparerecover.navigateToRecoverInheritanceKey
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.preparerecover.prepareInheritanceKey
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.preparerecover.recoverInheritanceKey
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.releaseintro.claimReleaseIntro
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.releaseintro.navigateToClaimReleaseIntro
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.releaseschedule.claimReleaseSchedule
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.releaseschedule.navigateToClaimReleaseSchedule
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.restorehardware.navigateToRestoreSeedPhraseHardware
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.restorehardware.restoreSeedPhraseHardware
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.verifymessage.navigateToVerifyInheritanceMessage
@@ -411,6 +413,21 @@ private fun ClaimInheritanceGraph(
                     navController.popBackStack()
                 },
                 onContinueClicked = {
+                    navController.navigateToClaimReleaseSchedule()
+                },
+            )
+            claimReleaseSchedule(
+                onWithdrawClicked = {
+                    navController.navigateToClaimWithdrawBitcoin()
+                    if (sharedUiState.isRequiredRegister) {
+                        navigator.openUploadConfigurationScreen(
+                            activityContext = context,
+                            walletId = sharedUiState.walletId,
+                            type = UploadConfigurationType.RegisterOnly
+                        )
+                    }
+                },
+                onDoneClicked = {
                     activity.finish()
                 },
             )
@@ -441,6 +458,9 @@ private fun ClaimInheritanceGraph(
             )
             claimWithdrawBitcoin(
                 snackState = snackbarHostState,
+                onViewReleaseSchedule = {
+                    navController.popBackStack()
+                },
                 onNavigateToInputAmount = {
                     claimData.inheritanceAdditional?.balance?.let { walletBalance ->
                         navigator.openInputAmountScreen(
