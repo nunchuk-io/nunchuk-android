@@ -25,6 +25,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -63,25 +64,34 @@ import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.fillDenim
 import com.nunchuk.android.compose.greyLight
+import com.nunchuk.android.compose.textPrimary
+import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.compose.whisper
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceBeneficiaryAllocation
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceBufferPeriodApplyType
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningParam
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceReleaseMethodType
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceSetupFlowType
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.fallbackSettingsSummaryText
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releaseScheduleBufferPeriodSummaryText
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.beneficiaryschedules.InheritanceBeneficiaryScheduleCardData
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasescheduledetail.ReleaseInstallmentConfig
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasescheduledetail.ReleaseInstallmentFrequency
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasescheduledetail.ReleaseScheduleDate
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasescheduledetail.ReleaseScheduleStage
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasescheduledetail.ReleaseScheduleSummaryProgress
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasescheduledetail.ReleaseScheduleUiState
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.view.AllocationDonutChart
 import com.nunchuk.android.model.Period
 import com.nunchuk.android.model.TimelockBased
 import com.nunchuk.android.model.byzantine.isMasterOrAdmin
 import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.model.inheritance.EmailNotificationSettings
 import com.nunchuk.android.utils.Utils
+import com.nunchuk.android.widget.R as WidgetR
 
 
 @Composable
@@ -97,7 +107,11 @@ fun InheritanceReviewPlanScreen(
     onActionTopBarClick: () -> Unit,
     onViewClaimingInstruction: () -> Unit = {},
     onEditBufferPeriodClick: (bufferPeriod: Period?) -> Unit = {},
-    onBackUpPasswordInfoClick: () -> Unit = {}
+    onBackUpPasswordInfoClick: () -> Unit = {},
+    onEditAssetAllocationClick: () -> Unit = {},
+    onEditReleaseMethodClick: () -> Unit = {},
+    onEditBeneficiarySchedulesClick: () -> Unit = {},
+    onEditFallbackSettingsClick: () -> Unit = {},
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
@@ -140,7 +154,11 @@ fun InheritanceReviewPlanScreen(
         onActionTopBarClick = onActionTopBarClick,
         onViewClaimingInstruction = onViewClaimingInstruction,
         onEditBufferPeriodClick = onEditBufferPeriodClick,
-        onBackUpPasswordInfoClick = onBackUpPasswordInfoClick
+        onBackUpPasswordInfoClick = onBackUpPasswordInfoClick,
+        onEditAssetAllocationClick = onEditAssetAllocationClick,
+        onEditReleaseMethodClick = onEditReleaseMethodClick,
+        onEditBeneficiarySchedulesClick = onEditBeneficiarySchedulesClick,
+        onEditFallbackSettingsClick = onEditFallbackSettingsClick,
     )
 }
 
@@ -168,10 +186,16 @@ fun InheritanceReviewPlanScreenContent(
     onViewClaimingInstruction: () -> Unit = {},
     onEditBufferPeriodClick: (bufferPeriod: Period?) -> Unit = {},
     onBackUpPasswordInfoClick: () -> Unit = {},
+    onEditAssetAllocationClick: () -> Unit = {},
+    onEditReleaseMethodClick: () -> Unit = {},
+    onEditBeneficiarySchedulesClick: () -> Unit = {},
+    onEditFallbackSettingsClick: () -> Unit = {},
 ) {
     val isEditable = groupId.isEmpty() || state.currentUserRole.toRole.isMasterOrAdmin
     val isSingleBeneficiaryFlow =
         setupOrReviewParam.setupFlowType == InheritanceSetupFlowType.SINGLE_BENEFICIARY
+    val isMultiBeneficiaryFlow =
+        setupOrReviewParam.setupFlowType == InheritanceSetupFlowType.MULTI_BENEFICIARY
     val magicalPhraseMask = if (groupId.isNotEmpty() && magicalPhrase.isEmpty()) {
         Utils.maskValue("", isMask = true)
     } else {
@@ -319,12 +343,18 @@ fun InheritanceReviewPlanScreenContent(
                                     style = NunchukTheme.typography.title,
                                     color = Color.White
                                 )
-                                SpecialDetailPlanItem(
-                                    iconId = R.drawable.ic_star_light,
-                                    title = stringResource(R.string.nc_magical_phrase),
-                                    content = magicalPhraseMask,
-                                    editable = false
-                                )
+                                if (isMultiBeneficiaryFlow && setupOrReviewParam.beneficiaryAllocations.isNotEmpty()) {
+                                    MultiBeneficiaryMagicPhrasesPlanItem(
+                                        beneficiaryAllocations = setupOrReviewParam.beneficiaryAllocations
+                                    )
+                                } else {
+                                    SpecialDetailPlanItem(
+                                        iconId = R.drawable.ic_star_light,
+                                        title = stringResource(R.string.nc_magical_phrase),
+                                        content = magicalPhraseMask,
+                                        editable = false
+                                    )
+                                }
                                 if (isMiniscriptWallet) {
                                     setupOrReviewParam.inheritanceKeys.forEachIndexed { index, key ->
                                         Spacer(modifier = Modifier.height(12.dp))
@@ -352,25 +382,27 @@ fun InheritanceReviewPlanScreenContent(
                                         }
                                     )
                                 }
-                                Text(
-                                    text = "Funds become claimable after:",
-                                    modifier = Modifier.padding(top = 24.dp, bottom = 12.dp),
-                                    style = NunchukTheme.typography.title,
-                                    color = Color.White
-                                )
-                                ActivationDateItem(
-                                    activationDate = formatDateTimeInTimezone(
-                                        timestamp = setupOrReviewParam.activationDate,
-                                        isOnChainTimelock = isMiniscriptWallet
-                                    ),
-                                    timeZoneId = setupOrReviewParam.selectedZoneId,
-                                    editable = isEditable && !isMiniscriptWallet,
-                                    isHeightLock = setupOrReviewParam.timelockBased == TimelockBased.HEIGHT_LOCK,
-                                    blockHeight = setupOrReviewParam.blockHeight,
-                                    onClick = {
-                                        onEditActivationDateClick()
-                                    }
-                                )
+                                if (!isMultiBeneficiaryFlow) {
+                                    Text(
+                                        text = "Funds become claimable after:",
+                                        modifier = Modifier.padding(top = 24.dp, bottom = 12.dp),
+                                        style = NunchukTheme.typography.title,
+                                        color = Color.White
+                                    )
+                                    ActivationDateItem(
+                                        activationDate = formatDateTimeInTimezone(
+                                            timestamp = setupOrReviewParam.activationDate,
+                                            isOnChainTimelock = isMiniscriptWallet
+                                        ),
+                                        timeZoneId = setupOrReviewParam.selectedZoneId,
+                                        editable = isEditable && !isMiniscriptWallet,
+                                        isHeightLock = setupOrReviewParam.timelockBased == TimelockBased.HEIGHT_LOCK,
+                                        blockHeight = setupOrReviewParam.blockHeight,
+                                        onClick = {
+                                            onEditActivationDateClick()
+                                        }
+                                    )
+                                }
                                 if (isEditable && planFlow == InheritancePlanFlow.VIEW) {
                                     Spacer(modifier = Modifier.height(24.dp))
                                     NcOutlineButton(
@@ -420,6 +452,37 @@ fun InheritanceReviewPlanScreenContent(
                     }
                 }
 
+                if (isMultiBeneficiaryFlow) {
+                    item(key = "multi_beneficiary_summary") {
+                        MultiBeneficiaryReviewSection(
+                            isEditable = isEditable,
+                            releaseMethodType = setupOrReviewParam.releaseMethodType,
+                            beneficiaries = setupOrReviewParam.beneficiaryAllocations,
+                            sharedReleaseScheduleUiState = releaseScheduleUiState,
+                            individualScheduleCardDataByEmail = setupOrReviewParam.individualScheduleConfigs.mapValues { (_, config) ->
+                                InheritanceBeneficiaryScheduleCardData(
+                                    releaseScheduleUiState = config.releaseScheduleUiState,
+                                    bufferPeriodSummaryText = releaseScheduleBufferPeriodSummaryText(
+                                        period = config.bufferPeriod,
+                                        applyType = config.bufferPeriodApplyType,
+                                    ),
+                                )
+                            },
+                            sharedBufferPeriodSummaryText = releaseScheduleBufferPeriodSummaryText(
+                                period = setupOrReviewParam.bufferPeriod,
+                                applyType = setupOrReviewParam.bufferPeriodApplyType,
+                            ),
+                            timezoneText = getTimezoneDisplay(setupOrReviewParam.selectedZoneId),
+                            fallbackSummaryText = fallbackSettingsSummaryText(setupOrReviewParam.fallbackSettings),
+                            onEditAssetAllocationClick = onEditAssetAllocationClick,
+                            onEditReleaseMethodClick = onEditReleaseMethodClick,
+                            onEditBeneficiarySchedulesClick = onEditBeneficiarySchedulesClick,
+                            onEditTimeZoneClick = onEditActivationDateClick,
+                            onEditFallbackSettingsClick = onEditFallbackSettingsClick,
+                        )
+                    }
+                }
+
                 item {
                     Column(
                         modifier = Modifier.padding(
@@ -438,7 +501,7 @@ fun InheritanceReviewPlanScreenContent(
                     }
                 }
 
-                if (!isMiniscriptWallet && !isSingleBeneficiaryFlow) {
+                if (!isMiniscriptWallet && setupOrReviewParam.setupFlowType == InheritanceSetupFlowType.OLD_FLOW) {
                     item(key = "divider_1") {
                         HorizontalDivider(
                             modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 24.dp),
@@ -597,6 +660,326 @@ private fun SingleBeneficiaryReleaseScheduleSection(
                     text = timeZoneText,
                     style = NunchukTheme.typography.body
                 )
+            }
+        }
+    }
+}
+
+@Composable
+private fun MultiBeneficiaryMagicPhrasesPlanItem(
+    beneficiaryAllocations: List<InheritanceBeneficiaryAllocation>,
+) {
+    Column(
+        modifier = Modifier
+            .background(
+                color = Color.White,
+                shape = RoundedCornerShape(12.dp)
+            )
+            .padding(12.dp)
+            .fillMaxWidth(),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+                modifier = Modifier.size(24.dp),
+                painter = painterResource(id = R.drawable.ic_nc_star_dark),
+                tint = colorResource(id = R.color.nc_grey_g7),
+                contentDescription = null
+            )
+            Text(
+                modifier = Modifier.padding(start = 8.dp),
+                text = stringResource(id = R.string.nc_magic_phrases),
+                color = colorResource(id = R.color.nc_grey_g7),
+                style = NunchukTheme.typography.title
+            )
+        }
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 32.dp, top = 8.dp)
+        ) {
+            beneficiaryAllocations.forEachIndexed { index, allocation ->
+                Text(
+                    text = allocation.email,
+                    style = NunchukTheme.typography.title
+                )
+                Text(
+                    modifier = Modifier.padding(top = 2.dp),
+                    text = allocation.magic.ifBlank { stringResource(id = R.string.nc_no_listed) },
+                    style = NunchukTheme.typography.body
+                )
+                if (index != beneficiaryAllocations.lastIndex) {
+                    HorizontalDivider(
+                        modifier = Modifier.padding(top = 12.dp, bottom = 12.dp),
+                        thickness = 1.dp,
+                        color = MaterialTheme.colorScheme.whisper
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun MultiBeneficiaryReviewSection(
+    isEditable: Boolean,
+    releaseMethodType: InheritanceReleaseMethodType,
+    beneficiaries: List<InheritanceBeneficiaryAllocation>,
+    sharedReleaseScheduleUiState: ReleaseScheduleUiState,
+    individualScheduleCardDataByEmail: Map<String, InheritanceBeneficiaryScheduleCardData>,
+    sharedBufferPeriodSummaryText: String?,
+    timezoneText: String,
+    fallbackSummaryText: String?,
+    onEditAssetAllocationClick: () -> Unit,
+    onEditReleaseMethodClick: () -> Unit,
+    onEditBeneficiarySchedulesClick: () -> Unit,
+    onEditTimeZoneClick: () -> Unit,
+    onEditFallbackSettingsClick: () -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.fillDenim)
+            .padding(horizontal = 16.dp, vertical = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        MultiBeneficiaryCard {
+            ReviewPlanSectionHeader(
+                title = stringResource(id = R.string.nc_asset_allocation),
+                editable = isEditable,
+                onEditClick = onEditAssetAllocationClick
+            )
+            if (beneficiaries.isNotEmpty()) {
+                AllocationDonutChart(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 10.dp),
+                    beneficiaries = beneficiaries
+                )
+            }
+            HorizontalDivider(
+                modifier = Modifier.padding(top = 12.dp),
+                thickness = 1.dp,
+                color = MaterialTheme.colorScheme.whisper
+            )
+            ReviewPlanSectionHeader(
+                modifier = Modifier.padding(top = 12.dp),
+                title = stringResource(id = R.string.nc_release_method_title),
+                editable = isEditable,
+                onEditClick = onEditReleaseMethodClick
+            )
+            Text(
+                modifier = Modifier.padding(top = 8.dp),
+                text = stringResource(
+                    id = if (releaseMethodType == InheritanceReleaseMethodType.SHARED_SCHEDULE) {
+                        R.string.nc_release_method_shared_schedule
+                    } else {
+                        R.string.nc_release_method_individual_schedules
+                    }
+                ),
+                style = NunchukTheme.typography.body
+            )
+        }
+
+        MultiBeneficiaryCard {
+            ReviewPlanSectionHeader(
+                title = stringResource(id = R.string.nc_beneficiary_schedules_title),
+                editable = isEditable,
+                onEditClick = onEditBeneficiarySchedulesClick
+            )
+            if (releaseMethodType == InheritanceReleaseMethodType.SHARED_SCHEDULE) {
+                SharedScheduleReviewSummary(
+                    modifier = Modifier.padding(top = 12.dp),
+                    uiState = sharedReleaseScheduleUiState,
+                    bufferPeriodSummaryText = sharedBufferPeriodSummaryText,
+                )
+            } else {
+                IndividualScheduleReviewSummary(
+                    modifier = Modifier.padding(top = 12.dp),
+                    beneficiaries = beneficiaries,
+                    individualScheduleCardDataByEmail = individualScheduleCardDataByEmail,
+                )
+            }
+        }
+
+        MultiBeneficiaryCard {
+            ReviewPlanSectionHeader(
+                title = stringResource(id = com.nunchuk.android.core.R.string.nc_time_zone),
+                editable = isEditable,
+                onEditClick = onEditTimeZoneClick
+            )
+            Text(
+                modifier = Modifier.padding(top = 12.dp),
+                text = timezoneText,
+                style = NunchukTheme.typography.body
+            )
+        }
+
+        MultiBeneficiaryCard {
+            ReviewPlanSectionHeader(
+                title = stringResource(id = R.string.nc_fallback_settings_title),
+                editable = isEditable,
+                onEditClick = onEditFallbackSettingsClick
+            )
+            Text(
+                modifier = Modifier.padding(top = 12.dp),
+                text = fallbackSummaryText ?: stringResource(id = R.string.nc_fallback_summary_no_fallback),
+                style = NunchukTheme.typography.body
+            )
+        }
+    }
+}
+
+@Composable
+private fun MultiBeneficiaryCard(
+    modifier: Modifier = Modifier,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(
+                color = MaterialTheme.colorScheme.greyLight,
+                shape = RoundedCornerShape(12.dp)
+            )
+            .padding(16.dp)
+    ) {
+        Column(content = content)
+    }
+}
+
+@Composable
+private fun SharedScheduleReviewSummary(
+    modifier: Modifier = Modifier,
+    uiState: ReleaseScheduleUiState,
+    bufferPeriodSummaryText: String?,
+) {
+    val firstStage = uiState.stages.firstOrNull()
+    Column(modifier = modifier.fillMaxWidth()) {
+        if (firstStage != null) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    painter = painterResource(id = WidgetR.drawable.ic_calendar_blank),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.textPrimary
+                )
+                Text(
+                    modifier = Modifier.padding(start = 8.dp),
+                    text = stringResource(
+                        id = R.string.nc_release_schedule_first_withdrawal,
+                        firstStage.firstWithdrawalDate.display()
+                    ),
+                    style = NunchukTheme.typography.body
+                )
+            }
+            if (!bufferPeriodSummaryText.isNullOrBlank()) {
+                Row(
+                    modifier = Modifier.padding(top = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        painter = painterResource(id = WidgetR.drawable.ic_buffer_period),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.textPrimary
+                    )
+                    Text(
+                        modifier = Modifier.padding(start = 8.dp),
+                        text = bufferPeriodSummaryText,
+                        style = NunchukTheme.typography.body
+                    )
+                }
+            }
+            ReleaseScheduleSummaryProgress(
+                modifier = Modifier.padding(top = 12.dp),
+                segments = uiState.allocationSegments,
+                summaryScalePercent = uiState.summaryScalePercent,
+                remainingSummaryPercent = uiState.remainingSummaryPercent,
+                surfaceColor = MaterialTheme.colorScheme.greyLight,
+            )
+        } else {
+            Text(
+                text = stringResource(id = R.string.nc_beneficiary_schedules_not_set_up_yet),
+                style = NunchukTheme.typography.body.copy(color = MaterialTheme.colorScheme.textSecondary)
+            )
+        }
+    }
+}
+
+@Composable
+private fun IndividualScheduleReviewSummary(
+    modifier: Modifier = Modifier,
+    beneficiaries: List<InheritanceBeneficiaryAllocation>,
+    individualScheduleCardDataByEmail: Map<String, InheritanceBeneficiaryScheduleCardData>,
+) {
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(18.dp)
+    ) {
+        beneficiaries.forEach { beneficiary ->
+            val beneficiaryKey = beneficiary.email.trim().lowercase()
+            val scheduleCardData = individualScheduleCardDataByEmail[beneficiary.email]
+                ?: individualScheduleCardDataByEmail[beneficiaryKey]
+            val firstStage = scheduleCardData?.releaseScheduleUiState?.stages?.firstOrNull()
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = beneficiary.email,
+                    style = NunchukTheme.typography.title
+                )
+                Row(
+                    modifier = Modifier.padding(top = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        painter = painterResource(id = WidgetR.drawable.ic_calendar_blank),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.textPrimary
+                    )
+                    Text(
+                        modifier = Modifier.padding(start = 8.dp),
+                        text = if (firstStage != null) {
+                            stringResource(
+                                id = R.string.nc_release_schedule_first_withdrawal,
+                                firstStage.firstWithdrawalDate.display()
+                            )
+                        } else {
+                            stringResource(id = R.string.nc_beneficiary_schedules_not_set_up_yet)
+                        },
+                        style = NunchukTheme.typography.body.copy(
+                            color = if (firstStage == null) {
+                                MaterialTheme.colorScheme.textSecondary
+                            } else {
+                                MaterialTheme.colorScheme.textPrimary
+                            }
+                        )
+                    )
+                }
+
+                if (firstStage != null && !scheduleCardData?.bufferPeriodSummaryText.isNullOrBlank()) {
+                    Row(
+                        modifier = Modifier.padding(top = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            painter = painterResource(id = WidgetR.drawable.ic_buffer_period),
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.textPrimary
+                        )
+                        Text(
+                            modifier = Modifier.padding(start = 8.dp),
+                            text = scheduleCardData?.bufferPeriodSummaryText.orEmpty(),
+                            style = NunchukTheme.typography.body
+                        )
+                    }
+                }
+
+                if (firstStage != null) {
+                    ReleaseScheduleSummaryProgress(
+                        modifier = Modifier.padding(top = 12.dp),
+                        segments = scheduleCardData.releaseScheduleUiState.allocationSegments,
+                        summaryScalePercent = scheduleCardData.releaseScheduleUiState.summaryScalePercent,
+                        remainingSummaryPercent = scheduleCardData.releaseScheduleUiState.remainingSummaryPercent,
+                        surfaceColor = MaterialTheme.colorScheme.greyLight,
+                    )
+                }
             }
         }
     }

@@ -47,6 +47,10 @@ fun NavGraphBuilder.inheritanceReviewPlan(
     onViewClaimingInstruction: () -> Unit,
     onEditBufferPeriodClick: (Period?) -> Unit,
     onBackUpPasswordInfoClick: () -> Unit,
+    onEditAssetAllocationClick: () -> Unit,
+    onEditReleaseMethodClick: () -> Unit,
+    onEditBeneficiarySchedulesClick: () -> Unit,
+    onEditFallbackSettingsClick: () -> Unit,
 ) {
     composable<InheritanceReviewPlanRoute> {
         val activity = LocalActivity.current as InheritancePlanningActivity
@@ -151,6 +155,10 @@ fun NavGraphBuilder.inheritanceReviewPlan(
             onViewClaimingInstruction = onViewClaimingInstruction,
             onEditBufferPeriodClick = onEditBufferPeriodClick,
             onBackUpPasswordInfoClick = onBackUpPasswordInfoClick,
+            onEditAssetAllocationClick = onEditAssetAllocationClick,
+            onEditReleaseMethodClick = onEditReleaseMethodClick,
+            onEditBeneficiarySchedulesClick = onEditBeneficiarySchedulesClick,
+            onEditFallbackSettingsClick = onEditFallbackSettingsClick,
         )
     }
 }

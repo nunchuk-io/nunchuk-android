@@ -266,7 +266,7 @@ fun InheritancePlanningGraph(
                 if (activityViewModel.setupOrReviewParam.setupFlowType == InheritanceSetupFlowType.SINGLE_BENEFICIARY) {
                     navController.navigateToInheritanceReleaseSchedule()
                 } else if (activityViewModel.setupOrReviewParam.setupFlowType == InheritanceSetupFlowType.MULTI_BENEFICIARY) {
-                    navController.navigateToInheritanceReleaseMethod()
+                    navController.navigateToInheritanceNote()
                 } else if (activityViewModel.isMiniscriptWallet()) {
                     navController.navigateToInheritanceTimelockInfo()
                 } else {
@@ -512,6 +512,8 @@ fun InheritancePlanningGraph(
                     navController.popBackStack()
                 } else if (activityViewModel.setupOrReviewParam.setupFlowType == InheritanceSetupFlowType.SINGLE_BENEFICIARY) {
                     navController.navigateToInheritanceNotifyPref(isUpdateRequest = isUpdateRequest)
+                } else if (activityViewModel.setupOrReviewParam.setupFlowType == InheritanceSetupFlowType.MULTI_BENEFICIARY) {
+                    navController.navigateToInheritanceNotifyPref(isUpdateRequest = isUpdateRequest)
                 } else if (activityViewModel.isMiniscriptWallet()) {
                     navController.navigateToInheritanceNotifyPref(isUpdateRequest = isUpdateRequest)
                 } else {
@@ -677,6 +679,18 @@ fun InheritancePlanningGraph(
             },
             onBackUpPasswordInfoClick = {
                 navController.navigateToInheritanceBackUpDownload()
+            },
+            onEditAssetAllocationClick = {
+                navController.navigateToInheritanceAssetAllocation()
+            },
+            onEditReleaseMethodClick = {
+                navController.navigateToInheritanceReleaseMethod()
+            },
+            onEditBeneficiarySchedulesClick = {
+                navController.navigateToInheritanceBeneficiarySchedules()
+            },
+            onEditFallbackSettingsClick = {
+                navController.navigateToInheritanceFallbackSettings()
             },
         )
 
