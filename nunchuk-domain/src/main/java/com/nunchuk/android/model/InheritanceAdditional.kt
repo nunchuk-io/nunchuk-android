@@ -32,7 +32,10 @@ data class InheritanceAdditional(
     val currentStageIndex: Int,
     val currentInstallmentIndex: Int,
     val stages: List<InheritancePlanStage> = emptyList(),
-) : Parcelable
+) : Parcelable {
+    val isCustomizeDistribution
+        get() = inheritance?.isCustomizeDistribution == true && stages.isNotEmpty()
+}
 
 @Parcelize
 data class BufferPeriodCountdown(

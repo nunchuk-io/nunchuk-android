@@ -133,10 +133,9 @@ private fun ClaimReleaseScheduleContent(
                     .padding(innerPadding)
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
-                    .padding(bottom = 24.dp)
             ) {
                 Text(
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp),
+                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
                     text = stringResource(id = R.string.nc_release_schedule_title),
                     style = NunchukTheme.typography.heading
                 )

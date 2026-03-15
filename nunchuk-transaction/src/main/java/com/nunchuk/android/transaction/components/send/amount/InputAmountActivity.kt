@@ -129,7 +129,12 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
             }
             true
         }
-        binding.mainCurrency.setText("")
+        val prefillAmount = args.claimInheritanceTxParam?.customAmount ?: 0.0
+        if (prefillAmount > 0.0) {
+            showAmount(prefillAmount)
+        } else {
+            binding.mainCurrency.setText("")
+        }
         binding.mainCurrency.requestFocus()
         binding.btnSendAll.setOnClickListener {
             if ((args.isFromSelectedCoin && viewModel.isSelectedCoinsHasLocked()) || (!args.isFromSelectedCoin && viewModel.isHasLockedCoin())) {

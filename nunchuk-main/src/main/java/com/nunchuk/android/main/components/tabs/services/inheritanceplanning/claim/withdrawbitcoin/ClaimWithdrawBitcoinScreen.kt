@@ -4,7 +4,6 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -17,7 +16,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
@@ -37,11 +35,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.PreviewLightDark
@@ -54,6 +55,7 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcRadioButton
 import com.nunchuk.android.compose.NcScaffold
 import com.nunchuk.android.compose.NcSelectableBottomSheetWithIcon
+import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NcToastType
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
@@ -64,22 +66,27 @@ import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.R
+import com.nunchuk.android.core.domain.data.CURRENT_DISPLAY_UNIT_TYPE
+import com.nunchuk.android.core.domain.data.SAT
+import com.nunchuk.android.core.util.fromSATtoBTC
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getCurrencyAmount
+import com.nunchuk.android.core.util.getTextBtcUnit
 import com.nunchuk.android.core.util.toAmount
+import com.nunchuk.android.core.util.toDoubleOrZero
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.withdrawbitcoin.InheritanceClaimWithdrawBitcoinEvent
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.withdrawbitcoin.InheritanceClaimWithdrawBitcoinViewModel
 import com.nunchuk.android.main.R as MainR
 
 @Composable
 fun ClaimWithdrawBitcoinScreen(
+    modifier: Modifier = Modifier,
     snackState: SnackbarHostState,
     bsms: String?,
     balance: Double,
     availableToWithdraw: Double = balance,
     hasStages: Boolean = false,
-    modifier: Modifier = Modifier,
-    onNavigateToInputAmount: () -> Unit = {},
+    onNavigateToInputAmount: (Double) -> Unit = {},
     onNavigateToSelectWallet: () -> Unit = {},
     onNavigateToWalletIntermediary: () -> Unit = {},
     onNavigateToAddReceipt: () -> Unit = {},
@@ -132,9 +139,9 @@ fun ClaimWithdrawBitcoinScreen(
         onDismissSweepOptions = {
             showSweepOptions = false
         },
-        onContinue = { selectedOption ->
+        onContinue = { selectedOption, customAmount ->
             when (selectedOption) {
-                0 -> onNavigateToInputAmount()
+                0 -> onNavigateToInputAmount(customAmount)
                 1 -> showSweepOptions = true
             }
         },
@@ -158,13 +165,14 @@ private fun ClaimWithdrawBitcoinContent(
     availableToWithdraw: Double = 0.0,
     hasStages: Boolean = false,
     snackState: SnackbarHostState = remember { SnackbarHostState() },
-    onContinue: (Int) -> Unit = {},
+    onContinue: (Int, Double) -> Unit = { _, _ -> },
     showSweepOptions: Boolean = false,
     onDismissSweepOptions: () -> Unit = {},
     onSweepOptionSelected: (Int) -> Unit = {},
     onViewReleaseSchedule: () -> Unit = {},
 ) {
     val selectOption = remember { mutableIntStateOf(0) }
+    var customAmountValue by remember { mutableStateOf(TextFieldValue()) }
 
     NcScaffold(
         modifier = modifier
@@ -182,7 +190,9 @@ private fun ClaimWithdrawBitcoinContent(
                     .fillMaxWidth()
                     .padding(16.dp),
                 onClick = {
-                    onContinue(selectOption.intValue)
+                    val amount = customAmountValue.text.toDoubleOrZero()
+                    val btcAmount = if (CURRENT_DISPLAY_UNIT_TYPE == SAT) amount.fromSATtoBTC() else amount
+                    onContinue(selectOption.intValue, btcAmount)
                 },
             ) {
                 Text(text = stringResource(id = R.string.nc_text_continue))
@@ -235,6 +245,8 @@ private fun ClaimWithdrawBitcoinContent(
                     modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
                     isSelected = selectOption.intValue == 0,
                     availableToWithdraw = availableToWithdraw,
+                    inputValue = customAmountValue,
+                    onInputValueChange = { customAmountValue = it },
                     onClick = { selectOption.intValue = 0 },
                 )
 
@@ -397,9 +409,10 @@ private fun CustomAmountOptionCard(
     modifier: Modifier = Modifier,
     isSelected: Boolean,
     availableToWithdraw: Double,
+    inputValue: TextFieldValue,
+    onInputValueChange: (TextFieldValue) -> Unit,
     onClick: () -> Unit = {},
 ) {
-    var inputText by remember { mutableStateOf("") }
 
     Card(
         modifier = modifier.fillMaxWidth(),
@@ -428,47 +441,35 @@ private fun CustomAmountOptionCard(
             }
             if (isSelected) {
                 Spacer(modifier = Modifier.height(12.dp))
-                Card(
-                    border = BorderStroke(
-                        width = 1.dp,
-                        color = MaterialTheme.colorScheme.strokePrimary
-                    ),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surface
-                    ),
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 14.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(modifier = Modifier.weight(1f)) {
-                            BasicTextField(
-                                value = inputText,
-                                onValueChange = { newValue ->
-                                    val filtered = newValue.filter { it.isDigit() || it == '.' }
-                                    val parsed = filtered.toDoubleOrNull()
-                                    inputText = if (parsed != null && parsed > availableToWithdraw) {
-                                        availableToWithdraw.toBigDecimal().stripTrailingZeros().toPlainString()
-                                    } else {
-                                        filtered
-                                    }
-                                },
-                                singleLine = true,
-                                textStyle = NunchukTheme.typography.body,
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                            )
-                        }
+                NcTextField(
+                    title = "",
+                    value = inputValue,
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    rightContent = {
                         Text(
-                            text = "BTC",
+                            text = LocalContext.current.getTextBtcUnit(),
                             style = NunchukTheme.typography.body.copy(
                                 color = MaterialTheme.colorScheme.textSecondary
                             )
                         )
-                    }
-                }
+                    },
+                    onValueChange = { newValue ->
+                        val filtered = newValue.text.filter { it.isDigit() || it == '.' }
+                        val parsed = filtered.toDoubleOrNull()
+                        val newText = if (parsed != null && parsed > availableToWithdraw) {
+                            availableToWithdraw.toBigDecimal().stripTrailingZeros().toPlainString()
+                        } else {
+                            filtered
+                        }
+                        onInputValueChange(
+                            TextFieldValue(
+                                text = newText,
+                                selection = TextRange(newText.length)
+                            )
+                        )
+                    },
+                )
             }
         }
     }

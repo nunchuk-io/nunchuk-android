@@ -461,17 +461,23 @@ private fun ClaimInheritanceGraph(
                 onViewReleaseSchedule = {
                     navController.popBackStack()
                 },
-                onNavigateToInputAmount = {
-                    claimData.inheritanceAdditional?.balance?.let { walletBalance ->
+                onNavigateToInputAmount = { customAmount ->
+                    claimData.inheritanceAdditional?.let { inheritanceAdditional ->
+                        val availableAmount = if (inheritanceAdditional.isCustomizeDistribution) {
+                            inheritanceAdditional.availableToWithdraw
+                        } else {
+                            inheritanceAdditional.balance
+                        }
                         navigator.openInputAmountScreen(
                             activityContext = activity,
                             walletId = "",
-                            availableAmount = walletBalance,
+                            availableAmount = availableAmount,
                             claimInheritanceTxParam = ClaimInheritanceTxParam(
                                 masterSignerIds = claimData.requiredSigners.map { it.fingerPrint },
                                 magicalPhrase = claimData.magic.trim(),
                                 derivationPaths = claimData.derivationPaths,
-                                totalAmount = walletBalance,
+                                totalAmount = availableAmount,
+                                customAmount = customAmount,
                                 bsms = claimData.bsms,
                                 signatures = claimData.signatures,
                                 messageId = claimData.challenge?.id

@@ -214,3 +214,6 @@ val Long.formatMMMddyyyyDate: String
 val Long.formatddMMMyyyyDate: String
     get() = SimpleDateFormat("ddMMMyyyy", Locale.US).format(Date(this))
 
+fun String.toDoubleOrZero(): Double {
+    return toDoubleOrNull() ?: 0.0
+}

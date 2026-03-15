@@ -17,7 +17,7 @@ data object ClaimWithdrawBitcoinRoute
 
 fun NavGraphBuilder.claimWithdrawBitcoin(
     snackState: SnackbarHostState,
-    onNavigateToInputAmount: () -> Unit = {},
+    onNavigateToInputAmount: (Double) -> Unit = {},
     onNavigateToSelectWallet: () -> Unit = {},
     onNavigateToWalletIntermediary: () -> Unit = {},
     onNavigateToAddReceipt: () -> Unit = {},

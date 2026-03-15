@@ -48,7 +48,7 @@ internal fun InheritanceReleaseScheduleScreen(
         Scaffold(
             topBar = {
                 NcImageAppBar(
-                    backgroundRes = R.drawable.bg_inheritance_release_schedule,
+                    backgroundRes = R.drawable.bg_inheritance_release_intro,
                     backIconRes = com.nunchuk.android.core.R.drawable.ic_close,
                     title = stringResource(
                         id = R.string.nc_estimate_remain_time,
