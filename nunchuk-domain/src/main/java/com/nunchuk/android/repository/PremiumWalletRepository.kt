@@ -345,6 +345,12 @@ interface PremiumWalletRepository {
 
     suspend fun syncTransaction(groupId: String?, walletId: String)
 
+    suspend fun inheritanceAssociateMagic(
+        walletId: String,
+        groupId: String?,
+        beneficiaries: List<InheritancePlanBeneficiary>,
+    ): List<InheritancePlanBeneficiary>
+
     suspend fun getInheritanceBufferPeriod(): List<Period>
 
     fun getAssistedWalletsLocal(): Flow<List<AssistedWalletBrief>>

@@ -141,7 +141,7 @@ private fun InheritanceExpandedInstallmentDto.toInheritancePlanExpandedInstallme
     )
 }
 
-private fun InheritanceBeneficiaryDto.toInheritancePlanBeneficiary(): InheritancePlanBeneficiary {
+internal fun InheritanceBeneficiaryDto.toInheritancePlanBeneficiary(): InheritancePlanBeneficiary {
     return InheritancePlanBeneficiary(
         email = email.orEmpty(),
         assetPercentage = assetPercentage ?: 0,

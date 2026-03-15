@@ -66,6 +66,7 @@ import com.nunchuk.android.core.data.model.byzantine.toModel
 import com.nunchuk.android.core.data.model.byzantine.toSavedAddress
 import com.nunchuk.android.core.data.model.byzantine.toWalletType
 import com.nunchuk.android.core.data.model.coin.CoinDataContent
+import com.nunchuk.android.core.data.model.inheritance.AssociateMagicRequest
 import com.nunchuk.android.core.data.model.inheritance.BeneficiaryNotificationRequest
 import com.nunchuk.android.core.data.model.inheritance.InheritanceBeneficiaryRequest
 import com.nunchuk.android.core.data.model.inheritance.InheritanceExpandedInstallmentRequest
@@ -112,6 +113,7 @@ import com.nunchuk.android.core.mapper.toGroupChat
 import com.nunchuk.android.core.mapper.toGroupEntity
 import com.nunchuk.android.core.mapper.toHistoryPeriod
 import com.nunchuk.android.core.mapper.toInheritance
+import com.nunchuk.android.core.mapper.toInheritancePlanBeneficiary
 import com.nunchuk.android.core.mapper.toInheritancePlanStage
 import com.nunchuk.android.core.mapper.toMemberRequest
 import com.nunchuk.android.core.mapper.toPeriod
@@ -1641,6 +1643,21 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             }
             if (response.data.transactions.size < TRANSACTION_PAGE_COUNT) return
         }
+    }
+
+    override suspend fun inheritanceAssociateMagic(
+        walletId: String,
+        groupId: String?,
+        beneficiaries: List<InheritancePlanBeneficiary>,
+    ): List<InheritancePlanBeneficiary> {
+        val request = AssociateMagicRequest(
+            walletId = walletId,
+            groupId = groupId?.takeIf { it.isNotBlank() },
+            beneficiaries = beneficiaries.map { it.toRequest() },
+        )
+        val response = userWalletApiManager.walletApi.inheritanceAssociateMagic(request)
+        if (response.isSuccess.not()) throw response.error
+        return response.data.beneficiaries?.map { it.toInheritancePlanBeneficiary() }.orEmpty()
     }
 
     override suspend fun getInheritanceBufferPeriod(): List<Period> {

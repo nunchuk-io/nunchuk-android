@@ -64,6 +64,8 @@ import com.nunchuk.android.core.data.model.byzantine.SignInDummyTransactionRespo
 import com.nunchuk.android.core.data.model.byzantine.TotalAlertResponse
 import com.nunchuk.android.core.data.model.byzantine.WalletHealthStatusResponse
 import com.nunchuk.android.core.data.model.coin.CoinDataContent
+import com.nunchuk.android.core.data.model.inheritance.AssociateMagicRequest
+import com.nunchuk.android.core.data.model.inheritance.AssociateMagicResponse
 import com.nunchuk.android.core.data.model.inheritance.CreateUpdateInheritancePlanRequest
 import com.nunchuk.android.core.data.model.membership.BatchTransactionPayload
 import com.nunchuk.android.core.data.model.membership.CalculateRequiredSignaturesResponse
@@ -381,6 +383,11 @@ internal interface UserWalletsApi {
     suspend fun getTransactionsToSync(
         @Path("wallet_id_or_local_id") walletId: String, @Query("offset") offset: Int
     ): Data<TransactionsResponse>
+
+    @POST("/v1.1/user-wallets/inheritance/associate-magic")
+    suspend fun inheritanceAssociateMagic(
+        @Body payload: AssociateMagicRequest
+    ): Data<AssociateMagicResponse>
 
     @GET("/v1.1/user-wallets/inheritance/buffer-period")
     suspend fun getInheritanceBufferPeriod(): Data<PeriodResponse>

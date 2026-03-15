@@ -25,8 +25,10 @@ import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceBeneficiaryAllocation
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningParam
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceSetupFlowType
+import com.nunchuk.android.model.inheritance.InheritancePlanBeneficiary
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.usecase.membership.GetInheritanceUseCase
+import com.nunchuk.android.usecase.membership.InheritanceAssociateMagicUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -40,6 +42,7 @@ import javax.inject.Inject
 class MagicalPhraseIntroViewModel @Inject constructor(
     membershipStepManager: MembershipStepManager,
     private val getInheritanceUseCase: GetInheritanceUseCase,
+    private val inheritanceAssociateMagicUseCase: InheritanceAssociateMagicUseCase,
 ) : ViewModel() {
     private val _event = MutableSharedFlow<MagicalPhraseIntroEvent>()
     val event = _event.asSharedFlow()
@@ -56,8 +59,49 @@ class MagicalPhraseIntroViewModel @Inject constructor(
                 setupFlowType = param.setupFlowType,
             )
         }
-        getInheritance(param)
+        if (param.setupFlowType == InheritanceSetupFlowType.MULTI_BENEFICIARY) {
+            associateMagic(param)
+        } else {
+            getInheritance(param)
+        }
     }
+
+    private fun associateMagic(param: InheritancePlanningParam.SetupOrReview) =
+        viewModelScope.launch {
+            _event.emit(MagicalPhraseIntroEvent.Loading(true))
+            val result = inheritanceAssociateMagicUseCase(
+                InheritanceAssociateMagicUseCase.Param(
+                    walletId = param.walletId,
+                    groupId = param.groupId.takeIf { it.isNotEmpty() },
+                    beneficiaries = param.beneficiaryAllocations.map {
+                        InheritancePlanBeneficiary(
+                            email = it.email,
+                            assetPercentage = it.allocationPercent,
+                            magic = it.magic,
+                            note = it.note,
+                        )
+                    },
+                )
+            )
+            _event.emit(MagicalPhraseIntroEvent.Loading(false))
+            if (result.isSuccess) {
+                val beneficiaries = result.getOrThrow()
+                _state.update { state ->
+                    state.copy(
+                        beneficiaryAllocations = beneficiaries.map { beneficiary ->
+                            InheritanceBeneficiaryAllocation(
+                                email = beneficiary.email,
+                                allocationPercent = beneficiary.assetPercentage,
+                                magic = beneficiary.magic,
+                                note = beneficiary.note,
+                            )
+                        }
+                    )
+                }
+            } else {
+                _event.emit(MagicalPhraseIntroEvent.Error(result.exceptionOrNull()?.message.orUnknownError()))
+            }
+        }
 
     private fun getInheritance(param: InheritancePlanningParam.SetupOrReview) =
         viewModelScope.launch {
