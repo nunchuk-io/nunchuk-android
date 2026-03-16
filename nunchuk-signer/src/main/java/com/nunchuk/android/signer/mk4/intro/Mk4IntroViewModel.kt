@@ -173,9 +173,10 @@ class Mk4IntroViewModel @Inject constructor(
                                 _event.emit(Mk4IntroViewEvent.Loading(false))
                                 return@launch
                             }
-                            
-                            val newAccountIndex = getIndexFromPathUseCase(signer.derivationPath).getOrElse { 0 }
-                            
+
+                            val newAccountIndex =
+                                getIndexFromPathUseCase(signer.derivationPath).getOrElse { 0 }
+
                             if (newAccountIndex != 0) {
                                 _event.emit(
                                     Mk4IntroViewEvent.ShowError(
@@ -205,7 +206,6 @@ class Mk4IntroViewModel @Inject constructor(
                     }
                     val signerName = if (replacedXfp.isNullOrEmpty()) {
                         membershipStepManager.getInheritanceKeyName(false)
-
                     } else {
                         getReplaceSignerNameUseCase(
                             GetReplaceSignerNameUseCase.Params(
@@ -215,12 +215,15 @@ class Mk4IntroViewModel @Inject constructor(
                         ).getOrThrow()
                     }
                     val createSignerResult = createMk4SignerUseCase(
-                        signer.copy(
-                            name = signerName
+                        CreateMk4SignerUseCase.Params(
+                            signer.copy(
+                                name = signerName
+                            ),
+                            replaced = onChainAddSignerParam?.isClaiming == true
                         )
                     )
-                    val coldcardSigner = createSignerResult.getOrThrow()
                     if (createSignerResult.isSuccess) {
+                        val coldcardSigner = createSignerResult.getOrThrow()
                         // force type coldcard nfc in case we import hardware key first
                         if (onChainAddSignerParam?.isClaiming == true) {
                             // No Ops
@@ -228,7 +231,8 @@ class Mk4IntroViewModel @Inject constructor(
                             val coldcardSigner =
                                 createSignerResult.getOrThrow()
                                     .copy(type = SignerType.COLDCARD_NFC)
-                            val walletType = syncDraftWalletUseCase(groupId).getOrNull()?.walletType ?: WalletType.MULTI_SIG
+                            val walletType = syncDraftWalletUseCase(groupId).getOrNull()?.walletType
+                                ?: WalletType.MULTI_SIG
                             syncKeyUseCase(
                                 SyncKeyUseCase.Param(
                                     step = membershipStepManager.currentStep
@@ -268,7 +272,9 @@ class Mk4IntroViewModel @Inject constructor(
                                         walletId = walletId.orEmpty(),
                                         xfp = replacedXfp,
                                         signer = createSignerResult.getOrThrow(),
-                                        keyIndex = onChainAddSignerParam?.replaceInfo?.step?.toIndex(groupId.isNotEmpty())
+                                        keyIndex = onChainAddSignerParam?.replaceInfo?.step?.toIndex(
+                                            groupId.isNotEmpty()
+                                        )
                                     )
                                 ).onFailure {
                                     _event.emit(Mk4IntroViewEvent.ShowError(it.message.orUnknownError()))

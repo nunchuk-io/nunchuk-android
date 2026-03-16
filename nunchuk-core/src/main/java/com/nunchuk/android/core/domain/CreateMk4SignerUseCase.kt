@@ -29,8 +29,13 @@ import javax.inject.Inject
 class CreateMk4SignerUseCase @Inject constructor(
     @IoDispatcher dispatcher: CoroutineDispatcher,
     private val nativeSdk: NunchukNativeSdk
-) : UseCase<SingleSigner, SingleSigner>(dispatcher) {
-    override suspend fun execute(parameters: SingleSigner): SingleSigner {
-        return nativeSdk.createMk4Signer(parameters)
+) : UseCase<CreateMk4SignerUseCase.Params, SingleSigner>(dispatcher) {
+    override suspend fun execute(parameters: Params): SingleSigner {
+        return nativeSdk.createMk4Signer(parameters.signer, parameters.replaced)
     }
+
+    data class Params(
+        val signer: SingleSigner,
+        val replaced: Boolean = false
+    )
 }

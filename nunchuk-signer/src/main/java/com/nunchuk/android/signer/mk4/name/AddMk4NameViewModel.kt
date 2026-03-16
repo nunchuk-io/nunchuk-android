@@ -46,7 +46,7 @@ class AddMk4NameViewModel @Inject constructor(
     fun createMk4Signer(signer: SingleSigner) {
         viewModelScope.launch {
             _event.emit(AddNameMk4ViewEvent.Loading(true))
-            val result = createMk4SignerUseCase(signer)
+            val result = createMk4SignerUseCase(CreateMk4SignerUseCase.Params(signer))
             _event.emit(AddNameMk4ViewEvent.Loading(false))
             if (result.isSuccess) {
                 pushEventManager.push(PushEvent.LocalUserSignerAdded(signer))
