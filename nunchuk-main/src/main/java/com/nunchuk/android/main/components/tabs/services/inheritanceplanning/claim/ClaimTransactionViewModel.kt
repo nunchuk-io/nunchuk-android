@@ -270,7 +270,7 @@ class ClaimTransactionViewModel @AssistedInject constructor(
 
     fun updateTransaction(transaction: Transaction) {
         savedStateHandle[KEY_SAVED_TRANSACTION] = transaction
-        _state.update { it.copy(transaction = transaction.copy(changeIndex = args.transaction.changeIndex)) }
+        _state.update { it.copy(transaction = transaction.copy(changeIndex = args.transaction.changeIndex, m = args.masterSignerIds.size)) }
         checkAndClaimIfAllSigned(transaction)
     }
 
