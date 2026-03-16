@@ -171,6 +171,12 @@ private fun ClaimTransactionScreen(
         }
     }
 
+    val importFileLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri ->
+        uri?.let { viewModel.importPsbtFromFile(it) }
+    }
+
     // Handle NFC scanning for tap signer
     LaunchedEffect(Unit) {
         nfcViewModel.nfcScanInfo
@@ -290,6 +296,9 @@ private fun ClaimTransactionScreen(
                             )
                         }
                     }
+                },
+                onImportViaFile = {
+                    importFileLauncher.launch("*/*")
                 },
                 onImportViaQr = {
                     navigator.openImportTransactionScreen(

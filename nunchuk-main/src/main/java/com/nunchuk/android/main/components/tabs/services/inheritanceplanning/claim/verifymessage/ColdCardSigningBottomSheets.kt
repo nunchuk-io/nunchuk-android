@@ -17,7 +17,6 @@ import com.nunchuk.android.widget.R as WidgetR
  * Callbacks for ColdCard signing actions
  */
 data class ColdCardSigningCallbacks(
-    val onExportViaFile: () -> Unit = {},
     val onExportViaQr: () -> Unit = {},
     val onExportViaNfc: () -> Unit = {},
     val onImportViaFile: () -> Unit = {},

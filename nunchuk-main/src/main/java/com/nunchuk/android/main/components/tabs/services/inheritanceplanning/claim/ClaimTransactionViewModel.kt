@@ -1,5 +1,7 @@
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim
 
+import android.content.Context
+import android.net.Uri
 import android.nfc.NdefRecord
 import android.nfc.tech.IsoDep
 import android.nfc.tech.Ndef
@@ -10,10 +12,12 @@ import com.nunchuk.android.core.domain.SignTapSignerPsbtUseCase
 import com.nunchuk.android.core.domain.coldcard.ExportRawPsbtToMk4UseCase
 import com.nunchuk.android.core.mapper.SingleSignerMapper
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.util.getFileContentFromUri
 import com.nunchuk.android.core.util.isNoInternetException
 import com.nunchuk.android.core.util.messageOrUnknownError
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.readableMessage
+import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.Result
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Transaction
@@ -34,6 +38,8 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -41,6 +47,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.FileOutputStream
 
@@ -59,6 +66,8 @@ class ClaimTransactionViewModel @AssistedInject constructor(
     private val getPsbtFromMk4UseCase: GetPsbtFromMk4UseCase,
     private val decodeTxUseCase: DecodeTxUseCase,
     private val valueFromAmountUseCase: ValueFromAmountUseCase,
+    @ApplicationContext private val applicationContext: Context,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val savedStateHandle: SavedStateHandle,
     @Assisted private val args: ClaimTransactionArgs
 ) : ViewModel() {
@@ -272,6 +281,36 @@ class ClaimTransactionViewModel @AssistedInject constructor(
         savedStateHandle[KEY_SAVED_TRANSACTION] = transaction
         _state.update { it.copy(transaction = transaction.copy(changeIndex = args.transaction.changeIndex, m = args.masterSignerIds.size)) }
         checkAndClaimIfAllSigned(transaction)
+    }
+
+    fun importPsbtFromFile(uri: Uri) {
+        viewModelScope.launch {
+            _loadingType.update { LoadingType.Normal }
+            try {
+                val fileContent = withContext(ioDispatcher) {
+                    getFileContentFromUri(applicationContext.contentResolver, uri)
+                } ?: throw Exception("Failed to read file content")
+
+                val currentTx = _state.value.transaction
+                decodeTxUseCase(
+                    DecodeTxUseCase.Param(
+                        signers = _singleSigners,
+                        psbt = fileContent,
+                        subAmount = valueFromAmountUseCase(currentTx.subAmount).getOrThrow(),
+                        feeRate = valueFromAmountUseCase(currentTx.feeRate).getOrThrow(),
+                        fee = valueFromAmountUseCase(currentTx.fee).getOrThrow(),
+                        subtractFeeFromAmount = currentTx.subtractFeeFromAmount
+                    )
+                ).onSuccess { transaction ->
+                    updateTransaction(transaction)
+                }.onFailure {
+                    _event.emit(ClaimTransactionEvent.ShowError(it.message.orUnknownError()))
+                }
+            } catch (e: Exception) {
+                _event.emit(ClaimTransactionEvent.ShowError(e.message.orUnknownError()))
+            }
+            _loadingType.update { null }
+        }
     }
 
     fun saveLocalFile(psbt: String) {
