@@ -1,6 +1,7 @@
 package com.nunchuk.android.model.inheritance
 
 import android.os.Parcelable
+import com.nunchuk.android.model.Period
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
@@ -36,5 +37,6 @@ data class InheritancePlanBeneficiary(
     val note: String,
     val bufferPeriodId: String? = null,
     val bufferApplyOn: String? = null,
+    val bufferPeriod: Period? = null,
     val stages: List<InheritancePlanStage> = emptyList(),
 ) : Parcelable

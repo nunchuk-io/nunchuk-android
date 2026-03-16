@@ -90,6 +90,7 @@ import com.nunchuk.android.model.TimelockBased
 import com.nunchuk.android.model.byzantine.isMasterOrAdmin
 import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.model.inheritance.EmailNotificationSettings
+import com.nunchuk.android.model.inheritance.InheritancePlanBeneficiary
 import com.nunchuk.android.utils.Utils
 import com.nunchuk.android.widget.R as WidgetR
 
@@ -489,15 +490,38 @@ fun InheritanceReviewPlanScreenContent(
                             start = 16.dp, end = 16.dp, top = 24.dp
                         )
                     ) {
+                        val beneficiaryNotes = setupOrReviewParam.beneficiaryAllocations.map { allocation ->
+                            InheritancePlanBeneficiary(
+                                email = allocation.email,
+                                assetPercentage = allocation.allocationPercent,
+                                magic = allocation.magic,
+                                note = allocation.note,
+                            )
+                        }
                         ReviewPlanSectionHeader(
-                            title = stringResource(id = R.string.nc_note_to_beneficiary_trustee),
+                            title = stringResource(
+                                id = if (isMultiBeneficiaryFlow) {
+                                    R.string.nc_note_to_beneficiary
+                                } else {
+                                    R.string.nc_note_to_beneficiary_trustee
+                                }
+                            ),
                             editable = isEditable,
                             onEditClick = onEditNoteClick,
                         )
 
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        NoteDisplayBox(note = setupOrReviewParam.note)
+                        if (isMultiBeneficiaryFlow) {
+                            BeneficiaryNotesSection(
+                                beneficiaries = beneficiaryNotes,
+                                globalNote = setupOrReviewParam.note,
+                                forcePerBeneficiaryNotes = true,
+                                itemSpacing = 12.dp,
+                            )
+                        } else {
+                            NoteDisplayBox(note = setupOrReviewParam.note)
+                        }
                     }
                 }
 

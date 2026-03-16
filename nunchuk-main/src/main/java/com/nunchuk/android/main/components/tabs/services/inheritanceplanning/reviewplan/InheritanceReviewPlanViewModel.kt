@@ -438,6 +438,7 @@ class InheritanceReviewPlanViewModel @Inject constructor(
                         note = allocation.note,
                         bufferPeriodId = scheduleConfig?.bufferPeriod?.id,
                         bufferApplyOn = scheduleConfig?.bufferPeriodApplyType?.toApiBufferApplyOn(),
+                        bufferPeriod = scheduleConfig?.bufferPeriod,
                         stages = if (param.releaseMethodType == InheritanceReleaseMethodType.INDIVIDUAL_SCHEDULES) {
                             scheduleConfig?.releaseScheduleUiState
                                 .toInheritancePlanStages(param.selectedZoneId)

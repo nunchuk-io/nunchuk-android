@@ -418,6 +418,7 @@
     <string name="nc_inheritance_review_plan_note">Please make note of these important details</string>
     <string name="nc_activation_date">Off-chain timelock</string>
     <string name="nc_backup_password">Backup Password</string>
+    <string name="nc_note_to_beneficiary">Note to Beneficiary</string>
     <string name="nc_note_to_beneficiary_trustee">Note to Beneficiary or Trustee</string>
     <string name="nc_notification_preferences">Notification preferences</string>
     <string name="nc_your_notifications">Your notifications</string>

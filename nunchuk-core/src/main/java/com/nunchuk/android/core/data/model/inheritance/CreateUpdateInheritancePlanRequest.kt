@@ -1,6 +1,7 @@
 package com.nunchuk.android.core.data.model.inheritance
 
 import com.google.gson.annotations.SerializedName
+import com.nunchuk.android.core.data.model.membership.PeriodResponse
 
 data class CreateUpdateInheritancePlanRequest(
     @SerializedName("nonce")
@@ -108,6 +109,8 @@ data class InheritanceBeneficiaryRequest(
     val note: String? = null,
     @SerializedName("buffer_period_id")
     val bufferPeriodId: String? = null,
+    @SerializedName("buffer_period")
+    val bufferPeriod: PeriodResponse.Data? = null,
     @SerializedName("buffer_apply_on")
     val bufferApplyOn: String? = null,
     @SerializedName("stages")

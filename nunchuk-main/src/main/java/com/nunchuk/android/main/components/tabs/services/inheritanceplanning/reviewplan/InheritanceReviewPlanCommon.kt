@@ -26,6 +26,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.controlFillPrimary
@@ -108,6 +109,8 @@ fun BeneficiaryNotesSection(
     modifier: Modifier = Modifier,
     beneficiaries: List<InheritancePlanBeneficiary>,
     globalNote: String,
+    forcePerBeneficiaryNotes: Boolean = false,
+    itemSpacing: Dp = 8.dp,
     textColor: @Composable (isChanged: Boolean) -> Color = { MaterialTheme.colorScheme.controlFillPrimary },
     oldNote: String? = null,
     oldBeneficiaries: List<InheritancePlanBeneficiary>? = null,
@@ -115,7 +118,7 @@ fun BeneficiaryNotesSection(
     val expandedNotes = remember { mutableStateMapOf<String, Boolean>() }
 
     Column(modifier = modifier) {
-        if (beneficiaries.isNotEmpty() && beneficiaries.any { it.note.isNotBlank() }) {
+        if (beneficiaries.isNotEmpty() && (forcePerBeneficiaryNotes || beneficiaries.any { it.note.isNotBlank() })) {
             beneficiaries.forEach { beneficiary ->
                 val isExpanded = expandedNotes[beneficiary.email] ?: false
                 val oldBeneficiaryNote =
@@ -126,7 +129,7 @@ fun BeneficiaryNotesSection(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 8.dp)
+                        .padding(bottom = itemSpacing)
                         .background(
                             color = MaterialTheme.colorScheme.greyLight,
                             shape = RoundedCornerShape(8.dp)

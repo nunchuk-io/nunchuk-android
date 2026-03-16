@@ -57,6 +57,7 @@ import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.fillDenim2
 import com.nunchuk.android.compose.greyLight
+import com.nunchuk.android.compose.lightGray
 import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.textSecondary
@@ -506,7 +507,7 @@ private fun FallbackSettingsSummaryCard(
     Column(
         modifier = modifier
             .background(
-                color = Color(0xFFF1F1F1),
+                color = MaterialTheme.colorScheme.lightGray,
                 shape = RoundedCornerShape(12.dp)
             )
             .padding(horizontal = 12.dp, vertical = 10.dp)
