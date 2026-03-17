@@ -137,7 +137,9 @@ internal fun ColdCardIntroScreen(
         mk4Activity?.onChainAddSignerParam?.isVerifyBackupSeedPhrase() == true
     val isClaiming =
         mk4Activity?.onChainAddSignerParam?.isClaiming == true
-    val onChainKeyIndex = if (mk4Activity?.onChainAddSignerParam != null && mk4Activity.onChainAddSignerParam!!.keyIndex >= 0) mk4Activity.onChainAddSignerParam!!.keyIndex else 0
+    val isAddInheritanceOffChainSigner = mk4Activity?.onChainAddSignerParam?.isAddInheritanceOffChainSigner() == true
+    val onChainKeyIndex =
+        if (mk4Activity?.onChainAddSignerParam != null && mk4Activity.onChainAddSignerParam!!.keyIndex >= 0) mk4Activity.onChainAddSignerParam!!.keyIndex else 0
     NunchukTheme {
         Scaffold(topBar = {
             NcImageAppBar(
@@ -169,55 +171,55 @@ internal fun ColdCardIntroScreen(
                     style = NunchukTheme.typography.heading
                 )
                 if (isClaiming.not()) {
-                Text(
-                    modifier = Modifier.padding(16.dp),
-                    text = if (isVerifyBackupSeedPhrase) {
-                        buildAnnotatedString {
-                            append("Please re-add the key for the spending path ")
-                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                append("after the timelock")
-                            }
-                            append(" to verify. On your device, select ")
-                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                append("account 0")
-                            }
-                            append(" for this spending path.")
-                        }
-                    } else if (mk4Activity?.onChainAddSignerParam != null) {
-                        val keyIndex = mk4Activity.onChainAddSignerParam?.keyIndex ?: 0
-                        buildAnnotatedString {
-                            append("Each hardware device must be added twice, with both keys (before and after the timelock) coming from the same device but using different derivation paths.\n\n")
-
-                            if (keyIndex == 0) {
-                                append("Please add a key for the spending path ")
+                    Text(
+                        modifier = Modifier.padding(16.dp),
+                        text = if (isVerifyBackupSeedPhrase) {
+                            buildAnnotatedString {
+                                append("Please re-add the key for the spending path ")
                                 withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                    append("after the timelock.")
+                                    append("after the timelock")
                                 }
-                                append(" On your device, select ")
+                                append(" to verify. On your device, select ")
                                 withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
                                     append("account 0")
                                 }
                                 append(" for this spending path.")
-                            } else {
-                                append("Now add the second key from the same COLDCARD for the spending path ")
-                                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                    append("before the timelock")
-                                }
-                                append(". On your device, select ")
-                                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                    append("account $onChainKeyIndex")
-                                }
-                                append(" for this spending path.")
                             }
-                        }
-                    } else {
-                        buildAnnotatedString {
-                            append(stringResource(R.string.nc_add_coldcard_mk4_desc))
-                        }
-                    },
-                    style = NunchukTheme.typography.body
-                )
-                    }
+                        } else if (mk4Activity?.onChainAddSignerParam != null) {
+                            val keyIndex = mk4Activity.onChainAddSignerParam?.keyIndex ?: 0
+                            buildAnnotatedString {
+                                append("Each hardware device must be added twice, with both keys (before and after the timelock) coming from the same device but using different derivation paths.\n\n")
+
+                                if (keyIndex == 0) {
+                                    append("Please add a key for the spending path ")
+                                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                                        append("after the timelock.")
+                                    }
+                                    append(" On your device, select ")
+                                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                                        append("account 0")
+                                    }
+                                    append(" for this spending path.")
+                                } else {
+                                    append("Now add the second key from the same COLDCARD for the spending path ")
+                                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                                        append("before the timelock")
+                                    }
+                                    append(". On your device, select ")
+                                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                                        append("account $onChainKeyIndex")
+                                    }
+                                    append(" for this spending path.")
+                                }
+                            }
+                        } else {
+                            buildAnnotatedString {
+                                append(stringResource(R.string.nc_add_coldcard_mk4_desc))
+                            }
+                        },
+                        style = NunchukTheme.typography.body
+                    )
+                }
 
                 ActionItem(
                     title = stringResource(R.string.nc_add_coldcard_via_nfc),
@@ -240,13 +242,15 @@ internal fun ColdCardIntroScreen(
                     thickness = 0.5.dp
                 )
 
-                ActionItem(
-                    title = stringResource(R.string.nc_add_coldcard_via_usb),
-                    iconId = R.drawable.ic_usb,
-                    onClick = { onColdCardAction(ColdCardAction.USB) },
-                    isEnable = isFromAddKey.not() || (mk4Activity?.onChainAddSignerParam != null && !isVerifyBackupSeedPhrase),
-                    subtitle = if (isFromAddKey) stringResource(R.string.nc_desktop_only) else ""
-                )
+                if (!isAddInheritanceOffChainSigner) {
+                    ActionItem(
+                        title = stringResource(R.string.nc_add_coldcard_via_usb),
+                        iconId = R.drawable.ic_usb,
+                        onClick = { onColdCardAction(ColdCardAction.USB) },
+                        isEnable = isFromAddKey.not() || (mk4Activity?.onChainAddSignerParam != null && !isVerifyBackupSeedPhrase),
+                        subtitle = if (isFromAddKey) stringResource(R.string.nc_desktop_only) else ""
+                    )
+                }
 
                 HorizontalDivider(
                     modifier = Modifier.padding(horizontal = 16.dp),
