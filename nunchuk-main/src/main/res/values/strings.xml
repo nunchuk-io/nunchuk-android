@@ -150,6 +150,7 @@
     <string name="nc_release_schedule_frequency_every_weeks_short">every %1$d wks</string>
     <string name="nc_release_schedule_frequency_every_months_short">every %1$d mos</string>
     <string name="nc_release_schedule_buffer_period_summary">Buffer period: %1$d days (%2$s)</string>
+    <string name="nc_release_schedule_buffer_period_summary_no_buffer">Buffer period: No buffer period is set.</string>
     <string name="nc_release_schedule_buffer_period_first_withdrawal_only">first withdrawal only</string>
     <string name="nc_release_schedule_buffer_period_every_withdrawal">every withdrawal</string>
     <string name="nc_claim_release_schedule_desc">This schedule shows when and how much of your inheritance becomes available to withdraw over time.</string>

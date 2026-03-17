@@ -383,7 +383,7 @@ fun InheritanceReviewPlanScreenContent(
                                         }
                                     )
                                 }
-                                if (!isMultiBeneficiaryFlow) {
+                                if (setupOrReviewParam.setupFlowType == InheritanceSetupFlowType.OLD_FLOW) {
                                     Text(
                                         text = "Funds become claimable after:",
                                         modifier = Modifier.padding(top = 24.dp, bottom = 12.dp),
@@ -1014,9 +1014,15 @@ private fun getReviewBufferSummaryText(
     setupOrReviewParam: InheritancePlanningParam.SetupOrReview,
 ): String {
     val period =
-        setupOrReviewParam.bufferPeriod ?: return stringResource(id = R.string.nc_no_buffer)
+        setupOrReviewParam.bufferPeriod
+            ?: return stringResource(id = R.string.nc_release_schedule_buffer_period_summary_no_buffer)
 
-    val applyType = setupOrReviewParam.bufferPeriodApplyType ?: return period.displayName
+    val applyType = setupOrReviewParam.bufferPeriodApplyType
+        ?: if (setupOrReviewParam.setupFlowType == InheritanceSetupFlowType.SINGLE_BENEFICIARY) {
+            InheritanceBufferPeriodApplyType.FIRST_WITHDRAWAL_ONLY
+        } else {
+            return period.displayName
+        }
 
     val applyTypeText = when (applyType) {
         InheritanceBufferPeriodApplyType.FIRST_WITHDRAWAL_ONLY ->

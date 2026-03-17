@@ -22,6 +22,7 @@ data class InheritanceReleaseScheduleDetailRoute(
     val isPostBufferPeriodMethod: Boolean = false,
     val fromBeneficiarySchedules: Boolean = false,
     val beneficiaryEmail: String = "",
+    val returnToReviewPlan: Boolean = false,
 )
 
 fun NavGraphBuilder.inheritanceReleaseScheduleDetail(
@@ -42,6 +43,26 @@ fun NavGraphBuilder.inheritanceReleaseScheduleDetail(
         val route = backStackEntry.toRoute<InheritanceReleaseScheduleDetailRoute>()
         val releaseScheduleFlowState by releaseScheduleFlowViewModel.state.collectAsStateWithLifecycle()
         val releaseScheduleUiState = releaseScheduleFlowState.releaseScheduleUiState
+        val beneficiaryKey = route.beneficiaryEmail.trim().lowercase().ifBlank {
+            releaseScheduleFlowState.editingBeneficiaryEmail.orEmpty().trim().lowercase()
+        }
+        val isBeneficiaryScheduleContext =
+            route.fromBeneficiarySchedules || beneficiaryKey.isNotBlank()
+        val hasExistingScheduleConfig = if (isBeneficiaryScheduleContext) {
+            if (beneficiaryKey.isNotBlank()) {
+                setupOrReviewParam.individualScheduleConfigs.keys.any { key ->
+                    key.trim().lowercase() == beneficiaryKey
+                }
+            } else {
+                setupOrReviewParam.isSharedScheduleConfigured
+            }
+        } else {
+            false
+        }
+        val shouldShowBufferSummary =
+            setupOrReviewParam.bufferPeriod != null ||
+                route.isPostBufferPeriodMethod ||
+                hasExistingScheduleConfig
         InheritanceReleaseScheduleDetailScreen(
             remainTime = remainTime,
             uiState = releaseScheduleUiState,
@@ -50,10 +71,14 @@ fun NavGraphBuilder.inheritanceReleaseScheduleDetail(
             } else {
                 null
             },
-            bufferPeriodSummaryText = releaseScheduleBufferPeriodSummaryText(
-                period = setupOrReviewParam.bufferPeriod,
-                applyType = setupOrReviewParam.bufferPeriodApplyType,
-            ),
+            bufferPeriodSummaryText = if (shouldShowBufferSummary) {
+                releaseScheduleBufferPeriodSummaryText(
+                    period = setupOrReviewParam.bufferPeriod,
+                    applyType = setupOrReviewParam.bufferPeriodApplyType,
+                )
+            } else {
+                null
+            },
             onUiStateChanged = releaseScheduleFlowViewModel::setReleaseScheduleUiState,
             onEditStage = onEditStage,
             onEditBufferPeriodClicked = { onEditBufferPeriodClicked(route) },
@@ -67,12 +92,14 @@ fun NavController.navigateToInheritanceReleaseScheduleDetail(
     isPostBufferPeriodMethod: Boolean = false,
     fromBeneficiarySchedules: Boolean = false,
     beneficiaryEmail: String = "",
+    returnToReviewPlan: Boolean = false,
 ) {
     navigate(
         InheritanceReleaseScheduleDetailRoute(
             isPostBufferPeriodMethod = isPostBufferPeriodMethod,
             fromBeneficiarySchedules = fromBeneficiarySchedules,
             beneficiaryEmail = beneficiaryEmail,
+            returnToReviewPlan = returnToReviewPlan,
         )
     )
 }

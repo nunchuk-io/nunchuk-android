@@ -22,6 +22,7 @@ data class InheritanceBufferPeriodRoute(
     val isUpdateRequest: Boolean = false,
     val fromBeneficiarySchedules: Boolean = false,
     val beneficiaryEmail: String = "",
+    val returnToReviewPlan: Boolean = false,
 )
 
 fun NavGraphBuilder.inheritanceBufferPeriod(
@@ -29,6 +30,7 @@ fun NavGraphBuilder.inheritanceBufferPeriod(
         isUpdateRequest: Boolean,
         fromBeneficiarySchedules: Boolean,
         beneficiaryEmail: String,
+        returnToReviewPlan: Boolean,
         period: Period?,
     ) -> Unit,
 ) {
@@ -59,6 +61,7 @@ fun NavGraphBuilder.inheritanceBufferPeriod(
                                 route.isUpdateRequest,
                                 route.fromBeneficiarySchedules,
                                 route.beneficiaryEmail,
+                                route.returnToReviewPlan,
                                 event.period
                             )
                         }
@@ -78,12 +81,14 @@ fun NavController.navigateToInheritanceBufferPeriod(
     isUpdateRequest: Boolean = false,
     fromBeneficiarySchedules: Boolean = false,
     beneficiaryEmail: String = "",
+    returnToReviewPlan: Boolean = false,
 ) {
     navigate(
         InheritanceBufferPeriodRoute(
             isUpdateRequest = isUpdateRequest,
             fromBeneficiarySchedules = fromBeneficiarySchedules,
             beneficiaryEmail = beneficiaryEmail,
+            returnToReviewPlan = returnToReviewPlan,
         )
     )
 }

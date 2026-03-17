@@ -18,10 +18,11 @@ import kotlinx.serialization.Serializable
 data class InheritanceBufferPeriodMethodRoute(
     val fromBeneficiarySchedules: Boolean = false,
     val beneficiaryEmail: String = "",
+    val returnToReviewPlan: Boolean = false,
 )
 
 internal fun NavGraphBuilder.inheritanceBufferPeriodMethod(
-    onContinueClicked: (BufferPeriodMethodOption, Boolean, String) -> Unit,
+    onContinueClicked: (BufferPeriodMethodOption, Boolean, String, Boolean) -> Unit,
 ) {
     composable<InheritanceBufferPeriodMethodRoute> { backStackEntry ->
         val activity = LocalActivity.current as InheritancePlanningActivity
@@ -38,7 +39,12 @@ internal fun NavGraphBuilder.inheritanceBufferPeriodMethod(
             selectedOption = selectedOption,
             onBackClicked = { activity.onBackPressedDispatcher.onBackPressed() },
             onContinueClicked = { option ->
-                onContinueClicked(option, route.fromBeneficiarySchedules, route.beneficiaryEmail)
+                onContinueClicked(
+                    option,
+                    route.fromBeneficiarySchedules,
+                    route.beneficiaryEmail,
+                    route.returnToReviewPlan,
+                )
             },
         )
     }
@@ -47,11 +53,13 @@ internal fun NavGraphBuilder.inheritanceBufferPeriodMethod(
 fun NavController.navigateToInheritanceBufferPeriodMethod(
     fromBeneficiarySchedules: Boolean = false,
     beneficiaryEmail: String = "",
+    returnToReviewPlan: Boolean = false,
 ) {
     navigate(
         InheritanceBufferPeriodMethodRoute(
             fromBeneficiarySchedules = fromBeneficiarySchedules,
             beneficiaryEmail = beneficiaryEmail,
+            returnToReviewPlan = returnToReviewPlan,
         )
     )
 }
