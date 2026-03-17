@@ -292,7 +292,7 @@ class ClaimTransactionViewModel @AssistedInject constructor(
                 } ?: throw Exception("Failed to read file content")
 
                 val currentTx = _state.value.transaction
-                decodeTxUseCase(
+                val transaction = decodeTxUseCase(
                     DecodeTxUseCase.Param(
                         signers = _singleSigners,
                         psbt = fileContent,
@@ -301,13 +301,10 @@ class ClaimTransactionViewModel @AssistedInject constructor(
                         fee = valueFromAmountUseCase(currentTx.fee).getOrThrow(),
                         subtractFeeFromAmount = currentTx.subtractFeeFromAmount
                     )
-                ).onSuccess { transaction ->
-                    updateTransaction(transaction)
-                }.onFailure {
-                    _event.emit(ClaimTransactionEvent.ShowError(it.message.orUnknownError()))
-                }
-            } catch (e: Exception) {
-                _event.emit(ClaimTransactionEvent.ShowError(e.message.orUnknownError()))
+                ).getOrThrow()
+                updateTransaction(transaction)
+            } catch (_: Exception) {
+                _event.emit(ClaimTransactionEvent.ShowError("Invalid signature. Please try again."))
             }
             _loadingType.update { null }
         }

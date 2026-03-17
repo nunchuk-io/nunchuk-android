@@ -170,7 +170,7 @@ fun getFileFromUri(contentResolver: ContentResolver, uri: Uri, directory: File):
 fun getFileContentFromUri(contentResolver: ContentResolver, uri: Uri): String? = try {
     contentResolver.openInputStream(uri)?.use { inputStream ->
         inputStream.bufferedReader().use { reader ->
-            reader.readText()
+            reader.readText().trim()
         }
     }
 } catch (t: Throwable) {
