@@ -6,7 +6,8 @@
       "Bash(grep:*)",
       "Bash(ls -la /Users/mega_lh/MyProject/my-android/nunchuk-core/src/main/java/com/nunchuk/android/compose/*.kt)",
       "Bash(./gradlew :nunchuk-transaction:compileDebugKotlin)",
-      "Bash(./gradlew :nunchuk-main:compileDebugKotlin)"
+      "Bash(./gradlew :nunchuk-main:compileDebugKotlin)",
+      "mcp__ide__getDiagnostics"
     ]
   }
 }
