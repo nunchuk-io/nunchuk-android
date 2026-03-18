@@ -443,7 +443,10 @@ fun InheritanceReviewPlanScreenContent(
                         SingleBeneficiaryReleaseScheduleSection(
                             isEditable = isEditable,
                             releaseScheduleUiState = releaseScheduleUiState,
-                            bufferSummaryText = getReviewBufferSummaryText(setupOrReviewParam),
+                            bufferSummaryText = getReviewBufferSummaryText(
+                                setupOrReviewParam.sharedScheduleConfig?.bufferPeriod,
+                                setupOrReviewParam.sharedScheduleConfig?.bufferPeriodApplyType,
+                            ),
                             timeZoneText = getTimezoneDisplay(setupOrReviewParam.selectedZoneId),
                             onEditReleaseScheduleClick = {
                                 onEditBufferPeriodClick(setupOrReviewParam.bufferPeriod)
@@ -470,8 +473,8 @@ fun InheritanceReviewPlanScreenContent(
                                 )
                             },
                             sharedBufferPeriodSummaryText = releaseScheduleBufferPeriodSummaryText(
-                                period = setupOrReviewParam.bufferPeriod,
-                                applyType = setupOrReviewParam.bufferPeriodApplyType,
+                                period = setupOrReviewParam.sharedScheduleConfig?.bufferPeriod,
+                                applyType = setupOrReviewParam.sharedScheduleConfig?.bufferPeriodApplyType,
                             ),
                             timezoneText = getTimezoneDisplay(setupOrReviewParam.selectedZoneId),
                             fallbackSummaryText = fallbackSettingsSummaryText(setupOrReviewParam.fallbackSettings),
@@ -1011,19 +1014,13 @@ private fun IndividualScheduleReviewSummary(
 
 @Composable
 private fun getReviewBufferSummaryText(
-    setupOrReviewParam: InheritancePlanningParam.SetupOrReview,
+    period: Period?,
+    applyType: InheritanceBufferPeriodApplyType?,
 ): String {
-    val period =
-        setupOrReviewParam.bufferPeriod
-            ?: return stringResource(id = R.string.nc_release_schedule_buffer_period_summary_no_buffer)
-
-    val applyType = setupOrReviewParam.bufferPeriodApplyType
-        ?: if (setupOrReviewParam.setupFlowType == InheritanceSetupFlowType.SINGLE_BENEFICIARY) {
-            InheritanceBufferPeriodApplyType.FIRST_WITHDRAWAL_ONLY
-        } else {
-            return period.displayName
-        }
-
+    if (period == null) {
+        return stringResource(id = R.string.nc_release_schedule_buffer_period_summary_no_buffer)
+    }
+    if (applyType == null) return period.displayName
     val applyTypeText = when (applyType) {
         InheritanceBufferPeriodApplyType.FIRST_WITHDRAWAL_ONLY ->
             stringResource(id = com.nunchuk.android.main.R.string.nc_release_schedule_buffer_period_first_withdrawal_only)
@@ -1031,7 +1028,6 @@ private fun getReviewBufferSummaryText(
         InheritanceBufferPeriodApplyType.EVERY_WITHDRAWAL ->
             stringResource(id = com.nunchuk.android.main.R.string.nc_release_schedule_buffer_period_every_withdrawal)
     }
-
     return stringResource(
         id = com.nunchuk.android.main.R.string.nc_release_schedule_buffer_period_summary,
         period.intervalCount,

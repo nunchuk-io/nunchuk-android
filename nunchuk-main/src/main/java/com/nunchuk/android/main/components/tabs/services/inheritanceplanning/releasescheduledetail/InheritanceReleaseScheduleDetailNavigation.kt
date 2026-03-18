@@ -1,6 +1,7 @@
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasescheduledetail
 
 import androidx.activity.compose.LocalActivity
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -19,6 +20,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class InheritanceReleaseScheduleDetailRoute(
+    val draftId: String = "",
     val isPostBufferPeriodMethod: Boolean = false,
     val fromBeneficiarySchedules: Boolean = false,
     val beneficiaryEmail: String = "",
@@ -42,26 +44,43 @@ fun NavGraphBuilder.inheritanceReleaseScheduleDetail(
         val setupOrReviewParam = activityViewModel.setupOrReviewParam
         val route = backStackEntry.toRoute<InheritanceReleaseScheduleDetailRoute>()
         val releaseScheduleFlowState by releaseScheduleFlowViewModel.state.collectAsStateWithLifecycle()
-        val releaseScheduleUiState = releaseScheduleFlowState.releaseScheduleUiState
+        val draftId = route.draftId.ifBlank { releaseScheduleFlowState.activeDraftId }
+        val draft = releaseScheduleFlowState.drafts[draftId]
+            ?: releaseScheduleFlowViewModel.getDraft(draftId)
+        LaunchedEffect(draftId) {
+            releaseScheduleFlowViewModel.setActiveDraftId(draftId)
+        }
+        val releaseScheduleUiState = draft.releaseScheduleUiState
         val beneficiaryKey = route.beneficiaryEmail.trim().lowercase().ifBlank {
-            releaseScheduleFlowState.editingBeneficiaryEmail.orEmpty().trim().lowercase()
+            ""
         }
         val isBeneficiaryScheduleContext =
             route.fromBeneficiarySchedules || beneficiaryKey.isNotBlank()
+        val existingConfig = when {
+            beneficiaryKey.isNotBlank() ->
+                setupOrReviewParam.individualScheduleConfigs.entries
+                    .firstOrNull { it.key.trim().lowercase() == beneficiaryKey }
+                    ?.value
+
+            route.fromBeneficiarySchedules || setupOrReviewParam.setupFlowType == com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceSetupFlowType.SINGLE_BENEFICIARY ->
+                setupOrReviewParam.sharedScheduleConfig
+
+            else -> null
+        }
         val hasExistingScheduleConfig = if (isBeneficiaryScheduleContext) {
             if (beneficiaryKey.isNotBlank()) {
                 setupOrReviewParam.individualScheduleConfigs.keys.any { key ->
                     key.trim().lowercase() == beneficiaryKey
                 }
             } else {
-                setupOrReviewParam.isSharedScheduleConfigured
+                existingConfig != null
             }
         } else {
-            false
+            existingConfig != null
         }
         val shouldShowBufferSummary =
-            setupOrReviewParam.bufferPeriod != null ||
-                route.isPostBufferPeriodMethod ||
+            draft.hasBufferPeriodSelection ||
+            route.isPostBufferPeriodMethod ||
                 hasExistingScheduleConfig
         InheritanceReleaseScheduleDetailScreen(
             remainTime = remainTime,
@@ -73,13 +92,15 @@ fun NavGraphBuilder.inheritanceReleaseScheduleDetail(
             },
             bufferPeriodSummaryText = if (shouldShowBufferSummary) {
                 releaseScheduleBufferPeriodSummaryText(
-                    period = setupOrReviewParam.bufferPeriod,
-                    applyType = setupOrReviewParam.bufferPeriodApplyType,
+                    period = draft.bufferPeriod,
+                    applyType = draft.bufferPeriodApplyType,
                 )
             } else {
                 null
             },
-            onUiStateChanged = releaseScheduleFlowViewModel::setReleaseScheduleUiState,
+            onUiStateChanged = { updatedState ->
+                releaseScheduleFlowViewModel.setReleaseScheduleUiState(draftId, updatedState)
+            },
             onEditStage = onEditStage,
             onEditBufferPeriodClicked = { onEditBufferPeriodClicked(route) },
             onAddStageRequested = onAddStageRequested,
@@ -89,6 +110,7 @@ fun NavGraphBuilder.inheritanceReleaseScheduleDetail(
 }
 
 fun NavController.navigateToInheritanceReleaseScheduleDetail(
+    draftId: String = "",
     isPostBufferPeriodMethod: Boolean = false,
     fromBeneficiarySchedules: Boolean = false,
     beneficiaryEmail: String = "",
@@ -96,6 +118,7 @@ fun NavController.navigateToInheritanceReleaseScheduleDetail(
 ) {
     navigate(
         InheritanceReleaseScheduleDetailRoute(
+            draftId = draftId,
             isPostBufferPeriodMethod = isPostBufferPeriodMethod,
             fromBeneficiarySchedules = fromBeneficiarySchedules,
             beneficiaryEmail = beneficiaryEmail,

@@ -22,7 +22,6 @@ import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningActivity
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceReleaseScheduleFlowViewModel
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.MembershipStepEffect
 import com.nunchuk.android.model.Period
 import com.nunchuk.android.nav.NunchukNavigator
@@ -56,13 +55,12 @@ fun NavGraphBuilder.inheritanceReviewPlan(
         val activity = LocalActivity.current as InheritancePlanningActivity
         val activityViewModel: InheritancePlanningViewModel =
             hiltViewModel(viewModelStoreOwner = activity)
-        val releaseScheduleFlowViewModel: InheritanceReleaseScheduleFlowViewModel =
-            hiltViewModel(viewModelStoreOwner = activity)
         MembershipStepEffect(activity.membershipStepManager)
         val viewModel = hiltViewModel<InheritanceReviewPlanViewModel>()
         val lifecycleOwner = LocalLifecycleOwner.current
-        val releaseScheduleFlowState by releaseScheduleFlowViewModel.state.collectAsStateWithLifecycle()
-        val releaseScheduleUiState = releaseScheduleFlowState.releaseScheduleUiState
+        val releaseScheduleUiState =
+            activityViewModel.setupOrReviewParam.sharedScheduleConfig?.releaseScheduleUiState
+                ?: com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasescheduledetail.ReleaseScheduleUiState()
 
         DisposableEffect(activity, viewModel) {
             activity.setBottomSheetOptionListener { option ->

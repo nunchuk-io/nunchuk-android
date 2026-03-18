@@ -8,7 +8,6 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningActivity
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceReleaseScheduleFlowViewModel
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.MembershipStepEffect
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.defaultBeneficiaryAllocations
@@ -34,14 +33,11 @@ fun NavGraphBuilder.inheritanceBeneficiarySchedules(
         val activity = LocalActivity.current as InheritancePlanningActivity
         val activityViewModel: InheritancePlanningViewModel =
             hiltViewModel(viewModelStoreOwner = activity)
-        val releaseScheduleFlowViewModel: InheritanceReleaseScheduleFlowViewModel =
-            hiltViewModel(viewModelStoreOwner = activity)
         MembershipStepEffect(activity.membershipStepManager)
         val remainTime by activity.membershipStepManager.remainingTime.collectAsStateWithLifecycle()
         val planningState by activityViewModel.state.collectAsStateWithLifecycle()
-        val releaseScheduleFlowState by releaseScheduleFlowViewModel.state.collectAsStateWithLifecycle()
         val setupOrReviewParam = planningState.setupOrReviewParam
-        val releaseScheduleUiState = releaseScheduleFlowState.releaseScheduleUiState
+        val sharedScheduleConfig = setupOrReviewParam.sharedScheduleConfig
         val individualScheduleCardDataByEmail =
             setupOrReviewParam.individualScheduleConfigs.mapValues { (_, config) ->
                 InheritanceBeneficiaryScheduleCardData(
@@ -58,14 +54,15 @@ fun NavGraphBuilder.inheritanceBeneficiarySchedules(
             beneficiaries = setupOrReviewParam.beneficiaryAllocations.ifEmpty {
                 defaultBeneficiaryAllocations()
             },
-            releaseScheduleUiState = releaseScheduleUiState,
+            releaseScheduleUiState = sharedScheduleConfig?.releaseScheduleUiState
+                ?: com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasescheduledetail.ReleaseScheduleUiState(),
             individualScheduleCardDataByEmail = individualScheduleCardDataByEmail,
             sharedBufferPeriodSummaryText = releaseScheduleBufferPeriodSummaryText(
-                period = setupOrReviewParam.bufferPeriod,
-                applyType = setupOrReviewParam.bufferPeriodApplyType,
+                period = sharedScheduleConfig?.bufferPeriod,
+                applyType = sharedScheduleConfig?.bufferPeriodApplyType,
             ),
             fallbackSummaryText = fallbackSettingsSummaryText(setupOrReviewParam.fallbackSettings),
-            isSharedScheduleConfigured = setupOrReviewParam.isSharedScheduleConfigured,
+            isSharedScheduleConfigured = sharedScheduleConfig != null,
             onBackClicked = onBackClicked,
             onEditReleaseMethodClicked = onEditReleaseMethodClicked,
             onEditFallbackSettingsClicked = onEditFallbackSettingsClicked,

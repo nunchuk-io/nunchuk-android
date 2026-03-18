@@ -11,6 +11,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningActivity
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceReleaseScheduleFlowViewModel
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.MembershipStepEffect
 import com.nunchuk.android.model.Period
@@ -19,6 +20,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class InheritanceBufferPeriodRoute(
+    val draftId: String = "",
     val isUpdateRequest: Boolean = false,
     val fromBeneficiarySchedules: Boolean = false,
     val beneficiaryEmail: String = "",
@@ -27,6 +29,7 @@ data class InheritanceBufferPeriodRoute(
 
 fun NavGraphBuilder.inheritanceBufferPeriod(
     onContinueClick: (
+        draftId: String,
         isUpdateRequest: Boolean,
         fromBeneficiarySchedules: Boolean,
         beneficiaryEmail: String,
@@ -38,15 +41,33 @@ fun NavGraphBuilder.inheritanceBufferPeriod(
         val activity = LocalActivity.current as InheritancePlanningActivity
         val activityViewModel: InheritancePlanningViewModel =
             hiltViewModel(viewModelStoreOwner = activity)
+        val releaseScheduleFlowViewModel: InheritanceReleaseScheduleFlowViewModel =
+            hiltViewModel(viewModelStoreOwner = activity)
         MembershipStepEffect(activity.membershipStepManager)
         val route = backStackEntry.toRoute<InheritanceBufferPeriodRoute>()
         val viewModel = hiltViewModel<InheritanceBufferPeriodViewModel>()
         val lifecycleOwner = LocalLifecycleOwner.current
+        val routeDraftId = route.draftId.takeIf { it.isNotBlank() }.orEmpty()
+        val resolvedDraftId = routeDraftId.ifBlank { releaseScheduleFlowViewModel.state.value.activeDraftId }
+        val draft = if (routeDraftId.isNotBlank()) {
+            releaseScheduleFlowViewModel.getDraft(resolvedDraftId)
+        } else {
+            null
+        }
+        val initParam = if (routeDraftId.isBlank()) {
+            activityViewModel.setupOrReviewParam
+        } else {
+            activityViewModel.setupOrReviewParam.copy(
+                bufferPeriod = draft?.bufferPeriod,
+            )
+        }
+        val shouldRestoreSelection = route.isUpdateRequest ||
+            (routeDraftId.isNotBlank() && draft?.hasBufferPeriodSelection == true)
 
         LaunchedEffect(Unit) {
             viewModel.init(
-                param = activityViewModel.setupOrReviewParam,
-                isUpdateRequest = route.isUpdateRequest,
+                param = initParam,
+                isUpdateRequest = shouldRestoreSelection,
             )
         }
 
@@ -58,6 +79,7 @@ fun NavGraphBuilder.inheritanceBufferPeriod(
                         is InheritanceBufferPeriodEvent.Error -> NCToastMessage(activity).showError(event.message)
                         is InheritanceBufferPeriodEvent.OnContinueClick -> {
                             onContinueClick(
+                                routeDraftId,
                                 route.isUpdateRequest,
                                 route.fromBeneficiarySchedules,
                                 route.beneficiaryEmail,
@@ -78,6 +100,7 @@ fun NavGraphBuilder.inheritanceBufferPeriod(
 }
 
 fun NavController.navigateToInheritanceBufferPeriod(
+    draftId: String = "",
     isUpdateRequest: Boolean = false,
     fromBeneficiarySchedules: Boolean = false,
     beneficiaryEmail: String = "",
@@ -85,6 +108,7 @@ fun NavController.navigateToInheritanceBufferPeriod(
 ) {
     navigate(
         InheritanceBufferPeriodRoute(
+            draftId = draftId,
             isUpdateRequest = isUpdateRequest,
             fromBeneficiarySchedules = fromBeneficiarySchedules,
             beneficiaryEmail = beneficiaryEmail,

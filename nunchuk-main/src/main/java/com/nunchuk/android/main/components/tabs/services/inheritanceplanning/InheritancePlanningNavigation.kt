@@ -303,11 +303,12 @@ fun InheritancePlanningGraph(
             onAddReleaseScheduleClicked = {
                 val returnToReviewPlan =
                     navController.previousBackStackEntry?.destination?.hasRoute<InheritanceReviewPlanRoute>() == true
-                releaseScheduleFlowViewModel.setEditingBeneficiaryEmail(null)
-                activityViewModel.setOrUpdate(
-                    activityViewModel.setupOrReviewParam.copy(isSharedScheduleConfigured = false)
+                val draftId = releaseScheduleFlowViewModel.createDraft(
+                    releaseScheduleUiState = ReleaseScheduleUiState(),
+                    hasBufferPeriodSelection = false,
                 )
                 navController.navigateToInheritanceReleaseScheduleDetail(
+                    draftId = draftId,
                     fromBeneficiarySchedules = true,
                     returnToReviewPlan = returnToReviewPlan,
                 )
@@ -315,10 +316,19 @@ fun InheritancePlanningGraph(
             onEditSharedScheduleClicked = {
                 val returnToReviewPlan =
                     navController.previousBackStackEntry?.destination?.hasRoute<InheritanceReviewPlanRoute>() == true
-                releaseScheduleFlowViewModel.setEditingBeneficiaryEmail(null)
+                val setupOrReviewParam = activityViewModel.setupOrReviewParam
+                val sharedConfig = setupOrReviewParam.sharedScheduleConfig
+                val hasBufferSelection = sharedConfig != null
+                val draftId = releaseScheduleFlowViewModel.createDraft(
+                    releaseScheduleUiState = sharedConfig?.releaseScheduleUiState ?: ReleaseScheduleUiState(),
+                    bufferPeriod = sharedConfig?.bufferPeriod ?: setupOrReviewParam.bufferPeriod,
+                    bufferPeriodApplyType = sharedConfig?.bufferPeriodApplyType ?: setupOrReviewParam.bufferPeriodApplyType,
+                    hasBufferPeriodSelection = hasBufferSelection,
+                )
                 navController.navigateToInheritanceReleaseScheduleDetail(
+                    draftId = draftId,
                     fromBeneficiarySchedules = true,
-                    isPostBufferPeriodMethod = activityViewModel.setupOrReviewParam.isSharedScheduleConfigured,
+                    isPostBufferPeriodMethod = hasBufferSelection,
                     returnToReviewPlan = returnToReviewPlan,
                 )
             },
@@ -331,23 +341,16 @@ fun InheritancePlanningGraph(
                         ?: activityViewModel.setupOrReviewParam.individualScheduleConfigs.entries
                             .firstOrNull { it.key.trim().lowercase() == beneficiaryKey }
                             ?.value
-                releaseScheduleFlowViewModel.setEditingBeneficiaryEmail(beneficiaryKey)
-                releaseScheduleFlowViewModel.setReleaseScheduleUiState(
-                    scheduleConfig?.releaseScheduleUiState
-                        ?: ReleaseScheduleUiState()
-                )
-                val firstStageTimeZoneId =
-                    releaseScheduleFlowViewModel.releaseScheduleUiState.stages.firstOrNull()?.timeZoneId
-                        ?: activityViewModel.setupOrReviewParam.selectedZoneId
-                activityViewModel.setOrUpdate(
-                    activityViewModel.setupOrReviewParam.copy(
-                        bufferPeriod = scheduleConfig?.bufferPeriod,
-                        bufferPeriodApplyType = scheduleConfig?.bufferPeriodApplyType,
-                        selectedZoneId = firstStageTimeZoneId,
-                    )
+                val draftId = releaseScheduleFlowViewModel.createDraft(
+                    releaseScheduleUiState = scheduleConfig?.releaseScheduleUiState
+                        ?: ReleaseScheduleUiState(),
+                    bufferPeriod = scheduleConfig?.bufferPeriod,
+                    bufferPeriodApplyType = scheduleConfig?.bufferPeriodApplyType,
+                    hasBufferPeriodSelection = scheduleConfig != null,
                 )
                 navController.navigate(
                     InheritanceReleaseScheduleDetailRoute(
+                        draftId = draftId,
                         isPostBufferPeriodMethod = scheduleConfig != null,
                         fromBeneficiarySchedules = true,
                         beneficiaryEmail = beneficiaryKey,
@@ -366,19 +369,34 @@ fun InheritancePlanningGraph(
 
         inheritanceReleaseSchedule(
             onContinueClicked = {
-                navController.navigateToInheritanceReleaseScheduleDetail()
+                val setupOrReviewParam = activityViewModel.setupOrReviewParam
+                val sharedConfig = setupOrReviewParam.sharedScheduleConfig
+                val hasBufferSelection = sharedConfig != null
+                val draftId = releaseScheduleFlowViewModel.createDraft(
+                    releaseScheduleUiState = sharedConfig?.releaseScheduleUiState ?: ReleaseScheduleUiState(),
+                    bufferPeriod = sharedConfig?.bufferPeriod ?: setupOrReviewParam.bufferPeriod,
+                    bufferPeriodApplyType = sharedConfig?.bufferPeriodApplyType ?: setupOrReviewParam.bufferPeriodApplyType,
+                    hasBufferPeriodSelection = hasBufferSelection,
+                )
+                navController.navigateToInheritanceReleaseScheduleDetail(
+                    draftId = draftId,
+                    isPostBufferPeriodMethod = hasBufferSelection,
+                )
             },
         )
 
         inheritanceReleaseScheduleDetail(
             onEditStage = { stage ->
+                val draftId = releaseScheduleFlowViewModel.state.value.activeDraftId
                 navController.navigateToInheritanceReleaseScheduleStageEdit(
+                    draftId = draftId,
                     stageId = stage.id,
                     isNewStage = false
                 )
             },
             onEditBufferPeriodClicked = { route ->
                 navController.navigateToInheritanceBufferPeriod(
+                    draftId = route.draftId,
                     isUpdateRequest = true,
                     fromBeneficiarySchedules = route.fromBeneficiarySchedules,
                     beneficiaryEmail = route.beneficiaryEmail,
@@ -386,24 +404,27 @@ fun InheritancePlanningGraph(
                 )
             },
             onAddStageRequested = {
-                val newStage = releaseScheduleFlowViewModel.releaseScheduleUiState.buildNewStage()
-                releaseScheduleFlowViewModel.setPendingNewStage(newStage)
+                val draftId = releaseScheduleFlowViewModel.state.value.activeDraftId
+                val newStage = releaseScheduleFlowViewModel.getDraft(draftId).releaseScheduleUiState.buildNewStage()
+                releaseScheduleFlowViewModel.setPendingNewStage(draftId, newStage)
                 navController.navigateToInheritanceReleaseScheduleStageEdit(
+                    draftId = draftId,
                     stageId = newStage.id,
                     isNewStage = true
                 )
             },
             onContinueClicked = { route ->
                 val setupOrReviewParam = activityViewModel.setupOrReviewParam
-                val releaseScheduleUiState = releaseScheduleFlowViewModel.releaseScheduleUiState
-                val activeBeneficiaryEmail =
-                    beneficiaryScheduleKey(
-                        route.beneficiaryEmail.ifBlank {
-                            releaseScheduleFlowViewModel.editingBeneficiaryEmail.orEmpty()
-                        }
-                    )
+                val draftId = route.draftId.ifBlank { releaseScheduleFlowViewModel.state.value.activeDraftId }
+                val draft = releaseScheduleFlowViewModel.getDraft(draftId)
+                val releaseScheduleUiState = draft.releaseScheduleUiState
+                val activeBeneficiaryEmail = beneficiaryScheduleKey(route.beneficiaryEmail)
                 val isBeneficiaryScheduleContext =
                     route.fromBeneficiarySchedules || activeBeneficiaryEmail.isNotBlank()
+                val isSingleBeneficiaryContext =
+                    setupOrReviewParam.setupFlowType == InheritanceSetupFlowType.SINGLE_BENEFICIARY &&
+                        !route.fromBeneficiarySchedules &&
+                        activeBeneficiaryEmail.isBlank()
                 val firstStageTimeZoneId =
                     releaseScheduleUiState.stages.firstOrNull()?.timeZoneId.orEmpty()
                 if (firstStageTimeZoneId.isNotEmpty() && firstStageTimeZoneId != setupOrReviewParam.selectedZoneId) {
@@ -411,23 +432,33 @@ fun InheritancePlanningGraph(
                         setupOrReviewParam.copy(selectedZoneId = firstStageTimeZoneId)
                     )
                 }
-                if (isBeneficiaryScheduleContext && route.isPostBufferPeriodMethod) {
+                if ((isBeneficiaryScheduleContext || isSingleBeneficiaryContext) && route.isPostBufferPeriodMethod) {
+                    var updatedParam = activityViewModel.setupOrReviewParam
                     if (activeBeneficiaryEmail.isNotBlank()) {
-                        val updatedConfigs = setupOrReviewParam.individualScheduleConfigs + mapOf(
+                        val updatedConfigs = updatedParam.individualScheduleConfigs + mapOf(
                             activeBeneficiaryEmail to InheritanceBeneficiaryScheduleConfig(
                                 releaseScheduleUiState = releaseScheduleUiState,
-                                bufferPeriod = setupOrReviewParam.bufferPeriod,
-                                bufferPeriodApplyType = setupOrReviewParam.bufferPeriodApplyType,
+                                bufferPeriod = draft.bufferPeriod,
+                                bufferPeriodApplyType = draft.bufferPeriodApplyType,
                             )
                         )
-                        activityViewModel.setOrUpdate(
-                            setupOrReviewParam.copy(individualScheduleConfigs = updatedConfigs)
+                        updatedParam = updatedParam.copy(
+                            individualScheduleConfigs = updatedConfigs,
                         )
                     } else {
-                        activityViewModel.setOrUpdate(
-                            activityViewModel.setupOrReviewParam.copy(isSharedScheduleConfigured = true)
+                        updatedParam = updatedParam.copy(
+                            bufferPeriod = draft.bufferPeriod,
+                            bufferPeriodApplyType = draft.bufferPeriodApplyType,
+                            sharedScheduleConfig = InheritanceBeneficiaryScheduleConfig(
+                                releaseScheduleUiState = releaseScheduleUiState,
+                                bufferPeriod = draft.bufferPeriod,
+                                bufferPeriodApplyType = draft.bufferPeriodApplyType,
+                            ),
+                            isSharedScheduleConfigured = true,
                         )
                     }
+                    activityViewModel.setOrUpdate(updatedParam)
+                    releaseScheduleFlowViewModel.discardDraft(draftId)
                     if (route.returnToReviewPlan) {
                         val didPopBeneficiarySchedules = navController.popBackStack<InheritanceBeneficiarySchedulesRoute>(
                             inclusive = true
@@ -439,6 +470,8 @@ fun InheritancePlanningGraph(
                                 navController.navigateToInheritanceReviewPlan()
                             }
                         }
+                    } else if (isSingleBeneficiaryContext) {
+                        navController.navigateToInheritanceNote()
                     } else {
                         val didPop =
                             navController.popBackStack<InheritanceBeneficiarySchedulesRoute>(inclusive = false)
@@ -446,12 +479,11 @@ fun InheritancePlanningGraph(
                             navController.navigateToInheritanceBeneficiarySchedules()
                         }
                     }
-                    if (activeBeneficiaryEmail.isNotBlank()) {
-                        releaseScheduleFlowViewModel.setEditingBeneficiaryEmail(null)
-                    }
-                } else if (isBeneficiaryScheduleContext) {
+                } else if (isBeneficiaryScheduleContext || isSingleBeneficiaryContext) {
+                    val bufferDraftId = releaseScheduleFlowViewModel.cloneDraft(draftId)
                     navController.navigateToInheritanceBufferPeriod(
-                        fromBeneficiarySchedules = true,
+                        draftId = bufferDraftId,
+                        fromBeneficiarySchedules = isBeneficiaryScheduleContext,
                         beneficiaryEmail = activeBeneficiaryEmail,
                         returnToReviewPlan = route.returnToReviewPlan,
                     )
@@ -461,14 +493,6 @@ fun InheritancePlanningGraph(
                     if (!didPopToReview) {
                         navController.navigateToInheritanceReviewPlan()
                     }
-                } else if (setupOrReviewParam.setupFlowType == InheritanceSetupFlowType.SINGLE_BENEFICIARY &&
-                    route.isPostBufferPeriodMethod &&
-                    setupOrReviewParam.bufferPeriod != null &&
-                    setupOrReviewParam.bufferPeriodApplyType != null
-                ) {
-                    navController.navigateToInheritanceNote()
-                } else if (setupOrReviewParam.setupFlowType == InheritanceSetupFlowType.SINGLE_BENEFICIARY) {
-                    navController.navigateToInheritanceBufferPeriod()
                 } else if (activityViewModel.isMiniscriptWallet()) {
                     navController.navigateToInheritanceTimelockInfo()
                 } else {
@@ -478,20 +502,20 @@ fun InheritancePlanningGraph(
         )
 
         inheritanceReleaseScheduleStageEdit(
-            onBackClicked = { isNewStage ->
+            onBackClicked = { isNewStage, draftId ->
                 returnToReleaseScheduleDetail(navController)
-                if (isNewStage) releaseScheduleFlowViewModel.setPendingNewStage(null)
+                if (isNewStage) releaseScheduleFlowViewModel.setPendingNewStage(draftId, null)
             },
-            onStageNotFound = { returnToReleaseScheduleDetail(navController) },
-            onDeleteStage = { stageId, isNewStage ->
+            onStageNotFound = { _ -> returnToReleaseScheduleDetail(navController) },
+            onDeleteStage = { stageId, isNewStage, draftId ->
                 if (isNewStage) {
                     returnToReleaseScheduleDetail(navController)
-                    releaseScheduleFlowViewModel.setPendingNewStage(null)
+                    releaseScheduleFlowViewModel.setPendingNewStage(draftId, null)
                 } else {
                     returnToReleaseScheduleDetail(navController)
                     val updatedUiState =
-                        releaseScheduleFlowViewModel.releaseScheduleUiState.deleteStage(stageId)
-                    releaseScheduleFlowViewModel.setReleaseScheduleUiState(updatedUiState)
+                        releaseScheduleFlowViewModel.getDraft(draftId).releaseScheduleUiState.deleteStage(stageId)
+                    releaseScheduleFlowViewModel.setReleaseScheduleUiState(draftId, updatedUiState)
                     val firstStageTimeZoneId =
                         updatedUiState.stages.firstOrNull()?.timeZoneId
                             ?: activityViewModel.setupOrReviewParam.selectedZoneId
@@ -500,20 +524,20 @@ fun InheritancePlanningGraph(
                     )
                 }
             },
-            onConfirmStage = { updatedStage, isNewStage ->
+            onConfirmStage = { updatedStage, isNewStage, draftId ->
                 val nextUiState = if (isNewStage) {
-                    releaseScheduleFlowViewModel.releaseScheduleUiState.appendStage(updatedStage)
+                    releaseScheduleFlowViewModel.getDraft(draftId).releaseScheduleUiState.appendStage(updatedStage)
                 } else {
-                    releaseScheduleFlowViewModel.releaseScheduleUiState.updateStage(updatedStage)
+                    releaseScheduleFlowViewModel.getDraft(draftId).releaseScheduleUiState.updateStage(updatedStage)
                 }
-                releaseScheduleFlowViewModel.setReleaseScheduleUiState(nextUiState)
+                releaseScheduleFlowViewModel.setReleaseScheduleUiState(draftId, nextUiState)
                 if (updatedStage.stageNumber == 1) {
                     activityViewModel.setOrUpdate(
                         activityViewModel.setupOrReviewParam.copy(selectedZoneId = updatedStage.timeZoneId)
                     )
                 }
                 returnToReleaseScheduleDetail(navController)
-                if (isNewStage) releaseScheduleFlowViewModel.setPendingNewStage(null)
+                if (isNewStage) releaseScheduleFlowViewModel.setPendingNewStage(draftId, null)
             },
         )
 
@@ -564,28 +588,31 @@ fun InheritancePlanningGraph(
         )
 
         inheritanceBufferPeriod(
-            onContinueClick = { isUpdateRequest, fromBeneficiarySchedules, beneficiaryEmail, returnToReviewPlan, period ->
-                val activeBeneficiaryEmail =
-                    beneficiaryScheduleKey(
-                        beneficiaryEmail.ifBlank {
-                            releaseScheduleFlowViewModel.editingBeneficiaryEmail.orEmpty()
-                        }
+            onContinueClick = { draftId, isUpdateRequest, fromBeneficiarySchedules, beneficiaryEmail, returnToReviewPlan, period ->
+                val activeBeneficiaryEmail = beneficiaryScheduleKey(beneficiaryEmail)
+                if (draftId.isNotBlank()) {
+                    releaseScheduleFlowViewModel.setBufferPeriodSelection(
+                        draftId = draftId,
+                        period = period,
                     )
-                activityViewModel.setOrUpdate(
-                    activityViewModel.setupOrReviewParam.copy(
-                        bufferPeriod = period,
-                        bufferPeriodApplyType = if (period == null) {
-                            null
-                        } else {
-                            activityViewModel.setupOrReviewParam.bufferPeriodApplyType
-                        },
+                } else {
+                    activityViewModel.setOrUpdate(
+                        activityViewModel.setupOrReviewParam.copy(
+                            bufferPeriod = period,
+                            bufferPeriodApplyType = if (period == null) {
+                                null
+                            } else {
+                                activityViewModel.setupOrReviewParam.bufferPeriodApplyType
+                            },
+                        )
                     )
-                )
+                }
                 if (isUpdateRequest || activityViewModel.setupOrReviewParam.planFlow == InheritancePlanFlow.VIEW) {
                     navController.popBackStack()
                 } else if (fromBeneficiarySchedules) {
                     if (period == null) {
                         navController.navigateToInheritanceReleaseScheduleDetail(
+                            draftId = draftId,
                             isPostBufferPeriodMethod = true,
                             fromBeneficiarySchedules = true,
                             beneficiaryEmail = activeBeneficiaryEmail,
@@ -593,6 +620,7 @@ fun InheritancePlanningGraph(
                         )
                     } else {
                         navController.navigateToInheritanceBufferPeriodMethod(
+                            draftId = draftId,
                             fromBeneficiarySchedules = true,
                             beneficiaryEmail = activeBeneficiaryEmail,
                             returnToReviewPlan = returnToReviewPlan,
@@ -601,10 +629,11 @@ fun InheritancePlanningGraph(
                 } else if (activityViewModel.setupOrReviewParam.setupFlowType == InheritanceSetupFlowType.SINGLE_BENEFICIARY) {
                     if (period == null) {
                         navController.navigateToInheritanceReleaseScheduleDetail(
+                            draftId = draftId,
                             isPostBufferPeriodMethod = true,
                         )
                     } else {
-                        navController.navigateToInheritanceBufferPeriodMethod()
+                        navController.navigateToInheritanceBufferPeriodMethod(draftId = draftId)
                     }
                 } else {
                     navController.navigateToInheritanceNotifyPref()
@@ -613,19 +642,22 @@ fun InheritancePlanningGraph(
         )
 
         inheritanceBufferPeriodMethod(
-            onContinueClicked = { option, fromBeneficiarySchedules, beneficiaryEmail, returnToReviewPlan ->
-                val activeBeneficiaryEmail =
-                    beneficiaryScheduleKey(
-                        beneficiaryEmail.ifBlank {
-                            releaseScheduleFlowViewModel.editingBeneficiaryEmail.orEmpty()
-                        }
+            onContinueClicked = { option, draftId, fromBeneficiarySchedules, beneficiaryEmail, returnToReviewPlan ->
+                val activeBeneficiaryEmail = beneficiaryScheduleKey(beneficiaryEmail)
+                if (draftId.isNotBlank()) {
+                    releaseScheduleFlowViewModel.setBufferPeriodApplyType(
+                        draftId = draftId,
+                        applyType = option.toBufferPeriodApplyType(),
                     )
-                activityViewModel.setOrUpdate(
-                    activityViewModel.setupOrReviewParam.copy(
-                        bufferPeriodApplyType = option.toBufferPeriodApplyType()
+                } else {
+                    activityViewModel.setOrUpdate(
+                        activityViewModel.setupOrReviewParam.copy(
+                            bufferPeriodApplyType = option.toBufferPeriodApplyType()
+                        )
                     )
-                )
+                }
                 navController.navigateToInheritanceReleaseScheduleDetail(
+                    draftId = draftId,
                     isPostBufferPeriodMethod = true,
                     fromBeneficiarySchedules = fromBeneficiarySchedules,
                     beneficiaryEmail = activeBeneficiaryEmail,
@@ -722,7 +754,20 @@ fun InheritancePlanningGraph(
             },
             onEditBufferPeriodClick = {
                 if (activityViewModel.setupOrReviewParam.setupFlowType == InheritanceSetupFlowType.SINGLE_BENEFICIARY) {
-                    navController.navigateToInheritanceReleaseScheduleDetail(returnToReviewPlan = true)
+                    val setupOrReviewParam = activityViewModel.setupOrReviewParam
+                    val sharedConfig = setupOrReviewParam.sharedScheduleConfig
+                    val hasBufferSelection = sharedConfig != null
+                    val draftId = releaseScheduleFlowViewModel.createDraft(
+                        releaseScheduleUiState = sharedConfig?.releaseScheduleUiState ?: ReleaseScheduleUiState(),
+                        bufferPeriod = sharedConfig?.bufferPeriod ?: setupOrReviewParam.bufferPeriod,
+                        bufferPeriodApplyType = sharedConfig?.bufferPeriodApplyType ?: setupOrReviewParam.bufferPeriodApplyType,
+                        hasBufferPeriodSelection = hasBufferSelection,
+                    )
+                    navController.navigateToInheritanceReleaseScheduleDetail(
+                        draftId = draftId,
+                        isPostBufferPeriodMethod = hasBufferSelection,
+                        returnToReviewPlan = true,
+                    )
                 } else {
                     navController.navigateToInheritanceBufferPeriod(isUpdateRequest = true)
                 }
@@ -816,7 +861,7 @@ fun returnToReleaseScheduleDetail(navController: NavController) {
     val didPop =
         navController.popBackStack<InheritanceReleaseScheduleDetailRoute>(inclusive = false)
     if (!didPop) {
-        navController.navigate(InheritanceReleaseScheduleDetailRoute())
+        navController.popBackStack()
     }
 }
 

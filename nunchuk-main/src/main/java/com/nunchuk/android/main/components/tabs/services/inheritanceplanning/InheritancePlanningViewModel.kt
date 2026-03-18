@@ -259,6 +259,7 @@ sealed class InheritancePlanningParam {
         val setupFlowType: InheritanceSetupFlowType = InheritanceSetupFlowType.OLD_FLOW,
         val releaseMethodType: InheritanceReleaseMethodType = InheritanceReleaseMethodType.SHARED_SCHEDULE,
         val beneficiaryAllocations: List<InheritanceBeneficiaryAllocation> = emptyList(),
+        val sharedScheduleConfig: InheritanceBeneficiaryScheduleConfig? = null,
         val individualScheduleConfigs: Map<String, InheritanceBeneficiaryScheduleConfig> = emptyMap(),
         val isSharedScheduleConfigured: Boolean = false,
         val bufferPeriodApplyType: InheritanceBufferPeriodApplyType? = null,

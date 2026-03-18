@@ -130,6 +130,13 @@ class InheritanceReviewPlanViewModel @Inject constructor(
                 initial.isNotify != param.isNotify ||
                 initial.note != param.note ||
                 initial.bufferPeriod != param.bufferPeriod ||
+                initial.bufferPeriodApplyType != param.bufferPeriodApplyType ||
+                initial.releaseMethodType != param.releaseMethodType ||
+                initial.beneficiaryAllocations != param.beneficiaryAllocations ||
+                initial.individualScheduleConfigs != param.individualScheduleConfigs ||
+                initial.sharedScheduleConfig != param.sharedScheduleConfig ||
+                initial.isSharedScheduleConfigured != param.isSharedScheduleConfigured ||
+                initial.fallbackSettings != param.fallbackSettings ||
                 !notificationSettingsEqual(initial.notificationSettings, param.notificationSettings)
     }
 
@@ -185,7 +192,7 @@ class InheritanceReviewPlanViewModel @Inject constructor(
                 notificationEmails = param.emails.toList(),
                 notifyToday = param.isNotify,
                 activationTimeMilis = param.activationDate,
-                bufferPeriodId = param.bufferPeriod?.id,
+                bufferPeriodId = sharedBufferPeriod(param)?.id,
                 action = if (flow == ReviewFlow.CREATE_OR_UPDATE) CalculateRequiredSignaturesAction.CREATE_OR_UPDATE else CalculateRequiredSignaturesAction.CANCEL,
                 groupId = param.groupId,
                 notificationPreferences = param.notificationSettings,
@@ -305,7 +312,7 @@ class InheritanceReviewPlanViewModel @Inject constructor(
                     notificationEmails = param.emails.toList(),
                     notifyToday = param.isNotify,
                     activationTimeMilis = param.activationDate,
-                    bufferPeriodId = param.bufferPeriod?.id,
+                    bufferPeriodId = sharedBufferPeriod(param)?.id,
                     groupId = param.groupId,
                     notificationPreferences = param.notificationSettings,
                     timezone = param.selectedZoneId,
@@ -421,8 +428,10 @@ class InheritanceReviewPlanViewModel @Inject constructor(
             }
 
             InheritanceSetupFlowType.SINGLE_BENEFICIARY -> {
+                val effectiveSharedUiState =
+                    releaseScheduleUiState ?: param.sharedScheduleConfig?.releaseScheduleUiState
                 ScheduleRequestData(
-                    stages = releaseScheduleUiState.toInheritancePlanStages(param.selectedZoneId),
+                    stages = effectiveSharedUiState.toInheritancePlanStages(param.selectedZoneId),
                     beneficiaries = null,
                 )
             }
@@ -448,8 +457,10 @@ class InheritanceReviewPlanViewModel @Inject constructor(
                     )
                 }
 
+                val effectiveSharedUiState =
+                    releaseScheduleUiState ?: param.sharedScheduleConfig?.releaseScheduleUiState
                 val sharedStages = if (param.releaseMethodType == InheritanceReleaseMethodType.SHARED_SCHEDULE) {
-                    releaseScheduleUiState.toInheritancePlanStages(param.selectedZoneId)
+                    effectiveSharedUiState.toInheritancePlanStages(param.selectedZoneId)
                 } else {
                     null
                 }
@@ -476,7 +487,7 @@ class InheritanceReviewPlanViewModel @Inject constructor(
     }
 
     private fun toBufferApplyOn(param: InheritancePlanningParam.SetupOrReview): String? {
-        return when (param.bufferPeriodApplyType) {
+        return when (sharedBufferApplyType(param)) {
             InheritanceBufferPeriodApplyType.FIRST_WITHDRAWAL_ONLY -> "FIRST_WITHDRAWAL"
             InheritanceBufferPeriodApplyType.EVERY_WITHDRAWAL -> "EVERY_WITHDRAWAL"
             null -> null
@@ -490,6 +501,14 @@ class InheritanceReviewPlanViewModel @Inject constructor(
             InheritanceReleaseMethodType.INDIVIDUAL_SCHEDULES -> "INDIVIDUAL"
         }
     }
+
+    private fun sharedBufferPeriod(
+        param: InheritancePlanningParam.SetupOrReview,
+    ) = param.sharedScheduleConfig?.bufferPeriod ?: param.bufferPeriod
+
+    private fun sharedBufferApplyType(
+        param: InheritancePlanningParam.SetupOrReview,
+    ) = param.sharedScheduleConfig?.bufferPeriodApplyType ?: param.bufferPeriodApplyType
 
     private fun toFallbackPolicy(param: InheritancePlanningParam.SetupOrReview): InheritancePlanFallbackPolicy? {
         val settings = param.fallbackSettings ?: return null
