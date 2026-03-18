@@ -19,19 +19,25 @@
 
 package com.nunchuk.android.transaction.components.receive.address.used
 
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.Result.Error
 import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.transaction.components.receive.address.UsedAddressModel
-import com.nunchuk.android.transaction.components.receive.address.used.UsedAddressEvent.GetUsedAddressErrorEvent
 import com.nunchuk.android.usecase.GetAddressBalanceUseCase
 import com.nunchuk.android.usecase.GetAddressesUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -40,18 +46,22 @@ internal class UsedAddressViewModel @Inject constructor(
     private val getAddressesUseCase: GetAddressesUseCase,
     private val getAddressBalanceUseCase: GetAddressBalanceUseCase,
     private val pushEventManager: PushEventManager,
-    ) : NunchukViewModel<UsedAddressState, UsedAddressEvent>() {
+) : ViewModel() {
+
+    private val _state = MutableStateFlow(UsedAddressState())
+    val state: StateFlow<UsedAddressState> = _state.asStateFlow()
+
+    private val _event = MutableSharedFlow<UsedAddressEvent>()
+    val event: SharedFlow<UsedAddressEvent> = _event.asSharedFlow()
 
     private lateinit var walletId: String
-
-    override val initialState = UsedAddressState()
 
     init {
         viewModelScope.launch {
             pushEventManager.event.collect { event ->
                 when (event) {
-                    is PushEvent.ReloadUsedAddress -> getUnusedAddress()
-                    else -> { }
+                    is PushEvent.ReloadUsedAddress -> getUsedAddresses()
+                    else -> {}
                 }
             }
         }
@@ -59,13 +69,13 @@ internal class UsedAddressViewModel @Inject constructor(
 
     fun init(walletId: String) {
         this.walletId = walletId
-        getUnusedAddress()
+        getUsedAddresses()
     }
 
-    fun getUnusedAddress() {
+    private fun getUsedAddresses() {
         viewModelScope.launch {
             getAddressesUseCase.execute(walletId = walletId, used = true)
-                .onException { event(GetUsedAddressErrorEvent(it.message.orEmpty())) }
+                .onException { _event.emit(UsedAddressEvent.GetUsedAddressErrorEvent(it.message.orEmpty())) }
                 .collect { getAddressBalance(it) }
         }
     }
@@ -78,8 +88,7 @@ internal class UsedAddressViewModel @Inject constructor(
                     is Error -> UsedAddressModel(it, Amount.ZER0)
                 }
             }
-            updateState { copy(addresses = addressModels) }
+            _state.update { it.copy(addresses = addressModels) }
         }
     }
-
 }

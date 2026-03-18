@@ -89,6 +89,7 @@ import com.nunchuk.android.model.transaction.ServerTransactionType
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.details.view.AmountView
 import com.nunchuk.android.transaction.components.details.view.ChangeAddressView
+import com.nunchuk.android.transaction.components.details.view.InspectAddressBottomSheet
 import com.nunchuk.android.transaction.components.details.view.PendingSignatureStatusView
 import com.nunchuk.android.transaction.components.details.view.TimeLockUtilView
 import com.nunchuk.android.transaction.components.details.view.TransactionOutputItem
@@ -124,6 +125,7 @@ fun TransactionDetailView(
 ) {
     var showDetail by rememberSaveable { mutableStateOf(false) }
     var showInputCoin by rememberSaveable { mutableStateOf(false) }
+    var inspectAddress by rememberSaveable { mutableStateOf<String?>(null) }
     val isValueKeySetDisable = state.wallet.isValueKeySetDisable
     var isExpanded by rememberSaveable(isValueKeySetDisable) { mutableStateOf(isValueKeySetDisable) }
     var preImageScriptMode by rememberSaveable { mutableStateOf<ScriptNode?>(null) }
@@ -225,6 +227,7 @@ fun TransactionDetailView(
                         savedAddresses = state.savedAddress,
                         output = output,
                         onCopyText = onCopyText,
+                        onInspectAddress = { inspectAddress = it },
                         hideFiatCurrency = state.hideFiatCurrency
                     )
 
@@ -288,6 +291,8 @@ fun TransactionDetailView(
                             txOutput = transaction.outputs[transaction.changeIndex],
                             output = changeCoin,
                             tags = state.tags,
+                            onCopyText = onCopyText,
+                            onInspectAddress = { inspectAddress = it },
                             hideFiatCurrency = state.hideFiatCurrency
                         )
                     }
@@ -555,6 +560,16 @@ fun TransactionDetailView(
                 }
             }
         }
+    }
+
+    if (inspectAddress != null) {
+        InspectAddressBottomSheet(
+            address = inspectAddress!!,
+            onCopy = { address ->
+                onCopyText(address)
+            },
+            onDismiss = { inspectAddress = null },
+        )
     }
 
     if (preImageScriptMode != null) {

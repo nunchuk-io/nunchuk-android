@@ -23,10 +23,14 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.view.isVisible
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.viewpager.widget.ViewPager
+import androidx.viewbinding.ViewBinding
+import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.domain.data.VerifyAddress
 import com.nunchuk.android.core.nfc.BasePortalActivity
@@ -36,78 +40,96 @@ import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.util.TextUtils
+import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.receive.ReceiveTransactionActivity
 import com.nunchuk.android.transaction.components.receive.TabCountChangeListener
 import com.nunchuk.android.transaction.components.receive.address.AddressFragmentArgs
 import com.nunchuk.android.transaction.components.receive.address.AddressTab
-import com.nunchuk.android.transaction.databinding.FragmentUnusedAddressBinding
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningVerticalDialog
-import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
-internal class UnusedAddressFragment : BaseFragment<FragmentUnusedAddressBinding>(),
+internal class UnusedAddressFragment : BaseFragment<ViewBinding>(),
     BottomSheetOptionListener {
 
     @Inject
     lateinit var textUtils: TextUtils
 
     private val controller: IntentSharingController by lazy {
-        IntentSharingController.from(
-            requireActivity()
-        )
+        IntentSharingController.from(requireActivity())
     }
-
-    lateinit var adapter: UnusedAddressAdapter
 
     private val args: AddressFragmentArgs by lazy { AddressFragmentArgs.deserializeFrom(arguments) }
 
     private val viewModel: UnusedAddressViewModel by viewModels()
 
+    private var currentPage = 0
+
     override fun initializeBinding(
         inflater: LayoutInflater,
         container: ViewGroup?
-    ) = FragmentUnusedAddressBinding.inflate(inflater, container, false)
+    ): ViewBinding = ViewBinding {
+        ComposeView(requireContext()).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+
+            setContent {
+                val state by viewModel.state.collectAsStateWithLifecycle()
+
+                NunchukTheme {
+                    UnusedAddressContent(
+                        addresses = state.addresses,
+                        onAddressClick = ::copyAddress,
+                        onGenerateAddressClick = viewModel::generateAddress,
+                        onShareClick = ::handleShareAddress,
+                        onCopyClick = ::handleCopyAddress,
+                        onCopyAddress = ::copyAddress,
+                        onMoreClick = ::showMoreOptions,
+                        onPageChanged = { page -> currentPage = page },
+                    )
+                }
+            }
+        }
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        initViews()
         observeEvent()
         viewModel.init(args.walletId)
     }
 
-    private fun initViews() {
-        val context = requireContext()
-        adapter = UnusedAddressAdapter(context, ::handleItemClicked)
-        binding.viewPager.adapter = adapter
-        binding.viewPager.addOnPageChangeListener(object : ViewPager.SimpleOnPageChangeListener() {
-            override fun onPageSelected(position: Int) {
-                val size = adapter.items.size
-                bindCount(size)
+    private fun observeEvent() {
+        flowObserver(viewModel.event) { event ->
+            when (event) {
+                is UnusedAddressEvent.GetAddressPathSuccessEvent -> {
+                    copyDerivationPath(event.address)
+                }
+
+                is UnusedAddressEvent.MarkAddressAsUsedSuccessEvent -> {
+                    NCToastMessage(requireActivity()).showMessage(getString(R.string.nc_address_marked_as_used))
+                    (requireActivity() as? ReceiveTransactionActivity)?.switchToUsedTab(AddressTab.USED)
+                }
+
+                is UnusedAddressEvent.GenerateAddressErrorEvent -> {
+                    activity?.let { NCToastMessage(it).showError(event.message) }
+                }
             }
-        })
-        binding.btnCopy.setOnClickListener {
-            handleCopyAddress()
         }
 
-        binding.btnShare.setOnClickListener {
-            handleShareAddress()
-        }
-        binding.more.setOnDebounceClickListener {
-            showMoreOptions()
+        flowObserver(viewModel.state) { state ->
+            (requireActivity() as TabCountChangeListener).onChange(
+                AddressTab.UNUSED,
+                state.addresses.size,
+            )
         }
     }
 
-    private fun handleItemClicked(address: String?) {
-        if (address.isNullOrBlank()) {
-            viewModel.generateAddress()
-        } else {
-            copyAddress(address)
-        }
+    private fun getCurrentAddress(): String? {
+        val addresses = viewModel.state.value.addresses
+        return addresses.getOrNull(currentPage)
     }
 
     private fun copyAddress(address: String) {
@@ -126,58 +148,6 @@ internal class UnusedAddressFragment : BaseFragment<FragmentUnusedAddressBinding
 
     private fun handleCopyAddress() {
         getCurrentAddress()?.let(::copyAddress)
-    }
-
-    private fun getCurrentAddress() = adapter.items.getOrNull(binding.viewPager.currentItem)
-
-    private fun observeEvent() {
-        viewModel.state.observe(viewLifecycleOwner, ::handleState)
-        viewModel.event.observe(viewLifecycleOwner, ::handleEvent)
-    }
-
-    private fun handleState(state: UnusedAddressState) {
-        bindAddresses(state.addresses)
-    }
-
-    private fun handleEvent(event: UnusedAddressEvent) {
-        when (event) {
-            is UnusedAddressEvent.GetAddressPathSuccessEvent -> {
-                copyDerivationPath(event.address)
-            }
-
-            is UnusedAddressEvent.MarkAddressAsUsedSuccessEvent -> {
-                NCToastMessage(requireActivity()).showMessage(getString(R.string.nc_address_marked_as_used))
-                (requireActivity() as? ReceiveTransactionActivity)?.switchToUsedTab(AddressTab.USED)
-            }
-
-            else -> {
-                // do nothing
-            }
-        }
-    }
-
-    private fun bindAddresses(addresses: List<String>) {
-        adapter.items = addresses
-        (requireActivity() as TabCountChangeListener).onChange(AddressTab.UNUSED, addresses.size)
-        val hasUnusedAddresses = addresses.isNotEmpty()
-        showAddresses(hasUnusedAddresses)
-        if (hasUnusedAddresses) {
-            val size = addresses.size
-            bindCount(size)
-        }
-    }
-
-    private fun bindCount(size: Int) {
-        val current = binding.viewPager.currentItem + 1
-        val count = "$current/$size address"
-        binding.addressCount.text = count
-    }
-
-    private fun showAddresses(hasUnusedAddresses: Boolean) {
-        binding.addressCount.isVisible = hasUnusedAddresses
-        binding.btnShare.isVisible = hasUnusedAddresses
-        binding.btnCopy.isVisible = hasUnusedAddresses
-        binding.more.isVisible = hasUnusedAddresses
     }
 
     private fun showMoreOptions() {
@@ -235,9 +205,7 @@ internal class UnusedAddressFragment : BaseFragment<FragmentUnusedAddressBinding
                 showMarkAddressAsUsedDialog()
             }
 
-            else -> {
-                // do nothing
-            }
+            else -> {}
         }
     }
 
@@ -254,10 +222,8 @@ internal class UnusedAddressFragment : BaseFragment<FragmentUnusedAddressBinding
     }
 
     companion object {
-
         fun newInstance(walletId: String) = UnusedAddressFragment().apply {
             arguments = AddressFragmentArgs(walletId = walletId).buildBundle()
         }
     }
-
 }

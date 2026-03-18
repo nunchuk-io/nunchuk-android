@@ -20,82 +20,96 @@
 package com.nunchuk.android.transaction.components.receive.address.used
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.viewModels
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView.VERTICAL
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.viewbinding.ViewBinding
+import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.base.BaseFragment
+import com.nunchuk.android.core.util.TextUtils
+import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.transaction.components.receive.TabCountChangeListener
 import com.nunchuk.android.transaction.components.receive.address.AddressFragmentArgs
 import com.nunchuk.android.transaction.components.receive.address.AddressTab
-import com.nunchuk.android.transaction.components.receive.address.used.UsedAddressEvent.GetUsedAddressErrorEvent
-import com.nunchuk.android.transaction.databinding.FragmentUsedAddressBinding
 import com.nunchuk.android.widget.NCToastMessage
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
-internal class UsedAddressFragment : BaseFragment<FragmentUsedAddressBinding>() {
+internal class UsedAddressFragment : BaseFragment<ViewBinding>() {
+
+    @Inject
+    lateinit var textUtils: TextUtils
 
     private val args: AddressFragmentArgs by lazy { AddressFragmentArgs.deserializeFrom(arguments) }
 
     private val viewModel: UsedAddressViewModel by viewModels()
 
-    private lateinit var adapter: UsedAddressAdapter
-
     override fun initializeBinding(
         inflater: LayoutInflater,
         container: ViewGroup?
-    ) = FragmentUsedAddressBinding.inflate(inflater, container, false)
+    ): ViewBinding = ViewBinding {
+        ComposeView(requireContext()).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+
+            setContent {
+                val state by viewModel.state.collectAsStateWithLifecycle()
+
+                NunchukTheme {
+                    UsedAddressContent(
+                        addresses = state.addresses,
+                        onAddressClick = { model ->
+                            navigator.openAddressDetailsScreen(
+                                activityContext = requireActivity(),
+                                address = model.address,
+                                balance = model.balance.getBTCAmount(),
+                                walletId = args.walletId,
+                            )
+                        },
+                        onCopyAddress = { address ->
+                            textUtils.copyText(text = address)
+                            NCToastMessage(requireActivity()).showMessage(
+                                getString(com.nunchuk.android.core.R.string.nc_address_copy_to_clipboard)
+                            )
+                        },
+                    )
+                }
+            }
+        }
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        initViews()
         observeEvent()
         viewModel.init(args.walletId)
     }
 
-    private fun initViews() {
-        adapter = UsedAddressAdapter {
-            navigator.openAddressDetailsScreen(
-                activityContext = requireActivity(),
-                address = it.address,
-                balance = it.balance.getBTCAmount(),
-                walletId = args.walletId
-            )
-        }
-        binding.recyclerView.layoutManager = LinearLayoutManager(requireContext(), VERTICAL, false)
-        binding.recyclerView.adapter = adapter
-    }
-
     private fun observeEvent() {
-        viewModel.event.observe(viewLifecycleOwner, ::handleEvent)
-        viewModel.state.observe(viewLifecycleOwner, ::handleState)
-    }
+        flowObserver(viewModel.event) { event ->
+            when (event) {
+                is UsedAddressEvent.GetUsedAddressErrorEvent -> {
+                    activity?.let { NCToastMessage(it).showError(event.message) }
+                }
+            }
+        }
 
-    private fun handleState(state: UsedAddressState) {
-        adapter.items = state.addresses
-        (requireActivity() as TabCountChangeListener).onChange(
-            AddressTab.USED,
-            state.addresses.size
-        )
-    }
-
-    private fun handleEvent(event: UsedAddressEvent) {
-        when (event) {
-            is GetUsedAddressErrorEvent -> activity?.let { NCToastMessage(it).showError(event.message) }
+        flowObserver(viewModel.state) { state ->
+            (requireActivity() as TabCountChangeListener).onChange(
+                AddressTab.USED,
+                state.addresses.size,
+            )
         }
     }
 
     companion object {
-
         fun newInstance(walletId: String) = UsedAddressFragment().apply {
             arguments = AddressFragmentArgs(walletId = walletId).buildBundle()
         }
-
     }
-
 }

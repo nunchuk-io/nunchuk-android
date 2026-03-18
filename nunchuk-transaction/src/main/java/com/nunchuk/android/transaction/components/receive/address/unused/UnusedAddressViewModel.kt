@@ -19,11 +19,11 @@
 
 package com.nunchuk.android.transaction.components.receive.address.unused
 
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
-import com.nunchuk.android.transaction.components.receive.address.unused.UnusedAddressEvent.GenerateAddressErrorEvent
+import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.usecase.GetAddressPathUseCase
 import com.nunchuk.android.usecase.GetAddressesUseCase
 import com.nunchuk.android.usecase.GetWalletUseCase
@@ -32,6 +32,13 @@ import com.nunchuk.android.usecase.NewAddressUseCase
 import com.nunchuk.android.usecase.wallet.GetAddressIndexUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -44,11 +51,15 @@ internal class UnusedAddressViewModel @Inject constructor(
     private val getAddressIndexUseCase: GetAddressIndexUseCase,
     private val markAddressAsUsedUseCase: MarkAddressAsUsedUseCase,
     private val pushEventManager: PushEventManager,
-    ) : NunchukViewModel<UnusedAddressState, UnusedAddressEvent>() {
+) : ViewModel() {
+
+    private val _state = MutableStateFlow(UnusedAddressState())
+    val state: StateFlow<UnusedAddressState> = _state.asStateFlow()
+
+    private val _event = MutableSharedFlow<UnusedAddressEvent>()
+    val event: SharedFlow<UnusedAddressEvent> = _event.asSharedFlow()
 
     private lateinit var walletId: String
-
-    override val initialState = UnusedAddressState()
 
     fun init(walletId: String) {
         this.walletId = walletId
@@ -60,7 +71,7 @@ internal class UnusedAddressViewModel @Inject constructor(
         viewModelScope.launch {
             getWalletUseCase.execute(walletId)
                 .onException { }
-                .collect { updateState { copy(wallet = it.wallet) } }
+                .collect { _state.update { state -> state.copy(wallet = it.wallet) } }
         }
     }
 
@@ -68,21 +79,22 @@ internal class UnusedAddressViewModel @Inject constructor(
         viewModelScope.launch {
             getAddressPathUseCase(GetAddressPathUseCase.Params(walletId, address))
                 .onSuccess {
-                    setEvent(UnusedAddressEvent.GetAddressPathSuccessEvent(it))
+                    _event.emit(UnusedAddressEvent.GetAddressPathSuccessEvent(it))
                 }
         }
     }
 
     fun isSingleSignWallet(): Boolean {
-        val requireSigns = getState().wallet.totalRequireSigns
-        val totalSigns = getState().wallet.signers.size
+        val wallet = _state.value.wallet
+        val requireSigns = wallet.totalRequireSigns
+        val totalSigns = wallet.signers.size
         return requireSigns == 1 && totalSigns == 1
     }
 
     private fun getUnusedAddresses() {
         viewModelScope.launch {
             addressesUseCase.execute(walletId = walletId)
-                .onException { onError() }
+                .onException { _state.update { it.copy(addresses = emptyList()) } }
                 .collect { onSuccess(it) }
         }
     }
@@ -91,21 +103,17 @@ internal class UnusedAddressViewModel @Inject constructor(
         viewModelScope.launch {
             markAddressAsUsedUseCase(MarkAddressAsUsedUseCase.Params(walletId, address))
                 .onSuccess {
-                    onSuccess(getState().addresses.filter { it != address })
-                    setEvent(UnusedAddressEvent.MarkAddressAsUsedSuccessEvent(address))
+                    _state.update { state ->
+                        state.copy(addresses = state.addresses.filter { it != address })
+                    }
+                    _event.emit(UnusedAddressEvent.MarkAddressAsUsedSuccessEvent(address))
                     pushEventManager.push(PushEvent.ReloadUsedAddress(address))
-                }.onFailure {
-
-                }
+                }.onFailure { }
         }
     }
 
-    private fun onError() {
-        updateState { copy(addresses = emptyList()) }
-    }
-
     private fun onSuccess(addresses: List<String>) {
-        updateState { copy(addresses = addresses) }
+        _state.update { it.copy(addresses = addresses) }
         if (addresses.isEmpty()) {
             generateAddress()
         }
@@ -114,7 +122,7 @@ internal class UnusedAddressViewModel @Inject constructor(
     fun generateAddress() {
         viewModelScope.launch {
             newAddressUseCase.execute(walletId = walletId)
-                .onException { event(GenerateAddressErrorEvent(it.message.orEmpty())) }
+                .onException { _event.emit(UnusedAddressEvent.GenerateAddressErrorEvent(it.message.orEmpty())) }
                 .collect { getUnusedAddresses() }
         }
     }

@@ -1,7 +1,12 @@
 {
   "permissions": {
     "allow": [
-      "Bash(ls -la /Users/mega_lh/MyProject/my-android/nunchuk-*/src/ 2>/dev/null | head -30)"
+      "Bash(ls -la /Users/mega_lh/MyProject/my-android/nunchuk-*/src/ 2>/dev/null | head -30)",
+      "Bash(grep -E \"\\\\.kt$\")",
+      "Bash(grep:*)",
+      "Bash(ls -la /Users/mega_lh/MyProject/my-android/nunchuk-core/src/main/java/com/nunchuk/android/compose/*.kt)",
+      "Bash(./gradlew :nunchuk-transaction:compileDebugKotlin)",
+      "Bash(./gradlew :nunchuk-main:compileDebugKotlin)"
     ]
   }
 }

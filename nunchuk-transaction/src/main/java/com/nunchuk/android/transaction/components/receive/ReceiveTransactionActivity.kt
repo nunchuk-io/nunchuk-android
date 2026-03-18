@@ -21,7 +21,7 @@ package com.nunchuk.android.transaction.components.receive
 
 import android.content.Context
 import android.os.Bundle
-import androidx.lifecycle.lifecycleScope
+import androidx.activity.enableEdgeToEdge
 import com.nunchuk.android.core.domain.data.PortalAction
 import com.nunchuk.android.core.domain.data.VerifyAddress
 import com.nunchuk.android.core.nfc.BasePortalActivity
@@ -33,13 +33,9 @@ import com.nunchuk.android.transaction.components.receive.address.AddressPagerAd
 import com.nunchuk.android.transaction.components.receive.address.AddressTab
 import com.nunchuk.android.transaction.components.receive.address.AddressTab.UNUSED
 import com.nunchuk.android.transaction.components.receive.address.AddressTab.USED
-import com.nunchuk.android.transaction.components.receive.address.used.UsedAddressFragment
 import com.nunchuk.android.transaction.databinding.ActivityTransactionReceiveBinding
-import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class ReceiveTransactionActivity : BasePortalActivity<ActivityTransactionReceiveBinding>(),
@@ -50,12 +46,13 @@ class ReceiveTransactionActivity : BasePortalActivity<ActivityTransactionReceive
 
     private val args: ReceiveTransactionArgs by lazy { ReceiveTransactionArgs.deserializeFrom(intent) }
 
-    override fun initializeBinding() = ActivityTransactionReceiveBinding.inflate(layoutInflater)
+    override fun initializeBinding() = ActivityTransactionReceiveBinding.inflate(layoutInflater).also {
+        enableEdgeToEdge()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        setLightStatusBar()
         setupViews()
     }
 
