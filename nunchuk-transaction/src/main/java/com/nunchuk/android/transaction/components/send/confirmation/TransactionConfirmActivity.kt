@@ -404,7 +404,7 @@ private fun TransactionConfirmScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun TransactionConfirmContent(
+internal fun TransactionConfirmContent(
     title: String = "",
     confirmButtonText: String = "",
     outputs: List<TxOutput> = emptyList(),

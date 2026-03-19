@@ -24,51 +24,98 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.stringResource
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.fragment.navArgs
-import com.nunchuk.android.core.base.BaseFragment
+import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.dialog.NcLoadingDialog
 import com.nunchuk.android.core.sheet.BottomSheetTooltip
 import com.nunchuk.android.core.util.copyToClipboard
-import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getCurrencyAmount
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.pureBTC
-import com.nunchuk.android.core.util.showOrHideLoading
-import com.nunchuk.android.model.CoinTag
-import com.nunchuk.android.model.Transaction
-import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.transaction.R
-import com.nunchuk.android.transaction.components.TxReceiptViewBinder
-import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmCoinList
-import com.nunchuk.android.transaction.databinding.FragmentTransactionConfirmBinding
+import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmContent
 import com.nunchuk.android.widget.NCToastMessage
-import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class ConfirmReplaceTransactionFragment : BaseFragment<FragmentTransactionConfirmBinding>() {
+class ConfirmReplaceTransactionFragment : Fragment() {
     private val viewModel by viewModels<ConfirmReplaceTransactionViewModel>()
     private val activityArgs: ReplaceFeeArgs by lazy {
-        ReplaceFeeArgs.deserializeFrom(
-            requireActivity().intent
-        )
+        ReplaceFeeArgs.deserializeFrom(requireActivity().intent)
     }
     private val args by navArgs<ConfirmReplaceTransactionFragmentArgs>()
 
-    override fun initializeBinding(
+    override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-    ): FragmentTransactionConfirmBinding {
-        return FragmentTransactionConfirmBinding.inflate(inflater, container, false)
+        savedInstanceState: Bundle?,
+    ): View {
+        return ComposeView(requireContext()).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            setContent {
+                ConfirmReplaceTransactionScreen(
+                    viewModel = viewModel,
+                    onBackPressed = { activity?.onBackPressedDispatcher?.onBackPressed() },
+                    onConfirmClick = {
+                        if (args.address.isNullOrEmpty()) {
+                            viewModel.replaceTransaction(
+                                walletId = activityArgs.walletId,
+                                txId = activityArgs.transaction.txId,
+                                newFee = args.newFee,
+                                signingPath = activityArgs.signingPath,
+                                isUseScriptPath = activityArgs.isUseSciptPath,
+                            )
+                        } else {
+                            viewModel.createTransaction(
+                                walletId = activityArgs.walletId,
+                                oldTx = activityArgs.transaction,
+                                newFee = args.newFee,
+                                address = args.address.orEmpty()
+                            )
+                        }
+                    },
+                    onCopyText = { content ->
+                        requireActivity().copyToClipboard(label = "Nunchuk", text = content)
+                        NCToastMessage(requireActivity()).showMessage(getString(R.string.nc_copied_to_clipboard))
+                    },
+                    onEstimatedFeeInfoClick = {
+                        BottomSheetTooltip.newInstance(
+                            title = getString(R.string.nc_text_info),
+                            message = getString(R.string.nc_estimated_fee_tooltip),
+                        ).show(childFragmentManager, "BottomSheetTooltip")
+                    },
+                    onReplaceSuccess = { newTxId ->
+                        requireActivity().setResult(
+                            Activity.RESULT_OK,
+                            activityArgs.copy(transaction = activityArgs.transaction.copy(txId = newTxId))
+                                .buildIntent(requireActivity())
+                        )
+                        requireActivity().finish()
+                    },
+                    onShowError = { message ->
+                        NCToastMessage(requireActivity()).showError(message)
+                    },
+                )
+            }
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        observer()
-        updateTransaction(activityArgs.transaction)
         viewModel.init(activityArgs.walletId, activityArgs.transaction, args.antiFeeSniping)
-        registerEvents()
         if (args.address.isNullOrEmpty()) {
             viewModel.draftTransaction(
                 walletId = activityArgs.walletId,
@@ -85,101 +132,65 @@ class ConfirmReplaceTransactionFragment : BaseFragment<FragmentTransactionConfir
                 args.address.orEmpty()
             )
         }
-        binding.estimatedFeeLabel.setOnClickListener {
-            BottomSheetTooltip.newInstance(
-                title = getString(R.string.nc_text_info),
-                message = getString(R.string.nc_estimated_fee_tooltip),
-            ).show(childFragmentManager, "BottomSheetTooltip")
-        }
     }
+}
 
-    private fun registerEvents() {
-        binding.toolbar.setNavigationOnClickListener {
-            activity?.onBackPressedDispatcher?.onBackPressed()
-        }
-        binding.btnConfirm.setOnDebounceClickListener {
-            if (args.address.isNullOrEmpty()) {
-                viewModel.replaceTransaction(
-                    walletId = activityArgs.walletId,
-                    txId = activityArgs.transaction.txId,
-                    newFee = args.newFee,
-                    signingPath = activityArgs.signingPath,
-                    isUseScriptPath = activityArgs.isUseSciptPath,
-                )
-            } else {
-                viewModel.createTransaction(
-                    walletId = activityArgs.walletId,
-                    oldTx = activityArgs.transaction,
-                    newFee = args.newFee,
-                    address = args.address.orEmpty()
-                )
-            }
-        }
-    }
+@Composable
+private fun ConfirmReplaceTransactionScreen(
+    viewModel: ConfirmReplaceTransactionViewModel,
+    onBackPressed: () -> Unit,
+    onConfirmClick: () -> Unit,
+    onCopyText: (String) -> Unit,
+    onEstimatedFeeInfoClick: () -> Unit,
+    onReplaceSuccess: (String) -> Unit,
+    onShowError: (String) -> Unit,
+) {
+    val uiState by viewModel.state.collectAsStateWithLifecycle()
+    var isLoading by rememberSaveable { mutableStateOf(false) }
 
-    private fun updateTransaction(transaction: Transaction) {
-        val outputs = transaction.outputs.filterIndexed { index, _ -> index != transaction.changeIndex }
-        binding.estimatedFeeBTC.text = transaction.fee.pureBTC().getBTCAmount()
-        binding.estimatedFeeUSD.text = transaction.fee.pureBTC().getCurrencyAmount()
-        binding.totalAmountBTC.text = transaction.totalAmount.pureBTC().getBTCAmount()
-        binding.totalAmountUSD.text = transaction.totalAmount.pureBTC().getCurrencyAmount()
-        binding.noteContent.text = transaction.memo
-
-        val txOutput = transaction.outputs.getOrNull(transaction.changeIndex)
-        val changeAddress = txOutput?.first.orEmpty()
-        TxReceiptViewBinder(
-            container = binding.receiptList,
-            outputs = outputs,
-            savedAddresses = viewModel.getSavedAddress()
-        ) {
-            handleCopyContent(it)
-        }.bindItems()
-        if (changeAddress.isNotBlank() && txOutput != null) {
-            val amount = txOutput.second
-            binding.changeAddressLabel.text = changeAddress
-            binding.changeAddressBTC.text = amount.getBTCAmount()
-            binding.changeAddressUSD.text = amount.getCurrencyAmount()
-        } else {
-            binding.changeAddress.visibility = View.GONE
-            binding.changeAddressLabel.visibility = View.GONE
-            binding.changeAddressBTC.visibility = View.GONE
-            binding.changeAddressUSD.visibility = View.GONE
-        }
-    }
-
-    private fun handleCopyContent(content: String) {
-        requireActivity().copyToClipboard(label = "Nunchuk", text = content)
-        NCToastMessage(requireActivity()).showMessage(getString(R.string.nc_copied_to_clipboard))
-    }
-
-    private fun observer() {
-        flowObserver(viewModel.event) {
-            when (it) {
-                is ReplaceFeeEvent.Loading -> showOrHideLoading(it.isLoading)
+    LaunchedEffect(Unit) {
+        viewModel.event.collect { event ->
+            when (event) {
+                is ReplaceFeeEvent.Loading -> isLoading = event.isLoading
                 is ReplaceFeeEvent.ReplaceTransactionSuccess -> {
-                    requireActivity().setResult(
-                        Activity.RESULT_OK,
-                        activityArgs.copy(transaction = activityArgs.transaction.copy(txId = it.newTxId))
-                            .buildIntent(requireActivity())
-                    )
-                    requireActivity().finish()
+                    isLoading = false
+                    onReplaceSuccess(event.newTxId)
                 }
-
-                is ReplaceFeeEvent.ShowError -> NCToastMessage(requireActivity()).showError(it.e?.message.orUnknownError())
+                is ReplaceFeeEvent.ShowError -> {
+                    isLoading = false
+                    onShowError(event.e?.message.orUnknownError())
+                }
                 is ReplaceFeeEvent.DraftTransactionSuccess -> Unit
             }
         }
-        flowObserver(viewModel.state) {
-            it.transaction?.let { tx ->
-                updateTransaction(tx)
-            }
-            showCoins(it.inputCoins, it.allTags)
-        }
     }
 
-    private fun showCoins(inputCoins: List<UnspentOutput>, allTags: Map<Int, CoinTag>) {
-        binding.composeCoin.setContent {
-            TransactionConfirmCoinList(inputCoins, allTags)
+    val transaction = uiState.transaction ?: return
+    val outputs = transaction.outputs.filterIndexed { index, _ -> index != transaction.changeIndex }
+    val txOutput = transaction.outputs.getOrNull(transaction.changeIndex)
+    val changeAddress = txOutput?.first.orEmpty()
+
+    NunchukTheme {
+        if (isLoading) {
+            NcLoadingDialog()
         }
+        TransactionConfirmContent(
+            title = stringResource(R.string.nc_transaction_confirm_transaction),
+            confirmButtonText = stringResource(R.string.nc_transaction_confirm_and_create_transaction),
+            outputs = outputs,
+            savedAddresses = uiState.savedAddress,
+            fee = transaction.fee,
+            totalAmountBtc = transaction.totalAmount.pureBTC().getBTCAmount(),
+            totalAmountCurrency = transaction.totalAmount.pureBTC().getCurrencyAmount(),
+            changeAddress = changeAddress,
+            changeAmount = txOutput?.second ?: com.nunchuk.android.model.Amount(0),
+            privateNote = transaction.memo,
+            inputs = uiState.inputCoins,
+            allTags = uiState.allTags,
+            onBackPressed = onBackPressed,
+            onConfirmClick = onConfirmClick,
+            onCopyText = onCopyText,
+            onEstimatedFeeInfoClick = onEstimatedFeeInfoClick,
+        )
     }
 }

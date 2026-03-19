@@ -8,8 +8,7 @@
     <fragment
         android:id="@+id/confirmReplaceTransactionFragment"
         android:name="com.nunchuk.android.transaction.components.details.fee.ConfirmReplaceTransactionFragment"
-        android:label="ConfirmReplaceTransactionFragment"
-        tools:layout="@layout/fragment_transaction_confirm">
+        android:label="ConfirmReplaceTransactionFragment">
 
         <argument
             android:name="newFee"
