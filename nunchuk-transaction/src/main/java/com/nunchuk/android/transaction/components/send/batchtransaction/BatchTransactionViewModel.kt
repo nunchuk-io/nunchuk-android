@@ -58,7 +58,8 @@ class BatchTransactionViewModel @Inject constructor(
     private val getWalletDetail2UseCase: GetWalletDetail2UseCase
 ) : ViewModel() {
 
-    private val args = BatchTransactionFragmentArgs.fromSavedStateHandle(savedStateHandle)
+    private val walletId: String = savedStateHandle.get<String>("wallet_id").orEmpty()
+    private val isFromSelectCoin: Boolean = savedStateHandle.get<Boolean>("is_from_select_coin") ?: false
     private val _event = MutableSharedFlow<BatchTransactionEvent>()
     val event = _event.asSharedFlow()
 
@@ -70,11 +71,11 @@ class BatchTransactionViewModel @Inject constructor(
     private var isMiniscript: Boolean = false
 
     init {
-        if (!args.isFromSelectCoin) {
-            checkLockedCoin(args.walletId)
+        if (!isFromSelectCoin) {
+            checkLockedCoin(walletId)
         }
         viewModelScope.launch {
-            getWalletDetail2UseCase(args.walletId)
+            getWalletDetail2UseCase(walletId)
                 .onSuccess {
                     isMiniscript = it.miniscript.isNotEmpty()
                 }
@@ -130,7 +131,7 @@ class BatchTransactionViewModel @Inject constructor(
         val amount = getTotalAmount()
         if (amount <= 0 || amount > availableAmount) {
             _event.emit(BatchTransactionEvent.InsufficientFundsEvent)
-        } else if (amount > availableAmountWithoutUnlocked && !args.isFromSelectCoin) {
+        } else if (amount > availableAmountWithoutUnlocked && !isFromSelectCoin) {
             _event.emit(BatchTransactionEvent.InsufficientFundsLockedCoinEvent)
         } else {
             var isAllValidAddress = true
@@ -274,7 +275,7 @@ class BatchTransactionViewModel @Inject constructor(
     fun sendAllRemaining(availableAmount: Double, index: Int) = viewModelScope.launch {
         val remainingAmount = availableAmount - getTotalAmount()
         if (remainingAmount <= 0) return@launch
-        if (remainingAmount > availableAmountWithoutUnlocked && !args.isFromSelectCoin) {
+        if (remainingAmount > availableAmountWithoutUnlocked && !isFromSelectCoin) {
             _event.emit(BatchTransactionEvent.InsufficientFundsLockedCoinEvent)
             return@launch
         }

@@ -46,7 +46,6 @@ import com.nunchuk.android.transaction.components.imports.ImportTransactionActiv
 import com.nunchuk.android.transaction.components.receive.ReceiveTransactionActivity
 import com.nunchuk.android.transaction.components.receive.address.details.AddressDetailsActivity
 import com.nunchuk.android.transaction.components.send.amount.InputAmountActivity
-import com.nunchuk.android.transaction.components.send.batchtransaction.BatchTransactionActivity
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmActivity
 import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeActivity
 import com.nunchuk.android.transaction.components.send.receipt.AddReceiptActivity
@@ -306,21 +305,6 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         )
     }
 
-    override fun openBatchTransactionScreen(
-        activityContext: Activity,
-        walletId: String,
-        availableAmount: Double,
-        inputs: List<UnspentOutput>
-    ) {
-        activityContext.startActivity(
-            BatchTransactionActivity.buildIntent(
-                activityContext,
-                walletId = walletId,
-                availableAmount = availableAmount,
-                inputs = inputs,
-            )
-        )
-    }
 
     override fun openSavedAddressScreen(
         launcher: ActivityResultLauncher<Intent>?,

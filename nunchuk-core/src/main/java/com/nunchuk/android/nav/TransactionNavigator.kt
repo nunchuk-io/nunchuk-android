@@ -166,13 +166,6 @@ interface TransactionNavigator {
         isUseScriptPath: Boolean = false
     )
 
-    fun openBatchTransactionScreen(
-        activityContext: Activity,
-        walletId: String,
-        availableAmount: Double,
-        inputs: List<UnspentOutput>
-    )
-
     fun openSavedAddressScreen(
         launcher: ActivityResultLauncher<Intent>? = null,
         activityContext: Activity,

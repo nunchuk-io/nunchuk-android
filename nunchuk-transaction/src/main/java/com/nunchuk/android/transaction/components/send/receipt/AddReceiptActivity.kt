@@ -27,21 +27,25 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.viewModels
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.fragment.compose.AndroidFragment
 import androidx.lifecycle.asFlow
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import com.journeyapps.barcodescanner.ScanContract
+import com.nunchuk.android.core.data.model.isInheritanceClaimFlow
+import com.nunchuk.android.core.qr.startQRCodeScan
+import com.nunchuk.android.core.wallet.WalletBottomSheetResult
+import com.nunchuk.android.core.wallet.WalletComposeBottomSheet
+import com.nunchuk.android.transaction.components.send.batchtransaction.SelectAddressType
+import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.core.data.model.ClaimInheritanceTxParam
 import com.nunchuk.android.core.data.model.RollOverWalletParam
 import com.nunchuk.android.core.data.model.TxReceipt
@@ -71,8 +75,8 @@ import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.share.satscard.SweepSatscardViewModel
 import com.nunchuk.android.share.satscard.observerSweepSatscard
 import com.nunchuk.android.transaction.R
-import com.nunchuk.android.transaction.components.send.batchtransaction.BatchTransactionFragment
-import com.nunchuk.android.transaction.components.send.batchtransaction.BatchTransactionFragmentArgs
+import com.nunchuk.android.transaction.components.send.batchtransaction.BatchTransactionContent
+import com.nunchuk.android.transaction.components.send.batchtransaction.BatchTransactionEvent
 import com.nunchuk.android.transaction.components.send.batchtransaction.BatchTransactionViewModel
 import com.nunchuk.android.transaction.components.send.confirmation.TaprootDraftTransaction
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent
@@ -82,6 +86,7 @@ import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeViewModel
 import com.nunchuk.android.transaction.components.utils.openTransactionDetailScreen
 import com.nunchuk.android.transaction.components.utils.returnActiveRoom
 import com.nunchuk.android.transaction.components.utils.showCreateTransactionError
+import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCToastMessage
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
@@ -102,9 +107,61 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
     private val transactionConfirmViewModel: TransactionConfirmViewModel by viewModels()
     private val batchTransactionViewModel: BatchTransactionViewModel by viewModels()
 
+    private val qrLauncher = registerForActivityResult(ScanContract()) { result ->
+        result.contents?.let { content ->
+            viewModel.parseBtcUri(content)
+        }
+    }
+
+    private val qrBatchLauncher = registerForActivityResult(ScanContract()) { result ->
+        result.contents?.let { content ->
+            batchTransactionViewModel.parseBtcUri(content)
+        }
+    }
+
+    private var selectAddressType = mutableStateOf(SelectAddressType.NONE.ordinal)
+    private var selectAddressName = mutableStateOf("")
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         viewModel.init(args)
+
+        supportFragmentManager.setFragmentResultListener(
+            WalletComposeBottomSheet.TAG,
+            this
+        ) { _, bundle ->
+            val result = bundle.parcelable<WalletBottomSheetResult>(WalletComposeBottomSheet.RESULT)
+                ?: return@setFragmentResultListener
+            if (args.type == AddReceiptType.BATCH) {
+                if (result.walletId != null) {
+                    batchTransactionViewModel.getFirstUnusedAddress(
+                        walletId = result.walletId!!,
+                        result.walletName.orEmpty()
+                    )
+                } else {
+                    val interactingIndex = batchTransactionViewModel.getInteractingIndex()
+                    if (interactingIndex != -1) {
+                        batchTransactionViewModel.updateRecipient(
+                            index = interactingIndex,
+                            address = result.savedAddress?.address.orEmpty(),
+                            selectAddressType = SelectAddressType.ADDRESS.ordinal,
+                            selectAddressName = result.savedAddress?.label.orEmpty()
+                        )
+                    }
+                }
+            } else {
+                if (result.walletId != null) {
+                    viewModel.getFirstUnusedAddress(walletId = result.walletId!!)
+                    selectAddressType.value = SelectAddressType.WALLET.ordinal
+                    selectAddressName.value = result.walletName.orEmpty()
+                } else {
+                    viewModel.updateAddress(result.savedAddress?.address.orEmpty())
+                    selectAddressType.value = SelectAddressType.ADDRESS.ordinal
+                    selectAddressName.value = result.savedAddress?.label.orEmpty()
+                }
+            }
+            supportFragmentManager.clearFragmentResult(WalletComposeBottomSheet.TAG)
+        }
         transactionConfirmViewModel.init(
             walletId = args.walletId,
             txReceipts = listOf(
@@ -201,24 +258,113 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
                 startDestination = startDestination
             ) {
                 composable<Main> {
-                    AndroidFragment(
-                        clazz = AddReceiptFragment::class.java,
-                        modifier = Modifier
-                            .systemBarsPadding()
-                            .fillMaxSize(),
-                        arguments = intent.extras!!
+                    val isWithdrawFlow = args.slots.isNotEmpty() || args.claimInheritanceTxParam.isInheritanceClaimFlow()
+                    val event by viewModel.event.asFlow()
+                        .collectAsStateWithLifecycle(AddReceiptEvent.NoOp)
+
+                    AddReceiptScreen(
+                        state = state,
+                        sweepType = args.sweepType,
+                        isWithdrawFlow = isWithdrawFlow,
+                        event = event,
+                        selectAddressType = selectAddressType.value,
+                        selectAddressName = selectAddressName.value,
+                        onAddressChange = viewModel::handleReceiptChanged,
+                        onPrivateNoteChange = viewModel::handlePrivateNoteChanged,
+                        onCreateTransactionClick = {
+                            transactionConfirmViewModel.setCustomizeTransaction(false)
+                            val address = viewModel.getAddReceiptState().address
+                            if (address.startsWith("bitcoin:", ignoreCase = true)) {
+                                viewModel.parseBtcUriAndContinue(address)
+                            } else {
+                                viewModel.handleContinueEvent(true)
+                            }
+                        },
+                        onCustomizeTransactionClick = {
+                            transactionConfirmViewModel.setCustomizeTransaction(true)
+                            viewModel.handleContinueEvent(false)
+                        },
+                        onScanClick = {
+                            startQRCodeScan(qrLauncher)
+                        },
+                        onDropdownClick = {
+                            WalletComposeBottomSheet.show(
+                                supportFragmentManager,
+                                exclusiveAssistedWalletIds = arrayListOf(args.walletId),
+                                exclusiveAddresses = arrayListOf(viewModel.getAddReceiptState().address),
+                                configArgs = WalletComposeBottomSheet.ConfigArgs(
+                                    flags = WalletComposeBottomSheet.fromFlags(
+                                        WalletComposeBottomSheet.SHOW_ADDRESS,
+                                    )
+                                )
+                            )
+                        },
+                        onClearSelection = {
+                            viewModel.updateAddress("")
+                            selectAddressType.value = SelectAddressType.NONE.ordinal
+                            selectAddressName.value = ""
+                        },
+                        onBackClick = { finish() },
+                        onEventHandled = viewModel::setEventHandled,
+                        onParseBtcUri = viewModel::parseBtcUri,
                     )
                 }
                 composable<Batch> {
-                    AndroidFragment(
-                        clazz = BatchTransactionFragment::class.java,
-                        modifier = Modifier
-                            .systemBarsPadding()
-                            .fillMaxSize(),
-                        arguments = BatchTransactionFragmentArgs(
-                            walletId = args.walletId,
-                            isFromSelectCoin = args.inputs.isNotEmpty()
-                        ).toBundle()
+                    val batchState by batchTransactionViewModel.state.collectAsStateWithLifecycle()
+                    BatchTransactionContent(
+                        recipientList = batchState.recipients,
+                        note = batchState.note,
+                        isEnableRemoveRecipient = batchTransactionViewModel.isEnableRemoveRecipient(),
+                        onInputAmountChange = { index, amount ->
+                            batchTransactionViewModel.updateRecipient(index, amount = amount)
+                        },
+                        onSwitchBtcAndCurrency = { index, isBtc ->
+                            batchTransactionViewModel.updateRecipient(index, isBtc = isBtc)
+                        },
+                        onInputAddressChange = { index, address ->
+                            batchTransactionViewModel.updateRecipient(index, address = address)
+                        },
+                        onScanClick = { index ->
+                            batchTransactionViewModel.setInteractingIndex(index)
+                            startQRCodeScan(qrBatchLauncher)
+                        },
+                        isEnableCreateTransaction = batchTransactionViewModel.isEnableCreateTransaction(),
+                        onInputNoteChange = batchTransactionViewModel::updateNoteChange,
+                        onAddRecipient = batchTransactionViewModel::addRecipient,
+                        onRemoveRecipient = batchTransactionViewModel::removeRecipient,
+                        onCreateTransactionClick = {
+                            batchTransactionViewModel.createTransaction(false, args.availableAmount, it)
+                        },
+                        onDropdownClick = { index, selectAddressType ->
+                            if (selectAddressType == SelectAddressType.NONE.ordinal) {
+                                batchTransactionViewModel.setInteractingIndex(index)
+                                WalletComposeBottomSheet.show(
+                                    supportFragmentManager,
+                                    exclusiveAssistedWalletIds = arrayListOf(args.walletId) + batchTransactionViewModel.getRecipients()
+                                        .map { it.walletId },
+                                    configArgs = WalletComposeBottomSheet.ConfigArgs(
+                                        flags = WalletComposeBottomSheet.fromFlags(
+                                            WalletComposeBottomSheet.SHOW_ADDRESS,
+                                        )
+                                    ),
+                                    exclusiveAddresses = batchTransactionViewModel.getRecipients().map { it.address }
+                                )
+                            } else {
+                                batchTransactionViewModel.updateRecipient(
+                                    index = index,
+                                    selectAddressType = SelectAddressType.NONE.ordinal,
+                                    address = "",
+                                    invalidAddress = false,
+                                )
+                                batchTransactionViewModel.setInteractingIndex(-1)
+                            }
+                        },
+                        onCustomizeTransactionClick = {
+                            batchTransactionViewModel.createTransaction(true, args.availableAmount, it)
+                        },
+                        onSendAllRemainingClick = {
+                            batchTransactionViewModel.sendAllRemaining(args.availableAmount, it)
+                        }
                     )
                 }
                 composable<TaprootFeeSelection> {
@@ -338,6 +484,52 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
     private fun observer() {
         flowObserver(estimateFeeViewModel.event, collector = ::handleEstimateFeeEvent)
         flowObserver(transactionConfirmViewModel.event, collector = ::handleCreateTransactionEvent)
+        flowObserver(viewModel.event.asFlow()) { event ->
+            when (event) {
+                is AddReceiptEvent.AcceptedAddressEvent -> {
+                    if (event.isCreateTransaction || event.isMiniscript) {
+                        estimateFeeViewModel.getEstimateFeeRates(false)
+                    } else {
+                        openEstimatedFeeScreen()
+                    }
+                }
+                is AddReceiptEvent.Loading -> {
+                    if (event.isLoading) showLoading() else hideLoading()
+                }
+                is AddReceiptEvent.ShowError -> {
+                    NCToastMessage(this).showError(event.message)
+                }
+                is AddReceiptEvent.ParseBtcUriEvent -> {
+                    selectAddressType.value = SelectAddressType.NONE.ordinal
+                    selectAddressName.value = ""
+                }
+                else -> Unit
+            }
+        }
+        flowObserver(batchTransactionViewModel.event) { event ->
+            when (event) {
+                is BatchTransactionEvent.Error -> NCToastMessage(this).showError(event.message)
+                is BatchTransactionEvent.Loading -> if (event.loading) showLoading() else hideLoading()
+                BatchTransactionEvent.InsufficientFundsEvent -> {
+                    if (args.inputs.isNotEmpty()) {
+                        NCToastMessage(this).showError(getString(R.string.nc_send_amount_too_large))
+                    } else {
+                        NCToastMessage(this).showError(getString(R.string.nc_transaction_insufficient_funds))
+                    }
+                }
+                BatchTransactionEvent.InsufficientFundsLockedCoinEvent -> {
+                    NCInfoDialog(this).showDialog(message = getString(R.string.nc_send_all_locked_coin_msg))
+                }
+                is BatchTransactionEvent.CheckAddressSuccess -> {
+                    transactionConfirmViewModel.setCustomizeTransaction(event.isCustomTx)
+                    if (event.isCustomTx && !event.isMiniscript) {
+                        openEstimatedFeeScreen()
+                    } else {
+                        estimateFeeViewModel.getEstimateFeeRates(false)
+                    }
+                }
+            }
+        }
     }
 
     private fun signingPathSelected(signingPath: SigningPath?) {
