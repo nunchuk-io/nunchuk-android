@@ -68,13 +68,15 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.backgroundMidGray
 import com.nunchuk.android.compose.fillInputText
-import com.nunchuk.android.compose.greyLight
+import com.nunchuk.android.compose.lightGray
 import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.core.util.CurrencyFormatter
 import com.nunchuk.android.core.util.MAX_FRACTION_DIGITS
 import com.nunchuk.android.core.util.MAX_NOTE_LENGTH
 import com.nunchuk.android.transaction.R
+import com.nunchuk.android.transaction.components.send.receipt.InspectAddressView
 import com.nunchuk.android.utils.MaxLengthTransformation
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -293,7 +295,7 @@ private fun RecipientView(
                     color = MaterialTheme.colorScheme.strokePrimary,
                     shape = RoundedCornerShape(12.dp)
                 )
-                .background(color = MaterialTheme.colorScheme.greyLight)
+                .background(color = MaterialTheme.colorScheme.lightGray)
                 .padding(16.dp)
         ) {
             Column {
@@ -387,6 +389,12 @@ private fun RecipientView(
                     }
 
                 }
+                if (address.isNotBlank() && selectAddressType == SelectAddressType.NONE.ordinal) {
+                    InspectAddressView(
+                        address = address,
+                        backgroundColor = MaterialTheme.colorScheme.backgroundMidGray,
+                    )
+                }
                 InputSwitchCurrencyView(
                     title = stringResource(id = R.string.nc_amount),
                     isBtc = isBtc,
@@ -413,6 +421,26 @@ private fun RecipientView(
 @Composable
 private fun BatchTransactionScreenPreview() {
     BatchTransactionContent(
-
+        recipientList = listOf(
+            BatchTransactionState.Recipient(
+                address = "tb1qgu4hrgq6elva2px86xefkkhsjkeh8a5sellryg",
+                amount = "1,000",
+                isBtc = true,
+                selectAddressType = SelectAddressType.NONE.ordinal,
+                selectAddressName = "",
+                invalidAddress = false,
+                walletId = "",
+            ),
+            BatchTransactionState.Recipient(
+                address = "tb1qgu4hrgq6elva2px86xefkkhsjkeh8a5sellryg",
+                amount = "2,000",
+                isBtc = true,
+                selectAddressType = SelectAddressType.NONE.ordinal,
+                selectAddressName = "",
+                invalidAddress = false,
+                walletId = "",
+            ),
+        ),
+        isEnableRemoveRecipient = true,
     )
 }

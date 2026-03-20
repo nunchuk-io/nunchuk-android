@@ -57,6 +57,7 @@ import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.transaction.R
+import com.nunchuk.android.transaction.components.send.receipt.InspectAddressView
 import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -283,8 +284,13 @@ fun AddOrEditAddressScreenContent(
                         },
                         onValueChange = onInputAddressChange
                     )
+                    if (uiState.address.isNotBlank()) {
+                        InspectAddressView(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            address = uiState.address,
+                        )
+                    }
                 } else {
-
                     Text(
                         modifier = Modifier.padding(start = 16.dp, end = 16.dp),
                         text = "Address",
@@ -302,12 +308,18 @@ fun AddOrEditAddressScreenContent(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 14.dp),
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 14.dp),
                             text = uiState.address, style = NunchukTheme.typography.body.copy(
                                 color = colorResource(
                                     id = R.color.nc_grey_dark_color
                                 )
                             )
+                        )
+                    }
+                    if (uiState.address.isNotBlank()) {
+                        InspectAddressView(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            address = uiState.address,
                         )
                     }
                 }
@@ -323,6 +335,6 @@ private const val MAX_INPUT_LENGTH = 40
 private fun AddOrEditAddressScreenContentPreview() {
     AddOrEditAddressScreenContent(uiState = AddOrEditAddressState(
         label = "Label",
-        address = "Address",
+        address = "bc1qqvqhe05av90992q8xuephny96jp7md26ktpd0l",
     ))
 }

@@ -20,13 +20,13 @@
 package com.nunchuk.android.transaction.components.send.receipt
 
 import android.graphics.Typeface
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -51,6 +51,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.res.painterResource
@@ -68,7 +69,7 @@ import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.fillInputText
-import com.nunchuk.android.compose.greyLight
+import com.nunchuk.android.compose.lightGray
 import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.textSecondary
@@ -325,7 +326,7 @@ private fun AddReceiptContent(
                     }
                 }
 
-                if (address.isNotBlank()) {
+                if (address.isNotBlank() && selectAddressType == SelectAddressType.NONE.ordinal) {
                     InspectAddressView(address = address)
                 }
 
@@ -351,7 +352,11 @@ private fun AddReceiptContent(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun InspectAddressView(address: String) {
+internal fun InspectAddressView(
+    address: String,
+    modifier: Modifier = Modifier,
+    backgroundColor: Color = Color.Unspecified,
+) {
     val context = LocalContext.current
     val andaleMono = remember {
         FontFamily(
@@ -361,13 +366,18 @@ private fun InspectAddressView(address: String) {
     val chunks = remember(address) { address.chunked(4) }
     val primaryColor = MaterialTheme.colorScheme.textPrimary
     val secondaryColor = MaterialTheme.colorScheme.textSecondary
+    val resolvedBackgroundColor = if (backgroundColor == Color.Unspecified) {
+        MaterialTheme.colorScheme.lightGray
+    } else {
+        backgroundColor
+    }
 
     FlowRow(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(top = 8.dp)
             .background(
-                color = MaterialTheme.colorScheme.greyLight,
+                color = resolvedBackgroundColor,
                 shape = RoundedCornerShape(8.dp)
             )
             .padding(12.dp),

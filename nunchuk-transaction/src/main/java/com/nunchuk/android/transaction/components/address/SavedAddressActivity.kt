@@ -3,8 +3,8 @@ package com.nunchuk.android.transaction.components.address
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
-import androidx.core.view.WindowCompat
 import androidx.navigation.fragment.NavHostFragment
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.util.InheritancePlanFlow
@@ -25,8 +25,6 @@ class SavedAddressActivity : BaseActivity<ActivityNavigationBinding>() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        WindowCompat.setDecorFitsSystemWindows(window, false)
-
         val navHostFragment =
             supportFragmentManager.findFragmentById(R.id.nav_host) as NavHostFragment
         val inflater = navHostFragment.navController.navInflater
@@ -42,7 +40,9 @@ class SavedAddressActivity : BaseActivity<ActivityNavigationBinding>() {
     }
 
     override fun initializeBinding(): ActivityNavigationBinding {
-        return ActivityNavigationBinding.inflate(layoutInflater)
+        return ActivityNavigationBinding.inflate(layoutInflater).also {
+            enableEdgeToEdge()
+        }
     }
 
     companion object {
