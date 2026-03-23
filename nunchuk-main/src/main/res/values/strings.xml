@@ -534,4 +534,23 @@
     <string name="nc_block_height_estimate_warning">This date and time is an estimate only. Funds are locked strictly by Block Height %1$s, regardless of calendar time.</string>
     <string name="nc_inheritance_notify_pref_on_chain_desc">Would you like us to notify the Beneficiary or Trustee about the inheritance plan?</string>
     <string name="nc_view_wallet">View wallet</string>
+    <string name="nc_platform_key_policies">Platform key policies</string>
+    <string name="nc_global_policy">Global policy</string>
+    <string name="nc_global_policy_desc">Apply the same spending limit and delay settings to all transactions.</string>
+    <string name="nc_global_policy_sheet_desc">Apply the same spending limit and delay settings to all keys.</string>
+    <string name="nc_per_key_policy">Per-key policy</string>
+    <string name="nc_per_key_policy_desc">Apply custom spending limits and delay settings to transactions from selected keys.</string>
+    <string name="nc_all_keys">All keys</string>
+    <string name="nc_add_policy">Add policy</string>
+    <string name="nc_choose_how_rules_applied">Choose how rules are applied to your transactions</string>
+    <string name="nc_spending_limit_value">%1$s %2$s / %3$s</string>
+    <string name="nc_auto_broadcast">Auto-broadcast</string>
+    <string name="nc_enter_amount">Enter amount</string>
+    <string name="nc_apply">Apply</string>
+    <string name="nc_co_signing_delay_desc">A co-signing delay gives you time to detect errors or unauthorized access before a transaction is broadcast.</string>
+    <string name="nc_auto_broadcast_desc">The platform will broadcast the transaction once the platform key has co-signed and enough signatures are collected.</string>
+    <string name="nc_remove_platform_key">Remove platform key</string>
+    <string name="nc_remove_platform_key_desc">This action cannot be reversed and will remove this platform key from the wallet.</string>
+    <string name="nc_save_and_update">Save and update</string>
+    <string name="nc_remove">Remove</string>
 </resources>

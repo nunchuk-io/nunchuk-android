@@ -214,6 +214,7 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
                                     KeyType.KEYSTONE -> handleSelectAddAirgapType(SignerTag.KEYSTONE)
                                     KeyType.FOUNDATION -> handleSelectAddAirgapType(SignerTag.PASSPORT)
                                     KeyType.SOFTWARE -> showSoftwareSigners()
+                                    KeyType.PLATFORM_KEY -> returnPlatformKeyResult()
                                     KeyType.GENERIC_AIRGAP -> openAddAirSignerIntroScreen()
                                     KeyType.LEDGER -> handleHardwareSignerSelection(SignerTag.LEDGER)
                                     KeyType.BITBOX -> handleHardwareSignerSelection(SignerTag.BITBOX)
@@ -546,6 +547,14 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
         finish()
     }
 
+    private fun returnPlatformKeyResult() {
+        val intent = Intent().apply {
+            putExtra(EXTRA_PLATFORM_KEY_SELECTED, true)
+        }
+        setResult(RESULT_OK, intent)
+        finish()
+    }
+
     private fun handleShowMore() {
         val options = mutableListOf<SheetOption>()
         options.add(
@@ -589,6 +598,7 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
     private val groupId by lazy { intent.getStringExtra(EXTRA_GROUP_ID).orEmpty() }
 
     companion object {
+        const val EXTRA_PLATFORM_KEY_SELECTED = "platform_key_selected"
         private const val EXTRA_WALLET_ID = "wallet_id"
         private const val EXTRA_GROUP_ID = "group_id"
         private const val EXTRA_SUPPORTED_SIGNERS = "supported_signers"

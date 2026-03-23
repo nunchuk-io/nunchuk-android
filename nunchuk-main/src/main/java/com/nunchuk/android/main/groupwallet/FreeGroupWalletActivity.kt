@@ -5,6 +5,7 @@ import android.content.Intent
 import android.nfc.tech.IsoDep
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.LaunchedEffect
@@ -33,22 +34,26 @@ import com.nunchuk.android.core.util.navigateToSelectWallet
 import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.groupwallet.join.CommonQRCodeActivity
+import com.nunchuk.android.main.groupwallet.keypolicies.freeGroupKeyPolicies
 import com.nunchuk.android.main.groupwallet.recover.freeGroupWalletRecover
 import com.nunchuk.android.main.groupwallet.recover.freeGroupWalletRecoverRoute
+import com.nunchuk.android.main.membership.signer.SignerIntroActivity
 import com.nunchuk.android.main.membership.wallet.createWalletSuccessScreen
 import com.nunchuk.android.main.membership.wallet.navigateCreateWalletSuccessScreen
 import com.nunchuk.android.model.GroupSandbox
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.signer.SupportedSigner
+import com.nunchuk.android.model.signer.supportedAirgapSigner
+import com.nunchuk.android.model.signer.supportedSeverSigner
 import com.nunchuk.android.nav.args.AddWalletArgs
 import com.nunchuk.android.nav.args.ReviewWalletArgs
+import com.nunchuk.android.signer.defaultSupportedSigners
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.wallet.InputBipPathBottomSheet
 import com.nunchuk.android.wallet.InputBipPathBottomSheetListener
 import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCToastMessage
-import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
@@ -62,6 +67,19 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
     private val filePath by lazy { intent.getStringExtra(EXTRA_FILE_PATH).orEmpty() }
     private val quickWalletParam by lazy { intent.parcelable<QuickWalletParam>(EXTRA_QUICK_WALLET_PARAM) }
     private val isRecoverWallet by lazy { intent.getBooleanExtra(EXTRA_IS_RECOVER_WALLET, false) }
+
+    private val signerIntroLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            val data = result.data
+            if (result.resultCode == RESULT_OK && data != null) {
+                val isPlatformKeySelected = data.getBooleanExtra(
+                    SignerIntroActivity.EXTRA_PLATFORM_KEY_SELECTED, false
+                )
+                if (isPlatformKeySelected) {
+                    // TODO: Handle platform key added
+                }
+            }
+        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -264,6 +282,11 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
                                 }
                             )
 
+                            freeGroupKeyPolicies(
+                                signers = state.signers.filterNotNull(),
+                                onBackClicked = { navController.popBackStack() },
+                            )
+
                             customKeyNavigation(
                                 viewModel = viewModel,
                                 onCustomIndexDone = viewModel::addSignerToGroup
@@ -378,18 +401,6 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
         pushEventManager.push(PushEvent.CloseWalletDetail)
     }
 
-    private fun handleCacheXpub() {
-        NCWarningDialog(this).showDialog(
-            title = getString(R.string.nc_text_info),
-            message = getString(R.string.nc_new_xpub_need),
-            btnYes = getString(R.string.nc_ok),
-            btnNo = getString(R.string.nc_cancel),
-            onYesClick = {
-                startNfcFlow(REQUEST_NFC_TOPUP_XPUBS)
-            },
-        )
-    }
-
     override fun onInputDone(masterSignerId: String, newInput: String) {
         viewModel.changeBip32Path(masterSignerId, newInput)
     }
@@ -404,10 +415,12 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
         groupId: String,
         supportedSigners: List<SupportedSigner>
     ) {
+        val newSupportedSigners = supportedSigners.ifEmpty { defaultSupportedSigners } + supportedSeverSigner + supportedAirgapSigner
         navigator.openSignerIntroScreen(
+            launcher = signerIntroLauncher,
             activityContext = this,
             groupId = groupId,
-            supportedSigners = supportedSigners
+            supportedSigners = newSupportedSigners
         )
     }
 

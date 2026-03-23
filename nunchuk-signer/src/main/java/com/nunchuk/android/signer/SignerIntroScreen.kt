@@ -218,27 +218,55 @@ internal fun SignerSelection(
         }
     }
 
-    if (isGenericAirgapEnable) {
+    if (supportedSigners.any { it.type == SignerType.SERVER }) {
+        HorizontalDivider(
+            modifier = Modifier.padding(vertical = 16.dp)
+        )
+
         Row(
-            modifier = Modifier
-                .padding(top = 16.dp)
-                .fillMaxWidth()
-                .alpha(if (isGenericAirgapEnable) 1f else 0.6f)
-                .clickable(enabled = isGenericAirgapEnable) {
-                    onClick(KeyType.GENERIC_AIRGAP)
-                },
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.clickable(enabled = !isDisableAll) {
+                onClick(KeyType.PLATFORM_KEY)
+            }
         ) {
             NcCircleImage(
-                resId = R.drawable.ic_split,
+                resId = R.drawable.ic_server_key_dark,
             )
 
-            Text(
-                modifier = Modifier.padding(start = 12.dp),
-                text = stringResource(R.string.nc_generic_airgap),
-                style = NunchukTheme.typography.body
-            )
+            Column(modifier = Modifier.padding(start = 12.dp)) {
+                Text(
+                    text = stringResource(R.string.nc_server_key),
+                    style = NunchukTheme.typography.body
+                )
+                Text(
+                    modifier = Modifier.padding(top = 4.dp),
+                    text = stringResource(R.string.nc_platform_key_desc),
+                    style = NunchukTheme.typography.bodySmall
+                        .copy(color = MaterialTheme.colorScheme.textSecondary)
+                )
+            }
         }
+    }
+
+    Row(
+        modifier = Modifier
+            .padding(top = 16.dp)
+            .fillMaxWidth()
+            .alpha(if (isGenericAirgapEnable) 1f else 0.6f)
+            .clickable(enabled = isGenericAirgapEnable) {
+                onClick(KeyType.GENERIC_AIRGAP)
+            },
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        NcCircleImage(
+            resId = R.drawable.ic_split,
+        )
+
+        Text(
+            modifier = Modifier.padding(start = 12.dp),
+            text = stringResource(R.string.nc_generic_airgap),
+            style = NunchukTheme.typography.body
+        )
     }
 }
 
@@ -444,5 +472,6 @@ enum class KeyType {
     BITBOX,
     TREZOR,
     SOFTWARE,
-    GENERIC_AIRGAP
+    GENERIC_AIRGAP,
+    PLATFORM_KEY,
 }

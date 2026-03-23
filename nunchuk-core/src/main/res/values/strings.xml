@@ -218,6 +218,7 @@
     <string name="nc_add_key_list_desc_three">\n\nYou will have possession of two keys. The third key will be held by Nunchuk on our secure server.</string>
     <string name="nc_honey_add_key_list_desc_three">\n\nYou will have possession of three keys. The fourth key will be held by Nunchuk on our secure server.</string>
     <string name="nc_server_key">Platform key</string>
+    <string name="nc_platform_key_desc">A secure HSM key created by the platform to help approve transactions and control spending limits.</string>
     <string name="nc_timelock">Timelock</string>
     <string name="nc_enter_confirmation_code">Enter confirmation code</string>
     <string name="nc_confirmation_code">Confirmation code</string>

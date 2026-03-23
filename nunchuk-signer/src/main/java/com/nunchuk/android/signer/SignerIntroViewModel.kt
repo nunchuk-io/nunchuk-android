@@ -47,7 +47,8 @@ data class SignerIntroState(
     val isAddInheritanceSigner: Boolean = false,
     val dynamicSupportedSigners: List<SupportedSigner> = emptyList(),
     val showDynamicSelection: Boolean = false,
-    val isGenericAirgapEnable: Boolean = false
+    val isGenericAirgapEnable: Boolean = false,
+    val isSeverKeyEnable: Boolean = false
 )
 
 @HiltViewModel
@@ -119,13 +120,11 @@ class SignerIntroViewModel @Inject constructor(
                 fetchUserWalletConfigs()
             }
             fetchAndFilterTapSigners()
-        } else {
-            if (supportedSigners.isEmpty()) {
-                _state.update {
-                    it.copy(
-                        isGenericAirgapEnable = calculateIsGenericAirgapEnable(emptyList())
-                    )
-                }
+        } else if (supportedSigners.isEmpty()) {
+            _state.update {
+                it.copy(
+                    isGenericAirgapEnable = calculateIsGenericAirgapEnable(emptyList())
+                )
             }
         }
     }

@@ -14,3 +14,17 @@ data class SupportedSigner(
     val walletType: WalletType?,
     val addressType: AddressType?
 ) : Parcelable
+
+val supportedSeverSigner = SupportedSigner(
+    type = SignerType.SERVER,
+    tag = null,
+    walletType = null,
+    addressType = null
+)
+
+val supportedAirgapSigner = SupportedSigner(
+    type = SignerType.AIRGAP,
+    tag = null,
+    walletType = null,
+    addressType = null
+)

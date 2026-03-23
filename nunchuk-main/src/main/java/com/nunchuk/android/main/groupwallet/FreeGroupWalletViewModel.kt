@@ -58,10 +58,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -169,14 +167,6 @@ class FreeGroupWalletViewModel @Inject constructor(
                 }
         }
         viewModelScope.launch {
-            _uiState.mapNotNull { it.group?.addressType }.distinctUntilChanged()
-                .collect { addressType ->
-                    if (addressType.isTaproot() && _uiState.value.supportedTypes.isEmpty()) {
-                        getSupportedSignersUseCase(Unit).onSuccess { supportedTypes ->
-                            _uiState.update { it.copy(supportedTypes = supportedTypes) }
-                        }
-                    }
-                }
             getSupportedSignersUseCase(Unit).onSuccess { supportedTypes ->
                 _uiState.update { it.copy(supportedTypes = supportedTypes) }
             }
