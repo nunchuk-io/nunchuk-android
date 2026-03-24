@@ -1,5 +1,6 @@
 package com.nunchuk.android.transaction.components.details.view
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -31,11 +32,11 @@ fun ChangeAddressView(
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             AddressWithInspect(
                 modifier = Modifier
-                    .weight(1f)
-                    .padding(end = 8.dp),
+                    .weight(1f),
                 address = txOutput.first,
                 onCopyText = onCopyText,
                 onInspectAddress = onInspectAddress,

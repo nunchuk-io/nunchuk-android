@@ -3,8 +3,10 @@ package com.nunchuk.android.transaction.components.details.view
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -112,24 +114,28 @@ fun AddressWithInspect(
     val inlineContent = mapOf(
         INSPECT_INLINE_ID to InlineTextContent(
             placeholder = Placeholder(
-                width = 70.sp,
+                width = 64.sp,
                 height = 22.sp,
                 placeholderVerticalAlign = PlaceholderVerticalAlign.TextCenter,
             ),
         ) {
-            Text(
+            Box(
                 modifier = Modifier
-                    .padding(top = 4.dp)
+                    .padding(top = 2.dp)
+                    .fillMaxSize()
                     .border(
                         width = 1.dp,
                         color = MaterialTheme.colorScheme.controlFillPrimary,
                         shape = RoundedCornerShape(20.dp),
                     )
-                    .clickable { onInspectAddress(address) }
-                    .padding(horizontal = 12.dp, vertical = 2.dp),
-                text = inspectLabel,
-                style = NunchukTheme.typography.captionTitle,
-            )
+                    .clickable { onInspectAddress(address) },
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = inspectLabel,
+                    style = NunchukTheme.typography.captionTitle,
+                )
+            }
         }
     )
 

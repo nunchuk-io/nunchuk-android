@@ -27,14 +27,15 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -53,6 +54,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -198,10 +200,6 @@ private fun AddressCard(
     onClick: () -> Unit = {},
     onInspectClick: () -> Unit = {},
 ) {
-    val qrSize = with(LocalDensity.current) { 300.dp.toPx().toInt() }
-    val qrCode = produceState<Bitmap?>(initialValue = null, address) {
-        value = address.convertToQRCode(width = qrSize, height = qrSize)
-    }
     val formattedAddress = remember(address) {
         address.chunked(4).joinToString(" ")
     }
@@ -223,17 +221,28 @@ private fun AddressCard(
                 .padding(8.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            qrCode.value?.let { bitmap ->
-                val imageBitmap = remember(bitmap) { bitmap.asImageBitmap() }
-                Image(
-                    modifier = Modifier.size(300.dp),
-                    bitmap = imageBitmap,
-                    contentDescription = "QR Code",
-                )
+            BoxWithConstraints(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(1f),
+            ) {
+                val qrSize = with(LocalDensity.current) { maxWidth.toPx().toInt() }
+                val qrCode = produceState<Bitmap?>(initialValue = null, address, qrSize) {
+                    value = address.convertToQRCode(width = qrSize, height = qrSize)
+                }
+                qrCode.value?.let { bitmap ->
+                    val imageBitmap = remember(bitmap) { bitmap.asImageBitmap() }
+                    Image(
+                        modifier = Modifier.fillMaxSize(),
+                        bitmap = imageBitmap,
+                        contentDescription = "QR Code",
+                        contentScale = ContentScale.Fit,
+                    )
+                }
             }
             Text(
                 modifier = Modifier
-                    .width(300.dp)
+                    .fillMaxWidth()
                     .padding(vertical = 8.dp),
                 text = formattedAddress,
                 style = NunchukTheme.typography.body,
