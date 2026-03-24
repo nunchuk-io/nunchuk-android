@@ -75,6 +75,7 @@ import com.nunchuk.android.core.util.ADD_WALLET_REUSE_SIGNER_RESULT
 import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.groupwallet.component.FreeAddKeyCard
+import com.nunchuk.android.main.groupwallet.component.PlatformKeyCard
 import com.nunchuk.android.main.groupwallet.component.UserOnline
 import com.nunchuk.android.main.groupwallet.component.WalletInfo
 import com.nunchuk.android.main.membership.key.list.SelectSignerBottomSheet
@@ -110,6 +111,7 @@ fun NavGraphBuilder.freeGroupWallet(
     refresh: () -> Unit,
     onAddNewKeyForMiniscript: (List<SupportedSigner>) -> Unit = {},
     onStartAddKeyForMiniscript: (String) -> Unit = {},
+    onConfigPlatformKey: () -> Unit = {},
 ) {
     composable(
         route = freeGroupWalletRoute,
@@ -189,7 +191,8 @@ fun NavGraphBuilder.freeGroupWallet(
             },
             onMarkEventHandled = {
                 viewModel.markEventHandled()
-            }
+            },
+            onConfigPlatformKey = onConfigPlatformKey,
         )
     }
 }
@@ -217,6 +220,7 @@ fun FreeGroupWalletScreen(
     onStartAddKeyForMiniscript: (String) -> Unit = {},
     onRemoveSignerForKey: (String) -> Unit = {},
     onMarkEventHandled: () -> Unit = {},
+    onConfigPlatformKey: () -> Unit = {},
 ) {
     val pullRefreshState = rememberPullRefreshState(state.isRefreshing, refresh)
     var showSignerBottomSheet by rememberSaveable { mutableStateOf(false) }
@@ -236,7 +240,12 @@ fun FreeGroupWalletScreen(
     val isInReplace = state.isInReplaceMode
     val isButtonEnabled = if (state.group != null) {
         val signers = if (isInReplace) state.replaceSigners else state.signers
-        signers.count { it != null } == state.group.n && state.group.n > 0
+        val hasPlatformKey = state.group.platformKeyIndex >= 0
+        val requiredSigners = if (hasPlatformKey) state.group.n - 1 else state.group.n
+        val filledSigners = signers.filterIndexed { index, signer ->
+            signer != null && index != state.group.platformKeyIndex
+        }.size
+        filledSigners >= requiredSigners && state.group.n > 0
     } else {
         false
     }
@@ -473,40 +482,48 @@ fun FreeGroupWalletScreen(
                         UserOnline(state.numberOfOnlineUsers)
                     }
 
+                    val platformKeyIndex = state.group?.platformKeyIndex ?: -1
+
                     var colorIndex = 0
                     itemsIndexed(state.signers) { index, signer ->
-                        FreeAddKeyCard(
-                            index = index,
-                            isOccupied = state.occupiedSlotsIndex.contains(index),
-                            signer = signer,
-                            replacedSigner = state.replaceSigners.getOrNull(index),
-                            onAddClicked = {
-                                currentSignerIndex = index
-                                onStartAddKey(index)
-                                if (state.allSigners.isNotEmpty()) {
-                                    showSignerBottomSheet = true
-                                } else {
-                                    onAddNewKey(index)
-                                }
-                            },
-                            onRemoveOrReplaceClicked = { isReplace ->
-                                currentSignerIndex = index
-                                if (isReplace) {
+                        if (index == platformKeyIndex && platformKeyIndex >= 0) {
+                            PlatformKeyCard(
+                                onConfigClicked = onConfigPlatformKey,
+                            )
+                        } else {
+                            FreeAddKeyCard(
+                                index = index,
+                                isOccupied = state.occupiedSlotsIndex.contains(index),
+                                signer = signer,
+                                replacedSigner = state.replaceSigners.getOrNull(index),
+                                onAddClicked = {
+                                    currentSignerIndex = index
                                     onStartAddKey(index)
                                     if (state.allSigners.isNotEmpty()) {
                                         showSignerBottomSheet = true
                                     } else {
                                         onAddNewKey(index)
                                     }
-                                } else {
-                                    showDeleteSignerDialog = true
-                                }
-                            },
-                            showBip32Path = showBip32Path,
-                            onChangeBip32Path = onChangeBip32Path,
-                            avatarColor = if (signer?.isVisible == false) avatarColors[colorIndex++ % avatarColors.size] else avatarColors[0],
-                            isInReplace = isInReplace,
-                        )
+                                },
+                                onRemoveOrReplaceClicked = { isReplace ->
+                                    currentSignerIndex = index
+                                    if (isReplace) {
+                                        onStartAddKey(index)
+                                        if (state.allSigners.isNotEmpty()) {
+                                            showSignerBottomSheet = true
+                                        } else {
+                                            onAddNewKey(index)
+                                        }
+                                    } else {
+                                        showDeleteSignerDialog = true
+                                    }
+                                },
+                                showBip32Path = showBip32Path,
+                                onChangeBip32Path = onChangeBip32Path,
+                                avatarColor = if (signer?.isVisible == false) avatarColors[colorIndex++ % avatarColors.size] else avatarColors[0],
+                                isInReplace = isInReplace,
+                            )
+                        }
                     }
                 }
             }

@@ -35,6 +35,7 @@ import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.groupwallet.join.CommonQRCodeActivity
 import com.nunchuk.android.main.groupwallet.keypolicies.freeGroupKeyPolicies
+import com.nunchuk.android.main.groupwallet.keypolicies.navigateToFreeGroupKeyPolicies
 import com.nunchuk.android.main.groupwallet.recover.freeGroupWalletRecover
 import com.nunchuk.android.main.groupwallet.recover.freeGroupWalletRecoverRoute
 import com.nunchuk.android.main.membership.signer.SignerIntroActivity
@@ -76,7 +77,7 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
                     SignerIntroActivity.EXTRA_PLATFORM_KEY_SELECTED, false
                 )
                 if (isPlatformKeySelected) {
-                    // TODO: Handle platform key added
+                    viewModel.enableGroupPlatformKey()
                 }
             }
         }
@@ -276,15 +277,20 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
                                         supportedSigners = supportedSigners
                                     )
                                 },
-                                onStartAddKeyForMiniscript = { keyName -> // ← NEW: For Miniscript slot management
+                                onStartAddKeyForMiniscript = { keyName ->
                                     viewModel.setCurrentKeyToAssign(keyName)
                                     viewModel.setSlotOccupied(true)
+                                },
+                                onConfigPlatformKey = {
+                                    navController.navigateToFreeGroupKeyPolicies()
                                 }
                             )
 
                             freeGroupKeyPolicies(
-                                signers = state.signers.filterNotNull(),
                                 onBackClicked = { navController.popBackStack() },
+                                onSaveSuccess = { groupSandbox ->
+                                    viewModel.onPlatformKeyPoliciesUpdated(groupSandbox)
+                                },
                             )
 
                             customKeyNavigation(

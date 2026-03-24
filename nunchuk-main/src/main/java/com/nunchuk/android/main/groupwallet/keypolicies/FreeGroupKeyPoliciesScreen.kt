@@ -20,6 +20,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -42,6 +43,7 @@ import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.dialog.NcConfirmationDialog
 import com.nunchuk.android.compose.dialog.NcInfoDialog
+import com.nunchuk.android.compose.dialog.NcLoadingDialog
 import com.nunchuk.android.compose.greyLight
 import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.compose.textPrimary
@@ -49,21 +51,42 @@ import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.toReadableDrawableResId
 import com.nunchuk.android.main.R
+import com.nunchuk.android.model.GroupPlatformKeyPolicies
+import com.nunchuk.android.model.GroupPlatformKeyPolicy
+import com.nunchuk.android.model.GroupSandbox
+import com.nunchuk.android.model.GroupSpendingLimit
 import com.nunchuk.android.model.KeyPolicy
-import com.nunchuk.android.model.SpendingPolicy
-import com.nunchuk.android.model.SpendingTimeUnit
+import com.nunchuk.android.type.GroupSpendingLimitInterval
 import com.nunchuk.android.type.SignerType
 
 @Composable
 internal fun FreeGroupKeyPoliciesScreen(
+    groupId: String = "",
     signers: List<SignerModel> = emptyList(),
+    platformKeyPolicies: GroupPlatformKeyPolicies? = null,
     onBackClicked: () -> Unit = {},
     onRemovePlatformKey: () -> Unit = {},
+    onSaveSuccess: (GroupSandbox) -> Unit = {},
 ) {
-    val viewModel = hiltViewModel<FreeGroupKeyPoliciesViewModel, FreeGroupKeyPoliciesViewModel.Factory> { factory ->
-        factory.create(signers)
-    }
+    val viewModel: FreeGroupKeyPoliciesViewModel = hiltViewModel()
     val state by viewModel.state.collectAsStateWithLifecycle()
+
+    LaunchedEffect(Unit) {
+        viewModel.init(groupId, signers, platformKeyPolicies)
+    }
+
+    LaunchedEffect(signers) {
+        viewModel.updateSigners(signers)
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.event.collect { event ->
+            when (event) {
+                is FreeGroupKeyPoliciesEvent.SaveSuccess -> onSaveSuccess(event.groupSandbox)
+                is FreeGroupKeyPoliciesEvent.Error -> {}
+            }
+        }
+    }
 
     FreeGroupKeyPoliciesContent(
         state = state,
@@ -217,6 +240,10 @@ private fun FreeGroupKeyPoliciesContent(
                 onDismiss = { showRemoveConfirmation = false },
             )
         }
+
+        if (state.isLoading) {
+            NcLoadingDialog()
+        }
     }
 }
 
@@ -320,7 +347,7 @@ private fun PolicyCard(
                         style = NunchukTheme.typography.bodySmall,
                     )
                     Text(
-                        text = policy.keyPolicy.spendingPolicy?.let { formatSpendingLimit(it) } ?: "",
+                        text = policy.keyPolicy.spendingLimit?.let { formatGroupSpendingLimit(it) }.orEmpty(),
                         style = NunchukTheme.typography.title,
                     )
                 }
@@ -346,10 +373,10 @@ private fun PolicyCard(
                 style = NunchukTheme.typography.body,
             )
             Text(
-                text = if (policy.keyPolicy.signingDelayInSeconds > 0) {
+                text = if (policy.keyPolicy.signingDelaySeconds > 0) {
                     formatCoSigningDelay(
-                        policy.keyPolicy.getSigningDelayInHours(),
-                        policy.keyPolicy.getSigningDelayInMinutes()
+                        policy.keyPolicy.signingDelaySeconds / KeyPolicy.ONE_HOUR_TO_SECONDS,
+                        (policy.keyPolicy.signingDelaySeconds % KeyPolicy.ONE_HOUR_TO_SECONDS) / KeyPolicy.ONE_MINUTE_TO_SECONDS
                     )
                 } else {
                     stringResource(com.nunchuk.android.core.R.string.nc_off)
@@ -434,11 +461,11 @@ private fun FreeGroupKeyPoliciesPerKeyPreview() {
                 KeyPolicyItem(
                     fingerPrint = "79EB35F4",
                     derivationPath = "m/48'/0'/0'/2'",
-                    keyPolicy = KeyPolicy(
-                        spendingPolicy = SpendingPolicy(
-                            limit = 100.0,
-                            timeUnit = SpendingTimeUnit.DAILY,
-                            currencyUnit = "USD",
+                    keyPolicy = GroupPlatformKeyPolicy(
+                        spendingLimit = GroupSpendingLimit(
+                            amount = "100",
+                            interval = GroupSpendingLimitInterval.DAILY,
+                            currency = "USD",
                         ),
                         autoBroadcastTransaction = true,
                     ),

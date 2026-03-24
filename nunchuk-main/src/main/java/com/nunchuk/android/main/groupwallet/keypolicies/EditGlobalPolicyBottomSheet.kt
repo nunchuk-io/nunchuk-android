@@ -43,9 +43,10 @@ import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.toReadableDrawableResId
 import com.nunchuk.android.main.R
+import com.nunchuk.android.model.GroupPlatformKeyPolicy
+import com.nunchuk.android.model.GroupSpendingLimit
 import com.nunchuk.android.model.KeyPolicy
-import com.nunchuk.android.model.SpendingPolicy
-import com.nunchuk.android.model.SpendingTimeUnit
+import com.nunchuk.android.type.GroupSpendingLimitInterval
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -56,23 +57,32 @@ internal fun EditGlobalPolicyBottomSheet(
     onDismiss: () -> Unit = {},
     onSave: (KeyPolicyItem) -> Unit = {},
 ) {
-    val spendingPolicy = policy.keyPolicy.spendingPolicy
+    val spendingLimit = policy.keyPolicy.spendingLimit
+    val amountDouble = spendingLimit?.amount?.toDoubleOrNull() ?: 0.0
     var amount by rememberSaveable {
         mutableStateOf(
-            if (spendingPolicy == null || spendingPolicy.limit == 0.0) "" else {
-                if (spendingPolicy.limit % 1.0 == 0.0) {
-                    spendingPolicy.limit.toLong().toString()
+            if (amountDouble == 0.0) "" else {
+                if (amountDouble % 1.0 == 0.0) {
+                    amountDouble.toLong().toString()
                 } else {
-                    spendingPolicy.limit.toString()
+                    spendingLimit?.amount.orEmpty()
                 }
             }
         )
     }
-    var currencyUnit by rememberSaveable { mutableStateOf(spendingPolicy?.currencyUnit ?: "USD") }
-    var timeUnit by rememberSaveable { mutableStateOf(spendingPolicy?.timeUnit ?: SpendingTimeUnit.DAILY) }
-    var isCoSigningDelayEnabled by rememberSaveable { mutableStateOf(policy.keyPolicy.signingDelayInSeconds > 0) }
-    var coSigningDelayHours by rememberSaveable { mutableStateOf(policy.keyPolicy.getSigningDelayInHours().takeIf { it > 0 }?.toString().orEmpty()) }
-    var coSigningDelayMinutes by rememberSaveable { mutableStateOf(policy.keyPolicy.getSigningDelayInMinutes().takeIf { it > 0 }?.toString().orEmpty()) }
+    var currencyUnit by rememberSaveable { mutableStateOf(spendingLimit?.currency?.ifEmpty { "USD" } ?: "USD") }
+    var interval by rememberSaveable { mutableStateOf(spendingLimit?.interval ?: GroupSpendingLimitInterval.DAILY) }
+    var isCoSigningDelayEnabled by rememberSaveable { mutableStateOf(policy.keyPolicy.signingDelaySeconds > 0) }
+    var coSigningDelayHours by rememberSaveable {
+        mutableStateOf(
+            (policy.keyPolicy.signingDelaySeconds / KeyPolicy.ONE_HOUR_TO_SECONDS).takeIf { it > 0 }?.toString().orEmpty()
+        )
+    }
+    var coSigningDelayMinutes by rememberSaveable {
+        mutableStateOf(
+            ((policy.keyPolicy.signingDelaySeconds % KeyPolicy.ONE_HOUR_TO_SECONDS) / KeyPolicy.ONE_MINUTE_TO_SECONDS).takeIf { it > 0 }?.toString().orEmpty()
+        )
+    }
     var isAutoBroadcast by rememberSaveable { mutableStateOf(policy.keyPolicy.autoBroadcastTransaction) }
     var showTimeUnitSelector by rememberSaveable { mutableStateOf(false) }
     var showCurrencySelector by rememberSaveable { mutableStateOf(false) }
@@ -119,11 +129,11 @@ internal fun EditGlobalPolicyBottomSheet(
                         style = NunchukTheme.typography.bodySmall,
                     )
                     Text(
-                        text = formatSpendingLimit(
-                            SpendingPolicy(
-                                limit = amount.toDoubleOrNull() ?: 0.0,
-                                timeUnit = timeUnit,
-                                currencyUnit = currencyUnit,
+                        text = formatGroupSpendingLimit(
+                            GroupSpendingLimit(
+                                amount = amount.ifEmpty { "0" },
+                                interval = interval,
+                                currency = currencyUnit,
                             )
                         ),
                         style = NunchukTheme.typography.title,
@@ -184,7 +194,7 @@ internal fun EditGlobalPolicyBottomSheet(
             NcTextField(
                 modifier = Modifier.fillMaxWidth(),
                 title = "",
-                value = getTimeUnitDisplayName(timeUnit),
+                value = getIntervalDisplayName(interval),
                 readOnly = true,
                 rightContent = {
                     Icon(
@@ -297,13 +307,13 @@ internal fun EditGlobalPolicyBottomSheet(
                         }
                         onSave(
                             policy.copy(
-                                keyPolicy = KeyPolicy(
-                                    spendingPolicy = SpendingPolicy(
-                                        limit = amount.toDoubleOrNull() ?: 0.0,
-                                        timeUnit = timeUnit,
-                                        currencyUnit = currencyUnit,
+                                keyPolicy = GroupPlatformKeyPolicy(
+                                    spendingLimit = GroupSpendingLimit(
+                                        amount = amount.ifEmpty { "0" },
+                                        interval = interval,
+                                        currency = currencyUnit,
                                     ),
-                                    signingDelayInSeconds = delaySeconds,
+                                    signingDelaySeconds = delaySeconds,
                                     autoBroadcastTransaction = isAutoBroadcast,
                                 )
                             )
@@ -317,13 +327,13 @@ internal fun EditGlobalPolicyBottomSheet(
     }
 
     if (showTimeUnitSelector) {
-        val timeUnits = SpendingTimeUnit.entries.toList()
-        val selectedIndex = timeUnits.indexOf(timeUnit)
+        val intervals = GroupSpendingLimitInterval.entries.toList()
+        val selectedIndex = intervals.indexOf(interval)
         NcSelectableBottomSheet(
-            options = timeUnits.map { getTimeUnitDisplayName(it) },
+            options = intervals.map { getIntervalDisplayName(it) },
             selectedPos = selectedIndex,
             onSelected = { index ->
-                timeUnit = timeUnits[index]
+                interval = intervals[index]
                 showTimeUnitSelector = false
             },
             onDismiss = { showTimeUnitSelector = false },
@@ -359,13 +369,13 @@ private fun EditGlobalPolicyBottomSheetWithDataPreview() {
     NunchukTheme {
         EditGlobalPolicyBottomSheet(
             policy = KeyPolicyItem(
-                keyPolicy = KeyPolicy(
-                    spendingPolicy = SpendingPolicy(
-                        limit = 5000.0,
-                        timeUnit = SpendingTimeUnit.DAILY,
-                        currencyUnit = "USD",
+                keyPolicy = GroupPlatformKeyPolicy(
+                    spendingLimit = GroupSpendingLimit(
+                        amount = "5000",
+                        interval = GroupSpendingLimitInterval.DAILY,
+                        currency = "USD",
                     ),
-                    signingDelayInSeconds = 2 * KeyPolicy.ONE_HOUR_TO_SECONDS,
+                    signingDelaySeconds = 2 * KeyPolicy.ONE_HOUR_TO_SECONDS,
                     autoBroadcastTransaction = true,
                 ),
             )

@@ -5,6 +5,7 @@ import android.nfc.tech.IsoDep
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.domain.EnableGroupPlatformKeyUseCase
 import com.nunchuk.android.core.domain.GetGroupDeviceUIDUseCase
 import com.nunchuk.android.core.domain.HasSignerUseCase
 import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
@@ -75,6 +76,7 @@ const val KEY_NOT_SYNCED_NAME = "ADDED"
 class FreeGroupWalletViewModel @Inject constructor(
     private val getGroupSandboxUseCase: GetGroupSandboxUseCase,
     private val getAllSignersUseCase: GetAllSignersUseCase,
+    private val enableGroupPlatformKeyUseCase: EnableGroupPlatformKeyUseCase,
     private val createGroupSandboxUseCase: CreateGroupSandboxUseCase,
     private val masterSignerMapper: MasterSignerMapper,
     private val singleSignerMapper: SingleSignerMapper,
@@ -576,6 +578,29 @@ class FreeGroupWalletViewModel @Inject constructor(
             }.onFailure { error ->
                 _uiState.update { it.copy(errorMessage = error.message.orUnknownError()) }
             }
+        }
+    }
+
+    fun enableGroupPlatformKey(names: List<String> = emptyList()) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+            enableGroupPlatformKeyUseCase(
+                EnableGroupPlatformKeyUseCase.Params(
+                    groupId = groupId,
+                    names = names,
+                )
+            ).onSuccess { groupSandbox ->
+                updateGroupSandbox(groupSandbox)
+            }.onFailure { error ->
+                _uiState.update { it.copy(errorMessage = error.message.orUnknownError()) }
+            }
+            _uiState.update { it.copy(isLoading = false) }
+        }
+    }
+
+    fun onPlatformKeyPoliciesUpdated(groupSandbox: GroupSandbox) {
+        viewModelScope.launch {
+            updateGroupSandbox(groupSandbox)
         }
     }
 

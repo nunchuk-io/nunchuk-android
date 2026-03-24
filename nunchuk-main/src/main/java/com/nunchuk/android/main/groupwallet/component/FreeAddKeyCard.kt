@@ -381,6 +381,52 @@ private fun KeyNotSyncView(modifier: Modifier, index: Int) {
     }
 }
 
+@Composable
+fun PlatformKeyCard(
+    modifier: Modifier = Modifier,
+    onConfigClicked: () -> Unit = {},
+) {
+    NcDashLineBox(
+        modifier = modifier,
+        content = {
+            Row(
+                modifier = Modifier.padding(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                NcCircleImage(resId = R.drawable.ic_server_key_dark, iconSize = 24.dp)
+                Text(
+                    modifier = Modifier
+                        .weight(1.0f)
+                        .padding(start = 8.dp),
+                    text = stringResource(com.nunchuk.android.core.R.string.nc_server_key),
+                    style = NunchukTheme.typography.body
+                )
+                NcOutlineButton(
+                    height = 36.dp,
+                    onClick = onConfigClicked,
+                ) {
+                    Text(
+                        text = stringResource(R.string.nc_config),
+                        style = NunchukTheme.typography.captionTitle
+                    )
+                }
+            }
+        }
+    )
+}
+
+@PreviewLightDark
+@Composable
+private fun PlatformKeyCardPreview() {
+    NunchukTheme {
+        Box(
+            modifier = Modifier.background(MaterialTheme.colorScheme.surface)
+        ) {
+            PlatformKeyCard()
+        }
+    }
+}
+
 @PreviewLightDark
 @Composable
 private fun WaitingToJoinReplaceFreeAddKeyCardPreview(
