@@ -63,6 +63,7 @@ import com.nunchuk.android.type.SignerType
 internal fun FreeGroupKeyPoliciesScreen(
     groupId: String = "",
     signers: List<SignerModel> = emptyList(),
+    allSigners: List<SignerModel> = signers,
     platformKeyPolicies: GroupPlatformKeyPolicies? = null,
     onBackClicked: () -> Unit = {},
     onRemovePlatformKey: () -> Unit = {},
@@ -72,11 +73,15 @@ internal fun FreeGroupKeyPoliciesScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
-        viewModel.init(groupId, signers, platformKeyPolicies)
+        viewModel.init(groupId, signers, allSigners, platformKeyPolicies)
     }
 
     LaunchedEffect(signers) {
         viewModel.updateSigners(signers)
+    }
+
+    LaunchedEffect(allSigners) {
+        viewModel.updateAllSigners(allSigners)
     }
 
     LaunchedEffect(Unit) {

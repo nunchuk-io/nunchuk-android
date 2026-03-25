@@ -25,17 +25,19 @@ fun NavGraphBuilder.freeGroupKeyPolicies(
             hiltViewModel(viewModelStoreOwner = activity)
         val activityState by activityViewModel.uiState.collectAsStateWithLifecycle()
 
-        val signers = activityState.signers
+        val allSigners = activityState.signers
+            .filterNotNull()
+        val signers = allSigners
             .filterIndexed { index, _ ->
                 index != (activityState.group?.platformKeyIndex ?: -1)
             }
-            .filterNotNull()
 
         val platformKeyPolicies = activityState.group?.platformKey?.policies
 
         FreeGroupKeyPoliciesScreen(
             groupId = activityViewModel.groupId,
             signers = signers,
+            allSigners = allSigners,
             platformKeyPolicies = platformKeyPolicies,
             onBackClicked = onBackClicked,
             onSaveSuccess = { groupSandbox ->
