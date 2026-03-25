@@ -58,31 +58,26 @@ import com.nunchuk.android.model.KeyPolicy
 import com.nunchuk.android.type.GroupSpendingLimitInterval
 import com.nunchuk.android.type.SignerType
 
+private const val GLOBAL_POLICY_EDIT_KEY = "__global_policy__"
+
 @Composable
 internal fun FreeGroupKeyPoliciesScreen(
     groupId: String = "",
     walletId: String = "",
-    signers: List<SignerModel> = emptyList(),
-    allSigners: List<SignerModel> = signers,
+    allSigners: List<SignerModel> = emptyList(),
     platformKeyPolicies: GroupPlatformKeyPolicies? = null,
     onBackClicked: () -> Unit = {},
-    onRemovePlatformKey: () -> Unit = {},
     onSaveSuccess: (GroupSandbox) -> Unit = {},
 ) {
-    val viewModel: FreeGroupKeyPoliciesViewModel = hiltViewModel()
+    val viewModel =
+        hiltViewModel<FreeGroupKeyPoliciesViewModel, FreeGroupKeyPoliciesViewModel.Factory> { factory ->
+            factory.create(
+                groupId = groupId,
+                allSigners = allSigners,
+                platformKeyPolicies = platformKeyPolicies,
+            )
+        }
     val state by viewModel.state.collectAsStateWithLifecycle()
-
-    LaunchedEffect(Unit) {
-        viewModel.init(groupId, signers, allSigners, platformKeyPolicies)
-    }
-
-    LaunchedEffect(signers) {
-        viewModel.updateSigners(signers)
-    }
-
-    LaunchedEffect(allSigners) {
-        viewModel.updateAllSigners(allSigners)
-    }
 
     LaunchedEffect(Unit) {
         viewModel.event.collect { event ->
@@ -99,7 +94,7 @@ internal fun FreeGroupKeyPoliciesScreen(
         onChangePolicyType = viewModel::changePolicyType,
         onUpdatePolicy = viewModel::updatePolicy,
         onApplyClicked = viewModel::applyChanges,
-        onRemovePlatformKey = onRemovePlatformKey,
+        onRemovePlatformKey = viewModel::disablePlatformKey,
     )
 }
 
@@ -176,9 +171,9 @@ private fun FreeGroupKeyPoliciesContent(
 
                 state.policies.forEach { policy ->
                     val signer = if (isGlobalMode) null else state.signers.firstOrNull {
-                        it.fingerPrint == policy.fingerPrint && it.derivationPath == policy.derivationPath
+                        it.fingerPrint == policy.fingerPrint
                     }
-                    val policyKey = "${policy.fingerPrint}:${policy.derivationPath}"
+                    val policyKey = if (isGlobalMode) GLOBAL_POLICY_EDIT_KEY else policy.fingerPrint
                     PolicyCard(
                         policy = policy,
                         signer = signer,
@@ -191,11 +186,13 @@ private fun FreeGroupKeyPoliciesContent(
         }
 
         if (editingPolicyKey.isNotEmpty()) {
-            val policy = state.policies.firstOrNull {
-                "${it.fingerPrint}:${it.derivationPath}" == editingPolicyKey
+            val policy = if (isGlobalMode) {
+                state.policies.firstOrNull()
+            } else {
+                state.policies.firstOrNull { it.fingerPrint == editingPolicyKey }
             }
             val signer = if (isGlobalMode) null else state.signers.firstOrNull {
-                "${it.fingerPrint}:${it.derivationPath}" == editingPolicyKey
+                it.fingerPrint == editingPolicyKey
             }
             if (policy != null) {
                 EditGlobalPolicyBottomSheet(
@@ -466,10 +463,9 @@ private fun FreeGroupKeyPoliciesPerKeyPreview() {
             policyType = PolicyType.PER_KEY,
             signers = listOf(signer1, signer2, signer3),
             policies = listOf(
-                KeyPolicyItem(fingerPrint = "B35F4A00", derivationPath = "m/48'/0'/0'/2'"),
+                KeyPolicyItem(fingerPrint = "B35F4A00"),
                 KeyPolicyItem(
                     fingerPrint = "79EB35F4",
-                    derivationPath = "m/48'/0'/0'/2'",
                     keyPolicy = GroupPlatformKeyPolicy(
                         spendingLimit = GroupSpendingLimit(
                             amount = "100",
@@ -479,7 +475,7 @@ private fun FreeGroupKeyPoliciesPerKeyPreview() {
                         autoBroadcastTransaction = true,
                     ),
                 ),
-                KeyPolicyItem(fingerPrint = "B35F4A01", derivationPath = "m/48'/0'/0'/2'"),
+                KeyPolicyItem(fingerPrint = "B35F4A01"),
             ),
             hasChanges = true,
         ),

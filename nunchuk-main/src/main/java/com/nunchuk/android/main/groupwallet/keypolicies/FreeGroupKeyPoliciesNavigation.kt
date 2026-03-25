@@ -29,17 +29,12 @@ fun NavGraphBuilder.freeGroupKeyPolicies(
 
         val allSigners = activityState.signers
             .filterNotNull()
-        val signers = allSigners
-            .filterIndexed { index, _ ->
-                index != (activityState.group?.platformKeyIndex ?: -1)
-            }
 
         val platformKeyPolicies = activityState.group?.platformKey?.policies
 
         FreeGroupKeyPoliciesScreen(
             groupId = activityViewModel.groupId,
             walletId = route.walletId.orEmpty(),
-            signers = signers,
             allSigners = allSigners,
             platformKeyPolicies = platformKeyPolicies,
             onBackClicked = onBackClicked,

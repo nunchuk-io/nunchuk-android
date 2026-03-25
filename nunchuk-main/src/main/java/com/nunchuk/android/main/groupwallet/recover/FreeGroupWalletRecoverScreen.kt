@@ -50,9 +50,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
-import androidx.navigation.NavType
 import androidx.navigation.compose.composable
-import androidx.navigation.navArgument
 import com.nunchuk.android.compose.NcBadgePrimary
 import com.nunchuk.android.compose.NcDashLineBox
 import com.nunchuk.android.compose.NcIcon
@@ -93,42 +91,27 @@ import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.WalletTemplate
 import com.nunchuk.android.type.WalletType
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
-const val freeGroupWalletRecoverRoute = "free_group_wallet_recover/{wallet_id}/{file_path}/{qr_list}"
+@Serializable
+data class FreeGroupWalletRecoverRoute(
+    @SerialName(FreeGroupWalletActivity.EXTRA_WALLET_ID)
+    val walletId: String,
+    @SerialName(FreeGroupWalletActivity.EXTRA_FILE_PATH)
+    val filePath: String = "",
+    @SerialName(FreeGroupWalletActivity.EXTRA_QR_LIST)
+    val qrList: List<String> = emptyList(),
+)
 
 fun NavGraphBuilder.freeGroupWalletRecover(
     navigator: NunchukNavigator,
-    walletId: String,
-    filePath: String,
-    qrList: List<String>,
     onAddNewKey: (String, List<SupportedSigner>) -> Unit = { _, _ -> },
     openSignerIntro: (String, List<SupportedSigner>) -> Unit = { _, _ -> },
     finishScreen: () -> Unit,
     onOpenWalletDetail: (String) -> Unit = {},
 ) {
-    composable(
-        route = freeGroupWalletRecoverRoute,
-        arguments = listOf(
-            navArgument(
-                name = FreeGroupWalletActivity.EXTRA_WALLET_ID
-            ) {
-                type = NavType.StringType
-                defaultValue = walletId
-            },
-            navArgument(
-                name = FreeGroupWalletActivity.EXTRA_FILE_PATH
-            ) {
-                type = NavType.StringType
-                defaultValue = filePath
-            },
-            navArgument(
-                name = FreeGroupWalletActivity.EXTRA_QR_LIST
-            ) {
-                type = NavType.StringListType
-                defaultValue = qrList
-            }
-        )
-    ) {
+    composable<FreeGroupWalletRecoverRoute> {
         val viewModel = hiltViewModel<FreeGroupWalletRecoverViewModel>()
 
         val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -571,4 +554,3 @@ private fun GroupWalletScreenPreview(
         )
     }
 }
-

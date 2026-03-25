@@ -89,9 +89,11 @@ import com.nunchuk.android.share.groupwallet.avatarColors
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.WalletType
+import kotlinx.serialization.Serializable
 import timber.log.Timber
 
-const val freeGroupWalletRoute = "free_group_wallet"
+@Serializable
+data object FreeGroupWalletRoute
 
 fun NavGraphBuilder.freeGroupWallet(
     viewModel: FreeGroupWalletViewModel,
@@ -113,9 +115,7 @@ fun NavGraphBuilder.freeGroupWallet(
     onStartAddKeyForMiniscript: (String) -> Unit = {},
     onConfigPlatformKey: () -> Unit = {},
 ) {
-    composable(
-        route = freeGroupWalletRoute,
-    ) {
+    composable<FreeGroupWalletRoute> {
         val state by viewModel.uiState.collectAsStateWithLifecycle()
 
         LaunchedEffect(state.isFinishScreen) {
@@ -872,4 +872,3 @@ private fun GroupWalletScreenPreview(
         )
     }
 }
-

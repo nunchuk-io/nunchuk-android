@@ -6,8 +6,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import com.nunchuk.android.main.membership.replacekey.ReplaceKeyIntroScreen
+import kotlinx.serialization.Serializable
 
-const val replaceWalletIntroRoute = "replaceWalletIntro"
+@Serializable
+data object ReplaceWalletIntroRoute
 
 
 fun NavGraphBuilder.replaceWalletIntroNavigation(
@@ -15,7 +17,7 @@ fun NavGraphBuilder.replaceWalletIntroNavigation(
     onContinueClicked: () -> Unit,
     snackState: SnackbarHostState
 ) {
-    composable(replaceWalletIntroRoute) {
+    composable<ReplaceWalletIntroRoute> {
         val state by viewModel.uiState.collectAsStateWithLifecycle()
         ReplaceKeyIntroScreen(
             isLoading = state.isLoading,

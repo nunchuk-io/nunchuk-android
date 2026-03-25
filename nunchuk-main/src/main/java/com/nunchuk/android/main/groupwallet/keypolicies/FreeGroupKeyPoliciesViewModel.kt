@@ -2,6 +2,7 @@ package com.nunchuk.android.main.groupwallet.keypolicies
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.domain.DisableGroupPlatformKeyUseCase
 import com.nunchuk.android.core.domain.SetGroupPlatformKeyPoliciesUseCase
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.orUnknownError
@@ -9,6 +10,10 @@ import com.nunchuk.android.model.GroupPlatformKeyPolicies
 import com.nunchuk.android.model.GroupPlatformKeyPolicy
 import com.nunchuk.android.model.GroupPlatformKeySignerPolicy
 import com.nunchuk.android.model.GroupSandbox
+import com.nunchuk.android.type.SignerType
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,16 +21,19 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
-@HiltViewModel
-class FreeGroupKeyPoliciesViewModel @Inject constructor(
+@HiltViewModel(assistedFactory = FreeGroupKeyPoliciesViewModel.Factory::class)
+class FreeGroupKeyPoliciesViewModel @AssistedInject constructor(
+    private val disableGroupPlatformKeyUseCase: DisableGroupPlatformKeyUseCase,
     private val setGroupPlatformKeyPoliciesUseCase: SetGroupPlatformKeyPoliciesUseCase,
+    @Assisted private val groupId: String,
+    @Assisted private val allSigners: List<SignerModel>,
+    @Assisted private val platformKeyPolicies: GroupPlatformKeyPolicies?,
 ) : ViewModel() {
 
-    private var groupId: String = ""
-    private var isInitialized = false
-    private var allSignerFingerprints: Set<String> = emptySet()
+    private val allSignerFingerprints: Set<String> = allSigners
+        .mapNotNull { it.fingerPrint.takeIf(String::isNotEmpty) }
+        .toSet()
     private var existingPoliciesByFingerprint: Map<String, GroupPlatformKeyPolicy> = emptyMap()
 
     private val _state = MutableStateFlow(FreeGroupKeyPoliciesUiState())
@@ -34,18 +42,15 @@ class FreeGroupKeyPoliciesViewModel @Inject constructor(
     private val _event = MutableSharedFlow<FreeGroupKeyPoliciesEvent>()
     val event = _event.asSharedFlow()
 
-    fun init(
-        groupId: String,
-        signers: List<SignerModel>,
-        allSigners: List<SignerModel>,
-        platformKeyPolicies: GroupPlatformKeyPolicies?,
-    ) {
-        if (isInitialized) return
-        isInitialized = true
-        this.groupId = groupId
+    init {
+        initializeState()
+    }
 
+    private fun initializeState() {
+        val signers = allSigners.filter { signer ->
+            signer.type != SignerType.PLATFORM
+        }
         val policies = platformKeyPolicies ?: GroupPlatformKeyPolicies()
-        allSignerFingerprints = allSigners.mapNotNull { it.fingerPrint.takeIf { xfp -> xfp.isNotEmpty() } }.toSet()
         existingPoliciesByFingerprint = policies.signers
             .filter { it.masterFingerprint.isNotEmpty() }
             .associate { it.masterFingerprint to normalizeGroupPlatformKeyPolicy(it.policy) }
@@ -57,7 +62,6 @@ class FreeGroupKeyPoliciesViewModel @Inject constructor(
                 val signerPolicy = existingPoliciesByFingerprint[signer.fingerPrint]
                 KeyPolicyItem(
                     fingerPrint = signer.fingerPrint,
-                    derivationPath = signer.derivationPath,
                     keyPolicy = signerPolicy ?: defaultGroupPlatformKeyPolicy(),
                 )
             }
@@ -78,33 +82,6 @@ class FreeGroupKeyPoliciesViewModel @Inject constructor(
         }
     }
 
-    fun updateAllSigners(newSigners: List<SignerModel>) {
-        allSignerFingerprints = newSigners
-            .mapNotNull { it.fingerPrint.takeIf { xfp -> xfp.isNotEmpty() } }
-            .toSet()
-    }
-
-    fun updateSigners(newSigners: List<SignerModel>) {
-        _state.update { state ->
-            if (state.signers == newSigners) return@update state
-            val updatedPolicies = if (state.policyType == PolicyType.PER_KEY) {
-                newSigners.map { signer ->
-                    state.policies.firstOrNull {
-                        it.fingerPrint == signer.fingerPrint && it.derivationPath == signer.derivationPath
-                    } ?: KeyPolicyItem(
-                        fingerPrint = signer.fingerPrint,
-                        derivationPath = signer.derivationPath,
-                        keyPolicy = existingPoliciesByFingerprint[signer.fingerPrint]
-                            ?: defaultGroupPlatformKeyPolicy(),
-                    )
-                }
-            } else {
-                state.policies
-            }
-            state.copy(signers = newSigners, policies = updatedPolicies)
-        }
-    }
-
     fun changePolicyType(type: PolicyType) {
         _state.update { state ->
             val policies = when (type) {
@@ -112,7 +89,6 @@ class FreeGroupKeyPoliciesViewModel @Inject constructor(
                 PolicyType.PER_KEY -> state.signers.map {
                     KeyPolicyItem(
                         fingerPrint = it.fingerPrint,
-                        derivationPath = it.derivationPath,
                     )
                 }
             }
@@ -131,7 +107,7 @@ class FreeGroupKeyPoliciesViewModel @Inject constructor(
         _state.update { state ->
             state.copy(
                 policies = state.policies.map {
-                    if (it.fingerPrint == normalizedPolicy.fingerPrint && it.derivationPath == normalizedPolicy.derivationPath) {
+                    if (it.fingerPrint == normalizedPolicy.fingerPrint) {
                         normalizedPolicy
                     } else {
                         it
@@ -162,9 +138,7 @@ class FreeGroupKeyPoliciesViewModel @Inject constructor(
                             .associate {
                                 it.fingerPrint to normalizeGroupPlatformKeyPolicy(it.keyPolicy)
                             }
-                        val requiredFingerprints = if (allSignerFingerprints.isNotEmpty()) {
-                            allSignerFingerprints
-                        } else {
+                        val requiredFingerprints = allSignerFingerprints.ifEmpty {
                             policyByFingerprint.keys
                         }
                         requiredFingerprints.sorted().map { fingerprint ->
@@ -184,11 +158,11 @@ class FreeGroupKeyPoliciesViewModel @Inject constructor(
                     policies = policies,
                 )
             ).onSuccess { groupSandbox ->
-                if (currentState.policyType == PolicyType.PER_KEY) {
-                    existingPoliciesByFingerprint = policies.signers
+                existingPoliciesByFingerprint = if (currentState.policyType == PolicyType.PER_KEY) {
+                    policies.signers
                         .associate { it.masterFingerprint to normalizeGroupPlatformKeyPolicy(it.policy) }
                 } else {
-                    existingPoliciesByFingerprint = emptyMap()
+                    emptyMap()
                 }
                 _state.update { it.copy(hasChanges = false) }
                 _event.emit(FreeGroupKeyPoliciesEvent.SaveSuccess(groupSandbox))
@@ -197,6 +171,28 @@ class FreeGroupKeyPoliciesViewModel @Inject constructor(
             }
             _state.update { it.copy(isLoading = false) }
         }
+    }
+
+    fun disablePlatformKey() {
+        viewModelScope.launch {
+            _state.update { it.copy(isLoading = true) }
+            disableGroupPlatformKeyUseCase(groupId).onSuccess { groupSandbox ->
+                _state.update { it.copy(hasChanges = false) }
+                _event.emit(FreeGroupKeyPoliciesEvent.SaveSuccess(groupSandbox))
+            }.onFailure { error ->
+                _event.emit(FreeGroupKeyPoliciesEvent.Error(error.message.orUnknownError()))
+            }
+            _state.update { it.copy(isLoading = false) }
+        }
+    }
+
+    @AssistedFactory
+    interface Factory {
+        fun create(
+            groupId: String,
+            allSigners: List<SignerModel>,
+            platformKeyPolicies: GroupPlatformKeyPolicies?,
+        ): FreeGroupKeyPoliciesViewModel
     }
 }
 
@@ -210,7 +206,6 @@ data class FreeGroupKeyPoliciesUiState(
 
 data class KeyPolicyItem(
     val fingerPrint: String = "",
-    val derivationPath: String = "",
     val keyPolicy: GroupPlatformKeyPolicy = defaultGroupPlatformKeyPolicy(),
 )
 

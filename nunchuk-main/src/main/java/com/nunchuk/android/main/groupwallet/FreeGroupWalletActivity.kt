@@ -14,7 +14,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.ComposeView
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.NavOptions
+import androidx.navigation.navOptions
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.nunchuk.android.compose.NcSnackbarVisuals
@@ -37,8 +37,8 @@ import com.nunchuk.android.main.groupwallet.join.CommonQRCodeActivity
 import com.nunchuk.android.main.groupwallet.keypolicies.FreeGroupKeyPoliciesRoute
 import com.nunchuk.android.main.groupwallet.keypolicies.freeGroupKeyPolicies
 import com.nunchuk.android.main.groupwallet.keypolicies.navigateToFreeGroupKeyPolicies
+import com.nunchuk.android.main.groupwallet.recover.FreeGroupWalletRecoverRoute
 import com.nunchuk.android.main.groupwallet.recover.freeGroupWalletRecover
-import com.nunchuk.android.main.groupwallet.recover.freeGroupWalletRecoverRoute
 import com.nunchuk.android.main.membership.signer.SignerIntroActivity
 import com.nunchuk.android.main.membership.wallet.createWalletSuccessScreen
 import com.nunchuk.android.main.membership.wallet.navigateCreateWalletSuccessScreen
@@ -108,10 +108,12 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
                     LaunchedEffect(state.isCreatedReplaceGroup) {
                         if (state.isCreatedReplaceGroup) {
                             navController.navigate(
-                                route = freeGroupWalletRoute,
-                                navOptions = NavOptions.Builder()
-                                    .setPopUpTo(replaceWalletIntroRoute, true)
-                                    .build()
+                                FreeGroupWalletRoute,
+                                navOptions {
+                                    popUpTo<ReplaceWalletIntroRoute> {
+                                        inclusive = true
+                                    }
+                                }
                             )
                             viewModel.resetReplaceGroup()
                         }
@@ -141,14 +143,18 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
                     }
 
                     val startDestination: Any = when (actionType) {
-                        FreeGroupActionType.RECOVER -> freeGroupWalletRecoverRoute
+                        FreeGroupActionType.RECOVER -> FreeGroupWalletRecoverRoute(
+                            walletId = intent.getStringExtra(EXTRA_WALLET_ID).orEmpty(),
+                            filePath = filePath,
+                            qrList = intent.getStringArrayListExtra(EXTRA_QR_LIST).orEmpty(),
+                        )
                         FreeGroupActionType.KEY_POLICIES -> FreeGroupKeyPoliciesRoute(
-                            walletId = intent.getStringExtra(EXTRA_WALLET_ID)
+                            walletId = intent.getStringExtra(EXTRA_WALLET_ID),
                         )
                         FreeGroupActionType.NONE -> if (replaceWalletId.isEmpty()) {
-                            freeGroupWalletRoute
+                            FreeGroupWalletRoute
                         } else {
-                            replaceWalletIntroRoute
+                            ReplaceWalletIntroRoute
                         }
                     }
 
@@ -321,9 +327,6 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
 
                             freeGroupWalletRecover(
                                 navigator = navigator,
-                                walletId = intent.getStringExtra(EXTRA_WALLET_ID).orEmpty(),
-                                filePath = filePath,
-                                qrList = intent.getStringArrayListExtra(EXTRA_QR_LIST).orEmpty(),
                                 onAddNewKey = { walletId, supportedSigners ->
                                     openSignerIntro(
                                         groupId = walletId,
