@@ -21,7 +21,7 @@ import com.nunchuk.android.compose.provider.SignerModelProvider
 import com.nunchuk.android.core.R
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.canSign
-import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.core.util.isPlatformKey
 
 @Composable
 fun TransactionSignerView(
@@ -44,7 +44,7 @@ fun TransactionSignerView(
             item = signer,
             showValueKey = showValueKey,
             content = {
-                if (signer.type == SignerType.SERVER) {
+                if (signer.type.isPlatformKey) {
                     cosignContent()
                 }
             }

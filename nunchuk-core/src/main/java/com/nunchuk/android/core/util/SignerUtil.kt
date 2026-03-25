@@ -40,6 +40,9 @@ import com.nunchuk.android.type.SignerType.UNKNOWN
 val SingleSigner.isColdCard: Boolean
     get() = type == COLDCARD_NFC || tags.contains(SignerTag.COLDCARD)
 
+val SignerType.isPlatformKey: Boolean
+    get() = this == SERVER || this == SignerType.PLATFORM
+
 fun SignerType.toReadableString(context: Context, isPrimaryKey: Boolean): String {
     if (isPrimaryKey) return context.getString(R.string.nc_signer_type_primary_key)
     return when (this) {
@@ -49,7 +52,7 @@ fun SignerType.toReadableString(context: Context, isPrimaryKey: Boolean): String
         FOREIGN_SOFTWARE -> context.getString(R.string.nc_signer_type_foreign_software)
         NFC, COLDCARD_NFC, PORTAL_NFC -> context.getString(R.string.nc_nfc)
         UNKNOWN -> context.getString(R.string.nc_unknown)
-        SERVER -> context.getString(R.string.nc_server_key)
+        SERVER, SignerType.PLATFORM -> context.getString(R.string.nc_server_key)
     }
 }
 
@@ -80,7 +83,7 @@ private fun toReadableDrawableResId(
         type == HARDWARE -> R.drawable.ic_signer_type_wired
         type == FOREIGN_SOFTWARE -> R.drawable.ic_logo_dark_small
         type == NFC -> R.drawable.ic_nfc_card
-        type == SERVER -> R.drawable.ic_server_key_dark
+        type.isPlatformKey -> R.drawable.ic_server_key_dark
         type == PORTAL_NFC -> R.drawable.ic_portal_nfc
         else -> R.drawable.ic_unknown_key
     }
@@ -121,7 +124,7 @@ val SignerTag?.formattedName: String
     }
 
 val SignerType.canSign: Boolean
-    get() = this != SERVER && this != UNKNOWN
+    get() = !this.isPlatformKey && this != UNKNOWN
 
 fun SingleSigner.isIdentical(other: SingleSigner): Boolean {
     return this.masterFingerprint == other.masterFingerprint &&

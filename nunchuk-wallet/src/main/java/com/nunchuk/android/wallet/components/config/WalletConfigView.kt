@@ -54,6 +54,7 @@ import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.miniscript.ScriptNodeType
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
+import com.nunchuk.android.core.util.isPlatformKey
 import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.ScriptNode
@@ -388,7 +389,7 @@ fun WalletSignerCard(
             modifier = Modifier.weight(1f),
             showValueKey = isValueKey
         ) {
-            if (signer.type != SignerType.SERVER) {
+            if (!signer.type.isPlatformKey) {
                 Text(
                     text = stringResource(
                         R.string.nc_bip32_path,
@@ -399,11 +400,11 @@ fun WalletSignerCard(
                 )
             }
         }
-        if (signer.type == SignerType.SERVER && !state.isInactiveAssistedWallet && !state.role.toRole.isFacilitatorAdmin) {
+        if ((signer.type == SignerType.SERVER && !state.isInactiveAssistedWallet && !state.role.toRole.isFacilitatorAdmin) || signer.type == SignerType.PLATFORM) {
             NcOutlineButton(
                 modifier = Modifier.height(36.dp),
                 onClick = { openWalletConfig(signer) },
-                enabled = state.isAssistedWallet
+                enabled = state.isAssistedWallet || signer.type == SignerType.PLATFORM,
             ) {
                 Text(
                     text = stringResource(id = R.string.nc_view_policies),

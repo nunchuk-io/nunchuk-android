@@ -694,33 +694,7 @@ class GroupDashboardFragment : BaseFragment<ViewBinding>(), BottomSheetOptionLis
         val options = mutableListOf<SheetOption>()
         val uiState = viewModel.state.value
         if (viewModel.isPendingCreateWallet().not()) {
-            if (uiState.group?.walletConfig?.allowInheritance == true) {
-                if (uiState.myRole.isMasterOrAdmin) {
-                    if (uiState.isAlreadySetupInheritance) {
-                        options.add(
-                            SheetOption(
-                                type = SheetOptionType.SET_UP_INHERITANCE,
-                                stringId = R.string.nc_view_inheritance_plan
-                            ),
-                        )
-                    } else if (viewModel.isShowSetupInheritanceOption()) {
-                        options.add(
-                            SheetOption(
-                                type = SheetOptionType.SET_UP_INHERITANCE,
-                                stringId = R.string.nc_set_up_inheritance_plan_wallet
-                            ),
-                        )
-                    }
-                } else if (uiState.isAlreadySetupInheritance) {
-                    options.add(
-                        SheetOption(
-                            type = SheetOptionType.SET_UP_INHERITANCE,
-                            stringId = R.string.nc_view_inheritance_plan
-                        ),
-                    )
-                }
-            }
-            if (uiState.group?.walletConfig?.requiredServerKey == true) {
+            if (args.isFreeGroupWallet) {
                 if (!args.walletId.isNullOrEmpty()) {
                     options.add(
                         SheetOption(
@@ -729,33 +703,76 @@ class GroupDashboardFragment : BaseFragment<ViewBinding>(), BottomSheetOptionLis
                         )
                     )
                 }
-            }
-            if (uiState.myRole.isMasterOrAdmin) {
-                options.add(
-                    SheetOption(
-                        type = SheetOptionType.TYPE_EMERGENCY_LOCKDOWN,
-                        stringId = R.string.nc_emergency_lockdown
-                    )
-                )
-            }
-            if (uiState.myRole.isMasterOrAdmin) {
                 options.add(
                     SheetOption(
                         type = SheetOptionType.TYPE_REPLACE_KEY,
-                        stringId = if (viewModel.isOnChainWallet()) {
-                            R.string.nc_replace_key_change_timelock
-                        } else {
-                            R.string.nc_replace_keys
+                        stringId = R.string.nc_replace_keys
+                    )
+                )
+            } else {
+                if (uiState.group?.walletConfig?.allowInheritance == true) {
+                    if (uiState.myRole.isMasterOrAdmin) {
+                        if (uiState.isAlreadySetupInheritance) {
+                            options.add(
+                                SheetOption(
+                                    type = SheetOptionType.SET_UP_INHERITANCE,
+                                    stringId = R.string.nc_view_inheritance_plan
+                                ),
+                            )
+                        } else if (viewModel.isShowSetupInheritanceOption()) {
+                            options.add(
+                                SheetOption(
+                                    type = SheetOptionType.SET_UP_INHERITANCE,
+                                    stringId = R.string.nc_set_up_inheritance_plan_wallet
+                                ),
+                            )
                         }
+                    } else if (uiState.isAlreadySetupInheritance) {
+                        options.add(
+                            SheetOption(
+                                type = SheetOptionType.SET_UP_INHERITANCE,
+                                stringId = R.string.nc_view_inheritance_plan
+                            ),
+                        )
+                    }
+                }
+                if (uiState.group?.walletConfig?.requiredServerKey == true) {
+                    if (!args.walletId.isNullOrEmpty()) {
+                        options.add(
+                            SheetOption(
+                                type = SheetOptionType.TYPE_PLATFORM_KEY_POLICY,
+                                stringId = R.string.nc_cosigning_policies
+                            )
+                        )
+                    }
+                }
+                if (uiState.myRole.isMasterOrAdmin) {
+                    options.add(
+                        SheetOption(
+                            type = SheetOptionType.TYPE_EMERGENCY_LOCKDOWN,
+                            stringId = R.string.nc_emergency_lockdown
+                        )
+                    )
+                }
+                if (uiState.myRole.isMasterOrAdmin) {
+                    options.add(
+                        SheetOption(
+                            type = SheetOptionType.TYPE_REPLACE_KEY,
+                            stringId = if (viewModel.isOnChainWallet()) {
+                                R.string.nc_replace_key_change_timelock
+                            } else {
+                                R.string.nc_replace_keys
+                            }
+                        )
+                    )
+                }
+                options.add(
+                    SheetOption(
+                        type = SheetOptionType.TYPE_RECURRING_PAYMENT,
+                        stringId = R.string.nc_view_recurring_payments
                     )
                 )
             }
-            options.add(
-                SheetOption(
-                    type = SheetOptionType.TYPE_RECURRING_PAYMENT,
-                    stringId = R.string.nc_view_recurring_payments
-                )
-            )
         }
         if (uiState.myRole.isMasterOrAdmin && viewModel.groupChat() != null) {
             options.add(

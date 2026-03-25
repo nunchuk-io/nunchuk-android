@@ -78,6 +78,7 @@ import com.nunchuk.android.model.transaction.ServerTransaction
 import com.nunchuk.android.share.groupwallet.avatarColors
 import com.nunchuk.android.share.miniscript.rememberBlockHeightManager
 import com.nunchuk.android.type.MiniscriptTimelockBased
+import com.nunchuk.android.core.util.isPlatformKey
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.utils.dateTimeFormat
@@ -398,7 +399,7 @@ internal fun CreateKeyItem(
         avatarColor = avatarColor,
         isOccupied = data.isSlotOccupied(signer?.name ?: key),
         bottomContent = {
-            if (data.showBip32Path && signer != null && signer.type != SignerType.SERVER) {
+            if (data.showBip32Path && signer != null && !signer.type.isPlatformKey) {
                 val isDuplicateSigner =
                     data.duplicateSignerKeys.contains("${signer.fingerPrint}:${signer.derivationPath}")
                 Row(
@@ -443,7 +444,7 @@ internal fun CreateKeyItem(
                 }
             }
 
-            if (signer?.type == SignerType.SERVER && data.mode == ScriptMode.SIGN) {
+            if (signer?.type?.isPlatformKey == true && data.mode == ScriptMode.SIGN) {
                 val serverTransaction = data.serverTransaction
                 val spendingLimitMessage = serverTransaction?.spendingLimitMessage.orEmpty()
                 val cosignedTime = serverTransaction?.signedInMilis ?: 0L
@@ -502,7 +503,7 @@ internal fun CreateKeyItem(
                     }
                 }
 
-                signer != null && data.isViewServerKeyPolicy && signer.type == SignerType.SERVER -> {
+                signer != null && data.isViewServerKeyPolicy && signer.type.isPlatformKey -> {
                     NcOutlineButton(
                         modifier = Modifier.height(36.dp),
                         onClick = { data.onViewPolicy(signer) },
@@ -526,7 +527,7 @@ internal fun CreateKeyItem(
                 }
 
                 data.transactionStatus.isPendingSignatures() && data.mode == ScriptMode.SIGN
-                        && signer != null && signer.type != SignerType.SERVER
+                        && signer != null && !signer.type.isPlatformKey
                         && signer.isVisible && isSatisfiable -> {
                     NcPrimaryDarkButton(
                         height = 36.dp,

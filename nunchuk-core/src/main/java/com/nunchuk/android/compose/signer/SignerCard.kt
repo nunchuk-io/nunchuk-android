@@ -23,9 +23,9 @@ import com.nunchuk.android.compose.provider.SignerModelProvider
 import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.core.R
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.util.isPlatformKey
 import com.nunchuk.android.core.util.toReadableDrawableResId
 import com.nunchuk.android.core.util.toReadableSignerType
-import com.nunchuk.android.type.SignerType
 
 @Composable
 fun SignerCard(
@@ -54,7 +54,7 @@ fun SignerCard(
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             Text(
-                text = item.name,
+                text = if (item.type.isPlatformKey) stringResource(R.string.nc_server_key) else item.name,
                 style = NunchukTheme.typography.body
             )
             Row(
@@ -66,7 +66,7 @@ fun SignerCard(
                         backgroundColor = colorResource(id = R.color.nc_fill_denim),
                     )
                 }
-                if (item.type != SignerType.SERVER && isShowKeyTypeBadge) {
+                if (!item.type.isPlatformKey && isShowKeyTypeBadge) {
                     NcTag(
                         label = item.toReadableSignerType(context = LocalContext.current),
                         backgroundColor = colorResource(
@@ -83,7 +83,7 @@ fun SignerCard(
                     )
                 }
             }
-            if (item.type != SignerType.SERVER) {
+            if (!item.type.isPlatformKey) {
                 if (xfpContent != null) {
                     xfpContent()
                 } else {

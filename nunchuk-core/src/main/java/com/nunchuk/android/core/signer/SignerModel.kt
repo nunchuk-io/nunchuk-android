@@ -25,6 +25,7 @@ import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.signer.SignerServer
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.core.util.isPlatformKey
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
 import java.util.regex.Pattern
@@ -80,13 +81,13 @@ data class SignerModel(
 
     fun getXfpOrCardIdLabel() = if (type == SignerType.NFC && cardId.isNotEmpty()) {
         "Card ID: ••${cardIdShorten()}"
-    } else if (fingerPrint.isNotEmpty() && type != SignerType.SERVER) {
+    } else if (fingerPrint.isNotEmpty() && !type.isPlatformKey) {
         "XFP: ${fingerPrint.uppercase()}"
     } else ""
 
     private fun cardIdShorten() = cardId.takeLast(5)
 
-    fun isShowAcctX(ignoreIndexCheck: Boolean = false) = (ignoreIndexCheck || index > 0) && type != SignerType.SERVER && type != SignerType.UNKNOWN
+    fun isShowAcctX(ignoreIndexCheck: Boolean = false) = (ignoreIndexCheck || index > 0) && !type.isPlatformKey && type != SignerType.UNKNOWN
 }
 
 fun SingleSigner.toModel(isPrimaryKey: Boolean = false) = SignerModel(
