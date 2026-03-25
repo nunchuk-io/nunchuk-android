@@ -135,7 +135,8 @@ interface AppNavigator {
         groupId: String? = null,
         walletId: String? = null,
         message: String? = null,
-        activityContext: Context
+        activityContext: Context,
+        isFreeGroupWallet: Boolean = false,
     )
 
     fun openPrimaryOwnerScreen(

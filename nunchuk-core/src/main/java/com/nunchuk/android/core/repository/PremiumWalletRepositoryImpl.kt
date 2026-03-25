@@ -2361,7 +2361,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         return wallet.toModel()
     }
 
-    override fun getAlerts(groupId: String?, walletId: String?): Flow<List<Alert>> {
+    override fun getAlerts(groupId: String?, walletId: String?, isFreeGroupWallet: Boolean): Flow<List<Alert>> {
         return alertDao.getAlertsFlow(
             groupId = groupId.orEmpty(),
             walletId = walletId.orEmpty(),
@@ -2373,11 +2373,15 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getAlertsRemote(groupId: String?, walletId: String?): List<Alert> {
-        return syncer.syncAlerts(groupId = groupId, walletId = walletId) ?: emptyList()
+    override suspend fun getAlertsRemote(groupId: String?, walletId: String?, isFreeGroupWallet: Boolean): List<Alert> {
+        return syncer.syncAlerts(groupId = groupId, walletId = walletId, isFreeGroupWallet = isFreeGroupWallet) ?: emptyList()
     }
 
-    override suspend fun markAlertAsRead(groupId: String?, walletId: String?, alertId: String) {
+    override suspend fun markAlertAsRead(groupId: String?, walletId: String?, alertId: String, isFreeGroupWallet: Boolean) {
+        if (isFreeGroupWallet && !walletId.isNullOrEmpty()) {
+            nunchukNativeSdk.markGroupWalletAlertViewed(walletId, alertId)
+            return
+        }
         if (!groupId.isNullOrEmpty()) {
             userWalletApiManager.groupWalletApi.markAlertAsRead(groupId, alertId)
         } else if (!walletId.isNullOrEmpty()) {
@@ -2387,7 +2391,11 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun dismissAlert(groupId: String?, walletId: String?, alertId: String) {
+    override suspend fun dismissAlert(groupId: String?, walletId: String?, alertId: String, isFreeGroupWallet: Boolean) {
+        if (isFreeGroupWallet && !walletId.isNullOrEmpty()) {
+            nunchukNativeSdk.dismissGroupWalletAlert(walletId, alertId)
+            return
+        }
         val response = if (!groupId.isNullOrEmpty()) {
             userWalletApiManager.groupWalletApi.dismissAlert(groupId, alertId)
         } else if (!walletId.isNullOrEmpty()) {
@@ -2398,7 +2406,10 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         if (response.isSuccess.not()) throw response.error
     }
 
-    override suspend fun getAlertTotal(groupId: String?, walletId: String?): Int {
+    override suspend fun getAlertTotal(groupId: String?, walletId: String?, isFreeGroupWallet: Boolean): Int {
+        if (isFreeGroupWallet && !walletId.isNullOrEmpty()) {
+            return nunchukNativeSdk.getGroupWalletAlertCount(walletId)
+        }
         val response = if (!groupId.isNullOrEmpty()) {
             userWalletApiManager.groupWalletApi.getAlertTotal(groupId)
         } else if (!walletId.isNullOrEmpty()) {

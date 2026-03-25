@@ -13,8 +13,8 @@ class DismissAlertUseCase @Inject constructor(
 ) : UseCase<DismissAlertUseCase.Param, Unit>(ioDispatcher) {
 
     override suspend fun execute(parameters: Param) {
-        return repository.dismissAlert(alertId = parameters.alertId, groupId = parameters.groupId, walletId = parameters.walletId)
+        return repository.dismissAlert(alertId = parameters.alertId, groupId = parameters.groupId, walletId = parameters.walletId, isFreeGroupWallet = parameters.isFreeGroupWallet)
     }
 
-    class Param(val alertId: String, val groupId: String?, val walletId: String?)
+    class Param(val alertId: String, val groupId: String?, val walletId: String?, val isFreeGroupWallet: Boolean = false)
 }

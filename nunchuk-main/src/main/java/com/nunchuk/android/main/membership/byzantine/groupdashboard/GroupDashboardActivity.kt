@@ -38,14 +38,16 @@ class GroupDashboardActivity : BaseActivity<ActivityNavigationBinding>() {
         private const val GROUP_ID = "group_id"
         private const val WALLET_ID = "wallet_id"
         private const val MESSAGE = "message"
+        private const val IS_FREE_GROUP_WALLET = "is_free_group_wallet"
 
         fun navigate(
             activity: Context,
             groupId: String?,
             walletId: String?,
-            message: String?
+            message: String?,
+            isFreeGroupWallet: Boolean = false,
         ) {
-            val intent = buildIntent(activity, groupId, walletId, message)
+            val intent = buildIntent(activity, groupId, walletId, message, isFreeGroupWallet)
             activity.startActivity(intent)
         }
 
@@ -53,12 +55,14 @@ class GroupDashboardActivity : BaseActivity<ActivityNavigationBinding>() {
             activity: Context,
             groupId: String?,
             walletId: String?,
-            message: String? = null
+            message: String? = null,
+            isFreeGroupWallet: Boolean = false,
         ): Intent {
             return Intent(activity, GroupDashboardActivity::class.java)
                 .putExtra(GROUP_ID, groupId)
                 .putExtra(WALLET_ID, walletId)
                 .putExtra(MESSAGE, message)
+                .putExtra(IS_FREE_GROUP_WALLET, isFreeGroupWallet)
         }
     }
 }

@@ -14,7 +14,11 @@ import com.nunchuk.android.core.persistence.NcDataStore
 import com.nunchuk.android.model.Alert
 import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.GroupStatus
+import com.nunchuk.android.model.GroupWalletAlert
+import com.nunchuk.android.model.byzantine.AlertType
 import com.nunchuk.android.model.byzantine.KeyHealthStatus
+import com.nunchuk.android.model.transaction.AlertPayload
+import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.persistence.dao.AlertDao
 import com.nunchuk.android.persistence.dao.AssistedWalletDao
 import com.nunchuk.android.persistence.dao.GroupDao
@@ -22,6 +26,7 @@ import com.nunchuk.android.persistence.dao.KeyHealthStatusDao
 import com.nunchuk.android.persistence.entity.AlertEntity
 import com.nunchuk.android.persistence.entity.KeyHealthStatusEntity
 import com.nunchuk.android.type.Chain
+import com.nunchuk.android.type.GroupWalletAlertType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
@@ -34,6 +39,7 @@ internal class ByzantineSyncer @Inject constructor(
     private val userWalletApiManager: UserWalletApiManager,
     private val assistedWalletDao: AssistedWalletDao,
     private val accountManager: AccountManager,
+    private val nunchukNativeSdk: NunchukNativeSdk,
     ncDataStore: NcDataStore,
     private val gson: Gson,
     applicationScope: CoroutineScope,
@@ -45,10 +51,34 @@ internal class ByzantineSyncer @Inject constructor(
     suspend fun syncAlerts(
         groupId: String?,
         walletId: String?,
+        isFreeGroupWallet: Boolean = false,
     ): List<Alert>? {
+        val remoteList = if (isFreeGroupWallet && !walletId.isNullOrEmpty()) {
+            fetchFreeGroupWalletAlerts(walletId) ?: return null
+        } else {
+            fetchApiAlerts(groupId, walletId) ?: return null
+        }
+        return persistAlerts(remoteList, groupId.orEmpty(), walletId.orEmpty())
+    }
+
+    private fun fetchFreeGroupWalletAlerts(walletId: String): List<Alert>? {
+        return runCatching {
+            val alerts = arrayListOf<Alert>()
+            var page = 0
+            while (true) {
+                val result = nunchukNativeSdk.getGroupWalletAlerts(walletId, page, TRANSACTION_PAGE_COUNT)
+                alerts.addAll(result.map { it.toAlert() })
+                if (result.size < TRANSACTION_PAGE_COUNT) break
+                page++
+            }
+            alerts
+        }.getOrNull()
+    }
+
+    private suspend fun fetchApiAlerts(groupId: String?, walletId: String?): List<Alert>? {
         val remoteList = arrayListOf<Alert>()
-        var index = 0
         runCatching {
+            var index = 0
             while (true) {
                 val response = if (!groupId.isNullOrEmpty()) {
                     userWalletApiManager.groupWalletApi.getAlerts(groupId, offset = index)
@@ -66,10 +96,17 @@ internal class ByzantineSyncer @Inject constructor(
         }.onFailure {
             return null
         }
+        return remoteList
+    }
 
+    private suspend fun persistAlerts(
+        remoteList: List<Alert>,
+        groupId: String,
+        walletId: String,
+    ): List<Alert> {
         val updateOrInsertList = mutableListOf<AlertEntity>()
 
-        val localMap = alertDao.getAlerts(groupId = groupId.orEmpty(), walletId = walletId.orEmpty(), chain.value)
+        val localMap = alertDao.getAlerts(groupId = groupId, walletId = walletId, chain.value)
             .associateByTo(mutableMapOf()) { it.id }
 
         remoteList.forEach { remote ->
@@ -87,8 +124,8 @@ internal class ByzantineSyncer @Inject constructor(
                 localMap.remove(remote.id)
             } else {
                 updateOrInsertList += remote.toAlertEntity(
-                    groupId = groupId.orEmpty(),
-                    walletId = walletId.orEmpty()
+                    groupId = groupId,
+                    walletId = walletId
                 )
             }
         }
@@ -209,6 +246,28 @@ internal class ByzantineSyncer @Inject constructor(
             chain = chain.value,
             groupId = groupId,
             walletId = walletId
+        )
+    }
+
+    private fun GroupWalletAlert.toAlert(): Alert {
+        return Alert(
+            id = id,
+            viewable = viewable,
+            title = title,
+            body = body,
+            createdTimeMillis = createdAt,
+            status = "",
+            type = when (type) {
+                GroupWalletAlertType.POLICY_CHANGE_IN_PROGRESS -> AlertType.UPDATE_SERVER_KEY
+                GroupWalletAlertType.POLICY_CHANGED -> AlertType.UPDATE_SERVER_KEY_SUCCESS
+                GroupWalletAlertType.REPLACE_WALLET -> AlertType.TRANSFER_FUNDS
+                else -> AlertType.NONE
+            },
+            payload = AlertPayload(
+                masterName = "",
+                pendingKeysCount = 0,
+                dummyTransactionId = dummyTransactionId,
+            )
         )
     }
 

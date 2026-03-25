@@ -141,6 +141,8 @@ class GroupDashboardViewModel @Inject constructor(
 
     private val timelineListenerAdapter = TimelineListenerAdapter()
 
+    private val isFreeGroupWallet = args.isFreeGroupWallet
+
     private val isPendingPersonalWallet =
         args.groupId.isNullOrEmpty() && args.walletId.isNullOrEmpty()
 
@@ -159,75 +161,87 @@ class GroupDashboardViewModel @Inject constructor(
                 }
             }
         }
-        viewModelScope.launch {
-            if (getGroupId().isNotEmpty()) {
-                getGroupUseCase(
-                    GetGroupUseCase.Params(
-                        getGroupId()
-                    )
-                ).map { it.getOrElse { null } }
-                    .distinctUntilChanged()
-                    .collect { group ->
-                        val members = group?.members.orEmpty()
-                        _state.update { it.copy(group = group, myRole = currentUserRole(members)) }
-                    }
-            }
-        }
-        viewModelScope.launch {
-            if (!isPendingPersonalWallet) {
-                getGroupWalletKeyHealthStatusUseCase(
-                    GetGroupWalletKeyHealthStatusUseCase.Params(
-                        getGroupId(),
-                        getWalletId(),
-                    )
-                ).map { it.getOrElse { emptyList() } }
-                    .distinctUntilChanged()
-                    .collect { keyStatus ->
-                        _state.update { state ->
-                            state.copy(keyStatus = keyStatus.associateBy { it.xfp })
+        if (!isFreeGroupWallet) {
+            viewModelScope.launch {
+                if (getGroupId().isNotEmpty()) {
+                    getGroupUseCase(
+                        GetGroupUseCase.Params(
+                            getGroupId()
+                        )
+                    ).map { it.getOrElse { null } }
+                        .distinctUntilChanged()
+                        .collect { group ->
+                            val members = group?.members.orEmpty()
+                            _state.update {
+                                it.copy(
+                                    group = group,
+                                    myRole = currentUserRole(members)
+                                )
+                            }
                         }
-                    }
+                }
+            }
+            viewModelScope.launch {
+                if (!isPendingPersonalWallet) {
+                    getGroupWalletKeyHealthStatusUseCase(
+                        GetGroupWalletKeyHealthStatusUseCase.Params(
+                            getGroupId(),
+                            getWalletId(),
+                        )
+                    ).map { it.getOrElse { emptyList() } }
+                        .distinctUntilChanged()
+                        .collect { keyStatus ->
+                            _state.update { state ->
+                                state.copy(keyStatus = keyStatus.associateBy { it.xfp })
+                            }
+                        }
+                }
             }
         }
         viewModelScope.launch {
             walletId.collect { walletId ->
                 if (!walletId.isNullOrEmpty()) {
                     getWalletDetail(walletId)
-                    getKeysStatus()
+                    if (!isFreeGroupWallet) {
+                        getKeysStatus()
+                    }
                 }
             }
         }
-        loadActiveSession()
-        viewModelScope.launch {
-            timelineListenerAdapter.data.collect(::handleTimelineEvents)
-        }
-        getGroupChat()
-        viewModelScope.launch {
-            if (!isPendingPersonalWallet) {
-                getAssistedWalletsFlowUseCase(Unit)
-                    .map { it.getOrElse { emptyList() } }
-                    .distinctUntilChanged()
-                    .collect { wallets ->
-                        if (getGroupId().isNotEmpty()) {
-                            wallets.find { wallet -> wallet.localId == getGroupId() }
-                                ?.let { wallet ->
-                                    savedStateHandle[EXTRA_WALLET_ID] = wallet.localId
-                                }
+        if (!isFreeGroupWallet) {
+            loadActiveSession()
+            viewModelScope.launch {
+                timelineListenerAdapter.data.collect(::handleTimelineEvents)
+            }
+            getGroupChat()
+            viewModelScope.launch {
+                if (!isPendingPersonalWallet) {
+                    getAssistedWalletsFlowUseCase(Unit)
+                        .map { it.getOrElse { emptyList() } }
+                        .distinctUntilChanged()
+                        .collect { wallets ->
+                            if (getGroupId().isNotEmpty()) {
+                                wallets.find { wallet -> wallet.localId == getGroupId() }
+                                    ?.let { wallet ->
+                                        savedStateHandle[EXTRA_WALLET_ID] = wallet.localId
+                                    }
+                            }
+                            _state.update {
+                                it.copy(
+                                    isAlreadySetupInheritance = wallets.find { wallet -> wallet.localId == getWalletId() }?.isSetupInheritance.orFalse(),
+                                    inheritanceOwnerId = wallets.find { wallet -> wallet.groupId == getGroupId() }?.ext?.inheritanceOwnerId
+                                )
+                            }
                         }
-                        _state.update {
-                            it.copy(
-                                isAlreadySetupInheritance = wallets.find { wallet -> wallet.localId == getWalletId() }?.isSetupInheritance.orFalse(),
-                                inheritanceOwnerId = wallets.find { wallet -> wallet.groupId == getGroupId() }?.ext?.inheritanceOwnerId
-                            )
-                        }
-                    }
+                }
             }
         }
         viewModelScope.launch {
             getAlertGroupUseCase(
                 GetAlertGroupUseCase.Params(
                     groupId = getGroupId(),
-                    walletId = getWalletId()
+                    walletId = getWalletId(),
+                    isFreeGroupWallet = isFreeGroupWallet
                 )
             ).map { it.getOrElse { emptyList() } }
                 .distinctUntilChanged()
@@ -237,8 +251,10 @@ class GroupDashboardViewModel @Inject constructor(
                     }
                 }
         }
-        viewModelScope.launch {
-            getInheritance(silentLoading = true, isForceRequest = true)
+        if (!isFreeGroupWallet) {
+            viewModelScope.launch {
+                getInheritance(silentLoading = true, isForceRequest = true)
+            }
         }
         viewModelScope.launch {
             pushEventManager.event.collect { event ->
@@ -272,16 +288,20 @@ class GroupDashboardViewModel @Inject constructor(
 
             }
         }
-        viewModelScope.launch {
-            getGroupUseCase()
+        if (!isFreeGroupWallet) {
+            viewModelScope.launch {
+                getGroupUseCase()
+            }
         }
         getAlerts()
-        viewModelScope.launch {
-            isShowHealthCheckReminderIntroUseCase(Unit)
-                .map { it.getOrElse { false } }
-                .collect { isShow ->
-                    _state.update { state -> state.copy(isShowHealthCheckReminderIntro = isShow) }
-                }
+        if (!isFreeGroupWallet) {
+            viewModelScope.launch {
+                isShowHealthCheckReminderIntroUseCase(Unit)
+                    .map { it.getOrElse { false } }
+                    .collect { isShow ->
+                        _state.update { state -> state.copy(isShowHealthCheckReminderIntro = isShow) }
+                    }
+            }
         }
     }
 
@@ -315,7 +335,8 @@ class GroupDashboardViewModel @Inject constructor(
         getAlertGroupRemoteUseCase(
             GetAlertGroupRemoteUseCase.Params(
                 groupId = getGroupId(),
-                walletId = getWalletId()
+                walletId = getWalletId(),
+                isFreeGroupWallet = isFreeGroupWallet
             )
         )
     }
@@ -482,7 +503,7 @@ class GroupDashboardViewModel @Inject constructor(
     fun dismissAlert(alertId: String, silentLoading: Boolean = false) {
         viewModelScope.launch {
             val result =
-                dismissAlertUseCase(DismissAlertUseCase.Param(alertId, getGroupId(), getWalletId()))
+                dismissAlertUseCase(DismissAlertUseCase.Param(alertId, getGroupId(), getWalletId(), isFreeGroupWallet = isFreeGroupWallet))
             if (result.isSuccess) {
                 _state.update {
                     it.copy(alerts = it.alerts.filterNot { alert -> alert.id == alertId })
@@ -499,7 +520,8 @@ class GroupDashboardViewModel @Inject constructor(
                 MarkAlertAsReadUseCase.Param(
                     alertId,
                     getGroupId(),
-                    getWalletId()
+                    getWalletId(),
+                    isFreeGroupWallet = isFreeGroupWallet
                 )
             )
         }
@@ -670,13 +692,17 @@ class GroupDashboardViewModel @Inject constructor(
     fun refresh() {
         viewModelScope.launch {
             _state.update { it.copy(isRefreshing = true) }
-            getInheritance(silentLoading = true)
-            val groupDeferred = viewModelScope.async { getGroupUseCase() }
-            val keysStatus = viewModelScope.async { getKeysStatusUseCase() }
-            val alerts = viewModelScope.async { getAlertsUseCase() }
-            groupDeferred.await()
-            keysStatus.await()
-            alerts.await()
+            if (isFreeGroupWallet) {
+                getAlertsUseCase()
+            } else {
+                getInheritance(silentLoading = true)
+                val groupDeferred = viewModelScope.async { getGroupUseCase() }
+                val keysStatus = viewModelScope.async { getKeysStatusUseCase() }
+                val alerts = viewModelScope.async { getAlertsUseCase() }
+                groupDeferred.await()
+                keysStatus.await()
+                alerts.await()
+            }
             _state.update { it.copy(isRefreshing = false) }
         }
     }

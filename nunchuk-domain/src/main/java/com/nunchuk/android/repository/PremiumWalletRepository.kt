@@ -435,11 +435,11 @@ interface PremiumWalletRepository {
         groupAssistedKeys: MutableSet<String> = mutableSetOf()
     ): WalletServer
 
-    fun getAlerts(groupId: String?, walletId: String?): Flow<List<Alert>>
-    suspend fun getAlertsRemote(groupId: String?, walletId: String?): List<Alert>
-    suspend fun markAlertAsRead(groupId: String?, walletId: String?, alertId: String)
-    suspend fun dismissAlert(groupId: String?, walletId: String?, alertId: String)
-    suspend fun getAlertTotal(groupId: String? = null, walletId: String? = null): Int
+    fun getAlerts(groupId: String?, walletId: String?, isFreeGroupWallet: Boolean = false): Flow<List<Alert>>
+    suspend fun getAlertsRemote(groupId: String?, walletId: String?, isFreeGroupWallet: Boolean = false): List<Alert>
+    suspend fun markAlertAsRead(groupId: String?, walletId: String?, alertId: String, isFreeGroupWallet: Boolean = false)
+    suspend fun dismissAlert(groupId: String?, walletId: String?, alertId: String, isFreeGroupWallet: Boolean = false)
+    suspend fun getAlertTotal(groupId: String? = null, walletId: String? = null, isFreeGroupWallet: Boolean = false): Int
     suspend fun createOrUpdateGroupChat(
         roomId: String,
         groupId: String,

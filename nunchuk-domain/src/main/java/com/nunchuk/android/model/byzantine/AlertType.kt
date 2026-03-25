@@ -39,7 +39,8 @@ enum class AlertType {
     TRANSFER_FUNDS,
     WALLET_PENDING,
     BACKUP_WALLET,
-    KEY_TIMELOCK_UPDATE_PENDING
+    KEY_TIMELOCK_UPDATE_PENDING,
+    REPLACE_WALLET,
 }
 
 fun String?.toAlertType() = AlertType.entries.find { it.name == this } ?: AlertType.NONE

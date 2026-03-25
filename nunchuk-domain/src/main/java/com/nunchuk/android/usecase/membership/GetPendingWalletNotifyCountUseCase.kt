@@ -15,6 +15,7 @@ class GetPendingWalletNotifyCountUseCase @Inject constructor(
 ) : UseCase<GetPendingWalletNotifyCountUseCase.Param, Map<String, Int>>(ioDispatcher) {
 
     override suspend fun execute(parameters: Param): Map<String, Int> {
+        if (parameters.walletIds.isEmpty() && parameters.freeGroupWalletIds.isEmpty() && parameters.groupIds.isEmpty()) return emptyMap()
         return supervisorScope {
             val walletAlerts = parameters.walletIds.map { walletId ->
                 async {
@@ -30,9 +31,25 @@ class GetPendingWalletNotifyCountUseCase @Inject constructor(
                     )
                 }
             }.awaitAll().toMap()
-            walletAlerts + groupAlerts
+            val freeGroupWalletAlerts = parameters.freeGroupWalletIds.map { walletId ->
+                async {
+                    walletId to runCatching {
+                        repository.getAlertTotal(
+                            walletId = walletId,
+                            isFreeGroupWallet = true
+                        )
+                    }.getOrDefault(
+                        0
+                    )
+                }
+            }.awaitAll().toMap()
+            walletAlerts + groupAlerts + freeGroupWalletAlerts
         }
     }
 
-    class Param(val groupIds: List<String>, val walletIds: List<String>)
+    class Param(
+        val groupIds: List<String>,
+        val walletIds: List<String>,
+        val freeGroupWalletIds: List<String> = emptyList(),
+    )
 }

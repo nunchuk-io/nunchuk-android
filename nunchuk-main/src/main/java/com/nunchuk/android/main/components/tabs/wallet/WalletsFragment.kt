@@ -98,7 +98,6 @@ import com.nunchuk.android.widget.NCWarningDialog
 import com.nunchuk.android.widget.NCWarningVerticalDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.map
 import java.util.Locale
 import javax.inject.Inject
 
@@ -143,7 +142,8 @@ internal class WalletsFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View = content {
         val state by walletsViewModel.state.collectAsStateWithLifecycle()
-        val hasSigner by signersViewModel.uiState.map { it.signers.orEmpty().isNotEmpty() }.collectAsStateWithLifecycle(false)
+        val signersUiState by signersViewModel.uiState.collectAsStateWithLifecycle()
+        val hasSigner = signersUiState.signers.orEmpty().isNotEmpty()
         NunchukTheme {
             WalletsScreen(
                 activity = requireActivity(),

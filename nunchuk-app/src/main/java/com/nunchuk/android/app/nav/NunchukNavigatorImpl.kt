@@ -434,12 +434,14 @@ interface AppNavigatorDelegate : AppNavigator {
         walletId: String?,
         message: String?,
         activityContext: Context,
+        isFreeGroupWallet: Boolean,
     ) {
         GroupDashboardActivity.navigate(
             activityContext,
             groupId = groupId,
             walletId = walletId,
-            message = message
+            message = message,
+            isFreeGroupWallet = isFreeGroupWallet
         )
     }
 

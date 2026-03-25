@@ -21,6 +21,11 @@
             app:nullable="true"
             android:defaultValue="@null"/>
 
+        <argument
+            android:name="is_free_group_wallet"
+            app:argType="boolean"
+            android:defaultValue="false"/>
+
         <action
             android:id="@+id/action_groupDashboardFragment_to_groupChatHistoryIntroFragment"
             app:destination="@id/groupChatHistoryIntroFragment"

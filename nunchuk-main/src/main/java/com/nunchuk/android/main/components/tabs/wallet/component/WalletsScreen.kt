@@ -306,7 +306,8 @@ internal fun WalletsScreen(
                                                 navigator.openGroupDashboardScreen(
                                                     groupId = it.group?.id,
                                                     walletId = it.wallet?.wallet?.id,
-                                                    activityContext = activity
+                                                    activityContext = activity,
+                                                    isFreeGroupWallet = it.isSandboxWallet
                                                 )
                                             },
                                             onWalletClick = {

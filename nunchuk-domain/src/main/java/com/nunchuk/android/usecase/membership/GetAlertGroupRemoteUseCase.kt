@@ -13,7 +13,7 @@ class GetAlertGroupRemoteUseCase @Inject constructor(
 ) : UseCase<GetAlertGroupRemoteUseCase.Params, List<Alert>>(ioDispatcher) {
 
     override suspend fun execute(parameters: Params): List<Alert> =
-        repository.getAlertsRemote(groupId = parameters.groupId, walletId = parameters.walletId)
+        repository.getAlertsRemote(groupId = parameters.groupId, walletId = parameters.walletId, isFreeGroupWallet = parameters.isFreeGroupWallet)
 
-    class Params(val groupId: String?, val walletId: String?)
+    class Params(val groupId: String?, val walletId: String?, val isFreeGroupWallet: Boolean = false)
 }

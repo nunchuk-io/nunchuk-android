@@ -198,23 +198,6 @@ fun PendingWalletView(
                     onDeny = onDeny
                 )
             }
-        } else if (isAssistedWallet || (walletStatus == WalletStatus.LOCKED.name && !isSandboxWallet)) {
-            Row(
-                modifier = Modifier
-                    .clickable(
-                        enabled = isLocked.not(),
-                        onClick = onGroupClick,
-                    )
-                    .padding(12.dp), verticalAlignment = Alignment.CenterVertically
-            ) {
-                AssistedWalletBottomContent(
-                    badgeCount = badgeCount,
-                    isLocked = isLocked,
-                    signers = signers,
-                    status = status,
-                    walletStatus = walletStatus
-                )
-            }
         } else if (sandbox != null && !sandbox.finalized) {
             Row(
                 modifier = Modifier
@@ -235,6 +218,23 @@ fun PendingWalletView(
                 NcIcon(
                     painter = painterResource(id = R.drawable.ic_arrow_expand),
                     contentDescription = "Arrow"
+                )
+            }
+        } else if (isAssistedWallet || isSandboxWallet || walletStatus == WalletStatus.LOCKED.name) {
+            Row(
+                modifier = Modifier
+                    .clickable(
+                        enabled = isLocked.not(),
+                        onClick = onGroupClick,
+                    )
+                    .padding(12.dp), verticalAlignment = Alignment.CenterVertically
+            ) {
+                AssistedWalletBottomContent(
+                    badgeCount = badgeCount,
+                    isLocked = isLocked,
+                    signers = signers,
+                    status = status,
+                    walletStatus = walletStatus
                 )
             }
         }

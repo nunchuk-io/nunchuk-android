@@ -7,7 +7,16 @@
       "Bash(ls -la /Users/mega_lh/MyProject/my-android/nunchuk-core/src/main/java/com/nunchuk/android/compose/*.kt)",
       "Bash(./gradlew :nunchuk-transaction:compileDebugKotlin)",
       "Bash(./gradlew :nunchuk-main:compileDebugKotlin)",
-      "mcp__ide__getDiagnostics"
+      "mcp__ide__getDiagnostics",
+      "Bash(git worktree:*)",
+      "Bash(git branch:*)",
+      "Bash(find /Users/mega_lh/MyProject/my-android -name group-wallet* -o -name group_wallet*)",
+      "Bash(find /Users/mega_lh/Downloads -name *group*wallet* -o -name *new*api*)",
+      "Bash(find /Users/mega_lh/MyProject/my-android -path */nativelib/* -name *.kt)",
+      "Bash(find /Users/mega_lh/MyProject/my-android -name NunchukNativeSdk*)",
+      "Bash(find /Users/mega_lh -path */nunchuk*nativelib* -type d)",
+      "Bash(find ~/.gradle/caches -name *.jar -path *nunchuk*nativelib*)",
+      "Bash(find /Users/mega_lh/MyProject -name NunchukNativeSdk*)"
     ]
   }
 }

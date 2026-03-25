@@ -1,7 +1,6 @@
 package com.nunchuk.android.usecase.membership
 
 import com.nunchuk.android.domain.di.IoDispatcher
-import com.nunchuk.android.model.Alert
 import com.nunchuk.android.repository.PremiumWalletRepository
 import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
@@ -13,8 +12,18 @@ class MarkAlertAsReadUseCase @Inject constructor(
 ) : UseCase<MarkAlertAsReadUseCase.Param, Unit>(ioDispatcher) {
 
     override suspend fun execute(parameters: Param) {
-        return repository.markAlertAsRead(alertId = parameters.alertId, groupId = parameters.groupId, walletId = parameters.walletId)
+        return repository.markAlertAsRead(
+            alertId = parameters.alertId,
+            groupId = parameters.groupId,
+            walletId = parameters.walletId,
+            isFreeGroupWallet = parameters.isFreeGroupWallet
+        )
     }
 
-    class Param(val alertId: String, val groupId: String?, val walletId: String?)
+    class Param(
+        val alertId: String,
+        val groupId: String?,
+        val walletId: String?,
+        val isFreeGroupWallet: Boolean = false
+    )
 }

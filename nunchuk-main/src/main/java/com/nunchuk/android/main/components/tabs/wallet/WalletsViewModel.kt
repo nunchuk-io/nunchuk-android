@@ -348,7 +348,6 @@ internal class WalletsViewModel @Inject constructor(
             getGroupsUseCase(Unit).distinctUntilChanged().collect {
                 val groups = it.getOrDefault(emptyList())
                 _state.update { it.copy(allGroups = groups) }
-                updateBadge()
                 getKeyHealthStatus()
                 mapGroupWalletUi()
             }
@@ -611,7 +610,7 @@ internal class WalletsViewModel @Inject constructor(
             }
             _state.update {
                 it.copy(
-                    pendingGroupSandboxes = pendingWallets.filter { !it.finalized },
+                    pendingGroupSandboxes = pendingWallets.filter { wallet -> !wallet.finalized },
                     groupSandboxWalletIds = groupSandboxWallets,
                     deprecatedGroupWalletIds = deprecatedGroupWalletIds,
                     wallets = wallets,
@@ -619,6 +618,7 @@ internal class WalletsViewModel @Inject constructor(
                 )
             }
 
+            updateBadge()
             mapGroupWalletUi()
             getCampaign()
         }
@@ -732,19 +732,22 @@ internal class WalletsViewModel @Inject constructor(
             val assistedWalletIdsWithoutGroupId =
                 getState().assistedWallets.filter { it.groupId.isEmpty() && it.status != WalletStatus.LOCKED.name }
                     .map { it.localId }
-            if (groupIds.isEmpty() && assistedWalletIdsWithoutGroupId.isEmpty()) return@launch
+            val freeGroupWalletIds = getState().groupSandboxWalletIds.toList()
             isRetrievingAlert.set(true)
             val result = getPendingWalletNotifyCountUseCase(
                 GetPendingWalletNotifyCountUseCase.Param(
                     groupIds = groupIds,
-                    walletIds = assistedWalletIdsWithoutGroupId
+                    walletIds = assistedWalletIdsWithoutGroupId,
+                    freeGroupWalletIds = freeGroupWalletIds
                 )
             )
             isRetrievingAlert.set(false)
             if (result.isSuccess) {
                 val alerts = result.getOrDefault(hashMapOf())
-                _state.update { it.copy(alerts = alerts) }
-                mapGroupWalletUi()
+                if (alerts != _state.value.alerts) {
+                    _state.update { it.copy(alerts = alerts) }
+                    mapGroupWalletUi()
+                }
             }
         }
     }
