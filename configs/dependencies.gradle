@@ -43,7 +43,7 @@ ext {
     MAJOR_VERSION = 2
     MINOR_VERSION = 3
     PATCH_VERSION = 0
-    TASK_LABEL = "CLAIM"
+    TASK_LABEL = "DEV"
 
     VERSION_CODE = 320
 
