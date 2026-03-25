@@ -34,6 +34,7 @@ import com.nunchuk.android.core.util.navigateToSelectWallet
 import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.groupwallet.join.CommonQRCodeActivity
+import com.nunchuk.android.main.groupwallet.keypolicies.FreeGroupKeyPoliciesRoute
 import com.nunchuk.android.main.groupwallet.keypolicies.freeGroupKeyPolicies
 import com.nunchuk.android.main.groupwallet.keypolicies.navigateToFreeGroupKeyPolicies
 import com.nunchuk.android.main.groupwallet.recover.freeGroupWalletRecover
@@ -51,6 +52,7 @@ import com.nunchuk.android.nav.args.ReviewWalletArgs
 import com.nunchuk.android.signer.defaultSupportedSigners
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.utils.parcelable
+import com.nunchuk.android.utils.serializable
 import com.nunchuk.android.wallet.InputBipPathBottomSheet
 import com.nunchuk.android.wallet.InputBipPathBottomSheetListener
 import com.nunchuk.android.widget.NCInfoDialog
@@ -67,7 +69,10 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
     private val replaceWalletId by lazy { intent.getStringExtra(EXTRA_REPLACE_WALLET_ID).orEmpty() }
     private val filePath by lazy { intent.getStringExtra(EXTRA_FILE_PATH).orEmpty() }
     private val quickWalletParam by lazy { intent.parcelable<QuickWalletParam>(EXTRA_QUICK_WALLET_PARAM) }
-    private val isRecoverWallet by lazy { intent.getBooleanExtra(EXTRA_IS_RECOVER_WALLET, false) }
+    private val actionType by lazy {
+        intent.serializable<FreeGroupActionType>(EXTRA_ACTION_TYPE)
+            ?: FreeGroupActionType.NONE
+    }
 
     private val signerIntroLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -135,16 +140,22 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
                         }
                     }
 
+                    val startDestination: Any = when (actionType) {
+                        FreeGroupActionType.RECOVER -> freeGroupWalletRecoverRoute
+                        FreeGroupActionType.KEY_POLICIES -> FreeGroupKeyPoliciesRoute(
+                            walletId = intent.getStringExtra(EXTRA_WALLET_ID)
+                        )
+                        FreeGroupActionType.NONE -> if (replaceWalletId.isEmpty()) {
+                            freeGroupWalletRoute
+                        } else {
+                            replaceWalletIntroRoute
+                        }
+                    }
+
                     NunchukTheme {
                         NavHost(
                             navController = navController,
-                            startDestination = if (isRecoverWallet) {
-                                freeGroupWalletRecoverRoute
-                            } else if (replaceWalletId.isEmpty()) {
-                                freeGroupWalletRoute
-                            } else {
-                                replaceWalletIntroRoute
-                            },
+                            startDestination = startDestination,
                         ) {
                             freeGroupWallet(
                                 viewModel = viewModel,
@@ -287,7 +298,11 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
                             )
 
                             freeGroupKeyPolicies(
-                                onBackClicked = { navController.popBackStack() },
+                                onBackClicked = {
+                                    if (!navController.popBackStack()) {
+                                        finish()
+                                    }
+                                },
                                 onSaveSuccess = { groupSandbox ->
                                     viewModel.onPlatformKeyPoliciesUpdated(groupSandbox)
                                 },
@@ -437,7 +452,7 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
         const val EXTRA_FILE_PATH = "file_path"
         const val EXTRA_QUICK_WALLET_PARAM = "quick_wallet_param"
         const val EXTRA_QR_LIST = "qr_list"
-        const val EXTRA_IS_RECOVER_WALLET = "is_recover_wallet"
+        const val EXTRA_ACTION_TYPE = "action_type"
 
         /**
          * Start [FreeGroupWalletActivity] with [groupId] and [walletId]
@@ -459,7 +474,8 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
         }
 
         fun startRecover(
-            context: Context, walletId: String,
+            context: Context,
+            walletId: String,
             filePath: String = "",
             qrList: List<String> = emptyList(),
             quickWalletParam: QuickWalletParam? = null
@@ -473,8 +489,18 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
                     putExtra(EXTRA_FILE_PATH, filePath)
                     putExtra(EXTRA_QUICK_WALLET_PARAM, quickWalletParam)
                     putExtra(EXTRA_QR_LIST, ArrayList(qrList))
-                    putExtra(EXTRA_IS_RECOVER_WALLET, true)
+                    putExtra(EXTRA_ACTION_TYPE, FreeGroupActionType.RECOVER)
                 })
+        }
+
+        fun startKeyPolicies(
+            context: Context,
+            walletId: String,
+        ) {
+            context.startActivity(Intent(context, FreeGroupWalletActivity::class.java).apply {
+                putExtra(EXTRA_WALLET_ID, walletId)
+                putExtra(EXTRA_ACTION_TYPE, FreeGroupActionType.KEY_POLICIES)
+            })
         }
     }
 }

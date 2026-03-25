@@ -1,26 +1,28 @@
 package com.nunchuk.android.main.groupwallet.keypolicies
 
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.LocalActivity
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
+import androidx.navigation.toRoute
 import com.nunchuk.android.main.groupwallet.FreeGroupWalletViewModel
 import com.nunchuk.android.model.GroupSandbox
 import kotlinx.serialization.Serializable
 
 @Serializable
-data object FreeGroupKeyPoliciesRoute
+data class FreeGroupKeyPoliciesRoute(val walletId: String? = null)
 
 fun NavGraphBuilder.freeGroupKeyPolicies(
     onBackClicked: () -> Unit = {},
     onSaveSuccess: (GroupSandbox) -> Unit = {},
 ) {
-    composable<FreeGroupKeyPoliciesRoute> {
-        val activity = LocalContext.current as ComponentActivity
+    composable<FreeGroupKeyPoliciesRoute> { backStackEntry ->
+        val route = backStackEntry.toRoute<FreeGroupKeyPoliciesRoute>()
+        val activity = LocalActivity.current as ComponentActivity
         val activityViewModel: FreeGroupWalletViewModel =
             hiltViewModel(viewModelStoreOwner = activity)
         val activityState by activityViewModel.uiState.collectAsStateWithLifecycle()
@@ -36,6 +38,7 @@ fun NavGraphBuilder.freeGroupKeyPolicies(
 
         FreeGroupKeyPoliciesScreen(
             groupId = activityViewModel.groupId,
+            walletId = route.walletId.orEmpty(),
             signers = signers,
             allSigners = allSigners,
             platformKeyPolicies = platformKeyPolicies,
@@ -49,5 +52,5 @@ fun NavGraphBuilder.freeGroupKeyPolicies(
 }
 
 fun NavController.navigateToFreeGroupKeyPolicies() {
-    navigate(FreeGroupKeyPoliciesRoute)
+    navigate(FreeGroupKeyPoliciesRoute())
 }

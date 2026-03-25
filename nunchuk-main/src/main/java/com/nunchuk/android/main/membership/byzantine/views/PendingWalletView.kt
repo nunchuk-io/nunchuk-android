@@ -51,6 +51,7 @@ import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.whisper
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.fromMxcUriToMatrixDownloadUrl
+import com.nunchuk.android.core.util.isPlatformKey
 import com.nunchuk.android.core.util.shorten
 import com.nunchuk.android.core.util.toReadableDrawableResId
 import com.nunchuk.android.main.R
@@ -220,7 +221,11 @@ fun PendingWalletView(
                     contentDescription = "Arrow"
                 )
             }
-        } else if (isAssistedWallet || isSandboxWallet || walletStatus == WalletStatus.LOCKED.name) {
+        } else if (isAssistedWallet
+            || (isSandboxWallet && walletsExtended?.wallet?.signers.orEmpty()
+                .any { it.type.isPlatformKey })
+            || walletStatus == WalletStatus.LOCKED.name
+        ) {
             Row(
                 modifier = Modifier
                     .clickable(
@@ -335,7 +340,8 @@ fun AssistedWalletBottomContent(
                         .weight(1f, fill = true),
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
-                    items(signers.filter { it.type != SignerType.SERVER }.distinctBy { it.fingerPrint }) {
+                    items(signers.filter { it.type != SignerType.SERVER }
+                        .distinctBy { it.fingerPrint }) {
                         NcCircleImage(
                             resId = it.toReadableDrawableResId(),
                             size = 36.dp,
@@ -626,17 +632,18 @@ fun AvatarView(
                 }
             }
         }
-        GlideImage(imageModel = {
-            if (isContact) {
-                avatarUrl.fromMxcUriToMatrixDownloadUrl()
-            } else ""
-        }, imageOptions = ImageOptions(
-            contentScale = ContentScale.Crop, alignment = Alignment.Center
-        ), loading = {
-            image()
-        }, failure = {
-            image()
-        })
+        GlideImage(
+            imageModel = {
+                if (isContact) {
+                    avatarUrl.fromMxcUriToMatrixDownloadUrl()
+                } else ""
+            }, imageOptions = ImageOptions(
+                contentScale = ContentScale.Crop, alignment = Alignment.Center
+            ), loading = {
+                image()
+            }, failure = {
+                image()
+            })
     }
 }
 

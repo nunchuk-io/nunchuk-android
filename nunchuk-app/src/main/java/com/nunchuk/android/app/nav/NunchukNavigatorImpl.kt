@@ -197,7 +197,18 @@ internal class NunchukNavigatorImpl @Inject constructor() : NunchukNavigator,
         FreeGroupWalletActivity.start(
             context = activityContext,
             groupId = groupId,
-            walletId = walletId
+            walletId = walletId,
+            quickWalletParam = quickWalletParam
+        )
+    }
+
+    override fun openFreeGroupWalletKeyPoliciesScreen(
+        activityContext: Context,
+        walletId: String,
+    ) {
+        FreeGroupWalletActivity.startKeyPolicies(
+            context = activityContext,
+            walletId = walletId,
         )
     }
 

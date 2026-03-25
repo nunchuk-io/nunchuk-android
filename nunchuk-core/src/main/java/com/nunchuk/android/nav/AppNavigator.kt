@@ -178,6 +178,11 @@ interface AppNavigator {
         quickWalletParam: QuickWalletParam? = null
     )
 
+    fun openFreeGroupWalletKeyPoliciesScreen(
+        activityContext: Context,
+        walletId: String,
+    )
+
     fun openFreeGroupWalletRecoverScreen(
         activityContext: Context,
         walletId: String,

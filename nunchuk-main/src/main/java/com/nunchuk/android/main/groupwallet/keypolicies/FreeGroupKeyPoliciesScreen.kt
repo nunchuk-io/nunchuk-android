@@ -42,7 +42,6 @@ import com.nunchuk.android.compose.NcSelectableBottomSheet
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.dialog.NcConfirmationDialog
-import com.nunchuk.android.compose.dialog.NcInfoDialog
 import com.nunchuk.android.compose.dialog.NcLoadingDialog
 import com.nunchuk.android.compose.greyLight
 import com.nunchuk.android.compose.strokePrimary
@@ -62,6 +61,7 @@ import com.nunchuk.android.type.SignerType
 @Composable
 internal fun FreeGroupKeyPoliciesScreen(
     groupId: String = "",
+    walletId: String = "",
     signers: List<SignerModel> = emptyList(),
     allSigners: List<SignerModel> = signers,
     platformKeyPolicies: GroupPlatformKeyPolicies? = null,
