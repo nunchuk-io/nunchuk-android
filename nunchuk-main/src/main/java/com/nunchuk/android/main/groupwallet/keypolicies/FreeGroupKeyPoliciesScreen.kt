@@ -300,6 +300,8 @@ private fun PolicyCard(
     isGlobalMode: Boolean,
     onEditSpendingLimit: () -> Unit = {},
 ) {
+    val normalizedPolicy = normalizeGroupPlatformKeyPolicy(policy.keyPolicy)
+
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -347,7 +349,9 @@ private fun PolicyCard(
                         style = NunchukTheme.typography.bodySmall,
                     )
                     Text(
-                        text = policy.keyPolicy.spendingLimit?.let { formatGroupSpendingLimit(it) }.orEmpty(),
+                        text = formatGroupSpendingLimit(
+                            normalizedPolicy.spendingLimit ?: defaultGroupSpendingLimit()
+                        ),
                         style = NunchukTheme.typography.title,
                     )
                 }
@@ -373,10 +377,10 @@ private fun PolicyCard(
                 style = NunchukTheme.typography.body,
             )
             Text(
-                text = if (policy.keyPolicy.signingDelaySeconds > 0) {
+                text = if (normalizedPolicy.signingDelaySeconds > 0) {
                     formatCoSigningDelay(
-                        policy.keyPolicy.signingDelaySeconds / KeyPolicy.ONE_HOUR_TO_SECONDS,
-                        (policy.keyPolicy.signingDelaySeconds % KeyPolicy.ONE_HOUR_TO_SECONDS) / KeyPolicy.ONE_MINUTE_TO_SECONDS
+                        normalizedPolicy.signingDelaySeconds / KeyPolicy.ONE_HOUR_TO_SECONDS,
+                        (normalizedPolicy.signingDelaySeconds % KeyPolicy.ONE_HOUR_TO_SECONDS) / KeyPolicy.ONE_MINUTE_TO_SECONDS
                     )
                 } else {
                     stringResource(com.nunchuk.android.core.R.string.nc_off)
@@ -396,7 +400,7 @@ private fun PolicyCard(
                 style = NunchukTheme.typography.body,
             )
             Text(
-                text = if (policy.keyPolicy.autoBroadcastTransaction) {
+                text = if (normalizedPolicy.autoBroadcastTransaction) {
                     stringResource(com.nunchuk.android.core.R.string.nc_on)
                 } else {
                     stringResource(com.nunchuk.android.core.R.string.nc_off)

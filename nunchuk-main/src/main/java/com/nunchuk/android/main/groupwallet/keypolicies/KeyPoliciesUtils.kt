@@ -3,10 +3,45 @@ package com.nunchuk.android.main.groupwallet.keypolicies
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.model.GroupPlatformKeyPolicy
 import com.nunchuk.android.model.GroupSpendingLimit
 import com.nunchuk.android.model.SpendingPolicy
 import com.nunchuk.android.model.SpendingTimeUnit
 import com.nunchuk.android.type.GroupSpendingLimitInterval
+
+private const val DEFAULT_LIMIT_AMOUNT = "0"
+private const val DEFAULT_LIMIT_CURRENCY = "USD"
+
+internal fun defaultGroupSpendingLimit(): GroupSpendingLimit {
+    return GroupSpendingLimit(
+        amount = DEFAULT_LIMIT_AMOUNT,
+        interval = GroupSpendingLimitInterval.DAILY,
+        currency = DEFAULT_LIMIT_CURRENCY,
+    )
+}
+
+internal fun normalizeGroupSpendingLimit(limit: GroupSpendingLimit?): GroupSpendingLimit {
+    val base = limit ?: defaultGroupSpendingLimit()
+    return base.copy(
+        amount = base.amount.takeIf { it.isNotBlank() } ?: DEFAULT_LIMIT_AMOUNT,
+        currency = base.currency.takeIf { it.isNotBlank() } ?: DEFAULT_LIMIT_CURRENCY,
+    )
+}
+
+internal fun defaultGroupPlatformKeyPolicy(): GroupPlatformKeyPolicy {
+    return GroupPlatformKeyPolicy(
+        spendingLimit = defaultGroupSpendingLimit(),
+        signingDelaySeconds = 0,
+        autoBroadcastTransaction = false,
+    )
+}
+
+internal fun normalizeGroupPlatformKeyPolicy(policy: GroupPlatformKeyPolicy?): GroupPlatformKeyPolicy {
+    val base = policy ?: defaultGroupPlatformKeyPolicy()
+    return base.copy(
+        spendingLimit = normalizeGroupSpendingLimit(base.spendingLimit),
+    )
+}
 
 @Composable
 internal fun formatSpendingLimit(policy: SpendingPolicy): String {
@@ -28,20 +63,21 @@ internal fun formatSpendingLimit(policy: SpendingPolicy): String {
 
 @Composable
 internal fun formatGroupSpendingLimit(limit: GroupSpendingLimit): String {
-    val intervalText = when (limit.interval) {
+    val normalizedLimit = normalizeGroupSpendingLimit(limit)
+    val intervalText = when (normalizedLimit.interval) {
         GroupSpendingLimitInterval.DAILY -> "Day"
         GroupSpendingLimitInterval.WEEKLY -> "Week"
         GroupSpendingLimitInterval.MONTHLY -> "Month"
     }
-    val amountDouble = limit.amount.toDoubleOrNull() ?: 0.0
+    val amountDouble = normalizedLimit.amount.toDoubleOrNull() ?: 0.0
     val amountText = if (amountDouble == 0.0) "0" else {
         if (amountDouble % 1.0 == 0.0) {
             amountDouble.toLong().toString()
         } else {
-            limit.amount
+            normalizedLimit.amount
         }
     }
-    return "${limit.currency} $amountText / $intervalText"
+    return "${normalizedLimit.currency} $amountText / $intervalText"
 }
 
 internal fun buildSignerLabel(signer: SignerModel?): String {

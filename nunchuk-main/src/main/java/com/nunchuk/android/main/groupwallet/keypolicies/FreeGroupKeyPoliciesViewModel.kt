@@ -53,13 +53,13 @@ class FreeGroupKeyPoliciesViewModel @Inject constructor(
                 KeyPolicyItem(
                     fingerPrint = signer.fingerPrint,
                     derivationPath = signer.derivationPath,
-                    keyPolicy = signerPolicy?.policy ?: GroupPlatformKeyPolicy(),
+                    keyPolicy = normalizeGroupPlatformKeyPolicy(signerPolicy?.policy),
                 )
             }
         } else {
             listOf(
                 KeyPolicyItem(
-                    keyPolicy = policies.global ?: GroupPlatformKeyPolicy(),
+                    keyPolicy = normalizeGroupPlatformKeyPolicy(policies.global),
                 )
             )
         }
@@ -112,11 +112,14 @@ class FreeGroupKeyPoliciesViewModel @Inject constructor(
     }
 
     fun updatePolicy(policy: KeyPolicyItem) {
+        val normalizedPolicy = policy.copy(
+            keyPolicy = normalizeGroupPlatformKeyPolicy(policy.keyPolicy)
+        )
         _state.update { state ->
             state.copy(
                 policies = state.policies.map {
-                    if (it.fingerPrint == policy.fingerPrint && it.derivationPath == policy.derivationPath) {
-                        policy
+                    if (it.fingerPrint == normalizedPolicy.fingerPrint && it.derivationPath == normalizedPolicy.derivationPath) {
+                        normalizedPolicy
                     } else {
                         it
                     }
@@ -132,7 +135,9 @@ class FreeGroupKeyPoliciesViewModel @Inject constructor(
             val currentState = _state.value
             val policies = when (currentState.policyType) {
                 PolicyType.GLOBAL -> GroupPlatformKeyPolicies(
-                    global = currentState.policies.firstOrNull()?.keyPolicy,
+                    global = normalizeGroupPlatformKeyPolicy(
+                        currentState.policies.firstOrNull()?.keyPolicy
+                    ),
                     signers = emptyList(),
                 )
 
@@ -141,7 +146,7 @@ class FreeGroupKeyPoliciesViewModel @Inject constructor(
                     signers = currentState.policies.map {
                         GroupPlatformKeySignerPolicy(
                             masterFingerprint = it.fingerPrint,
-                            policy = it.keyPolicy,
+                            policy = normalizeGroupPlatformKeyPolicy(it.keyPolicy),
                         )
                     },
                 )
@@ -173,7 +178,7 @@ data class FreeGroupKeyPoliciesUiState(
 data class KeyPolicyItem(
     val fingerPrint: String = "",
     val derivationPath: String = "",
-    val keyPolicy: GroupPlatformKeyPolicy = GroupPlatformKeyPolicy(),
+    val keyPolicy: GroupPlatformKeyPolicy = defaultGroupPlatformKeyPolicy(),
 )
 
 enum class PolicyType {

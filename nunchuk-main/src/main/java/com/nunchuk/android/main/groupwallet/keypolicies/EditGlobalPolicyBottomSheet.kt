@@ -57,7 +57,8 @@ internal fun EditGlobalPolicyBottomSheet(
     onDismiss: () -> Unit = {},
     onSave: (KeyPolicyItem) -> Unit = {},
 ) {
-    val spendingLimit = policy.keyPolicy.spendingLimit
+    val normalizedPolicy = normalizeGroupPlatformKeyPolicy(policy.keyPolicy)
+    val spendingLimit = normalizedPolicy.spendingLimit
     val amountDouble = spendingLimit?.amount?.toDoubleOrNull() ?: 0.0
     var amount by rememberSaveable {
         mutableStateOf(
@@ -72,18 +73,22 @@ internal fun EditGlobalPolicyBottomSheet(
     }
     var currencyUnit by rememberSaveable { mutableStateOf(spendingLimit?.currency?.ifEmpty { "USD" } ?: "USD") }
     var interval by rememberSaveable { mutableStateOf(spendingLimit?.interval ?: GroupSpendingLimitInterval.DAILY) }
-    var isCoSigningDelayEnabled by rememberSaveable { mutableStateOf(policy.keyPolicy.signingDelaySeconds > 0) }
+    var isCoSigningDelayEnabled by rememberSaveable {
+        mutableStateOf(normalizedPolicy.signingDelaySeconds > 0)
+    }
     var coSigningDelayHours by rememberSaveable {
         mutableStateOf(
-            (policy.keyPolicy.signingDelaySeconds / KeyPolicy.ONE_HOUR_TO_SECONDS).takeIf { it > 0 }?.toString().orEmpty()
+            (normalizedPolicy.signingDelaySeconds / KeyPolicy.ONE_HOUR_TO_SECONDS).takeIf { it > 0 }?.toString().orEmpty()
         )
     }
     var coSigningDelayMinutes by rememberSaveable {
         mutableStateOf(
-            ((policy.keyPolicy.signingDelaySeconds % KeyPolicy.ONE_HOUR_TO_SECONDS) / KeyPolicy.ONE_MINUTE_TO_SECONDS).takeIf { it > 0 }?.toString().orEmpty()
+            ((normalizedPolicy.signingDelaySeconds % KeyPolicy.ONE_HOUR_TO_SECONDS) / KeyPolicy.ONE_MINUTE_TO_SECONDS).takeIf { it > 0 }?.toString().orEmpty()
         )
     }
-    var isAutoBroadcast by rememberSaveable { mutableStateOf(policy.keyPolicy.autoBroadcastTransaction) }
+    var isAutoBroadcast by rememberSaveable {
+        mutableStateOf(normalizedPolicy.autoBroadcastTransaction)
+    }
     var showTimeUnitSelector by rememberSaveable { mutableStateOf(false) }
     var showCurrencySelector by rememberSaveable { mutableStateOf(false) }
 
