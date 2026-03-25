@@ -17,6 +17,7 @@ import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
+import com.nunchuk.android.core.util.isPlatformKey
 import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.exception.NCNativeException
@@ -32,7 +33,6 @@ import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.signer.SupportedSigner
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.Chain
-import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.GetScriptNodeFromMiniscriptTemplateUseCase
 import com.nunchuk.android.usecase.GetSignerFromMasterSignerUseCase
@@ -235,7 +235,7 @@ class FreeGroupWalletViewModel @Inject constructor(
     private fun loadSigners() {
         viewModelScope.launch {
             getAllSignersUseCase(false).onSuccess { pair ->
-                val singleSigner = pair.second.filter { it.type != SignerType.SERVER }
+                val singleSigner = pair.second.filter { !it.type.isPlatformKey }
                 singleSigners.apply {
                     clear()
                     addAll(singleSigner)
@@ -244,7 +244,7 @@ class FreeGroupWalletViewModel @Inject constructor(
                     clear()
                     addAll(pair.first)
                 }
-                val signers = pair.first.filter { it.type != SignerType.SERVER }
+                val signers = pair.first.filter { !it.type.isPlatformKey }
                     .map { signer ->
                         masterSignerMapper(signer)
                     } + singleSigner.map { signer -> signer.toModel() }
