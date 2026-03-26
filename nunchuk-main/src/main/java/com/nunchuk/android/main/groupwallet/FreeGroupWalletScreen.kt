@@ -72,6 +72,7 @@ import com.nunchuk.android.core.domain.signer.DuplicateSignerData
 import com.nunchuk.android.core.miniscript.ScriptNodeType
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.ADD_WALLET_REUSE_SIGNER_RESULT
+import com.nunchuk.android.core.util.isPlatformKey
 import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.groupwallet.component.FreeAddKeyCard
@@ -391,9 +392,12 @@ fun FreeGroupWalletScreen(
                             state = state,
                             showBip32Path = showBip32Path,
                             onChangeBip32Path = onChangeBip32Path,
+                            onConfigPlatformKey = onConfigPlatformKey,
                             onActionKey = { keyName, signer ->
                                 onSetCurrentKey(keyName)
-                                if (signer != null) {
+                                if (signer?.type?.isPlatformKey == true) {
+                                    onConfigPlatformKey()
+                                } else if (signer != null) {
                                     keyToRemove = keyName
                                     showRemoveConfirmation = true
                                 } else {
@@ -425,7 +429,9 @@ fun FreeGroupWalletScreen(
                                 },
                                 onActionKey = { keyPath, signer ->
                                     onSetCurrentKey(keyPath)
-                                    if (signer != null) {
+                                    if (signer?.type?.isPlatformKey == true) {
+                                        onConfigPlatformKey()
+                                    } else if (signer != null) {
                                         keyToRemove = keyPath
                                         showRemoveConfirmation = true
                                     } else {
@@ -453,6 +459,18 @@ fun FreeGroupWalletScreen(
                                                 },
                                             ) {
                                                 Text(stringResource(R.string.nc_add))
+                                            }
+                                        }
+
+                                        signer.type.isPlatformKey -> {
+                                            NcOutlineButton(
+                                                height = 36.dp,
+                                                onClick = {
+                                                    onSetCurrentKey(key)
+                                                    onConfigPlatformKey()
+                                                },
+                                            ) {
+                                                Text(stringResource(com.nunchuk.android.core.R.string.nc_config))
                                             }
                                         }
                                         
@@ -706,6 +724,7 @@ private fun TaprootAddressContent(
     state: FreeGroupWalletUiState,
     showBip32Path: Boolean,
     onChangeBip32Path: (Int, SignerModel) -> Unit,
+    onConfigPlatformKey: () -> Unit = {},
     onActionKey: (String, SignerModel?) -> Unit = { _, _ -> },
     parentModifier: Modifier = Modifier
 ) {
@@ -760,6 +779,17 @@ private fun TaprootAddressContent(
                                     onClick = { onActionKey(key, null) },
                                 ) {
                                     Text(stringResource(R.string.nc_add))
+                                }
+                            }
+
+                            signer.type.isPlatformKey -> {
+                                Timber.tag("miniscript-feature")
+                                    .d("Showing Config button (MuSig Platform key)")
+                                NcOutlineButton(
+                                    height = 36.dp,
+                                    onClick = { onConfigPlatformKey() },
+                                ) {
+                                    Text(stringResource(com.nunchuk.android.core.R.string.nc_config))
                                 }
                             }
                             

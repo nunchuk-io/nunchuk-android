@@ -33,6 +33,7 @@ import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.signer.SupportedSigner
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.Chain
+import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.GetScriptNodeFromMiniscriptTemplateUseCase
 import com.nunchuk.android.usecase.GetSignerFromMasterSignerUseCase
@@ -403,9 +404,14 @@ class FreeGroupWalletViewModel @Inject constructor(
         groupSandbox: GroupSandbox
     ): Map<String, SignerModel?> {
         val signerMap = mutableMapOf<String, SignerModel?>()
+        val platformKeySlots = groupSandbox.platformKeySlots.toSet()
 
         if (groupSandbox.walletType == WalletType.MINISCRIPT && groupSandbox.namedSigners.isNotEmpty()) {
             groupSandbox.namedSigners.forEach { (keyName, singleSigner) ->
+                if (platformKeySlots.contains(keyName)) {
+                    signerMap[keyName] = createPlatformKeySignerModel(keyName)
+                    return@forEach
+                }
                 if (singleSigner.masterFingerprint.isNotEmpty() && singleSigner.xpub.isNotEmpty()) {
                     val existingSigner =
                         signers.find { it?.fingerPrint == singleSigner.masterFingerprint }
@@ -429,7 +435,9 @@ class FreeGroupWalletViewModel @Inject constructor(
         } else {
             val keyNames = extractKeyNamesFromScriptNode(scriptNode)
             keyNames.forEachIndexed { index, keyName ->
-                if (index < signers.size) {
+                if (platformKeySlots.contains(keyName)) {
+                    signerMap[keyName] = createPlatformKeySignerModel(keyName)
+                } else if (index < signers.size) {
                     signerMap[keyName] = signers[index]
                 } else {
                     signerMap[keyName] = null
@@ -438,6 +446,18 @@ class FreeGroupWalletViewModel @Inject constructor(
         }
 
         return signerMap
+    }
+
+    private fun createPlatformKeySignerModel(keyName: String): SignerModel {
+        return SignerModel(
+            id = "platform_key_$keyName",
+            name = application.getString(com.nunchuk.android.core.R.string.nc_server_key),
+            derivationPath = "",
+            fingerPrint = "platform_key_$keyName",
+            type = SignerType.PLATFORM,
+            isVisible = true,
+            isMasterSigner = false,
+        )
     }
 
     private fun extractKeyNamesFromScriptNode(node: ScriptNode): List<String> {

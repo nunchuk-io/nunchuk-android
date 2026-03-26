@@ -370,6 +370,7 @@ internal fun CreateKeyItem(
     avatarColor: Color = avatarColors[0],
     customActionButton: (@Composable ColumnScope.(key: String, signer: SignerModel?) -> Unit)? = null
 ) {
+    val isPlatformKey = signer?.type?.isPlatformKey == true
     val isSigned: Boolean =
         data.mode == ScriptMode.SIGN && signer != null && if (keySetStatus != null) {
             keySetStatus.signerStatus[signer.fingerPrint] == true || keySetStatus.status.signDone()
@@ -379,6 +380,7 @@ internal fun CreateKeyItem(
             data.signedXfp[signer.fingerPrint] == true
         }
     val title = when {
+        isPlatformKey -> stringResource(R.string.nc_server_key)
         signer?.name.isNullOrEmpty() -> key
         !signer.isVisible -> signer.name.ifEmpty {
             stringResource(
@@ -392,12 +394,13 @@ internal fun CreateKeyItem(
     KeyItem(
         title = title,
         xfp = signer?.getXfpOrCardIdLabel().orEmpty(),
-        position = position,
+        position = if (isPlatformKey) "" else position,
         modifier = modifier,
         showThreadCurve = showThreadCurve,
         data = data,
         avatarColor = avatarColor,
-        isOccupied = data.isSlotOccupied(signer?.name ?: key),
+        isOccupied = !isPlatformKey && data.isSlotOccupied(key),
+        keyIconResId = if (isPlatformKey) R.drawable.ic_server_key_dark else R.drawable.ic_key,
         bottomContent = {
             if (data.showBip32Path && signer != null && !signer.type.isPlatformKey) {
                 val isDuplicateSigner =
@@ -491,6 +494,13 @@ internal fun CreateKeyItem(
                                 onClick = { onActionKey(key, null) },
                             ) {
                                 Text(stringResource(R.string.nc_add))
+                            }
+                        } else if (isPlatformKey) {
+                            NcOutlineButton(
+                                height = 36.dp,
+                                onClick = { onActionKey(key, signer) },
+                            ) {
+                                Text(stringResource(R.string.nc_config))
                             }
                         } else {
                             NcOutlineButton(
@@ -1320,6 +1330,7 @@ fun KeyItem(
     showThreadCurve: Boolean = true,
     avatarColor: Color = avatarColors[0],
     isOccupied: Boolean = false,
+    keyIconResId: Int = R.drawable.ic_key,
     bottomContent: @Composable ColumnScope.() -> Unit = {},
     actionContent: @Composable RowScope.() -> Unit = {}
 ) {
@@ -1352,7 +1363,7 @@ fun KeyItem(
                     modifier = Modifier
                         .padding(top = 8.dp)
                         .size(20.dp),
-                    painter = painterResource(R.drawable.ic_key),
+                    painter = painterResource(keyIconResId),
                     contentDescription = null,
                 )
             }

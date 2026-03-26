@@ -82,7 +82,15 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
                     SignerIntroActivity.EXTRA_PLATFORM_KEY_SELECTED, false
                 )
                 if (isPlatformKeySelected) {
-                    viewModel.enableGroupPlatformKey()
+                    val names = if (viewModel.isMiniscriptWallet()) {
+                        viewModel.uiState.value.currentKeyToAssign
+                            .takeIf { it.isNotEmpty() }
+                            ?.let(::listOf)
+                            .orEmpty()
+                    } else {
+                        emptyList()
+                    }
+                    viewModel.enableGroupPlatformKey(names)
                 }
             }
         }
