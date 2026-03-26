@@ -59,6 +59,7 @@ import com.nunchuk.android.model.byzantine.isMasterOrAdmin
 import com.nunchuk.android.model.byzantine.isNone
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.type.AddressType
+import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.utils.serializable
@@ -150,8 +151,15 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
                         )
                     )
                 },
-                openWalletConfig = {
-                    showReEnterPassword(TargetAction.UPDATE_SERVER_KEY, it)
+                openWalletConfig = { signer ->
+                    if (signer.type == SignerType.PLATFORM) {
+                        navigator.openFreeGroupWalletKeyPoliciesScreen(
+                            activityContext = this@WalletConfigActivity,
+                            walletId = args.walletId,
+                        )
+                    } else {
+                        showReEnterPassword(TargetAction.UPDATE_SERVER_KEY, signer)
+                    }
                 },
                 onEditWalletName = {
                     WalletUpdateBottomSheet.show(

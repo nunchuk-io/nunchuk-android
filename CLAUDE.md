@@ -29,10 +29,16 @@ Multi-module Android app (Nunchuk wallet) using Gradle with mixed Kotlin DSL and
 | `nunchuk-main` | Primary feature screens (wallets, inheritance, services) |
 | `nunchuk-network` | Retrofit API definitions |
 | `nunchuk-database` | Room database and DAOs |
-| `nunchuk-widget` / `nunchuk-compose` | Shared UI components |
+| `nunchuk-widget` | Shared UI components (Nc-prefixed Compose components live in `nunchuk-core/compose/`) |
 | `nunchuk-wallet*` | Wallet features (core, personal, shared) |
 | `nunchuk-signer*` | Signer management |
 | `nunchuk-transaction` | Transaction handling |
+| `nunchuk-auth` | Authentication flows |
+| `nunchuk-contact` | Contact management |
+| `nunchuk-messages` | Chat / messaging (Matrix SDK) |
+| `nunchuk-settings` | App settings screens |
+| `nunchuk-notifications` | Push notification handling |
+| `nunchuk-utils` | Kotlin extension utilities (e.g., `Flow.onException`) |
 
 ## Architecture Rules
 
@@ -89,13 +95,13 @@ class MyViewModel @Inject constructor(
 
     fun doAction() = viewModelScope.launch {
         _event.emit(MyEvent.Loading(true))
-        val result = myUseCase(MyUseCase.Param(...))
+        myUseCase(MyUseCase.Param(...))
+            .onSuccess { data ->
+                _state.update { it.copy(data = data) }
+            }.onFailure {
+                _event.emit(MyEvent.Error(it.message.orUnknownError()))
+            }
         _event.emit(MyEvent.Loading(false))
-        if (result.isSuccess) {
-            _state.update { it.copy(data = result.getOrThrow()) }
-        } else {
-            _event.emit(MyEvent.Error(result.exceptionOrNull()?.message.orUnknownError()))
-        }
     }
 
     fun updateField(value: String) = _state.update { it.copy(field = value) }
@@ -109,17 +115,14 @@ class MyViewModel @Inject constructor(
 - Events via `viewModelScope.launch { _event.emit(...) }`
 - `MutableSaveStateFlow(savedStateHandle, key, defaultValue)` — only for data that must survive process death (requires `@Parcelize`)
 
-**Error handling patterns** (use the one that fits):
+**Error handling** — chain `onSuccess`/`onFailure` directly on the use case call (no intermediate variable):
 ```kotlin
-// Pattern 1: isSuccess check
-if (result.isSuccess) { ... } else {
-    _event.emit(MyEvent.Error(result.exceptionOrNull()?.message.orUnknownError()))
-}
-
-// Pattern 2: onSuccess/onFailure
-result.onSuccess { data -> ... }
-      .onException { _event.emit(MyEvent.Error(it.message.orUnknownError())) }
+myUseCase(MyUseCase.Param(...))
+    .onSuccess { data -> _state.update { it.copy(data = data) } }
+    .onFailure { _event.emit(MyEvent.Error(it.message.orUnknownError())) }
 ```
+
+Note: `Flow.onException` (from `nunchuk-utils`) is for Flow error handling, not Result.
 
 ### Compose UI Layer
 
@@ -285,10 +288,50 @@ composable<MyRoute> {
 - `@Serializable` data objects/classes for Compose Navigation routes (primitives only, no complex objects)
 - Domain models live in `nunchuk-domain/model/`
 
+### Cross-Module Navigation
+
+Modules cannot depend on each other directly. Cross-module navigation uses `NunchukNavigator` (interface in `nunchuk-core/nav/`, implementation in `nunchuk-app/nav/NunchukNavigatorImpl.kt`). It composes sub-interfaces: `AppNavigator`, `AuthNavigator`, `WalletNavigator`, `SignerNavigator`, `TransactionNavigator`, `MessageNavigator`, `ContactNavigator`, `SettingNavigator`, `NfcNavigator`, `MainNavigator`.
+
+Activities use `ActivityArgs` (interface in `nunchuk-arch/args/`) for type-safe intent extras:
+```kotlin
+data class MyArgs(val id: String) : ActivityArgs {
+    override fun buildIntent(activityContext: Context) = Intent(activityContext, MyActivity::class.java).apply {
+        putExtra(EXTRA_ID, id)
+    }
+    companion object {
+        fun deserializeFrom(intent: Intent) = MyArgs(intent.getStringExtra(EXTRA_ID).orEmpty())
+    }
+}
+```
+
+### Network Layer
+
+APIs return `Data<T>` wrapper (`nunchuk-network`). The wrapper auto-throws `NunchukApiException` on error codes and publishes `UnauthorizedEventBus` on 401s.
+
+```kotlin
+interface MyApi {
+    @GET("/v1.1/my/endpoint")
+    suspend fun getData(): Data<MyResponse>
+}
+```
+
+### Migration: Fragment → Compose
+
+The codebase is actively migrating from Fragment-based screens to Compose. New features use Compose navigation. Legacy screens (messages, some wallet screens) still use Fragments with XML navigation graphs. When adding new screens, always use Compose.
+
+**Base activity hierarchy**:
+- `BaseComposeActivity` — foundation: DI, locale, unauthorized handling, loading dialog
+- `BaseActivity<Binding>` — adds ViewBinding support via `initializeBinding()`
+- `BaseShareSaveFileActivity<Binding>` — adds file sharing/saving
+- `BaseNfcActivity<Binding>` — adds NFC adapter, CVC input, scan dialogs
+- `BaseComposeNfcActivity` — NFC support without ViewBinding (pure Compose)
+
 ## Conventions
 
 - Package root: `com.nunchuk.android`
 - Logging: `Timber` (never `Log.d`)
 - Error messages: `.orUnknownError()` extension for null-safe error strings
 - State: always `collectAsStateWithLifecycle()` (never `collectAsState()`)
-- Base activities: `BaseComposeActivity` → `BaseActivity<Binding>` → `BaseNfcActivity<Binding>`
+- Nc-prefixed components: reusable Compose components in `nunchuk-core/.../compose/` (e.g., `NcTextField`, `NcTopAppBar`, `NcScaffold`, `NcPrimaryDarkButton`, `NcLoadingDialog`, `NcConfirmationDialog`, `NcHintMessage`, `NcBadge`, `NcTag`, `NcSwitch`, `NcCheckBox`, `NcRadioOption`)
+- Fonts: Montserrat Medium (headings), Lato Regular/Bold (body)
+- Dark mode: fully supported via `NunchukTheme` + `ThemeManager`

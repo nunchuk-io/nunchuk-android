@@ -19,9 +19,11 @@ data class FreeGroupKeyPoliciesRoute(val walletId: String? = null)
 fun NavGraphBuilder.freeGroupKeyPolicies(
     onBackClicked: () -> Unit = {},
     onSaveSuccess: (GroupSandbox) -> Unit = {},
+    onUpdatePolicySuccess: () -> Unit = {},
 ) {
     composable<FreeGroupKeyPoliciesRoute> { backStackEntry ->
         val route = backStackEntry.toRoute<FreeGroupKeyPoliciesRoute>()
+        val walletId = route.walletId.orEmpty()
         val activity = LocalActivity.current as ComponentActivity
         val activityViewModel: FreeGroupWalletViewModel =
             hiltViewModel(viewModelStoreOwner = activity)
@@ -34,12 +36,16 @@ fun NavGraphBuilder.freeGroupKeyPolicies(
 
         FreeGroupKeyPoliciesScreen(
             groupId = activityViewModel.groupId,
-            walletId = route.walletId.orEmpty(),
+            walletId = walletId,
             allSigners = allSigners,
             platformKeyPolicies = platformKeyPolicies,
             onBackClicked = onBackClicked,
             onSaveSuccess = { groupSandbox ->
                 onSaveSuccess(groupSandbox)
+                onBackClicked()
+            },
+            onUpdatePolicySuccess = {
+                onUpdatePolicySuccess()
                 onBackClicked()
             },
         )

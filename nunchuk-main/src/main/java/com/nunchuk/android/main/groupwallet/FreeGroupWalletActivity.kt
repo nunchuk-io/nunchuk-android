@@ -14,9 +14,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.ComposeView
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.navOptions
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navOptions
 import com.nunchuk.android.compose.NcSnackbarVisuals
 import com.nunchuk.android.compose.NcToastType
 import com.nunchuk.android.compose.NunchukTheme
@@ -312,6 +312,7 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
                                 onSaveSuccess = { groupSandbox ->
                                     viewModel.onPlatformKeyPoliciesUpdated(groupSandbox)
                                 },
+                                onUpdatePolicySuccess = ::finish,
                             )
 
                             customKeyNavigation(

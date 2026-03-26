@@ -68,11 +68,13 @@ internal fun FreeGroupKeyPoliciesScreen(
     platformKeyPolicies: GroupPlatformKeyPolicies? = null,
     onBackClicked: () -> Unit = {},
     onSaveSuccess: (GroupSandbox) -> Unit = {},
+    onUpdatePolicySuccess: () -> Unit = {},
 ) {
     val viewModel =
         hiltViewModel<FreeGroupKeyPoliciesViewModel, FreeGroupKeyPoliciesViewModel.Factory> { factory ->
             factory.create(
                 groupId = groupId,
+                walletId = walletId,
                 allSigners = allSigners,
                 platformKeyPolicies = platformKeyPolicies,
             )
@@ -83,6 +85,7 @@ internal fun FreeGroupKeyPoliciesScreen(
         viewModel.event.collect { event ->
             when (event) {
                 is FreeGroupKeyPoliciesEvent.SaveSuccess -> onSaveSuccess(event.groupSandbox)
+                is FreeGroupKeyPoliciesEvent.UpdatePolicySuccess -> onUpdatePolicySuccess()
                 is FreeGroupKeyPoliciesEvent.Error -> {}
             }
         }
@@ -90,6 +93,7 @@ internal fun FreeGroupKeyPoliciesScreen(
 
     FreeGroupKeyPoliciesContent(
         state = state,
+        isCreatingWallet = walletId.isEmpty(),
         onBackClicked = onBackClicked,
         onChangePolicyType = viewModel::changePolicyType,
         onUpdatePolicy = viewModel::updatePolicy,
@@ -102,6 +106,7 @@ internal fun FreeGroupKeyPoliciesScreen(
 @Composable
 private fun FreeGroupKeyPoliciesContent(
     state: FreeGroupKeyPoliciesUiState = FreeGroupKeyPoliciesUiState(),
+    isCreatingWallet: Boolean = false,
     onBackClicked: () -> Unit = {},
     onChangePolicyType: (PolicyType) -> Unit = {},
     onUpdatePolicy: (KeyPolicyItem) -> Unit = {},
@@ -123,11 +128,13 @@ private fun FreeGroupKeyPoliciesContent(
                     title = "",
                     onBackPress = onBackClicked,
                     actions = {
-                        IconButton(onClick = { showMoreOption = true }) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_more),
-                                contentDescription = "More",
-                            )
+                        if (isCreatingWallet) {
+                            IconButton(onClick = { showMoreOption = true }) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_more),
+                                    contentDescription = "More",
+                                )
+                            }
                         }
                     },
                 )
@@ -142,12 +149,7 @@ private fun FreeGroupKeyPoliciesContent(
                         enabled = state.hasChanges,
                         onClick = onApplyClicked,
                     ) {
-                        Text(
-                            text = stringResource(
-                                if (state.hasChanges) R.string.nc_save_and_update
-                                else com.nunchuk.android.core.R.string.nc_save
-                            )
-                        )
+                        Text(text = stringResource(R.string.nc_continue_save_changes))
                     }
                 }
             },

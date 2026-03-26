@@ -130,7 +130,7 @@ class FreeGroupWalletViewModel @Inject constructor(
         listenGroupSandbox()
         listenGroupOnline()
         listenGroupDelete()
-        if (replaceWalletId.isEmpty() && actionType != FreeGroupActionType.RECOVER) {
+        if (replaceWalletId.isEmpty() && actionType != FreeGroupActionType.RECOVER && actionType != FreeGroupActionType.KEY_POLICIES) {
             if (groupId.isEmpty()) {
                 createGroupSandbox()
             } else {
