@@ -10,6 +10,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import com.nunchuk.android.main.groupwallet.FreeGroupWalletViewModel
+import com.nunchuk.android.model.GroupDummyTransaction
 import com.nunchuk.android.model.GroupSandbox
 import kotlinx.serialization.Serializable
 
@@ -20,6 +21,7 @@ fun NavGraphBuilder.freeGroupKeyPolicies(
     onBackClicked: () -> Unit = {},
     onSaveSuccess: (GroupSandbox) -> Unit = {},
     onUpdatePolicySuccess: () -> Unit = {},
+    onOpenWalletAuthentication: (walletId: String, dummyTransaction: GroupDummyTransaction?) -> Unit = { _, _ -> },
 ) {
     composable<FreeGroupKeyPoliciesRoute> { backStackEntry ->
         val route = backStackEntry.toRoute<FreeGroupKeyPoliciesRoute>()
@@ -48,6 +50,7 @@ fun NavGraphBuilder.freeGroupKeyPolicies(
                 onUpdatePolicySuccess()
                 onBackClicked()
             },
+            onOpenWalletAuthentication = onOpenWalletAuthentication,
         )
     }
 }

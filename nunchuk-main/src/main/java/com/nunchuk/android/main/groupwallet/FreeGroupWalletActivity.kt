@@ -43,6 +43,7 @@ import com.nunchuk.android.main.membership.signer.SignerIntroActivity
 import com.nunchuk.android.main.membership.wallet.createWalletSuccessScreen
 import com.nunchuk.android.main.membership.wallet.navigateCreateWalletSuccessScreen
 import com.nunchuk.android.model.GroupSandbox
+import com.nunchuk.android.model.VerificationType
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.signer.SupportedSigner
 import com.nunchuk.android.model.signer.supportedAirgapSigner
@@ -321,6 +322,15 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
                                     viewModel.onPlatformKeyPoliciesUpdated(groupSandbox)
                                 },
                                 onUpdatePolicySuccess = ::finish,
+                                onOpenWalletAuthentication = { walletId, dummyTransaction ->
+                                    navigator.openWalletAuthentication(
+                                        walletId = walletId,
+                                        requiredSignatures = dummyTransaction?.requiredSignatures ?: 0,
+                                        type = VerificationType.SIGN_DUMMY_TX,
+                                        activityContext = this@FreeGroupWalletActivity,
+                                        dummyTransactionId = dummyTransaction?.id,
+                                    )
+                                },
                             )
 
                             customKeyNavigation(

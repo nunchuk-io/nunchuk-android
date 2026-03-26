@@ -3,11 +3,13 @@ package com.nunchuk.android.main.groupwallet.keypolicies
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.DisableGroupPlatformKeyUseCase
+import com.nunchuk.android.core.domain.PreviewGroupPlatformKeyPolicyUpdateUseCase
 import com.nunchuk.android.core.domain.RequestGroupPlatformKeyPolicyUpdateUseCase
 import com.nunchuk.android.core.domain.SetGroupPlatformKeyPoliciesUseCase
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.model.GroupDummyTransaction
 import com.nunchuk.android.model.GroupPlatformKeyPolicies
 import com.nunchuk.android.model.GroupPlatformKeyPolicy
 import com.nunchuk.android.model.GroupPlatformKeySignerPolicy
@@ -30,6 +32,7 @@ import kotlinx.coroutines.launch
 class FreeGroupKeyPoliciesViewModel @AssistedInject constructor(
     private val disableGroupPlatformKeyUseCase: DisableGroupPlatformKeyUseCase,
     private val setGroupPlatformKeyPoliciesUseCase: SetGroupPlatformKeyPoliciesUseCase,
+    private val previewGroupPlatformKeyPolicyUpdateUseCase: PreviewGroupPlatformKeyPolicyUpdateUseCase,
     private val requestGroupPlatformKeyPolicyUpdateUseCase: RequestGroupPlatformKeyPolicyUpdateUseCase,
     private val getGroupWalletConfigUseCase: GetGroupWalletConfigUseCase,
     private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
@@ -43,6 +46,7 @@ class FreeGroupKeyPoliciesViewModel @AssistedInject constructor(
         .mapNotNull { it.fingerPrint.takeIf(String::isNotEmpty) }
         .toSet()
     private var existingPoliciesByFingerprint: Map<String, GroupPlatformKeyPolicy> = emptyMap()
+    private var pendingPolicies: GroupPlatformKeyPolicies? = null
 
     private val _state = MutableStateFlow(FreeGroupKeyPoliciesUiState())
     val state = _state.asStateFlow()
@@ -161,31 +165,94 @@ class FreeGroupKeyPoliciesViewModel @AssistedInject constructor(
             _state.update { it.copy(isLoading = true) }
             val currentState = _state.value
             val policies = buildPolicies(currentState)
-            if (!isCreatingWallet) {
-                requestGroupPlatformKeyPolicyUpdateUseCase(
-                    RequestGroupPlatformKeyPolicyUpdateUseCase.Params(
-                        walletId = walletId,
-                        policies = policies,
+            if (isCreatingWallet) {
+                saveNewWalletPolicies(policies)
+            } else {
+                previewAndUpdatePolicies(policies)
+            }
+            _state.update { it.copy(isLoading = false) }
+        }
+    }
+
+    private suspend fun saveNewWalletPolicies(policies: GroupPlatformKeyPolicies) {
+        setGroupPlatformKeyPoliciesUseCase(
+            SetGroupPlatformKeyPoliciesUseCase.Params(
+                groupId = groupId,
+                policies = policies,
+            )
+        ).onSuccess { groupSandbox ->
+            updatePoliciesCache(_state.value, policies)
+            _state.update { it.copy(hasChanges = false) }
+            _event.emit(FreeGroupKeyPoliciesEvent.SaveSuccess(groupSandbox))
+        }.onFailure { error ->
+            _event.emit(FreeGroupKeyPoliciesEvent.Error(error.message.orUnknownError()))
+        }
+    }
+
+    private suspend fun previewAndUpdatePolicies(policies: GroupPlatformKeyPolicies) {
+        previewGroupPlatformKeyPolicyUpdateUseCase(
+            PreviewGroupPlatformKeyPolicyUpdateUseCase.Params(
+                walletId = walletId,
+                policies = policies,
+            )
+        ).onSuccess { requirement ->
+            pendingPolicies = policies
+            if (requirement.requiresDummyTransaction) {
+                _state.update {
+                    it.copy(
+                        previewWarning = PreviewWarning(
+                            requiresDummyTransaction = true,
+                            delayApplyInSeconds = requirement.delayApplyInSeconds,
+                        ),
                     )
-                ).onSuccess {
-                    updatePoliciesCache(currentState, policies)
-                    _event.emit(FreeGroupKeyPoliciesEvent.UpdatePolicySuccess)
-                }.onFailure { error ->
-                    _event.emit(FreeGroupKeyPoliciesEvent.Error(error.message.orUnknownError()))
                 }
             } else {
-                setGroupPlatformKeyPoliciesUseCase(
-                    SetGroupPlatformKeyPoliciesUseCase.Params(
-                        groupId = groupId,
-                        policies = policies,
+                requestUpdatePolicies(policies)
+            }
+        }.onFailure { error ->
+            _event.emit(FreeGroupKeyPoliciesEvent.Error(error.message.orUnknownError()))
+        }
+    }
+
+    private suspend fun requestUpdatePolicies(policies: GroupPlatformKeyPolicies) {
+        requestGroupPlatformKeyPolicyUpdateUseCase(
+            RequestGroupPlatformKeyPolicyUpdateUseCase.Params(
+                walletId = walletId,
+                policies = policies,
+            )
+        ).onSuccess {
+            updatePoliciesCache(_state.value, policies)
+            _event.emit(FreeGroupKeyPoliciesEvent.UpdatePolicySuccess)
+        }.onFailure { error ->
+            _event.emit(FreeGroupKeyPoliciesEvent.Error(error.message.orUnknownError()))
+        }
+    }
+
+    fun dismissPreviewWarning() {
+        _state.update { it.copy(previewWarning = null) }
+    }
+
+    fun confirmApplyChanges() {
+        val policies = pendingPolicies ?: return
+        _state.update { it.copy(previewWarning = null) }
+        viewModelScope.launch {
+            _state.update { it.copy(isLoading = true) }
+            requestGroupPlatformKeyPolicyUpdateUseCase(
+                RequestGroupPlatformKeyPolicyUpdateUseCase.Params(
+                    walletId = walletId,
+                    policies = policies,
+                )
+            ).onSuccess { requirement ->
+                updatePoliciesCache(_state.value, policies)
+                pendingPolicies = null
+                _event.emit(
+                    FreeGroupKeyPoliciesEvent.OpenWalletAuthentication(
+                        walletId = walletId,
+                        dummyTransaction = requirement.dummyTransaction,
                     )
-                ).onSuccess { groupSandbox ->
-                    updatePoliciesCache(currentState, policies)
-                    _state.update { it.copy(hasChanges = false) }
-                    _event.emit(FreeGroupKeyPoliciesEvent.SaveSuccess(groupSandbox))
-                }.onFailure { error ->
-                    _event.emit(FreeGroupKeyPoliciesEvent.Error(error.message.orUnknownError()))
-                }
+                )
+            }.onFailure { error ->
+                _event.emit(FreeGroupKeyPoliciesEvent.Error(error.message.orUnknownError()))
             }
             _state.update { it.copy(isLoading = false) }
         }
@@ -266,6 +333,12 @@ data class FreeGroupKeyPoliciesUiState(
     val policies: List<KeyPolicyItem> = listOf(KeyPolicyItem()),
     val hasChanges: Boolean = false,
     val isLoading: Boolean = false,
+    val previewWarning: PreviewWarning? = null,
+)
+
+data class PreviewWarning(
+    val requiresDummyTransaction: Boolean = false,
+    val delayApplyInSeconds: Int = 0,
 )
 
 data class KeyPolicyItem(
@@ -281,4 +354,8 @@ sealed class FreeGroupKeyPoliciesEvent {
     data class SaveSuccess(val groupSandbox: GroupSandbox) : FreeGroupKeyPoliciesEvent()
     data object UpdatePolicySuccess : FreeGroupKeyPoliciesEvent()
     data class Error(val message: String) : FreeGroupKeyPoliciesEvent()
+    data class OpenWalletAuthentication(
+        val walletId: String,
+        val dummyTransaction: GroupDummyTransaction?,
+    ) : FreeGroupKeyPoliciesEvent()
 }

@@ -50,6 +50,7 @@ import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.toReadableDrawableResId
 import com.nunchuk.android.main.R
+import com.nunchuk.android.model.GroupDummyTransaction
 import com.nunchuk.android.model.GroupPlatformKeyPolicies
 import com.nunchuk.android.model.GroupPlatformKeyPolicy
 import com.nunchuk.android.model.GroupSandbox
@@ -69,6 +70,7 @@ internal fun FreeGroupKeyPoliciesScreen(
     onBackClicked: () -> Unit = {},
     onSaveSuccess: (GroupSandbox) -> Unit = {},
     onUpdatePolicySuccess: () -> Unit = {},
+    onOpenWalletAuthentication: (walletId: String, dummyTransaction: GroupDummyTransaction?) -> Unit = { _, _ -> },
 ) {
     val viewModel =
         hiltViewModel<FreeGroupKeyPoliciesViewModel, FreeGroupKeyPoliciesViewModel.Factory> { factory ->
@@ -87,6 +89,9 @@ internal fun FreeGroupKeyPoliciesScreen(
                 is FreeGroupKeyPoliciesEvent.SaveSuccess -> onSaveSuccess(event.groupSandbox)
                 is FreeGroupKeyPoliciesEvent.UpdatePolicySuccess -> onUpdatePolicySuccess()
                 is FreeGroupKeyPoliciesEvent.Error -> {}
+                is FreeGroupKeyPoliciesEvent.OpenWalletAuthentication -> {
+                    onOpenWalletAuthentication(event.walletId, event.dummyTransaction)
+                }
             }
         }
     }
@@ -99,6 +104,8 @@ internal fun FreeGroupKeyPoliciesScreen(
         onUpdatePolicy = viewModel::updatePolicy,
         onApplyClicked = viewModel::applyChanges,
         onRemovePlatformKey = viewModel::disablePlatformKey,
+        onDismissPreviewWarning = viewModel::dismissPreviewWarning,
+        onConfirmApplyChanges = viewModel::confirmApplyChanges,
     )
 }
 
@@ -112,6 +119,8 @@ private fun FreeGroupKeyPoliciesContent(
     onUpdatePolicy: (KeyPolicyItem) -> Unit = {},
     onApplyClicked: () -> Unit = {},
     onRemovePlatformKey: () -> Unit = {},
+    onDismissPreviewWarning: () -> Unit = {},
+    onConfirmApplyChanges: () -> Unit = {},
 ) {
     var showPolicyTypeBottomSheet by rememberSaveable { mutableStateOf(false) }
     var editingPolicyKey by rememberSaveable { mutableStateOf("") }
@@ -242,6 +251,27 @@ private fun FreeGroupKeyPoliciesContent(
                     onRemovePlatformKey()
                 },
                 onDismiss = { showRemoveConfirmation = false },
+            )
+        }
+
+        if (state.previewWarning != null) {
+            val delaySeconds = state.previewWarning.delayApplyInSeconds
+            val message = if (delaySeconds > 0) {
+                val hours = delaySeconds / 3600
+                stringResource(
+                    R.string.nc_warning_dummy_transaction_with_delay,
+                    hours
+                )
+            } else {
+                stringResource(R.string.nc_warning_dummy_transaction)
+            }
+            NcConfirmationDialog(
+                title = stringResource(com.nunchuk.android.widget.R.string.nc_text_warning),
+                message = message,
+                positiveButtonText = stringResource(com.nunchuk.android.core.R.string.nc_sign),
+                negativeButtonText = stringResource(com.nunchuk.android.core.R.string.nc_cancel),
+                onPositiveClick = onConfirmApplyChanges,
+                onDismiss = onDismissPreviewWarning,
             )
         }
 

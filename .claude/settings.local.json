@@ -16,7 +16,16 @@
       "Bash(find /Users/mega_lh/MyProject/my-android -name NunchukNativeSdk*)",
       "Bash(find /Users/mega_lh -path */nunchuk*nativelib* -type d)",
       "Bash(find ~/.gradle/caches -name *.jar -path *nunchuk*nativelib*)",
-      "Bash(find /Users/mega_lh/MyProject -name NunchukNativeSdk*)"
+      "Bash(find /Users/mega_lh/MyProject -name NunchukNativeSdk*)",
+      "Bash(find /Users/mega_lh/MyProject/my-android -name \"*.kt\" -type f -exec grep -l \"class GroupPlatformKeyPolicies\\\\|data class GroupPlatformKeyPolicies\" {})",
+      "Bash(find /Users/mega_lh/MyProject/my-android -name \"*.kt\" -type f -exec grep -l \"data class GroupPlatformKeyPolicy\\\\|class GroupPlatformKeyPolicy\" {})",
+      "Bash(find /Users/mega_lh/MyProject/my-android -name \"*.kt\" -type f -exec grep -l \"GroupPlatformKeyPolicy\\\\|GroupPlatformKeyPolicies\\\\|GroupPlatformKeySignerPolicy\\\\|GroupPlatformKeyPolicyUpdateRequirement\" {})",
+      "Bash(ls -1 /Users/mega_lh/MyProject/my-android/nunchuk-domain/src/main/java/com/nunchuk/android/model/*.kt)",
+      "Bash(find /Users/mega_lh/MyProject/my-android -type f -name *.kt -not -path */build/* -exec grep -l \"GroupSpendingLimit\\\\|GroupPlatformKeyPolicy\" {})",
+      "Bash(2)",
+      "Bash(find /Users/mega_lh/MyProject/my-android -type f \\\\\\(-name *.jar -o -name *.aar \\\\\\))",
+      "Bash(find ~/.gradle/caches -type d -name *nunchuk*)",
+      "Bash(find ~/.gradle/caches -type f -name nativesdk*.aar)"
     ]
   }
 }
