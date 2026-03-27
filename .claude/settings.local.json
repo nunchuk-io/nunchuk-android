@@ -25,7 +25,17 @@
       "Bash(2)",
       "Bash(find /Users/mega_lh/MyProject/my-android -type f \\\\\\(-name *.jar -o -name *.aar \\\\\\))",
       "Bash(find ~/.gradle/caches -type d -name *nunchuk*)",
-      "Bash(find ~/.gradle/caches -type f -name nativesdk*.aar)"
+      "Bash(find ~/.gradle/caches -type f -name nativesdk*.aar)",
+      "Bash(find /Users/mega_lh/MyProject/my-android -path \"*build\" -prune -o -name \"*.kt\" -type f -exec grep -l \"data class GroupPlatformKeyPolicy\\\\|data class GroupSpendingLimit\" {})",
+      "Bash(find /Users/mega_lh/MyProject/my-android -type f -name GroupPlatformKeyPolicy*.kt -o -name GroupSpendingLimit*.kt -o -name GroupPlatformKeySignerPolicy*.kt)",
+      "Bash(find /Users/mega_lh/MyProject/my-android -type f -name *.kt -exec grep -l \"class GroupPlatformKeyPolicy\\\\|data class GroupPlatformKeyPolicy\\\\|class GroupPlatformKeyPolicies\\\\|data class GroupPlatformKeyPolicies\" {})",
+      "Bash(jar tf:*)",
+      "Bash(javap -p -cp classes.jar com.nunchuk.android.model.GroupDummyTransactionPlatformKeyPolicyData)",
+      "Bash(javap -p -cp classes.jar com.nunchuk.android.model.GroupPlatformKeyPolicies)",
+      "Bash(javap -p -cp classes.jar com.nunchuk.android.model.GroupPlatformKeyPolicy)",
+      "Bash(javap -p -cp classes.jar com.nunchuk.android.model.GroupPlatformKeySignerPolicy)",
+      "Bash(javap -p -cp classes.jar com.nunchuk.android.model.GroupSpendingLimit)",
+      "Bash(./gradlew :nunchuk-main:compileDebugKotlin :nunchuk-core:compileDebugKotlin :nunchuk-domain:compileDebugKotlin)"
     ]
   }
 }

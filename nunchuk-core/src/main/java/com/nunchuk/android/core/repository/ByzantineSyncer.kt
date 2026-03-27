@@ -258,9 +258,9 @@ internal class ByzantineSyncer @Inject constructor(
             createdTimeMillis = createdAt,
             status = "",
             type = when (type) {
-                GroupWalletAlertType.POLICY_CHANGE_IN_PROGRESS -> AlertType.UPDATE_SERVER_KEY
-                GroupWalletAlertType.POLICY_CHANGED -> AlertType.UPDATE_SERVER_KEY_SUCCESS
-                GroupWalletAlertType.REPLACE_WALLET -> AlertType.TRANSFER_FUNDS
+                GroupWalletAlertType.POLICY_CHANGE_IN_PROGRESS -> AlertType.GROUP_POLICY_CHANGE_IN_PROGRESS
+                GroupWalletAlertType.POLICY_CHANGED -> AlertType.GROUP_POLICY_CHANGED
+                GroupWalletAlertType.REPLACE_WALLET -> AlertType.GROUP_REPLACE_WALLET
                 else -> AlertType.NONE
             },
             payload = AlertPayload(

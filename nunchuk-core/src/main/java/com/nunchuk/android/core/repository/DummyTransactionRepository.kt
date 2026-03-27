@@ -255,7 +255,7 @@ internal class DummyTransactionRepositoryImpl @Inject constructor(
                 ),
                 pendingSignature = groupDummyTx.pendingSignatures,
                 dummyTransactionType = groupDummyTx.type.toDummyTransactionType,
-                payload = groupDummyTx.requestBody,
+                payload = gson.toJson(groupDummyTx.payload),
                 isDraft = false,
             )
         }.getOrElse {
@@ -310,7 +310,7 @@ internal class DummyTransactionRepositoryImpl @Inject constructor(
             pendingSignature = groupDummyTx.pendingSignatures,
             requiredSignature = groupDummyTx.requiredSignatures,
             dummyTransactionType = groupDummyTx.type.toDummyTransactionType,
-            payload = groupDummyTx.requestBody,
+            payload = gson.toJson(groupDummyTx.payload),
             requesterUserId = "",
         )
         dummyTransactionDao.insert(entity)

@@ -41,6 +41,7 @@ import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.core.util.showSuccess
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.groupwallet.FreeGroupWalletActivity
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningActivity
 import com.nunchuk.android.main.components.tabs.services.keyrecovery.KeyRecoverySuccessState
 import com.nunchuk.android.main.membership.MembershipActivity
@@ -553,6 +554,15 @@ class GroupDashboardFragment : BaseFragment<ViewBinding>(), BottomSheetOptionLis
                     dummyTransactionId = alert.payload.dummyTransactionId,
                 )
             }
+        } else if (alert.type == AlertType.GROUP_POLICY_CHANGE_IN_PROGRESS) {
+            val dummyTransactionId = alert.payload.dummyTransactionId
+            if (dummyTransactionId.isNotEmpty()) {
+                FreeGroupWalletActivity.startReviewKeyPolicies(
+                    context = requireActivity(),
+                    walletId = viewModel.getWalletId(),
+                    dummyTransactionId = dummyTransactionId,
+                )
+            }
         } else if (alert.type.isInheritanceType()) {
             navigator.openInheritancePlanningScreen(
                 launcher = inheritanceLauncher,
@@ -630,6 +640,14 @@ class GroupDashboardFragment : BaseFragment<ViewBinding>(), BottomSheetOptionLis
         } else if (alert.type == AlertType.SETUP_INHERITANCE_PLAN) {
             viewModel.getInheritance()
         } else if (alert.type == AlertType.TRANSFER_FUNDS) {
+            navigator.openRollOverWalletScreen(
+                activityContext = requireActivity(),
+                oldWalletId = viewModel.getWalletId(),
+                newWalletId = alert.payload.newWalletId,
+                startScreen = RollOverWalletFlow.REFUND,
+                source = RollOverWalletSource.REPLACE_KEY
+            )
+        } else if (alert.type == AlertType.GROUP_REPLACE_WALLET) {
             navigator.openRollOverWalletScreen(
                 activityContext = requireActivity(),
                 oldWalletId = viewModel.getWalletId(),

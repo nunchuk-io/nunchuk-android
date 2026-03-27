@@ -35,8 +35,10 @@ import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.groupwallet.join.CommonQRCodeActivity
 import com.nunchuk.android.main.groupwallet.keypolicies.FreeGroupKeyPoliciesRoute
+import com.nunchuk.android.main.groupwallet.keypolicies.ReviewGroupKeyPoliciesRoute
 import com.nunchuk.android.main.groupwallet.keypolicies.freeGroupKeyPolicies
 import com.nunchuk.android.main.groupwallet.keypolicies.navigateToFreeGroupKeyPolicies
+import com.nunchuk.android.main.groupwallet.keypolicies.reviewGroupKeyPolicies
 import com.nunchuk.android.main.groupwallet.recover.FreeGroupWalletRecoverRoute
 import com.nunchuk.android.main.groupwallet.recover.freeGroupWalletRecover
 import com.nunchuk.android.main.membership.signer.SignerIntroActivity
@@ -68,6 +70,8 @@ import timber.log.Timber
 class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomSheetListener {
 
     private val viewModel: FreeGroupWalletViewModel by viewModels()
+    private val walletId by lazy { intent.getStringExtra(EXTRA_WALLET_ID).orEmpty() }
+    private val dummyTransactionId by lazy { intent.getStringExtra(EXTRA_DUMMY_TRANSACTION_ID).orEmpty() }
     private val replaceWalletId by lazy { intent.getStringExtra(EXTRA_REPLACE_WALLET_ID).orEmpty() }
     private val filePath by lazy { intent.getStringExtra(EXTRA_FILE_PATH).orEmpty() }
     private val quickWalletParam by lazy { intent.parcelable<QuickWalletParam>(EXTRA_QUICK_WALLET_PARAM) }
@@ -154,12 +158,16 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
 
                     val startDestination: Any = when (actionType) {
                         FreeGroupActionType.RECOVER -> FreeGroupWalletRecoverRoute(
-                            walletId = intent.getStringExtra(EXTRA_WALLET_ID).orEmpty(),
+                            walletId = walletId,
                             filePath = filePath,
                             qrList = intent.getStringArrayListExtra(EXTRA_QR_LIST).orEmpty(),
                         )
                         FreeGroupActionType.KEY_POLICIES -> FreeGroupKeyPoliciesRoute(
-                            walletId = intent.getStringExtra(EXTRA_WALLET_ID),
+                            walletId = walletId.ifEmpty { null },
+                        )
+                        FreeGroupActionType.REVIEW_KEY_POLICIES -> ReviewGroupKeyPoliciesRoute(
+                            walletId = walletId,
+                            dummyTransactionId = dummyTransactionId,
                         )
                         FreeGroupActionType.NONE -> if (replaceWalletId.isEmpty()) {
                             FreeGroupWalletRoute
@@ -335,6 +343,21 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
                                 },
                             )
 
+                            reviewGroupKeyPolicies(
+                                onBackClicked = ::finish,
+                                onOpenWalletAuthentication = { walletId, dummyTransactionId ->
+                                    navigator.openWalletAuthentication(
+                                        walletId = walletId,
+                                        requiredSignatures = 0,
+                                        type = VerificationType.SIGN_DUMMY_TX,
+                                        activityContext = this@FreeGroupWalletActivity,
+                                        dummyTransactionId = dummyTransactionId,
+                                        signatureFlowType = SignatureFlowType.FREE_GROUP_WALLET,
+                                    )
+                                },
+                                onDiscardSuccess = ::finish,
+                            )
+
                             customKeyNavigation(
                                 viewModel = viewModel,
                                 onCustomIndexDone = viewModel::addSignerToGroup
@@ -477,6 +500,7 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
         const val EXTRA_QUICK_WALLET_PARAM = "quick_wallet_param"
         const val EXTRA_QR_LIST = "qr_list"
         const val EXTRA_ACTION_TYPE = "action_type"
+        const val EXTRA_DUMMY_TRANSACTION_ID = "dummy_transaction_id"
 
         /**
          * Start [FreeGroupWalletActivity] with [groupId] and [walletId]
@@ -524,6 +548,18 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
             context.startActivity(Intent(context, FreeGroupWalletActivity::class.java).apply {
                 putExtra(EXTRA_WALLET_ID, walletId)
                 putExtra(EXTRA_ACTION_TYPE, FreeGroupActionType.KEY_POLICIES)
+            })
+        }
+
+        fun startReviewKeyPolicies(
+            context: Context,
+            walletId: String,
+            dummyTransactionId: String,
+        ) {
+            context.startActivity(Intent(context, FreeGroupWalletActivity::class.java).apply {
+                putExtra(EXTRA_WALLET_ID, walletId)
+                putExtra(EXTRA_DUMMY_TRANSACTION_ID, dummyTransactionId)
+                putExtra(EXTRA_ACTION_TYPE, FreeGroupActionType.REVIEW_KEY_POLICIES)
             })
         }
     }

@@ -41,6 +41,9 @@ enum class AlertType {
     BACKUP_WALLET,
     KEY_TIMELOCK_UPDATE_PENDING,
     REPLACE_WALLET,
+    GROUP_POLICY_CHANGE_IN_PROGRESS,
+    GROUP_POLICY_CHANGED,
+    GROUP_REPLACE_WALLET,
 }
 
 fun String?.toAlertType() = AlertType.entries.find { it.name == this } ?: AlertType.NONE
