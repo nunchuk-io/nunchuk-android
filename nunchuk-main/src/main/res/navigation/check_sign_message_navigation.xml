@@ -63,9 +63,9 @@
             app:nullable="true" />
 
         <argument
-            android:name="is_sign_in_signature_flow"
-            app:argType="boolean"
-            android:defaultValue="false"/>
+            android:name="signature_flow_type"
+            app:argType="com.nunchuk.android.model.SignatureFlowType"
+            android:defaultValue="NONE" />
 
     </activity>
     <fragment

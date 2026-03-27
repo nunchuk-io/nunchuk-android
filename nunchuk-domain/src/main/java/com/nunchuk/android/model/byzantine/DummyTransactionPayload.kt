@@ -2,6 +2,7 @@ package com.nunchuk.android.model.byzantine
 
 import android.os.Parcelable
 import androidx.annotation.Keep
+import com.nunchuk.android.type.GroupDummyTransactionType
 import kotlinx.parcelize.Parcelize
 
 data class DummyTransactionPayload(
@@ -32,6 +33,7 @@ enum class DummyTransactionType : Parcelable {
     CREATE_RECURRING_PAYMENT,
     CANCEL_RECURRING_PAYMENT,
     CHANGE_EMAIL,
+    UPDATE_PLATFORM_KEY_POLICIES,
 }
 
 fun DummyTransactionType.isInheritanceFlow() =
@@ -39,3 +41,9 @@ fun DummyTransactionType.isInheritanceFlow() =
 
 val String?.toDummyTransactionType: DummyTransactionType
     get() = DummyTransactionType.values().find { it.name == this } ?: DummyTransactionType.NONE
+
+val GroupDummyTransactionType.toDummyTransactionType: DummyTransactionType
+    get() = when (this) {
+        GroupDummyTransactionType.UPDATE_PLATFORM_KEY_POLICIES -> DummyTransactionType.UPDATE_PLATFORM_KEY_POLICIES
+        else -> DummyTransactionType.NONE
+    }

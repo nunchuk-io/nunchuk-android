@@ -36,6 +36,7 @@ import com.nunchuk.android.model.GroupKeyPolicy
 import com.nunchuk.android.model.Inheritance
 import com.nunchuk.android.model.KeyPolicy
 import com.nunchuk.android.model.MembershipStage
+import com.nunchuk.android.model.SignatureFlowType
 import com.nunchuk.android.model.SigningPath
 import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.model.signer.SupportedSigner
@@ -128,7 +129,7 @@ interface AppNavigator {
         dummyTransactionId: String? = null,
         action: String? = null,
         newEmail: String? = null,
-        isSignInSignatureFlow: Boolean = false
+        signatureFlowType: SignatureFlowType = SignatureFlowType.NONE
     )
 
     fun openGroupDashboardScreen(

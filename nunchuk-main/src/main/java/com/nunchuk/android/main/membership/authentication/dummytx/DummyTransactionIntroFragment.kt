@@ -67,6 +67,7 @@ import com.nunchuk.android.main.membership.authentication.WalletAuthenticationAc
 import com.nunchuk.android.main.membership.authentication.WalletAuthenticationEvent
 import com.nunchuk.android.main.membership.authentication.WalletAuthenticationViewModel
 import com.nunchuk.android.model.Amount
+import com.nunchuk.android.model.SignatureFlowType
 import com.nunchuk.android.model.byzantine.DummyTransactionType
 import com.nunchuk.android.share.result.GlobalResultKey
 import dagger.hilt.android.AndroidEntryPoint
@@ -87,7 +88,7 @@ class DummyTransactionIntroFragment : Fragment() {
             setContent {
                 val uiState by activityViewModel.state.collectAsStateWithLifecycle()
                 val isGroup = !args.groupId.isNullOrEmpty()
-                val isSignInFlow = args.isSignInSignatureFlow
+                val isSignInFlow = args.signatureFlowType == SignatureFlowType.SIGN_IN
                 DummyTransactionIntroContent(
                     isGroup = isGroup,
                     isSignInFlow = isSignInFlow,

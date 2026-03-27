@@ -47,6 +47,7 @@ import com.nunchuk.android.core.util.CardIdManager
 import com.nunchuk.android.core.util.isNoInternetException
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.main.R
+import com.nunchuk.android.model.SignatureFlowType
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.VerificationType
@@ -61,10 +62,13 @@ import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.usecase.GetMasterSignerUseCase
 import com.nunchuk.android.usecase.GetSignInDummyTransactionUseCase
 import com.nunchuk.android.usecase.SendSignerPassphraseUseCase
+import com.nunchuk.android.usecase.byzantine.CancelFreeGroupDummyTransactionUseCase
 import com.nunchuk.android.usecase.byzantine.DeleteGroupDummyTransactionUseCase
 import com.nunchuk.android.usecase.byzantine.FinalizeDummyTransactionUseCase
 import com.nunchuk.android.usecase.byzantine.GetDummyTxRequestTokenUseCase
+import com.nunchuk.android.usecase.byzantine.GetFreeGroupDummyTransactionUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupDummyTransactionUseCase
+import com.nunchuk.android.usecase.byzantine.SignFreeGroupDummyTransactionUseCase
 import com.nunchuk.android.usecase.byzantine.SyncGroupWalletUseCase
 import com.nunchuk.android.usecase.byzantine.UpdateDummyTransactionSignInUseCase
 import com.nunchuk.android.usecase.byzantine.UpdateGroupDummyTransactionUseCase
@@ -111,6 +115,9 @@ class WalletAuthenticationViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     private val deleteGroupDummyTransactionUseCase: DeleteGroupDummyTransactionUseCase,
     private val getDummyTxRequestTokenUseCase: GetDummyTxRequestTokenUseCase,
+    private val getFreeGroupDummyTransactionUseCase: GetFreeGroupDummyTransactionUseCase,
+    private val signFreeGroupDummyTransactionUseCase: SignFreeGroupDummyTransactionUseCase,
+    private val cancelFreeGroupDummyTransactionUseCase: CancelFreeGroupDummyTransactionUseCase,
     private val networkStatusFlowUseCase: NetworkStatusFlowUseCase,
     private val application: Application,
     private val syncGroupWalletUseCase: SyncGroupWalletUseCase,
@@ -123,6 +130,9 @@ class WalletAuthenticationViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val args = WalletAuthenticationActivityArgs.fromSavedStateHandle(savedStateHandle)
+    private val isSignInSignatureFlow: Boolean = args.signatureFlowType == SignatureFlowType.SIGN_IN
+    private val isFreeGroupWalletFlow: Boolean =
+        args.signatureFlowType == SignatureFlowType.FREE_GROUP_WALLET
 
     private val _event = MutableSharedFlow<WalletAuthenticationEvent>()
     val event = _event.asSharedFlow()
@@ -139,115 +149,159 @@ class WalletAuthenticationViewModel @Inject constructor(
         }
         viewModelScope.launch {
             _event.emit(WalletAuthenticationEvent.Loading(true))
-            if (args.isSignInSignatureFlow) {
-                if (!args.dummyTransactionId.isNullOrEmpty()) {
-                    getSignInDummyTransactionUseCase(
-                        GetSignInDummyTransactionUseCase.Param(args.userData)
-                    ).onSuccess { signInDummyTransaction ->
-                        dataToSign.value = signInDummyTransaction.psbt
-                        val signerModels = signInDummyTransaction.signerServers.map { it.toModel(0) }
-                            .distinctBy { it.fingerPrint }
-                        _state.update {
-                            it.copy(
-                                pendingSignature = signInDummyTransaction.pendingSignature,
-                                walletSigner = signerModels,
-                                singleSigners = signerModels.map { it.toSingleSigner() },
-                                signatures = signInDummyTransaction.signatures.associate { it.xfp to it.signature },
-                            )
-                        }
-                        loadPsbtForSignIn(signInDummyTransaction.psbt)
-                    }.onFailure {
-                        _event.emit(WalletAuthenticationEvent.ShowError(it.message.orUnknownError()))
-                        return@launch
-                    }
-                }
-            } else {
-                if (!args.dummyTransactionId.isNullOrEmpty()) {
-                    getGroupDummyTransactionUseCase(
-                        GetGroupDummyTransactionUseCase.Param(
-                            groupId = args.groupId.orEmpty(),
-                            walletId = args.walletId,
-                            transactionId = args.dummyTransactionId
-                        )
-                    ).onSuccess { dummyTransaction ->
-                        dataToSign.value = dummyTransaction.psbt
-                        _state.update {
-                            it.copy(
-                                pendingSignature = dummyTransaction.pendingSignature,
-                                dummyTransactionType = dummyTransaction.dummyTransactionType,
-                                isDraft = dummyTransaction.isDraft
-                            )
-                        }
-                        if (dummyTransaction.dummyTransactionType == DummyTransactionType.HEALTH_CHECK_PENDING
-                            || dummyTransaction.dummyTransactionType == DummyTransactionType.HEALTH_CHECK_REQUEST
-                        ) {
-                            parsePendingHealthCheckPayloadUseCase(dummyTransaction)
-                                .onSuccess { payload ->
-                                    _state.update {
-                                        it.copy(enabledSigners = setOf(payload.keyXfp.orEmpty()))
-                                    }
-                                }
-                        }
-                        loadPsbt()
-                    }.onFailure {
-                        _event.emit(WalletAuthenticationEvent.ShowError(it.message.orUnknownError()))
-                        return@launch
-                    }
-                } else if (args.type == VerificationType.SIGN_DUMMY_TX) {
-                    getTxToSignMessage(GetTxToSignMessage.Param(args.walletId, args.userData))
-                        .onSuccess { psbt ->
-                            dataToSign.value = psbt
-                            loadPsbt()
-                        }.onFailure {
-                            _event.emit(WalletAuthenticationEvent.ShowError(it.message.orUnknownError()))
-                        }
-                }
+            when {
+                isSignInSignatureFlow -> loadSignInDummyTransaction()
+                isFreeGroupWalletFlow -> loadFreeGroupDummyTransaction()
+                else -> loadAssistedDummyTransaction()
             }
             _event.emit(WalletAuthenticationEvent.Loading(false))
         }
-        if (!args.dummyTransactionId.isNullOrEmpty() && !args.isSignInSignatureFlow) {
-            viewModelScope.launch {
-                networkStatusFlowUseCase(Unit).map { it.getOrThrow() }.collect { isConnected ->
-                    if (isConnected) {
-                        uploadSignaturesFromLocalIfNeeded()
-                    }
+        observeNetworkForPendingSignatures()
+    }
+
+    private suspend fun loadSignInDummyTransaction() {
+        if (args.dummyTransactionId.isNullOrEmpty()) return
+        getSignInDummyTransactionUseCase(
+            GetSignInDummyTransactionUseCase.Param(args.userData)
+        ).onSuccess { signInDummyTransaction ->
+            dataToSign.value = signInDummyTransaction.psbt
+            val signerModels =
+                signInDummyTransaction.signerServers.map { it.toModel(0) }
+                    .distinctBy { it.fingerPrint }
+            _state.update {
+                it.copy(
+                    pendingSignature = signInDummyTransaction.pendingSignature,
+                    walletSigner = signerModels,
+                    singleSigners = signerModels.map { it.toSingleSigner() },
+                    signatures = signInDummyTransaction.signatures.associate { it.xfp to it.signature },
+                )
+            }
+            loadPsbtForSignIn(signInDummyTransaction.psbt)
+        }.onFailure {
+            _event.emit(WalletAuthenticationEvent.ShowError(it.message.orUnknownError()))
+        }
+    }
+
+    private suspend fun loadFreeGroupDummyTransaction() {
+        if (args.dummyTransactionId.isNullOrEmpty()) return
+        getFreeGroupDummyTransactionUseCase(
+            GetFreeGroupDummyTransactionUseCase.Param(
+                walletId = args.walletId,
+                dummyTransactionId = args.dummyTransactionId
+            )
+        ).onSuccess { dummyTransaction ->
+            dataToSign.value = dummyTransaction.psbt
+            _state.update {
+                it.copy(
+                    pendingSignature = dummyTransaction.pendingSignature,
+                    dummyTransactionType = dummyTransaction.dummyTransactionType,
+                    isDraft = dummyTransaction.isDraft
+                )
+            }
+            loadPsbt()
+        }.onFailure {
+            _event.emit(WalletAuthenticationEvent.ShowError(it.message.orUnknownError()))
+        }
+    }
+
+    private suspend fun loadAssistedDummyTransaction() {
+        if (!args.dummyTransactionId.isNullOrEmpty()) {
+            getGroupDummyTransactionUseCase(
+                GetGroupDummyTransactionUseCase.Param(
+                    groupId = args.groupId.orEmpty(),
+                    walletId = args.walletId,
+                    transactionId = args.dummyTransactionId
+                )
+            ).onSuccess { dummyTransaction ->
+                dataToSign.value = dummyTransaction.psbt
+                _state.update {
+                    it.copy(
+                        pendingSignature = dummyTransaction.pendingSignature,
+                        dummyTransactionType = dummyTransaction.dummyTransactionType,
+                        isDraft = dummyTransaction.isDraft
+                    )
+                }
+                if (dummyTransaction.dummyTransactionType == DummyTransactionType.HEALTH_CHECK_PENDING
+                    || dummyTransaction.dummyTransactionType == DummyTransactionType.HEALTH_CHECK_REQUEST
+                ) {
+                    parsePendingHealthCheckPayloadUseCase(dummyTransaction)
+                        .onSuccess { payload ->
+                            _state.update {
+                                it.copy(enabledSigners = setOf(payload.keyXfp.orEmpty()))
+                            }
+                        }
+                }
+                loadPsbt()
+            }.onFailure {
+                _event.emit(WalletAuthenticationEvent.ShowError(it.message.orUnknownError()))
+            }
+        } else if (args.type == VerificationType.SIGN_DUMMY_TX) {
+            getTxToSignMessage(GetTxToSignMessage.Param(args.walletId, args.userData))
+                .onSuccess { psbt ->
+                    dataToSign.value = psbt
+                    loadPsbt()
+                }.onFailure {
+                    _event.emit(WalletAuthenticationEvent.ShowError(it.message.orUnknownError()))
+                }
+        }
+    }
+
+    private fun observeNetworkForPendingSignatures() {
+        if (args.dummyTransactionId.isNullOrEmpty() || isSignInSignatureFlow) return
+        viewModelScope.launch {
+            networkStatusFlowUseCase(Unit).map { it.getOrThrow() }.collect { isConnected ->
+                if (isConnected) {
+                    uploadSignaturesFromLocalIfNeeded()
                 }
             }
         }
     }
 
     fun uploadSignaturesFromLocalIfNeeded(isShowMessage: Boolean = false) {
-        if (!args.dummyTransactionId.isNullOrEmpty()) {
-            viewModelScope.launch {
-                getDummyTxRequestTokenUseCase(
-                    GetDummyTxRequestTokenUseCase.Param(
-                        walletId = args.walletId,
-                        transactionId = args.dummyTransactionId
-                    )
-                ).onSuccess { tokens ->
-                    val signatures = _state.value.signatures.toMutableMap()
-                    tokens.filter { it.value }.forEach {
-                        val (xfp, token) = it.key.split(".")
-                        signatures[xfp] = token
-                    }
-                    tokens.filter { it.value.not() }.forEach {
-                        val (xfp, token) = it.key.split(".")
-                        uploadSignature(xfp, token, signatures).onSuccess {
-                            signatures[xfp] = token
-                        }.onFailure { e ->
-                            if (isShowMessage) {
-                                if (e.isNoInternetException) {
-                                    _event.emit(WalletAuthenticationEvent.NoInternetConnectionForceSync)
-                                } else {
-                                    _event.emit(WalletAuthenticationEvent.ShowError(e.message.orUnknownError()))
-                                }
-                            }
-                        }
-                    }
-                    if (isShowMessage) {
-                        _event.emit(WalletAuthenticationEvent.ForceSyncSuccess(signatures.size == tokens.size))
-                    }
-                    _state.update { it.copy(signatures = signatures) }
+        if (args.dummyTransactionId.isNullOrEmpty()) return
+        viewModelScope.launch {
+            getDummyTxRequestTokenUseCase(
+                GetDummyTxRequestTokenUseCase.Param(
+                    walletId = args.walletId,
+                    transactionId = args.dummyTransactionId
+                )
+            ).onSuccess { tokens ->
+                val signatures = _state.value.signatures.toMutableMap()
+                tokens.filter { it.value }.forEach {
+                    val (xfp, token) = it.key.split(".")
+                    signatures[xfp] = token
+                }
+                tokens.filter { it.value.not() }.forEach {
+                    val (xfp, token) = it.key.split(".")
+                    retrySyncSignature(xfp, token, signatures, isShowMessage)
+                }
+                if (isShowMessage) {
+                    _event.emit(WalletAuthenticationEvent.ForceSyncSuccess(signatures.size == tokens.size))
+                }
+                _state.update { it.copy(signatures = signatures) }
+            }
+        }
+    }
+
+    private suspend fun retrySyncSignature(
+        xfp: String,
+        token: String,
+        signatures: MutableMap<String, String>,
+        isShowMessage: Boolean,
+    ) {
+        val uploadResult = if (isFreeGroupWalletFlow) {
+            uploadSignatureFreeGroup(xfp, token, signatures)
+        } else {
+            uploadSignature(xfp, token, signatures)
+        }
+        uploadResult.onSuccess {
+            signatures[xfp] = token
+        }.onFailure { e ->
+            if (isShowMessage) {
+                if (!isFreeGroupWalletFlow && e.isNoInternetException) {
+                    _event.emit(WalletAuthenticationEvent.NoInternetConnectionForceSync)
+                } else {
+                    _event.emit(WalletAuthenticationEvent.ShowError(e.message.orUnknownError()))
                 }
             }
         }
@@ -376,7 +430,7 @@ class WalletAuthenticationViewModel @Inject constructor(
         cvc: String,
     ) = viewModelScope.launch {
         _event.emit(WalletAuthenticationEvent.NfcLoading(isLoading = true, isColdCard = false))
-        val result = if (args.isSignInSignatureFlow) {
+        val result = if (isSignInSignatureFlow) {
             checkSignMessageTapsignerSignInUseCase(
                 CheckSignMessageTapsignerSignInUseCase.Param(
                     isoDep = IsoDep.get(ncfScanInfo?.tag),
@@ -402,7 +456,7 @@ class WalletAuthenticationViewModel @Inject constructor(
     fun handleImportAirgapTransaction(transaction: Transaction) {
         viewModelScope.launch {
             val signatures = _state.value.signatures
-            if (args.isSignInSignatureFlow) {
+            if (isSignInSignatureFlow) {
                 val validSignatures = _state.value.walletSigner.filter {
                     transaction.signers[it.id] == true
                             && signatures.contains(it.id).not()
@@ -519,32 +573,53 @@ class WalletAuthenticationViewModel @Inject constructor(
                 return
             }
             signatures[singleSigner.masterFingerprint] = signature
-            if (args.isSignInSignatureFlow) {
-                uploadSignatureForSignIn(singleSigner.masterFingerprint, signature, signatures)
-            } else if (!args.dummyTransactionId.isNullOrEmpty()) {
-                uploadSignature(singleSigner.masterFingerprint, signature, signatures)
-                    .onSuccess {
-                        val status = _state.value.transactionStatus
-                        if (status != TransactionStatus.CONFIRMED) {
-                            _event.emit(WalletAuthenticationEvent.UploadSignatureSuccess(status))
-                        }
-                    }.onFailure {
-                        if (it.isNoInternetException) {
-                            _event.emit(WalletAuthenticationEvent.NoInternetConnectionToSign)
-                        } else {
-                            _event.emit(WalletAuthenticationEvent.ShowError(it.message.orUnknownError()))
-                        }
+            when {
+                isSignInSignatureFlow -> {
+                    uploadSignatureForSignIn(singleSigner.masterFingerprint, signature, signatures)
+                }
+                !args.dummyTransactionId.isNullOrEmpty() -> {
+                    uploadAndHandleSignatureResult(singleSigner.masterFingerprint, signature, signatures)
+                }
+                else -> {
+                    if (signatures.size == args.requiredSignatures) {
+                        _event.emit(WalletAuthenticationEvent.SignDummyTxSuccess(signatures))
+                    } else {
+                        _state.update { it.copy(signatures = signatures) }
                     }
-            } else {
-                if (signatures.size == args.requiredSignatures) {
-                    _event.emit(WalletAuthenticationEvent.SignDummyTxSuccess(signatures))
-                } else {
-                    _state.update { it.copy(signatures = signatures) }
                 }
             }
         } else {
-            _event.emit(WalletAuthenticationEvent.SignFailed(singleSigner, result.exceptionOrNull()))
+            _event.emit(
+                WalletAuthenticationEvent.SignFailed(
+                    singleSigner,
+                    result.exceptionOrNull()
+                )
+            )
             _event.emit(WalletAuthenticationEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
+        }
+    }
+
+    private suspend fun uploadAndHandleSignatureResult(
+        masterFingerprint: String,
+        signature: String,
+        signatures: MutableMap<String, String>,
+    ) {
+        val uploadResult = if (isFreeGroupWalletFlow) {
+            uploadSignatureFreeGroup(masterFingerprint, signature, signatures)
+        } else {
+            uploadSignature(masterFingerprint, signature, signatures)
+        }
+        uploadResult.onSuccess {
+            val status = _state.value.transactionStatus
+            if (status != TransactionStatus.CONFIRMED) {
+                _event.emit(WalletAuthenticationEvent.UploadSignatureSuccess(status))
+            }
+        }.onFailure {
+            if (!isFreeGroupWalletFlow && it.isNoInternetException) {
+                _event.emit(WalletAuthenticationEvent.NoInternetConnectionToSign)
+            } else {
+                _event.emit(WalletAuthenticationEvent.ShowError(it.message.orUnknownError()))
+            }
         }
     }
 
@@ -574,6 +649,31 @@ class WalletAuthenticationViewModel @Inject constructor(
                         syncGroupWalletUseCase(args.groupId.orEmpty())
                     }
                 }
+                _event.emit(WalletAuthenticationEvent.SignDummyTxSuccess())
+            }
+        }
+    }
+
+    private suspend fun uploadSignatureFreeGroup(
+        masterFingerprint: String,
+        signature: String,
+        signatures: MutableMap<String, String>,
+    ): Result<DummyTransactionUpdate> {
+        return signFreeGroupDummyTransactionUseCase(
+            SignFreeGroupDummyTransactionUseCase.Param(
+                walletId = args.walletId,
+                dummyTransactionId = args.dummyTransactionId.orEmpty(),
+                signatures = mapOf(masterFingerprint to signature)
+            )
+        ).onSuccess { updateInfo ->
+            _state.update {
+                it.copy(
+                    signatures = signatures,
+                    pendingSignature = updateInfo.pendingSignatures,
+                    transactionStatus = updateInfo.status
+                )
+            }
+            if (updateInfo.status == TransactionStatus.CONFIRMED) {
                 _event.emit(WalletAuthenticationEvent.SignDummyTxSuccess())
             }
         }
@@ -627,7 +727,12 @@ class WalletAuthenticationViewModel @Inject constructor(
                     )
                 )
             } else {
-                _event.emit(WalletAuthenticationEvent.ShowError(result.exceptionOrNull()?.message ?: resultInit.exceptionOrNull()?.message.orUnknownError()))
+                _event.emit(
+                    WalletAuthenticationEvent.ShowError(
+                        result.exceptionOrNull()?.message
+                            ?: resultInit.exceptionOrNull()?.message.orUnknownError()
+                    )
+                )
             }
         }
     }
@@ -644,7 +749,7 @@ class WalletAuthenticationViewModel @Inject constructor(
     fun getWalletId() = args.walletId
 
     private fun getWalletDetails() {
-        if (args.isSignInSignatureFlow) {
+        if (isSignInSignatureFlow) {
             return
         }
         viewModelScope.launch {
@@ -677,7 +782,7 @@ class WalletAuthenticationViewModel @Inject constructor(
     fun finalizeDummyTransaction(isGoBack: Boolean) {
         val isDraft = state.value.isDraft
         viewModelScope.launch {
-            if (isDraft.not()) {
+            if (isDraft.not() || isFreeGroupWalletFlow) {
                 _event.emit(WalletAuthenticationEvent.FinalizeDummyTxSuccess(isGoBack))
                 return@launch
             }
@@ -702,13 +807,22 @@ class WalletAuthenticationViewModel @Inject constructor(
         viewModelScope.launch(NonCancellable) {
             val isDraft = state.value.isDraft
             if (!args.dummyTransactionId.isNullOrEmpty() && isDraft) {
-                deleteGroupDummyTransactionUseCase(
-                    DeleteGroupDummyTransactionUseCase.Param(
-                        groupId = args.groupId.orEmpty(),
-                        walletId = args.walletId,
-                        transactionId = args.dummyTransactionId.orEmpty()
+                if (isFreeGroupWalletFlow) {
+                    cancelFreeGroupDummyTransactionUseCase(
+                        CancelFreeGroupDummyTransactionUseCase.Param(
+                            walletId = args.walletId,
+                            dummyTransactionId = args.dummyTransactionId.orEmpty()
+                        )
                     )
-                )
+                } else {
+                    deleteGroupDummyTransactionUseCase(
+                        DeleteGroupDummyTransactionUseCase.Param(
+                            groupId = args.groupId.orEmpty(),
+                            walletId = args.walletId,
+                            transactionId = args.dummyTransactionId.orEmpty()
+                        )
+                    )
+                }
             }
         }
     }
@@ -748,7 +862,7 @@ class WalletAuthenticationViewModel @Inject constructor(
             DummyTransactionType.UPDATE_SERVER_KEY -> application.getString(R.string.nc_policy_updated)
             DummyTransactionType.HEALTH_CHECK_PENDING,
             DummyTransactionType.HEALTH_CHECK_REQUEST,
-            -> application.getString(
+                -> application.getString(
                 R.string.nc_txt_run_health_check_success_event,
                 getInteractSingleSigner()?.name.orEmpty()
             )

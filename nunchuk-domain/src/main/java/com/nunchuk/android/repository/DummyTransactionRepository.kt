@@ -51,4 +51,20 @@ interface DummyTransactionRepository {
     suspend fun getSignInDummyTransaction(
         data: String,
     ): SignInDummyTransaction
+
+    suspend fun getFreeGroupDummyTransaction(
+        walletId: String,
+        dummyTransactionId: String,
+    ): DummyTransaction
+
+    suspend fun signFreeGroupDummyTransaction(
+        walletId: String,
+        dummyTransactionId: String,
+        signatures: Map<String, String>,
+    ): DummyTransactionUpdate
+
+    suspend fun cancelFreeGroupDummyTransaction(
+        walletId: String,
+        dummyTransactionId: String,
+    )
 }

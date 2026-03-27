@@ -7,6 +7,7 @@ import com.nunchuk.android.core.data.model.membership.toModel
 import com.nunchuk.android.core.manager.UserWalletApiManager
 import com.nunchuk.android.core.mapper.toModel
 import com.nunchuk.android.model.DummyTransaction
+import com.nunchuk.android.model.GroupDummyTransaction
 import com.nunchuk.android.model.SignInDummyTransaction
 import com.nunchuk.android.model.byzantine.DummyTransactionPayload
 import com.nunchuk.android.model.byzantine.DummyTransactionUpdate
@@ -16,6 +17,7 @@ import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.persistence.dao.DummyTransactionDao
 import com.nunchuk.android.persistence.entity.DummyTransactionEntity
 import com.nunchuk.android.repository.DummyTransactionRepository
+import com.nunchuk.android.type.GroupDummyTransactionStatus
 import com.nunchuk.android.type.TransactionStatus
 import javax.inject.Inject
 
@@ -142,7 +144,7 @@ internal class DummyTransactionRepositoryImpl @Inject constructor(
             )
         }
         return DummyTransactionUpdate(
-            TransactionStatus.values().find { it.name == response.data.dummyTransaction?.status }
+            TransactionStatus.entries.find { it.name == response.data.dummyTransaction?.status }
                 ?: TransactionStatus.PENDING_SIGNATURES,
             response.data.dummyTransaction?.pendingSignatures ?: 0,
         )
@@ -166,7 +168,7 @@ internal class DummyTransactionRepositoryImpl @Inject constructor(
             status = TransactionStatus.entries.find { it.name == response.data.dummyTransaction?.status }
                 ?: TransactionStatus.PENDING_SIGNATURES,
             pendingSignatures = response.data.dummyTransaction?.pendingSignatures ?: 0,
-            tokenId =  response.data.token?.tokenId.orEmpty(),
+            tokenId = response.data.token?.tokenId.orEmpty(),
             userId = response.data.token?.userId.orEmpty(),
             deviceId = response.data.token?.deviceId.orEmpty(),
         )
@@ -231,9 +233,87 @@ internal class DummyTransactionRepositoryImpl @Inject constructor(
             pendingSignature = dummyTransaction.pendingSignatures,
             requiredSignatures = dummyTransaction.requiredSignatures,
             dummyTransactionId = dummyTransaction.id.orEmpty(),
-            signerServers = response.data.walletDto?.signerServerDtos?.map { it.toModel() } ?: emptyList(),
+            signerServers = response.data.walletDto?.signerServerDtos?.map { it.toModel() }
+                ?: emptyList(),
             signatures = dummyTransaction.signatures.map { it.toModel() }
         )
+    }
+
+    override suspend fun getFreeGroupDummyTransaction(
+        walletId: String,
+        dummyTransactionId: String,
+    ): DummyTransaction {
+        return runCatching {
+            val groupDummyTx =
+                nunchukNativeSdk.getGroupDummyTransaction(walletId, dummyTransactionId)
+            nunchukNativeSdk.importGroupDummyTx(groupDummyTx)
+            saveFreeGroupDummyTransactionEntity(walletId, groupDummyTx)
+            DummyTransaction(
+                psbt = nunchukNativeSdk.getHealthCheckDummyTxMessage(
+                    walletId,
+                    groupDummyTx.requestBody
+                ),
+                pendingSignature = groupDummyTx.pendingSignatures,
+                dummyTransactionType = groupDummyTx.type.toDummyTransactionType,
+                payload = groupDummyTx.requestBody,
+                isDraft = false,
+            )
+        }.getOrElse {
+            val entity = dummyTransactionDao.getById(dummyTransactionId)
+            DummyTransaction(
+                psbt = nunchukNativeSdk.getHealthCheckDummyTxMessage(walletId, entity.payload),
+                pendingSignature = entity.pendingSignature,
+                dummyTransactionType = entity.dummyTransactionType,
+                payload = entity.payload,
+                isDraft = false,
+            )
+        }
+    }
+
+    override suspend fun signFreeGroupDummyTransaction(
+        walletId: String,
+        dummyTransactionId: String,
+        signatures: Map<String, String>,
+    ): DummyTransactionUpdate {
+        var result: DummyTransactionUpdate? = null
+        signatures.forEach { (masterFingerprint, signature) ->
+            val requestToken = nunchukNativeSdk.createRequestToken(signature, masterFingerprint)
+            nunchukNativeSdk.saveDummyTxRequestToken(walletId, dummyTransactionId, requestToken)
+            val groupDummyTx = nunchukNativeSdk.signGroupDummyTransaction(
+                walletId, dummyTransactionId, requestToken
+            )
+            result = DummyTransactionUpdate(
+                status = when (groupDummyTx.status) {
+                    GroupDummyTransactionStatus.CONFIRMED -> TransactionStatus.CONFIRMED
+                    else -> TransactionStatus.PENDING_SIGNATURES
+                },
+                pendingSignatures = groupDummyTx.pendingSignatures,
+            )
+        }
+        return result ?: throw IllegalStateException("No signatures provided")
+    }
+
+    override suspend fun cancelFreeGroupDummyTransaction(
+        walletId: String,
+        dummyTransactionId: String,
+    ) {
+        nunchukNativeSdk.cancelGroupDummyTransaction(walletId, dummyTransactionId)
+    }
+
+    private suspend fun saveFreeGroupDummyTransactionEntity(
+        walletId: String,
+        groupDummyTx: GroupDummyTransaction,
+    ) {
+        val entity = DummyTransactionEntity(
+            id = groupDummyTx.id,
+            walletId = walletId,
+            pendingSignature = groupDummyTx.pendingSignatures,
+            requiredSignature = groupDummyTx.requiredSignatures,
+            dummyTransactionType = groupDummyTx.type.toDummyTransactionType,
+            payload = groupDummyTx.requestBody,
+            requesterUserId = "",
+        )
+        dummyTransactionDao.insert(entity)
     }
 
     private suspend fun saveDummyTransactionEntity(

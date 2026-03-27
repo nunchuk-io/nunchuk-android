@@ -63,6 +63,7 @@ import com.nunchuk.android.model.Inheritance
 import com.nunchuk.android.model.KeyPolicy
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.MembershipStep
+import com.nunchuk.android.model.SignatureFlowType
 import com.nunchuk.android.model.SigningPath
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.model.byzantine.GroupWalletType
@@ -423,7 +424,7 @@ interface AppNavigatorDelegate : AppNavigator {
         dummyTransactionId: String?,
         action: String?,
         newEmail: String?,
-        isSignInSignatureFlow: Boolean
+        signatureFlowType: SignatureFlowType
     ) {
         WalletAuthenticationActivity.start(
             walletId = walletId,
@@ -436,7 +437,7 @@ interface AppNavigatorDelegate : AppNavigator {
             dummyTransactionId = dummyTransactionId,
             action = action,
             newEmail = newEmail,
-            isSignInSignatureFlow = isSignInSignatureFlow
+            signatureFlowType = signatureFlowType
         )
     }
 

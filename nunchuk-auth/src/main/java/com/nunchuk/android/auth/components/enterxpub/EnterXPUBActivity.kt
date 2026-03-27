@@ -36,6 +36,7 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.R
 import com.nunchuk.android.core.base.BaseComposeActivity
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.model.SignatureFlowType
 import com.nunchuk.android.model.VerificationType
 import com.nunchuk.android.widget.NCToastMessage
 import dagger.hilt.android.AndroidEntryPoint
@@ -74,7 +75,7 @@ class EnterXPUBActivity : BaseComposeActivity() {
                         groupId = "",
                         dummyTransactionId = event.dummyTransactionId,
                         userData = event.signInData,
-                        isSignInSignatureFlow = true
+                        signatureFlowType = SignatureFlowType.SIGN_IN
                     )
                 }
             }

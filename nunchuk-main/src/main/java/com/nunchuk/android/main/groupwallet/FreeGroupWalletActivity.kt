@@ -43,6 +43,7 @@ import com.nunchuk.android.main.membership.signer.SignerIntroActivity
 import com.nunchuk.android.main.membership.wallet.createWalletSuccessScreen
 import com.nunchuk.android.main.membership.wallet.navigateCreateWalletSuccessScreen
 import com.nunchuk.android.model.GroupSandbox
+import com.nunchuk.android.model.SignatureFlowType
 import com.nunchuk.android.model.VerificationType
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.signer.SupportedSigner
@@ -329,6 +330,7 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
                                         type = VerificationType.SIGN_DUMMY_TX,
                                         activityContext = this@FreeGroupWalletActivity,
                                         dummyTransactionId = dummyTransaction?.id,
+                                        signatureFlowType = SignatureFlowType.FREE_GROUP_WALLET,
                                     )
                                 },
                             )

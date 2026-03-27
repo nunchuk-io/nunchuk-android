@@ -31,6 +31,7 @@ import com.nunchuk.android.core.nfc.BasePortalActivity
 import com.nunchuk.android.core.nfc.PortalDeviceEvent
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.main.R
+import com.nunchuk.android.model.SignatureFlowType
 import com.nunchuk.android.model.VerificationType
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.databinding.ActivityNavigationBinding
@@ -97,7 +98,7 @@ class WalletAuthenticationActivity : BasePortalActivity<ActivityNavigationBindin
             dummyTransactionId: String? = null,
             action: String? = null,
             newEmail: String? = null,
-            isSignInSignatureFlow: Boolean = false
+            signatureFlowType: SignatureFlowType = SignatureFlowType.NONE
         ) {
             val intent = Intent(activityContext, WalletAuthenticationActivity::class.java).apply {
                 putExtras(
@@ -110,7 +111,7 @@ class WalletAuthenticationActivity : BasePortalActivity<ActivityNavigationBindin
                         dummyTransactionId = dummyTransactionId,
                         action = action,
                         newEmail = newEmail,
-                        isSignInSignatureFlow = isSignInSignatureFlow
+                        signatureFlowType = signatureFlowType
                     ).toBundle()
                 )
             }
