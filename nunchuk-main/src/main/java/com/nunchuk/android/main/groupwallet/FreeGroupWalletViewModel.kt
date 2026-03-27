@@ -131,7 +131,7 @@ class FreeGroupWalletViewModel @Inject constructor(
         listenGroupSandbox()
         listenGroupOnline()
         listenGroupDelete()
-        if (replaceWalletId.isEmpty() && actionType != FreeGroupActionType.RECOVER && actionType != FreeGroupActionType.KEY_POLICIES) {
+        if (replaceWalletId.isEmpty() && actionType == FreeGroupActionType.NONE) {
             if (groupId.isEmpty()) {
                 createGroupSandbox()
             } else {
@@ -1259,7 +1259,8 @@ class FreeGroupWalletViewModel @Inject constructor(
                             val newPath =
                                 getPath(nonConflictingIndex, _uiState.value.isTestNet, isMultisig)
 
-                            Timber.tag("miniscript-feature").d("addMasterSignerToRelatedKeysInGroup: TapSigner caching needed for key=$key at index $nonConflictingIndex, path=$newPath")
+                            Timber.tag("miniscript-feature")
+                                .d("addMasterSignerToRelatedKeysInGroup: TapSigner caching needed for key=$key at index $nonConflictingIndex, path=$newPath")
 
                             // Store the pending state for resuming after caching
                             val pendingState = PendingAddSignerState(
@@ -1437,7 +1438,7 @@ class FreeGroupWalletViewModel @Inject constructor(
                                     }
                                     foundNonConflictingSigner = null
                                     // Return early since we're going into caching mode
-                                   break
+                                    break
                                 }
 
                                 Timber.tag("miniscript-feature")
@@ -1545,34 +1546,42 @@ class FreeGroupWalletViewModel @Inject constructor(
             // Distinguish between related keys pattern and single key based on keyName
             if (isKeyPatternXY(pendingState.keyName)) {
                 // For key_x_y pattern with master signers, use related keys logic
-                Timber.tag("miniscript-feature").d("resumeAddSignerProcess: Resuming related keys process for keyName=${pendingState.keyName}")
+                Timber.tag("miniscript-feature")
+                    .d("resumeAddSignerProcess: Resuming related keys process for keyName=${pendingState.keyName}")
                 addMasterSignerToRelatedKeysInGroup(
                     pendingState.signerModel,
                     pendingState.keyName
                 )
             } else {
                 // For single keys or non-master signers, use single key logic
-                Timber.tag("miniscript-feature").d("resumeAddSignerProcess: Resuming single key process for keyName=${pendingState.keyName}")
-                
+                Timber.tag("miniscript-feature")
+                    .d("resumeAddSignerProcess: Resuming single key process for keyName=${pendingState.keyName}")
+
                 // Get the signer at the cached index and add it directly
-                    getSignerFromMasterSignerByIndexUseCase(
-                        GetSignerFromMasterSignerByIndexUseCase.Param(
-                            masterSignerId = pendingState.signerModel.fingerPrint,
-                            index = pendingState.currentIndex,
-                            walletType = WalletType.MULTI_SIG,
-                            addressType = _uiState.value.group?.addressType ?: AddressType.TAPROOT
+                getSignerFromMasterSignerByIndexUseCase(
+                    GetSignerFromMasterSignerByIndexUseCase.Param(
+                        masterSignerId = pendingState.signerModel.fingerPrint,
+                        index = pendingState.currentIndex,
+                        walletType = WalletType.MULTI_SIG,
+                        addressType = _uiState.value.group?.addressType ?: AddressType.TAPROOT
+                    )
+                ).onSuccess { singleSigner ->
+                    singleSigner?.let {
+                        addSignerToGroupWithKeyName(
+                            it,
+                            pendingState.keyName,
+                            skipConflictCheck = true
                         )
-                    ).onSuccess { singleSigner ->
-                        singleSigner?.let { 
-                            addSignerToGroupWithKeyName(it, pendingState.keyName, skipConflictCheck = true)
-                        } ?: run {
-                            Timber.tag("miniscript-feature").e("resumeAddSignerProcess: No signer found at cached index ${pendingState.currentIndex}")
-                            _uiState.update { it.copy(errorMessage = "No signer found at cached index") }
-                        }
-                    }.onFailure { error ->
-                        Timber.tag("miniscript-feature").e("resumeAddSignerProcess: Failed to get signer at cached index: $error")
-                        _uiState.update { it.copy(errorMessage = error.message.orUnknownError()) }
+                    } ?: run {
+                        Timber.tag("miniscript-feature")
+                            .e("resumeAddSignerProcess: No signer found at cached index ${pendingState.currentIndex}")
+                        _uiState.update { it.copy(errorMessage = "No signer found at cached index") }
                     }
+                }.onFailure { error ->
+                    Timber.tag("miniscript-feature")
+                        .e("resumeAddSignerProcess: Failed to get signer at cached index: $error")
+                    _uiState.update { it.copy(errorMessage = error.message.orUnknownError()) }
+                }
             }
         }
     }
