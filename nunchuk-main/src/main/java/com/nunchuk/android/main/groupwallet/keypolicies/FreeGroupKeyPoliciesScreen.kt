@@ -223,7 +223,9 @@ private fun FreeGroupKeyPoliciesContent(
             PolicyTypeBottomSheet(
                 onSelected = { type ->
                     showPolicyTypeBottomSheet = false
-                    onChangePolicyType(type)
+                    if (type != state.policyType) {
+                        onChangePolicyType(type)
+                    }
                 },
                 onDismiss = { showPolicyTypeBottomSheet = false },
             )

@@ -128,9 +128,6 @@ class FreeGroupKeyPoliciesViewModel @AssistedInject constructor(
 
     fun changePolicyType(type: PolicyType) {
         _state.update { state ->
-            if (state.policyType == type) {
-                return@update state
-            }
             val policies = when (type) {
                 PolicyType.GLOBAL -> listOf(KeyPolicyItem())
                 PolicyType.PER_KEY -> state.signers.map {
