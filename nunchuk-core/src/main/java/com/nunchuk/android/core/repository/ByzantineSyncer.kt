@@ -255,7 +255,7 @@ internal class ByzantineSyncer @Inject constructor(
             viewable = viewable,
             title = title,
             body = body,
-            createdTimeMillis = createdAt,
+            createdTimeMillis = createdAt.times(1000L),
             status = "",
             type = when (type) {
                 GroupWalletAlertType.POLICY_CHANGE_IN_PROGRESS -> AlertType.GROUP_POLICY_CHANGE_IN_PROGRESS
