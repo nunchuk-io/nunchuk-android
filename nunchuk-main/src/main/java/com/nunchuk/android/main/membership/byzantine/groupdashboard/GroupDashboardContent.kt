@@ -95,6 +95,7 @@ fun GroupDashboardContent(
     onWalletClick: () -> Unit = {},
     onDismissClick: (String) -> Unit = {},
     onOpenHealthCheckScreen: () -> Unit = {},
+    onFreeGroupChatClick: () -> Unit = {},
     refresh: () -> Unit = { },
 ) {
     val state = rememberPullRefreshState(isRefreshing, refresh)
@@ -158,7 +159,24 @@ fun GroupDashboardContent(
                     })
             },
             floatingActionButton = {
-                if (isKeyholderLimited.not() && uiState.groupId.isNotEmpty()) {
+                if (uiState.isFreeGroupWallet) {
+                    AnimatedVisibility(
+                        visible = fabVisibility,
+                        enter = scaleIn() + fadeIn(),
+                        exit = scaleOut() + fadeOut()
+                    ) {
+                        FloatingActionButton(
+                            shape = CircleShape,
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            onClick = onFreeGroupChatClick
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_messages),
+                                contentDescription = "Chat"
+                            )
+                        }
+                    }
+                } else if (isKeyholderLimited.not() && uiState.groupId.isNotEmpty()) {
                     AnimatedVisibility(
                         visible = fabVisibility,
                         enter = scaleIn() + fadeIn(),
@@ -172,7 +190,7 @@ fun GroupDashboardContent(
                             ) {
                                 Icon(
                                     painter = painterResource(id = R.drawable.ic_messages),
-                                    contentDescription = "Search"
+                                    contentDescription = "Chat"
                                 )
                             }
                         } else {

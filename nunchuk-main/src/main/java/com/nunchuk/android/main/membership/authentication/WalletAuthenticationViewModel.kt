@@ -88,6 +88,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 
@@ -577,9 +578,15 @@ class WalletAuthenticationViewModel @Inject constructor(
                 isSignInSignatureFlow -> {
                     uploadSignatureForSignIn(singleSigner.masterFingerprint, signature, signatures)
                 }
+
                 !args.dummyTransactionId.isNullOrEmpty() -> {
-                    uploadAndHandleSignatureResult(singleSigner.masterFingerprint, signature, signatures)
+                    uploadAndHandleSignatureResult(
+                        singleSigner.masterFingerprint,
+                        signature,
+                        signatures
+                    )
                 }
+
                 else -> {
                     if (signatures.size == args.requiredSignatures) {
                         _event.emit(WalletAuthenticationEvent.SignDummyTxSuccess(signatures))
@@ -804,24 +811,26 @@ class WalletAuthenticationViewModel @Inject constructor(
     }
 
     fun deleteDummyTransaction() {
-        viewModelScope.launch(NonCancellable) {
-            val isDraft = state.value.isDraft
-            if (!args.dummyTransactionId.isNullOrEmpty() && isDraft) {
-                if (isFreeGroupWalletFlow) {
-                    cancelFreeGroupDummyTransactionUseCase(
-                        CancelFreeGroupDummyTransactionUseCase.Param(
-                            walletId = args.walletId,
-                            dummyTransactionId = args.dummyTransactionId.orEmpty()
+        viewModelScope.launch {
+            withContext(NonCancellable) {
+                val isDraft = state.value.isDraft
+                if (!args.dummyTransactionId.isNullOrEmpty() && isDraft) {
+                    if (isFreeGroupWalletFlow) {
+                        cancelFreeGroupDummyTransactionUseCase(
+                            CancelFreeGroupDummyTransactionUseCase.Param(
+                                walletId = args.walletId,
+                                dummyTransactionId = args.dummyTransactionId.orEmpty()
+                            )
                         )
-                    )
-                } else {
-                    deleteGroupDummyTransactionUseCase(
-                        DeleteGroupDummyTransactionUseCase.Param(
-                            groupId = args.groupId.orEmpty(),
-                            walletId = args.walletId,
-                            transactionId = args.dummyTransactionId.orEmpty()
+                    } else {
+                        deleteGroupDummyTransactionUseCase(
+                            DeleteGroupDummyTransactionUseCase.Param(
+                                groupId = args.groupId.orEmpty(),
+                                walletId = args.walletId,
+                                transactionId = args.dummyTransactionId
+                            )
                         )
-                    )
+                    }
                 }
             }
         }

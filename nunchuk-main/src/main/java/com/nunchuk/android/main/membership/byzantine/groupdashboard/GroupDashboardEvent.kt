@@ -52,4 +52,5 @@ data class GroupDashboardState(
     val isShowHealthCheckReminderIntro: Boolean = false,
     val walletStatus: String = "",
     val personalWalletType: GroupWalletType? = null,
+    val isFreeGroupWallet: Boolean = false,
 )

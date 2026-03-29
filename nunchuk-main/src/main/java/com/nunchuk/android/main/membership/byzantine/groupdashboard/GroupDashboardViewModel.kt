@@ -135,7 +135,7 @@ class GroupDashboardViewModel @Inject constructor(
     private val _event = MutableSharedFlow<GroupDashboardEvent>()
     val event = _event.asSharedFlow()
 
-    private val _state = MutableStateFlow(GroupDashboardState(groupId = getGroupId()))
+    private val _state = MutableStateFlow(GroupDashboardState(groupId = getGroupId(), isFreeGroupWallet = args.isFreeGroupWallet))
     val state = _state.asStateFlow()
 
     private var timeline: Timeline? = null

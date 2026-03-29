@@ -6,8 +6,9 @@ import com.nunchuk.android.core.domain.DisableGroupPlatformKeyUseCase
 import com.nunchuk.android.core.domain.PreviewGroupPlatformKeyPolicyUpdateUseCase
 import com.nunchuk.android.core.domain.RequestGroupPlatformKeyPolicyUpdateUseCase
 import com.nunchuk.android.core.domain.SetGroupPlatformKeyPoliciesUseCase
+import com.nunchuk.android.core.mapper.SingleSignerMapper
 import com.nunchuk.android.core.signer.SignerModel
-import com.nunchuk.android.core.signer.toModel
+import com.nunchuk.android.core.util.isPlatformKey
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.GroupDummyTransaction
 import com.nunchuk.android.model.GroupPlatformKeyPolicies
@@ -40,6 +41,7 @@ class FreeGroupKeyPoliciesViewModel @AssistedInject constructor(
     @Assisted("walletId") private val walletId: String,
     @Assisted private val allSigners: List<SignerModel>,
     @Assisted private val platformKeyPolicies: GroupPlatformKeyPolicies?,
+    private val singleSignerMapper: SingleSignerMapper,
 ) : ViewModel() {
 
     private var allSignerFingerprints: Set<String> = allSigners
@@ -69,8 +71,8 @@ class FreeGroupKeyPoliciesViewModel @AssistedInject constructor(
             _state.update { it.copy(isLoading = true) }
             val walletSigners = getWalletDetail2UseCase(walletId).getOrNull()
                 ?.signers
-                ?.map { it.toModel() }
-                ?.filter { it.type != SignerType.PLATFORM }
+                ?.filter { !it.type.isPlatformKey }
+                ?.map { singleSignerMapper(it) }
                 .orEmpty()
 
             val config = getGroupWalletConfigUseCase(walletId).getOrNull()

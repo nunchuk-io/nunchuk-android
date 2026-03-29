@@ -4,13 +4,14 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
+import com.nunchuk.android.core.mapper.SingleSignerMapper
 import com.nunchuk.android.core.signer.SignerModel
-import com.nunchuk.android.core.signer.toModel
+import com.nunchuk.android.core.util.isPlatformKey
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.GroupDummyTransactionPlatformKeyPolicyData
 import com.nunchuk.android.model.GroupPlatformKeyPolicies
 import com.nunchuk.android.model.byzantine.DummyTransactionType
-import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.usecase.byzantine.CancelFreeGroupDummyTransactionUseCase
 import com.nunchuk.android.usecase.byzantine.GetFreeGroupDummyTransactionUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -27,6 +28,8 @@ class ReviewGroupKeyPoliciesViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val getFreeGroupDummyTransactionUseCase: GetFreeGroupDummyTransactionUseCase,
     private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
+    private val cancelFreeGroupDummyTransactionUseCase: CancelFreeGroupDummyTransactionUseCase,
+    private val singleSignerMapper: SingleSignerMapper,
     private val gson: Gson,
 ) : ViewModel() {
 
@@ -49,8 +52,8 @@ class ReviewGroupKeyPoliciesViewModel @Inject constructor(
             // Load wallet details for name and signers
             getWalletDetail2UseCase(args.walletId).onSuccess { wallet ->
                 val signers = wallet.signers
-                    .map { it.toModel() }
-                    .filter { it.type != SignerType.PLATFORM }
+                    .filter { !it.type.isPlatformKey }
+                    .map { singleSignerMapper(it) }
                 _state.update {
                     it.copy(
                         walletName = wallet.name,
@@ -154,9 +157,24 @@ class ReviewGroupKeyPoliciesViewModel @Inject constructor(
         }
     }
 
-    fun onDiscardClick() {
+    fun onConfirmDiscard() {
         viewModelScope.launch {
-            _event.emit(ReviewGroupKeyPoliciesEvent.ConfirmDiscard)
+            if (args.dummyTransactionId.isEmpty()) {
+                _event.emit(ReviewGroupKeyPoliciesEvent.ConfirmDiscard)
+                return@launch
+            }
+            _state.update { it.copy(isLoading = true) }
+            cancelFreeGroupDummyTransactionUseCase(
+                CancelFreeGroupDummyTransactionUseCase.Param(
+                    walletId = args.walletId,
+                    dummyTransactionId = args.dummyTransactionId,
+                )
+            ).onSuccess {
+                _event.emit(ReviewGroupKeyPoliciesEvent.ConfirmDiscard)
+            }.onFailure {
+                _event.emit(ReviewGroupKeyPoliciesEvent.Error(it.message.orUnknownError()))
+            }
+            _state.update { it.copy(isLoading = false) }
         }
     }
 }

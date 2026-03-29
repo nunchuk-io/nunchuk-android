@@ -41,9 +41,9 @@ import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.core.util.showSuccess
 import com.nunchuk.android.main.R
-import com.nunchuk.android.main.groupwallet.FreeGroupWalletActivity
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningActivity
 import com.nunchuk.android.main.components.tabs.services.keyrecovery.KeyRecoverySuccessState
+import com.nunchuk.android.main.groupwallet.FreeGroupWalletActivity
 import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.main.membership.byzantine.ByzantineMemberFlow
 import com.nunchuk.android.main.membership.byzantine.groupdashboard.action.AlertActionIntroFragment
@@ -239,6 +239,14 @@ class GroupDashboardFragment : BaseFragment<ViewBinding>(), BottomSheetOptionLis
                     },
                     onOpenHealthCheckScreen = {
                         openHealthCheckScreen()
+                    },
+                    onFreeGroupChatClick = {
+                        args.walletId?.let { walletId ->
+                            navigator.openGroupChatScreen(
+                                activityContext = requireActivity(),
+                                walletId = walletId,
+                            )
+                        }
                     },
                 )
             }
@@ -895,6 +903,7 @@ private fun GroupDashboardScreen(
     onGroupChatClick: () -> Unit = {},
     onMoreClick: () -> Unit = {},
     onOpenHealthCheckScreen: () -> Unit,
+    onFreeGroupChatClick: () -> Unit = {},
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     GroupDashboardContent(
@@ -911,7 +920,8 @@ private fun GroupDashboardScreen(
         },
         onGroupChatClick = onGroupChatClick,
         onMoreClick = onMoreClick,
-        onOpenHealthCheckScreen = onOpenHealthCheckScreen
+        onOpenHealthCheckScreen = onOpenHealthCheckScreen,
+        onFreeGroupChatClick = onFreeGroupChatClick,
     )
 }
 

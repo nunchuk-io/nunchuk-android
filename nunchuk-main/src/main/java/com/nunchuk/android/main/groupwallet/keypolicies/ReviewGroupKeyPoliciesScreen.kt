@@ -20,6 +20,9 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -34,6 +37,7 @@ import com.nunchuk.android.compose.NcCircleImage
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.dialog.NcConfirmationDialog
 import com.nunchuk.android.compose.dialog.NcLoadingDialog
 import com.nunchuk.android.compose.greyLight
 import com.nunchuk.android.compose.strokePrimary
@@ -76,7 +80,7 @@ internal fun ReviewGroupKeyPoliciesScreen(
         state = state,
         onBackClicked = onBackClicked,
         onContinueClicked = viewModel::onContinueClick,
-        onDiscardClicked = viewModel::onDiscardClick,
+        onConfirmDiscard = viewModel::onConfirmDiscard,
     )
 }
 
@@ -85,9 +89,10 @@ private fun ReviewGroupKeyPoliciesContent(
     state: ReviewGroupKeyPoliciesUiState = ReviewGroupKeyPoliciesUiState(),
     onBackClicked: () -> Unit = {},
     onContinueClicked: () -> Unit = {},
-    onDiscardClicked: () -> Unit = {},
+    onConfirmDiscard: () -> Unit = {},
 ) {
     val isGlobalMode = state.policyType == PolicyType.GLOBAL
+    var showDiscardConfirmation by rememberSaveable { mutableStateOf(false) }
 
     NunchukTheme {
         androidx.compose.material3.Scaffold(
@@ -117,7 +122,7 @@ private fun ReviewGroupKeyPoliciesContent(
                     }
                     TextButton(
                         modifier = Modifier.fillMaxWidth(),
-                        onClick = onDiscardClicked,
+                        onClick = { showDiscardConfirmation = true },
                     ) {
                         Text(
                             text = stringResource(com.nunchuk.android.core.R.string.nc_discard_changes),
@@ -158,6 +163,18 @@ private fun ReviewGroupKeyPoliciesContent(
                     Spacer(modifier = Modifier.height(16.dp))
                 }
             }
+        }
+
+        if (showDiscardConfirmation) {
+            NcConfirmationDialog(
+                title = stringResource(com.nunchuk.android.core.R.string.nc_confirmation),
+                message = stringResource(com.nunchuk.android.core.R.string.nc_are_you_sure_discard_the_change),
+                onPositiveClick = {
+                    showDiscardConfirmation = false
+                    onConfirmDiscard()
+                },
+                onDismiss = { showDiscardConfirmation = false },
+            )
         }
 
         if (state.isLoading) {
