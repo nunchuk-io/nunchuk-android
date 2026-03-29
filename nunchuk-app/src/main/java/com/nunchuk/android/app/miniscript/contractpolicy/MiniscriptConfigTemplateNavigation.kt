@@ -706,7 +706,7 @@ fun AbsoluteCard(
                         style = NunchukTheme.typography.body
                     )
                 },
-                text = "$m-of-$n ${if (n == 1 && m == 1) "singlesig." else "multisig."}",
+                text = if (n == 1 && m == 1) "singlesig." else "$m-of-$n multisig.",
                 onClick = {
                     onEditingInitialPolicyChange(true)
                     onShowEditPolicyBottomSheetChange(true)
@@ -728,12 +728,12 @@ fun AbsoluteCard(
                         TextChipLineContent(
                             contentBeginning = {
                                 Text(
-                                    text = "${if (n == 1 && m == 1) "$m‑of‑$n singlesig" else "$m‑of‑$n multisig"} OR a ",
+                                    text = "${if (n == 1 && m == 1) "singlesig" else "$m‑of‑$n multisig"} OR a ",
                                     style = NunchukTheme.typography.body
                                 )
                             },
                             modifier = chipModifier,
-                            text = "$newM-of-$newN ${if (newN == 1 && newM == 1) " singlesig." else " multisig."}",
+                            text = if (newN == 1 && newM == 1) "singlesig." else "$newM-of-$newN multisig.",
                             onClick = {
                                 onEditingInitialPolicyChange(false)
                                 onShowEditPolicyBottomSheetChange(true)
@@ -745,7 +745,7 @@ fun AbsoluteCard(
                         TextChipLineContent(
                             contentBeginning = {
                                 Text(
-                                    text = "${if (n == 1 && m == 1) "$m‑of‑$n singlesig" else "$m‑of‑$n multisig"} OR a $m of ",
+                                    text = "${if (n == 1 && m == 1) "singlesig" else "$m‑of‑$n multisig"} OR a $m of ",
                                     style = NunchukTheme.typography.body
                                 )
                             },
@@ -768,7 +768,7 @@ fun AbsoluteCard(
                         TextChipLineContent(
                             contentBeginning = {
                                 Text(
-                                    text = "${if (n == 1 && m == 1) "$m‑of‑$n singlesig" else "$m‑of‑$n multisig"} OR a ",
+                                    text = "${if (n == 1 && m == 1) "singlesig" else "$m‑of‑$n multisig"} OR a ",
                                     style = NunchukTheme.typography.body
                                 )
                             },
@@ -776,7 +776,7 @@ fun AbsoluteCard(
                             text = "$newM",
                             contentEnd = {
                                 Text(
-                                    text = if (newM == 1 && n == 1) " of-$n-singlesig." else " of-$n-multisig.",
+                                    text = if (newM == 1 && n == 1) "-of-$n singlesig." else "-of-$n multisig.",
                                     style = NunchukTheme.typography.body
                                 )
                             },
@@ -910,7 +910,7 @@ fun RelativeCard(
                     )
                 },
                 modifier = chipModifier,
-                text = "$m-of-$n ${if (n == 1 && m == 1) "singlesig." else "multisig."}",
+                text = if (n == 1 && m == 1) "singlesig." else "$m-of-$n multisig.",
                 onClick = {
                     onEditingInitialPolicyChange(true)
                     onShowEditPolicyBottomSheetChange(true)
@@ -927,7 +927,7 @@ fun RelativeCard(
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                "either the same ${if (n == 1 && m == 1) "$m-of-$n singlesig" else "$m-of-$n multisig"} OR a ",
+                "either the same ${if (n == 1 && m == 1) "singlesig" else "$m-of-$n multisig"} OR a ",
                 style = NunchukTheme.typography.body
             )
 
@@ -938,7 +938,7 @@ fun RelativeCard(
                     MultisignType.FLEXIBLE -> {
                         TextChipLineContent(
                             modifier = chipModifier,
-                            text = "$newM-of-$newN ${if (newN == 1 && newM == 1) " singlesig." else " multisig."}",
+                            text = if (newN == 1 && newM == 1) "singlesig." else "$newM-of-$newN multisig.",
                             onClick = {
                                 onEditingInitialPolicyChange(false)
                                 onShowEditPolicyBottomSheetChange(true)
@@ -975,7 +975,7 @@ fun RelativeCard(
                             text = "$newM",
                             contentEnd = {
                                 Text(
-                                    text = if (newM == 1 && n == 1) " of-$n-singlesig." else " of-$n-multisig.",
+                                    text = if (newM == 1 && n == 1) "-of-$n singlesig." else "-of-$n multisig.",
                                     style = NunchukTheme.typography.body
                                 )
                             },
