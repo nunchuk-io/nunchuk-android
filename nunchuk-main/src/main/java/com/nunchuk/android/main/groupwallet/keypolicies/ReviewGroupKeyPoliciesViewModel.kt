@@ -8,7 +8,7 @@ import com.nunchuk.android.core.mapper.SingleSignerMapper
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.isPlatformKey
 import com.nunchuk.android.core.util.orUnknownError
-import com.nunchuk.android.model.GroupDummyTransactionPlatformKeyPolicyData
+import com.nunchuk.android.model.GroupDummyTransactionPayload
 import com.nunchuk.android.model.GroupPlatformKeyPolicies
 import com.nunchuk.android.model.byzantine.DummyTransactionType
 import com.nunchuk.android.usecase.byzantine.CancelFreeGroupDummyTransactionUseCase
@@ -89,7 +89,7 @@ class ReviewGroupKeyPoliciesViewModel @Inject constructor(
 
     private fun parsePlatformKeyPolicyPayload(payload: String) {
         val policyData = runCatching {
-            gson.fromJson(payload, GroupDummyTransactionPlatformKeyPolicyData::class.java)
+            gson.fromJson(payload, GroupDummyTransactionPayload::class.java)
         }.getOrNull() ?: return
 
         val newPolicies = policyData.newPolicies
