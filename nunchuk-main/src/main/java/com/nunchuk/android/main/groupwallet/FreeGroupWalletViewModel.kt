@@ -6,6 +6,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.EnableGroupPlatformKeyUseCase
+import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.domain.GetGroupDeviceUIDUseCase
 import com.nunchuk.android.core.domain.HasSignerUseCase
 import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
@@ -612,6 +613,9 @@ class FreeGroupWalletViewModel @Inject constructor(
                 )
             ).onSuccess { groupSandbox ->
                 updateGroupSandbox(groupSandbox)
+                NcToastManager.scheduleShowMessage(
+                    application.getString(R.string.nc_new_platform_key_added)
+                )
             }.onFailure { error ->
                 _uiState.update { it.copy(errorMessage = error.message.orUnknownError()) }
             }

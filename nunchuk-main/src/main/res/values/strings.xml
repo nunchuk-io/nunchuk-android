@@ -535,6 +535,8 @@
     <string name="nc_inheritance_notify_pref_on_chain_desc">Would you like us to notify the Beneficiary or Trustee about the inheritance plan?</string>
     <string name="nc_view_wallet">View wallet</string>
     <string name="nc_platform_key_policies">Platform key policies</string>
+    <string name="nc_new_platform_key_added">New platform key added.</string>
+    <string name="nc_platform_key_policies_saved">Platform key policies saved.</string>
     <string name="nc_global_policy">Global policy</string>
     <string name="nc_global_policy_desc">Apply the same spending limit and delay settings to all transactions.</string>
     <string name="nc_global_policy_sheet_desc">Apply the same spending limit and delay settings to all keys.</string>

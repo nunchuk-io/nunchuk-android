@@ -1,11 +1,13 @@
 package com.nunchuk.android.main.groupwallet.keypolicies
 
+import android.app.Application
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.DisableGroupPlatformKeyUseCase
 import com.nunchuk.android.core.domain.PreviewGroupPlatformKeyPolicyUpdateUseCase
 import com.nunchuk.android.core.domain.RequestGroupPlatformKeyPolicyUpdateUseCase
 import com.nunchuk.android.core.domain.SetGroupPlatformKeyPoliciesUseCase
+import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.mapper.SingleSignerMapper
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.isPlatformKey
@@ -15,6 +17,7 @@ import com.nunchuk.android.model.GroupPlatformKeyPolicies
 import com.nunchuk.android.model.GroupPlatformKeyPolicy
 import com.nunchuk.android.model.GroupPlatformKeySignerPolicy
 import com.nunchuk.android.model.GroupSandbox
+import com.nunchuk.android.main.R
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.GetGroupWalletConfigUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
@@ -42,6 +45,7 @@ class FreeGroupKeyPoliciesViewModel @AssistedInject constructor(
     @Assisted private val allSigners: List<SignerModel>,
     @Assisted private val platformKeyPolicies: GroupPlatformKeyPolicies?,
     private val singleSignerMapper: SingleSignerMapper,
+    private val application: Application,
 ) : ViewModel() {
 
     private var allSignerFingerprints: Set<String> = allSigners
@@ -185,6 +189,9 @@ class FreeGroupKeyPoliciesViewModel @AssistedInject constructor(
         ).onSuccess { groupSandbox ->
             updatePoliciesCache(_state.value, policies)
             _state.update { it.copy(hasChanges = false) }
+            NcToastManager.scheduleShowMessage(
+                application.getString(R.string.nc_platform_key_policies_saved)
+            )
             _event.emit(FreeGroupKeyPoliciesEvent.SaveSuccess(groupSandbox))
         }.onFailure { error ->
             _event.emit(FreeGroupKeyPoliciesEvent.Error(error.message.orUnknownError()))
