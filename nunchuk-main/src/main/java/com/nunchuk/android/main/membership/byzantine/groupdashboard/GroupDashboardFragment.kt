@@ -723,7 +723,14 @@ class GroupDashboardFragment : BaseFragment<ViewBinding>(), BottomSheetOptionLis
             }
 
             SheetOptionType.TYPE_REPLACE_KEY -> {
-                enterPasswordDialog(TargetAction.REPLACE_KEYS)
+                if (args.isFreeGroupWallet) {
+                    navigator.openFreeGroupWalletScreen(
+                        activityContext = requireActivity(),
+                        walletId = args.walletId,
+                    )
+                } else {
+                    enterPasswordDialog(TargetAction.REPLACE_KEYS)
+                }
             }
         }
     }
