@@ -64,6 +64,7 @@ import com.nunchuk.android.main.membership.authentication.WalletAuthenticationAc
 import com.nunchuk.android.main.membership.authentication.WalletAuthenticationEvent
 import com.nunchuk.android.main.membership.authentication.WalletAuthenticationViewModel
 import com.nunchuk.android.model.MembershipStage
+import com.nunchuk.android.model.SignatureFlowType
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.byzantine.DummyTransactionType
@@ -341,7 +342,8 @@ class DummyTransactionDetailsFragment : BaseShareSaveFileFragment<ViewBinding>()
             activityContext = requireActivity(),
             groupId = args.groupId.orEmpty(),
             walletId = args.walletId,
-            message = message
+            message = message,
+            isFreeGroupWallet = args.signatureFlowType == SignatureFlowType.FREE_GROUP_WALLET
         )
         ActivityManager.popUntilRoot()
     }

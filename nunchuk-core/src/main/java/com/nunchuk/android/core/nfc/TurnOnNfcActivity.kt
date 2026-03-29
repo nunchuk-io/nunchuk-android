@@ -23,6 +23,7 @@ import android.content.Intent
 import android.nfc.NfcAdapter
 import android.os.Bundle
 import android.provider.Settings
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.databinding.ActivityTurnOnNfcBinding
@@ -38,7 +39,9 @@ class TurnOnNfcActivity : BaseActivity<ActivityTurnOnNfcBinding>() {
             }
         }
 
-    override fun initializeBinding(): ActivityTurnOnNfcBinding = ActivityTurnOnNfcBinding.inflate(layoutInflater)
+    override fun initializeBinding(): ActivityTurnOnNfcBinding = ActivityTurnOnNfcBinding.inflate(layoutInflater).also {
+        enableEdgeToEdge()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,7 +52,7 @@ class TurnOnNfcActivity : BaseActivity<ActivityTurnOnNfcBinding>() {
         binding.btnGotIt.setOnClickListener {
             try {
                 requestEnableNfc.launch(Intent(Settings.ACTION_NFC_SETTINGS))
-            } catch (ignore: Exception) {
+            } catch (_: Exception) {
             }
         }
         binding.toolbar.setNavigationOnClickListener {

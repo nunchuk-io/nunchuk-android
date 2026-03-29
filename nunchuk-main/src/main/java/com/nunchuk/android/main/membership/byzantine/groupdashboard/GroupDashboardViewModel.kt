@@ -64,6 +64,7 @@ import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -138,6 +139,7 @@ class GroupDashboardViewModel @Inject constructor(
     val state = _state.asStateFlow()
 
     private var timeline: Timeline? = null
+    private var getAlertsJob: Job? = null
 
     private val timelineListenerAdapter = TimelineListenerAdapter()
 
@@ -326,7 +328,8 @@ class GroupDashboardViewModel @Inject constructor(
     }
 
     fun getAlerts() {
-        viewModelScope.launch {
+        if (getAlertsJob?.isActive == true) return
+        getAlertsJob = viewModelScope.launch {
             getAlertsUseCase()
         }
     }

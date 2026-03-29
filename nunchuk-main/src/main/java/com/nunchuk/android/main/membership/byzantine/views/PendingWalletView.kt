@@ -16,8 +16,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
@@ -25,6 +23,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -333,15 +332,17 @@ fun AssistedWalletBottomContent(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            if (status.isNotEmpty() && signers.any { it.type != SignerType.SERVER }) {
-                LazyRow(
+            val filteredSigners = remember(signers) {
+                signers.filter { !it.type.isPlatformKey }.distinctBy { it.fingerPrint }
+            }
+            if (status.isNotEmpty() && filteredSigners.isNotEmpty()) {
+                Row(
                     modifier = Modifier
                         .padding(start = 4.dp)
                         .weight(1f, fill = true),
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
-                    items(signers.filter { it.type != SignerType.SERVER }
-                        .distinctBy { it.fingerPrint }) {
+                    filteredSigners.forEach {
                         NcCircleImage(
                             resId = it.toReadableDrawableResId(),
                             size = 36.dp,
@@ -632,18 +633,18 @@ fun AvatarView(
                 }
             }
         }
-        GlideImage(
-            imageModel = {
-                if (isContact) {
-                    avatarUrl.fromMxcUriToMatrixDownloadUrl()
-                } else ""
-            }, imageOptions = ImageOptions(
-                contentScale = ContentScale.Crop, alignment = Alignment.Center
-            ), loading = {
-                image()
-            }, failure = {
-                image()
-            })
+        if (isContact && avatarUrl.isNotEmpty()) {
+            GlideImage(
+                imageModel = { avatarUrl.fromMxcUriToMatrixDownloadUrl() },
+                imageOptions = ImageOptions(
+                    contentScale = ContentScale.Crop, alignment = Alignment.Center
+                ),
+                loading = { image() },
+                failure = { image() },
+            )
+        } else {
+            image()
+        }
     }
 }
 

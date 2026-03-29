@@ -332,6 +332,7 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
                                 },
                                 onUpdatePolicySuccess = ::finish,
                                 onOpenWalletAuthentication = { walletId, dummyTransaction ->
+                                    finish()
                                     navigator.openWalletAuthentication(
                                         walletId = walletId,
                                         requiredSignatures = dummyTransaction?.requiredSignatures ?: 0,

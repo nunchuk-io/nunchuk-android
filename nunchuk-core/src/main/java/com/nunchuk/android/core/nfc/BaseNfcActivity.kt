@@ -24,7 +24,6 @@ import android.app.PendingIntent
 import android.content.Intent
 import android.nfc.NfcAdapter
 import android.os.Bundle
-import android.os.PersistableBundle
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.lifecycle.Lifecycle
@@ -43,6 +42,7 @@ import kotlinx.coroutines.launch
 abstract class BaseNfcActivity<Binding : ViewBinding> : BaseShareSaveFileActivity<Binding>(), NfcActionListener {
     protected val nfcViewModel: NfcViewModel by viewModels()
     private var requestCode: Int = 0
+    private var description: String = ""
 
     private val nfcAdapter: NfcAdapter? by lazy(LazyThreadSafetyMode.NONE) {
         NfcAdapter.getDefaultAdapter(this)
@@ -58,7 +58,11 @@ abstract class BaseNfcActivity<Binding : ViewBinding> : BaseShareSaveFileActivit
     private val requestEnableNfc =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             if (nfcAdapter?.isEnabled == true) {
-                askToScan()
+                if (shouldShowInputCvcFirst(requestCode)) {
+                    showInputCvcDialog(descMessage = description)
+                } else {
+                    askToScan()
+                }
             }
         }
 
@@ -93,13 +97,15 @@ abstract class BaseNfcActivity<Binding : ViewBinding> : BaseShareSaveFileActivit
         super.onCreate(savedInstanceState)
         if (savedInstanceState != null) {
             requestCode = savedInstanceState.getInt(EXTRA_REQUEST_NFC_CODE, 0)
+            description = savedInstanceState.getString(EXTRA_REQUEST_NFC_DESCRIPTION, "")
         }
         observer()
     }
 
-    override fun onSaveInstanceState(outState: Bundle, outPersistentState: PersistableBundle) {
+    override fun onSaveInstanceState(outState: Bundle) {
         outState.putInt(EXTRA_REQUEST_NFC_CODE, requestCode)
-        super.onSaveInstanceState(outState, outPersistentState)
+        outState.putString(EXTRA_REQUEST_NFC_DESCRIPTION, description)
+        super.onSaveInstanceState(outState)
     }
 
     override fun onDestroy() {
@@ -153,12 +159,13 @@ abstract class BaseNfcActivity<Binding : ViewBinding> : BaseShareSaveFileActivit
         super.onPause()
     }
 
-    override fun startNfcFlow(requestCode: Int, desctiption: String) {
+    override fun startNfcFlow(requestCode: Int, description: String) {
         this.requestCode = requestCode
+        this.description = description
         nfcAdapter?.let {
             if (it.isEnabled) {
                 if (shouldShowInputCvcFirst(requestCode)) {
-                    showInputCvcDialog(descMessage = desctiption)
+                    showInputCvcDialog(descMessage = description)
                 } else {
                     askToScan()
                 }
@@ -235,6 +242,7 @@ abstract class BaseNfcActivity<Binding : ViewBinding> : BaseShareSaveFileActivit
 
     companion object {
         const val EXTRA_REQUEST_NFC_CODE = "EXTRA_REQUEST_NFC_CODE"
+        private const val EXTRA_REQUEST_NFC_DESCRIPTION = "EXTRA_REQUEST_NFC_DESCRIPTION"
 
         // NFC
         const val REQUEST_NFC_STATUS = 1

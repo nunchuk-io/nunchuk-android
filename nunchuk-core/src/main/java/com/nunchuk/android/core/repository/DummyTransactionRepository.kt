@@ -275,22 +275,22 @@ internal class DummyTransactionRepositoryImpl @Inject constructor(
         dummyTransactionId: String,
         signatures: Map<String, String>,
     ): DummyTransactionUpdate {
-        var result: DummyTransactionUpdate? = null
-        signatures.forEach { (masterFingerprint, signature) ->
+        val requestTokens = signatures.map { (masterFingerprint, signature) ->
             val requestToken = nunchukNativeSdk.createRequestToken(signature, masterFingerprint)
             nunchukNativeSdk.saveDummyTxRequestToken(walletId, dummyTransactionId, requestToken)
-            val groupDummyTx = nunchukNativeSdk.signGroupDummyTransaction(
-                walletId, dummyTransactionId, requestToken
-            )
-            result = DummyTransactionUpdate(
-                status = when (groupDummyTx.status) {
-                    GroupDummyTransactionStatus.CONFIRMED -> TransactionStatus.CONFIRMED
-                    else -> TransactionStatus.PENDING_SIGNATURES
-                },
-                pendingSignatures = groupDummyTx.pendingSignatures,
-            )
+            requestToken
         }
-        return result ?: throw IllegalStateException("No signatures provided")
+        if (requestTokens.isEmpty()) throw IllegalStateException("No signatures provided")
+        val groupDummyTx = nunchukNativeSdk.signGroupDummyTransaction(
+            walletId, dummyTransactionId, requestTokens
+        )
+        return DummyTransactionUpdate(
+            status = when (groupDummyTx.status) {
+                GroupDummyTransactionStatus.CONFIRMED -> TransactionStatus.CONFIRMED
+                else -> TransactionStatus.PENDING_SIGNATURES
+            },
+            pendingSignatures = groupDummyTx.pendingSignatures,
+        )
     }
 
     override suspend fun cancelFreeGroupDummyTransaction(
