@@ -641,21 +641,24 @@ private fun InviteEmailsBottomSheet(
     var inputText by rememberSaveable { mutableStateOf("") }
     var emails by remember { mutableStateOf<List<InviteEmailChipState>>(emptyList()) }
 
-    fun addEmails(rawInput: String) {
+    fun addEmails(rawInput: String): List<InviteEmailChipState> {
         val normalized = rawInput
             .replace("\n", " ")
             .split(",", " ")
             .map { it.trim() }
             .filter { it.isNotEmpty() }
-        if (normalized.isEmpty()) return
+        if (normalized.isEmpty()) return emails
+        var updatedEmails = emails
         normalized.forEach { email ->
-            if (emails.none { it.email.equals(email, ignoreCase = true) }) {
-                emails = emails + InviteEmailChipState(
+            if (updatedEmails.none { it.email.equals(email, ignoreCase = true) }) {
+                updatedEmails = updatedEmails + InviteEmailChipState(
                     email = email,
                     valid = EmailValidator.valid(email)
                 )
             }
         }
+        emails = updatedEmails
+        return updatedEmails
     }
 
     ModalBottomSheet(
@@ -687,12 +690,16 @@ private fun InviteEmailsBottomSheet(
                         textDecoration = TextDecoration.Underline
                     ),
                     modifier = Modifier.clickable {
+                        var currentEmails = emails
                         if (inputText.isNotBlank()) {
-                            addEmails(inputText)
+                            currentEmails = addEmails(inputText)
                             inputText = ""
                         }
-                        if (emails.isNotEmpty() && emails.none { it.valid.not() }) {
-                            onSendInvite(emails.map { it.email })
+                        val validEmails = currentEmails
+                            .filter { it.valid }
+                            .map { it.email }
+                        if (validEmails.isNotEmpty()) {
+                            onSendInvite(validEmails)
                         }
                     },
                     color = MaterialTheme.colorScheme.textPrimary
