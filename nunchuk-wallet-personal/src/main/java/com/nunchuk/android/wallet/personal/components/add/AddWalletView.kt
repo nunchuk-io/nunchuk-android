@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -21,12 +22,18 @@ import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -44,10 +51,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -79,8 +89,10 @@ import com.nunchuk.android.core.miniscript.MultisignType
 import com.nunchuk.android.core.miniscript.SelectMultisignTypeBottomSheet
 import com.nunchuk.android.core.miniscript.formatMiniscript
 import com.nunchuk.android.model.GlobalGroupWalletConfig
+import com.nunchuk.android.model.wallet.GroupInvitation
 import com.nunchuk.android.nav.args.MiniscriptArgs
 import com.nunchuk.android.type.AddressType
+import com.nunchuk.android.utils.EmailValidator
 import com.nunchuk.android.wallet.personal.R
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -96,7 +108,10 @@ fun AddWalletView(
     viewOnlyComposer: GroupWalletDataComposer? = null,
     isEditGroupWallet: Boolean,
     isViewConfigOnly: Boolean = true,
+    showInviteSection: Boolean = false,
     onSelectAddressType: (AddressType) -> Unit = {},
+    onSendInvite: (List<String>) -> Unit = {},
+    onRemoveInvite: (String) -> Unit = {},
     onContinue: (String, AddressType, Int, Int, WalletConfigType) -> Unit = { _, _, _, _, _ -> },
     onNavigateToMiniscript: (MiniscriptArgs) -> Unit = {}
 ) {
@@ -109,6 +124,7 @@ fun AddWalletView(
     var keys by remember { mutableIntStateOf(0) }
     var requiredKeys by remember { mutableIntStateOf(0) }
     var showMiniscriptBottomSheet by remember { mutableStateOf(false) }
+    var showInviteBottomSheet by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -116,6 +132,33 @@ fun AddWalletView(
 
     // Get miniscript data from state
     val miniscriptTemplate = state.miniscriptTemplate
+
+    val isEditModeHasConfigChanges = if (isEditGroupWallet) {
+        val groupSandbox = state.groupSandbox
+        if (groupSandbox == null) {
+            false
+        } else {
+            val effectiveConfig = when (walletConfigType) {
+                WalletConfigType.CUSTOM -> requiredKeys to keys
+                WalletConfigType.MINISCRIPT -> groupSandbox.m to groupSandbox.n
+                else -> walletConfigType.getMN().first to walletConfigType.getMN().second
+            }
+            val currentMiniscriptTemplate =
+                if (walletConfigType == WalletConfigType.MINISCRIPT) miniscriptTemplate else ""
+
+            walletName != groupSandbox.name
+                || state.addressTypeSelected != groupSandbox.addressType
+                || effectiveConfig.first != groupSandbox.m
+                || effectiveConfig.second != groupSandbox.n
+                || currentMiniscriptTemplate != groupSandbox.miniscriptTemplate
+        }
+    } else {
+        true
+    }
+
+    val isContinueEnabled = walletName.isNotBlank() &&
+        isEditModeHasConfigChanges &&
+        (walletConfigType != WalletConfigType.MINISCRIPT || miniscriptTemplate.isNotEmpty())
 
     val filePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -215,7 +258,7 @@ fun AddWalletView(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp),
-                    enabled = walletName.isNotBlank(),
+                    enabled = isContinueEnabled,
                     onClick = {
                         onContinue(
                             walletName,
@@ -393,6 +436,19 @@ fun AddWalletView(
                         MiniscriptSection(onAddMiniscript = { showMiniscriptBottomSheet = true })
                     }
                 }
+
+                if (showInviteSection) {
+                    HorizontalDivider(
+                        thickness = 1.dp,
+                        modifier = Modifier.padding(top = 24.dp, bottom = 16.dp),
+                        color = MaterialTheme.colorScheme.backgroundMidGray
+                    )
+                    InviteSection(
+                        invitations = state.groupInvitations,
+                        onAddInvite = { showInviteBottomSheet = true },
+                        onRemoveInvite = onRemoveInvite,
+                    )
+                }
             }
         }
 
@@ -432,6 +488,16 @@ fun AddWalletView(
                 onDismiss = {
                     showMiniscriptBottomSheet = false
                 }
+            )
+        }
+
+        if (showInviteBottomSheet) {
+            InviteEmailsBottomSheet(
+                onDismiss = { showInviteBottomSheet = false },
+                onSendInvite = { emails ->
+                    onSendInvite(emails)
+                    showInviteBottomSheet = false
+                },
             )
         }
     }
@@ -512,6 +578,251 @@ private fun TypeOption(
         })
     }
 }
+
+@Composable
+private fun InviteSection(
+    invitations: List<GroupInvitation>,
+    onAddInvite: () -> Unit,
+    onRemoveInvite: (String) -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 16.dp, end = 16.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = stringResource(R.string.nc_wallet_invites),
+                style = NunchukTheme.typography.titleSmall
+            )
+            NcIcon(
+                modifier = Modifier
+                    .size(24.dp)
+                    .clickable(onClick = onAddInvite),
+                painter = painterResource(id = R.drawable.ic_plus),
+                contentDescription = stringResource(R.string.nc_wallet_add_invite),
+            )
+        }
+        invitations.forEach { invitation ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 20.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = invitation.recipientEmail,
+                    style = NunchukTheme.typography.body,
+                    color = MaterialTheme.colorScheme.textSecondary
+                )
+                Text(
+                    text = stringResource(R.string.nc_wallet_remove),
+                    style = NunchukTheme.typography.titleSmall,
+                    modifier = Modifier.clickable {
+                        onRemoveInvite(invitation.id)
+                    }
+                )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun InviteEmailsBottomSheet(
+    onDismiss: () -> Unit,
+    onSendInvite: (List<String>) -> Unit,
+) {
+    var inputText by rememberSaveable { mutableStateOf("") }
+    var emails by remember { mutableStateOf<List<InviteEmailChipState>>(emptyList()) }
+
+    fun addEmails(rawInput: String) {
+        val normalized = rawInput
+            .replace("\n", " ")
+            .split(",", " ")
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+        if (normalized.isEmpty()) return
+        normalized.forEach { email ->
+            if (emails.none { it.email.equals(email, ignoreCase = true) }) {
+                emails = emails + InviteEmailChipState(
+                    email = email,
+                    valid = EmailValidator.valid(email)
+                )
+            }
+        }
+    }
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        containerColor = MaterialTheme.colorScheme.surface,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .padding(bottom = 24.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                NcIcon(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .clickable(onClick = onDismiss),
+                    painter = painterResource(id = R.drawable.ic_close),
+                    contentDescription = stringResource(R.string.nc_cancel),
+                )
+                Text(
+                    text = stringResource(R.string.nc_wallet_send_invite),
+                    style = NunchukTheme.typography.title.copy(
+                        fontWeight = FontWeight.W700,
+                        textDecoration = TextDecoration.Underline
+                    ),
+                    modifier = Modifier.clickable {
+                        if (inputText.isNotBlank()) {
+                            addEmails(inputText)
+                            inputText = ""
+                        }
+                        if (emails.isNotEmpty() && emails.none { it.valid.not() }) {
+                            onSendInvite(emails.map { it.email })
+                        }
+                    },
+                    color = MaterialTheme.colorScheme.textPrimary
+                )
+            }
+
+            Text(
+                text = stringResource(R.string.nc_wallet_invite_description),
+                style = NunchukTheme.typography.body,
+                modifier = Modifier.padding(top = 16.dp, bottom = 12.dp)
+            )
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 144.dp, max = 480.dp)
+                    .border(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.border,
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                    .padding(16.dp)
+                    .verticalScroll(rememberScrollState())
+            ) {
+                if (emails.isNotEmpty()) {
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        emails.forEach { email ->
+                            InviteEmailChip(
+                                email = email,
+                                onRemove = {
+                                    emails = emails - email
+                                }
+                            )
+                        }
+                    }
+                }
+
+                BasicTextField(
+                    value = inputText,
+                    onValueChange = { newText ->
+                        inputText = newText
+                        val lastChar = newText.lastOrNull()
+                        if (lastChar == ',' || lastChar == ' ') {
+                            addEmails(newText.dropLast(1))
+                            inputText = ""
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 48.dp)
+                        .padding(top = if (emails.isEmpty()) 0.dp else 8.dp),
+                    textStyle = NunchukTheme.typography.body,
+                    cursorBrush = SolidColor(MaterialTheme.colorScheme.textPrimary),
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Email,
+                        imeAction = ImeAction.Done
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onDone = {
+                            if (inputText.isNotBlank()) {
+                                addEmails(inputText)
+                                inputText = ""
+                            }
+                        }
+                    ),
+                    decorationBox = { innerTextField ->
+                        Box {
+                            if (inputText.isEmpty() && emails.isEmpty()) {
+                                Text(
+                                    text = stringResource(R.string.nc_wallet_invite_hint),
+                                    style = NunchukTheme.typography.body.copy(
+                                        color = MaterialTheme.colorScheme.textSecondary
+                                    )
+                                )
+                            }
+                            innerTextField()
+                        }
+                    }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun InviteEmailChip(
+    email: InviteEmailChipState,
+    onRemove: () -> Unit,
+) {
+    val backgroundColor = if (email.valid) Color(0xFFA7F0BA) else Color(0xFFFFD7D9)
+    Surface(
+        modifier = Modifier.clickable(onClick = onRemove),
+        shape = RoundedCornerShape(24.dp),
+        color = backgroundColor
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Icon(
+                painter = if (email.valid) painterResource(R.drawable.ic_check_circle_outline) else painterResource(
+                    R.drawable.ic_cancel_red
+                ),
+                contentDescription = null,
+                tint = Color(0xFF031F2B),
+                modifier = Modifier.size(20.dp)
+            )
+            Text(
+                text = email.email,
+                style = NunchukTheme.typography.body,
+                color = Color(0xFF031F2B)
+            )
+            Icon(
+                painter = painterResource(R.drawable.ic_close),
+                contentDescription = null,
+                tint = Color(0xFF031F2B),
+                modifier = Modifier.size(16.dp)
+            )
+        }
+    }
+}
+
+private data class InviteEmailChipState(
+    val email: String,
+    val valid: Boolean = true,
+)
 
 @Composable
 fun KeyManagementSection(

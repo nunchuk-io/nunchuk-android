@@ -10,6 +10,7 @@ data class AddWalletArgs(
     val decoyPin: String = "",
     val groupWalletId: String = "",
     val hasGroupSigner: Boolean = false,
+    val showInviteSection: Boolean = false,
     val groupWalletComposer: GroupWalletDataComposer? = null,
     val quickWalletParam: QuickWalletParam? = null,
     val isCreateMiniscriptWallet: Boolean = false,
@@ -20,6 +21,7 @@ data class AddWalletArgs(
         putString(DECOY_PIN, decoyPin)
         putString(GROUP_WALLET_ID, groupWalletId)
         putBoolean(HAS_GROUP_SIGNER, hasGroupSigner)
+        putBoolean(SHOW_INVITE_SECTION, showInviteSection)
         putParcelable(GROUP_WALLET_COMPOSER, groupWalletComposer)
         putParcelable(QUICK_WALLET_PARAM, quickWalletParam)
         putBoolean(IS_CREATE_MINISCRIPT_WALLET, isCreateMiniscriptWallet)
@@ -30,6 +32,7 @@ data class AddWalletArgs(
         private const val DECOY_PIN = "decoy_wallet"
         const val GROUP_WALLET_ID = "group_wallet_id"
         private const val HAS_GROUP_SIGNER = "has_group_signer"
+        private const val SHOW_INVITE_SECTION = "show_invite_section"
         private const val GROUP_WALLET_COMPOSER = "view_only_composer"
         private const val QUICK_WALLET_PARAM = "quick_wallet_param"
         private const val IS_CREATE_MINISCRIPT_WALLET = "is_create_miniscript_wallet"
@@ -39,6 +42,7 @@ data class AddWalletArgs(
             decoyPin = intent.extras?.getString(DECOY_PIN, "").orEmpty(),
             groupWalletId = intent.extras?.getString(GROUP_WALLET_ID, "").orEmpty(),
             hasGroupSigner = intent.extras?.getBoolean(HAS_GROUP_SIGNER, false) == true,
+            showInviteSection = intent.extras?.getBoolean(SHOW_INVITE_SECTION, false) == true,
             groupWalletComposer = intent.parcelable<GroupWalletDataComposer>(
                 GROUP_WALLET_COMPOSER
             ),

@@ -35,6 +35,8 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.nunchuk.android.core.base.BaseComposeActivity
 import com.nunchuk.android.core.data.model.WalletConfigType
 import com.nunchuk.android.core.data.model.getWalletConfigTypeBy
+import com.nunchuk.android.core.guestmode.SignInMode
+import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.util.ADD_WALLET_RESULT
 import com.nunchuk.android.core.util.ADD_WALLET_REUSE_SIGNER_RESULT
 import com.nunchuk.android.core.util.isTaproot
@@ -48,9 +50,13 @@ import com.nunchuk.android.wallet.personal.R
 import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class AddWalletActivity : BaseComposeActivity() {
+
+    @Inject
+    lateinit var signInModeHolder: SignInModeHolder
 
     private val viewModel: AddWalletViewModel by viewModels()
 
@@ -89,7 +95,9 @@ class AddWalletActivity : BaseComposeActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        viewModel.init(args.groupWalletId)
+        val showInviteSection =
+            args.showInviteSection && signInModeHolder.getCurrentMode() != SignInMode.GUEST_MODE
+        viewModel.init(args.groupWalletId, shouldLoadInviteSection = showInviteSection)
         viewModel.initMiniscriptTemplate(args.miniscriptTemplate)
         enableEdgeToEdge()
         setContent {
@@ -101,6 +109,7 @@ class AddWalletActivity : BaseComposeActivity() {
                 viewOnlyComposer = args.groupWalletComposer,
                 isViewConfigOnly = args.groupWalletComposer != null || !state.groupSandbox?.replaceWalletId.isNullOrEmpty(),
                 isEditGroupWallet = args.groupWalletId.isNotEmpty(),
+                showInviteSection = showInviteSection,
                 onSelectAddressType = {
                     if (args.groupWalletId.isNotEmpty()) {
                         val action = {
@@ -119,6 +128,8 @@ class AddWalletActivity : BaseComposeActivity() {
                         viewModel.selectAddressType(it)
                     }
                 },
+                onSendInvite = viewModel::createGroupWalletInvitations,
+                onRemoveInvite = viewModel::removeGroupWalletInvitation,
                 onContinue = { walletName, addressType, requiredKeys, totalKeys, walletConfigType ->
                     if (args.groupWalletComposer != null) {
                         setResult(

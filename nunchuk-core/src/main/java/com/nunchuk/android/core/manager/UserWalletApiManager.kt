@@ -22,6 +22,7 @@ package com.nunchuk.android.core.manager
 import com.nunchuk.android.core.data.api.ClaimInheritanceApi
 import com.nunchuk.android.core.data.api.ClaimWalletApi
 import com.nunchuk.android.core.data.api.GroupWalletApi
+import com.nunchuk.android.core.data.api.SharedWalletApi
 import com.nunchuk.android.core.data.api.UserWalletsApi
 import com.nunchuk.android.core.persistence.NcDataStore
 import com.nunchuk.android.network.util.TEST_NET_USER_WALLET_API
@@ -47,6 +48,9 @@ internal class UserWalletApiManager @Inject constructor(
     private val _claimWalletApi: ClaimWalletApi,
     @Named(TEST_NET_USER_WALLET_API)
     private val _testNetClaimWalletApi: ClaimWalletApi,
+    private val _sharedWalletApi: SharedWalletApi,
+    @Named(TEST_NET_USER_WALLET_API)
+    private val _testNetSharedWalletApi: SharedWalletApi,
     applicationScope: CoroutineScope,
     ncDataStore: NcDataStore,
 ) {
@@ -64,4 +68,7 @@ internal class UserWalletApiManager @Inject constructor(
 
     val claimWalletApi: ClaimWalletApi
         get() = if (chain.value == Chain.MAIN) _claimWalletApi else _testNetClaimWalletApi
+
+    val sharedWalletApi: SharedWalletApi
+        get() = if (chain.value == Chain.MAIN) _sharedWalletApi else _testNetSharedWalletApi
 }

@@ -25,6 +25,7 @@ import com.nunchuk.android.core.repository.BtcRepositoryImpl
 import com.nunchuk.android.core.repository.CampaignsRepositoryImpl
 import com.nunchuk.android.core.repository.ClaimWalletRepositoryImpl
 import com.nunchuk.android.core.repository.DummyTransactionRepositoryImpl
+import com.nunchuk.android.core.repository.SharedWalletRepositoryImpl
 import com.nunchuk.android.core.repository.GroupWalletRepositoryImpl
 import com.nunchuk.android.core.repository.HandledEventRepositoryImpl
 import com.nunchuk.android.core.repository.InheritanceRepositoryImpl
@@ -46,6 +47,7 @@ import com.nunchuk.android.repository.NotificationRepository
 import com.nunchuk.android.repository.PremiumWalletRepository
 import com.nunchuk.android.repository.RecurringPaymentRepository
 import com.nunchuk.android.repository.SettingRepository
+import com.nunchuk.android.repository.SharedWalletRepository
 import com.nunchuk.android.repository.TransactionRepository
 import dagger.Binds
 import dagger.Module
@@ -111,4 +113,8 @@ internal interface DataModule {
     @Binds
     @Singleton
     fun bindClaimWalletRepository(repository: ClaimWalletRepositoryImpl): ClaimWalletRepository
+
+    @Binds
+    @Singleton
+    fun bindSharedWalletRepository(repository: SharedWalletRepositoryImpl): SharedWalletRepository
 }

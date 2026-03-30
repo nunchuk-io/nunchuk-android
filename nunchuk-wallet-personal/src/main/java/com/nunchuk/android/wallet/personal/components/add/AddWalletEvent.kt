@@ -21,6 +21,7 @@ package com.nunchuk.android.wallet.personal.components.add
 
 import com.nunchuk.android.model.GlobalGroupWalletConfig
 import com.nunchuk.android.model.GroupSandbox
+import com.nunchuk.android.model.wallet.GroupInvitation
 import com.nunchuk.android.type.AddressType
 
 data class AddWalletState(
@@ -35,6 +36,7 @@ data class AddWalletState(
     val isLoading: Boolean = false,
     val miniscriptTemplate: String = "",
     val miniscriptReuseSigner: Boolean = false,
+    val groupInvitations: List<GroupInvitation> = emptyList(),
 )
 
 sealed class AddWalletEvent {

@@ -55,4 +55,10 @@
     <string name="nc_enable_value_keyset">Enable Value Keyset</string>
     <string name="nc_disable_value_keyset">Disable Value Keyset</string>
     <string name="nc_error_not_supported_signer">The selected key (%1$s) doesn’t support this wallet type. Please choose a compatible key.</string>
+    <string name="nc_wallet_invites">Invites</string>
+    <string name="nc_wallet_add_invite">Add invite</string>
+    <string name="nc_wallet_remove">Remove</string>
+    <string name="nc_wallet_send_invite">Send invite</string>
+    <string name="nc_wallet_invite_description">To include multiple email addresses, separate them by commas or spaces.</string>
+    <string name="nc_wallet_invite_hint">Enter email addresses</string>
 </resources>

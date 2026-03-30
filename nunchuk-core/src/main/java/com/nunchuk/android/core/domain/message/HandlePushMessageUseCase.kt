@@ -23,6 +23,7 @@ import com.nunchuk.android.messages.util.isInheritanceEvent
 import com.nunchuk.android.messages.util.isKeyNameChanged
 import com.nunchuk.android.messages.util.isRemoveAlias
 import com.nunchuk.android.messages.util.isReplaceKeyChangeEvent
+import com.nunchuk.android.messages.util.isSharedWalletGroupInvitationEvent
 import com.nunchuk.android.messages.util.isServerTransactionEvent
 import com.nunchuk.android.messages.util.isSetAlias
 import com.nunchuk.android.messages.util.isTransactionCancelled
@@ -149,6 +150,14 @@ class HandlePushMessageUseCase @Inject constructor(
                             parameters.getGroupId().orEmpty()
                         )
                     )
+                }
+            }
+
+            parameters.isSharedWalletGroupInvitationEvent() -> {
+                val result = isHandledEventUseCase.invoke(parameters.eventId)
+                if (result.getOrDefault(false).not()) {
+                    saveHandledEventUseCase.invoke(parameters.eventId)
+                    pushEventManager.push(PushEvent.SharedWalletGroupInvitationChanged)
                 }
             }
 

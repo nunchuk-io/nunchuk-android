@@ -165,6 +165,7 @@ fun NavGraphBuilder.freeGroupWallet(
                             decoyPin = "",
                             groupWalletId = it.id,
                             hasGroupSigner = state.signers.any { it != null },
+                            showInviteSection = true,
                             miniscriptTemplate = it.miniscriptTemplate
                         )
                     )

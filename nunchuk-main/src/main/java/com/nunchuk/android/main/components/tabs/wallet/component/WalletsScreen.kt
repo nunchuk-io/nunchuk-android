@@ -58,6 +58,7 @@ import com.nunchuk.android.model.banner.Banner
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.isKeyHolderLimited
 import com.nunchuk.android.model.byzantine.toRole
+import com.nunchuk.android.model.wallet.Invitation
 import com.nunchuk.android.model.wallet.WalletStatus
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.nav.args.ClaimArgs
@@ -76,6 +77,8 @@ internal fun WalletsScreen(
     onBannerClick: (Banner) -> Unit,
     onAccept: (GroupWalletUi) -> Unit,
     denyInviteMember: (String) -> Unit,
+    onAcceptSharedWalletInvitation: (Invitation) -> Unit,
+    onDenySharedWalletInvitation: (String) -> Unit,
     showWalletReplacedDialog: (oldWalletId: String, replaceByWalletId: String) -> Unit,
     openWalletDetailsScreen: (String) -> Unit,
     getWalletDetail: (String) -> Unit,
@@ -94,6 +97,7 @@ internal fun WalletsScreen(
     val assistedWallets = state.assistedWallets.associateBy { it.localId }
     val deprecatedGroupWalletIds = state.deprecatedGroupWalletIds
     var denyInviteMemberGroupId by rememberSaveable { mutableStateOf("") }
+    var isDenySharedWalletInvitation by rememberSaveable { mutableStateOf(false) }
     val lazyListState = rememberLazyListState()
     val reorderableLazyListState = rememberReorderableLazyListState(lazyListState) { from, to ->
         onMove(from.key as String, to.key as String)
@@ -267,55 +271,74 @@ internal fun WalletsScreen(
                                 )
                             }
                         } else {
-                            items(state.groupWalletUis, key = { it.id }) {
-                                val briefWallet = assistedWallets[it.wallet?.wallet?.id.orEmpty()]
+                            items(state.groupWalletUis, key = { it.id }) { groupWalletUi ->
+                                val briefWallet =
+                                    assistedWallets[groupWalletUi.wallet?.wallet?.id.orEmpty()]
                                 ReorderableItem(
                                     modifier = Modifier
                                         .padding(top = 12.dp),
                                     state = reorderableLazyListState,
-                                    key = it.id,
-                                    enabled = !it.wallet?.wallet?.id.isNullOrEmpty(),
+                                    key = groupWalletUi.id,
+                                    enabled = !groupWalletUi.wallet?.wallet?.id.isNullOrEmpty(),
                                 ) { isDragging ->
                                     val elevation by animateDpAsState(if (isDragging) 4.dp else 0.dp)
                                     Surface(shadowElevation = elevation) {
                                         PendingWalletView(
                                             modifier = Modifier
-                                                .longPressDraggableHandle(enabled = !it.wallet?.wallet?.id.isNullOrEmpty()),
-                                            group = it.group,
-                                            sandbox = it.sandbox,
-                                            isSandboxWallet = it.isSandboxWallet,
-                                            walletsExtended = it.wallet,
-                                            inviterName = it.inviterName,
-                                            isAssistedWallet = briefWallet?.status == WalletStatus.ACTIVE.name || it.isPendingPersonalWallet,
+                                                .longPressDraggableHandle(enabled = !groupWalletUi.wallet?.wallet?.id.isNullOrEmpty()),
+                                            group = groupWalletUi.group,
+                                            sandbox = groupWalletUi.sandbox,
+                                            sharedWalletInvitation = groupWalletUi.sharedWalletInvitation,
+                                            isSandboxWallet = groupWalletUi.isSandboxWallet,
+                                            walletsExtended = groupWalletUi.wallet,
+                                            inviterName = groupWalletUi.inviterName,
+                                            isAssistedWallet = briefWallet?.status == WalletStatus.ACTIVE.name || groupWalletUi.isPendingPersonalWallet,
                                             hideWalletDetail = hideWalletDetail,
-                                            badgeCount = it.badgeCount,
-                                            isLocked = it.group?.isLocked.orFalse(),
-                                            primaryOwnerMember = it.primaryOwnerMember,
-                                            role = it.role,
-                                            status = it.keyStatus,
-                                            signers = it.signers,
+                                            badgeCount = groupWalletUi.badgeCount,
+                                            isLocked = groupWalletUi.group?.isLocked.orFalse(),
+                                            primaryOwnerMember = groupWalletUi.primaryOwnerMember,
+                                            role = groupWalletUi.role,
+                                            status = groupWalletUi.keyStatus,
+                                            signers = groupWalletUi.signers,
                                             useLargeFont = useLargeFont,
                                             walletStatus = briefWallet?.status,
                                             showShortcuts = state.homeDisplaySetting.showWalletShortcuts,
-                                            onAccept = { onAccept(it) },
+                                            onAccept = {
+                                                groupWalletUi.sharedWalletInvitation
+                                                    ?.let(onAcceptSharedWalletInvitation)
+                                                    ?: onAccept(groupWalletUi)
+                                            },
                                             onDeny = {
-                                                denyInviteMemberGroupId = it.group?.id.orEmpty()
+                                                groupWalletUi.sharedWalletInvitation?.id?.let {
+                                                    denyInviteMemberGroupId = it
+                                                    isDenySharedWalletInvitation = true
+                                                } ?: run {
+                                                    denyInviteMemberGroupId =
+                                                        groupWalletUi.group?.id.orEmpty()
+                                                    isDenySharedWalletInvitation = false
+                                                }
                                             },
                                             onGroupClick = {
-                                                if (it.group?.id != null && it.role.toRole.isKeyHolderLimited && it.badgeCount == 0) return@PendingWalletView
+                                                if (groupWalletUi.group?.id != null
+                                                    && groupWalletUi.role.toRole.isKeyHolderLimited
+                                                    && groupWalletUi.badgeCount == 0
+                                                ) return@PendingWalletView
                                                 navigator.openGroupDashboardScreen(
-                                                    groupId = it.group?.id,
-                                                    walletId = it.wallet?.wallet?.id,
+                                                    groupId = groupWalletUi.group?.id,
+                                                    walletId = groupWalletUi.wallet?.wallet?.id,
                                                     activityContext = activity,
-                                                    isFreeGroupWallet = it.isSandboxWallet
+                                                    isFreeGroupWallet = groupWalletUi.isSandboxWallet
                                                 )
                                             },
                                             onWalletClick = {
-                                                if (it.role == AssistedWalletRole.KEYHOLDER_LIMITED.name || it.group?.isLocked == true) return@PendingWalletView
+                                                if (groupWalletUi.role == AssistedWalletRole.KEYHOLDER_LIMITED.name
+                                                    || groupWalletUi.group?.isLocked == true
+                                                ) return@PendingWalletView
                                                 val walletId =
-                                                    it.wallet?.wallet?.id
+                                                    groupWalletUi.wallet?.wallet?.id
                                                         ?: return@PendingWalletView
-                                                if (briefWallet?.status == WalletStatus.REPLACED.name && briefWallet.replaceByWalletId.isNotEmpty()
+                                                if (briefWallet?.status == WalletStatus.REPLACED.name
+                                                    && briefWallet.replaceByWalletId.isNotEmpty()
                                                     && groupWalletUis.any { ui -> ui.wallet?.wallet?.id == briefWallet.replaceByWalletId }
                                                 ) {
                                                     showWalletReplacedDialog(
@@ -327,12 +350,12 @@ internal fun WalletsScreen(
                                                 }
                                             },
                                             onSendClick = {
-                                                it.wallet?.let { wallet ->
+                                                groupWalletUi.wallet?.let { wallet ->
                                                     getWalletDetail(wallet.wallet.id)
                                                 }
                                             },
                                             onReceiveClick = {
-                                                val walletId = it.wallet?.wallet?.id
+                                                val walletId = groupWalletUi.wallet?.wallet?.id
                                                 if (!walletId.isNullOrEmpty()) {
                                                     navigator.openReceiveTransactionScreen(
                                                         activityContext = activity,
@@ -343,11 +366,11 @@ internal fun WalletsScreen(
                                             onOpenFreeGroupWallet = {
                                                 FreeGroupWalletActivity.start(
                                                     context = activity,
-                                                    groupId = it.id
+                                                    groupId = groupWalletUi.id
                                                 )
                                             },
                                             isDeprecatedGroupWallet = deprecatedGroupWalletIds.contains(
-                                                it.wallet?.wallet?.id
+                                                groupWalletUi.wallet?.wallet?.id
                                             )
                                         )
                                     }
@@ -377,10 +400,18 @@ internal fun WalletsScreen(
                 message = stringResource(R.string.nc_deny_wallet_invitation_dialog),
                 positiveButtonText = stringResource(R.string.nc_text_yes),
                 negativeButtonText = stringResource(R.string.nc_text_cancel),
-                onDismiss = { denyInviteMemberGroupId = "" },
-                onPositiveClick = {
-                    denyInviteMember(denyInviteMemberGroupId)
+                onDismiss = {
                     denyInviteMemberGroupId = ""
+                    isDenySharedWalletInvitation = false
+                },
+                onPositiveClick = {
+                    if (isDenySharedWalletInvitation) {
+                        onDenySharedWalletInvitation(denyInviteMemberGroupId)
+                    } else {
+                        denyInviteMember(denyInviteMemberGroupId)
+                    }
+                    denyInviteMemberGroupId = ""
+                    isDenySharedWalletInvitation = false
                 },
             )
         }

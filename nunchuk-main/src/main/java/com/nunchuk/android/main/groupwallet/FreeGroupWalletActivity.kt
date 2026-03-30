@@ -192,6 +192,7 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
                                             decoyPin = "",
                                             groupWalletId = groupId,
                                             hasGroupSigner = hasGroupSigner,
+                                            showInviteSection = true,
                                             miniscriptTemplate = miniscriptTemplate
                                         )
                                     )

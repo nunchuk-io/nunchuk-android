@@ -95,6 +95,12 @@ internal object NetworkModule {
 
     @Singleton
     @Provides
+    @Named(TEST_NET_USER_WALLET_API)
+    fun provideTestNetSharedWalletApi(@Named(TEST_NET_RETROFIT) retrofit: Retrofit): SharedWalletApi =
+        retrofit.create(SharedWalletApi::class.java)
+
+    @Singleton
+    @Provides
     fun provideClaimInheritanceApi(retrofit: Retrofit): ClaimInheritanceApi =
         retrofit.create(ClaimInheritanceApi::class.java)
 

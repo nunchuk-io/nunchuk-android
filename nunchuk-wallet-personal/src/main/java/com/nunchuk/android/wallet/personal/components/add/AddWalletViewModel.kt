@@ -6,12 +6,14 @@ import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.usecase.GetGlobalGroupWalletConfigUseCase
 import com.nunchuk.android.usecase.free.groupwallet.GetGroupSandboxUseCase
 import com.nunchuk.android.usecase.free.groupwallet.UpdateGroupSandboxConfigUseCase
+import com.nunchuk.android.usecase.sharedwallet.CreateSharedWalletInvitationUseCase
+import com.nunchuk.android.usecase.sharedwallet.GetGroupInvitationsUseCase
+import com.nunchuk.android.usecase.sharedwallet.RemoveSharedWalletInvitationUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -22,6 +24,9 @@ class AddWalletViewModel @Inject constructor(
     private val getGlobalGroupWalletConfigUseCase: GetGlobalGroupWalletConfigUseCase,
     private val getGroupSandboxUseCase: GetGroupSandboxUseCase,
     private val updateGroupSandboxConfigUseCase: UpdateGroupSandboxConfigUseCase,
+    private val getGroupInvitationsUseCase: GetGroupInvitationsUseCase,
+    private val createSharedWalletInvitationUseCase: CreateSharedWalletInvitationUseCase,
+    private val removeSharedWalletInvitationUseCase: RemoveSharedWalletInvitationUseCase,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(AddWalletState())
@@ -32,7 +37,7 @@ class AddWalletViewModel @Inject constructor(
 
     private var groupId = ""
 
-    fun init(groupId: String) {
+    fun init(groupId: String, shouldLoadInviteSection: Boolean = false) {
         this.groupId = groupId
         if (groupId.isNotEmpty()) {
             viewModelScope.launch {
@@ -45,6 +50,9 @@ class AddWalletViewModel @Inject constructor(
                         )
                     }
                     getFreeGroupWalletConfig(group.addressType)
+                    if (shouldLoadInviteSection) {
+                        loadGroupInvitations()
+                    }
                 }
                 _state.update { it.copy(isLoading = false) }
             }
@@ -118,5 +126,59 @@ class AddWalletViewModel @Inject constructor(
 
     fun clearMiniscriptTemplate() {
         _state.update { it.copy(miniscriptTemplate = "") }
+    }
+
+    fun createGroupWalletInvitations(emails: List<String>) {
+        if (groupId.isEmpty() || emails.isEmpty()) return
+        viewModelScope.launch {
+            _state.update { it.copy(isLoading = true) }
+            createSharedWalletInvitationUseCase(
+                CreateSharedWalletInvitationUseCase.Param(
+                    groupId = groupId,
+                    emails = emails,
+                )
+            ).onSuccess {
+                loadGroupInvitations()
+            }.onFailure {
+                _event.emit(AddWalletEvent.ShowError(it.message.orEmpty()))
+            }
+            _state.update { it.copy(isLoading = false) }
+        }
+    }
+
+    fun removeGroupWalletInvitation(invitationId: String) {
+        if (invitationId.isEmpty()) return
+        viewModelScope.launch {
+            _state.update { it.copy(isLoading = true) }
+            removeSharedWalletInvitationUseCase(
+                RemoveSharedWalletInvitationUseCase.Param(invitationId = invitationId)
+            ).onSuccess {
+                loadGroupInvitations()
+            }.onFailure {
+                _event.emit(AddWalletEvent.ShowError(it.message.orEmpty()))
+            }
+            _state.update { it.copy(isLoading = false) }
+        }
+    }
+
+    private suspend fun loadGroupInvitations() {
+        if (groupId.isEmpty()) return
+        getGroupInvitationsUseCase(
+            GetGroupInvitationsUseCase.Param(groupId = groupId)
+        ).onSuccess { invitations ->
+            _state.update {
+                it.copy(
+                    groupInvitations = invitations.filter { invitation ->
+                        invitation.status.equals(PENDING_STATUS, ignoreCase = true)
+                    }
+                )
+            }
+        }.onFailure {
+            _event.emit(AddWalletEvent.ShowError(it.message.orEmpty()))
+        }
+    }
+
+    companion object {
+        private const val PENDING_STATUS = "PENDING"
     }
 }

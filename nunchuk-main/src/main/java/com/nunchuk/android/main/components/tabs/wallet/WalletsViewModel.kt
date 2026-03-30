@@ -77,6 +77,7 @@ import com.nunchuk.android.model.isAllowSetupInheritance
 import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.model.setting.HomeDisplaySetting
 import com.nunchuk.android.model.setting.WalletSecuritySetting
+import com.nunchuk.android.model.wallet.Invitation
 import com.nunchuk.android.model.wallet.WalletOrder
 import com.nunchuk.android.model.wallet.WalletStatus
 import com.nunchuk.android.share.membership.MembershipStepManager
@@ -107,6 +108,8 @@ import com.nunchuk.android.usecase.membership.GetInheritanceUseCase
 import com.nunchuk.android.usecase.membership.GetPendingWalletNotifyCountUseCase
 import com.nunchuk.android.usecase.membership.GetPersonalMembershipStepUseCase
 import com.nunchuk.android.usecase.membership.GetUserSubscriptionUseCase
+import com.nunchuk.android.usecase.sharedwallet.DenySharedWalletInvitationUseCase
+import com.nunchuk.android.usecase.sharedwallet.GetSharedWalletInvitationsUseCase
 import com.nunchuk.android.usecase.membership.SyncDraftWalletUseCase
 import com.nunchuk.android.usecase.user.IsHideUpsellBannerUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletOrderListUseCase
@@ -182,6 +185,8 @@ internal class WalletsViewModel @Inject constructor(
     private val getWalletUseCase: GetWalletUseCase,
     private val getPendingGroupsSandboxUseCase: GetPendingGroupsSandboxUseCase,
     private val getGroupWalletsUseCase: GetGroupWalletsUseCase,
+    private val getSharedWalletInvitationsUseCase: GetSharedWalletInvitationsUseCase,
+    private val denySharedWalletInvitationUseCase: DenySharedWalletInvitationUseCase,
     private val joinFreeGroupWalletByIdUseCase: JoinFreeGroupWalletByIdUseCase,
     private val deeplinkHolder: DeeplinkHolder,
     private val getDeprecatedGroupWalletsUseCase: GetDeprecatedGroupWalletsUseCase,
@@ -301,6 +306,10 @@ internal class WalletsViewModel @Inject constructor(
                                 if (shouldReload) retrieveData()
                             }
                         }
+                    }
+
+                    PushEvent.SharedWalletGroupInvitationChanged -> {
+                        retrieveData()
                     }
 
                     is PushEvent.GroupEmergencyLockdownStarted -> syncGroupWallets(event.walletId)
@@ -598,6 +607,13 @@ internal class WalletsViewModel @Inject constructor(
             val pendingWalletsDeferred = async { getPendingGroupsSandboxUseCase(Unit) }
             val groupSandboxWalletsDeferred = async { getGroupWalletsUseCase(Unit) }
             val deprecatedGroupWalletsDeferred = async { getDeprecatedGroupWalletsUseCase(Unit) }
+            val sharedWalletInvitationsDeferred = async {
+                if (signInModeHolder.getCurrentMode().isGuestMode()) {
+                    Result.success(emptyList<Invitation>())
+                } else {
+                    getSharedWalletInvitationsUseCase(Unit)
+                }
+            }
 
             val wallets = walletsDeferred.await().getOrElse { emptyList() }
             val pendingWallets = pendingWalletsDeferred.await().getOrElse { emptyList() }
@@ -605,6 +621,8 @@ internal class WalletsViewModel @Inject constructor(
                 groupSandboxWalletsDeferred.await().getOrElse { emptyList() }.map { it.id }.toSet()
             val deprecatedGroupWalletIds =
                 deprecatedGroupWalletsDeferred.await().getOrElse { emptyList() }.toSet()
+            val sharedWalletInvitations =
+                sharedWalletInvitationsDeferred.await().getOrElse { emptyList() }
             if (signInModeHolder.getCurrentMode().isGuestMode()) {
                 setHasWalletInGuestModeUseCase(wallets.isNotEmpty())
             }
@@ -614,7 +632,8 @@ internal class WalletsViewModel @Inject constructor(
                     groupSandboxWalletIds = groupSandboxWallets,
                     deprecatedGroupWalletIds = deprecatedGroupWalletIds,
                     wallets = wallets,
-                    isWalletLoading = false
+                    sharedWalletInvitations = sharedWalletInvitations,
+                    isWalletLoading = false,
                 )
             }
 
@@ -632,6 +651,7 @@ internal class WalletsViewModel @Inject constructor(
         val statues = assistedWallets.associate { it.localId to it.status }
         val alerts = getState().alerts
         val pendingGroupSandboxes = getState().pendingGroupSandboxes
+        val sharedWalletInvitations = getState().sharedWalletInvitations
         val groupSandboxWalletIds = getState().groupSandboxWalletIds
         val walletOrderMap = _walletOrderMap.value
         val pendingGroup = groups.filter { it.isPendingWallet() }
@@ -639,6 +659,11 @@ internal class WalletsViewModel @Inject constructor(
         if (isShowPendingPersonalWallet) {
             results.add(GroupWalletUi(isPendingPersonalWallet = true))
         }
+        results.addAll(
+            sharedWalletInvitations.map { invitation ->
+                GroupWalletUi(sharedWalletInvitation = invitation)
+            }
+        )
         results.addAll(pendingGroupSandboxes.map { GroupWalletUi(sandbox = it) })
         val totalArchivedWallet = wallets.count { it.wallet.archived }
         wallets.filter { !it.wallet.archived }.sortedWith(
@@ -710,10 +735,16 @@ internal class WalletsViewModel @Inject constructor(
             results.add(groupWalletUi)
         }
 
-        val (groupsWithNullWallet, groupsWithNonNullWallet) = results.partition { it.wallet == null }
+        val (sharedInvitationItems, nonSharedInvitationItems) = results.partition {
+            it.sharedWalletInvitation != null
+        }
+        val (groupsWithNullWallet, groupsWithNonNullWallet) = nonSharedInvitationItems.partition {
+            it.wallet == null
+        }
         val sortedGroupsWithNullWallet =
             groupsWithNullWallet.sortedByDescending { it.group?.createdTimeMillis }
-        val mergedSortedGroups = sortedGroupsWithNullWallet + groupsWithNonNullWallet
+        val mergedSortedGroups =
+            sharedInvitationItems + sortedGroupsWithNullWallet + groupsWithNonNullWallet
 
         withContext(Main) {
             _state.update {
@@ -855,6 +886,26 @@ internal class WalletsViewModel @Inject constructor(
         _event.emit(Loading(false))
     }
 
+    fun acceptSharedWalletInvitation(invitation: Invitation) = viewModelScope.launch {
+        if (invitation.groupId.isEmpty()) return@launch
+        _event.emit(Loading(true))
+        joinFreeGroupWalletByIdUseCase(invitation.groupId)
+            .onSuccess {
+                retrieveData()
+                _event.emit(WalletsEvent.JoinFreeGroupWalletSuccess(it.id))
+            }
+            .onFailure {
+                val errorCode = it.nativeErrorCode()
+                if (errorCode == NativeErrorCode.GROUP_WALLET_JOINED) {
+                    retrieveData()
+                    _event.emit(WalletsEvent.JoinFreeGroupWalletSuccess(invitation.groupId))
+                } else {
+                    _event.emit(ShowErrorEvent(it))
+                }
+            }
+        _event.emit(Loading(false))
+    }
+
     fun getWalletDetail(walletId: String) = viewModelScope.launch {
         getWalletUseCase.execute(walletId)
             .flowOn(IO)
@@ -896,6 +947,20 @@ internal class WalletsViewModel @Inject constructor(
         } else {
             _event.emit(ShowErrorEvent(result.exceptionOrNull()))
         }
+    }
+
+    fun denySharedWalletInvitation(invitationId: String) = viewModelScope.launch {
+        if (invitationId.isEmpty()) return@launch
+        _event.emit(Loading(true))
+        denySharedWalletInvitationUseCase(
+            DenySharedWalletInvitationUseCase.Param(invitationId = invitationId)
+        ).onSuccess {
+            retrieveData()
+            _event.emit(WalletsEvent.DenyWalletInvitationSuccess)
+        }.onFailure {
+            _event.emit(ShowErrorEvent(it))
+        }
+        _event.emit(Loading(false))
     }
 
     fun getPersonalSteps() = getState().personalSteps.orEmpty()

@@ -58,6 +58,7 @@ const val DRAFT_WALLET_RESET = "io.nunchuk.custom.draft_wallet_reset"
 const val DRAFT_WALLET_TIMELOCK_SET = "io.nunchuk.custom.draft_wallet_timelock_set"
 const val GROUP_WALLET_CREATED = "io.nunchuk.custom.group_wallet_created"
 const val GROUP_EMERGENCY_LOCKDOWN_STARTED = "io.nunchuk.custom.group_emergency_lockdown_started"
+const val SHARED_WALLET_GROUP_INVITATION = "io.nunchuk.custom.shared_wallet_group_invitation"
 const val WALLET_INHERITANCE_PLANNING_REQUEST_DENIED =
     "io.nunchuk.custom.wallet_inheritance_planning_request_denied"
 const val KEY_RECOVERY_REQUEST = "io.nunchuk.custom.key_recovery_request"
@@ -189,6 +190,9 @@ fun TimelineEvent.isGroupWalletCreatedEvent() =
 
 fun TimelineEvent.isGroupEmergencyLockdownStarted() =
     getMsgType() == GROUP_EMERGENCY_LOCKDOWN_STARTED
+
+fun TimelineEvent.isSharedWalletGroupInvitationEvent() =
+    getMsgType() == SHARED_WALLET_GROUP_INVITATION
 
 fun TimelineEvent.isWalletInheritancePlanningRequestDenied() =
     getMsgType() == WALLET_INHERITANCE_PLANNING_REQUEST_DENIED

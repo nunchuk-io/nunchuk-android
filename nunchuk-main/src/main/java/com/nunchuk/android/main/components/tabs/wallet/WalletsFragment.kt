@@ -209,6 +209,8 @@ internal class WalletsFragment : Fragment() {
                 denyInviteMember = { groupId ->
                     walletsViewModel.denyInviteMember(groupId)
                 },
+                onAcceptSharedWalletInvitation = walletsViewModel::acceptSharedWalletInvitation,
+                onDenySharedWalletInvitation = walletsViewModel::denySharedWalletInvitation,
                 showWalletReplacedDialog = ::showWalletReplacedDialog,
                 getWalletDetail = walletsViewModel::getWalletDetail,
                 openWalletDetailsScreen = ::openWalletDetailsScreen,

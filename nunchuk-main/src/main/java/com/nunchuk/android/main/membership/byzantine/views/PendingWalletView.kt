@@ -35,6 +35,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
@@ -68,6 +69,7 @@ import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.KeyHealthStatus
 import com.nunchuk.android.model.byzantine.isMasterOrAdminOrFacilitatorAdmin
 import com.nunchuk.android.model.byzantine.toRole
+import com.nunchuk.android.model.wallet.Invitation
 import com.nunchuk.android.model.wallet.WalletStatus
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.SignerType
@@ -80,6 +82,7 @@ fun PendingWalletView(
     modifier: Modifier = Modifier,
     group: ByzantineGroup? = null,
     sandbox: GroupSandbox? = null,
+    sharedWalletInvitation: Invitation? = null,
     isSandboxWallet: Boolean = false,
     walletsExtended: WalletExtended? = null,
     hideWalletDetail: Boolean = false,
@@ -104,6 +107,22 @@ fun PendingWalletView(
     isDeprecatedGroupWallet: Boolean = false,
 ) {
     val isLimitAccess = isDeprecatedGroupWallet || isLimitAccess(group, role, walletStatus)
+    val headerModifier = if (sharedWalletInvitation != null) {
+        Modifier.background(colorResource(id = R.color.nc_beeswax_tint))
+    } else {
+        Modifier.background(
+            brush = Brush.linearGradient(
+                colors = getWalletColors(
+                    wallet = walletsExtended?.wallet,
+                    isAssistedWallet = isAssistedWallet,
+                    isLimitAccess = isLimitAccess,
+                    isJoined = inviterName.isEmpty(),
+                    hasGroup = group != null,
+                    isFreeGroupWallet = isSandboxWallet
+                ), start = Offset.Zero, end = Offset.Infinite
+            )
+        )
+    }
     Column(
         modifier = modifier
             .clip(shape = RoundedCornerShape(8.dp))
@@ -112,23 +131,11 @@ fun PendingWalletView(
             .fillMaxWidth(),
     ) {
         Box(
-            modifier = Modifier
-                .background(
-                    brush = Brush.linearGradient(
-                        colors = getWalletColors(
-                            wallet = walletsExtended?.wallet,
-                            isAssistedWallet = isAssistedWallet,
-                            isLimitAccess = isLimitAccess,
-                            isJoined = inviterName.isEmpty(),
-                            hasGroup = group != null,
-                            isFreeGroupWallet = isSandboxWallet
-                        ), start = Offset.Zero, end = Offset.Infinite
-                    )
-                )
+            modifier = headerModifier
                 .padding(12.dp)
                 .fillMaxWidth()
         ) {
-            if (inviterName.isNotEmpty()) {
+            if (sharedWalletInvitation != null || inviterName.isNotEmpty()) {
                 Text(
                     text = stringResource(R.string.nc_wallet_invitation),
                     style = NunchukTheme.typography.title,
@@ -177,7 +184,22 @@ fun PendingWalletView(
                 }
             }
         }
-        if (group != null && walletStatus != WalletStatus.REPLACED.name) {
+        if (sharedWalletInvitation != null) {
+            val invitationMessage = sharedWalletInvitation.toInviteMemberMessage()
+
+            Row(
+                modifier = Modifier.padding(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                PendingWalletInviteMember(
+                    inviterName = sharedWalletInvitation.inviterName,
+                    message = invitationMessage,
+                    onAccept = onAccept,
+                    onDeny = onDeny,
+                    denyAsText = true,
+                )
+            }
+        } else if (group != null && walletStatus != WalletStatus.REPLACED.name) {
             Row(
                 modifier = Modifier
                     .clickable(
@@ -247,60 +269,109 @@ fun PendingWalletView(
 
 @Composable
 fun RowScope.PendingWalletInviteMember(
-    inviterName: String, onAccept: () -> Unit, onDeny: () -> Unit,
+    inviterName: String,
+    onAccept: () -> Unit,
+    onDeny: () -> Unit,
+    message: String = "",
+    denyAsText: Boolean = false,
 ) {
-    Text(
-        text = stringResource(
+    val inviteMessage = message.ifEmpty {
+        stringResource(
             R.string.nc_pending_wallet_invite_member, inviterName
-        ), style = NunchukTheme.typography.bodySmall, modifier = Modifier
-            .weight(1f, fill = true)
-            .padding(end = 12.dp)
-    )
-    Box(
-        modifier = Modifier
-            .height(36.dp)
-            .defaultMinSize(minWidth = 62.dp)
-            .background(
-                color = Color.Transparent, shape = RoundedCornerShape(48.dp)
-            )
-            .border(
-                width = 2.dp,
-                color = MaterialTheme.colorScheme.controlFillPrimary,
-                shape = RoundedCornerShape(48.dp)
-            )
-            .clickable {
-                onDeny()
-            },
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            modifier = Modifier.padding(horizontal = 16.dp),
-            text = stringResource(id = R.string.nc_deny),
-            style = NunchukTheme.typography.captionTitle
         )
     }
 
-    Box(
+    Text(
+        text = inviteMessage,
+        style = NunchukTheme.typography.bodySmall,
         modifier = Modifier
-            .height(36.dp)
-            .padding(start = 12.dp)
-            .defaultMinSize(minWidth = 72.dp)
-            .background(
-                color = MaterialTheme.colorScheme.controlFillPrimary,
-                shape = RoundedCornerShape(48.dp)
+            .weight(1f, fill = true)
+            .padding(end = 12.dp)
+    )
+    if (denyAsText) {
+        Box(
+            modifier = Modifier
+                .height(36.dp)
+                .defaultMinSize(minWidth = 72.dp)
+                .background(
+                    color = MaterialTheme.colorScheme.controlFillPrimary,
+                    shape = RoundedCornerShape(48.dp)
+                )
+                .clickable {
+                    onAccept()
+                },
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                text = stringResource(id = R.string.nc_accept),
+                style = NunchukTheme.typography.captionTitle.copy(
+                    color = MaterialTheme.colorScheme.controlTextPrimary
+                )
             )
-            .clickable {
-                onAccept()
-            },
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            modifier = Modifier.padding(horizontal = 16.dp),
-            text = stringResource(id = R.string.nc_accept),
-            style = NunchukTheme.typography.captionTitle.copy(
-                color = MaterialTheme.colorScheme.controlTextPrimary
+        }
+
+        Box(
+            modifier = Modifier
+                .height(36.dp)
+                .defaultMinSize(minWidth = 62.dp)
+                .padding(start = 12.dp)
+                .clickable(onClick = onDeny),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = stringResource(id = R.string.nc_deny),
+                style = NunchukTheme.typography.captionTitle,
+                textAlign = TextAlign.Center
             )
-        )
+        }
+    } else {
+        Box(
+            modifier = Modifier
+                .height(36.dp)
+                .defaultMinSize(minWidth = 62.dp)
+                .background(
+                    color = Color.Transparent, shape = RoundedCornerShape(48.dp)
+                )
+                .border(
+                    width = 2.dp,
+                    color = MaterialTheme.colorScheme.controlFillPrimary,
+                    shape = RoundedCornerShape(48.dp)
+                )
+                .clickable {
+                    onDeny()
+                },
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                text = stringResource(id = R.string.nc_deny),
+                style = NunchukTheme.typography.captionTitle
+            )
+        }
+
+        Box(
+            modifier = Modifier
+                .height(36.dp)
+                .padding(start = 12.dp)
+                .defaultMinSize(minWidth = 72.dp)
+                .background(
+                    color = MaterialTheme.colorScheme.controlFillPrimary,
+                    shape = RoundedCornerShape(48.dp)
+                )
+                .clickable {
+                    onAccept()
+                },
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                text = stringResource(id = R.string.nc_accept),
+                style = NunchukTheme.typography.captionTitle.copy(
+                    color = MaterialTheme.colorScheme.controlTextPrimary
+                )
+            )
+        }
     }
 }
 

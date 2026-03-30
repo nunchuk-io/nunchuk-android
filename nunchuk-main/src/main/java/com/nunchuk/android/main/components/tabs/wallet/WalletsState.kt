@@ -39,6 +39,7 @@ import com.nunchuk.android.model.campaigns.ReferrerCode
 import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.model.setting.HomeDisplaySetting
 import com.nunchuk.android.model.setting.WalletSecuritySetting
+import com.nunchuk.android.model.wallet.Invitation
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.ConnectionStatus
 
@@ -70,7 +71,8 @@ internal data class WalletsState(
     val totalArchivedWallet: Int = 0,
     val stage: MembershipStage = MembershipStage.NONE,
     val inheritances: Map<String, InheritanceStatus> = mutableMapOf(),
-    val claimWallet: ClaimWalletInfo? = null
+    val claimWallet: ClaimWalletInfo? = null,
+    val sharedWalletInvitations: List<Invitation> = emptyList(),
 )
 
 internal data class ClaimWalletInfo(
@@ -108,6 +110,7 @@ internal data class GroupWalletUi(
     val wallet: WalletExtended? = null,
     val group: ByzantineGroup? = null,
     val sandbox: GroupSandbox? = null,
+    val sharedWalletInvitation: Invitation? = null,
     val role: String = AssistedWalletRole.NONE.name,
     val inviterName: String = "",
     val badgeCount: Int = 0,
@@ -118,5 +121,9 @@ internal data class GroupWalletUi(
     val isSandboxWallet: Boolean = false,
 ) {
     val id: String
-        get() = wallet?.wallet?.id ?: group?.id ?: sandbox?.id ?: ""
+        get() = sharedWalletInvitation?.id?.let { "shared_invite_$it" }
+            ?: wallet?.wallet?.id
+            ?: group?.id
+            ?: sandbox?.id
+            ?: ""
 }
