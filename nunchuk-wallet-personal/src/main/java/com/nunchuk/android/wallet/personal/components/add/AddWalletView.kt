@@ -249,7 +249,11 @@ fun AddWalletView(
                 .fillMaxSize(),
             topBar = {
                 NcTopAppBar(
-                    title = stringResource(id = R.string.nc_config),
+                    title = if (showInviteSection) {
+                        stringResource(id = com.nunchuk.android.core.R.string.nc_settings)
+                    } else {
+                        stringResource(id = R.string.nc_config)
+                    },
                     textStyle = NunchukTheme.typography.titleLarge
                 )
             },
