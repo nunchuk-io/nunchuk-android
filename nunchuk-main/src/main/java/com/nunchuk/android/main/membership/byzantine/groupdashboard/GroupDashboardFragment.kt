@@ -656,12 +656,9 @@ class GroupDashboardFragment : BaseFragment<ViewBinding>(), BottomSheetOptionLis
                 source = RollOverWalletSource.REPLACE_KEY
             )
         } else if (alert.type == AlertType.GROUP_REPLACE_WALLET) {
-            navigator.openRollOverWalletScreen(
+            navigator.openFreeGroupWalletScreen(
                 activityContext = requireActivity(),
-                oldWalletId = viewModel.getWalletId(),
-                newWalletId = alert.payload.newWalletId,
-                startScreen = RollOverWalletFlow.REFUND,
-                source = RollOverWalletSource.REPLACE_KEY
+                groupId = alert.payload.replacementGroupId,
             )
         } else if (alert.type == AlertType.BACKUP_WALLET) {
             navigator.openUploadConfigurationScreen(

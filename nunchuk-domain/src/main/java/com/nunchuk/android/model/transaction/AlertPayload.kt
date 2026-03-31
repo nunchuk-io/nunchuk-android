@@ -34,4 +34,6 @@ data class AlertPayload(
     val xfp: String = "",
     @SerializedName("new_wallet_local_id")
     val newWalletId: String = "",
+    @SerializedName("replacement_group_id")
+    val replacementGroupId: String = "",
 ) : Parcelable

@@ -266,7 +266,8 @@ internal class ByzantineSyncer @Inject constructor(
             payload = AlertPayload(
                 masterName = "",
                 pendingKeysCount = 0,
-                dummyTransactionId = dummyTransactionId,
+                dummyTransactionId = payload?.dummyTransactionId.orEmpty(),
+                replacementGroupId = payload?.replacementGroupId.orEmpty(),
             )
         )
     }
