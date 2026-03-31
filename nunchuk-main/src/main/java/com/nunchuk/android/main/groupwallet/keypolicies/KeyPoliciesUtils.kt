@@ -64,10 +64,12 @@ internal fun formatSpendingLimit(policy: SpendingPolicy): String {
 @Composable
 internal fun formatGroupSpendingLimit(limit: GroupSpendingLimit): String {
     val normalizedLimit = normalizeGroupSpendingLimit(limit)
-    val intervalText = when (normalizedLimit.interval) {
-        GroupSpendingLimitInterval.DAILY -> "Day"
-        GroupSpendingLimitInterval.WEEKLY -> "Week"
-        GroupSpendingLimitInterval.MONTHLY -> "Month"
+    val intervalText = when (normalizedLimit.interval.name) {
+        "DAILY" -> "Day"
+        "WEEKLY" -> "Week"
+        "MONTHLY" -> "Month"
+        "YEARLY" -> "Year"
+        else -> "Day"
     }
     val amountDouble = normalizedLimit.amount.toDoubleOrNull() ?: 0.0
     val amountText = if (amountDouble == 0.0) "0" else {
@@ -102,9 +104,11 @@ internal fun getTimeUnitDisplayName(timeUnit: SpendingTimeUnit): String {
 
 @Composable
 internal fun getIntervalDisplayName(interval: GroupSpendingLimitInterval): String {
-    return when (interval) {
-        GroupSpendingLimitInterval.DAILY -> stringResource(com.nunchuk.android.core.R.string.nc_daily)
-        GroupSpendingLimitInterval.WEEKLY -> stringResource(com.nunchuk.android.core.R.string.nc_weekly)
-        GroupSpendingLimitInterval.MONTHLY -> stringResource(com.nunchuk.android.core.R.string.nc_monthly)
+    return when (interval.name) {
+        "DAILY" -> stringResource(com.nunchuk.android.core.R.string.nc_daily)
+        "WEEKLY" -> stringResource(com.nunchuk.android.core.R.string.nc_weekly)
+        "MONTHLY" -> stringResource(com.nunchuk.android.core.R.string.nc_monthly)
+        "YEARLY" -> stringResource(com.nunchuk.android.core.R.string.nc_yearly)
+        else -> stringResource(com.nunchuk.android.core.R.string.nc_daily)
     }
 }

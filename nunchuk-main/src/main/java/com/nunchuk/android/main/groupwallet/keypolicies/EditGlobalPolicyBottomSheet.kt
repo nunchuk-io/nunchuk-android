@@ -21,6 +21,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.tooling.preview.PreviewLightDark
@@ -91,6 +92,21 @@ internal fun EditGlobalPolicyBottomSheet(
     }
     var showTimeUnitSelector by rememberSaveable { mutableStateOf(false) }
     var showCurrencySelector by rememberSaveable { mutableStateOf(false) }
+    val intervalOptions = remember { GroupSpendingLimitInterval.entries.toList() }
+    val currencyOptions = listOf(
+        CurrencyOption(
+            value = "USD",
+            label = stringResource(com.nunchuk.android.core.R.string.nc_currency_usd),
+        ),
+        CurrencyOption(
+            value = "BTC",
+            label = stringResource(com.nunchuk.android.core.R.string.nc_currency_btc),
+        ),
+        CurrencyOption(
+            value = "sat",
+            label = stringResource(com.nunchuk.android.core.R.string.nc_currency_sat),
+        ),
+    )
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -171,8 +187,20 @@ internal fun EditGlobalPolicyBottomSheet(
                             ),
                         )
                     },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    onValueChange = { amount = it },
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = if (currencyUnit.equals("sat", ignoreCase = true)) {
+                            KeyboardType.Number
+                        } else {
+                            KeyboardType.Decimal
+                        }
+                    ),
+                    onValueChange = { value ->
+                        amount = if (currencyUnit.equals("sat", ignoreCase = true)) {
+                            value.filter { it.isDigit() }
+                        } else {
+                            value
+                        }
+                    },
                 )
                 NcTextField(
                     modifier = Modifier
@@ -332,13 +360,12 @@ internal fun EditGlobalPolicyBottomSheet(
     }
 
     if (showTimeUnitSelector) {
-        val intervals = GroupSpendingLimitInterval.entries.toList()
-        val selectedIndex = intervals.indexOf(interval)
+        val selectedIndex = intervalOptions.indexOfFirst { it.name == interval.name }.coerceAtLeast(0)
         NcSelectableBottomSheet(
-            options = intervals.map { getIntervalDisplayName(it) },
+            options = intervalOptions.map { getIntervalDisplayName(it) },
             selectedPos = selectedIndex,
             onSelected = { index ->
-                interval = intervals[index]
+                interval = intervalOptions.getOrElse(index) { intervalOptions.first() }
                 showTimeUnitSelector = false
             },
             onDismiss = { showTimeUnitSelector = false },
@@ -346,19 +373,29 @@ internal fun EditGlobalPolicyBottomSheet(
     }
 
     if (showCurrencySelector) {
-        val currencies = listOf("USD", "BTC")
-        val selectedIndex = currencies.indexOf(currencyUnit)
+        val selectedIndex = currencyOptions.indexOfFirst {
+            it.value.equals(currencyUnit, ignoreCase = true)
+        }.coerceAtLeast(0)
         NcSelectableBottomSheet(
-            options = currencies,
+            options = currencyOptions.map { it.label },
             selectedPos = selectedIndex,
             onSelected = { index ->
-                currencyUnit = currencies[index]
+                val selectedCurrency = currencyOptions.getOrElse(index) { currencyOptions.first() }
+                currencyUnit = selectedCurrency.value
+                if (currencyUnit.equals("sat", ignoreCase = true)) {
+                    amount = amount.substringBefore('.').filter { it.isDigit() }
+                }
                 showCurrencySelector = false
             },
             onDismiss = { showCurrencySelector = false },
         )
     }
 }
+
+private data class CurrencyOption(
+    val value: String,
+    val label: String,
+)
 
 @PreviewLightDark
 @Composable
