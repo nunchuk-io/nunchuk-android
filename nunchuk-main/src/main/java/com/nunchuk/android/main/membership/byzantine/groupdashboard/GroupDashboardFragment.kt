@@ -692,7 +692,14 @@ class GroupDashboardFragment : BaseFragment<ViewBinding>(), BottomSheetOptionLis
             }
 
             SheetOptionType.TYPE_PLATFORM_KEY_POLICY -> {
-                enterPasswordDialog(TargetAction.UPDATE_SERVER_KEY)
+                if (args.isFreeGroupWallet) {
+                    navigator.openFreeGroupWalletKeyPoliciesScreen(
+                        activityContext = requireActivity(),
+                        walletId = viewModel.getWalletId(),
+                    )
+                } else {
+                    enterPasswordDialog(TargetAction.UPDATE_SERVER_KEY)
+                }
             }
 
             SheetOptionType.TYPE_EMERGENCY_LOCKDOWN -> {

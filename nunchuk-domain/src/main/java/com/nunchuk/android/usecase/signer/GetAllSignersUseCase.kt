@@ -36,7 +36,12 @@ class GetAllSignersUseCase @Inject constructor(
     // should filter pass true
     override suspend fun execute(parameters: Boolean): Pair<List<MasterSigner>, List<SingleSigner>> {
         return if (parameters) {
-            nativeSdk.getMasterSigners().filter { it.isVisible } to nativeSdk.getRemoteSigners().filter { it.type != SignerType.SERVER && it.isVisible }
+            nativeSdk.getMasterSigners().filter { it.isVisible } to nativeSdk.getRemoteSigners()
+                .filter {
+                    it.type != SignerType.SERVER
+                            && it.type != SignerType.PLATFORM
+                            && it.isVisible
+                }
         } else {
             nativeSdk.getMasterSigners() to nativeSdk.getRemoteSigners()
         }
