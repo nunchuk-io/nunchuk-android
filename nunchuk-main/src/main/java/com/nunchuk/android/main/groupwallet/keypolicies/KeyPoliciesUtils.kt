@@ -7,6 +7,7 @@ import com.nunchuk.android.model.GroupPlatformKeyPolicy
 import com.nunchuk.android.model.GroupSpendingLimit
 import com.nunchuk.android.model.SpendingPolicy
 import com.nunchuk.android.model.SpendingTimeUnit
+import com.nunchuk.android.main.R
 import com.nunchuk.android.type.GroupSpendingLimitInterval
 
 private const val DEFAULT_LIMIT_AMOUNT = "0"
@@ -39,7 +40,7 @@ internal fun defaultGroupPlatformKeyPolicy(): GroupPlatformKeyPolicy {
 internal fun normalizeGroupPlatformKeyPolicy(policy: GroupPlatformKeyPolicy?): GroupPlatformKeyPolicy {
     val base = policy ?: defaultGroupPlatformKeyPolicy()
     return base.copy(
-        spendingLimit = normalizeGroupSpendingLimit(base.spendingLimit),
+        spendingLimit = base.spendingLimit?.let(::normalizeGroupSpendingLimit),
     )
 }
 
@@ -80,6 +81,12 @@ internal fun formatGroupSpendingLimit(limit: GroupSpendingLimit): String {
         }
     }
     return "${normalizedLimit.currency} $amountText / $intervalText"
+}
+
+@Composable
+internal fun formatGroupSpendingLimitOrUnlimited(limit: GroupSpendingLimit?): String {
+    return limit?.let { formatGroupSpendingLimit(it) }
+        ?: stringResource(R.string.nc_unlimited)
 }
 
 internal fun buildSignerLabel(signer: SignerModel?): String {

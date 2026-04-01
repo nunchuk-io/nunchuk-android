@@ -273,9 +273,7 @@ private fun ReviewPolicyCard(
                     style = NunchukTheme.typography.bodySmall,
                 )
                 Text(
-                    text = formatGroupSpendingLimit(
-                        normalizedNew.spendingLimit ?: defaultGroupSpendingLimit()
-                    ),
+                    text = formatGroupSpendingLimitOrUnlimited(normalizedNew.spendingLimit),
                     style = NunchukTheme.typography.title.copy(
                         color = if (isSpendingLimitChanged) ChangedColor else Color.Unspecified
                     ),

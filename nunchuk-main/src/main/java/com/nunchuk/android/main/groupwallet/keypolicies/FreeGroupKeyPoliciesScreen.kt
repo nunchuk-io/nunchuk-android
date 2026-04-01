@@ -385,9 +385,7 @@ private fun PolicyCard(
                         style = NunchukTheme.typography.bodySmall,
                     )
                     Text(
-                        text = formatGroupSpendingLimit(
-                            normalizedPolicy.spendingLimit ?: defaultGroupSpendingLimit()
-                        ),
+                        text = formatGroupSpendingLimitOrUnlimited(normalizedPolicy.spendingLimit),
                         style = NunchukTheme.typography.title,
                     )
                 }

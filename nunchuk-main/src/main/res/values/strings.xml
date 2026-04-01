@@ -549,6 +549,8 @@
     <string name="nc_add_policy">Add policy</string>
     <string name="nc_choose_how_rules_applied">Choose how rules are applied to your transactions</string>
     <string name="nc_spending_limit_value">%1$s %2$s / %3$s</string>
+    <string name="nc_unlimited">Unlimited</string>
+    <string name="nc_spending_limit_desc">Set a maximum amount for a specific period. When disabled, your spending limit will be unlimited.</string>
     <string name="nc_auto_broadcast">Auto-broadcast</string>
     <string name="nc_enter_amount">Enter amount</string>
     <string name="nc_apply">Apply</string>

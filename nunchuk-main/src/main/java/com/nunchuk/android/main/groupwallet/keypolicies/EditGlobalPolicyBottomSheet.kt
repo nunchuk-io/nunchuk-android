@@ -13,6 +13,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -40,6 +41,7 @@ import com.nunchuk.android.compose.NcSelectableBottomSheet
 import com.nunchuk.android.compose.NcSwitch
 import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.toReadableDrawableResId
@@ -59,8 +61,11 @@ internal fun EditGlobalPolicyBottomSheet(
     onSave: (KeyPolicyItem) -> Unit = {},
 ) {
     val normalizedPolicy = normalizeGroupPlatformKeyPolicy(policy.keyPolicy)
-    val spendingLimit = normalizedPolicy.spendingLimit
+    val spendingLimit = policy.keyPolicy.spendingLimit ?: normalizedPolicy.spendingLimit
     val amountDouble = spendingLimit?.amount?.toDoubleOrNull() ?: 0.0
+    var isSpendingLimitEnabled by rememberSaveable {
+        mutableStateOf(policy.keyPolicy.spendingLimit != null)
+    }
     var amount by rememberSaveable {
         mutableStateOf(
             if (amountDouble == 0.0) "" else {
@@ -150,13 +155,17 @@ internal fun EditGlobalPolicyBottomSheet(
                         style = NunchukTheme.typography.bodySmall,
                     )
                     Text(
-                        text = formatGroupSpendingLimit(
-                            GroupSpendingLimit(
-                                amount = amount.ifEmpty { "0" },
-                                interval = interval,
-                                currency = currencyUnit,
+                        text = if (isSpendingLimitEnabled) {
+                            formatGroupSpendingLimit(
+                                GroupSpendingLimit(
+                                    amount = amount.ifEmpty { "0" },
+                                    interval = interval,
+                                    currency = currencyUnit,
+                                )
                             )
-                        ),
+                        } else {
+                            stringResource(R.string.nc_unlimited)
+                        },
                         style = NunchukTheme.typography.title,
                     )
                 }
@@ -164,49 +173,89 @@ internal fun EditGlobalPolicyBottomSheet(
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = stringResource(R.string.nc_spending_limit),
+                    style = NunchukTheme.typography.title,
+                )
+                NcSwitch(
+                    checked = isSpendingLimitEnabled,
+                    onCheckedChange = { isSpendingLimitEnabled = it },
+                )
+            }
+
             Text(
-                text = stringResource(R.string.nc_spending_limit),
-                style = NunchukTheme.typography.titleSmall,
+                modifier = Modifier.padding(top = 4.dp),
+                text = stringResource(R.string.nc_spending_limit_desc),
+                style = NunchukTheme.typography.bodySmall.copy(
+                    color = MaterialTheme.colorScheme.textSecondary
+                ),
             )
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
+            if (isSpendingLimitEnabled) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    NcTextField(
+                        modifier = Modifier.weight(1f),
+                        title = "",
+                        value = amount,
+                        placeholder = {
+                            Text(
+                                text = "0",
+                                style = NunchukTheme.typography.body.copy(
+                                    color = MaterialTheme.colorScheme.textSecondary
+                                ),
+                            )
+                        },
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = if (currencyUnit.equals("sat", ignoreCase = true)) {
+                                KeyboardType.Number
+                            } else {
+                                KeyboardType.Decimal
+                            }
+                        ),
+                        onValueChange = { value ->
+                            amount = if (currencyUnit.equals("sat", ignoreCase = true)) {
+                                value.filter { it.isDigit() }
+                            } else {
+                                value
+                            }
+                        },
+                    )
+                    NcTextField(
+                        modifier = Modifier
+                            .weight(0.4f),
+                        title = "",
+                        value = currencyUnit,
+                        readOnly = true,
+                        rightContent = {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_arrow_drop_down),
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .clickable { showCurrencySelector = true },
+                            )
+                        },
+                        onClick = { showCurrencySelector = true },
+                        onValueChange = {},
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
                 NcTextField(
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.fillMaxWidth(),
                     title = "",
-                    value = amount,
-                    placeholder = {
-                        Text(
-                            text = stringResource(R.string.nc_enter_amount),
-                            style = NunchukTheme.typography.body.copy(
-                                color = MaterialTheme.colorScheme.textSecondary
-                            ),
-                        )
-                    },
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = if (currencyUnit.equals("sat", ignoreCase = true)) {
-                            KeyboardType.Number
-                        } else {
-                            KeyboardType.Decimal
-                        }
-                    ),
-                    onValueChange = { value ->
-                        amount = if (currencyUnit.equals("sat", ignoreCase = true)) {
-                            value.filter { it.isDigit() }
-                        } else {
-                            value
-                        }
-                    },
-                )
-                NcTextField(
-                    modifier = Modifier
-                        .weight(0.4f),
-                    title = "",
-                    value = currencyUnit,
+                    value = getIntervalDisplayName(interval),
                     readOnly = true,
                     rightContent = {
                         Icon(
@@ -214,35 +263,21 @@ internal fun EditGlobalPolicyBottomSheet(
                             contentDescription = null,
                             modifier = Modifier
                                 .size(24.dp)
-                                .clickable { showCurrencySelector = true },
+                                .clickable { showTimeUnitSelector = true },
                         )
                     },
-                    onClick = { showCurrencySelector = true },
+                    onClick = { showTimeUnitSelector = true },
                     onValueChange = {},
                 )
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-            NcTextField(
-                modifier = Modifier.fillMaxWidth(),
-                title = "",
-                value = getIntervalDisplayName(interval),
-                readOnly = true,
-                rightContent = {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_arrow_drop_down),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(24.dp)
-                            .clickable { showTimeUnitSelector = true },
-                    )
-                },
-                onClick = { showTimeUnitSelector = true },
-                onValueChange = {},
+            HorizontalDivider(
+                color = MaterialTheme.colorScheme.strokePrimary,
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -338,14 +373,19 @@ internal fun EditGlobalPolicyBottomSheet(
                         } else {
                             0
                         }
+                        val spendingLimitValue = if (isSpendingLimitEnabled) {
+                            GroupSpendingLimit(
+                                amount = amount.ifEmpty { "0" },
+                                interval = interval,
+                                currency = currencyUnit,
+                            )
+                        } else {
+                            null
+                        }
                         onSave(
                             policy.copy(
                                 keyPolicy = GroupPlatformKeyPolicy(
-                                    spendingLimit = GroupSpendingLimit(
-                                        amount = amount.ifEmpty { "0" },
-                                        interval = interval,
-                                        currency = currencyUnit,
-                                    ),
+                                    spendingLimit = spendingLimitValue,
                                     signingDelaySeconds = delaySeconds,
                                     autoBroadcastTransaction = isAutoBroadcast,
                                 )
@@ -359,7 +399,7 @@ internal fun EditGlobalPolicyBottomSheet(
         }
     }
 
-    if (showTimeUnitSelector) {
+    if (showTimeUnitSelector && isSpendingLimitEnabled) {
         val selectedIndex = intervalOptions.indexOfFirst { it.name == interval.name }.coerceAtLeast(0)
         NcSelectableBottomSheet(
             options = intervalOptions.map { getIntervalDisplayName(it) },
@@ -372,7 +412,7 @@ internal fun EditGlobalPolicyBottomSheet(
         )
     }
 
-    if (showCurrencySelector) {
+    if (showCurrencySelector && isSpendingLimitEnabled) {
         val selectedIndex = currencyOptions.indexOfFirst {
             it.value.equals(currencyUnit, ignoreCase = true)
         }.coerceAtLeast(0)
