@@ -48,6 +48,7 @@ import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.util.formatSecondsToPluralHoursMinutes
 import com.nunchuk.android.core.util.toReadableDrawableResId
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.GroupDummyTransaction
@@ -259,10 +260,9 @@ private fun FreeGroupKeyPoliciesContent(
         if (state.previewWarning != null) {
             val delaySeconds = state.previewWarning.delayApplyInSeconds
             val message = if (delaySeconds > 0) {
-                val hours = delaySeconds / 3600
                 stringResource(
                     R.string.nc_warning_dummy_transaction_with_delay,
-                    hours
+                    formatSecondsToPluralHoursMinutes(delaySeconds)
                 )
             } else {
                 stringResource(R.string.nc_warning_dummy_transaction)

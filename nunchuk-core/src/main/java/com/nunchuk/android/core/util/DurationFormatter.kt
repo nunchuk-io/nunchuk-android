@@ -19,6 +19,9 @@
 
 package com.nunchuk.android.core.util
 
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.pluralStringResource
+import com.nunchuk.android.core.R
 import java.util.Locale
 
 /**
@@ -33,5 +36,18 @@ fun Long.formatDurationHoursMinutes(): String {
     return when {
         hours < 1 -> String.format(Locale.getDefault(), "%dm", minutes)
         else -> String.format(Locale.getDefault(), "%dh:%02dm", hours, minutes)
+    }
+}
+
+@Composable
+fun formatSecondsToPluralHoursMinutes(seconds: Int): String {
+    val hours = seconds / 3600
+    val minutes = (seconds % 3600) / 60
+    return when {
+        hours == 0 -> pluralStringResource(R.plurals.nc_plural_minute, minutes, minutes)
+        minutes == 0 -> pluralStringResource(R.plurals.nc_plural_hour, hours, hours)
+        else -> "${pluralStringResource(R.plurals.nc_plural_hour, hours, hours)} ${
+            pluralStringResource(R.plurals.nc_plural_minute, minutes, minutes)
+        }"
     }
 }

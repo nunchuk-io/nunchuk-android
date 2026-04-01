@@ -20,6 +20,7 @@
 package com.nunchuk.android.core.base
 
 import android.content.Context
+import android.content.pm.ApplicationInfo
 import android.os.Bundle
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
@@ -119,10 +120,12 @@ abstract class BaseComposeActivity : AppCompatActivity(), LoadingDialog {
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
-        if (hasFocus) {
-            window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
-        } else {
-            window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        if (applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE == 0) {
+            if (hasFocus) {
+                window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+            } else {
+                window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+            }
         }
     }
 }
