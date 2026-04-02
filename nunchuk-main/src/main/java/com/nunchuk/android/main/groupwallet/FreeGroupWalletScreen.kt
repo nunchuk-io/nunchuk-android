@@ -79,6 +79,8 @@ import com.nunchuk.android.main.groupwallet.component.FreeAddKeyCard
 import com.nunchuk.android.main.groupwallet.component.PlatformKeyCard
 import com.nunchuk.android.main.groupwallet.component.UserOnline
 import com.nunchuk.android.main.groupwallet.component.WalletInfo
+import com.nunchuk.android.main.groupwallet.keypolicies.formatGroupSpendingLimitOrUnlimited
+import com.nunchuk.android.main.groupwallet.keypolicies.normalizeGroupPlatformKeyPolicy
 import com.nunchuk.android.main.membership.key.list.SelectSignerBottomSheet
 import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragmentArgs
 import com.nunchuk.android.model.GroupSandbox
@@ -502,12 +504,26 @@ fun FreeGroupWalletScreen(
                     }
 
                     val platformKeyIndex = state.group?.platformKeyIndex ?: -1
+                    val platformPolicies = state.group?.platformKey?.policies
+                    val hasPlatformKeyPerKeyPolicy = platformPolicies?.signers?.isNotEmpty() == true
+                    val hasPlatformKeyGlobalPolicy = platformPolicies?.global != null
+                    val isPlatformKeyConfigured = hasPlatformKeyPerKeyPolicy || hasPlatformKeyGlobalPolicy
 
                     var colorIndex = 0
                     itemsIndexed(state.signers) { index, signer ->
                         if (index == platformKeyIndex && platformKeyIndex >= 0) {
+                            val platformKeySubtitle = when {
+                                hasPlatformKeyPerKeyPolicy -> stringResource(R.string.nc_multiple_spending_limits)
+                                hasPlatformKeyGlobalPolicy -> formatGroupSpendingLimitOrUnlimited(
+                                    normalizeGroupPlatformKeyPolicy(platformPolicies?.global).spendingLimit
+                                )
+
+                                else -> null
+                            }
                             PlatformKeyCard(
                                 onConfigClicked = onConfigPlatformKey,
+                                isConfigured = isPlatformKeyConfigured,
+                                subtitle = platformKeySubtitle,
                             )
                         } else {
                             FreeAddKeyCard(

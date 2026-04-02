@@ -385,34 +385,61 @@ private fun KeyNotSyncView(modifier: Modifier, index: Int) {
 fun PlatformKeyCard(
     modifier: Modifier = Modifier,
     onConfigClicked: () -> Unit = {},
+    isConfigured: Boolean = false,
+    subtitle: String? = null,
 ) {
-    NcDashLineBox(
-        modifier = modifier,
-        content = {
-            Row(
-                modifier = Modifier.padding(12.dp),
-                verticalAlignment = Alignment.CenterVertically
+    val content: @Composable () -> Unit = {
+        Row(
+            modifier = Modifier.padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            NcCircleImage(resId = R.drawable.ic_server_key_dark, iconSize = 24.dp)
+            Column(
+                modifier = Modifier
+                    .weight(1.0f)
+                    .padding(start = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                NcCircleImage(resId = R.drawable.ic_server_key_dark, iconSize = 24.dp)
                 Text(
-                    modifier = Modifier
-                        .weight(1.0f)
-                        .padding(start = 8.dp),
                     text = stringResource(com.nunchuk.android.core.R.string.nc_server_key),
                     style = NunchukTheme.typography.body
                 )
-                NcOutlineButton(
-                    height = 36.dp,
-                    onClick = onConfigClicked,
-                ) {
+                if (!subtitle.isNullOrEmpty()) {
                     Text(
-                        text = stringResource(R.string.nc_config),
-                        style = NunchukTheme.typography.captionTitle
+                        text = subtitle,
+                        style = NunchukTheme.typography.bodySmall
                     )
                 }
             }
+            NcOutlineButton(
+                height = 36.dp,
+                onClick = onConfigClicked,
+            ) {
+                Text(
+                    text = stringResource(R.string.nc_config),
+                    style = NunchukTheme.typography.captionTitle
+                )
+            }
         }
-    )
+    }
+
+    if (isConfigured) {
+        Box(
+            modifier = modifier
+                .border(
+                    width = 1.dp,
+                    color = MaterialTheme.colorScheme.strokePrimary,
+                    shape = RoundedCornerShape(8.dp)
+                )
+        ) {
+            content()
+        }
+    } else {
+        NcDashLineBox(
+            modifier = modifier,
+            content = { content() }
+        )
+    }
 }
 
 @PreviewLightDark

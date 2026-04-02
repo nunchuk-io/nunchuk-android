@@ -12,8 +12,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -35,12 +38,12 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.NcCircleImage
-import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcSelectableBottomSheet
 import com.nunchuk.android.compose.NcSwitch
 import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.controlFillTertiary
 import com.nunchuk.android.compose.greyLight
 import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.compose.textPrimary
@@ -182,7 +185,7 @@ internal fun EditGlobalPolicyBottomSheet(
             ) {
                 Text(
                     text = stringResource(R.string.nc_spending_limit),
-                    style = NunchukTheme.typography.title,
+                    style = NunchukTheme.typography.body,
                 )
                 NcSwitch(
                     checked = isSpendingLimitEnabled,
@@ -244,7 +247,7 @@ internal fun EditGlobalPolicyBottomSheet(
                         maxLines = 1,
                         rightContent = {
                             Icon(
-                                painter = painterResource(id = R.drawable.ic_arrow_drop_down),
+                                painter = painterResource(id = R.drawable.ic_arrow_down),
                                 contentDescription = null,
                                 modifier = Modifier
                                     .size(24.dp)
@@ -265,7 +268,7 @@ internal fun EditGlobalPolicyBottomSheet(
                     readOnly = true,
                     rightContent = {
                         Icon(
-                            painter = painterResource(id = R.drawable.ic_arrow_drop_down),
+                            painter = painterResource(id = R.drawable.ic_arrow_down),
                             contentDescription = null,
                             modifier = Modifier
                                 .size(24.dp)
@@ -292,7 +295,7 @@ internal fun EditGlobalPolicyBottomSheet(
             ) {
                 Text(
                     text = stringResource(com.nunchuk.android.core.R.string.nc_enable_co_signing_delay),
-                    style = NunchukTheme.typography.title,
+                    style = NunchukTheme.typography.body,
                 )
                 NcSwitch(
                     checked = isCoSigningDelayEnabled,
@@ -341,7 +344,7 @@ internal fun EditGlobalPolicyBottomSheet(
             ) {
                 Text(
                     text = stringResource(R.string.nc_auto_broadcast),
-                    style = NunchukTheme.typography.title,
+                    style = NunchukTheme.typography.body,
                 )
                 NcSwitch(
                     checked = isAutoBroadcast,
@@ -363,11 +366,21 @@ internal fun EditGlobalPolicyBottomSheet(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                NcOutlineButton(
-                    modifier = Modifier.weight(1f),
+                Button(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(48.dp),
                     onClick = onDismiss,
+                    shape = RoundedCornerShape(48.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.controlFillTertiary,
+                        contentColor = MaterialTheme.colorScheme.textPrimary,
+                    ),
                 ) {
-                    Text(text = stringResource(com.nunchuk.android.core.R.string.nc_cancel))
+                    Text(
+                        text = stringResource(com.nunchuk.android.core.R.string.nc_cancel),
+                        style = NunchukTheme.typography.title,
+                    )
                 }
                 NcPrimaryDarkButton(
                     modifier = Modifier.weight(1f),
@@ -399,7 +412,7 @@ internal fun EditGlobalPolicyBottomSheet(
                         )
                     },
                 ) {
-                    Text(text = stringResource(com.nunchuk.android.core.R.string.nc_save))
+                    Text(text = stringResource(com.nunchuk.android.core.R.string.nc_apply))
                 }
             }
         }
