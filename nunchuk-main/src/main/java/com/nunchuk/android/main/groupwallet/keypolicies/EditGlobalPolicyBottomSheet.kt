@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -25,23 +27,23 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.NcCircleImage
 import com.nunchuk.android.compose.NcOutlineButton
-import com.nunchuk.android.compose.greyLight
-import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcSelectableBottomSheet
 import com.nunchuk.android.compose.NcSwitch
 import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.greyLight
 import com.nunchuk.android.compose.strokePrimary
+import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.toReadableDrawableResId
@@ -232,10 +234,14 @@ internal fun EditGlobalPolicyBottomSheet(
                     )
                     NcTextField(
                         modifier = Modifier
-                            .weight(0.4f),
+                            .weight(0.5f)
+                            .width(128.dp)
+                            .widthIn(min = 116.dp),
                         title = "",
                         value = currencyUnit,
                         readOnly = true,
+                        singleLine = true,
+                        maxLines = 1,
                         rightContent = {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_arrow_drop_down),
