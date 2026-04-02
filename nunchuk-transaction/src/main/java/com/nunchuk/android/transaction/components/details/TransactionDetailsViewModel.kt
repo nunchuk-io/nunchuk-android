@@ -130,6 +130,8 @@ import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
 import com.nunchuk.android.usecase.coin.GetAllCoinUseCase
 import com.nunchuk.android.usecase.coin.GetAllTagsUseCase
 import com.nunchuk.android.usecase.coin.GetCoinsFromTxInputsUseCase
+import com.nunchuk.android.usecase.free.groupwallet.GetFreeGroupWalletsUseCase
+import com.nunchuk.android.usecase.free.groupwallet.GetGroupTransactionStateUseCase
 import com.nunchuk.android.usecase.membership.GetSavedAddressListLocalUseCase
 import com.nunchuk.android.usecase.membership.SignServerTransactionUseCase
 import com.nunchuk.android.usecase.room.transaction.BroadcastRoomTransactionUseCase
@@ -215,6 +217,8 @@ internal class TransactionDetailsViewModel @Inject constructor(
     private val isPreimageRevealedUseCase: IsPreimageRevealedUseCase,
     private val getKeySetStatusUseCase: GetKeySetStatusUseCase,
     private val getTransactionSignersUseCase: GetTransactionSignersUseCase,
+    private val getFreeGroupWalletsUseCase: GetFreeGroupWalletsUseCase,
+    private val getGroupTransactionStateUseCase: GetGroupTransactionStateUseCase,
     private val timelockTransactionCache: LruCache<String, Long>,
     private val walletLockedBase: LruCache<String, MiniscriptTimelockBased>,
 ) : ViewModel() {
@@ -360,6 +364,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
         getAllTags()
         getAllCoins()
         getGroupMembers()
+        checkFreeGroupWallet()
     }
 
     private fun getGroupMembers() {
@@ -382,6 +387,26 @@ internal class TransactionDetailsViewModel @Inject constructor(
                         )
                     }
                 }
+        }
+    }
+
+    private fun checkFreeGroupWallet() {
+        viewModelScope.launch {
+            getFreeGroupWalletsUseCase(Unit).onSuccess { wallets ->
+                val isFreeGroupWallet = wallets.any { it.id == walletId }
+                _state.update { it.copy(isFreeGroupWallet = isFreeGroupWallet) }
+            }
+        }
+    }
+
+    private fun getGroupTransactionState() {
+        viewModelScope.launch {
+            getGroupTransactionStateUseCase(
+                GetGroupTransactionStateUseCase.Param(walletId = walletId, txId = txId)
+            ).onSuccess { groupTransactionState ->
+                _state.update { it.copy(groupTransactionState = groupTransactionState) }
+                handleSignTime(groupTransactionState.cosignAt)
+            }
         }
     }
 
@@ -420,6 +445,18 @@ internal class TransactionDetailsViewModel @Inject constructor(
                     }
                 }
             }
+        }
+        viewModelScope.launch {
+            state.filter {
+                it.isFreeGroupWallet
+                        && it.transaction.signers.count { entry -> entry.value } > 0
+                        && it.transaction.txId.isNotEmpty()
+                        && !it.transaction.isReceive
+            }.map { it.transaction.signers.count { entry -> entry.value } }
+                .distinctUntilChanged()
+                .collect {
+                    getGroupTransactionState()
+                }
         }
     }
 

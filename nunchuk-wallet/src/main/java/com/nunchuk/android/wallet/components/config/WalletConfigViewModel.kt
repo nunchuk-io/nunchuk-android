@@ -67,7 +67,7 @@ import com.nunchuk.android.usecase.SaveLocalFileUseCase
 import com.nunchuk.android.usecase.UpdateWalletUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
 import com.nunchuk.android.usecase.free.groupwallet.GetDeprecatedGroupWalletsUseCase
-import com.nunchuk.android.usecase.free.groupwallet.GetGroupWalletsUseCase
+import com.nunchuk.android.usecase.free.groupwallet.GetFreeGroupWalletsUseCase
 import com.nunchuk.android.usecase.membership.ExportCoinControlBIP329UseCase
 import com.nunchuk.android.usecase.membership.ExportTxCoinControlUseCase
 import com.nunchuk.android.usecase.membership.ForceRefreshWalletUseCase
@@ -126,7 +126,7 @@ internal class WalletConfigViewModel @Inject constructor(
     getContactsUseCase: GetContactsUseCase,
     private val savedStateHandle: SavedStateHandle,
     private val getAssistedWalletsFlowUseCase: GetAssistedWalletsFlowUseCase,
-    private val getGroupWalletsUseCase: GetGroupWalletsUseCase,
+    private val getFreeGroupWalletsUseCase: GetFreeGroupWalletsUseCase,
     private val saveLocalFileUseCase: SaveLocalFileUseCase,
     private val getDeprecatedGroupWalletsUseCase: GetDeprecatedGroupWalletsUseCase,
     private val exportTransactionsHistoryUseCase: ExportTransactionsHistoryUseCase,
@@ -172,7 +172,7 @@ internal class WalletConfigViewModel @Inject constructor(
             }
         }
         viewModelScope.launch {
-            getGroupWalletsUseCase(Unit).onSuccess { wallets ->
+            getFreeGroupWalletsUseCase(Unit).onSuccess { wallets ->
                 _state.update {
                     it.copy(isGroupSandboxWallet = wallets.any { wallet -> wallet.id == walletId })
                 }

@@ -26,7 +26,7 @@ import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-class GetGroupWalletsUseCase @Inject constructor(
+class GetFreeGroupWalletsUseCase @Inject constructor(
     @IoDispatcher dispatcher: CoroutineDispatcher,
     private val nativeSdk: NunchukNativeSdk
 ) : UseCase<Unit, List<Wallet>>(dispatcher) {

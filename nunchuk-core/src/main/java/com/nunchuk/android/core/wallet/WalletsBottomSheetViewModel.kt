@@ -33,7 +33,7 @@ import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.model.wallet.WalletStatus
 import com.nunchuk.android.usecase.GetGroupsUseCase
 import com.nunchuk.android.usecase.GetWalletsUseCase
-import com.nunchuk.android.usecase.free.groupwallet.GetGroupWalletsUseCase
+import com.nunchuk.android.usecase.free.groupwallet.GetFreeGroupWalletsUseCase
 import com.nunchuk.android.usecase.membership.GetSavedAddressListLocalUseCase
 import com.nunchuk.android.usecase.membership.GetSavedAddressListRemoteUseCase
 import com.nunchuk.android.utils.ByzantineGroupUtils
@@ -57,7 +57,7 @@ class WalletsBottomSheetViewModel @Inject constructor(
     private val getSavedAddressListLocalUseCase: GetSavedAddressListLocalUseCase,
     private val getSavedAddressListRemoteUseCase: GetSavedAddressListRemoteUseCase,
     private val getLocalMembershipPlansFlowUseCase: GetLocalMembershipPlansFlowUseCase,
-    private val getGroupWalletsUseCase: GetGroupWalletsUseCase,
+    private val getFreeGroupWalletsUseCase: GetFreeGroupWalletsUseCase,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(WalletsBottomSheetState())
@@ -74,7 +74,7 @@ class WalletsBottomSheetViewModel @Inject constructor(
         this.exclusiveAddresses = exclusiveAddresses
         _state.update { it.copy(config = configArgs ?: WalletComposeBottomSheet.ConfigArgs()) }
         viewModelScope.launch {
-            getGroupWalletsUseCase(Unit)
+            getFreeGroupWalletsUseCase(Unit)
                 .onSuccess { wallets ->
                     _state.update { it.copy(groupWallets = wallets.map { it.id }.toHashSet()) }
                     composeWalletUiModels()

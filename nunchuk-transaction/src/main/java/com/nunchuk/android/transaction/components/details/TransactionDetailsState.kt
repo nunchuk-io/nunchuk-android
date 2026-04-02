@@ -23,6 +23,7 @@ import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.model.ByzantineMember
 import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.model.CoinsGroup
+import com.nunchuk.android.model.GroupTransactionState
 import com.nunchuk.android.model.KeySetStatus
 import com.nunchuk.android.model.ScriptNode
 import com.nunchuk.android.model.Transaction
@@ -46,6 +47,8 @@ data class TransactionDetailsState(
     val savedAddress: Map<String, String> = emptyMap(),
     val hideFiatCurrency: Boolean = false,
     val enabledSigners: Set<String> = emptySet(),
+    val isFreeGroupWallet: Boolean = false,
+    val groupTransactionState: GroupTransactionState? = null,
 )
 
 data class TransactionMiniscriptUiState(

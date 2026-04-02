@@ -78,7 +78,7 @@ import com.nunchuk.android.usecase.free.groupwallet.AcceptReplaceGroupUseCase
 import com.nunchuk.android.usecase.free.groupwallet.DeclineReplaceGroupUseCase
 import com.nunchuk.android.usecase.free.groupwallet.GetBackUpBannerWalletIdsUseCase
 import com.nunchuk.android.usecase.free.groupwallet.GetDeprecatedGroupWalletsUseCase
-import com.nunchuk.android.usecase.free.groupwallet.GetGroupWalletsUseCase
+import com.nunchuk.android.usecase.free.groupwallet.GetFreeGroupWalletsUseCase
 import com.nunchuk.android.usecase.free.groupwallet.GetReplaceGroupsUseCase
 import com.nunchuk.android.usecase.free.groupwallet.SetBackUpBannerWalletIdsUseCase
 import com.nunchuk.android.usecase.membership.IsClaimWalletUseCase
@@ -139,7 +139,7 @@ internal class WalletDetailsViewModel @Inject constructor(
     private val hasSignerUseCase: HasSignerUseCase,
     private val getListMessageFreeGroupWalletUseCase: GetListMessageFreeGroupWalletUseCase,
     private val groupChatManager: GroupChatManager,
-    private val getGroupWalletsUseCase: GetGroupWalletsUseCase,
+    private val getFreeGroupWalletsUseCase: GetFreeGroupWalletsUseCase,
     private val getGlobalGroupWalletConfigUseCase: GetGlobalGroupWalletConfigUseCase,
     private val getGroupWalletConfigUseCase: GetGroupWalletConfigUseCase,
     private val setGroupWalletLastReadMessageUseCase: SetGroupWalletLastReadMessageUseCase,
@@ -237,7 +237,7 @@ internal class WalletDetailsViewModel @Inject constructor(
             updateState {
                 copy(uid = uid.orEmpty())
             }
-            getGroupWalletsUseCase(Unit).onSuccess { wallets ->
+            getFreeGroupWalletsUseCase(Unit).onSuccess { wallets ->
                 val isFreeGroupWallet = wallets.any { it.id == args.walletId }
                 if (isFreeGroupWallet) {
                     groupChatManager.init(args.walletId)

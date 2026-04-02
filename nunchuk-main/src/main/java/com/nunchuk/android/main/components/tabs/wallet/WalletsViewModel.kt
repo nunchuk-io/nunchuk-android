@@ -102,7 +102,7 @@ import com.nunchuk.android.usecase.campaign.GetCurrentCampaignUseCase
 import com.nunchuk.android.usecase.campaign.GetLocalCurrentCampaignUseCase
 import com.nunchuk.android.usecase.campaign.GetLocalReferrerCodeUseCase
 import com.nunchuk.android.usecase.free.groupwallet.GetDeprecatedGroupWalletsUseCase
-import com.nunchuk.android.usecase.free.groupwallet.GetGroupWalletsUseCase
+import com.nunchuk.android.usecase.free.groupwallet.GetFreeGroupWalletsUseCase
 import com.nunchuk.android.usecase.free.groupwallet.GetPendingGroupsSandboxUseCase
 import com.nunchuk.android.usecase.membership.GetInheritanceUseCase
 import com.nunchuk.android.usecase.membership.GetPendingWalletNotifyCountUseCase
@@ -184,7 +184,7 @@ internal class WalletsViewModel @Inject constructor(
     private val migrateHomeDisplaySettingUseCase: MigrateHomeDisplaySettingUseCase,
     private val getWalletUseCase: GetWalletUseCase,
     private val getPendingGroupsSandboxUseCase: GetPendingGroupsSandboxUseCase,
-    private val getGroupWalletsUseCase: GetGroupWalletsUseCase,
+    private val getFreeGroupWalletsUseCase: GetFreeGroupWalletsUseCase,
     private val getSharedWalletInvitationsUseCase: GetSharedWalletInvitationsUseCase,
     private val denySharedWalletInvitationUseCase: DenySharedWalletInvitationUseCase,
     private val joinFreeGroupWalletByIdUseCase: JoinFreeGroupWalletByIdUseCase,
@@ -605,7 +605,7 @@ internal class WalletsViewModel @Inject constructor(
             }
             val walletsDeferred = async { getAllWalletsUseCase(Unit) }
             val pendingWalletsDeferred = async { getPendingGroupsSandboxUseCase(Unit) }
-            val groupSandboxWalletsDeferred = async { getGroupWalletsUseCase(Unit) }
+            val groupSandboxWalletsDeferred = async { getFreeGroupWalletsUseCase(Unit) }
             val deprecatedGroupWalletsDeferred = async { getDeprecatedGroupWalletsUseCase(Unit) }
             val sharedWalletInvitationsDeferred = async {
                 if (signInModeHolder.getCurrentMode().isGuestMode()) {

@@ -10,7 +10,7 @@ import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.model.wallet.WalletStatus
 import com.nunchuk.android.usecase.GetGroupsUseCase
 import com.nunchuk.android.usecase.GetWalletsUseCase
-import com.nunchuk.android.usecase.free.groupwallet.GetGroupWalletsUseCase
+import com.nunchuk.android.usecase.free.groupwallet.GetFreeGroupWalletsUseCase
 import com.nunchuk.android.utils.ByzantineGroupUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -29,7 +29,7 @@ class ChooseWalletToSendViewModel @Inject constructor(
     private val getGroupsUseCase: GetGroupsUseCase,
     private val byzantineGroupUtils: ByzantineGroupUtils,
     private val getAssistedWalletsFlowUseCase: GetAssistedWalletsFlowUseCase,
-    private val getGroupWalletsUseCase: GetGroupWalletsUseCase,
+    private val getFreeGroupWalletsUseCase: GetFreeGroupWalletsUseCase,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(ChooseWalletToSendUiState())
@@ -51,7 +51,7 @@ class ChooseWalletToSendViewModel @Inject constructor(
                 }
         }
         viewModelScope.launch {
-            getGroupWalletsUseCase(Unit)
+            getFreeGroupWalletsUseCase(Unit)
                 .onSuccess { wallets ->
                     _state.update { it.copy(groupWallets = wallets.map { wallet -> wallet.id }.toHashSet()) }
                     composeWalletUiModels()
