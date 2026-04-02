@@ -75,6 +75,7 @@ import com.nunchuk.android.core.base.BaseComposeActivity
 import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
+import com.nunchuk.android.core.util.isPlatformKey
 import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.core.util.navigateToSelectWallet
 import com.nunchuk.android.nav.args.BackUpWalletArgs
@@ -372,7 +373,7 @@ fun ReviewWalletContent(
                                 item = signer,
                                 showValueKey = args.addressType.isTaproot() && index < args.totalRequireSigns && args.isValueKeySetEnable
                             ) {
-                                if (signer.derivationPath.isNotEmpty()) {
+                                if (signer.derivationPath.isNotEmpty() && !signer.type.isPlatformKey) {
                                     Text(
                                         modifier = Modifier
                                             .padding(top = 4.dp),
@@ -392,7 +393,7 @@ fun ReviewWalletContent(
                                 isShowKeyTypeBadge = false,
                                 showValueKey = args.addressType.isTaproot() && index < args.totalRequireSigns && args.isValueKeySetEnable
                             ) {
-                                if (signer.derivationPath.isNotEmpty()) {
+                                if (signer.derivationPath.isNotEmpty() && !signer.type.isPlatformKey) {
                                     Text(
                                         modifier = Modifier
                                             .padding(top = 4.dp),
