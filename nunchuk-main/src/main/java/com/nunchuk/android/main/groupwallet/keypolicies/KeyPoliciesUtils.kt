@@ -5,7 +5,6 @@ import androidx.compose.ui.res.stringResource
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.model.GroupPlatformKeyPolicy
 import com.nunchuk.android.model.GroupSpendingLimit
-import com.nunchuk.android.model.KeyPolicy
 import com.nunchuk.android.model.SpendingPolicy
 import com.nunchuk.android.model.SpendingTimeUnit
 import com.nunchuk.android.main.R
@@ -33,7 +32,7 @@ internal fun normalizeGroupSpendingLimit(limit: GroupSpendingLimit?): GroupSpend
 internal fun defaultGroupPlatformKeyPolicy(): GroupPlatformKeyPolicy {
     return GroupPlatformKeyPolicy(
         spendingLimit = defaultGroupSpendingLimit(),
-        signingDelaySeconds = 2 * KeyPolicy.ONE_HOUR_TO_SECONDS,
+        signingDelaySeconds = 0,
         autoBroadcastTransaction = false,
     )
 }
