@@ -606,10 +606,18 @@ class FreeGroupWalletViewModel @Inject constructor(
     fun enableGroupPlatformKey(names: List<String> = emptyList()) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
+            val resolvedNames = if (isMiniscriptWallet()) {
+                val existingPlatformKeyNames = _uiState.value.group?.platformKeySlots.orEmpty()
+                val currentKeyName = _uiState.value.currentKeyToAssign.takeIf { it.isNotEmpty() }
+                (existingPlatformKeyNames + names + listOfNotNull(currentKeyName))
+                    .distinct()
+            } else {
+                names
+            }
             enableGroupPlatformKeyUseCase(
                 EnableGroupPlatformKeyUseCase.Params(
                     groupId = groupId,
-                    names = names,
+                    names = resolvedNames,
                 )
             ).onSuccess { groupSandbox ->
                 updateGroupSandbox(groupSandbox)

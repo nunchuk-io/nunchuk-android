@@ -551,6 +551,7 @@
     <string name="nc_multiple_spending_limits">Multiple spending limits</string>
     <string name="nc_spending_limit_value">%1$s %2$s / %3$s</string>
     <string name="nc_unlimited">Unlimited</string>
+    <string name="nc_unlimited_spending_limits">Unlimited spending limits</string>
     <string name="nc_spending_limit_desc">Set a maximum amount for a specific period. When disabled, your spending limit will be unlimited.</string>
     <string name="nc_auto_broadcast">Auto-broadcast</string>
     <string name="nc_enter_amount">Enter amount</string>

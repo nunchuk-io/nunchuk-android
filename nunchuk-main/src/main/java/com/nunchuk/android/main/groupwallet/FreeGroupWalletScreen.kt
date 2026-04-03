@@ -79,7 +79,7 @@ import com.nunchuk.android.main.groupwallet.component.FreeAddKeyCard
 import com.nunchuk.android.main.groupwallet.component.PlatformKeyCard
 import com.nunchuk.android.main.groupwallet.component.UserOnline
 import com.nunchuk.android.main.groupwallet.component.WalletInfo
-import com.nunchuk.android.main.groupwallet.keypolicies.formatGroupSpendingLimitOrUnlimited
+import com.nunchuk.android.main.groupwallet.keypolicies.formatGroupSpendingLimit
 import com.nunchuk.android.main.groupwallet.keypolicies.normalizeGroupPlatformKeyPolicy
 import com.nunchuk.android.main.membership.key.list.SelectSignerBottomSheet
 import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragmentArgs
@@ -514,9 +514,15 @@ fun FreeGroupWalletScreen(
                         if (index == platformKeyIndex && platformKeyIndex >= 0) {
                             val platformKeySubtitle = when {
                                 hasPlatformKeyPerKeyPolicy -> stringResource(R.string.nc_multiple_spending_limits)
-                                hasPlatformKeyGlobalPolicy -> formatGroupSpendingLimitOrUnlimited(
-                                    normalizeGroupPlatformKeyPolicy(platformPolicies?.global).spendingLimit
-                                )
+                                hasPlatformKeyGlobalPolicy -> {
+                                    val normalizedGlobalPolicy = normalizeGroupPlatformKeyPolicy(platformPolicies?.global)
+                                    val globalSpendingLimit = normalizedGlobalPolicy.spendingLimit
+                                    if (globalSpendingLimit != null) {
+                                        formatGroupSpendingLimit(globalSpendingLimit)
+                                    } else {
+                                        stringResource(R.string.nc_unlimited_spending_limits)
+                                    }
+                                }
 
                                 else -> null
                             }
