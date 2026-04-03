@@ -22,12 +22,14 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -38,13 +40,16 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.NcCircleImage
+import com.nunchuk.android.compose.NcSnackBarHost
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcSelectableBottomSheet
 import com.nunchuk.android.compose.NcSwitch
 import com.nunchuk.android.compose.NcTextField
+import com.nunchuk.android.compose.NcToastType
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.controlFillTertiary
 import com.nunchuk.android.compose.greyLight
+import com.nunchuk.android.compose.showNunchukSnackbar
 import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.textSecondary
@@ -55,6 +60,7 @@ import com.nunchuk.android.model.GroupPlatformKeyPolicy
 import com.nunchuk.android.model.GroupSpendingLimit
 import com.nunchuk.android.model.KeyPolicy
 import com.nunchuk.android.type.GroupSpendingLimitInterval
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -68,17 +74,17 @@ internal fun EditGlobalPolicyBottomSheet(
     val normalizedPolicy = normalizeGroupPlatformKeyPolicy(policy.keyPolicy)
     val spendingLimit = policy.keyPolicy.spendingLimit ?: normalizedPolicy.spendingLimit
     val amountDouble = spendingLimit?.amount?.toDoubleOrNull() ?: 0.0
+    val coSigningDelayRequiredMessage =
+        stringResource(R.string.nc_co_signing_delay_duration_required)
     var isSpendingLimitEnabled by rememberSaveable {
         mutableStateOf(policy.keyPolicy.spendingLimit != null)
     }
     var amount by rememberSaveable {
         mutableStateOf(
-            if (amountDouble == 0.0) "" else {
-                if (amountDouble % 1.0 == 0.0) {
-                    amountDouble.toLong().toString()
-                } else {
-                    spendingLimit?.amount.orEmpty()
-                }
+            if (amountDouble % 1.0 == 0.0) {
+                amountDouble.toLong().toString()
+            } else {
+                spendingLimit?.amount.orEmpty()
             }
         )
     }
@@ -100,8 +106,11 @@ internal fun EditGlobalPolicyBottomSheet(
     var isAutoBroadcast by rememberSaveable {
         mutableStateOf(normalizedPolicy.autoBroadcastTransaction)
     }
+    var coSigningDelayError by rememberSaveable { mutableStateOf<String?>(null) }
     var showTimeUnitSelector by rememberSaveable { mutableStateOf(false) }
     var showCurrencySelector by rememberSaveable { mutableStateOf(false) }
+    val snackBarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
     val intervalOptions = remember { GroupSpendingLimitInterval.entries.toList() }
     val currencyOptions = listOf(
         CurrencyOption(
@@ -299,7 +308,14 @@ internal fun EditGlobalPolicyBottomSheet(
                 )
                 NcSwitch(
                     checked = isCoSigningDelayEnabled,
-                    onCheckedChange = { isCoSigningDelayEnabled = it },
+                    onCheckedChange = {
+                        isCoSigningDelayEnabled = it
+                        if (!it) {
+                            coSigningDelayError = null
+                        } else if (coSigningDelayHours.isBlank()) {
+                            coSigningDelayHours = "2"
+                        }
+                    },
                 )
             }
 
@@ -322,15 +338,26 @@ internal fun EditGlobalPolicyBottomSheet(
                         modifier = Modifier.weight(1f),
                         title = stringResource(com.nunchuk.android.core.R.string.nc_hours),
                         value = coSigningDelayHours,
+                        hasError = coSigningDelayError != null && coSigningDelayHours.isBlank(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        onValueChange = { coSigningDelayHours = it },
+                        onValueChange = {
+                            coSigningDelayHours = it
+                            if (it.isNotBlank()) {
+                                coSigningDelayError = null
+                            }
+                        },
                     )
                     NcTextField(
                         modifier = Modifier.weight(1f),
                         title = stringResource(com.nunchuk.android.core.R.string.nc_minutes),
                         value = coSigningDelayMinutes,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        onValueChange = { coSigningDelayMinutes = it },
+                        onValueChange = {
+                            coSigningDelayMinutes = it
+                            if (coSigningDelayHours.isNotBlank()) {
+                                coSigningDelayError = null
+                            }
+                        },
                     )
                 }
             }
@@ -360,6 +387,8 @@ internal fun EditGlobalPolicyBottomSheet(
                 ),
             )
 
+            NcSnackBarHost(state = snackBarHostState)
+
             Spacer(modifier = Modifier.height(24.dp))
 
             Row(
@@ -385,6 +414,17 @@ internal fun EditGlobalPolicyBottomSheet(
                 NcPrimaryDarkButton(
                     modifier = Modifier.weight(1f),
                     onClick = {
+                        if (isCoSigningDelayEnabled && coSigningDelayHours.isBlank()) {
+                            coSigningDelayError = coSigningDelayRequiredMessage
+                            coroutineScope.launch {
+                                snackBarHostState.showNunchukSnackbar(
+                                    message = coSigningDelayRequiredMessage,
+                                    type = NcToastType.ERROR,
+                                )
+                            }
+                            return@NcPrimaryDarkButton
+                        }
+                        coSigningDelayError = null
                         val hours = coSigningDelayHours.toIntOrNull() ?: 0
                         val minutes = coSigningDelayMinutes.toIntOrNull() ?: 0
                         val delaySeconds = if (isCoSigningDelayEnabled) {

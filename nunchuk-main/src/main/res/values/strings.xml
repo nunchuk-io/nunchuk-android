@@ -556,6 +556,7 @@
     <string name="nc_enter_amount">Enter amount</string>
     <string name="nc_apply">Apply</string>
     <string name="nc_co_signing_delay_desc">A co-signing delay gives you time to detect errors or unauthorized access before a transaction is broadcast.</string>
+    <string name="nc_co_signing_delay_duration_required">Co-signing delay duration is required.</string>
     <string name="nc_auto_broadcast_desc">The platform will broadcast the transaction once the platform key has co-signed and enough signatures are collected.</string>
     <string name="nc_remove_platform_key">Remove platform key</string>
     <string name="nc_remove_platform_key_desc">This action cannot be reversed and will remove this platform key from the wallet.</string>
