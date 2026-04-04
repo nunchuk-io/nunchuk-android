@@ -511,7 +511,7 @@ fun FreeGroupWalletScreen(
 
                     var colorIndex = 0
                     itemsIndexed(state.signers) { index, signer ->
-                        if (index == platformKeyIndex && platformKeyIndex >= 0) {
+                        if (!isInReplace && index == platformKeyIndex && platformKeyIndex >= 0) {
                             val platformKeySubtitle = when {
                                 hasPlatformKeyPerKeyPolicy -> stringResource(R.string.nc_multiple_spending_limits)
                                 hasPlatformKeyGlobalPolicy -> {
@@ -531,7 +531,7 @@ fun FreeGroupWalletScreen(
                                 isConfigured = isPlatformKeyConfigured,
                                 subtitle = platformKeySubtitle,
                             )
-                        } else {
+                        } else if (index != platformKeyIndex || platformKeyIndex < 0) {
                             FreeAddKeyCard(
                                 index = index,
                                 isOccupied = state.occupiedSlotsIndex.contains(index),
