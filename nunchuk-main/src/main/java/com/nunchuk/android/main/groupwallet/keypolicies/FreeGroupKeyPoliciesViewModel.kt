@@ -12,12 +12,12 @@ import com.nunchuk.android.core.mapper.SingleSignerMapper
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.isPlatformKey
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.main.R
 import com.nunchuk.android.model.GroupDummyTransaction
 import com.nunchuk.android.model.GroupPlatformKeyPolicies
 import com.nunchuk.android.model.GroupPlatformKeyPolicy
 import com.nunchuk.android.model.GroupPlatformKeySignerPolicy
 import com.nunchuk.android.model.GroupSandbox
-import com.nunchuk.android.main.R
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.GetGroupWalletConfigUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
@@ -223,15 +223,28 @@ class FreeGroupKeyPoliciesViewModel @AssistedInject constructor(
         }
     }
 
-    private suspend fun requestUpdatePolicies(policies: GroupPlatformKeyPolicies) {
+    private suspend fun requestUpdatePolicies(
+        policies: GroupPlatformKeyPolicies,
+        requiresDummyTransaction: Boolean = false,
+    ) {
         requestGroupPlatformKeyPolicyUpdateUseCase(
             RequestGroupPlatformKeyPolicyUpdateUseCase.Params(
                 walletId = walletId,
                 policies = policies,
             )
-        ).onSuccess {
+        ).onSuccess { requirement ->
             updatePoliciesCache(_state.value, policies)
-            _event.emit(FreeGroupKeyPoliciesEvent.UpdatePolicySuccess)
+            if (requiresDummyTransaction) {
+                pendingPolicies = null
+                _event.emit(
+                    FreeGroupKeyPoliciesEvent.OpenWalletAuthentication(
+                        walletId = walletId,
+                        dummyTransaction = requirement.dummyTransaction,
+                    )
+                )
+            } else {
+                _event.emit(FreeGroupKeyPoliciesEvent.UpdatePolicySuccess)
+            }
         }.onFailure { error ->
             _event.emit(FreeGroupKeyPoliciesEvent.Error(error.message.orUnknownError()))
         }
@@ -246,23 +259,7 @@ class FreeGroupKeyPoliciesViewModel @AssistedInject constructor(
         _state.update { it.copy(previewWarning = null) }
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
-            requestGroupPlatformKeyPolicyUpdateUseCase(
-                RequestGroupPlatformKeyPolicyUpdateUseCase.Params(
-                    walletId = walletId,
-                    policies = policies,
-                )
-            ).onSuccess { requirement ->
-                updatePoliciesCache(_state.value, policies)
-                pendingPolicies = null
-                _event.emit(
-                    FreeGroupKeyPoliciesEvent.OpenWalletAuthentication(
-                        walletId = walletId,
-                        dummyTransaction = requirement.dummyTransaction,
-                    )
-                )
-            }.onFailure { error ->
-                _event.emit(FreeGroupKeyPoliciesEvent.Error(error.message.orUnknownError()))
-            }
+            requestUpdatePolicies(policies, requiresDummyTransaction = true)
             _state.update { it.copy(isLoading = false) }
         }
     }

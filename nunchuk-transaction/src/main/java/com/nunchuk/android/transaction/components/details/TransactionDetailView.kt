@@ -87,7 +87,7 @@ import com.nunchuk.android.model.transaction.ServerTransactionType
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.details.view.AmountView
 import com.nunchuk.android.transaction.components.details.view.ChangeAddressView
-import com.nunchuk.android.transaction.components.details.view.CosignStatusView
+import com.nunchuk.android.compose.CosignStatusView
 import com.nunchuk.android.transaction.components.details.view.InspectAddressBottomSheet
 import com.nunchuk.android.transaction.components.details.view.PendingSignatureStatusView
 import com.nunchuk.android.transaction.components.details.view.TimeLockUtilView
@@ -428,6 +428,7 @@ fun TransactionDetailView(
                                 inputCoins = state.txInputCoins,
                                 transactionStatus = state.transaction.status,
                                 serverTransaction = state.serverTransaction,
+                                groupTransactionState = state.groupTransactionState,
                                 enableSignerSize = state.enabledSigners.size
                             ),
                             onChangeBip32Path = { _, _ -> },
