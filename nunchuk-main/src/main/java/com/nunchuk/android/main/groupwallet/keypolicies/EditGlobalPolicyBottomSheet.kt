@@ -2,6 +2,7 @@ package com.nunchuk.android.main.groupwallet.keypolicies
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -244,49 +245,59 @@ internal fun EditGlobalPolicyBottomSheet(
                             }
                         },
                     )
-                    NcTextField(
+                    Box(
                         modifier = Modifier
                             .weight(0.5f)
                             .width(128.dp)
                             .widthIn(min = 116.dp),
-                        title = "",
-                        value = currencyUnit,
-                        readOnly = true,
-                        singleLine = true,
-                        maxLines = 1,
-                        rightContent = {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_arrow_down),
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .size(24.dp)
-                                    .clickable { showCurrencySelector = true },
-                            )
-                        },
-                        onClick = { showCurrencySelector = true },
-                        onValueChange = {},
-                    )
+                    ) {
+                        NcTextField(
+                            modifier = Modifier.fillMaxWidth(),
+                            title = "",
+                            value = currencyUnit,
+                            readOnly = true,
+                            singleLine = true,
+                            maxLines = 1,
+                            rightContent = {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_arrow_down),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(24.dp),
+                                )
+                            },
+                            onValueChange = {},
+                        )
+                        Box(
+                            modifier = Modifier
+                                .matchParentSize()
+                                .clickable { showCurrencySelector = true },
+                        )
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                NcTextField(
-                    modifier = Modifier.fillMaxWidth(),
-                    title = "",
-                    value = getIntervalDisplayName(interval),
-                    readOnly = true,
-                    rightContent = {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_arrow_down),
-                            contentDescription = null,
-                            modifier = Modifier
-                                .size(24.dp)
-                                .clickable { showTimeUnitSelector = true },
-                        )
-                    },
-                    onClick = { showTimeUnitSelector = true },
-                    onValueChange = {},
-                )
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    NcTextField(
+                        modifier = Modifier.fillMaxWidth(),
+                        title = "",
+                        value = getIntervalDisplayName(interval),
+                        readOnly = true,
+                        rightContent = {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_arrow_down),
+                                contentDescription = null,
+                                modifier = Modifier.size(24.dp),
+                            )
+                        },
+                        onValueChange = {},
+                    )
+                    Box(
+                        modifier = Modifier
+                            .matchParentSize()
+                            .clickable { showTimeUnitSelector = true },
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(12.dp))
