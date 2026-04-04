@@ -389,152 +389,156 @@ internal fun CreateKeyItem(
 
         else -> signer.name
     }
-    KeyItem(
-        title = title,
-        xfp = signer?.getXfpOrCardIdLabel().orEmpty(),
-        position = if (isPlatformKey) "" else position,
-        modifier = modifier,
-        showThreadCurve = showThreadCurve,
-        data = data,
-        avatarColor = avatarColor,
-        isOccupied = !isPlatformKey && data.isSlotOccupied(key),
-        keyIconResId = if (isPlatformKey) R.drawable.ic_server_key_dark else R.drawable.ic_key,
-        bottomContent = {
-            if (data.showBip32Path && signer != null && !signer.type.isPlatformKey) {
-                val isDuplicateSigner =
-                    data.duplicateSignerKeys.contains("${signer.fingerPrint}:${signer.derivationPath}")
-                Row(
-                    modifier = if (data.mode == ScriptMode.CONFIG) Modifier.clickable(
-                        onClick = {
-                            onChangeBip32Path(key, signer)
-                        },
-                        enabled = signer.isMasterSigner,
-                    ) else Modifier,
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                ) {
-                    Text(
-                        modifier = Modifier.weight(1f, false),
-                        text = stringResource(
-                            R.string.nc_bip32_path,
-                            signer.derivationPath
-                        ),
-                        style = if (data.mode == ScriptMode.CONFIG && signer.isMasterSigner) {
-                            NunchukTheme.typography.bodySmall.copy(textDecoration = TextDecoration.Underline)
-                        } else {
-                            NunchukTheme.typography.bodySmall
-                        },
-                        color = if (isDuplicateSigner) {
-                            Color.Red
-                        } else {
-                            MaterialTheme.colorScheme.textSecondary
-                        }
-                    )
-                    if (data.mode == ScriptMode.CONFIG && signer.isMasterSigner) {
-                        NcIcon(
-                            modifier = Modifier.size(12.dp),
-                            painter = painterResource(id = R.drawable.ic_edit_small),
-                            contentDescription = "Edit icon",
-                            tint = if (isDuplicateSigner) {
+    CompositionLocalProvider(
+        LocalScriptContentAlpha provides if (data.isDummyTx && isPlatformKey) 0.6f else LocalScriptContentAlpha.current
+    ) {
+        KeyItem(
+            title = title,
+            xfp = signer?.getXfpOrCardIdLabel().orEmpty(),
+            position = if (isPlatformKey) "" else position,
+            modifier = modifier,
+            showThreadCurve = showThreadCurve,
+            data = data,
+            avatarColor = avatarColor,
+            isOccupied = !isPlatformKey && data.isSlotOccupied(key),
+            keyIconResId = if (isPlatformKey) R.drawable.ic_server_key_dark else R.drawable.ic_key,
+            bottomContent = {
+                if (data.showBip32Path && signer != null && !signer.type.isPlatformKey) {
+                    val isDuplicateSigner =
+                        data.duplicateSignerKeys.contains("${signer.fingerPrint}:${signer.derivationPath}")
+                    Row(
+                        modifier = if (data.mode == ScriptMode.CONFIG) Modifier.clickable(
+                            onClick = {
+                                onChangeBip32Path(key, signer)
+                            },
+                            enabled = signer.isMasterSigner,
+                        ) else Modifier,
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        Text(
+                            modifier = Modifier.weight(1f, false),
+                            text = stringResource(
+                                R.string.nc_bip32_path,
+                                signer.derivationPath
+                            ),
+                            style = if (data.mode == ScriptMode.CONFIG && signer.isMasterSigner) {
+                                NunchukTheme.typography.bodySmall.copy(textDecoration = TextDecoration.Underline)
+                            } else {
+                                NunchukTheme.typography.bodySmall
+                            },
+                            color = if (isDuplicateSigner) {
                                 Color.Red
                             } else {
                                 MaterialTheme.colorScheme.textSecondary
                             }
                         )
+                        if (data.mode == ScriptMode.CONFIG && signer.isMasterSigner) {
+                            NcIcon(
+                                modifier = Modifier.size(12.dp),
+                                painter = painterResource(id = R.drawable.ic_edit_small),
+                                contentDescription = "Edit icon",
+                                tint = if (isDuplicateSigner) {
+                                    Color.Red
+                                } else {
+                                    MaterialTheme.colorScheme.textSecondary
+                                }
+                            )
+                        }
                     }
                 }
-            }
 
-            if (isPlatformKey && data.mode == ScriptMode.CONFIG && !data.platformKeySubtitle.isNullOrEmpty()) {
-                Text(
-                    text = data.platformKeySubtitle,
-                    style = NunchukTheme.typography.bodySmall,
-                )
-            }
+                if (isPlatformKey && data.mode == ScriptMode.CONFIG && !data.platformKeySubtitle.isNullOrEmpty()) {
+                    Text(
+                        text = data.platformKeySubtitle,
+                        style = NunchukTheme.typography.bodySmall,
+                    )
+                }
 
-            if (signer?.type?.isPlatformKey == true && data.mode == ScriptMode.SIGN) {
-                CosignStatusView(
-                    isFreeGroupWallet = signer.type == SignerType.PLATFORM,
-                    groupTransactionState = data.groupTransactionState,
-                    serverTransaction = data.serverTransaction,
-                    isSigned = isSigned,
-                    isPendingSignatures = data.transactionStatus.isPendingSignatures(),
-                )
-            }
-        },
-        actionContent = {
-            when {
-                data.mode == ScriptMode.CONFIG -> {
-                    if (customActionButton != null) {
-                        Column {
-                            customActionButton(key, signer)
-                        }
-                    } else {
-                        if (signer == null) {
-                            NcOutlineButton(
-                                height = 36.dp,
-                                onClick = { onActionKey(key, null) },
-                            ) {
-                                Text(stringResource(R.string.nc_add))
-                            }
-                        } else if (isPlatformKey) {
-                            NcOutlineButton(
-                                height = 36.dp,
-                                onClick = { onActionKey(key, signer) },
-                            ) {
-                                Text(stringResource(R.string.nc_config))
+                if (signer?.type?.isPlatformKey == true && data.mode == ScriptMode.SIGN) {
+                    CosignStatusView(
+                        isFreeGroupWallet = signer.type == SignerType.PLATFORM,
+                        groupTransactionState = data.groupTransactionState,
+                        serverTransaction = data.serverTransaction,
+                        isSigned = isSigned,
+                        isPendingSignatures = data.transactionStatus.isPendingSignatures(),
+                    )
+                }
+            },
+            actionContent = {
+                when {
+                    data.mode == ScriptMode.CONFIG -> {
+                        if (customActionButton != null) {
+                            Column {
+                                customActionButton(key, signer)
                             }
                         } else {
-                            NcOutlineButton(
-                                height = 36.dp,
-                                onClick = { onActionKey(key, signer) },
-                            ) {
-                                Text(stringResource(R.string.nc_remove))
+                            if (signer == null) {
+                                NcOutlineButton(
+                                    height = 36.dp,
+                                    onClick = { onActionKey(key, null) },
+                                ) {
+                                    Text(stringResource(R.string.nc_add))
+                                }
+                            } else if (isPlatformKey) {
+                                NcOutlineButton(
+                                    height = 36.dp,
+                                    onClick = { onActionKey(key, signer) },
+                                ) {
+                                    Text(stringResource(R.string.nc_config))
+                                }
+                            } else {
+                                NcOutlineButton(
+                                    height = 36.dp,
+                                    onClick = { onActionKey(key, signer) },
+                                ) {
+                                    Text(stringResource(R.string.nc_remove))
+                                }
                             }
                         }
                     }
-                }
 
-                signer != null && data.isViewServerKeyPolicy && signer.type.isPlatformKey -> {
-                    NcOutlineButton(
-                        modifier = Modifier.height(36.dp),
-                        onClick = { data.onViewPolicy(signer) },
-                    ) {
-                        Text(
-                            text = stringResource(id = R.string.nc_view_policies),
-                        )
+                    signer != null && data.isViewServerKeyPolicy && signer.type.isPlatformKey -> {
+                        NcOutlineButton(
+                            modifier = Modifier.height(36.dp),
+                            onClick = { data.onViewPolicy(signer) },
+                        ) {
+                            Text(
+                                text = stringResource(id = R.string.nc_view_policies),
+                            )
+                        }
                     }
-                }
 
-                isSigned && isSatisfiable -> {
-                    if (keySetStatus != null && keySetStatus.status == TransactionStatus.PENDING_NONCE) {
-                        CheckedLabel(
-                            text = stringResource(R.string.nc_committed),
-                        )
-                    } else {
-                        CheckedLabel(
-                            text = stringResource(R.string.nc_transaction_signed),
-                        )
-                    }
-                }
-
-                data.transactionStatus.isPendingSignatures() && data.mode == ScriptMode.SIGN
-                        && signer != null && !signer.type.isPlatformKey
-                        && signer.isVisible && isSatisfiable -> {
-                    NcPrimaryDarkButton(
-                        height = 36.dp,
-                        onClick = { onActionKey(nodeId, signer) },
-                    ) {
+                    isSigned && isSatisfiable -> {
                         if (keySetStatus != null && keySetStatus.status == TransactionStatus.PENDING_NONCE) {
-                            Text(stringResource(R.string.nc_commit))
+                            CheckedLabel(
+                                text = stringResource(R.string.nc_committed),
+                            )
                         } else {
-                            Text(stringResource(R.string.nc_sign))
+                            CheckedLabel(
+                                text = stringResource(R.string.nc_transaction_signed),
+                            )
+                        }
+                    }
+
+                    data.transactionStatus.isPendingSignatures() && data.mode == ScriptMode.SIGN
+                            && signer != null && !signer.type.isPlatformKey
+                            && signer.isVisible && isSatisfiable -> {
+                        NcPrimaryDarkButton(
+                            height = 36.dp,
+                            onClick = { onActionKey(nodeId, signer) },
+                        ) {
+                            if (keySetStatus != null && keySetStatus.status == TransactionStatus.PENDING_NONCE) {
+                                Text(stringResource(R.string.nc_commit))
+                            } else {
+                                Text(stringResource(R.string.nc_sign))
+                            }
                         }
                     }
                 }
             }
-        }
-    )
+        )
+    }
 }
 
 @Composable
@@ -671,7 +675,8 @@ data class ScriptNodeData(
     val groupTransactionState: GroupTransactionState? = null,
     val isViewServerKeyPolicy: Boolean = false,
     val onViewPolicy: (SignerModel) -> Unit = {},
-    val platformKeySubtitle: String? = null
+    val platformKeySubtitle: String? = null,
+    val isDummyTx: Boolean = false
 ) {
     fun isSlotOccupied(position: String): Boolean {
         return occupiedSlots.contains(position)
@@ -820,9 +825,11 @@ fun MusigItem(
                 .padding(bottom = 4.dp)
         ) {
             if (showThreadCurve) {
-                CurveView(Modifier
-                    .then(modifier)
-                    .alpha(alpha))
+                CurveView(
+                    Modifier
+                        .then(modifier)
+                        .alpha(alpha)
+                )
             }
             Column(
                 modifier = Modifier
@@ -881,9 +888,11 @@ fun MusigItem(
                     round == 1 && requiredSignatures == pendingFromKeySet -> MaterialTheme.colorScheme.textSecondary
                     else -> colorResource(R.color.nc_grey_g7)
                 }
-                Row(modifier = Modifier
-                    .alpha(alpha)
-                    .align(Alignment.CenterVertically)) {
+                Row(
+                    modifier = Modifier
+                        .alpha(alpha)
+                        .align(Alignment.CenterVertically)
+                ) {
                     Text(
                         text = if (isCompleted) "Completed" else "Round ${round}/2",
                         style = NunchukTheme.typography.titleSmall.copy(color = textColor),
@@ -1038,9 +1047,11 @@ fun ThreshMultiItem(
                 .padding(bottom = 4.dp)
         ) {
             if (showThreadCurve) {
-                CurveView(Modifier
-                    .then(modifier)
-                    .alpha(alpha))
+                CurveView(
+                    Modifier
+                        .then(modifier)
+                        .alpha(alpha)
+                )
             }
             Column(
                 modifier = Modifier
@@ -1178,9 +1189,11 @@ fun TimelockItem(
                 CurveView(Modifier.alpha(alpha))
             }
 
-            Row(modifier = Modifier
-                .alpha(alpha)
-                .padding(top = 10.dp)) {
+            Row(
+                modifier = Modifier
+                    .alpha(alpha)
+                    .padding(top = 10.dp)
+            ) {
                 NcIcon(
                     painter = painterResource(R.drawable.ic_timer),
                     contentDescription = null,

@@ -27,7 +27,7 @@ fun CosignStatusView(
             isSigned = isSigned,
             isPendingSignatures = isPendingSignatures,
         )
-    } else {
+    } else if (serverTransaction != null) {
         AssistedCosignStatus(
             serverTransaction = serverTransaction,
             isSigned = isSigned,

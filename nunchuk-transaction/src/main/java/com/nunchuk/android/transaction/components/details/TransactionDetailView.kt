@@ -429,7 +429,8 @@ fun TransactionDetailView(
                                 transactionStatus = state.transaction.status,
                                 serverTransaction = state.serverTransaction,
                                 groupTransactionState = state.groupTransactionState,
-                                enableSignerSize = state.enabledSigners.size
+                                enableSignerSize = state.enabledSigners.size,
+                                isDummyTx = isDummyTx
                             ),
                             onChangeBip32Path = { _, _ -> },
                             onActionKey = { nodeId, signer ->
