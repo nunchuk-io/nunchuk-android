@@ -625,6 +625,9 @@ class FreeGroupWalletViewModel @Inject constructor(
                     application.getString(R.string.nc_new_platform_key_added)
                 )
             }.onFailure { error ->
+                if (isMiniscriptWallet()) {
+                    setSlotOccupied(false)
+                }
                 _uiState.update { it.copy(errorMessage = error.message.orUnknownError()) }
             }
             _uiState.update { it.copy(isLoading = false) }
