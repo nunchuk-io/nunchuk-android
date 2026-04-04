@@ -244,7 +244,7 @@ fun PendingWalletView(
             }
         } else if (isAssistedWallet
             || (isSandboxWallet && walletsExtended?.wallet?.signers.orEmpty()
-                .any { it.type.isPlatformKey })
+                .any { it.type.isPlatformKey } && badgeCount > 0)
             || walletStatus == WalletStatus.LOCKED.name
         ) {
             Row(

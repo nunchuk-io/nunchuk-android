@@ -19,8 +19,8 @@
 
 package com.nunchuk.android.transaction.components.send.receipt
 
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.domain.utils.ParseSignerStringUseCase
 import com.nunchuk.android.core.mapper.SingleSignerMapper
 import com.nunchuk.android.core.miniscript.ScriptNodeType
@@ -46,6 +46,11 @@ import com.nunchuk.android.usecase.ParseBtcUriUseCase
 import com.nunchuk.android.usecase.wallet.GetUnusedWalletAddressUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -59,20 +64,24 @@ internal class AddReceiptViewModel @Inject constructor(
     private val getDefaultAntiFeeSnipingUseCase: GetDefaultAntiFeeSnipingUseCase,
     private val getScriptNodeFromMiniscriptTemplateUseCase: GetScriptNodeFromMiniscriptTemplateUseCase,
     private val parseSignerStringUseCase: ParseSignerStringUseCase,
-) : NunchukViewModel<AddReceiptState, AddReceiptEvent>() {
+) : ViewModel() {
     private val _subNodeFollowParents: MutableSet<List<Int>> = mutableSetOf()
 
-    override val initialState = AddReceiptState()
+    private val _state = MutableStateFlow(AddReceiptState())
+    val state = _state.asStateFlow()
+
+    private val _event = MutableSharedFlow<AddReceiptEvent>()
+    val event = _event.asSharedFlow()
 
     fun init(args: AddReceiptArgs) {
-        updateState { initialState.copy(address = args.address, privateNote = args.privateNote) }
+        _state.update { AddReceiptState(address = args.address, privateNote = args.privateNote) }
         if (args.walletId.isNotEmpty()) getWalletDetail(args.walletId)
 
         viewModelScope.launch {
             getDefaultAntiFeeSnipingUseCase(Unit)
                 .collect { result ->
                     if (result.isSuccess) {
-                        updateState { copy(antiFeeSniping = result.getOrThrow()) }
+                        _state.update { it.copy(antiFeeSniping = result.getOrThrow()) }
                     }
                 }
         }
@@ -81,8 +90,8 @@ internal class AddReceiptViewModel @Inject constructor(
     private fun getWalletDetail(walletId: String) {
         viewModelScope.launch {
             getWalletDetail2UseCase(walletId).onSuccess { wallet ->
-                updateState {
-                    copy(
+                _state.update {
+                    it.copy(
                         addressType = wallet.addressType,
                         isValueKeySetDisable = wallet.isValueKeySetDisable,
                         wallet = wallet
@@ -94,14 +103,14 @@ internal class AddReceiptViewModel @Inject constructor(
                     val signers = wallet.signers.map { signer ->
                         singleSignerMapper(signer)
                     }.associateBy { it.fingerPrint }
-                    updateState {
-                        copy(
+                    _state.update {
+                        it.copy(
                             signers = signers,
                         )
                     }
                 }
             }.onFailure {
-                setEvent(ShowError(it.message.orUnknownError()))
+                _event.emit(ShowError(it.message.orUnknownError()))
             }
         }
     }
@@ -115,15 +124,15 @@ internal class AddReceiptViewModel @Inject constructor(
                     wallet.signers.take(wallet.totalRequireSigns).mapIndexed { index, signer ->
                         "$MusigKeyPrefix$index" to singleSignerMapper(signer)
                     }.toMap()
-                updateState {
-                    copy(
+                _state.update {
+                    it.copy(
                         subNodeFollowParents = _subNodeFollowParents,
                         scriptNode = result.scriptNode,
                         signers = signers + muSigSignerMap,
                     )
                 }
             } else {
-                updateState { copy(scriptNode = result.scriptNode, signers = signers, subNodeFollowParents = _subNodeFollowParents,) }
+                _state.update { it.copy(scriptNode = result.scriptNode, signers = signers, subNodeFollowParents = _subNodeFollowParents) }
             }
         }
     }
@@ -148,30 +157,27 @@ internal class AddReceiptViewModel @Inject constructor(
 
     fun parseBtcUri(content: String) {
         viewModelScope.launch {
-            val result = parseBtcUriUseCase(content)
-            if (result.isSuccess) {
-                val btcUri = result.getOrThrow()
-                updateState {
-                    copy(
-                        address = btcUri.address,
-                        privateNote = btcUri.privateNote,
-                        amount = btcUri.amount
-                    )
+            parseBtcUriUseCase(content)
+                .onSuccess { btcUri ->
+                    _state.update {
+                        it.copy(
+                            address = btcUri.address,
+                            privateNote = btcUri.privateNote,
+                            amount = btcUri.amount
+                        )
+                    }
+                    _event.emit(ParseBtcUriEvent)
+                }.onFailure {
+                    _event.emit(ShowError(it.message.orUnknownError()))
                 }
-                setEvent(ParseBtcUriEvent)
-            } else {
-                setEvent(ShowError(result.exceptionOrNull()?.message.orUnknownError()))
-            }
         }
     }
 
     fun parseBtcUriAndContinue(content: String) {
         viewModelScope.launch {
-            setEvent(AddReceiptEvent.Loading(true))
-            val result = parseBtcUriUseCase(content)
-            if (result.isSuccess) {
-                val btcUri = result.getOrThrow()
-                updateState { copy(address = btcUri.address) }
+            _event.emit(AddReceiptEvent.Loading(true))
+            parseBtcUriUseCase(content).onSuccess { btcUri ->
+                _state.update { it.copy(address = btcUri.address) }
             }
             handleContinueEvent(true)
         }
@@ -179,27 +185,27 @@ internal class AddReceiptViewModel @Inject constructor(
 
     fun handleContinueEvent(isCreateTransaction: Boolean) {
         viewModelScope.launch {
-            setEvent(AddReceiptEvent.Loading(true))
-            val currentState = getState()
+            _event.emit(AddReceiptEvent.Loading(true))
+            val currentState = _state.value
             val address = currentState.address
             when {
                 address.isEmpty() -> {
-                    setEvent(AddReceiptEvent.Loading(false))
-                    event(AddressRequiredEvent)
+                    _event.emit(AddReceiptEvent.Loading(false))
+                    _event.emit(AddressRequiredEvent)
                 }
                 else -> {
                     val result =
                         checkAddressValidUseCase(CheckAddressValidUseCase.Params(listOf(address)))
-                    setEvent(AddReceiptEvent.Loading(false))
+                    _event.emit(AddReceiptEvent.Loading(false))
                     if (result.isSuccess && result.getOrThrow().isEmpty()) {
-                        setEvent(
+                        _event.emit(
                             AcceptedAddressEvent(
                                 isCreateTransaction = isCreateTransaction,
                                 isMiniscript = currentState.scriptNode != null
                             )
                         )
                     } else {
-                        setEvent(InvalidAddressEvent)
+                        _event.emit(InvalidAddressEvent)
                     }
                 }
             }
@@ -207,29 +213,26 @@ internal class AddReceiptViewModel @Inject constructor(
     }
 
     fun updateAddress(address: String) {
-        updateState { copy(address = address) }
+        _state.update { it.copy(address = address) }
     }
 
     fun getFirstUnusedAddress(walletId: String) {
         viewModelScope.launch {
             getUnusedWalletAddressUseCase(walletId).onSuccess { addresses ->
-                updateState { copy(address = addresses.first()) }
+                _state.update { it.copy(address = addresses.first()) }
             }.onFailure {
-                setEvent(ShowError(it.message.orUnknownError()))
+                _event.emit(ShowError(it.message.orUnknownError()))
             }
         }
     }
 
     fun handleReceiptChanged(address: String) {
-        updateState { copy(address = address) }
+        _state.update { it.copy(address = address) }
     }
 
     fun handlePrivateNoteChanged(privateNote: String) {
-        updateState { copy(privateNote = privateNote) }
+        _state.update { it.copy(privateNote = privateNote) }
     }
 
-    fun getAddReceiptState() = getState()
-    fun setEventHandled() {
-        setEvent(AddReceiptEvent.NoOp)
-    }
+    fun getAddReceiptState() = _state.value
 }

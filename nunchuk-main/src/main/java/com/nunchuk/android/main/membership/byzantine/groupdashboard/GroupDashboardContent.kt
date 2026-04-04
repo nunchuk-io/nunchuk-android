@@ -49,9 +49,11 @@ import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcPrimaryDarkButton
@@ -225,49 +227,60 @@ fun GroupDashboardContent(
                 }
             }
         ) { innerPadding ->
+            val showEmptyAlert = uiState.isFreeGroupWallet && uiState.alerts.isEmpty()
             Box(Modifier.pullRefresh(state)) {
-                Column(
-                    modifier = Modifier
-                        .padding(innerPadding)
-                        .fillMaxHeight()
-                ) {
-                    LazyColumn(
+                if (showEmptyAlert) {
+                    EmptyAlertView(
                         modifier = Modifier
-                            .background(colorResource(id = R.color.nc_grey_light))
-                            .padding(top = 16.dp),
-                        state = listState
-                    ) {
-                        alertListView(
-                            alerts = uiState.alerts,
-                            currentUserRole = uiState.myRole,
-                            onAlertClick = onAlertClick,
-                            onDismissClick = onDismissClick
-                        )
-                        if (uiState.keyStatus.isNotEmpty() && signers.any { it.type != SignerType.SERVER }) {
-                            HealthCheckStatusView(
-                                onOpenHealthCheckScreen = onOpenHealthCheckScreen,
-                                signers = signers,
-                                status = uiState.keyStatus
-                            )
-                        }
-                        if (isKeyholderLimited.not() && uiState.group != null) {
-                            memberListView(
-                                group = uiState.group,
-                                currentUserRole = uiState.myRole,
-                                master = master,
-                                padTop = if (uiState.alerts.isNotEmpty()) 24.dp else 0.dp,
-                                walletStatus = uiState.walletStatus,
-                                onEditClick = onEditClick
-                            )
-                        }
-                    }
-
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
+                            .padding(innerPadding)
+                            .fillMaxHeight()
                             .fillMaxWidth()
-                            .background(color = MaterialTheme.colorScheme.surface)
+                            .background(MaterialTheme.colorScheme.background)
                     )
+                } else {
+                    Column(
+                        modifier = Modifier
+                            .padding(innerPadding)
+                            .fillMaxHeight()
+                    ) {
+                        LazyColumn(
+                            modifier = Modifier
+                                .background(colorResource(id = R.color.nc_grey_light))
+                                .padding(top = 16.dp),
+                            state = listState
+                        ) {
+                            alertListView(
+                                alerts = uiState.alerts,
+                                currentUserRole = uiState.myRole,
+                                onAlertClick = onAlertClick,
+                                onDismissClick = onDismissClick
+                            )
+                            if (uiState.keyStatus.isNotEmpty() && signers.any { it.type != SignerType.SERVER }) {
+                                HealthCheckStatusView(
+                                    onOpenHealthCheckScreen = onOpenHealthCheckScreen,
+                                    signers = signers,
+                                    status = uiState.keyStatus
+                                )
+                            }
+                            if (isKeyholderLimited.not() && uiState.group != null) {
+                                memberListView(
+                                    group = uiState.group,
+                                    currentUserRole = uiState.myRole,
+                                    master = master,
+                                    padTop = if (uiState.alerts.isNotEmpty()) 24.dp else 0.dp,
+                                    walletStatus = uiState.walletStatus,
+                                    onEditClick = onEditClick
+                                )
+                            }
+                        }
+
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxWidth()
+                                .background(color = MaterialTheme.colorScheme.surface)
+                        )
+                    }
                 }
                 PullRefreshIndicator(isRefreshing, state, Modifier.align(Alignment.TopCenter))
             }
@@ -395,6 +408,27 @@ private fun LazyListScope.memberListView(
             role = member.role,
             avatarUrl = member.user?.avatar.orEmpty(),
             isPendingMember = member.isContact().not(),
+        )
+    }
+}
+
+@Composable
+private fun EmptyAlertView(modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Image(
+            modifier = Modifier.size(60.dp),
+            painter = painterResource(id = R.drawable.ic_empty_alert),
+            contentDescription = ""
+        )
+        Text(
+            modifier = Modifier.padding(top = 16.dp),
+            text = stringResource(R.string.nc_empty_alert_desc),
+            style = NunchukTheme.typography.body.copy(color = MaterialTheme.colorScheme.textSecondary),
+            textAlign = TextAlign.Center,
         )
     }
 }
@@ -571,4 +605,12 @@ private fun ContactMemberView(
             }
         }
     }
+}
+
+@PreviewLightDark
+@Composable
+private fun GroupDashboardFreeWalletEmptyAlertPreview() {
+    GroupDashboardContent(
+        uiState = GroupDashboardState(isFreeGroupWallet = true),
+    )
 }

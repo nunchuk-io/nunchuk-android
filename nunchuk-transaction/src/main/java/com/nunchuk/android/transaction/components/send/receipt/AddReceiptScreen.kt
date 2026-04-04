@@ -84,7 +84,7 @@ internal fun AddReceiptScreen(
     state: AddReceiptState,
     sweepType: SweepType,
     isWithdrawFlow: Boolean,
-    event: AddReceiptEvent?,
+    event: AddReceiptEvent? = null,
     selectAddressType: Int = SelectAddressType.NONE.ordinal,
     selectAddressName: String = "",
     onAddressChange: (String) -> Unit = {},
@@ -119,11 +119,7 @@ internal fun AddReceiptScreen(
                 onEventHandled()
             }
 
-            is AddReceiptEvent.AcceptedAddressEvent,
-            is AddReceiptEvent.Loading,
-            is AddReceiptEvent.ShowError,
-            AddReceiptEvent.NoOp,
-            null -> Unit
+            else -> Unit
         }
     }
 

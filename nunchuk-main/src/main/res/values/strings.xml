@@ -116,6 +116,7 @@
     <string name="nc_accept">Accept</string>
     <string name="nc_deny">Deny</string>
     <string name="nc_alert">Alerts</string>
+    <string name="nc_empty_alert_desc">There are no new alerts or\nnotifications to display at the\nmoment.</string>
     <string name="nc_pending_wallet_invite_member">%s invited you to join a group wallet.</string>
     <string name="nc_free_group_wallet_invitation_message_with_name_and_email">%1$s (%2$s) invited you to join a group wallet.</string>
     <string name="nc_free_group_wallet_invitation_message_with_email_only">%1$s invited you to join a group wallet.</string>

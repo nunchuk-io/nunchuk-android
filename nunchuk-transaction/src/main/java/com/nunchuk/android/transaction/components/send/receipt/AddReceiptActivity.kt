@@ -32,35 +32,31 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
-import androidx.lifecycle.asFlow
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.journeyapps.barcodescanner.ScanContract
-import com.nunchuk.android.core.data.model.isInheritanceClaimFlow
-import com.nunchuk.android.core.qr.startQRCodeScan
-import com.nunchuk.android.core.wallet.WalletBottomSheetResult
-import com.nunchuk.android.core.wallet.WalletComposeBottomSheet
-import com.nunchuk.android.transaction.components.send.batchtransaction.SelectAddressType
-import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.core.data.model.ClaimInheritanceTxParam
 import com.nunchuk.android.core.data.model.RollOverWalletParam
 import com.nunchuk.android.core.data.model.TxReceipt
+import com.nunchuk.android.core.data.model.isInheritanceClaimFlow
 import com.nunchuk.android.core.data.model.isOffChainClaim
 import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.nfc.BaseComposeNfcActivity
 import com.nunchuk.android.core.nfc.BaseNfcActivity.Companion.REQUEST_SATSCARD_SWEEP_SLOT
 import com.nunchuk.android.core.nfc.SweepType
+import com.nunchuk.android.core.qr.startQRCodeScan
 import com.nunchuk.android.core.util.InheritanceClaimTxDetailInfo
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.fromSATtoBTC
 import com.nunchuk.android.core.util.isPendingSignatures
 import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.core.util.pureBTC
+import com.nunchuk.android.core.wallet.WalletBottomSheetResult
+import com.nunchuk.android.core.wallet.WalletComposeBottomSheet
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.SatsCardSlot
 import com.nunchuk.android.model.SigningPath
@@ -78,6 +74,7 @@ import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.send.batchtransaction.BatchTransactionContent
 import com.nunchuk.android.transaction.components.send.batchtransaction.BatchTransactionEvent
 import com.nunchuk.android.transaction.components.send.batchtransaction.BatchTransactionViewModel
+import com.nunchuk.android.transaction.components.send.batchtransaction.SelectAddressType
 import com.nunchuk.android.transaction.components.send.confirmation.TaprootDraftTransaction
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmViewModel
@@ -86,6 +83,7 @@ import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeViewModel
 import com.nunchuk.android.transaction.components.utils.openTransactionDetailScreen
 import com.nunchuk.android.transaction.components.utils.returnActiveRoom
 import com.nunchuk.android.transaction.components.utils.showCreateTransactionError
+import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCToastMessage
 import dagger.hilt.android.AndroidEntryPoint
@@ -193,8 +191,7 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
             var dummySigningPaths by remember { mutableStateOf(emptyList<Pair<SigningPath, Amount>>()) }
             var selectingPaths by remember { mutableStateOf<List<SigningPath>>(emptyList()) }
             var timelockCoin by remember { mutableStateOf<TimelockCoin?>(null) }
-            val state by viewModel.state.asFlow()
-                .collectAsStateWithLifecycle(AddReceiptState())
+            val state by viewModel.state.collectAsStateWithLifecycle()
 
             LaunchedEffect(Unit) {
                 transactionConfirmViewModel.event.collect {
@@ -259,8 +256,10 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
             ) {
                 composable<Main> {
                     val isWithdrawFlow = args.slots.isNotEmpty() || args.claimInheritanceTxParam.isInheritanceClaimFlow()
-                    val event by viewModel.event.asFlow()
-                        .collectAsStateWithLifecycle(AddReceiptEvent.NoOp)
+                    var event by remember { mutableStateOf<AddReceiptEvent?>(null) }
+                    LaunchedEffect(Unit) {
+                        viewModel.event.collect { event = it }
+                    }
 
                     AddReceiptScreen(
                         state = state,
@@ -305,7 +304,7 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
                             selectAddressName.value = ""
                         },
                         onBackClick = { finish() },
-                        onEventHandled = viewModel::setEventHandled,
+                        onEventHandled = { event = null },
                         onParseBtcUri = viewModel::parseBtcUri,
                     )
                 }
@@ -484,7 +483,7 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
     private fun observer() {
         flowObserver(estimateFeeViewModel.event, collector = ::handleEstimateFeeEvent)
         flowObserver(transactionConfirmViewModel.event, collector = ::handleCreateTransactionEvent)
-        flowObserver(viewModel.event.asFlow()) { event ->
+        flowObserver(viewModel.event) { event ->
             when (event) {
                 is AddReceiptEvent.AcceptedAddressEvent -> {
                     if (event.isCreateTransaction || event.isMiniscript) {
