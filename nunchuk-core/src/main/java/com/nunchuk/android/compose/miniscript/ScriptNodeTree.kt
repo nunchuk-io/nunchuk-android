@@ -447,6 +447,13 @@ internal fun CreateKeyItem(
                 }
             }
 
+            if (isPlatformKey && data.mode == ScriptMode.CONFIG && !data.platformKeySubtitle.isNullOrEmpty()) {
+                Text(
+                    text = data.platformKeySubtitle,
+                    style = NunchukTheme.typography.bodySmall,
+                )
+            }
+
             if (signer?.type?.isPlatformKey == true && data.mode == ScriptMode.SIGN) {
                 val serverTransaction = data.serverTransaction
                 val spendingLimitMessage = serverTransaction?.spendingLimitMessage.orEmpty()
@@ -687,7 +694,8 @@ data class ScriptNodeData(
     val enableSignerSize: Int = 0,
     val serverTransaction: ServerTransaction? = null,
     val isViewServerKeyPolicy: Boolean = false,
-    val onViewPolicy: (SignerModel) -> Unit = {}
+    val onViewPolicy: (SignerModel) -> Unit = {},
+    val platformKeySubtitle: String? = null
 ) {
     fun isSlotOccupied(position: String): Boolean {
         return occupiedSlots.contains(position)

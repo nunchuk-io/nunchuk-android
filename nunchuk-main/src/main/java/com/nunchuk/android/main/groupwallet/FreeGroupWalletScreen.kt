@@ -253,6 +253,24 @@ fun FreeGroupWalletScreen(
     } else {
         false
     }
+    val platformPolicies = state.group?.platformKey?.policies
+    val hasPlatformKeyPerKeyPolicy = platformPolicies?.signers?.isNotEmpty() == true
+    val hasPlatformKeyGlobalPolicy = platformPolicies?.global != null
+    val isPlatformKeyConfigured = hasPlatformKeyPerKeyPolicy || hasPlatformKeyGlobalPolicy
+    val platformKeySubtitle = when {
+        hasPlatformKeyPerKeyPolicy -> stringResource(R.string.nc_multiple_spending_limits)
+        hasPlatformKeyGlobalPolicy -> {
+            val normalizedGlobalPolicy = normalizeGroupPlatformKeyPolicy(platformPolicies?.global)
+            val globalSpendingLimit = normalizedGlobalPolicy.spendingLimit
+            if (globalSpendingLimit != null) {
+                formatGroupSpendingLimit(globalSpendingLimit)
+            } else {
+                stringResource(R.string.nc_unlimited_spending_limits)
+            }
+        }
+
+        else -> null
+    }
     
     // Handle events from ViewModel
     LaunchedEffect(state.event) {
@@ -394,6 +412,7 @@ fun FreeGroupWalletScreen(
                         TaprootAddressContent(
                             state = state,
                             showBip32Path = showBip32Path,
+                            platformKeySubtitle = if (isPlatformKeyConfigured) platformKeySubtitle else null,
                             onChangeBip32Path = onChangeBip32Path,
                             onConfigPlatformKey = onConfigPlatformKey,
                             onActionKey = { keyName, signer ->
@@ -424,7 +443,8 @@ fun FreeGroupWalletScreen(
                                     showBip32Path = showBip32Path,
                                     isGroupWallet = true,
                                     occupiedSlots = state.namedOccupied,
-                                    colorIndex = startingColorIndex
+                                    colorIndex = startingColorIndex,
+                                    platformKeySubtitle = if (isPlatformKeyConfigured) platformKeySubtitle else null,
                                 ),
                                 onChangeBip32Path = { keyPath, signer ->
                                     onSetCurrentKey(keyPath)
@@ -504,28 +524,10 @@ fun FreeGroupWalletScreen(
                     }
 
                     val platformKeyIndex = state.group?.platformKeyIndex ?: -1
-                    val platformPolicies = state.group?.platformKey?.policies
-                    val hasPlatformKeyPerKeyPolicy = platformPolicies?.signers?.isNotEmpty() == true
-                    val hasPlatformKeyGlobalPolicy = platformPolicies?.global != null
-                    val isPlatformKeyConfigured = hasPlatformKeyPerKeyPolicy || hasPlatformKeyGlobalPolicy
 
                     var colorIndex = 0
                     itemsIndexed(state.signers) { index, signer ->
                         if (!isInReplace && index == platformKeyIndex && platformKeyIndex >= 0) {
-                            val platformKeySubtitle = when {
-                                hasPlatformKeyPerKeyPolicy -> stringResource(R.string.nc_multiple_spending_limits)
-                                hasPlatformKeyGlobalPolicy -> {
-                                    val normalizedGlobalPolicy = normalizeGroupPlatformKeyPolicy(platformPolicies?.global)
-                                    val globalSpendingLimit = normalizedGlobalPolicy.spendingLimit
-                                    if (globalSpendingLimit != null) {
-                                        formatGroupSpendingLimit(globalSpendingLimit)
-                                    } else {
-                                        stringResource(R.string.nc_unlimited_spending_limits)
-                                    }
-                                }
-
-                                else -> null
-                            }
                             PlatformKeyCard(
                                 onConfigClicked = onConfigPlatformKey,
                                 isConfigured = isPlatformKeyConfigured,
@@ -746,6 +748,7 @@ fun FreeGroupWalletScreen(
 private fun TaprootAddressContent(
     state: FreeGroupWalletUiState,
     showBip32Path: Boolean,
+    platformKeySubtitle: String? = null,
     onChangeBip32Path: (Int, SignerModel) -> Unit,
     onConfigPlatformKey: () -> Unit = {},
     onActionKey: (String, SignerModel?) -> Unit = { _, _ -> },
@@ -759,7 +762,8 @@ private fun TaprootAddressContent(
                     mode = ScriptMode.CONFIG,
                     signers = state.namedSigners,
                     showBip32Path = showBip32Path,
-                    occupiedSlots = state.namedOccupied
+                    occupiedSlots = state.namedOccupied,
+                    platformKeySubtitle = platformKeySubtitle,
                 ),
                 signer = if (state.keyPath.isNotEmpty() && state.signers.isNotEmpty()) state.signers.first() else null,
                 onChangeBip32Path = { keyPath, signer ->
@@ -785,7 +789,8 @@ private fun TaprootAddressContent(
                         showBip32Path = showBip32Path,
                         isGroupWallet = true,
                         occupiedSlots = state.namedOccupied,
-                        colorIndex = startingColorIndex
+                        colorIndex = startingColorIndex,
+                        platformKeySubtitle = platformKeySubtitle,
                     ),
                     onChangeBip32Path = { keyPath, signer ->
                         onActionKey(keyPath, signer)
