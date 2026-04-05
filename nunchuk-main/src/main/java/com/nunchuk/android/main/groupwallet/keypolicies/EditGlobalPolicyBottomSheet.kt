@@ -113,6 +113,11 @@ internal fun EditGlobalPolicyBottomSheet(
     val snackBarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
     val intervalOptions = remember { GroupSpendingLimitInterval.entries.toList() }
+    fun isCoSigningDelayEmptyOrZero(hoursText: String, minutesText: String): Boolean {
+        val hours = hoursText.toIntOrNull() ?: 0
+        val minutes = minutesText.toIntOrNull() ?: 0
+        return hours == 0 && minutes == 0
+    }
     val currencyOptions = listOf(
         CurrencyOption(
             value = "USD",
@@ -349,11 +354,12 @@ internal fun EditGlobalPolicyBottomSheet(
                         modifier = Modifier.weight(1f),
                         title = stringResource(com.nunchuk.android.core.R.string.nc_hours),
                         value = coSigningDelayHours,
-                        hasError = coSigningDelayError != null && coSigningDelayHours.isBlank(),
+                        hasError = coSigningDelayError != null &&
+                                isCoSigningDelayEmptyOrZero(coSigningDelayHours, coSigningDelayMinutes),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         onValueChange = {
                             coSigningDelayHours = it
-                            if (it.isNotBlank()) {
+                            if (!isCoSigningDelayEmptyOrZero(it, coSigningDelayMinutes)) {
                                 coSigningDelayError = null
                             }
                         },
@@ -362,10 +368,12 @@ internal fun EditGlobalPolicyBottomSheet(
                         modifier = Modifier.weight(1f),
                         title = stringResource(com.nunchuk.android.core.R.string.nc_minutes),
                         value = coSigningDelayMinutes,
+                        hasError = coSigningDelayError != null &&
+                                isCoSigningDelayEmptyOrZero(coSigningDelayHours, coSigningDelayMinutes),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         onValueChange = {
                             coSigningDelayMinutes = it
-                            if (coSigningDelayHours.isNotBlank()) {
+                            if (!isCoSigningDelayEmptyOrZero(coSigningDelayHours, it)) {
                                 coSigningDelayError = null
                             }
                         },
@@ -425,15 +433,23 @@ internal fun EditGlobalPolicyBottomSheet(
                 NcPrimaryDarkButton(
                     modifier = Modifier.weight(1f),
                     onClick = {
-                        if (isCoSigningDelayEnabled && coSigningDelayHours.isBlank()) {
-                            coSigningDelayError = coSigningDelayRequiredMessage
-                            coroutineScope.launch {
-                                snackBarHostState.showNunchukSnackbar(
-                                    message = coSigningDelayRequiredMessage,
-                                    type = NcToastType.ERROR,
-                                )
+                        if (isCoSigningDelayEnabled) {
+                            if (coSigningDelayHours.isBlank() && coSigningDelayMinutes.isNotBlank()) {
+                                coSigningDelayHours = "0"
                             }
-                            return@NcPrimaryDarkButton
+                            if (coSigningDelayMinutes.isBlank() && coSigningDelayHours.isNotBlank()) {
+                                coSigningDelayMinutes = "0"
+                            }
+                            if (isCoSigningDelayEmptyOrZero(coSigningDelayHours, coSigningDelayMinutes)) {
+                                coSigningDelayError = coSigningDelayRequiredMessage
+                                coroutineScope.launch {
+                                    snackBarHostState.showNunchukSnackbar(
+                                        message = coSigningDelayRequiredMessage,
+                                        type = NcToastType.ERROR,
+                                    )
+                                }
+                                return@NcPrimaryDarkButton
+                            }
                         }
                         coSigningDelayError = null
                         val hours = coSigningDelayHours.toIntOrNull() ?: 0
