@@ -98,6 +98,11 @@ class ReviewGroupKeyPoliciesViewModel @Inject constructor(
         val hasPerKeyPolicies = newPolicies.signers.isNotEmpty()
         val policyType =
             if (hasPerKeyPolicies) PolicyType.PER_KEY else PolicyType.GLOBAL
+        val oldPolicyType = if (oldPolicies.signers.isNotEmpty()) {
+            PolicyType.PER_KEY
+        } else {
+            PolicyType.GLOBAL
+        }
 
         val newKeyPolicies = if (hasPerKeyPolicies) {
             newPolicies.signers.map { signerPolicy ->
@@ -119,6 +124,7 @@ class ReviewGroupKeyPoliciesViewModel @Inject constructor(
         _state.update {
             it.copy(
                 policyType = policyType,
+                oldPolicyType = oldPolicyType,
                 newPolicies = newKeyPolicies,
                 oldPolicies = oldKeyPolicies,
             )
@@ -181,6 +187,7 @@ class ReviewGroupKeyPoliciesViewModel @Inject constructor(
 
 data class ReviewGroupKeyPoliciesUiState(
     val policyType: PolicyType = PolicyType.GLOBAL,
+    val oldPolicyType: PolicyType? = null,
     val signers: List<SignerModel> = emptyList(),
     val newPolicies: List<KeyPolicyItem> = emptyList(),
     val oldPolicies: List<KeyPolicyItem> = emptyList(),
