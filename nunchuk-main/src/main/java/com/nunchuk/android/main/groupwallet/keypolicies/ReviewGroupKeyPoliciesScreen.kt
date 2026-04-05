@@ -145,7 +145,10 @@ private fun ReviewGroupKeyPoliciesContent(
                     style = NunchukTheme.typography.heading,
                 )
 
-                ReviewPolicyHeader(isGlobalMode = isGlobalMode)
+                ReviewPolicyHeader(
+                    isGlobalMode = isGlobalMode,
+                    isPolicyTypeChanged = state.oldPolicyType != null && state.policyType != state.oldPolicyType,
+                )
 
                 state.newPolicies.forEach { newPolicy ->
                     val oldPolicy = state.oldPolicies.firstOrNull {
@@ -184,7 +187,10 @@ private fun ReviewGroupKeyPoliciesContent(
 }
 
 @Composable
-private fun ReviewPolicyHeader(isGlobalMode: Boolean) {
+private fun ReviewPolicyHeader(
+    isGlobalMode: Boolean,
+    isPolicyTypeChanged: Boolean = false,
+) {
     Text(
         modifier = Modifier.padding(top = 24.dp),
         text = if (isGlobalMode) {
@@ -192,7 +198,9 @@ private fun ReviewPolicyHeader(isGlobalMode: Boolean) {
         } else {
             stringResource(R.string.nc_per_key_policy)
         },
-        style = NunchukTheme.typography.title,
+        style = NunchukTheme.typography.title.copy(
+            color = if (isPolicyTypeChanged) ChangedColor else Color.Unspecified,
+        ),
     )
 
     Text(
@@ -203,7 +211,7 @@ private fun ReviewPolicyHeader(isGlobalMode: Boolean) {
             stringResource(R.string.nc_per_key_policy_desc)
         },
         style = NunchukTheme.typography.bodySmall.copy(
-            color = MaterialTheme.colorScheme.textSecondary
+            color = if (isPolicyTypeChanged) ChangedColor else MaterialTheme.colorScheme.textSecondary
         ),
     )
 

@@ -124,8 +124,10 @@ class FreeGroupKeyPoliciesViewModel @AssistedInject constructor(
         _state.update {
             it.copy(
                 policyType = policyType,
+                originalPolicyType = policyType.takeIf { !isCreatingWallet },
                 signers = filteredSigners,
                 policies = keyPolicies,
+                originalPolicies = keyPolicies.takeIf { !isCreatingWallet }.orEmpty(),
             )
         }
     }
@@ -335,8 +337,10 @@ class FreeGroupKeyPoliciesViewModel @AssistedInject constructor(
 
 data class FreeGroupKeyPoliciesUiState(
     val policyType: PolicyType = PolicyType.GLOBAL,
+    val originalPolicyType: PolicyType? = null,
     val signers: List<SignerModel> = emptyList(),
     val policies: List<KeyPolicyItem> = listOf(KeyPolicyItem()),
+    val originalPolicies: List<KeyPolicyItem> = emptyList(),
     val hasChanges: Boolean = false,
     val isLoading: Boolean = false,
     val previewWarning: PreviewWarning? = null,

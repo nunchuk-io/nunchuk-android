@@ -30,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
@@ -61,6 +62,7 @@ import com.nunchuk.android.type.GroupSpendingLimitInterval
 import com.nunchuk.android.type.SignerType
 
 private const val GLOBAL_POLICY_EDIT_KEY = "__global_policy__"
+private val ChangedColor = Color(0xFFCF4018)
 
 @Composable
 internal fun FreeGroupKeyPoliciesScreen(
@@ -178,6 +180,7 @@ private fun FreeGroupKeyPoliciesContent(
 
                 PolicyHeader(
                     isGlobalMode = isGlobalMode,
+                    isPolicyTypeChanged = state.originalPolicyType != null && state.policyType != state.originalPolicyType,
                     onEditPolicyType = { showPolicyTypeBottomSheet = true },
                 )
 
@@ -186,8 +189,12 @@ private fun FreeGroupKeyPoliciesContent(
                         it.fingerPrint == policy.fingerPrint
                     }
                     val policyKey = if (isGlobalMode) GLOBAL_POLICY_EDIT_KEY else policy.fingerPrint
+                    val oldPolicy = state.originalPolicies.firstOrNull {
+                        it.fingerPrint == policy.fingerPrint
+                    }
                     PolicyCard(
                         policy = policy,
+                        oldPolicy = oldPolicy,
                         signer = signer,
                         isGlobalMode = isGlobalMode,
                         onEditSpendingLimit = { editingPolicyKey = policyKey },
@@ -286,6 +293,7 @@ private fun FreeGroupKeyPoliciesContent(
 @Composable
 private fun PolicyHeader(
     isGlobalMode: Boolean,
+    isPolicyTypeChanged: Boolean = false,
     onEditPolicyType: () -> Unit = {},
 ) {
     Row(
@@ -301,7 +309,9 @@ private fun PolicyHeader(
             } else {
                 stringResource(R.string.nc_per_key_policy)
             },
-            style = NunchukTheme.typography.title,
+            style = NunchukTheme.typography.title.copy(
+                color = if (isPolicyTypeChanged) ChangedColor else Color.Unspecified,
+            ),
         )
         Text(
             modifier = Modifier.clickable(onClick = onEditPolicyType),
@@ -318,7 +328,7 @@ private fun PolicyHeader(
             stringResource(R.string.nc_per_key_policy_desc)
         },
         style = NunchukTheme.typography.bodySmall.copy(
-            color = MaterialTheme.colorScheme.textSecondary
+            color = if (isPolicyTypeChanged) ChangedColor else MaterialTheme.colorScheme.textSecondary
         ),
     )
 
@@ -332,11 +342,20 @@ private fun PolicyHeader(
 private fun PolicyCard(
     modifier: Modifier = Modifier,
     policy: KeyPolicyItem,
+    oldPolicy: KeyPolicyItem? = null,
     signer: SignerModel?,
     isGlobalMode: Boolean,
     onEditSpendingLimit: () -> Unit = {},
 ) {
     val normalizedPolicy = normalizeGroupPlatformKeyPolicy(policy.keyPolicy)
+    val normalizedOld = oldPolicy?.let { normalizeGroupPlatformKeyPolicy(it.keyPolicy) }
+
+    val isSpendingLimitChanged = normalizedOld != null &&
+            normalizedPolicy.spendingLimit != normalizedOld.spendingLimit
+    val isDelayChanged = normalizedOld != null &&
+            normalizedPolicy.signingDelaySeconds != normalizedOld.signingDelaySeconds
+    val isAutoBroadcastChanged = normalizedOld != null &&
+            normalizedPolicy.autoBroadcastTransaction != normalizedOld.autoBroadcastTransaction
 
     Column(
         modifier = modifier
@@ -386,7 +405,9 @@ private fun PolicyCard(
                     )
                     Text(
                         text = formatGroupSpendingLimitOrUnlimited(normalizedPolicy.spendingLimit),
-                        style = NunchukTheme.typography.title,
+                        style = NunchukTheme.typography.title.copy(
+                            color = if (isSpendingLimitChanged) ChangedColor else Color.Unspecified,
+                        ),
                     )
                 }
             }
@@ -419,7 +440,10 @@ private fun PolicyCard(
                 } else {
                     stringResource(com.nunchuk.android.core.R.string.nc_off)
                 },
-                style = NunchukTheme.typography.title.copy(fontWeight = FontWeight.Bold),
+                style = NunchukTheme.typography.title.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = if (isDelayChanged) ChangedColor else Color.Unspecified,
+                ),
             )
         }
 
@@ -439,7 +463,10 @@ private fun PolicyCard(
                 } else {
                     stringResource(com.nunchuk.android.core.R.string.nc_off)
                 },
-                style = NunchukTheme.typography.title.copy(fontWeight = FontWeight.Bold),
+                style = NunchukTheme.typography.title.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = if (isAutoBroadcastChanged) ChangedColor else Color.Unspecified,
+                ),
             )
         }
     }
