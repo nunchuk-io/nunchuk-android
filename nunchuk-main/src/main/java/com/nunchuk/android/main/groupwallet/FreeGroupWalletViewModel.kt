@@ -6,11 +6,11 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.EnableGroupPlatformKeyUseCase
-import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.domain.GetGroupDeviceUIDUseCase
 import com.nunchuk.android.core.domain.HasSignerUseCase
 import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
 import com.nunchuk.android.core.domain.signer.GetSignerFromTapsignerMasterSignerByPathUseCase
+import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.mapper.SingleSignerMapper
 import com.nunchuk.android.core.miniscript.ScriptNodeType
@@ -43,9 +43,9 @@ import com.nunchuk.android.usecase.free.groupwallet.CreateGroupSandboxUseCase
 import com.nunchuk.android.usecase.free.groupwallet.CreateReplaceGroupUseCase
 import com.nunchuk.android.usecase.free.groupwallet.DeleteGroupSandboxUseCase
 import com.nunchuk.android.usecase.free.groupwallet.FinalizeGroupSandboxUseCase
+import com.nunchuk.android.usecase.free.groupwallet.GetFreeGroupWalletsUseCase
 import com.nunchuk.android.usecase.free.groupwallet.GetGroupOnlineUseCase
 import com.nunchuk.android.usecase.free.groupwallet.GetGroupSandboxUseCase
-import com.nunchuk.android.usecase.free.groupwallet.GetFreeGroupWalletsUseCase
 import com.nunchuk.android.usecase.free.groupwallet.RemoveSignerFromGroupUseCase
 import com.nunchuk.android.usecase.signer.GetAllSignersUseCase
 import com.nunchuk.android.usecase.signer.GetCurrentIndexFromMasterSignerUseCase
@@ -406,6 +406,10 @@ class FreeGroupWalletViewModel @Inject constructor(
     ): Map<String, SignerModel?> {
         val signerMap = mutableMapOf<String, SignerModel?>()
         val platformKeySlots = groupSandbox.platformKeySlots.toSet()
+        val miniscriptAssignedKeyOrder = buildMiniscriptAssignedKeyOrder(
+            namedSigners = groupSandbox.namedSigners,
+            platformKeySlots = platformKeySlots
+        )
 
         if (groupSandbox.walletType == WalletType.MINISCRIPT && groupSandbox.namedSigners.isNotEmpty()) {
             groupSandbox.namedSigners.forEach { (keyName, singleSigner) ->
@@ -415,10 +419,13 @@ class FreeGroupWalletViewModel @Inject constructor(
                 }
                 if (singleSigner.masterFingerprint.isNotEmpty() && singleSigner.xpub.isNotEmpty()) {
                     val existingSigner =
-                        signers.find { it?.fingerPrint == singleSigner.masterFingerprint }
+                        signers.find {
+                            it?.fingerPrint == singleSigner.masterFingerprint &&
+                                    it.derivationPath == singleSigner.derivationPath
+                        } ?: signers.find { it?.fingerPrint == singleSigner.masterFingerprint }
 
                     val model = singleSignerMapper(singleSigner)
-                    val signerModel =
+                    var signerModel =
                         if (existingSigner != null && existingSigner.name.isNotEmpty()) {
                             model.copy(
                                 name = existingSigner.name,
@@ -427,6 +434,11 @@ class FreeGroupWalletViewModel @Inject constructor(
                         } else {
                             model
                         }
+
+                    val keyOrder = miniscriptAssignedKeyOrder[keyName]
+                    if (keyOrder != null && signerModel.isVisible.not()) {
+                        signerModel = signerModel.copy(name = "Key #$keyOrder")
+                    }
 
                     signerMap[keyName] = signerModel
                 } else {
@@ -447,6 +459,48 @@ class FreeGroupWalletViewModel @Inject constructor(
         }
 
         return signerMap
+    }
+
+    private fun buildMiniscriptAssignedKeyOrder(
+        namedSigners: Map<String, SingleSigner>,
+        platformKeySlots: Set<String>
+    ): Map<String, Int> {
+        val assignedKeyNames = namedSigners
+            .filter { (keyName, signer) ->
+                platformKeySlots.contains(keyName).not() &&
+                        signer.masterFingerprint.isNotEmpty() &&
+                        signer.xpub.isNotEmpty()
+            }
+            .keys
+            .sortedWith(compareByKeyName())
+
+        return assignedKeyNames.mapIndexed { index, keyName ->
+            keyName to index.inc()
+        }.toMap()
+    }
+
+    private fun compareByKeyName(): Comparator<String> = Comparator { first, second ->
+        val firstMatch = KEY_NAME_PATTERN.matchEntire(first)
+        val secondMatch = KEY_NAME_PATTERN.matchEntire(second)
+
+        when {
+            firstMatch != null && secondMatch != null -> {
+                val firstX = firstMatch.groupValues[1].toIntOrNull() ?: Int.MAX_VALUE
+                val firstY = firstMatch.groupValues[2].toIntOrNull() ?: Int.MAX_VALUE
+                val secondX = secondMatch.groupValues[1].toIntOrNull() ?: Int.MAX_VALUE
+                val secondY = secondMatch.groupValues[2].toIntOrNull() ?: Int.MAX_VALUE
+
+                when {
+                    firstX != secondX -> firstX.compareTo(secondX)
+                    firstY != secondY -> firstY.compareTo(secondY)
+                    else -> first.compareTo(second)
+                }
+            }
+
+            firstMatch != null -> -1
+            secondMatch != null -> 1
+            else -> first.compareTo(second)
+        }
     }
 
     private fun createPlatformKeySignerModel(keyName: String): SignerModel {
@@ -1625,6 +1679,8 @@ class FreeGroupWalletViewModel @Inject constructor(
         private const val NEW_PATH = "new_path"
     }
 }
+
+private val KEY_NAME_PATTERN = Regex("""key_(\d+)_(\d+)""")
 
 // Data class for handling pending add signer operations during TapSigner caching
 data class PendingAddSignerState(

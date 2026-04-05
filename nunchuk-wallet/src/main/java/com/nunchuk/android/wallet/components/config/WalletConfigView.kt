@@ -79,6 +79,10 @@ internal fun WalletConfigView(
     openWalletConfig: (SignerModel) -> Unit = {},
 ) {
     val wallet = state.walletExtended.wallet
+    val miniscriptDisplaySignerMap = buildWalletConfigMiniscriptDisplaySignerMap(
+        scriptNode = state.scriptNode,
+        signerMap = state.signerMap
+    )
     val isLimitAccess = state.isDeprecatedGroupWallet || isLimitAccess(
         state.group,
         state.role,
@@ -261,7 +265,7 @@ internal fun WalletConfigView(
                                     node = state.scriptNode,
                                     data = ScriptNodeData(
                                         mode = ScriptMode.VIEW,
-                                        signers = state.signerMap,
+                                        signers = miniscriptDisplaySignerMap,
                                         showBip32Path = true,
                                         isViewServerKeyPolicy = !state.isInactiveAssistedWallet && !state.role.toRole.isFacilitatorAdmin,
                                         onViewPolicy = openWalletConfig
@@ -310,6 +314,44 @@ internal fun WalletConfigView(
             }
         }
     }
+}
+
+private fun buildWalletConfigMiniscriptDisplaySignerMap(
+    scriptNode: ScriptNode?,
+    signerMap: Map<String, SignerModel?>
+): Map<String, SignerModel?> {
+    if (scriptNode == null || signerMap.isEmpty()) return signerMap
+
+    val keyOrderByName = extractScriptNodeKeys(scriptNode)
+        .distinct()
+        .mapIndexed { index, keyName -> keyName to index.inc() }
+        .toMap()
+
+    return signerMap.mapValues { (keyName, signer) ->
+        if (signer == null || signer.type.isPlatformKey || signer.type == SignerType.SERVER) {
+            signer
+        } else {
+            val shouldUseFallbackKeyName =
+                signer.name.isBlank() || signer.name.equals(signer.fingerPrint, ignoreCase = true)
+
+            if (shouldUseFallbackKeyName) {
+                keyOrderByName[keyName]?.let { index ->
+                    signer.copy(name = "Key #$index")
+                } ?: signer
+            } else {
+                signer
+            }
+        }
+    }
+}
+
+private fun extractScriptNodeKeys(node: ScriptNode): List<String> {
+    val keys = mutableListOf<String>()
+    keys.addAll(node.keys)
+    node.subs.forEach { subNode ->
+        keys.addAll(extractScriptNodeKeys(subNode))
+    }
+    return keys
 }
 
 @Composable
