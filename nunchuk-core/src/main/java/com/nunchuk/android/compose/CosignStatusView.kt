@@ -55,7 +55,7 @@ private fun FreeGroupCosignStatus(
 
         GroupTransactionStatus.PENDING_DELAY -> {
             CosignAtTimeText(
-                cosignedTime = groupTransactionState.cosignAt,
+                cosignedTime = groupTransactionState.cosignAt.times(1000L),
                 isSigned = isSigned,
                 isPendingSignatures = isPendingSignatures,
             )

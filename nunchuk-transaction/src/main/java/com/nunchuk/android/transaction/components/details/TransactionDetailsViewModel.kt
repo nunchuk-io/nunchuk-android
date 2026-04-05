@@ -405,7 +405,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
                 GetGroupTransactionStateUseCase.Param(walletId = walletId, txId = txId)
             ).onSuccess { groupTransactionState ->
                 _state.update { it.copy(groupTransactionState = groupTransactionState) }
-                handleSignTime(groupTransactionState.cosignAt)
+                handleSignTime(groupTransactionState.cosignAt.times(1000L))
             }
         }
     }
