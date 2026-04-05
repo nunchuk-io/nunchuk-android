@@ -263,12 +263,7 @@ fun FreeGroupWalletScreen(
             val normalizedGlobalPolicy = normalizeGroupPlatformKeyPolicy(platformPolicies?.global)
             val globalSpendingLimit = normalizedGlobalPolicy.spendingLimit
             if (globalSpendingLimit != null) {
-                val amountValue = globalSpendingLimit.amount.toDoubleOrNull() ?: 0.0
-                if (amountValue > 0.0) {
-                    formatGroupSpendingLimit(globalSpendingLimit)
-                } else {
-                    null
-                }
+                formatGroupSpendingLimit(globalSpendingLimit)
             } else {
                 stringResource(R.string.nc_unlimited_spending_limits)
             }
