@@ -4,6 +4,7 @@ import android.icu.text.SimpleDateFormat
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -89,7 +90,7 @@ fun EditTimelockBottomSheet(
         onDismissRequest = onDismiss,
         dragHandle = {},
         content = {
-            Column(
+            Box(
                 modifier = Modifier
                     .background(
                         color = MaterialTheme.colorScheme.surface,
@@ -103,7 +104,14 @@ fun EditTimelockBottomSheet(
                     snackbarHostState = snackbarHostState,
                     onSave = onSave
                 )
-                NcSnackBarHost(snackbarHostState)
+                Row(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .fillMaxWidth()
+                        .padding(bottom = 12.dp)
+                ) {
+                    NcSnackBarHost(snackbarHostState)
+                }
             }
         }
     )
@@ -256,183 +264,194 @@ fun EditTimelockContent(
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(max = 600.dp) // Set maximum height to prevent excessive expansion
-                .verticalScroll(scrollState)
-                .padding(vertical = 24.dp, horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            Text(
-                modifier = Modifier.padding(top = 8.dp),
-                text = "Edit timelock",
-                style = NunchukTheme.typography.title
-            )
+            Column(
+                modifier = Modifier
+                    .weight(1f, fill = false)
+                    .verticalScroll(scrollState)
+                    .padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Text(
+                    modifier = Modifier.padding(top = 32.dp),
+                    text = "Edit timelock",
+                    style = NunchukTheme.typography.title
+                )
 
-            Text("Timelock type", style = NunchukTheme.typography.titleSmall)
+                Text("Timelock type", style = NunchukTheme.typography.titleSmall)
 
-            RadioOption(
-                title = "Absolute time",
-                description = "Unlock after a fixed point (specific date or block)",
-                selected = timelockType == MiniscriptTimelockType.ABSOLUTE,
-                onClick = { timelockType = MiniscriptTimelockType.ABSOLUTE }
-            )
+                RadioOption(
+                    title = "Absolute time",
+                    description = "Unlock after a fixed point (specific date or block)",
+                    selected = timelockType == MiniscriptTimelockType.ABSOLUTE,
+                    onClick = { timelockType = MiniscriptTimelockType.ABSOLUTE }
+                )
 
-            RadioOption(
-                title = "Relative time",
-                description = "Unlocks after a set period from the time coins are received. Transfers within the same wallet will reset the timelock.",
-                selected = timelockType == MiniscriptTimelockType.RELATIVE,
-                onClick = { timelockType = MiniscriptTimelockType.RELATIVE }
-            )
+                RadioOption(
+                    title = "Relative time",
+                    description = "Unlocks after a set period from the time coins are received. Transfers within the same wallet will reset the timelock.",
+                    selected = timelockType == MiniscriptTimelockType.RELATIVE,
+                    onClick = { timelockType = MiniscriptTimelockType.RELATIVE }
+                )
 
-            HorizontalDivider()
+                HorizontalDivider()
 
-            Text("Time unit", style = NunchukTheme.typography.titleSmall)
+                Text("Time unit", style = NunchukTheme.typography.titleSmall)
 
-            RadioOption(
-                title = "Timestamp",
-                description = "Unlock after a specific time (Unix timestamp)",
-                selected = timeUnit == MiniscriptTimelockBased.TIME_LOCK,
-                onClick = { timeUnit = MiniscriptTimelockBased.TIME_LOCK }
-            )
+                RadioOption(
+                    title = "Timestamp",
+                    description = "Unlock after a specific time (Unix timestamp)",
+                    selected = timeUnit == MiniscriptTimelockBased.TIME_LOCK,
+                    onClick = { timeUnit = MiniscriptTimelockBased.TIME_LOCK }
+                )
 
-            RadioOption(
-                title = "Block height",
-                description = "Unlock after a specific block number",
-                selected = timeUnit == MiniscriptTimelockBased.HEIGHT_LOCK,
-                onClick = { timeUnit = MiniscriptTimelockBased.HEIGHT_LOCK }
-            )
+                RadioOption(
+                    title = "Block height",
+                    description = "Unlock after a specific block number",
+                    selected = timeUnit == MiniscriptTimelockBased.HEIGHT_LOCK,
+                    onClick = { timeUnit = MiniscriptTimelockBased.HEIGHT_LOCK }
+                )
 
-            HorizontalDivider()
+                HorizontalDivider()
 
-            DatePickerField(
-                calendar = calendar,
-                selectedDateText = selectedDateText,
-                selectedTimeText = selectedTimeText,
-                selectedTimeZone = selectedTimeZone,
-                daysValue = daysValue,
-                hoursValue = hoursValue,
-                minutesValue = minutesValue,
-                timeUnit = timeUnit,
-                timelockType = timelockType,
-                numericValue = numericValue,
-                currentBlockHeight = currentBlockHeight,
-                onNumericValueChange = { numericValue = it },
-                onTimeZoneChange = { selectedTimeZone = it },
-                onDaysValueChange = { daysValue = it },
-                onHoursValueChange = { hoursValue = it },
-                onMinutesValueChange = { minutesValue = it }
-            )
+                DatePickerField(
+                    calendar = calendar,
+                    selectedDateText = selectedDateText,
+                    selectedTimeText = selectedTimeText,
+                    selectedTimeZone = selectedTimeZone,
+                    daysValue = daysValue,
+                    hoursValue = hoursValue,
+                    minutesValue = minutesValue,
+                    timeUnit = timeUnit,
+                    timelockType = timelockType,
+                    numericValue = numericValue,
+                    currentBlockHeight = currentBlockHeight,
+                    onNumericValueChange = { numericValue = it },
+                    onTimeZoneChange = { selectedTimeZone = it },
+                    onDaysValueChange = { daysValue = it },
+                    onHoursValueChange = { hoursValue = it },
+                    onMinutesValueChange = { minutesValue = it }
+                )
+            }
 
-            NcPrimaryDarkButton(
-                modifier = Modifier.fillMaxWidth(),
-                onClick = {
-                    if (timelockType == MiniscriptTimelockType.ABSOLUTE && timeUnit == MiniscriptTimelockBased.HEIGHT_LOCK) {
-                        val blockHeight = numericValue.toLongOrNull() ?: 0L
-                        if (blockHeight < currentBlockHeight || blockHeight > 499999999) {
-                            coroutineScope.launch {
-                                snackbarHostState.showSnackbar(
-                                    NcSnackbarVisuals(
-                                        message = "Please enter a value between the current block height and 499999999",
-                                        type = NcToastType.ERROR
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 16.dp)
+            ) {
+                NcPrimaryDarkButton(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = {
+                        if (timelockType == MiniscriptTimelockType.ABSOLUTE && timeUnit == MiniscriptTimelockBased.HEIGHT_LOCK) {
+                            val blockHeight = numericValue.toLongOrNull() ?: 0L
+                            if (blockHeight < currentBlockHeight || blockHeight > 499999999) {
+                                coroutineScope.launch {
+                                    snackbarHostState.showSnackbar(
+                                        NcSnackbarVisuals(
+                                            message = "Please enter a value between the current block height and 499999999",
+                                            type = NcToastType.ERROR
+                                        )
                                     )
-                                )
+                                }
+                                return@NcPrimaryDarkButton
                             }
-                            return@NcPrimaryDarkButton
-                        }
-                    } else if (timelockType == MiniscriptTimelockType.RELATIVE && timeUnit == MiniscriptTimelockBased.TIME_LOCK) {
-                        val days = daysValue.toLongOrNull() ?: 0L
-                        val hours = hoursValue.toLongOrNull() ?: 0L
-                        val minutes = minutesValue.toLongOrNull() ?: 0L
-                        
-                        if (days > 388) {
-                            coroutineScope.launch {
-                                snackbarHostState.showSnackbar(
-                                    NcSnackbarVisuals(
-                                        message = "Invalid value. Timelock must not exceed 388 days.",
-                                        type = NcToastType.ERROR
-                                    )
-                                )
-                            }
-                            return@NcPrimaryDarkButton
-                        }
-                        
-                        val totalSeconds = (days * 24 * 60 * 60) + (hours * 60 * 60) + (minutes * 60)
-                        if (totalSeconds == 0L) {
-                            coroutineScope.launch {
-                                snackbarHostState.showSnackbar(
-                                    NcSnackbarVisuals(
-                                        message = "Please enter at least one time value.",
-                                        type = NcToastType.ERROR
-                                    )
-                                )
-                            }
-                            return@NcPrimaryDarkButton
-                        }
-                    } else if (timelockType == MiniscriptTimelockType.RELATIVE && timeUnit == MiniscriptTimelockBased.HEIGHT_LOCK) {
-                        val blocks = numericValue.toLongOrNull() ?: 0L
-                        if (blocks < 0 || blocks > 65534) {
-                            coroutineScope.launch {
-                                snackbarHostState.showSnackbar(
-                                    NcSnackbarVisuals(
-                                        message = "Invalid block height. Enter a value between 0 and 65,534 blocks.",
-                                        type = NcToastType.ERROR
-                                    )
-                                )
-                            }
-                            return@NcPrimaryDarkButton
-                        }
-                    }
-
-                    val value =
-                        if (timelockType == MiniscriptTimelockType.ABSOLUTE && timeUnit == MiniscriptTimelockBased.TIME_LOCK) {
-                            // Convert to Unix timestamp considering the selected timezone
-                            val selectedCal = Calendar.getInstance().apply {
-                                timeInMillis = calendar.value.timeInMillis
-                                timeZone = TimeZone.getTimeZone(selectedTimeZone.id)
-                            }
-                            selectedCal.timeInMillis / 1000 // Convert to Unix timestamp (seconds)
                         } else if (timelockType == MiniscriptTimelockType.RELATIVE && timeUnit == MiniscriptTimelockBased.TIME_LOCK) {
-                            // Convert days, hours, minutes to total seconds
                             val days = daysValue.toLongOrNull() ?: 0L
                             val hours = hoursValue.toLongOrNull() ?: 0L
                             val minutes = minutesValue.toLongOrNull() ?: 0L
-                            (days * 24 * 60 * 60) + (hours * 60 * 60) + (minutes * 60)
-                        } else {
-                            numericValue.toLongOrNull() ?: 0L
+
+                            if (days > 388) {
+                                coroutineScope.launch {
+                                    snackbarHostState.showSnackbar(
+                                        NcSnackbarVisuals(
+                                            message = "Invalid value. Timelock must not exceed 388 days.",
+                                            type = NcToastType.ERROR
+                                        )
+                                    )
+                                }
+                                return@NcPrimaryDarkButton
+                            }
+
+                            val totalSeconds = (days * 24 * 60 * 60) + (hours * 60 * 60) + (minutes * 60)
+                            if (totalSeconds == 0L) {
+                                coroutineScope.launch {
+                                    snackbarHostState.showSnackbar(
+                                        NcSnackbarVisuals(
+                                            message = "Please enter at least one time value.",
+                                            type = NcToastType.ERROR
+                                        )
+                                    )
+                                }
+                                return@NcPrimaryDarkButton
+                            }
+                        } else if (timelockType == MiniscriptTimelockType.RELATIVE && timeUnit == MiniscriptTimelockBased.HEIGHT_LOCK) {
+                            val blocks = numericValue.toLongOrNull() ?: 0L
+                            if (blocks < 0 || blocks > 65534) {
+                                coroutineScope.launch {
+                                    snackbarHostState.showSnackbar(
+                                        NcSnackbarVisuals(
+                                            message = "Invalid block height. Enter a value between 0 and 65,534 blocks.",
+                                            type = NcToastType.ERROR
+                                        )
+                                    )
+                                }
+                                return@NcPrimaryDarkButton
+                            }
                         }
-                    
-                    // Create TimelockData with appropriate fields based on type
-                    val timelockData = when {
-                        timelockType == MiniscriptTimelockType.ABSOLUTE && timeUnit == MiniscriptTimelockBased.TIME_LOCK -> {
-                            TimelockData(
-                                timelockType = timelockType,
-                                timeUnit = timeUnit,
-                                value = value,
-                                timezoneId = selectedTimeZone.id,
-                                timezoneCity = selectedTimeZone.city,
-                                timezoneOffset = selectedTimeZone.offset
-                            )
+
+                        val value =
+                            if (timelockType == MiniscriptTimelockType.ABSOLUTE && timeUnit == MiniscriptTimelockBased.TIME_LOCK) {
+                                // Convert to Unix timestamp considering the selected timezone
+                                val selectedCal = Calendar.getInstance().apply {
+                                    timeInMillis = calendar.value.timeInMillis
+                                    timeZone = TimeZone.getTimeZone(selectedTimeZone.id)
+                                }
+                                selectedCal.timeInMillis / 1000 // Convert to Unix timestamp (seconds)
+                            } else if (timelockType == MiniscriptTimelockType.RELATIVE && timeUnit == MiniscriptTimelockBased.TIME_LOCK) {
+                                // Convert days, hours, minutes to total seconds
+                                val days = daysValue.toLongOrNull() ?: 0L
+                                val hours = hoursValue.toLongOrNull() ?: 0L
+                                val minutes = minutesValue.toLongOrNull() ?: 0L
+                                (days * 24 * 60 * 60) + (hours * 60 * 60) + (minutes * 60)
+                            } else {
+                                numericValue.toLongOrNull() ?: 0L
+                            }
+
+                        // Create TimelockData with appropriate fields based on type
+                        val timelockData = when {
+                            timelockType == MiniscriptTimelockType.ABSOLUTE && timeUnit == MiniscriptTimelockBased.TIME_LOCK -> {
+                                TimelockData(
+                                    timelockType = timelockType,
+                                    timeUnit = timeUnit,
+                                    value = value,
+                                    timezoneId = selectedTimeZone.id,
+                                    timezoneCity = selectedTimeZone.city,
+                                    timezoneOffset = selectedTimeZone.offset
+                                )
+                            }
+                            timelockType == MiniscriptTimelockType.RELATIVE && timeUnit == MiniscriptTimelockBased.TIME_LOCK -> {
+                                TimelockData(
+                                    timelockType = timelockType,
+                                    timeUnit = timeUnit,
+                                    value = value,
+                                    days = daysValue.toLongOrNull() ?: 0L,
+                                    hours = hoursValue.toLongOrNull() ?: 0L,
+                                    minutes = minutesValue.toLongOrNull() ?: 0L
+                                )
+                            }
+                            else -> {
+                                TimelockData(
+                                    timelockType = timelockType,
+                                    timeUnit = timeUnit,
+                                    value = value
+                                )
+                            }
                         }
-                        timelockType == MiniscriptTimelockType.RELATIVE && timeUnit == MiniscriptTimelockBased.TIME_LOCK -> {
-                            TimelockData(
-                                timelockType = timelockType,
-                                timeUnit = timeUnit,
-                                value = value,
-                                days = daysValue.toLongOrNull() ?: 0L,
-                                hours = hoursValue.toLongOrNull() ?: 0L,
-                                minutes = minutesValue.toLongOrNull() ?: 0L
-                            )
-                        }
-                        else -> {
-                            TimelockData(
-                                timelockType = timelockType,
-                                timeUnit = timeUnit,
-                                value = value
-                            )
-                        }
+                        onSave(timelockData)
                     }
-                    onSave(timelockData)
+                ) {
+                    Text(text = "Save")
                 }
-            ) {
-                Text(text = "Save")
             }
         }
     }
