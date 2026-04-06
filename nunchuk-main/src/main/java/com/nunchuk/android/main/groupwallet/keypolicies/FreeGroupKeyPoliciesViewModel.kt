@@ -95,9 +95,11 @@ class FreeGroupKeyPoliciesViewModel @AssistedInject constructor(
         signers: List<SignerModel>,
         platformKeyPolicies: GroupPlatformKeyPolicies?,
     ) {
-        val filteredSigners = signers.filter { signer ->
-            signer.type != SignerType.PLATFORM
-        }
+        val filteredSigners = signers
+            .filter { signer -> signer.type != SignerType.PLATFORM }
+            .distinctBy { signer ->
+                signer.fingerPrint.ifEmpty { "${signer.id}:${signer.derivationPath}" }
+            }
         val policies = platformKeyPolicies ?: GroupPlatformKeyPolicies()
         existingPoliciesByFingerprint = policies.signers
             .filter { it.masterFingerprint.isNotEmpty() }
