@@ -621,8 +621,10 @@ internal class WalletsViewModel @Inject constructor(
                 groupSandboxWalletsDeferred.await().getOrElse { emptyList() }.map { it.id }.toSet()
             val deprecatedGroupWalletIds =
                 deprecatedGroupWalletsDeferred.await().getOrElse { emptyList() }.toSet()
-            val sharedWalletInvitations =
+            val fetchedSharedWalletInvitations =
                 sharedWalletInvitationsDeferred.await().getOrElse { emptyList() }
+            val (sharedWalletInvitations, hasAutoAcceptedInvitation) =
+                autoAcceptSharedWalletInvitationsIfNeeded(fetchedSharedWalletInvitations)
             if (signInModeHolder.getCurrentMode().isGuestMode()) {
                 setHasWalletInGuestModeUseCase(wallets.isNotEmpty())
             }
@@ -640,7 +642,53 @@ internal class WalletsViewModel @Inject constructor(
             updateBadge()
             mapGroupWalletUi()
             getCampaign()
+            if (hasAutoAcceptedInvitation) {
+                syncGroup()
+            }
         }
+    }
+
+    private suspend fun autoAcceptSharedWalletInvitationsIfNeeded(
+        invitations: List<Invitation>
+    ): Pair<List<Invitation>, Boolean> {
+        if (invitations.isEmpty()) return invitations to false
+
+        val currentUserEmail = accountManager.getAccount().email.trim()
+        if (currentUserEmail.isEmpty()) return invitations to false
+
+        val acceptedInvitationIndexes = mutableSetOf<Int>()
+        var hasAcceptedInvitation = false
+
+        invitations.forEachIndexed { index, invitation ->
+            if (!invitation.inviterEmail.trim().equals(currentUserEmail, ignoreCase = true)) {
+                return@forEachIndexed
+            }
+            if (invitation.groupId.isEmpty()) {
+                return@forEachIndexed
+            }
+
+            joinFreeGroupWalletByIdUseCase(invitation.groupId)
+                .onSuccess {
+                    acceptedInvitationIndexes.add(index)
+                    hasAcceptedInvitation = true
+                }
+                .onFailure {
+                    val errorCode = it.nativeErrorCode()
+                    if (errorCode == NativeErrorCode.GROUP_WALLET_JOINED) {
+                        acceptedInvitationIndexes.add(index)
+                    }
+                }
+        }
+
+        if (acceptedInvitationIndexes.isEmpty()) {
+            return invitations to false
+        }
+
+        val remainingInvitations = invitations.filterIndexed { index, _ ->
+            acceptedInvitationIndexes.contains(index).not()
+        }
+
+        return remainingInvitations to hasAcceptedInvitation
     }
 
     private suspend fun mapGroupWalletUi() = withContext(ioDispatcher) {
