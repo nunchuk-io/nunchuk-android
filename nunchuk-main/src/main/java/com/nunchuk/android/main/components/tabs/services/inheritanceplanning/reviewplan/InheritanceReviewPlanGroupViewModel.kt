@@ -8,6 +8,7 @@ import com.nunchuk.android.core.domain.byzantine.ParseInheritancePayloadUseCase
 import com.nunchuk.android.core.domain.membership.CancelInheritanceUserDataUseCase
 import com.nunchuk.android.core.domain.membership.GetInheritanceUserDataUseCase
 import com.nunchuk.android.core.util.orFalse
+import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningParam
 import com.nunchuk.android.model.CalculateRequiredSignatures
 import com.nunchuk.android.model.VerificationType
@@ -17,6 +18,7 @@ import com.nunchuk.android.model.byzantine.DummyTransactionType
 import com.nunchuk.android.model.byzantine.isInheritanceFlow
 import com.nunchuk.android.model.byzantine.isKeyHolder
 import com.nunchuk.android.model.byzantine.toRole
+import com.nunchuk.android.usecase.byzantine.DeleteGroupDummyTransactionUseCase
 import com.nunchuk.android.usecase.byzantine.GetDummyTransactionPayloadUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupRemoteUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
@@ -36,6 +38,7 @@ class InheritanceReviewPlanGroupViewModel @Inject constructor(
     private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
     private val getInheritanceUserDataUseCase: GetInheritanceUserDataUseCase,
     private val cancelInheritanceUserDataUseCase: CancelInheritanceUserDataUseCase,
+    private val deleteGroupDummyTransactionUseCase: DeleteGroupDummyTransactionUseCase,
     private val getGroupRemoteUseCase: GetGroupRemoteUseCase,
     private val accountManager: AccountManager,
 ) : ViewModel() {
@@ -162,6 +165,24 @@ class InheritanceReviewPlanGroupViewModel @Inject constructor(
         }
     }
 
+    fun cancelChange() {
+        viewModelScope.launch {
+            _event.emit(InheritanceReviewPlanGroupEvent.Loading(true))
+            deleteGroupDummyTransactionUseCase(
+                DeleteGroupDummyTransactionUseCase.Param(
+                    groupId = param.groupId,
+                    walletId = param.walletId,
+                    transactionId = state.value.dummyTransactionId
+                )
+            ).onSuccess {
+                _event.emit(InheritanceReviewPlanGroupEvent.CancelChangeSuccess)
+            }.onFailure {
+                _event.emit(InheritanceReviewPlanGroupEvent.ProcessFailure(it.message.orUnknownError()))
+            }
+            _event.emit(InheritanceReviewPlanGroupEvent.Loading(false))
+        }
+    }
+
     private fun isCreateOrUpdateFlow() =
         state.value.type != DummyTransactionType.CANCEL_INHERITANCE_PLAN
 }
@@ -177,6 +198,7 @@ sealed class InheritanceReviewPlanGroupEvent {
     data class ProcessFailure(val message: String) : InheritanceReviewPlanGroupEvent()
     data object CreateOrUpdateInheritanceSuccess : InheritanceReviewPlanGroupEvent()
     data object CancelInheritanceSuccess : InheritanceReviewPlanGroupEvent()
+    data object CancelChangeSuccess : InheritanceReviewPlanGroupEvent()
 }
 
 data class InheritanceReviewPlanGroupState(
