@@ -101,29 +101,52 @@ class InheritanceReviewPlanViewModel @Inject constructor(
 
     val remainTime = membershipStepManager.remainingTime
 
-    fun init(param: InheritancePlanningParam.SetupOrReview) {
+    fun init(
+        param: InheritancePlanningParam.SetupOrReview,
+        initialParam: InheritancePlanningParam.SetupOrReview? = null,
+    ) {
         this.param = param
-        initialParam = param.copy()
-        getWalletName()
-        if (param.groupId.isNotEmpty()) {
-            getGroup()
+        if (this.initialParam == null) {
+            this.initialParam = (initialParam ?: param).copy()
+            getWalletName()
+            if (param.groupId.isNotEmpty()) {
+                getGroup()
+            }
         }
+        updateDerivedReviewState()
     }
 
-    fun update(param: InheritancePlanningParam.SetupOrReview) {
+    fun update(
+        param: InheritancePlanningParam.SetupOrReview,
+        initialParam: InheritancePlanningParam.SetupOrReview? = null,
+    ) {
         this.param = param
-        updateContinueButtonState()
+        if (this.initialParam == null) {
+            this.initialParam = (initialParam ?: param).copy()
+        }
+        updateDerivedReviewState()
     }
 
-    private fun updateContinueButtonState() {
+    private fun updateDerivedReviewState() {
+        val initial = initialParam
+        val isDataChanged = hasDataChanged()
+        val changeHighlights = calculateReviewPlanChangeHighlights(
+            initial = initial,
+            current = param,
+        )
+        _state.update {
+            it.copy(
+                isDataChanged = isDataChanged,
+                changeHighlights = changeHighlights,
+            )
+        }
         val shouldEnable = param.planFlow == InheritancePlanFlow.SETUP ||
-                          (param.planFlow == InheritancePlanFlow.VIEW && hasDataChanged())
+            (param.planFlow == InheritancePlanFlow.VIEW && isDataChanged)
         _isContinueButtonEnabled.value = shouldEnable
     }
 
     private fun hasDataChanged(): Boolean {
         val initial = initialParam ?: return true
-
         return initial.activationDate != param.activationDate ||
                 initial.selectedZoneId != param.selectedZoneId ||
                 initial.emails != param.emails ||
@@ -133,7 +156,8 @@ class InheritanceReviewPlanViewModel @Inject constructor(
                 initial.bufferPeriodApplyType != param.bufferPeriodApplyType ||
                 initial.releaseMethodType != param.releaseMethodType ||
                 initial.beneficiaryAllocations != param.beneficiaryAllocations ||
-                initial.individualScheduleConfigs != param.individualScheduleConfigs ||
+                initial.individualScheduleConfigs.mapKeys { it.key.toEmailKey() } !=
+                param.individualScheduleConfigs.mapKeys { it.key.toEmailKey() } ||
                 initial.sharedScheduleConfig != param.sharedScheduleConfig ||
                 initial.isSharedScheduleConfigured != param.isSharedScheduleConfigured ||
                 initial.fallbackSettings != param.fallbackSettings ||

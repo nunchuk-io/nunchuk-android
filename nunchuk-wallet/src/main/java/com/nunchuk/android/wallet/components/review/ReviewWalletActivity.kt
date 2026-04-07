@@ -437,7 +437,7 @@ private fun TaprootAddressContent(
     onActionKey: (String, SignerModel?) -> Unit = { _, _ -> },
     parentModifier: Modifier = Modifier
 ) {
-    if (args.addressType.isTaproot() == true && args.keyPath.size <= 1) {
+    if (args.addressType.isTaproot() && args.keyPath.size <= 1) {
         MiniscriptTaproot(
             keyPath = args.keyPath.firstOrNull().orEmpty(),
             data = ScriptNodeData(
@@ -469,7 +469,7 @@ private fun TaprootAddressContent(
         )
     }
 
-    if (args.addressType.isTaproot() == true && args.keyPath.size > 1 && args.scriptNodeMuSig != null) {
+    if (args.addressType.isTaproot() && args.keyPath.size > 1 && args.scriptNodeMuSig != null) {
         NcBadgePrimary(
             modifier = Modifier.padding(vertical = 8.dp),
             text = "Key path",

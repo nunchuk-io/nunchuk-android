@@ -19,6 +19,8 @@
 
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasescheduledetail
 
+import java.time.LocalDateTime
+import java.time.ZoneId
 import java.time.LocalDate
 import java.util.TimeZone
 
@@ -370,4 +372,61 @@ data class ReleaseScheduleUiState(
             )
         }
     }
+}
+
+fun ReleaseScheduleUiState.withTimezone(
+    newZoneId: String,
+    fallbackZoneId: String,
+): ReleaseScheduleUiState {
+    if (stages.isEmpty()) return this
+    return copy(
+        stages = stages.map { stage ->
+            stage.withTimezone(
+                newZoneId = newZoneId,
+                fallbackZoneId = fallbackZoneId,
+            )
+        }
+    )
+}
+
+fun ReleaseScheduleStage.withTimezone(
+    newZoneId: String,
+    fallbackZoneId: String,
+): ReleaseScheduleStage {
+    val sourceZoneId = stageZoneIdOrFallback(fallbackZoneId).toSafeZoneId()
+    val targetZoneId = newZoneId.toSafeZoneId()
+    if (sourceZoneId.id == targetZoneId.id) {
+        return copy(timeZoneId = targetZoneId.id)
+    }
+
+    val instant = LocalDateTime.of(
+        firstWithdrawalDate.year,
+        firstWithdrawalDate.month,
+        firstWithdrawalDate.day,
+        firstWithdrawalTime.hour,
+        firstWithdrawalTime.minute,
+    ).atZone(sourceZoneId).toInstant()
+    val targetDateTime = instant.atZone(targetZoneId)
+    return copy(
+        firstWithdrawalDate = ReleaseScheduleDate(
+            month = targetDateTime.monthValue,
+            day = targetDateTime.dayOfMonth,
+            year = targetDateTime.year,
+        ),
+        firstWithdrawalTime = ReleaseScheduleTime(
+            hour = targetDateTime.hour,
+            minute = targetDateTime.minute,
+        ),
+        timeZoneId = targetZoneId.id,
+    )
+}
+
+private fun ReleaseScheduleStage.stageZoneIdOrFallback(fallbackZoneId: String): String {
+    return timeZoneId.ifBlank { fallbackZoneId.ifBlank { TimeZone.getDefault().id } }
+}
+
+private fun String.toSafeZoneId(): ZoneId {
+    return runCatching {
+        if (isBlank()) ZoneId.systemDefault() else ZoneId.of(this)
+    }.getOrDefault(ZoneId.systemDefault())
 }

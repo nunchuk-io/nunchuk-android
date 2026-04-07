@@ -30,6 +30,8 @@ import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.buf
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.bufferperiodmethod.BufferPeriodMethodOption
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.bufferperiodmethod.inheritanceBufferPeriodMethod
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.bufferperiodmethod.navigateToInheritanceBufferPeriodMethod
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.changetimezone.inheritanceChangeTimezone
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.changetimezone.navigateToInheritanceChangeTimezone
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.createsuccess.InheritanceCreateSuccessRoute
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.createsuccess.inheritanceCreateSuccess
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.createsuccess.navigateToInheritanceCreateSuccess
@@ -71,6 +73,7 @@ import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.rel
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasescheduledetail.ReleaseScheduleUiState
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasescheduledetail.inheritanceReleaseScheduleDetail
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasescheduledetail.navigateToInheritanceReleaseScheduleDetail
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasescheduledetail.withTimezone
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releaseschedulestageedit.inheritanceReleaseScheduleStageEdit
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releaseschedulestageedit.navigateToInheritanceReleaseScheduleStageEdit
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.requestplanningsent.confirm.InheritanceRequestPlanningConfirmRoute
@@ -167,7 +170,8 @@ fun InheritancePlanningGraph(
         inheritancePlanOverview(
             onContinueClicked = { setupFlowType ->
                 when (setupFlowType) {
-                    InheritanceSetupFlowType.MULTI_BENEFICIARY -> navController.navigateToInheritanceAssetAllocation()
+                    InheritanceSetupFlowType.MULTI_BENEFICIARY ->
+                        navController.navigateToInheritanceAssetAllocation(isUpdateRequest = false)
                     InheritanceSetupFlowType.SINGLE_BENEFICIARY -> navController.navigateToMagicalPhraseIntro()
                     else -> navController.navigateToMagicalPhraseIntro()
                 }
@@ -221,11 +225,15 @@ fun InheritancePlanningGraph(
 
         inheritanceAssetAllocation(
             onBackClicked = { navController.popBackStack() },
-            onContinueClicked = { allocations ->
+            onContinueClicked = { allocations, isUpdateRequest ->
                 activityViewModel.setOrUpdate(
                     activityViewModel.setupOrReviewParam.copy(beneficiaryAllocations = allocations)
                 )
-                navController.navigateToInheritanceReleaseMethod()
+                if (isUpdateRequest) {
+                    navController.popBackStack()
+                } else {
+                    navController.navigateToInheritanceReleaseMethod()
+                }
             },
         )
 
@@ -277,18 +285,36 @@ fun InheritancePlanningGraph(
 
         inheritanceReleaseMethod(
             onBackClicked = { navController.popBackStack() },
-            onContinueClicked = { method ->
+            onContinueClicked = { method, isUpdateRequest ->
+                val currentParam = activityViewModel.setupOrReviewParam
+                val newReleaseMethodType = method.toReleaseMethodType()
+                val isMethodChanged = currentParam.releaseMethodType != newReleaseMethodType
                 val previousDestination = navController.previousBackStackEntry?.destination
+                val openedFromBeneficiarySchedules =
+                    previousDestination?.hasRoute<InheritanceBeneficiarySchedulesRoute>() == true
+                if (isUpdateRequest && !isMethodChanged) {
+                    navController.popBackStack()
+                    return@inheritanceReleaseMethod
+                }
                 activityViewModel.setOrUpdate(
-                    activityViewModel.setupOrReviewParam.copy(
-                        releaseMethodType = method.toReleaseMethodType(),
-                        beneficiaryAllocations = activityViewModel.setupOrReviewParam.beneficiaryAllocations.ifEmpty {
-                            defaultBeneficiaryAllocations()
+                    currentParam.copy(
+                        releaseMethodType = newReleaseMethodType,
+                        beneficiaryAllocations = currentParam.beneficiaryAllocations,
+                        sharedScheduleConfig = if (isMethodChanged) null else currentParam.sharedScheduleConfig,
+                        individualScheduleConfigs = if (isMethodChanged) {
+                            emptyMap()
+                        } else {
+                            currentParam.individualScheduleConfigs
                         },
+                        isSharedScheduleConfigured = if (isMethodChanged) false else currentParam.isSharedScheduleConfigured,
+                        fallbackSettings = if (isMethodChanged) null else currentParam.fallbackSettings,
                     )
                 )
-                if (previousDestination?.hasRoute<InheritanceBeneficiarySchedulesRoute>() == true) {
+                if (openedFromBeneficiarySchedules) {
                     navController.popBackStack()
+                } else if (isUpdateRequest) {
+                    navController.popBackStack()
+                    navController.navigateToInheritanceBeneficiarySchedules()
                 } else {
                     navController.navigateToInheritanceBeneficiarySchedules()
                 }
@@ -297,9 +323,15 @@ fun InheritancePlanningGraph(
 
         inheritanceBeneficiarySchedules(
             onBackClicked = { navController.popBackStack() },
-            onEditReleaseMethodClicked = { navController.navigateToInheritanceReleaseMethod() },
+            onEditReleaseMethodClicked = {
+                navController.navigateToInheritanceReleaseMethod(
+                    isUpdateRequest = activityViewModel.setupOrReviewParam.planFlow == InheritancePlanFlow.VIEW
+                )
+            },
             onEditFallbackSettingsClicked = { navController.navigateToInheritanceFallbackSettings() },
-            onEditAssetAllocationClicked = { navController.navigateToInheritanceAssetAllocation() },
+            onEditAssetAllocationClicked = {
+                navController.navigateToInheritanceAssetAllocation(isUpdateRequest = true)
+            },
             onAddReleaseScheduleClicked = {
                 val returnToReviewPlan =
                     navController.previousBackStackEntry?.destination?.hasRoute<InheritanceReviewPlanRoute>() == true
@@ -563,6 +595,43 @@ fun InheritancePlanningGraph(
             },
         )
 
+        inheritanceChangeTimezone(
+            onBackClicked = { navController.popBackStack() },
+            onSaveClicked = { isUpdateRequest, selectedZoneId ->
+                val currentParam = activityViewModel.setupOrReviewParam
+                val previousZoneId = currentParam.selectedZoneId
+                val updatedSharedScheduleConfig = currentParam.sharedScheduleConfig?.let { config ->
+                    config.copy(
+                        releaseScheduleUiState = config.releaseScheduleUiState.withTimezone(
+                            newZoneId = selectedZoneId,
+                            fallbackZoneId = previousZoneId,
+                        )
+                    )
+                }
+                val updatedIndividualScheduleConfigs =
+                    currentParam.individualScheduleConfigs.mapValues { (_, config) ->
+                        config.copy(
+                            releaseScheduleUiState = config.releaseScheduleUiState.withTimezone(
+                                newZoneId = selectedZoneId,
+                                fallbackZoneId = previousZoneId,
+                            )
+                        )
+                    }
+                activityViewModel.setOrUpdate(
+                    currentParam.copy(
+                        selectedZoneId = selectedZoneId,
+                        sharedScheduleConfig = updatedSharedScheduleConfig,
+                        individualScheduleConfigs = updatedIndividualScheduleConfigs,
+                    )
+                )
+                if (isUpdateRequest || currentParam.planFlow == InheritancePlanFlow.VIEW) {
+                    navController.popBackStack()
+                } else {
+                    navController.navigateToInheritanceNote()
+                }
+            },
+        )
+
         inheritanceNote(
             onContinueClick = { isUpdateRequest, note, beneficiaryAllocations ->
                 activityViewModel.setOrUpdate(
@@ -720,7 +789,11 @@ fun InheritancePlanningGraph(
             onCancelSuccess = {},
             onMarkSetupInheritance = {},
             onEditActivationDateClick = {
-                navController.navigateToInheritanceActivationDate(isUpdateRequest = true)
+                if (activityViewModel.setupOrReviewParam.setupFlowType == InheritanceSetupFlowType.OLD_FLOW) {
+                    navController.navigateToInheritanceActivationDate(isUpdateRequest = true)
+                } else {
+                    navController.navigateToInheritanceChangeTimezone(isUpdateRequest = true)
+                }
             },
             onEditNoteClick = {
                 navController.navigateToInheritanceNote(isUpdateRequest = true)
@@ -776,10 +849,10 @@ fun InheritancePlanningGraph(
                 navController.navigateToInheritanceBackUpDownload()
             },
             onEditAssetAllocationClick = {
-                navController.navigateToInheritanceAssetAllocation()
+                navController.navigateToInheritanceAssetAllocation(isUpdateRequest = true)
             },
             onEditReleaseMethodClick = {
-                navController.navigateToInheritanceReleaseMethod()
+                navController.navigateToInheritanceReleaseMethod(isUpdateRequest = true)
             },
             onEditBeneficiarySchedulesClick = {
                 navController.navigateToInheritanceBeneficiarySchedules()

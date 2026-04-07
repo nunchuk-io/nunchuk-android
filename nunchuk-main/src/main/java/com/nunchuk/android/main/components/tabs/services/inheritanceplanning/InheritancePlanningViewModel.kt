@@ -128,7 +128,10 @@ class InheritancePlanningViewModel @Inject constructor(
 
     fun setOrUpdate(param: InheritancePlanningParam.SetupOrReview) {
         _state.update {
-            it.copy(setupOrReviewParam = param)
+            it.copy(
+                setupOrReviewParam = param,
+                initialSetupOrReviewParam = it.initialSetupOrReviewParam ?: param.snapshot(),
+            )
         }
     }
 
@@ -200,10 +203,23 @@ data class InheritancePlanningState(
     val walletType: WalletType = WalletType.MULTI_SIG,
     val userEmail: String = "",
     val setupOrReviewParam: InheritancePlanningParam.SetupOrReview,
+    val initialSetupOrReviewParam: InheritancePlanningParam.SetupOrReview? = null,
     val isLoading: Boolean = false
 ) {
     val isMiniscriptWallet: Boolean
         get() = walletType == WalletType.MINISCRIPT
+}
+
+private fun InheritancePlanningParam.SetupOrReview.snapshot(): InheritancePlanningParam.SetupOrReview {
+    return copy(
+        emails = emails.toList(),
+        inheritanceKeys = inheritanceKeys.toList(),
+        beneficiaryAllocations = beneficiaryAllocations.toList(),
+        individualScheduleConfigs = individualScheduleConfigs.toMap(),
+        notificationSettings = notificationSettings?.copy(
+            perEmailSettings = notificationSettings.perEmailSettings.toList()
+        ),
+    )
 }
 
 @Keep

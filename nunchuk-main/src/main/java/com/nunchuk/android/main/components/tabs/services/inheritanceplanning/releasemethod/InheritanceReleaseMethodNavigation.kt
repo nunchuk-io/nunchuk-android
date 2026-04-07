@@ -7,6 +7,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
+import androidx.navigation.toRoute
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningActivity
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.MembershipStepEffect
@@ -14,13 +15,16 @@ import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.toR
 import kotlinx.serialization.Serializable
 
 @Serializable
-data object InheritanceReleaseMethodRoute
+data class InheritanceReleaseMethodRoute(
+    val isUpdateRequest: Boolean = false,
+)
 
 internal fun NavGraphBuilder.inheritanceReleaseMethod(
     onBackClicked: () -> Unit,
-    onContinueClicked: (InheritanceReleaseMethod) -> Unit,
+    onContinueClicked: (InheritanceReleaseMethod, Boolean) -> Unit,
 ) {
-    composable<InheritanceReleaseMethodRoute> {
+    composable<InheritanceReleaseMethodRoute> { backStackEntry ->
+        val route = backStackEntry.toRoute<InheritanceReleaseMethodRoute>()
         val activity = LocalActivity.current as InheritancePlanningActivity
         val activityViewModel: InheritancePlanningViewModel =
             hiltViewModel(viewModelStoreOwner = activity)
@@ -30,10 +34,13 @@ internal fun NavGraphBuilder.inheritanceReleaseMethod(
         InheritanceReleaseMethodScreen(
             remainTime = remainTime,
             selectedMethod = setupOrReviewParam.releaseMethodType.toReleaseMethodOption(),
+            isUpdateRequest = route.isUpdateRequest,
             onBackClicked = onBackClicked,
-            onContinueClicked = onContinueClicked,
+            onContinueClicked = { onContinueClicked(it, route.isUpdateRequest) },
         )
     }
 }
 
-fun NavController.navigateToInheritanceReleaseMethod() { navigate(InheritanceReleaseMethodRoute) }
+fun NavController.navigateToInheritanceReleaseMethod(isUpdateRequest: Boolean = false) {
+    navigate(InheritanceReleaseMethodRoute(isUpdateRequest = isUpdateRequest))
+}

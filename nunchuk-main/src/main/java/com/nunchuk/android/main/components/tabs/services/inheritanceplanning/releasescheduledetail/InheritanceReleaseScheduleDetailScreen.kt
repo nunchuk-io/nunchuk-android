@@ -77,6 +77,7 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.lightGray
+import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.main.R
 import com.nunchuk.android.widget.R as WidgetR
@@ -280,7 +281,7 @@ private fun BufferPeriodSummaryCard(
         modifier = modifier
             .fillMaxWidth()
             .background(
-                color = Color(0xFFF1F1F1),
+                color = MaterialTheme.colorScheme.lightGray,
                 shape = RoundedCornerShape(12.dp)
             )
             .padding(horizontal = 12.dp, vertical = 10.dp),
@@ -660,6 +661,8 @@ internal fun ReleaseScheduleSummaryProgress(
     summaryScalePercent: Int,
     remainingSummaryPercent: Int,
     surfaceColor: Color = Color.Unspecified,
+    labelColorForSegment: ((ReleaseScheduleAllocationSegment) -> Color)? = null,
+    dateColorForSegment: ((ReleaseScheduleAllocationSegment) -> Color)? = null,
 ) {
     val effectiveSurfaceColor = if (surfaceColor == Color.Unspecified) {
         MaterialTheme.colorScheme.lightGray
@@ -711,6 +714,7 @@ internal fun ReleaseScheduleSummaryProgress(
                 segments = visibleSegments,
                 remainingPercent = labelRemainingPercent,
                 unallocatedPercent = unallocatedLabelPercent,
+                labelColorForSegment = labelColorForSegment,
             )
 
             SummaryProgressBarRow(
@@ -732,7 +736,8 @@ internal fun ReleaseScheduleSummaryProgress(
             BottomSummaryStageDates(
                 modifier = Modifier.padding(top = 8.dp, start = startArrowInset, end = endArrowInset),
                 segments = visibleSegments,
-                remainingPercent = labelRemainingPercent
+                remainingPercent = labelRemainingPercent,
+                dateColorForSegment = dateColorForSegment,
             )
         }
 
@@ -762,6 +767,7 @@ private fun BottomSummaryStageLabels(
     segments: List<ReleaseScheduleAllocationSegment>,
     remainingPercent: Int,
     unallocatedPercent: Int = 0,
+    labelColorForSegment: ((ReleaseScheduleAllocationSegment) -> Color)? = null,
 ) {
     Row(modifier = modifier.fillMaxWidth()) {
         segments.forEach { segment ->
@@ -775,6 +781,7 @@ private fun BottomSummaryStageLabels(
                     segment.allocationPercent
                 ),
                 style = NunchukTheme.typography.captionSmall,
+                color = labelColorForSegment?.invoke(segment) ?: MaterialTheme.colorScheme.textPrimary,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
@@ -899,6 +906,7 @@ private fun BottomSummaryStageDates(
     modifier: Modifier = Modifier,
     segments: List<ReleaseScheduleAllocationSegment>,
     remainingPercent: Int,
+    dateColorForSegment: ((ReleaseScheduleAllocationSegment) -> Color)? = null,
 ) {
     Row(modifier = modifier.fillMaxWidth()) {
         segments.forEach { segment ->
@@ -907,7 +915,9 @@ private fun BottomSummaryStageDates(
                     .weight(segment.allocationPercent.toFloat())
                     .padding(end = 8.dp),
                 text = segment.firstWithdrawalDate.display(),
-                style = NunchukTheme.typography.captionSmall.copy(color = MaterialTheme.colorScheme.textSecondary),
+                style = NunchukTheme.typography.captionSmall.copy(
+                    color = dateColorForSegment?.invoke(segment) ?: MaterialTheme.colorScheme.textSecondary
+                ),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )

@@ -111,9 +111,9 @@ fun BeneficiaryNotesSection(
     globalNote: String,
     forcePerBeneficiaryNotes: Boolean = false,
     itemSpacing: Dp = 8.dp,
+    changedEmailKeys: Set<String> = emptySet(),
+    globalNoteChanged: Boolean = false,
     textColor: @Composable (isChanged: Boolean) -> Color = { MaterialTheme.colorScheme.controlFillPrimary },
-    oldNote: String? = null,
-    oldBeneficiaries: List<InheritancePlanBeneficiary>? = null,
 ) {
     val expandedNotes = remember { mutableStateMapOf<String, Boolean>() }
 
@@ -121,10 +121,7 @@ fun BeneficiaryNotesSection(
         if (beneficiaries.isNotEmpty() && (forcePerBeneficiaryNotes || beneficiaries.any { it.note.isNotBlank() })) {
             beneficiaries.forEach { beneficiary ->
                 val isExpanded = expandedNotes[beneficiary.email] ?: false
-                val oldBeneficiaryNote =
-                    oldBeneficiaries?.find { it.email == beneficiary.email }?.note
-                val noteChanged =
-                    oldBeneficiaryNote != null && oldBeneficiaryNote != beneficiary.note
+                val noteChanged = changedEmailKeys.contains(beneficiary.email.toEmailKey())
 
                 Box(
                     modifier = Modifier
@@ -188,7 +185,7 @@ fun BeneficiaryNotesSection(
         } else {
             NoteDisplayBox(
                 note = globalNote,
-                textColor = textColor(oldNote != null && oldNote != globalNote),
+                textColor = textColor(globalNoteChanged),
             )
         }
     }

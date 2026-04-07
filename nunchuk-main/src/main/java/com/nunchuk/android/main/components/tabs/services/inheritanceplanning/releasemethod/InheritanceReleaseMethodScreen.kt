@@ -22,6 +22,7 @@ package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.re
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -43,6 +44,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
+import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcRadioButton
 import com.nunchuk.android.compose.NcTopAppBar
@@ -68,12 +70,16 @@ internal enum class InheritanceReleaseMethod(
 internal fun InheritanceReleaseMethodScreen(
     remainTime: Int,
     selectedMethod: InheritanceReleaseMethod = InheritanceReleaseMethod.SHARED_SCHEDULE,
+    isUpdateRequest: Boolean = false,
     onBackClicked: () -> Unit = {},
     onContinueClicked: (InheritanceReleaseMethod) -> Unit = {},
 ) {
     var selectedMethodState by rememberSaveable(selectedMethod) { mutableStateOf(selectedMethod) }
+    val hasSelectionChanged = selectedMethodState != selectedMethod
     InheritanceReleaseMethodContent(
         remainTime = remainTime,
+        isUpdateRequest = isUpdateRequest,
+        showContinueButton = !isUpdateRequest || hasSelectionChanged,
         selectedMethod = selectedMethodState,
         onBackClicked = onBackClicked,
         onMethodClick = { selectedMethodState = it },
@@ -84,6 +90,8 @@ internal fun InheritanceReleaseMethodScreen(
 @Composable
 private fun InheritanceReleaseMethodContent(
     remainTime: Int = 0,
+    isUpdateRequest: Boolean = false,
+    showContinueButton: Boolean = true,
     selectedMethod: InheritanceReleaseMethod = InheritanceReleaseMethod.SHARED_SCHEDULE,
     onBackClicked: () -> Unit = {},
     onMethodClick: (InheritanceReleaseMethod) -> Unit = {},
@@ -97,18 +105,36 @@ private fun InheritanceReleaseMethodContent(
                         id = R.string.nc_estimate_remain_time,
                         remainTime
                     ),
+                    isBack = !isUpdateRequest,
                     onBackPress = onBackClicked
                 )
             },
             bottomBar = {
-                NcPrimaryDarkButton(
-                    modifier = Modifier
-                        .navigationBarsPadding()
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    onClick = onContinueClicked,
+                Column(
+                    modifier = Modifier.navigationBarsPadding()
                 ) {
-                    Text(text = stringResource(id = R.string.nc_text_continue))
+                    if (showContinueButton) {
+                        NcPrimaryDarkButton(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 16.dp),
+                            onClick = onContinueClicked,
+                        ) {
+                            Text(text = stringResource(id = R.string.nc_text_continue))
+                        }
+                    }
+                    if (isUpdateRequest) {
+                        NcOutlineButton(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp)
+                                .padding(bottom = 16.dp)
+                                .height(48.dp),
+                            onClick = onBackClicked,
+                        ) {
+                            Text(text = stringResource(id = R.string.nc_cancel))
+                        }
+                    }
                 }
             }
         ) { innerPadding ->

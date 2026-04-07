@@ -60,7 +60,9 @@ fun NavGraphBuilder.inheritanceReviewPlan(
         val lifecycleOwner = LocalLifecycleOwner.current
         val releaseScheduleUiState =
             activityViewModel.setupOrReviewParam.sharedScheduleConfig?.releaseScheduleUiState
-                ?: com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasescheduledetail.ReleaseScheduleUiState()
+                ?: com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasescheduledetail.ReleaseScheduleUiState(
+                    stages = emptyList()
+                )
 
         DisposableEffect(activity, viewModel) {
             activity.setBottomSheetOptionListener { option ->
@@ -94,7 +96,10 @@ fun NavGraphBuilder.inheritanceReviewPlan(
         }
 
         LaunchedEffect(Unit) {
-            viewModel.init(activityViewModel.setupOrReviewParam)
+            viewModel.init(
+                param = activityViewModel.setupOrReviewParam,
+                initialParam = activityViewModel.state.value.initialSetupOrReviewParam,
+            )
         }
 
         LaunchedEffect(viewModel, lifecycleOwner) {

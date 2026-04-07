@@ -1,4 +1,4 @@
-package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.assetallocation
+package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.changetimezone
 
 import androidx.activity.compose.LocalActivity
 import androidx.compose.runtime.getValue
@@ -8,36 +8,38 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceBeneficiaryAllocation
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningActivity
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.MembershipStepEffect
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class InheritanceAssetAllocationRoute(val isUpdateRequest: Boolean = false)
+data class InheritanceChangeTimezoneRoute(
+    val isUpdateRequest: Boolean = false,
+)
 
-fun NavGraphBuilder.inheritanceAssetAllocation(
+internal fun NavGraphBuilder.inheritanceChangeTimezone(
     onBackClicked: () -> Unit,
-    onContinueClicked: (List<InheritanceBeneficiaryAllocation>, Boolean) -> Unit,
+    onSaveClicked: (isUpdateRequest: Boolean, selectedZoneId: String) -> Unit,
 ) {
-    composable<InheritanceAssetAllocationRoute> { backStackEntry ->
+    composable<InheritanceChangeTimezoneRoute> { backStackEntry ->
+        val route = backStackEntry.toRoute<InheritanceChangeTimezoneRoute>()
         val activity = LocalActivity.current as InheritancePlanningActivity
         val activityViewModel: InheritancePlanningViewModel =
             hiltViewModel(viewModelStoreOwner = activity)
         MembershipStepEffect(activity.membershipStepManager)
-        val route = backStackEntry.toRoute<InheritanceAssetAllocationRoute>()
         val remainTime by activity.membershipStepManager.remainingTime.collectAsStateWithLifecycle()
-        val setupOrReviewParam = activityViewModel.setupOrReviewParam
-        InheritanceAssetAllocationScreen(
+        InheritanceChangeTimezoneScreen(
             remainTime = remainTime,
-            initialBeneficiaries = setupOrReviewParam.beneficiaryAllocations,
+            selectedZoneId = activityViewModel.setupOrReviewParam.selectedZoneId,
+            isUpdateRequest = route.isUpdateRequest,
             onBackClicked = onBackClicked,
-            onContinueClicked = { onContinueClicked(it, route.isUpdateRequest) },
+            onSaveClicked = { onSaveClicked(route.isUpdateRequest, it) },
         )
     }
 }
 
-fun NavController.navigateToInheritanceAssetAllocation(isUpdateRequest: Boolean = false) {
-    navigate(InheritanceAssetAllocationRoute(isUpdateRequest = isUpdateRequest))
+fun NavController.navigateToInheritanceChangeTimezone(isUpdateRequest: Boolean = false) {
+    navigate(InheritanceChangeTimezoneRoute(isUpdateRequest = isUpdateRequest))
 }
+

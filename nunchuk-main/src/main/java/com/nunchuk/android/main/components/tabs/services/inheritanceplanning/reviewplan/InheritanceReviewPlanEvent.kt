@@ -43,6 +43,7 @@ data class InheritanceReviewPlanState(
     val walletId: String? = null,
     val walletName: String? = null,
     val isDataChanged: Boolean = false,
+    val changeHighlights: InheritanceReviewPlanChangeHighlights = InheritanceReviewPlanChangeHighlights(),
     val requiredSignature: CalculateRequiredSignatures = CalculateRequiredSignatures(),
     val dummyTransactionId: String = "",
     val currentUserRole: String = AssistedWalletRole.NONE.name,

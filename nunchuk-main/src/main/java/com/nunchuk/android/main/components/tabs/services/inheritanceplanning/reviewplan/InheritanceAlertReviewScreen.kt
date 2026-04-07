@@ -407,6 +407,22 @@ private fun androidx.compose.foundation.lazy.LazyListScope.newFlowItems(
 
     // Note to Beneficiary
     item(key = "note_to_beneficiary") {
+        val oldNotesByEmail = oldData
+            ?.beneficiaries
+            ?.associateBy(
+                keySelector = { it.email.trim().lowercase() },
+                valueTransform = { it.note.orEmpty() },
+            )
+            .orEmpty()
+        val changedNoteEmailKeys = newData.beneficiaries
+            .asSequence()
+            .mapNotNull { beneficiary ->
+                val emailKey = beneficiary.email.trim().lowercase()
+                val oldNote = oldNotesByEmail[emailKey].orEmpty()
+                if (beneficiary.note.orEmpty() != oldNote) emailKey else null
+            }
+            .toSet()
+
         ReviewPlanSectionHeader(
             modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 24.dp),
             title = stringResource(id = R.string.nc_note_to_beneficiary_trustee),
@@ -417,8 +433,8 @@ private fun androidx.compose.foundation.lazy.LazyListScope.newFlowItems(
             beneficiaries = newData.beneficiaries,
             globalNote = newData.note,
             textColor = onTextColor,
-            oldNote = oldData?.note,
-            oldBeneficiaries = oldData?.beneficiaries,
+            changedEmailKeys = changedNoteEmailKeys,
+            globalNoteChanged = newData.note.orEmpty() != oldData?.note.orEmpty(),
         )
     }
 

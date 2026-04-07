@@ -119,9 +119,13 @@ fun InheritanceReviewPlanScreen(
     val isContinueButtonEnabled by viewModel.isContinueButtonEnabled.collectAsStateWithLifecycle()
     val sharedUiState by inheritanceViewModel.state.collectAsStateWithLifecycle()
     val setupOrReviewParam = sharedUiState.setupOrReviewParam
+    val initialSetupOrReviewParam = sharedUiState.initialSetupOrReviewParam
 
-    LaunchedEffect(setupOrReviewParam) {
-        viewModel.update(setupOrReviewParam)
+    LaunchedEffect(setupOrReviewParam, initialSetupOrReviewParam) {
+        viewModel.update(
+            param = setupOrReviewParam,
+            initialParam = initialSetupOrReviewParam,
+        )
     }
 
     InheritanceReviewPlanScreenContent(
@@ -202,6 +206,9 @@ fun InheritanceReviewPlanScreenContent(
     } else {
         magicalPhrase.ifBlank { stringResource(id = R.string.nc_no_listed) }
     }
+    val changeHighlightColor = Color(0xFFCF4018)
+    val shouldHighlightChangedSection = planFlow == InheritancePlanFlow.VIEW
+    val highlights = state.changeHighlights
 
     NunchukTheme {
         Scaffold(
@@ -447,7 +454,19 @@ fun InheritanceReviewPlanScreenContent(
                                 setupOrReviewParam.sharedScheduleConfig?.bufferPeriod,
                                 setupOrReviewParam.sharedScheduleConfig?.bufferPeriodApplyType,
                             ),
+                            bufferSummaryColor = if (shouldHighlightChangedSection &&
+                                highlights.sharedScheduleChanges.bufferPeriodChanged
+                            ) {
+                                changeHighlightColor
+                            } else {
+                                MaterialTheme.colorScheme.textPrimary
+                            },
                             timeZoneText = getTimezoneDisplay(setupOrReviewParam.selectedZoneId),
+                            timeZoneColor = if (shouldHighlightChangedSection && highlights.timezoneChanged) {
+                                changeHighlightColor
+                            } else {
+                                MaterialTheme.colorScheme.textPrimary
+                            },
                             onEditReleaseScheduleClick = {
                                 onEditBufferPeriodClick(setupOrReviewParam.bufferPeriod)
                             },
@@ -478,6 +497,12 @@ fun InheritanceReviewPlanScreenContent(
                             ),
                             timezoneText = getTimezoneDisplay(setupOrReviewParam.selectedZoneId),
                             fallbackSummaryText = fallbackSettingsSummaryText(setupOrReviewParam.fallbackSettings),
+                            changeHighlights = if (shouldHighlightChangedSection) {
+                                highlights
+                            } else {
+                                InheritanceReviewPlanChangeHighlights()
+                            },
+                            changedTextColor = changeHighlightColor,
                             onEditAssetAllocationClick = onEditAssetAllocationClick,
                             onEditReleaseMethodClick = onEditReleaseMethodClick,
                             onEditBeneficiarySchedulesClick = onEditBeneficiarySchedulesClick,
@@ -521,9 +546,29 @@ fun InheritanceReviewPlanScreenContent(
                                 globalNote = setupOrReviewParam.note,
                                 forcePerBeneficiaryNotes = true,
                                 itemSpacing = 12.dp,
+                                changedEmailKeys = if (shouldHighlightChangedSection) {
+                                    highlights.noteChangedEmails
+                                } else {
+                                    emptySet()
+                                },
+                                globalNoteChanged = shouldHighlightChangedSection && highlights.globalNoteChanged,
+                                textColor = { isChanged ->
+                                    if (shouldHighlightChangedSection && isChanged) {
+                                        changeHighlightColor
+                                    } else {
+                                        MaterialTheme.colorScheme.textPrimary
+                                    }
+                                }
                             )
                         } else {
-                            NoteDisplayBox(note = setupOrReviewParam.note)
+                            NoteDisplayBox(
+                                note = setupOrReviewParam.note,
+                                textColor = if (shouldHighlightChangedSection && highlights.globalNoteChanged) {
+                                    changeHighlightColor
+                                } else {
+                                    MaterialTheme.colorScheme.textPrimary
+                                },
+                            )
                         }
                     }
                 }
@@ -589,6 +634,21 @@ fun InheritanceReviewPlanScreenContent(
                         userEmail = userEmail,
                         emails = setupOrReviewParam.emails,
                         isNotifyToday = setupOrReviewParam.isNotify,
+                        textColor = if (shouldHighlightChangedSection && highlights.notificationPreferencesChanged) {
+                            changeHighlightColor
+                        } else {
+                            MaterialTheme.colorScheme.textPrimary
+                        },
+                        emailTextColor = if (shouldHighlightChangedSection && highlights.notificationPreferencesChanged) {
+                            changeHighlightColor
+                        } else {
+                            MaterialTheme.colorScheme.textPrimary
+                        },
+                        notifyTextColor = if (shouldHighlightChangedSection && highlights.notificationPreferencesChanged) {
+                            changeHighlightColor
+                        } else {
+                            MaterialTheme.colorScheme.textPrimary
+                        },
                     )
                 }
 
@@ -606,7 +666,9 @@ private fun SingleBeneficiaryReleaseScheduleSection(
     isEditable: Boolean,
     releaseScheduleUiState: ReleaseScheduleUiState,
     bufferSummaryText: String,
+    bufferSummaryColor: Color,
     timeZoneText: String,
+    timeZoneColor: Color,
     onEditReleaseScheduleClick: () -> Unit,
     onEditTimeZoneClick: () -> Unit,
 ) {
@@ -644,7 +706,8 @@ private fun SingleBeneficiaryReleaseScheduleSection(
                 Text(
                     modifier = Modifier.padding(top = 12.dp),
                     text = bufferSummaryText,
-                    style = NunchukTheme.typography.titleSmall
+                    style = NunchukTheme.typography.titleSmall,
+                    color = bufferSummaryColor
                 )
                 ReleaseScheduleSummaryProgress(
                     modifier = Modifier.padding(top = 12.dp),
@@ -685,7 +748,8 @@ private fun SingleBeneficiaryReleaseScheduleSection(
                 Text(
                     modifier = Modifier.padding(top = 12.dp),
                     text = timeZoneText,
-                    style = NunchukTheme.typography.body
+                    style = NunchukTheme.typography.body,
+                    color = timeZoneColor
                 )
             }
         }
@@ -756,12 +820,17 @@ private fun MultiBeneficiaryReviewSection(
     sharedBufferPeriodSummaryText: String?,
     timezoneText: String,
     fallbackSummaryText: String?,
+    changeHighlights: InheritanceReviewPlanChangeHighlights,
+    changedTextColor: Color,
     onEditAssetAllocationClick: () -> Unit,
     onEditReleaseMethodClick: () -> Unit,
     onEditBeneficiarySchedulesClick: () -> Unit,
     onEditTimeZoneClick: () -> Unit,
     onEditFallbackSettingsClick: () -> Unit,
 ) {
+    val defaultPrimaryTextColor = MaterialTheme.colorScheme.textPrimary
+    val defaultSecondaryTextColor = MaterialTheme.colorScheme.textSecondary
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -780,7 +849,21 @@ private fun MultiBeneficiaryReviewSection(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 10.dp),
-                    beneficiaries = beneficiaries
+                    beneficiaries = beneficiaries,
+                    labelPrimaryColorForBeneficiary = { beneficiary ->
+                        if (changeHighlights.isAssetAllocationChangedForEmail(beneficiary.email)) {
+                            changedTextColor
+                        } else {
+                            defaultPrimaryTextColor
+                        }
+                    },
+                    labelSecondaryColorForBeneficiary = { beneficiary ->
+                        if (changeHighlights.isAssetAllocationChangedForEmail(beneficiary.email)) {
+                            changedTextColor
+                        } else {
+                            defaultSecondaryTextColor
+                        }
+                    },
                 )
             }
             HorizontalDivider(
@@ -803,7 +886,12 @@ private fun MultiBeneficiaryReviewSection(
                         R.string.nc_release_method_individual_schedules
                     }
                 ),
-                style = NunchukTheme.typography.body
+                style = NunchukTheme.typography.body,
+                color = if (changeHighlights.releaseMethodChanged) {
+                    changedTextColor
+                } else {
+                    defaultPrimaryTextColor
+                }
             )
         }
 
@@ -818,12 +906,16 @@ private fun MultiBeneficiaryReviewSection(
                     modifier = Modifier.padding(top = 12.dp),
                     uiState = sharedReleaseScheduleUiState,
                     bufferPeriodSummaryText = sharedBufferPeriodSummaryText,
+                    scheduleHighlights = changeHighlights.sharedScheduleChanges,
+                    changedTextColor = changedTextColor,
                 )
             } else {
                 IndividualScheduleReviewSummary(
                     modifier = Modifier.padding(top = 12.dp),
                     beneficiaries = beneficiaries,
                     individualScheduleCardDataByEmail = individualScheduleCardDataByEmail,
+                    scheduleHighlightsByEmail = changeHighlights.individualScheduleChangesByEmail,
+                    changedTextColor = changedTextColor,
                 )
             }
         }
@@ -837,7 +929,12 @@ private fun MultiBeneficiaryReviewSection(
             Text(
                 modifier = Modifier.padding(top = 12.dp),
                 text = timezoneText,
-                style = NunchukTheme.typography.body
+                style = NunchukTheme.typography.body,
+                color = if (changeHighlights.timezoneChanged) {
+                    changedTextColor
+                } else {
+                    defaultPrimaryTextColor
+                }
             )
         }
 
@@ -850,7 +947,12 @@ private fun MultiBeneficiaryReviewSection(
             Text(
                 modifier = Modifier.padding(top = 12.dp),
                 text = fallbackSummaryText ?: stringResource(id = R.string.nc_fallback_summary_no_fallback),
-                style = NunchukTheme.typography.body
+                style = NunchukTheme.typography.body,
+                color = if (changeHighlights.fallbackSettingsChanged) {
+                    changedTextColor
+                } else {
+                    defaultPrimaryTextColor
+                }
             )
         }
     }
@@ -879,8 +981,12 @@ private fun SharedScheduleReviewSummary(
     modifier: Modifier = Modifier,
     uiState: ReleaseScheduleUiState,
     bufferPeriodSummaryText: String?,
+    scheduleHighlights: ScheduleChangeHighlights,
+    changedTextColor: Color,
 ) {
     val firstStage = uiState.stages.firstOrNull()
+    val defaultPrimaryTextColor = MaterialTheme.colorScheme.textPrimary
+    val defaultSecondaryTextColor = MaterialTheme.colorScheme.textSecondary
     Column(modifier = modifier.fillMaxWidth()) {
         if (firstStage != null) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -895,7 +1001,12 @@ private fun SharedScheduleReviewSummary(
                         id = R.string.nc_release_schedule_first_withdrawal,
                         firstStage.firstWithdrawalDate.display()
                     ),
-                    style = NunchukTheme.typography.body
+                    style = NunchukTheme.typography.body,
+                    color = if (scheduleHighlights.firstWithdrawalChanged) {
+                        changedTextColor
+                    } else {
+                        defaultPrimaryTextColor
+                    }
                 )
             }
             if (!bufferPeriodSummaryText.isNullOrBlank()) {
@@ -911,7 +1022,12 @@ private fun SharedScheduleReviewSummary(
                     Text(
                         modifier = Modifier.padding(start = 8.dp),
                         text = bufferPeriodSummaryText,
-                        style = NunchukTheme.typography.body
+                        style = NunchukTheme.typography.body,
+                        color = if (scheduleHighlights.bufferPeriodChanged) {
+                            changedTextColor
+                        } else {
+                            defaultPrimaryTextColor
+                        }
                     )
                 }
             }
@@ -921,6 +1037,20 @@ private fun SharedScheduleReviewSummary(
                 summaryScalePercent = uiState.summaryScalePercent,
                 remainingSummaryPercent = uiState.remainingSummaryPercent,
                 surfaceColor = MaterialTheme.colorScheme.greyLight,
+                labelColorForSegment = { segment ->
+                    if (scheduleHighlights.changedStageLabelNumbers.contains(segment.stageNumber)) {
+                        changedTextColor
+                    } else {
+                        defaultPrimaryTextColor
+                    }
+                },
+                dateColorForSegment = { segment ->
+                    if (scheduleHighlights.changedStageDateNumbers.contains(segment.stageNumber)) {
+                        changedTextColor
+                    } else {
+                        defaultSecondaryTextColor
+                    }
+                },
             )
         } else {
             Text(
@@ -936,20 +1066,26 @@ private fun IndividualScheduleReviewSummary(
     modifier: Modifier = Modifier,
     beneficiaries: List<InheritanceBeneficiaryAllocation>,
     individualScheduleCardDataByEmail: Map<String, InheritanceBeneficiaryScheduleCardData>,
+    scheduleHighlightsByEmail: Map<String, ScheduleChangeHighlights>,
+    changedTextColor: Color,
 ) {
+    val defaultPrimaryTextColor = MaterialTheme.colorScheme.textPrimary
+    val defaultSecondaryTextColor = MaterialTheme.colorScheme.textSecondary
+
     Column(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(18.dp)
     ) {
         beneficiaries.forEach { beneficiary ->
-            val beneficiaryKey = beneficiary.email.trim().lowercase()
+            val beneficiaryKey = beneficiary.email.toEmailKey()
             val scheduleCardData = individualScheduleCardDataByEmail[beneficiary.email]
                 ?: individualScheduleCardDataByEmail[beneficiaryKey]
             val firstStage = scheduleCardData?.releaseScheduleUiState?.stages?.firstOrNull()
+            val scheduleHighlights = scheduleHighlightsByEmail[beneficiaryKey] ?: ScheduleChangeHighlights()
             Column(modifier = Modifier.fillMaxWidth()) {
                 Text(
                     text = beneficiary.email,
-                    style = NunchukTheme.typography.title
+                    style = NunchukTheme.typography.title,
                 )
                 Row(
                     modifier = Modifier.padding(top = 8.dp),
@@ -972,9 +1108,11 @@ private fun IndividualScheduleReviewSummary(
                         },
                         style = NunchukTheme.typography.body.copy(
                             color = if (firstStage == null) {
-                                MaterialTheme.colorScheme.textSecondary
+                                defaultSecondaryTextColor
+                            } else if (scheduleHighlights.firstWithdrawalChanged) {
+                                changedTextColor
                             } else {
-                                MaterialTheme.colorScheme.textPrimary
+                                defaultPrimaryTextColor
                             }
                         )
                     )
@@ -993,7 +1131,12 @@ private fun IndividualScheduleReviewSummary(
                         Text(
                             modifier = Modifier.padding(start = 8.dp),
                             text = scheduleCardData?.bufferPeriodSummaryText.orEmpty(),
-                            style = NunchukTheme.typography.body
+                            style = NunchukTheme.typography.body,
+                            color = if (scheduleHighlights.bufferPeriodChanged) {
+                                changedTextColor
+                            } else {
+                                defaultPrimaryTextColor
+                            }
                         )
                     }
                 }
@@ -1005,6 +1148,20 @@ private fun IndividualScheduleReviewSummary(
                         summaryScalePercent = scheduleCardData.releaseScheduleUiState.summaryScalePercent,
                         remainingSummaryPercent = scheduleCardData.releaseScheduleUiState.remainingSummaryPercent,
                         surfaceColor = MaterialTheme.colorScheme.greyLight,
+                        labelColorForSegment = { segment ->
+                            if (scheduleHighlights.changedStageLabelNumbers.contains(segment.stageNumber)) {
+                                changedTextColor
+                            } else {
+                                defaultPrimaryTextColor
+                            }
+                        },
+                        dateColorForSegment = { segment ->
+                            if (scheduleHighlights.changedStageDateNumbers.contains(segment.stageNumber)) {
+                                changedTextColor
+                            } else {
+                                defaultSecondaryTextColor
+                            }
+                        },
                     )
                 }
             }

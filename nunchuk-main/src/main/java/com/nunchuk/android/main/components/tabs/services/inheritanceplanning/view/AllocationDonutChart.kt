@@ -47,6 +47,10 @@ private val chartColors by lazy {
 fun AllocationDonutChart(
     modifier: Modifier = Modifier,
     beneficiaries: List<InheritanceBeneficiaryAllocation>,
+    labelPrimaryColor: Color = MaterialTheme.colorScheme.textPrimary,
+    labelSecondaryColor: Color = MaterialTheme.colorScheme.textSecondary,
+    labelPrimaryColorForBeneficiary: ((InheritanceBeneficiaryAllocation) -> Color)? = null,
+    labelSecondaryColorForBeneficiary: ((InheritanceBeneficiaryAllocation) -> Color)? = null,
 ) {
     Row(
         modifier = modifier,
@@ -88,6 +92,10 @@ fun AllocationDonutChart(
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 beneficiaries.forEachIndexed { index, beneficiary ->
+                    val effectivePrimaryColor = labelPrimaryColorForBeneficiary?.invoke(beneficiary)
+                        ?: labelPrimaryColor
+                    val effectiveSecondaryColor = labelSecondaryColorForBeneficiary?.invoke(beneficiary)
+                        ?: labelSecondaryColor
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Box(
                             modifier = Modifier
@@ -100,8 +108,6 @@ fun AllocationDonutChart(
                         val label = beneficiary.email.ifEmpty {
                             stringResource(R.string.nc_beneficiary_n, index + 1)
                         }
-                        val secondaryColor = MaterialTheme.colorScheme.textSecondary
-                        val primaryColor = MaterialTheme.colorScheme.textPrimary
                         NcSpannedText(
                             modifier = Modifier.padding(start = 8.dp),
                             text = stringResource(
@@ -113,9 +119,9 @@ fun AllocationDonutChart(
                             maxLines = 1,
                             overflow = TextOverflow.MiddleEllipsis,
                             styles = mapOf(
-                                SpanIndicator('A') to SpanStyle(color = secondaryColor),
+                                SpanIndicator('A') to SpanStyle(color = effectiveSecondaryColor),
                                 SpanIndicator('B') to SpanStyle(
-                                    color = primaryColor,
+                                    color = effectivePrimaryColor,
                                     fontWeight = FontWeight.Bold,
                                 ),
                             ),

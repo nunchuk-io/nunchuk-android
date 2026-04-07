@@ -54,6 +54,8 @@
     <string name="nc_release_method_shared_schedule_desc">Apply the same release schedule to all Beneficiaries. Simple and easy to manage.</string>
     <string name="nc_release_method_individual_schedules">Individual schedules</string>
     <string name="nc_release_method_individual_schedules_desc">Customize release schedules for each Beneficiary to suit their individual needs.</string>
+    <string name="nc_change_timezone_title">Change timezone</string>
+    <string name="nc_change_timezone_desc">Changing the time zone will update your existing schedule to follow the newly selected time zone. All previously set dates and times will automatically adjust accordingly.</string>
     <string name="nc_fallback_settings_title">Fallback settings</string>
     <string name="nc_fallback_settings_desc">Decide what happens if a beneficiary doesn\'t claim their funds within a certain period</string>
     <string name="nc_fallback_option_none_title">No fallback</string>
