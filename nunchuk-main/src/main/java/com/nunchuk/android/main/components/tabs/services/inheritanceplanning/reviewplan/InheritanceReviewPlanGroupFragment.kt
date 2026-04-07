@@ -68,7 +68,6 @@ import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.Inh
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.DummyTransactionType
-import com.nunchuk.android.model.byzantine.isMasterOrAdmin
 import com.nunchuk.android.model.inheritance.InheritanceNotificationSettings
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.result.GlobalResultKey
@@ -263,7 +262,7 @@ fun InheritanceReviewPlanGroupScreenContent(
                             )
                         )
                     }
-                    if (uiState.dummyTransactionId.isNotEmpty() && uiState.myRole.isMasterOrAdmin) {
+                    if (uiState.dummyTransactionId.isNotEmpty()) {
                         TextButton(
                             modifier = Modifier
                                 .padding(bottom = 16.dp, start = 16.dp, end = 16.dp)
