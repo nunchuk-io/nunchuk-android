@@ -15,10 +15,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -34,6 +37,8 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcSpannedText
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.dialog.NcConfirmationDialog
+import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.SpanIndicator
 import com.nunchuk.android.compose.controlFillPrimary
 import com.nunchuk.android.compose.greyLight
@@ -61,6 +66,7 @@ fun InheritanceAlertReviewScreen(
     viewModel: InheritanceAlertReviewViewModel = viewModel(),
     sharedViewModel: InheritancePlanningViewModel = viewModel(),
     groupId: String,
+    onCancelChangeClicked: () -> Unit = {},
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val sharedUiState by sharedViewModel.state.collectAsStateWithLifecycle()
@@ -69,6 +75,7 @@ fun InheritanceAlertReviewScreen(
         sharedUiState = sharedUiState,
         uiState = state,
         onContinueClicked = viewModel::onContinueClick,
+        onCancelChangeClicked = onCancelChangeClicked,
     )
 }
 
@@ -79,6 +86,7 @@ fun InheritanceAlertReviewScreenContent(
     uiState: InheritanceAlertReviewState = InheritanceAlertReviewState(),
     sharedUiState: InheritancePlanningState,
     onContinueClicked: () -> Unit = {},
+    onCancelChangeClicked: () -> Unit = {},
 ) {
     val newData = uiState.payload.newData
     val oldData = uiState.payload.oldData
@@ -164,6 +172,8 @@ fun InheritanceAlertReviewScreenContent(
 
     val isNewFlow = newData?.beneficiaryMode != null
 
+    var showCancelDialog by remember { mutableStateOf(false) }
+
     NunchukTheme {
         Scaffold(
             modifier = Modifier.navigationBarsPadding(),
@@ -171,18 +181,34 @@ fun InheritanceAlertReviewScreenContent(
                 NcTopAppBar(title = "")
             },
             bottomBar = {
-                NcPrimaryDarkButton(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp), onContinueClicked
-                ) {
-                    Text(
-                        text = pluralStringResource(
-                            id = R.plurals.nc_text_continue_signature_pending,
-                            count = uiState.pendingSignatures,
-                            uiState.pendingSignatures
+                Column {
+                    NcPrimaryDarkButton(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp), onContinueClicked
+                    ) {
+                        Text(
+                            text = pluralStringResource(
+                                id = R.plurals.nc_text_continue_signature_pending,
+                                count = uiState.pendingSignatures,
+                                uiState.pendingSignatures
+                            )
                         )
-                    )
+                    }
+                    if (uiState.dummyTransactionId.isNotEmpty()) {
+                        TextButton(
+                            modifier = Modifier
+                                .padding(bottom = 16.dp, start = 16.dp, end = 16.dp)
+                                .fillMaxWidth(),
+                            onClick = { showCancelDialog = true }
+                        ) {
+                            Text(
+                                text = stringResource(id = R.string.nc_cancel_change),
+                                color = MaterialTheme.colorScheme.textPrimary,
+                                style = NunchukTheme.typography.title
+                            )
+                        }
+                    }
                 }
             }
         ) { innerPadding ->
@@ -238,6 +264,18 @@ fun InheritanceAlertReviewScreenContent(
                     )
                 }
             }
+        }
+
+        if (showCancelDialog) {
+            NcConfirmationDialog(
+                title = stringResource(id = com.nunchuk.android.core.R.string.nc_confirmation),
+                message = stringResource(id = com.nunchuk.android.core.R.string.nc_are_you_sure_cancel_the_change),
+                onPositiveClick = {
+                    showCancelDialog = false
+                    onCancelChangeClicked()
+                },
+                onDismiss = { showCancelDialog = false }
+            )
         }
     }
 }

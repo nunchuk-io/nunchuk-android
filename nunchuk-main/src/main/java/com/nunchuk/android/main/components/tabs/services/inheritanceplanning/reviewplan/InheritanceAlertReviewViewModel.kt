@@ -174,7 +174,7 @@ class InheritanceAlertReviewViewModel @Inject constructor(
 
     fun cancelChange() {
         viewModelScope.launch {
-            _event.emit(InheritanceReviewPlanGroupEvent.Loading(true))
+            _event.emit(InheritanceAlertReviewEvent.Loading(true))
             deleteGroupDummyTransactionUseCase(
                 DeleteGroupDummyTransactionUseCase.Param(
                     groupId = param.groupId,
@@ -182,11 +182,11 @@ class InheritanceAlertReviewViewModel @Inject constructor(
                     transactionId = state.value.dummyTransactionId
                 )
             ).onSuccess {
-                _event.emit(InheritanceReviewPlanGroupEvent.CancelChangeSuccess)
+                _event.emit(InheritanceAlertReviewEvent.CancelChangeSuccess)
             }.onFailure {
-                _event.emit(InheritanceReviewPlanGroupEvent.ProcessFailure(it.message.orUnknownError()))
+                _event.emit(InheritanceAlertReviewEvent.ProcessFailure(it.message.orUnknownError()))
             }
-            _event.emit(InheritanceReviewPlanGroupEvent.Loading(false))
+            _event.emit(InheritanceAlertReviewEvent.Loading(false))
         }
     }
 
@@ -205,7 +205,7 @@ sealed class InheritanceAlertReviewEvent {
     data class ProcessFailure(val message: String) : InheritanceAlertReviewEvent()
     data object CreateOrUpdateInheritanceSuccess : InheritanceAlertReviewEvent()
     data object CancelInheritanceSuccess : InheritanceAlertReviewEvent()
-    data object CancelChangeSuccess : InheritanceReviewPlanGroupEvent()
+    data object CancelChangeSuccess : InheritanceAlertReviewEvent()
 }
 
 data class InheritanceAlertReviewState(

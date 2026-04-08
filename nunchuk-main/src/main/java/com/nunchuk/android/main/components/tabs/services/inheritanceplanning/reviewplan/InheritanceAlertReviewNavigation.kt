@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Intent
 import androidx.activity.compose.LocalActivity
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -28,7 +29,8 @@ fun NavGraphBuilder.inheritanceReviewPlanGroup() {
             hiltViewModel(viewModelStoreOwner = activity)
         MembershipStepEffect(activity.membershipStepManager)
         val viewModel = hiltViewModel<InheritanceAlertReviewViewModel>()
-        val groupId = activityViewModel.state.value.groupId
+        val activityUiState by activityViewModel.state.collectAsStateWithLifecycle()
+        val groupId = activityUiState.groupId
         val lifecycleOwner = LocalLifecycleOwner.current
 
         LaunchedEffect(Unit) {
@@ -51,6 +53,9 @@ fun NavGraphBuilder.inheritanceReviewPlanGroup() {
                         }
                         is InheritanceAlertReviewEvent.Loading -> activity.showOrHideLoading(event.loading)
                         is InheritanceAlertReviewEvent.ProcessFailure -> NCToastMessage(activity).showError(event.message)
+                        InheritanceAlertReviewEvent.CancelChangeSuccess -> {
+                            activity.finish()
+                        }
                         InheritanceAlertReviewEvent.CancelInheritanceSuccess -> Unit
                         InheritanceAlertReviewEvent.CreateOrUpdateInheritanceSuccess -> Unit
                     }
@@ -61,6 +66,7 @@ fun NavGraphBuilder.inheritanceReviewPlanGroup() {
             viewModel = viewModel,
             sharedViewModel = activityViewModel,
             groupId = groupId,
+            onCancelChangeClicked = viewModel::cancelChange,
         )
     }
 }
