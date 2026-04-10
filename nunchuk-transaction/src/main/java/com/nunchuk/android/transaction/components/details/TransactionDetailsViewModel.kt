@@ -452,7 +452,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
                         && it.transaction.signers.count { entry -> entry.value } > 0
                         && it.transaction.txId.isNotEmpty()
                         && !it.transaction.isReceive
-            }.map { it.transaction.signers.count { entry -> entry.value } }
+            }.map { it.transaction.signers.count { entry -> entry.value } to it.transaction.status }
                 .distinctUntilChanged()
                 .collect {
                     getGroupTransactionState()
