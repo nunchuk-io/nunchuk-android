@@ -37,11 +37,11 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcSpannedText
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
-import com.nunchuk.android.compose.dialog.NcConfirmationDialog
-import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.SpanIndicator
 import com.nunchuk.android.compose.controlFillPrimary
+import com.nunchuk.android.compose.dialog.NcConfirmationDialog
 import com.nunchuk.android.compose.greyLight
+import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.core.data.model.byzantine.InheritanceDataExtended
 import com.nunchuk.android.core.data.model.byzantine.InheritancePayload
 import com.nunchuk.android.core.util.orDefault
@@ -140,7 +140,7 @@ fun InheritanceAlertReviewScreenContent(
                     requester?.name ?: "Someone",
                     uiState.walletName
                 )
-            } else if (!uiState.isMiniscriptWallet) {
+            } else if (!uiState.isMiniscriptWallet && oldData?.activationTimeMilis != newData?.activationTimeMilis) {
                 stringResource(
                     id = R.string.nc_activation_date_inheritance_plan_normal_assisted,
                     uiState.walletName,

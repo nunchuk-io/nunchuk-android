@@ -26,7 +26,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -59,7 +58,6 @@ import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
-import com.nunchuk.android.core.R as CoreR
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.getCurrencyAmount
 import com.nunchuk.android.main.R
@@ -71,6 +69,7 @@ import com.nunchuk.android.model.SignatureFlowType
 import com.nunchuk.android.model.byzantine.DummyTransactionType
 import com.nunchuk.android.share.result.GlobalResultKey
 import dagger.hilt.android.AndroidEntryPoint
+import com.nunchuk.android.core.R as CoreR
 
 @AndroidEntryPoint
 class DummyTransactionIntroFragment : Fragment() {
@@ -211,14 +210,17 @@ fun DummyTransactionIntroContent(
         }
     }
     NunchukTheme {
-        Scaffold { innerPadding ->
+        Scaffold(
+            topBar = {
+                NcTopAppBar(title = "")
+            }
+        ) { innerPadding ->
             Column(
                 modifier = Modifier
                     .padding(innerPadding)
                     .fillMaxHeight()
                     .verticalScroll(rememberScrollState())
             ) {
-                NcTopAppBar(title = "")
                 Text(
                     modifier = Modifier.padding(top = 0.dp, start = 16.dp, end = 16.dp),
                     text = title,

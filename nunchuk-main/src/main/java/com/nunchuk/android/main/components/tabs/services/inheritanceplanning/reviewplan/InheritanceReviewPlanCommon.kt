@@ -28,6 +28,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.controlFillPrimary
 import com.nunchuk.android.compose.greyLight
@@ -155,7 +156,7 @@ fun BeneficiaryNotesSection(
                                     textDecoration = TextDecoration.Underline
                                 ),
                             )
-                            Icon(
+                            NcIcon(
                                 modifier = Modifier
                                     .padding(start = 4.dp)
                                     .size(16.dp)
@@ -167,7 +168,6 @@ fun BeneficiaryNotesSection(
                                     else WidgetR.drawable.ic_expand
                                 ),
                                 contentDescription = null,
-                                tint = Color.Unspecified,
                             )
                         }
                         Text(
