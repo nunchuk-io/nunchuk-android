@@ -659,6 +659,7 @@ fun InheritancePlanningGraph(
         inheritanceBufferPeriod(
             onContinueClick = { draftId, isUpdateRequest, fromBeneficiarySchedules, beneficiaryEmail, returnToReviewPlan, period ->
                 val activeBeneficiaryEmail = beneficiaryScheduleKey(beneficiaryEmail)
+                val isDraftScheduleFlow = draftId.isNotBlank()
                 if (draftId.isNotBlank()) {
                     releaseScheduleFlowViewModel.setBufferPeriodSelection(
                         draftId = draftId,
@@ -676,7 +677,11 @@ fun InheritancePlanningGraph(
                         )
                     )
                 }
-                if (isUpdateRequest || activityViewModel.setupOrReviewParam.planFlow == InheritancePlanFlow.VIEW) {
+                if (isUpdateRequest || (
+                        activityViewModel.setupOrReviewParam.planFlow == InheritancePlanFlow.VIEW &&
+                            !isDraftScheduleFlow
+                        )
+                ) {
                     navController.popBackStack()
                 } else if (fromBeneficiarySchedules) {
                     if (period == null) {
