@@ -791,12 +791,14 @@ private fun MultiBeneficiaryMagicPhrasesPlanItem(
             beneficiaryAllocations.forEachIndexed { index, allocation ->
                 Text(
                     text = allocation.email,
-                    style = NunchukTheme.typography.title
+                    style = NunchukTheme.typography.title,
+                    color = colorResource(id = R.color.nc_grey_g7),
                 )
                 Text(
                     modifier = Modifier.padding(top = 2.dp),
                     text = allocation.magic.ifBlank { stringResource(id = R.string.nc_no_listed) },
-                    style = NunchukTheme.typography.body
+                    style = NunchukTheme.typography.body,
+                    color = colorResource(id = R.color.nc_grey_g7),
                 )
                 if (index != beneficiaryAllocations.lastIndex) {
                     HorizontalDivider(
