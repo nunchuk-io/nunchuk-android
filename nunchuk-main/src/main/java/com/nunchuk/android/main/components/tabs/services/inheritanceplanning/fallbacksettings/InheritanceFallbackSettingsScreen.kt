@@ -74,6 +74,7 @@ import com.nunchuk.android.compose.NcToastType
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.fillInputText
+import com.nunchuk.android.compose.lightGray
 import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.textSecondary
@@ -471,7 +472,7 @@ private fun InactivityFallbackConfig(
                     .then(if (triggerFieldWidth > 0.dp) Modifier.width(triggerFieldWidth) else Modifier),
                 onDismissRequest = onDismissUnitMenu,
                 shape = RoundedCornerShape(20.dp),
-                containerColor = MaterialTheme.colorScheme.fillInputText,
+                containerColor = MaterialTheme.colorScheme.lightGray,
                 tonalElevation = 0.dp,
                 shadowElevation = 12.dp,
             ) {

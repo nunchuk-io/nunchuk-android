@@ -535,7 +535,7 @@ private fun RepeatEveryField(
                 .then(if (fieldWidthDp > 0.dp) Modifier.width(fieldWidthDp) else Modifier),
             onDismissRequest = { showUnitMenu = false },
             shape = RoundedCornerShape(20.dp),
-            containerColor = MaterialTheme.colorScheme.fillInputText,
+            containerColor = MaterialTheme.colorScheme.lightGray,
             tonalElevation = 0.dp,
             shadowElevation = 12.dp
         ) {
