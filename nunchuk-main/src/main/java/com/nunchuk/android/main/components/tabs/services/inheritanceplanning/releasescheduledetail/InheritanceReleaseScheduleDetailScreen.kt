@@ -291,7 +291,7 @@ private fun BufferPeriodSummaryCard(
             modifier = Modifier.size(16.dp),
             painter = painterResource(id = WidgetR.drawable.ic_buffer_period),
             contentDescription = null,
-            tint = Color.Unspecified
+            tint = MaterialTheme.colorScheme.textPrimary
         )
         Text(
             modifier = Modifier
