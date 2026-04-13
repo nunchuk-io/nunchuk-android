@@ -186,7 +186,7 @@ class ReviewWalletActivity : BaseComposeActivity() {
             quickWalletParam = args.quickWalletParam
         ) {
             navigator.returnToMainScreen(this)
-            if (args.quickWalletParam == null || args.decoyPin.isEmpty()) {
+            if (args.quickWalletParam == null && args.decoyPin.isEmpty()) {
                 navigator.openWalletDetailsScreen(this, event.wallet.id)
             } else {
                 navigator.openBackupWalletScreen(
