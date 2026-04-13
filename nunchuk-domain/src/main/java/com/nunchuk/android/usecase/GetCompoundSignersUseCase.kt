@@ -37,8 +37,13 @@ internal class GetCompoundSignersUseCaseImpl @Inject constructor(
     private val getRemoteSignersUseCase: GetRemoteSignersUseCase
 ) : GetCompoundSignersUseCase {
 
-    override fun execute() = getMasterSignersUseCase.execute().zip(getRemoteSignersUseCase.execute()) { masters, remotes ->
-        masters.filter { it.isVisible } to remotes.filter { it.type != SignerType.SERVER && it.isVisible }
-    }.flowOn(Dispatchers.IO)
+    override fun execute() = getMasterSignersUseCase.execute()
+        .zip(getRemoteSignersUseCase.execute()) { masters, remotes ->
+            masters.filter { it.isVisible } to remotes.filter {
+                it.type != SignerType.SERVER
+                        && it.type != SignerType.PLATFORM
+                        && it.isVisible
+            }
+        }.flowOn(Dispatchers.IO)
 
 }
