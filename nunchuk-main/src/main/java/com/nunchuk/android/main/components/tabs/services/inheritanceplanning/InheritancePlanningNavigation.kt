@@ -70,6 +70,7 @@ import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.rel
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releaseschedule.inheritanceReleaseSchedule
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releaseschedule.navigateToInheritanceReleaseSchedule
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasescheduledetail.InheritanceReleaseScheduleDetailRoute
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasescheduledetail.ReleaseScheduleDate
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasescheduledetail.ReleaseScheduleUiState
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasescheduledetail.inheritanceReleaseScheduleDetail
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasescheduledetail.navigateToInheritanceReleaseScheduleDetail
@@ -96,6 +97,7 @@ import com.nunchuk.android.model.inheritance.InheritanceNotificationSettings
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.widget.NCWarningDialog
+import java.util.Calendar
 
 fun getInheritancePlanningStartRoute(
     @InheritancePlanFlow.InheritancePlanFlowInfo planFlow: Int,
@@ -195,6 +197,9 @@ fun InheritancePlanningGraph(
 
         inheritanceFallbackSettings(
             initialValueProvider = { activityViewModel.setupOrReviewParam.fallbackSettings },
+            finalScheduledPayoutTimeMillisProvider = {
+                activityViewModel.setupOrReviewParam.finalScheduledPayoutTimeMillis()
+            },
             onBackClicked = { navController.popBackStack() },
             onContinueClicked = { value ->
                 activityViewModel.setOrUpdate(
@@ -1021,6 +1026,35 @@ internal fun defaultBeneficiaryAllocations(): List<InheritanceBeneficiaryAllocat
 }
 
 private fun beneficiaryScheduleKey(email: String): String = email.trim().lowercase()
+
+private fun InheritancePlanningParam.SetupOrReview.finalScheduledPayoutTimeMillis(): Long? {
+    val scheduleStates = when (releaseMethodType) {
+        InheritanceReleaseMethodType.SHARED_SCHEDULE -> {
+            listOfNotNull(sharedScheduleConfig?.releaseScheduleUiState)
+        }
+
+        InheritanceReleaseMethodType.INDIVIDUAL_SCHEDULES -> {
+            individualScheduleConfigs.values.map { it.releaseScheduleUiState }
+        }
+    }
+
+    return scheduleStates
+        .flatMap { uiState -> uiState.stages }
+        .map { stage -> stage.finalWithdrawalDate().toStartOfDayEpochMillis() }
+        .maxOrNull()
+}
+
+private fun ReleaseScheduleDate.toStartOfDayEpochMillis(): Long {
+    return Calendar.getInstance().apply {
+        set(Calendar.YEAR, year)
+        set(Calendar.MONTH, month - 1)
+        set(Calendar.DAY_OF_MONTH, day)
+        set(Calendar.HOUR_OF_DAY, 0)
+        set(Calendar.MINUTE, 0)
+        set(Calendar.SECOND, 0)
+        set(Calendar.MILLISECOND, 0)
+    }.timeInMillis
+}
 
 @Composable
 internal fun releaseScheduleBufferPeriodSummaryText(

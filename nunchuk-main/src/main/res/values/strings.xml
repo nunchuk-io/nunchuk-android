@@ -67,6 +67,7 @@
     <string name="nc_fallback_trigger">Trigger</string>
     <string name="nc_fallback_after_last_payout">after last payout</string>
     <string name="nc_fallback_date">Date</string>
+    <string name="nc_fallback_date_later_error">Fallback date must be later than the final scheduled payout.</string>
     <string name="nc_fallback_settings_title_with_colon">Fallback settings:</string>
     <string name="nc_fallback_summary_no_fallback">No automatic fallback redistribution is configured.</string>
     <string name="nc_fallback_summary_inactivity">If a beneficiary has not withdrawn within %1$d %2$s after final payout, their unclaimed share is redistributed to the other beneficiaries.</string>

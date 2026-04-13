@@ -15,6 +15,7 @@ data object InheritanceFallbackSettingsRoute
 
 internal fun NavGraphBuilder.inheritanceFallbackSettings(
     initialValueProvider: () -> InheritanceFallbackSettingsValue?,
+    finalScheduledPayoutTimeMillisProvider: () -> Long?,
     onBackClicked: () -> Unit,
     onContinueClicked: (InheritanceFallbackSettingsValue) -> Unit,
 ) {
@@ -24,6 +25,7 @@ internal fun NavGraphBuilder.inheritanceFallbackSettings(
         val remainTime by activity.membershipStepManager.remainingTime.collectAsStateWithLifecycle()
         InheritanceFallbackSettingsScreen(
             remainTime = remainTime,
+            finalScheduledPayoutTimeMillis = finalScheduledPayoutTimeMillisProvider(),
             initialValue = initialValueProvider() ?: InheritanceFallbackSettingsValue(
                 selectedOption = InheritanceFallbackOption.INACTIVITY_FALLBACK,
                 triggerValue = "5",

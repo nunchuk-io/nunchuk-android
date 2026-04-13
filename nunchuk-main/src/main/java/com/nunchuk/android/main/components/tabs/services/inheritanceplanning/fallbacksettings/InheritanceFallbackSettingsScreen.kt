@@ -45,11 +45,13 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -61,10 +63,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.nunchuk.android.compose.NcDatePickerDialog
+import com.nunchuk.android.compose.NcSnackBarHost
+import com.nunchuk.android.compose.NcSnackbarVisuals
 import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcRadioButton
 import com.nunchuk.android.compose.NcTag
+import com.nunchuk.android.compose.NcToastType
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.fillInputText
@@ -73,6 +79,11 @@ import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.main.R
 import com.nunchuk.android.widget.R as WidgetR
+import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 
 enum class InheritanceFallbackOption(
     @StringRes val titleRes: Int,
@@ -106,9 +117,16 @@ data class InheritanceFallbackSettingsValue(
     val fallbackDate: String,
 )
 
+private enum class FallbackSettingsValidationError {
+    DATE_MUST_BE_AFTER_FINAL_PAYOUT,
+}
+
+private const val FALLBACK_DATE_PATTERN = "MM/dd/yyyy"
+
 @Composable
 internal fun InheritanceFallbackSettingsScreen(
     remainTime: Int,
+    finalScheduledPayoutTimeMillis: Long? = null,
     initialValue: InheritanceFallbackSettingsValue = InheritanceFallbackSettingsValue(
         selectedOption = InheritanceFallbackOption.INACTIVITY_FALLBACK,
         triggerValue = "5",
@@ -123,6 +141,15 @@ internal fun InheritanceFallbackSettingsScreen(
     var triggerUnit by rememberSaveable { mutableStateOf(initialValue.triggerUnit) }
     var fallbackDate by rememberSaveable { mutableStateOf(initialValue.fallbackDate) }
     var showTriggerUnitMenu by rememberSaveable { mutableStateOf(false) }
+    var showDatePicker by rememberSaveable { mutableStateOf(false) }
+    var validationError by rememberSaveable {
+        mutableStateOf<FallbackSettingsValidationError?>(null)
+    }
+    val snackState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
+    val dateLaterErrorMessage = stringResource(id = R.string.nc_fallback_date_later_error)
+    val showDateValidationError =
+        validationError == FallbackSettingsValidationError.DATE_MUST_BE_AFTER_FINAL_PAYOUT
 
     InheritanceFallbackSettingsContent(
         remainTime = remainTime,
@@ -130,14 +157,18 @@ internal fun InheritanceFallbackSettingsScreen(
         triggerValue = triggerValue,
         triggerUnit = triggerUnit,
         fallbackDate = fallbackDate,
+        showDateValidationError = showDateValidationError,
         showTriggerUnitMenu = showTriggerUnitMenu,
+        continueEnabled = !showDateValidationError,
         onBackClicked = onBackClicked,
         onOptionClick = {
             selectedOption = it
             showTriggerUnitMenu = false
+            validationError = null
         },
         onTriggerValueChange = { value ->
             triggerValue = value.filter(Char::isDigit).take(3)
+            validationError = null
         },
         onTriggerFieldClick = {
             showTriggerUnitMenu = !showTriggerUnitMenu
@@ -145,10 +176,32 @@ internal fun InheritanceFallbackSettingsScreen(
         onTriggerUnitSelected = { unit ->
             triggerUnit = unit
             showTriggerUnitMenu = false
+            validationError = null
         },
         onDismissTriggerMenu = { showTriggerUnitMenu = false },
-        onDateClick = {},
+        onDateClick = { showDatePicker = true },
         onContinueClicked = {
+            val nextValidationError = validateFallbackSettings(
+                selectedOption = selectedOption,
+                fallbackDate = fallbackDate,
+                finalScheduledPayoutTimeMillis = finalScheduledPayoutTimeMillis,
+            )
+            if (nextValidationError != null) {
+                validationError = nextValidationError
+                coroutineScope.launch {
+                    snackState.showSnackbar(
+                        NcSnackbarVisuals(
+                            message = when (nextValidationError) {
+                                FallbackSettingsValidationError.DATE_MUST_BE_AFTER_FINAL_PAYOUT ->
+                                    dateLaterErrorMessage
+                            },
+                            type = NcToastType.ERROR,
+                        )
+                    )
+                }
+                return@InheritanceFallbackSettingsContent
+            }
+            validationError = null
             onContinueClicked(
                 InheritanceFallbackSettingsValue(
                     selectedOption = selectedOption,
@@ -158,7 +211,21 @@ internal fun InheritanceFallbackSettingsScreen(
                 )
             )
         },
+        snackState = snackState,
     )
+
+    if (showDatePicker) {
+        NcDatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            defaultDate = fallbackDate.toDateMillis(),
+            onConfirm = { selectedMillis ->
+                fallbackDate = selectedMillis.toDateString()
+                validationError = null
+                showDatePicker = false
+            },
+            convertLocalToUtc = true,
+        )
+    }
 }
 
 @Composable
@@ -168,7 +235,9 @@ private fun InheritanceFallbackSettingsContent(
     triggerValue: String = "5",
     triggerUnit: FallbackTriggerUnit = FallbackTriggerUnit.YEAR,
     fallbackDate: String = "05/29/2050",
+    showDateValidationError: Boolean = false,
     showTriggerUnitMenu: Boolean = false,
+    continueEnabled: Boolean = true,
     onBackClicked: () -> Unit = {},
     onOptionClick: (InheritanceFallbackOption) -> Unit = {},
     onTriggerValueChange: (String) -> Unit = {},
@@ -177,6 +246,7 @@ private fun InheritanceFallbackSettingsContent(
     onDismissTriggerMenu: () -> Unit = {},
     onDateClick: () -> Unit = {},
     onContinueClicked: () -> Unit = {},
+    snackState: SnackbarHostState = remember { SnackbarHostState() },
 ) {
     NunchukTheme {
         Scaffold(
@@ -186,15 +256,23 @@ private fun InheritanceFallbackSettingsContent(
                     onBackPress = onBackClicked,
                 )
             },
+            snackbarHost = {
+                NcSnackBarHost(state = snackState)
+            },
             bottomBar = {
-                NcPrimaryDarkButton(
+                Column(
                     modifier = Modifier
                         .navigationBarsPadding()
                         .fillMaxWidth()
-                        .padding(16.dp),
-                    onClick = onContinueClicked,
+                        .padding(horizontal = 16.dp, vertical = 16.dp)
                 ) {
-                    Text(text = stringResource(id = R.string.nc_text_continue))
+                    NcPrimaryDarkButton(
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = continueEnabled,
+                        onClick = onContinueClicked,
+                    ) {
+                        Text(text = stringResource(id = R.string.nc_text_continue))
+                    }
                 }
             },
         ) { innerPadding ->
@@ -258,6 +336,7 @@ private fun InheritanceFallbackSettingsContent(
                     ) {
                         DateBasedFallbackConfig(
                             date = fallbackDate,
+                            hasError = showDateValidationError,
                             onDateClick = onDateClick,
                         )
                     }
@@ -422,6 +501,7 @@ private fun InactivityFallbackConfig(
 @Composable
 private fun DateBasedFallbackConfig(
     date: String,
+    hasError: Boolean,
     onDateClick: () -> Unit,
 ) {
     NcTextField(
@@ -430,6 +510,7 @@ private fun DateBasedFallbackConfig(
             .padding(top = 16.dp),
         title = stringResource(id = R.string.nc_fallback_date),
         value = date,
+        hasError = hasError,
         readOnly = true,
         enabled = false,
         disableBackgroundColor = MaterialTheme.colorScheme.fillInputText,
@@ -446,6 +527,50 @@ private fun DateBasedFallbackConfig(
         },
         onValueChange = {},
     )
+}
+
+private fun validateFallbackSettings(
+    selectedOption: InheritanceFallbackOption,
+    fallbackDate: String,
+    finalScheduledPayoutTimeMillis: Long?,
+): FallbackSettingsValidationError? {
+    if (selectedOption != InheritanceFallbackOption.DATE_BASED_FALLBACK) return null
+    if (finalScheduledPayoutTimeMillis == null) return null
+
+    val selectedDateMillis = fallbackDate.toDateMillisOrNull()
+    return if (selectedDateMillis != null && selectedDateMillis > finalScheduledPayoutTimeMillis) {
+        null
+    } else {
+        FallbackSettingsValidationError.DATE_MUST_BE_AFTER_FINAL_PAYOUT
+    }
+}
+
+private fun String.toDateMillisOrNull(): Long? {
+    val formatter = SimpleDateFormat(FALLBACK_DATE_PATTERN, Locale.US).apply {
+        isLenient = false
+    }
+    val parsedDate = runCatching { formatter.parse(this) }.getOrNull() ?: return null
+    return Calendar.getInstance().apply {
+        time = parsedDate
+        set(Calendar.HOUR_OF_DAY, 0)
+        set(Calendar.MINUTE, 0)
+        set(Calendar.SECOND, 0)
+        set(Calendar.MILLISECOND, 0)
+    }.timeInMillis
+}
+
+private fun String.toDateMillis(): Long {
+    return toDateMillisOrNull() ?: Calendar.getInstance().apply {
+        set(Calendar.HOUR_OF_DAY, 0)
+        set(Calendar.MINUTE, 0)
+        set(Calendar.SECOND, 0)
+        set(Calendar.MILLISECOND, 0)
+    }.timeInMillis
+}
+
+private fun Long.toDateString(): String {
+    val formatter = SimpleDateFormat(FALLBACK_DATE_PATTERN, Locale.US)
+    return formatter.format(Date(this))
 }
 
 @PreviewLightDark
