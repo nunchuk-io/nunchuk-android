@@ -35,7 +35,13 @@
       "Bash(javap -p -cp classes.jar com.nunchuk.android.model.GroupPlatformKeyPolicy)",
       "Bash(javap -p -cp classes.jar com.nunchuk.android.model.GroupPlatformKeySignerPolicy)",
       "Bash(javap -p -cp classes.jar com.nunchuk.android.model.GroupSpendingLimit)",
-      "Bash(./gradlew :nunchuk-main:compileDebugKotlin :nunchuk-core:compileDebugKotlin :nunchuk-domain:compileDebugKotlin)"
+      "Bash(./gradlew :nunchuk-main:compileDebugKotlin :nunchuk-core:compileDebugKotlin :nunchuk-domain:compileDebugKotlin)",
+      "WebFetch(domain:gitlab.com)",
+      "Bash(rtk find:*)",
+      "Bash(rtk ls:*)",
+      "Bash(./gradlew :nunchuk-network:compileDebugKotlin :nunchuk-core:compileDebugKotlin)",
+      "Bash(rtk git:*)",
+      "Bash(./gradlew :nunchuk-network:compileDebugKotlin :nunchuk-core:compileDebugKotlin :nunchuk-auth:compileDebugKotlin)"
     ]
   }
 }

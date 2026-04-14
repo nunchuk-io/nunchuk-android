@@ -12,5 +12,10 @@
             android:label="Turn on nfc"
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Light" />
+
+        <activity
+            android:name="com.nunchuk.android.core.verification.VerificationActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar" />
     </application>
 </manifest>

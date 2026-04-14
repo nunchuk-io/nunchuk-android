@@ -30,6 +30,7 @@ import com.nunchuk.android.core.network.ApiConstant.HTTP_READ_TIMEOUT
 import com.nunchuk.android.core.network.ApiConstant.HTTP_WRITE_TIMEOUT
 import com.nunchuk.android.core.network.BuildConfig
 import com.nunchuk.android.core.network.HeaderInterceptor
+import com.nunchuk.android.core.network.VerificationInterceptor
 import com.nunchuk.android.network.util.*
 import dagger.Module
 import dagger.Provides
@@ -108,6 +109,7 @@ class NetworkModule @Inject constructor() {
     fun provideNunchukOkHttpClient(
         loggingInterceptor: HttpLoggingInterceptor,
         headerInterceptor: HeaderInterceptor,
+        verificationInterceptor: VerificationInterceptor,
         connectionSpecs: List<ConnectionSpec>
     ): OkHttpClient = OkHttpClient.Builder()
         .connectTimeout(HTTP_CONNECT_TIMEOUT, TimeUnit.SECONDS)
@@ -115,10 +117,10 @@ class NetworkModule @Inject constructor() {
         .writeTimeout(HTTP_WRITE_TIMEOUT, TimeUnit.SECONDS)
         .protocols(listOf(Protocol.HTTP_1_1))
         .addInterceptor(headerInterceptor)
+        .addInterceptor(verificationInterceptor)
         .addInterceptor(loggingInterceptor)
         .connectionSpecs(connectionSpecs)
         .build()
-
 
     @Singleton
     @Provides

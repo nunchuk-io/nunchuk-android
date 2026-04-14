@@ -27,9 +27,11 @@ import androidx.appcompat.app.AppCompatActivity
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.network.UnauthorizedEventBus
 import com.nunchuk.android.core.network.UnauthorizedException
+import com.nunchuk.android.core.network.VerificationEventBus
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.verification.VerificationActivity
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.widget.NCLoadingDialogCreator
@@ -94,6 +96,9 @@ abstract class BaseComposeActivity : AppCompatActivity(), LoadingDialog {
                 newWalletId = it.newWalletId,
                 newWalletName = it.newWalletName
             )
+        }
+        flowObserver(VerificationEventBus.instance().verificationRequired) {
+            VerificationActivity.start(this)
         }
     }
 
