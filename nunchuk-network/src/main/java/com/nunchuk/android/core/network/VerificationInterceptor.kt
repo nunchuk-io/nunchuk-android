@@ -52,7 +52,7 @@ class VerificationInterceptor @Inject constructor() : Interceptor {
 
     companion object {
         private const val HEADER_VERIFICATION_TOKEN = "X-Verification-Token"
-        private const val PEEK_BODY_LIMIT = 1024L * 1024L
+        private const val PEEK_BODY_LIMIT = 10_240L
         private const val VERIFICATION_TIMEOUT_MS = 120_000L
         private val VERIFIABLE_PATHS = listOf(
             "/passport/username-availability",

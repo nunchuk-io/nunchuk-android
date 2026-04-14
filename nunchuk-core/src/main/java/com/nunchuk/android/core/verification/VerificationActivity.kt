@@ -85,10 +85,10 @@ class VerificationActivity : AppCompatActivity() {
             runOnUiThread {
                 try {
                     val message = JSONObject(json)
-                    if (message.optString("event") == "token") {
+                    val token = message.optString("payload")
+                    if (message.optString("event") == "token" && token.isNotEmpty()) {
                         tokenReceived = true
-                        VerificationEventBus.instance()
-                            .onTokenReceived(message.optString("payload"))
+                        VerificationEventBus.instance().onTokenReceived(token)
                         finish()
                     }
                 } catch (e: Exception) {
