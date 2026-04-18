@@ -24,6 +24,7 @@ import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.util.MIN_FRACTION_DIGITS
 import com.nunchuk.android.core.util.formatDecimal
+import com.nunchuk.android.core.util.formatFiatDecimal
 import com.nunchuk.android.core.util.getBTCAmountWithoutSat
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.byzantine.key.toRecurringPaymentType
@@ -126,7 +127,7 @@ fun PaymentSummaryScreen(
             maxFractionDigits = 4
         )
     } else {
-        amount.toDouble().formatDecimal(
+        amount.toDouble().formatFiatDecimal(
             minFractionDigits = 0,
             maxFractionDigits = MIN_FRACTION_DIGITS
         )

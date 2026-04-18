@@ -30,8 +30,10 @@ import com.nunchuk.android.core.domain.data.SAT
 import com.nunchuk.android.core.util.BTC_CURRENCY_EXCHANGE_RATE
 import com.nunchuk.android.core.util.getDisplayCurrency
 import com.nunchuk.android.main.R
+import com.nunchuk.android.core.util.getCurrencyLocale
 import com.nunchuk.android.utils.Utils
 import java.text.DecimalFormat
+import java.text.DecimalFormatSymbols
 
 @Composable
 fun TotalBalanceView(
@@ -101,16 +103,18 @@ fun TotalBalanceView(
 }
 
 private fun getExchangeRateText(exchangeRateUnit: Int, btcPrice: Double): String {
+    val currencyLocale = getCurrencyLocale()
+    val symbols = DecimalFormatSymbols(currencyLocale)
     return when (exchangeRateUnit) {
         SAT -> {
             val satPrice = btcPrice / 100_000_000
             val satPriceInLocalCurrency = satPrice * BTC_CURRENCY_EXCHANGE_RATE
-            val decimalFormat = DecimalFormat("#,##0.0000")
+            val decimalFormat = DecimalFormat("#,##0.0000", symbols)
             "sat ${getDisplayCurrency()}${decimalFormat.format(satPriceInLocalCurrency)}"
         }
         else -> {
             val btcPriceInLocalCurrency = btcPrice
-            val decimalFormat = DecimalFormat("#,##0.00")
+            val decimalFormat = DecimalFormat("#,##0.00", symbols)
             "1 BTC = ${getDisplayCurrency()}${decimalFormat.format(btcPriceInLocalCurrency)}"
         }
     }

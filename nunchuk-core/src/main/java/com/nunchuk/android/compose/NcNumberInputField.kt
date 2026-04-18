@@ -18,11 +18,12 @@ fun NcNumberInputField(
     title: String = "",
     allowDecimal: Boolean = true,
     suffix: String = "",
+    locale: Locale = Locale.US,
     error: String? = null,
     placeholder: @Composable (() -> Unit)? = null,
 ) {
-    val decimalCharacter = remember {
-        DecimalFormatSymbols(Locale.US).decimalSeparator
+    val decimalCharacter = remember(locale) {
+        DecimalFormatSymbols(locale).decimalSeparator
     }
     NcTextField(
         modifier = modifier,
@@ -38,7 +39,7 @@ fun NcNumberInputField(
             imeAction = ImeAction.Done
         ),
         maxLines = 1,
-        visualTransformation = NumberCommaTransformation(suffix = suffix),
+        visualTransformation = NumberCommaTransformation(suffix = suffix, locale = locale),
         placeholder = placeholder,
         error = error,
     )

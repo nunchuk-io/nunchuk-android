@@ -20,10 +20,11 @@
 package com.nunchuk.android.core.util
 
 import java.text.DecimalFormatSymbols
+import java.util.Locale
 
 object CurrencyFormatter {
-    private val decimalSeparator = DecimalFormatSymbols.getInstance().decimalSeparator
-    fun format(value: String, maxAfterDigit: Int = 10): String {
+    fun format(value: String, maxAfterDigit: Int = 10, locale: Locale = Locale.getDefault()): String {
+        val decimalSeparator = DecimalFormatSymbols(locale).decimalSeparator
         if (value.isNotEmpty() && !(value.last() == decimalSeparator || value.last().isDigit())) return value.dropLast(1)
         if (value.count { c -> c == decimalSeparator } > 1) return value.dropLast(1)
         val dotIndex = value.indexOf(decimalSeparator)

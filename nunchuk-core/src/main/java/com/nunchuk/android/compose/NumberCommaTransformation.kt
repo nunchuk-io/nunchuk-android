@@ -25,21 +25,25 @@ import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.text.input.VisualTransformation
 import com.nunchuk.android.core.util.formatDecimalWithoutZero
 import java.text.DecimalFormatSymbols
+import java.util.Locale
 
 class NumberCommaTransformation(
     suffix: String = "",
+    private val locale: Locale = Locale.US,
 ) : VisualTransformation {
     private val formatSuffix = if (suffix.isEmpty()) "" else " $suffix"
+    private val decimalSeparator = DecimalFormatSymbols(locale).decimalSeparator
+
     override fun filter(text: AnnotatedString): TransformedText {
-        val splits = text.split("${DecimalFormatSymbols.getInstance().decimalSeparator}")
+        val splits = text.split("$decimalSeparator")
         val formatValue = splits[0].toLongOrNull()
         val value = when {
             formatValue == null -> ""
-            splits.size > 1 -> "${formatValue.formatDecimalWithoutZero()}${DecimalFormatSymbols.getInstance().decimalSeparator}${
+            splits.size > 1 -> "${formatValue.formatDecimalWithoutZero(locale = locale)}$decimalSeparator${
                 splits[1]
             }$formatSuffix"
 
-            else -> "${formatValue.formatDecimalWithoutZero()}$formatSuffix"
+            else -> "${formatValue.formatDecimalWithoutZero(locale = locale)}$formatSuffix"
         }
         return TransformedText(
             text = AnnotatedString(value),

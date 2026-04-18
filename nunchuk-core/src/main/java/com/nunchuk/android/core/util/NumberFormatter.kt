@@ -29,23 +29,31 @@ const val USD_FRACTION_DIGITS = 2
 const val MIN_FRACTION_DIGITS = 2
 const val MAX_FRACTION_DIGITS = 8
 
-fun Number.formatDecimal(minFractionDigits: Int = MIN_FRACTION_DIGITS, maxFractionDigits: Int = MAX_FRACTION_DIGITS): String {
-    return DecimalFormat("#,##0.00").apply {
+fun Number.formatDecimal(
+    minFractionDigits: Int = MIN_FRACTION_DIGITS,
+    maxFractionDigits: Int = MAX_FRACTION_DIGITS,
+    locale: Locale = Locale.US,
+): String {
+    return DecimalFormat("#,##0.00", DecimalFormatSymbols(locale)).apply {
         minimumFractionDigits = minFractionDigits
         maximumFractionDigits = maxFractionDigits
-        decimalFormatSymbols = DecimalFormatSymbols(Locale.US)
     }.format(this)
 }
 
-fun Number.formatDecimalWithoutZero(maxFractionDigits: Int = MAX_FRACTION_DIGITS): String {
-    return DecimalFormat("#,###.##").apply {
+fun Number.formatDecimalWithoutZero(
+    maxFractionDigits: Int = MAX_FRACTION_DIGITS,
+    locale: Locale = Locale.US,
+): String {
+    return DecimalFormat("#,###.##", DecimalFormatSymbols(locale)).apply {
         minimumFractionDigits = 0
         maximumFractionDigits = maxFractionDigits
-        decimalFormatSymbols = DecimalFormatSymbols(Locale.US)
     }.format(this)
 }
 
-fun Number.formatCurrencyDecimal(maxFractionDigits: Int = MAX_FRACTION_DIGITS, locale: Locale = Locale.US): String {
+fun Number.formatCurrencyDecimal(
+    maxFractionDigits: Int = MAX_FRACTION_DIGITS,
+    locale: Locale = Locale.US,
+): String {
     return NumberFormat.getCurrencyInstance(locale).apply {
         minimumFractionDigits = MIN_FRACTION_DIGITS
         maximumFractionDigits = maxFractionDigits
@@ -55,3 +63,19 @@ fun Number.formatCurrencyDecimal(maxFractionDigits: Int = MAX_FRACTION_DIGITS, l
 fun Number.beautifySATFormat(locale: Locale = Locale.US): String {
     return DecimalFormat.getNumberInstance(locale).format(this)
 }
+
+fun Number.formatFiatDecimal(
+    minFractionDigits: Int = MIN_FRACTION_DIGITS,
+    maxFractionDigits: Int = USD_FRACTION_DIGITS,
+): String = formatDecimal(
+    minFractionDigits = minFractionDigits,
+    maxFractionDigits = maxFractionDigits,
+    locale = getCurrencyLocale(),
+)
+
+fun Number.formatFiatDecimalWithoutZero(
+    maxFractionDigits: Int = USD_FRACTION_DIGITS,
+): String = formatDecimalWithoutZero(
+    maxFractionDigits = maxFractionDigits,
+    locale = getCurrencyLocale(),
+)

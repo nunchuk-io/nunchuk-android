@@ -44,7 +44,7 @@ fun Double.getBtcSat() = when (CURRENT_DISPLAY_UNIT_TYPE) {
 }
 
 fun Amount.getCurrencyAmount(): String {
-    return "${getDisplayCurrency()}${fromBTCToCurrency().formatDecimal(maxFractionDigits = USD_FRACTION_DIGITS)}"
+    return "${getDisplayCurrency()}${fromBTCToCurrency().formatFiatDecimal()}"
 }
 
 fun Double.fromBTCToCurrency() = this * BTC_CURRENCY_EXCHANGE_RATE
@@ -66,7 +66,7 @@ fun Double.getBTCAmountWithoutSat() = when (CURRENT_DISPLAY_UNIT_TYPE) {
 
 
 fun Double.getCurrencyAmount() =
-    "${getDisplayCurrency()}${fromBTCToCurrency().formatDecimal(maxFractionDigits = USD_FRACTION_DIGITS)}"
+    "${getDisplayCurrency()}${fromBTCToCurrency().formatFiatDecimal()}"
 
 fun getDisplayCurrency() = if (LOCAL_CURRENCY == USD_CURRENCY) "$" else "$LOCAL_CURRENCY "
 
@@ -88,6 +88,8 @@ fun String.toNumericValue(locale: Locale = Locale.US): Number = try {
 } catch (t: Exception) {
     0.0
 }
+
+fun String.toFiatNumericValue(): Number = toNumericValue(getCurrencyLocale())
 
 fun AddressType.isTaproot() = this == AddressType.TAPROOT
 
