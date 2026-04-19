@@ -72,6 +72,7 @@ import com.nunchuk.android.transaction.components.details.fee.ReplaceFeeArgs
 import com.nunchuk.android.transaction.components.export.ExportTransactionActivity
 import com.nunchuk.android.transaction.components.invoice.InvoiceActivity
 import com.nunchuk.android.transaction.components.schedule.ScheduleBroadcastTransactionActivity
+import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.type.TransactionStatus.PENDING_CONFIRMATION
@@ -658,42 +659,58 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
     }
 
     private fun showExportTransactionOptions() {
-        BottomSheetOption.newInstance(
-            listOf(
+        val options = mutableListOf(
+            SheetOption(
+                type = SheetOptionType.TYPE_EXPORT_QR,
+                resId = R.drawable.ic_qr,
+                label = getString(R.string.nc_export_via_qr),
+            ),
+            SheetOption(
+                type = SheetOptionType.TYPE_EXPORT_BBQR,
+                resId = R.drawable.ic_qr,
+                label = getString(R.string.nc_export_via_bbqr),
+            ),
+            SheetOption(
+                type = SheetOptionType.TYPE_EXPORT_FILE,
+                resId = R.drawable.ic_export,
+                label = getString(R.string.nc_export_via_file),
+            ),
+        )
+        if (viewModel.currentSigner()?.tags?.contains(SignerTag.COLDCARD) == true) {
+            options.add(
                 SheetOption(
-                    type = SheetOptionType.TYPE_EXPORT_QR,
-                    resId = R.drawable.ic_qr,
-                    label = getString(R.string.nc_export_via_qr),
-                ),
-                SheetOption(
-                    type = SheetOptionType.TYPE_EXPORT_BBQR,
-                    resId = R.drawable.ic_qr,
-                    label = getString(R.string.nc_export_via_bbqr),
-                ),
-                SheetOption(
-                    type = SheetOptionType.TYPE_EXPORT_FILE,
-                    resId = R.drawable.ic_export,
-                    label = getString(R.string.nc_export_via_file),
-                ),
+                    type = SheetOptionType.EXPORT_TX_TO_Mk4,
+                    resId = R.drawable.ic_nfc_card,
+                    label = getString(R.string.nc_export_via_nfc),
+                )
             )
-        ).show(supportFragmentManager, "BottomSheetOption")
+        }
+        BottomSheetOption.newInstance(options).show(supportFragmentManager, "BottomSheetOption")
     }
 
     private fun showImportTransactionOptions() {
-        BottomSheetOption.newInstance(
-            listOf(
+        val options = mutableListOf(
+            SheetOption(
+                type = SheetOptionType.TYPE_IMPORT_QR,
+                resId = R.drawable.ic_qr,
+                label = getString(R.string.nc_import_via_qr),
+            ),
+            SheetOption(
+                type = SheetOptionType.TYPE_IMPORT_FILE,
+                resId = R.drawable.ic_import,
+                label = getString(R.string.nc_import_via_file),
+            ),
+        )
+        if (viewModel.currentSigner()?.tags?.contains(SignerTag.COLDCARD) == true) {
+            options.add(
                 SheetOption(
-                    type = SheetOptionType.TYPE_IMPORT_QR,
-                    resId = R.drawable.ic_qr,
-                    label = getString(R.string.nc_import_via_qr),
-                ),
-                SheetOption(
-                    type = SheetOptionType.TYPE_IMPORT_FILE,
-                    resId = R.drawable.ic_import,
-                    label = getString(R.string.nc_import_via_file),
-                ),
+                    type = SheetOptionType.IMPORT_TX_FROM_Mk4,
+                    resId = R.drawable.ic_nfc_card,
+                    label = getString(R.string.nc_import_via_nfc),
+                )
             )
-        ).show(supportFragmentManager, "BottomSheetOption")
+        }
+        BottomSheetOption.newInstance(options).show(supportFragmentManager, "BottomSheetOption")
     }
 
     private fun getInvoiceInfo(): InvoiceInfo {
