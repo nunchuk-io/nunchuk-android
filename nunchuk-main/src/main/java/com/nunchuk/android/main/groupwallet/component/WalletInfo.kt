@@ -82,10 +82,11 @@ internal fun WalletInfo(
                     ) {
                         Text(
                             modifier = Modifier.padding(end = 8.dp),
-                            text = if (walletType == WalletType.MINISCRIPT) {
-                                stringResource(R.string.nc_miniscript)
-                            } else {
-                                "$requireSigns/$totalSigns ${stringResource(R.string.nc_wallet_multisig)}"
+                            text = when {
+                                walletType == WalletType.MINISCRIPT -> stringResource(R.string.nc_miniscript)
+                                (requireSigns == 2 && totalSigns == 3) || (requireSigns == 3 && totalSigns == 5) ->
+                                    "$requireSigns/$totalSigns ${stringResource(R.string.nc_wallet_multisig)}"
+                                else -> stringResource(R.string.nc_wallet_custom_multisig)
                             },
                             style = NunchukTheme.typography.bodySmall
                                 .copy(color = colorResource(id = R.color.nc_white_color))

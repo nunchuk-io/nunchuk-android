@@ -111,6 +111,7 @@
     <string name="nc_wallet_not_configured">Not configured</string>
     <string name="nc_wallet_single_sig">Single-sig</string>
     <string name="nc_wallet_multisig">Multisig</string>
+    <string name="nc_wallet_custom_multisig">Custom multisig</string>
     <string name="nc_no_internet_connection">No Internet connection</string>
     <string name="nc_please_wait">Please wait…</string>
     <string name="nc_sweeping_is_progress">Sweeping is in progress</string>
