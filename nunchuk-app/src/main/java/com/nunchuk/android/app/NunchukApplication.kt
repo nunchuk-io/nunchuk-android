@@ -120,10 +120,11 @@ internal class NunchukApplication : MultiDexApplication(), Configuration.Provide
         }
     }
 
-    override fun getWorkManagerConfiguration() = Configuration.Builder()
-        .setWorkerFactory(matrix.get().getWorkerFactory())
-        .setExecutor(Executors.newCachedThreadPool())
-        .build()
+    override val workManagerConfiguration: Configuration
+        get() = Configuration.Builder()
+            .setWorkerFactory(matrix.get().getWorkerFactory())
+            .setExecutor(Executors.newCachedThreadPool())
+            .build()
 
     private fun getDisplayUnitSetting() {
         applicationScope.launch {

@@ -1,4 +1,5 @@
 plugins {
+    id 'com.android.application'
     id 'androidx.baselineprofile'
     id 'org.jetbrains.kotlin.plugin.compose'
     id 'org.jetbrains.kotlin.plugin.serialization'
@@ -6,9 +7,6 @@ plugins {
     id 'com.google.dagger.hilt.android'
 }
 apply from: '../configs/dependencies.gradle'
-apply plugin: 'com.android.application'
-apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-kapt'
 apply plugin: 'com.google.gms.google-services'
 apply plugin: 'com.google.firebase.crashlytics'
 apply plugin: 'com.google.firebase.appdistribution'
@@ -17,18 +15,19 @@ apply plugin: 'androidx.navigation.safeargs.kotlin'
 apply plugin: 'kotlin-parcelize'
 
 android {
-    compileSdkVersion androidConfig.compileSdkVersion
+    compileSdk = androidConfig.compileSdkVersion
 
     buildFeatures {
         viewBinding = true
         compose = true
         buildConfig = true
+        resValues = true
     }
 
     defaultConfig {
         applicationId "io.nunchuk.android"
-        minSdkVersion androidConfig.minSdkVersion
-        targetSdkVersion androidConfig.targetSdkVersion
+        minSdk = androidConfig.minSdkVersion
+        targetSdk = androidConfig.targetSdkVersion
         versionCode androidConfig.versionCode
         versionName androidConfig.versionName
         multiDexEnabled true
@@ -88,7 +87,7 @@ android {
             minifyEnabled true
             debuggable false
             multiDexKeepFile file('multidex-config.txt')
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard.conf'
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard.conf'
             signingConfig signingConfigs.release
 
             // Disable PNG crunching
@@ -107,7 +106,7 @@ android {
         }
     }
 
-    flavorDimensions "env"
+    flavorDimensions = ["env"]
     productFlavors {
         production {
             applicationId "io.nunchuk.android"
@@ -138,10 +137,6 @@ android {
         targetCompatibility JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = '17'
-    }
-
     kotlin {
         jvmToolchain(17)
     }
@@ -155,8 +150,6 @@ android {
 }
 
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinStdlibVersion"
-
     implementation project(':nunchuk-arch')
     implementation project(':nunchuk-auth')
     implementation project(':nunchuk-core')

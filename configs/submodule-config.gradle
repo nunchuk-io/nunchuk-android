@@ -1,15 +1,13 @@
 apply plugin: 'com.android.library'
-apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-kapt'
 apply plugin: 'com.google.devtools.ksp'
 apply plugin: 'kotlinx-serialization'
 
 android {
-    compileSdkVersion androidConfig.compileSdkVersion
+    compileSdk = androidConfig.compileSdkVersion
 
     defaultConfig {
-        minSdkVersion androidConfig.minSdkVersion
-        targetSdkVersion androidConfig.targetSdkVersion
+        minSdk = androidConfig.minSdkVersion
+        targetSdk = androidConfig.targetSdkVersion
         javaCompileOptions {
             annotationProcessorOptions {
                 arguments = ["library": "true"]
@@ -30,15 +28,9 @@ android {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
     }
-
-    kotlinOptions {
-        jvmTarget = '17'
-    }
 }
 
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinStdlibVersion"
-
     ksp hiltDeps.processor
     implementation hiltDeps.hilt
     implementation hiltDeps.hiltNavigation
@@ -58,6 +50,6 @@ dependencies {
     implementation imageLoaderDeps.compose
     implementation platform('androidx.compose:compose-bom:2025.11.01')
     implementation composeDeps.values()
-    kapt imageLoaderDeps.processor
+    ksp imageLoaderDeps.processor
     implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3"
 }

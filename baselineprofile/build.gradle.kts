@@ -1,27 +1,24 @@
-import com.android.build.api.dsl.ManagedVirtualDevice
-
 plugins {
     id("com.android.test")
-    id("org.jetbrains.kotlin.android")
     id("androidx.baselineprofile")
 }
 
 android {
     namespace = "com.example.baselineprofile"
-    compileSdk = 34
+    compileSdk = 36
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = "1.8"
+    kotlin {
+        jvmToolchain(17)
     }
 
     defaultConfig {
         minSdk = 28
-        targetSdk = 34
+        targetSdk = 35
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -33,31 +30,17 @@ android {
         create("production") { dimension = "env" }
         create("development") { dimension = "env" }
     }
-
-    // This code creates the gradle managed device used to generate baseline profiles.
-    // To use GMD please invoke generation through the command line:
-    // ./gradlew :nunchuk-app:generateBaselineProfile
-    testOptions.managedDevices.devices {
-        create<ManagedVirtualDevice>("pixel6Api34") {
-            device = "Pixel 6"
-            apiLevel = 34
-            systemImageSource = "google"
-        }
-    }
 }
 
-// This is the configuration block for the Baseline Profile plugin.
-// You can specify to run the generators on a managed devices or connected devices.
 baselineProfile {
-    managedDevices += "pixel6Api34"
-    useConnectedDevices = false
+    useConnectedDevices = true
 }
 
 dependencies {
     implementation("androidx.test.ext:junit:1.2.1")
     implementation("androidx.test.espresso:espresso-core:3.6.1")
     implementation("androidx.test.uiautomator:uiautomator:2.3.0")
-    implementation("androidx.benchmark:benchmark-macro-junit4:1.3.0")
+    implementation("androidx.benchmark:benchmark-macro-junit4:1.5.0-alpha05")
 }
 
 androidComponents {

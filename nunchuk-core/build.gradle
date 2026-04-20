@@ -37,7 +37,7 @@ dependencies {
     implementation androidxDeps.values()
     implementation lifecycleDeps.values()
     implementation networkDeps.values()
-    implementation pluginsDeps.kotlinAndroidRuntime
+
 
     implementation zxingDeps.values()
     implementation googleScannerDeps.values()

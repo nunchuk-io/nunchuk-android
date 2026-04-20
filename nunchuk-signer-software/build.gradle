@@ -27,7 +27,7 @@ dependencies {
     debugImplementation nunchukDeps.nativeSdk
     releaseImplementation nunchukDeps.prebuildNativeSdk
 
-    implementation pluginsDeps.kotlinAndroidRuntime
+
     implementation androidxDeps.values()
     implementation lifecycleDeps.values()
     implementation networkDeps.values()

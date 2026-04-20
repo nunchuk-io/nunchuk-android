@@ -32,7 +32,6 @@ import com.nunchuk.android.core.di.singletonEntryPoint
 import com.nunchuk.android.messages.R
 import com.nunchuk.android.messages.components.detail.NunchukMedia
 import com.nunchuk.android.messages.components.detail.model.RoomMediaSource
-import com.nunchuk.android.messages.glide.GlideApp
 import com.nunchuk.android.messages.util.LocalFilesHelper
 
 abstract class BaseMediaViewHolder(binding: ViewBinding) : ViewHolder(binding.root) {
@@ -56,7 +55,7 @@ abstract class BaseMediaViewHolder(binding: ViewBinding) : ViewHolder(binding.ro
 
         return if (data.elementToDecrypt != null) {
             // Encrypted image
-            GlideApp.with(image).load(data).placeholder(circularProgressDrawable)
+            Glide.with(image).load(data).placeholder(circularProgressDrawable)
         } else {
             // Clear image
             val resolvedUrl = resolveUrl(data.url, allowNonMxcUrls)

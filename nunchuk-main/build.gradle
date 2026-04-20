@@ -41,7 +41,7 @@ dependencies {
     debugImplementation nunchukDeps.nativeSdk
     releaseImplementation nunchukDeps.prebuildNativeSdk
     implementation matrixDeps.matrixSdk
-    implementation pluginsDeps.kotlinAndroidRuntime
+
 
     implementation navigationDeps.navigationUi
     implementation navigationDeps.navigationFragment

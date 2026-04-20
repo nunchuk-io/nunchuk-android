@@ -13,7 +13,7 @@ ext {
     androidTestVersion = '1.1.0'
 
     roomVersion = '2.8.4'
-    workMangerVersion = '2.0.0'
+    workMangerVersion = '2.10.0'
     lifecycleVersion = '2.5.0'
 
     retrofitVersion = '2.9.0'
@@ -21,12 +21,12 @@ ext {
     coroutinesVersion = '1.6.4'
 
     // Plugins versions
-    gradleVersion = '8.12.3'
+    gradleVersion = '9.1.0'
     googleServiceVersion = '4.4.2'
     kotlinStdlibVersion = kotlinVersionFromProps
     pagingVersion = "3.1.1"
 
-    hiltVersion = "2.57.1"
+    hiltVersion = "2.59.2"
 
     camerax_version = "1.4.1"
 
@@ -38,7 +38,7 @@ ext {
     matrixSdkVersion = '1.5.30'
     // https://user-images.githubusercontent.com/9841565/164481595-53564bf0-416c-469c-b251-71b0e59074c8.png
 
-    navVersion = "2.6.0"
+    navVersion = "2.9.7"
 
     MAJOR_VERSION = 2
     MINOR_VERSION = 4
@@ -60,9 +60,9 @@ ext {
     pluginsDeps = [
             gradleAndroid       : "com.android.tools.build:gradle:${gradleVersion}",
             googleServices      : "com.google.gms:google-services:${googleServiceVersion}",
-            crashlytics         : "com.google.firebase:firebase-crashlytics-gradle:3.0.1",
-            kotlinAndroidRuntime: "org.jetbrains.kotlin:kotlin-android-extensions-runtime:${kotlinStdlibVersion}",
-            appdistribution     : "com.google.firebase:firebase-appdistribution-gradle:5.0.0",
+            crashlytics         : "com.google.firebase:firebase-crashlytics-gradle:3.0.6",
+
+            appdistribution     : "com.google.firebase:firebase-appdistribution-gradle:5.2.1",
             hilt                : "com.google.dagger:hilt-android-gradle-plugin:${hiltVersion}",
             safeArgs            : "androidx.navigation:navigation-safe-args-gradle-plugin:${navVersion}",
             kotlinSerialization : "org.jetbrains.kotlin:kotlin-serialization:${kotlinStdlibVersion}"
@@ -108,8 +108,8 @@ ext {
     ]
 
     imageLoaderDeps = [
-            glide    : "com.github.bumptech.glide:glide:4.14.2",
-            processor: "com.github.bumptech.glide:compiler:4.14.2",
+            glide    : "com.github.bumptech.glide:glide:4.16.0",
+            processor: "com.github.bumptech.glide:ksp:4.16.0",
             compose  : "com.github.bumptech.glide:compose:1.0.0-beta01"
     ]
 

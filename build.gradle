@@ -1,12 +1,10 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 apply from: 'configs/dependencies.gradle'
 
 buildscript {
     apply from: 'configs/dependencies.gradle'
     repositories {
         google()
-        jcenter()
+
         mavenCentral()
         maven { url "https://maven.google.com" }
         maven { url 'https://jitpack.io' }
@@ -18,19 +16,20 @@ buildscript {
         classpath kotlinDeps.plugin
         classpath pluginsDeps.googleServices
         classpath pluginsDeps.crashlytics
-        classpath pluginsDeps.kotlinAndroidRuntime
         classpath pluginsDeps.appdistribution
         classpath pluginsDeps.hilt
         classpath pluginsDeps.safeArgs
         classpath pluginsDeps.kotlinSerialization
-        classpath "com.google.devtools.ksp:com.google.devtools.ksp.gradle.plugin:2.1.21-2.0.2"
+        classpath "org.jetbrains.kotlin:compose-compiler-gradle-plugin:$kotlinStdlibVersion"
+        classpath "com.google.devtools.ksp:symbol-processing-gradle-plugin:2.3.6"
+        classpath 'androidx.benchmark:benchmark-baseline-profile-gradle-plugin:1.5.0-alpha05'
     }
 }
 
 allprojects {
     repositories {
         google()
-        jcenter()
+
         mavenCentral()
         maven { url "https://maven.google.com" }
         maven { url 'https://jitpack.io' }
@@ -41,11 +40,4 @@ allprojects {
 
 task clean(type: Delete) {
     delete rootProject.buildDir
-}
-
-tasks.withType(KotlinCompile).configureEach {
-    compilerOptions.freeCompilerArgs.addAll(
-            "-P",
-            "plugin:androidx.compose.compiler.plugins.kotlin:experimentalStrongSkipping=true",
-    )
 }
