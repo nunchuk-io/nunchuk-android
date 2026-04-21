@@ -19,6 +19,8 @@
 
 package com.nunchuk.android.core.base
 
+import android.app.Activity
+import android.os.Build
 import android.os.Bundle
 import androidx.viewbinding.ViewBinding
 import com.nunchuk.android.core.R
@@ -32,6 +34,11 @@ abstract class BaseActivity<Binding : ViewBinding> : BaseComposeActivity(), Load
         super.onCreate(savedInstanceState)
         binding = initializeBinding()
         setContentView(binding.root)
-        overridePendingTransition(R.anim.enter, R.anim.exit)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            overrideActivityTransition(Activity.OVERRIDE_TRANSITION_OPEN, R.anim.enter, R.anim.exit)
+        } else {
+            @Suppress("DEPRECATION")
+            overridePendingTransition(R.anim.enter, R.anim.exit)
+        }
     }
 }

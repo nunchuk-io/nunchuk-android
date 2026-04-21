@@ -50,7 +50,7 @@ ext {
     androidConfig = [
             applicationId    : "com.nunchuk.android",
             compileSdkVersion: 36,
-            targetSdkVersion : 35,
+            targetSdkVersion : 36,
             minSdkVersion    : 24,
             versionName      : "${MAJOR_VERSION}.${MINOR_VERSION}.${PATCH_VERSION}",
             taskLabel        : ".${TASK_LABEL}",

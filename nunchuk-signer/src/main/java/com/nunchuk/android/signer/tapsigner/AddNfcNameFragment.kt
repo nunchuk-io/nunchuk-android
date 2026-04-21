@@ -92,7 +92,7 @@ class AddNfcNameFragment : BaseChangeTapSignerNameFragment() {
 
     private fun registerEvents() {
         keyBinding.toolbar.setNavigationOnClickListener {
-            activity?.onBackPressed()
+            activity?.onBackPressedDispatcher?.onBackPressed()
         }
         keyBinding.signerName.addTextChangedCallback {
             keyBinding.nameCounter.text = "${it.length}/$MAX_LENGTH"

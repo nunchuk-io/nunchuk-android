@@ -93,7 +93,7 @@ class AddMk4NameFragment : BaseFragment<FragmentAddNameKeyBinding>() {
 
     private fun registerEvents() {
         binding.toolbar.setNavigationOnClickListener {
-            activity?.onBackPressed()
+            activity?.onBackPressedDispatcher?.onBackPressed()
         }
         binding.signerName.addTextChangedCallback {
             binding.nameCounter.text = "${it.length}/$MAX_LENGTH"

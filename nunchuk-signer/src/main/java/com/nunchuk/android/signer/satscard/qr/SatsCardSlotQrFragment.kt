@@ -44,7 +44,7 @@ class SatsCardSlotQrFragment : BaseFragment<FragmentSatscardSlotQrBinding>() {
 
     private fun initViews() {
         val width = resources.displayMetrics.widthPixels
-        binding.toolbar.setNavigationOnClickListener { activity?.onBackPressed() }
+        binding.toolbar.setNavigationOnClickListener { activity?.onBackPressedDispatcher?.onBackPressed() }
         binding.qrCode.setImageBitmap(args.slot.address.orEmpty().convertToQRCode(width, width))
         binding.tvAddress.text = args.slot.address
         binding.tvBalanceBtc.text = args.slot.balance.getBTCAmount()

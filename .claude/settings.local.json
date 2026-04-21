@@ -40,7 +40,8 @@
       "Bash(rtk git *)",
       "Bash(./gradlew assembleArm64_v8aRelease)",
       "Bash(rtk read *)",
-      "Bash(./gradlew publish *)"
+      "Bash(./gradlew publish *)",
+      "Bash(git *)"
     ]
   }
 }

@@ -135,7 +135,12 @@ internal class SplashActivity : AppCompatActivity() {
                 navigator.openUnlockPinScreen(this, UnlockPinSourceFlow.SIGN_IN_UNKNOWN_MODE)
             }
         }
-        overridePendingTransition(0, 0)
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            overrideActivityTransition(android.app.Activity.OVERRIDE_TRANSITION_CLOSE, 0, 0)
+        } else {
+            @Suppress("DEPRECATION")
+            overridePendingTransition(0, 0)
+        }
         finish()
     }
 

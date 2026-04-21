@@ -83,7 +83,7 @@ class SelectWalletFragment : BaseFragment<FragmentSelectWalletSweepBinding>() {
 
     private fun registerEvents() {
         binding.toolbar.setNavigationOnClickListener {
-            activity?.onBackPressed()
+            activity?.onBackPressedDispatcher?.onBackPressed()
         }
 
         binding.btnContinueSweep.setOnDebounceClickListener {

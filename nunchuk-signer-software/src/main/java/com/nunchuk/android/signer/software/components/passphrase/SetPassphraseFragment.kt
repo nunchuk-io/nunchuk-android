@@ -173,7 +173,7 @@ class SetPassphraseFragment : BaseFragment<FragmentSetPassphraseBinding>() {
             binding.btnSecondary.text = getString(R.string.nc_ssigner_text_set_passphrase)
         }
         binding.toolbar.setNavigationOnClickListener {
-            activity?.onBackPressed()
+            activity?.onBackPressedDispatcher?.onBackPressed()
         }
         binding.passphrase.makeMaskedInput()
         binding.passphrase.addTextChangedCallback(viewModel::updatePassphrase)

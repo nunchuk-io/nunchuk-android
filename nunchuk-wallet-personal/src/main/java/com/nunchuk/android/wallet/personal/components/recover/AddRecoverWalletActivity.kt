@@ -61,6 +61,7 @@ class AddRecoverWalletActivity : BaseActivity<ActivityAddRecoverWalletBinding>()
         }
 
         setLightStatusBar()
+        onBackPressedDispatcher.addCallback(this, backCallback)
 
         setupViews()
         observeEvent()
@@ -161,7 +162,7 @@ class AddRecoverWalletActivity : BaseActivity<ActivityAddRecoverWalletBinding>()
         }
 
         binding.toolbar.setNavigationOnClickListener {
-            onBackPressed()
+            onBackPressedDispatcher.onBackPressed()
         }
 
         binding.btnContinue.setOnClickListener { viewModel.handleContinueEvent() }
@@ -172,13 +173,17 @@ class AddRecoverWalletActivity : BaseActivity<ActivityAddRecoverWalletBinding>()
         binding.walletNameCounter.text = counter
     }
 
-    override fun onBackPressed() {
-        if (recoverWalletData.walletId.isNullOrEmpty().not()) {
-            recoverWalletData.walletId?.let {
-                openWalletConfigScreen(it)
+    private val backCallback = object : androidx.activity.OnBackPressedCallback(true) {
+        override fun handleOnBackPressed() {
+            if (recoverWalletData.walletId.isNullOrEmpty().not()) {
+                recoverWalletData.walletId?.let {
+                    openWalletConfigScreen(it)
+                }
+            } else {
+                isEnabled = false
+                onBackPressedDispatcher.onBackPressed()
             }
         }
-        super.onBackPressed()
     }
 
     companion object {

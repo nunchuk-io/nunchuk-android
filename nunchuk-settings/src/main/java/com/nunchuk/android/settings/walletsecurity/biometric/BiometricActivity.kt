@@ -37,6 +37,7 @@ class BiometricActivity : BaseComposeActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        onBackPressedDispatcher.addCallback(this, backCallback)
 
         flowObserver(viewModel.event) {
             when (it) {
@@ -82,9 +83,10 @@ class BiometricActivity : BaseComposeActivity() {
         biometricPromptManager.showBiometricPrompt()
     }
 
-    override fun onBackPressed() {
-        return
-        super.onBackPressed()
-        // Disable back press
+    private val backCallback = object : androidx.activity.OnBackPressedCallback(true) {
+        override fun handleOnBackPressed() {
+            // Disable back press
+        }
     }
+
 }

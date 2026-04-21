@@ -47,7 +47,7 @@ class RecoverNfcKeyGuideFragment : BaseFragment<FragmentRecoverNfcKeyGuideBindin
             openDocument.launch("application/*")
         }
         binding.toolbar.setNavigationOnClickListener {
-            activity?.onBackPressed()
+            activity?.onBackPressedDispatcher?.onBackPressed()
         }
     }
 }

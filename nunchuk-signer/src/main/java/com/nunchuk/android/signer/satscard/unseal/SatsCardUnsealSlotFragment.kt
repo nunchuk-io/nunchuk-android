@@ -104,7 +104,7 @@ class SatsCardUnsealSlotFragment : BaseFragment<FragmentUnsealSlotBinding>(), Bo
 
     private fun registerEvents() {
         binding.toolbar.setNavigationOnClickListener {
-            activity?.onBackPressed()
+            activity?.onBackPressedDispatcher?.onBackPressed()
         }
         binding.recyclerView.adapter = adapter
         binding.btnSweep.setOnDebounceClickListener(coroutineScope = viewLifecycleOwner.lifecycleScope) {

@@ -131,7 +131,7 @@ class SetupChainCodeFragment : BaseFragment<FragmentSetupChainCodeBinding>() {
         binding.cardAdvanced.setOnClickListener(onRadioClickListener)
         binding.cardAutomatic.setOnClickListener(onRadioClickListener)
         binding.toolbar.setNavigationOnClickListener {
-            activity?.onBackPressed()
+            activity?.onBackPressedDispatcher?.onBackPressed()
         }
         binding.btnGenerate.setOnClickListener {
             viewModel.generateChainCode()
