@@ -29,6 +29,7 @@ import com.nunchuk.android.widget.currency.CurrencyInputWatcher
 import com.nunchuk.android.widget.currency.getLocaleFromTag
 import com.nunchuk.android.widget.currency.parseMoneyValueWithLocale
 import com.nunchuk.android.widget.util.FontInitializer
+import kotlinx.coroutines.flow.MutableStateFlow
 import java.math.BigDecimal
 import java.text.DecimalFormatSymbols
 import java.util.Locale
@@ -40,8 +41,7 @@ class NCFontCurrencyEditText : TextInputEditText {
     private var locale: Locale = Locale.US
     private var maxDP: Int = 0
 
-    val textFlow
-        get() = textWatcher.textFlow
+    val textFlow = MutableStateFlow("")
 
     constructor(context: Context, attrs: AttributeSet?) : super(context, attrs) {
         initializer.initTypeface(this, attrs)
@@ -75,18 +75,21 @@ class NCFontCurrencyEditText : TextInputEditText {
         if (useCurrencySymbolAsHint) hint = currencySymbolPrefix
         if (!localeTag.isNullOrBlank()) locale = getLocaleFromTag(localeTag!!)
         applyDigitsKeyListener()
-        textWatcher = CurrencyInputWatcher(this, currencySymbolPrefix, locale, maxDP)
+        textWatcher = CurrencyInputWatcher(this, currencySymbolPrefix, locale, maxDP, textFlow)
         addTextChangedListener(textWatcher)
     }
 
     fun setLocale(locale: Locale) {
+        if (this.locale == locale) return
         this.locale = locale
         applyDigitsKeyListener()
         invalidateTextWatcher()
     }
 
     fun setLocale(localeTag: String) {
-        locale = getLocaleFromTag(localeTag)
+        val newLocale = getLocaleFromTag(localeTag)
+        if (this.locale == newLocale) return
+        locale = newLocale
         applyDigitsKeyListener()
         invalidateTextWatcher()
     }
@@ -122,7 +125,7 @@ class NCFontCurrencyEditText : TextInputEditText {
 
     private fun invalidateTextWatcher() {
         removeTextChangedListener(textWatcher)
-        textWatcher = CurrencyInputWatcher(this, currencySymbolPrefix, locale, maxDP)
+        textWatcher = CurrencyInputWatcher(this, currencySymbolPrefix, locale, maxDP, textFlow)
         addTextChangedListener(textWatcher)
     }
 
