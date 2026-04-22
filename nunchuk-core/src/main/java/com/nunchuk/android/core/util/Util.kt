@@ -34,9 +34,7 @@ import com.nunchuk.android.utils.CrashlyticsReporter
 import java.io.File
 import java.io.InputStream
 import java.text.DecimalFormat
-import java.text.NumberFormat
 import java.text.SimpleDateFormat
-import java.util.Currency
 import java.util.Date
 import java.util.Locale
 import java.util.regex.Pattern
@@ -108,34 +106,8 @@ const val USD_CURRENCY = "USD"
 
 var LOCAL_CURRENCY = USD_CURRENCY
 
-private val currencyLocaleCache = mutableMapOf<String, Locale>()
-
-fun getCurrencyLocale(): Locale = getLocaleForCurrency(LOCAL_CURRENCY)
-
-fun getLocaleForCurrency(currencyCode: String): Locale {
-    if (currencyCode == USD_CURRENCY) return Locale.US
-    currencyLocaleCache[currencyCode]?.let { return it }
-    val locale = findLocaleForCurrency(currencyCode)
-    currencyLocaleCache[currencyCode] = locale
-    return locale
-}
-
-private fun findLocaleForCurrency(currencyCode: String): Locale {
-    val currency = try {
-        Currency.getInstance(currencyCode)
-    } catch (_: Exception) {
-        return Locale.US
-    }
-    return Locale.getAvailableLocales()
-        .filter { it.country.isNotEmpty() }
-        .firstOrNull { locale ->
-            try {
-                NumberFormat.getCurrencyInstance(locale).currency == currency
-            } catch (_: Exception) {
-                false
-            }
-        } ?: Locale.US
-}
+fun getCurrencyLocale(): Locale =
+    android.content.res.Resources.getSystem().configuration.locales[0]
 
 fun Int.densityToLevel(): Float = when (this) {
     LOW_DENSITY -> 0f
