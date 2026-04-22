@@ -29,7 +29,6 @@ import com.nunchuk.android.widget.currency.CurrencyInputWatcher
 import com.nunchuk.android.widget.currency.getLocaleFromTag
 import com.nunchuk.android.widget.currency.parseMoneyValueWithLocale
 import com.nunchuk.android.widget.util.FontInitializer
-import kotlinx.coroutines.flow.MutableStateFlow
 import java.math.BigDecimal
 import java.text.DecimalFormatSymbols
 import java.util.Locale
@@ -41,7 +40,8 @@ class NCFontCurrencyEditText : TextInputEditText {
     private var locale: Locale = Locale.US
     private var maxDP: Int = 0
 
-    val textFlow = MutableStateFlow("")
+    val textFlow
+        get() = textWatcher.textFlow
 
     constructor(context: Context, attrs: AttributeSet?) : super(context, attrs) {
         initializer.initTypeface(this, attrs)
@@ -75,21 +75,18 @@ class NCFontCurrencyEditText : TextInputEditText {
         if (useCurrencySymbolAsHint) hint = currencySymbolPrefix
         if (!localeTag.isNullOrBlank()) locale = getLocaleFromTag(localeTag!!)
         applyDigitsKeyListener()
-        textWatcher = CurrencyInputWatcher(this, currencySymbolPrefix, locale, maxDP, textFlow)
+        textWatcher = CurrencyInputWatcher(this, currencySymbolPrefix, locale, maxDP)
         addTextChangedListener(textWatcher)
     }
 
     fun setLocale(locale: Locale) {
-        if (this.locale == locale) return
         this.locale = locale
         applyDigitsKeyListener()
         invalidateTextWatcher()
     }
 
     fun setLocale(localeTag: String) {
-        val newLocale = getLocaleFromTag(localeTag)
-        if (this.locale == newLocale) return
-        locale = newLocale
+        locale = getLocaleFromTag(localeTag)
         applyDigitsKeyListener()
         invalidateTextWatcher()
     }
@@ -125,7 +122,7 @@ class NCFontCurrencyEditText : TextInputEditText {
 
     private fun invalidateTextWatcher() {
         removeTextChangedListener(textWatcher)
-        textWatcher = CurrencyInputWatcher(this, currencySymbolPrefix, locale, maxDP, textFlow)
+        textWatcher = CurrencyInputWatcher(this, currencySymbolPrefix, locale, maxDP)
         addTextChangedListener(textWatcher)
     }
 

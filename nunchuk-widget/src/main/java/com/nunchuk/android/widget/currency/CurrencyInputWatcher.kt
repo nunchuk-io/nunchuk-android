@@ -36,9 +36,9 @@ class CurrencyInputWatcher(
     private val editText: EditText,
     private val currencySymbol: String,
     locale: Locale,
-    private val maxNumberOfDecimalPlaces: Int = 8,
-    val textFlow: MutableStateFlow<String> = MutableStateFlow(""),
+    private val maxNumberOfDecimalPlaces: Int = 8
 ) : TextWatcher {
+    val textFlow = MutableStateFlow("")
 
     init {
         if (maxNumberOfDecimalPlaces < 1) {
