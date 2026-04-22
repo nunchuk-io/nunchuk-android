@@ -22,6 +22,7 @@ package com.nunchuk.android.widget
 import android.content.Context
 import android.graphics.Rect
 import android.text.InputType
+import android.text.method.DigitsKeyListener
 import android.util.AttributeSet
 import com.google.android.material.textfield.TextInputEditText
 import com.nunchuk.android.widget.currency.CurrencyInputWatcher
@@ -29,6 +30,7 @@ import com.nunchuk.android.widget.currency.getLocaleFromTag
 import com.nunchuk.android.widget.currency.parseMoneyValueWithLocale
 import com.nunchuk.android.widget.util.FontInitializer
 import java.math.BigDecimal
+import java.text.DecimalFormatSymbols
 import java.util.Locale
 
 class NCFontCurrencyEditText : TextInputEditText {
@@ -53,7 +55,6 @@ class NCFontCurrencyEditText : TextInputEditText {
 
     private fun initData(attrs: AttributeSet?) {
         var useCurrencySymbolAsHint = false
-        inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL
         var localeTag: String?
         val prefix: String
         context.theme.obtainStyledAttributes(
@@ -73,17 +74,20 @@ class NCFontCurrencyEditText : TextInputEditText {
         currencySymbolPrefix = if (prefix.isBlank()) "" else "$prefix "
         if (useCurrencySymbolAsHint) hint = currencySymbolPrefix
         if (!localeTag.isNullOrBlank()) locale = getLocaleFromTag(localeTag!!)
+        applyDigitsKeyListener()
         textWatcher = CurrencyInputWatcher(this, currencySymbolPrefix, locale, maxDP)
         addTextChangedListener(textWatcher)
     }
 
     fun setLocale(locale: Locale) {
         this.locale = locale
+        applyDigitsKeyListener()
         invalidateTextWatcher()
     }
 
     fun setLocale(localeTag: String) {
         locale = getLocaleFromTag(localeTag)
+        applyDigitsKeyListener()
         invalidateTextWatcher()
     }
 
@@ -99,11 +103,21 @@ class NCFontCurrencyEditText : TextInputEditText {
     }
 
     fun allowDecimal(isAllow: Boolean) {
-        inputType = if (isAllow) {
-            InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL
+        if (isAllow) {
+            val decimalSeparator = DecimalFormatSymbols(locale).decimalSeparator
+            val groupingSeparator = DecimalFormatSymbols(locale).groupingSeparator
+            val accepted = "0123456789$decimalSeparator$groupingSeparator"
+            keyListener = DigitsKeyListener.getInstance(accepted)
         } else {
-            InputType.TYPE_CLASS_NUMBER
+            inputType = InputType.TYPE_CLASS_NUMBER
         }
+    }
+
+    private fun applyDigitsKeyListener() {
+        val decimalSeparator = DecimalFormatSymbols(locale).decimalSeparator
+        val groupingSeparator = DecimalFormatSymbols(locale).groupingSeparator
+        val accepted = "0123456789$decimalSeparator$groupingSeparator"
+        keyListener = DigitsKeyListener.getInstance(accepted)
     }
 
     private fun invalidateTextWatcher() {

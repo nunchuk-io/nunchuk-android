@@ -72,6 +72,7 @@ import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.core.util.LOCAL_CURRENCY
 import com.nunchuk.android.core.util.USD_FRACTION_DIGITS
 import com.nunchuk.android.core.util.formatDecimalWithoutZero
+import com.nunchuk.android.core.util.formatFiatDecimalWithoutZero
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.model.CalculateRequiredSignatures
@@ -306,9 +307,13 @@ private fun CosigningPolicyContent(
                             Text(
                                 modifier = Modifier.weight(1.0f),
                                 text = "${
-                                    spendingPolicy.limit.formatDecimalWithoutZero(
-                                        maxFractionDigits = USD_FRACTION_DIGITS
-                                    )
+                                    if (spendingPolicy.currencyUnit != "BTC" && spendingPolicy.currencyUnit != "sat") {
+                                        spendingPolicy.limit.formatFiatDecimalWithoutZero()
+                                    } else {
+                                        spendingPolicy.limit.formatDecimalWithoutZero(
+                                            maxFractionDigits = USD_FRACTION_DIGITS
+                                        )
+                                    }
                                 } ${spendingPolicy.currencyUnit}/${
                                     spendingPolicy.timeUnit.name.lowercase()
                                         .capitalize(Locale.current)

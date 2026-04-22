@@ -39,7 +39,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.core.R
 import com.nunchuk.android.core.util.LOCAL_CURRENCY
+import com.nunchuk.android.core.util.getCurrencyLocale
 import com.nunchuk.android.core.util.getTextBtcUnit
+import java.util.Locale
 
 @Composable
 fun InputSwitchCurrencyView(
@@ -71,7 +73,8 @@ fun InputSwitchCurrencyView(
         value = currencyValue,
         onValueChange = onValueChange,
         visualTransformation = NumberCommaTransformation(
-            if (isBtc) LocalContext.current.getTextBtcUnit() else LOCAL_CURRENCY
+            suffix = if (isBtc) LocalContext.current.getTextBtcUnit() else LOCAL_CURRENCY,
+            locale = if (isBtc) Locale.US else getCurrencyLocale(),
         ),
         rightContent = {
             SwitchAmount(isBtc, onSwitchBtcAndCurrency = onSwitchBtcAndCurrency)

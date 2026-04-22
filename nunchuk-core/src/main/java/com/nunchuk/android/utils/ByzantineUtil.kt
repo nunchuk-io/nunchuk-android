@@ -7,6 +7,7 @@ import androidx.compose.ui.res.colorResource
 import com.nunchuk.android.core.R
 import com.nunchuk.android.core.util.MIN_FRACTION_DIGITS
 import com.nunchuk.android.core.util.formatDecimal
+import com.nunchuk.android.core.util.formatFiatDecimal
 import com.nunchuk.android.core.util.getBTCAmountWithoutSat
 import com.nunchuk.android.model.payment.RecurringPayment
 import com.nunchuk.android.model.payment.RecurringPaymentType
@@ -53,13 +54,8 @@ val RecurringPayment.formatAmount: String
         )
     } else if (currency == "BTC") {
         amount.getBTCAmountWithoutSat()
-    } else if (currency == "USD") {
-        amount.formatDecimal(
-            minFractionDigits = MIN_FRACTION_DIGITS,
-            maxFractionDigits = MIN_FRACTION_DIGITS
-        )
     } else {
-        amount.formatDecimal(
+        amount.formatFiatDecimal(
             minFractionDigits = 0,
             maxFractionDigits = MIN_FRACTION_DIGITS
         )
