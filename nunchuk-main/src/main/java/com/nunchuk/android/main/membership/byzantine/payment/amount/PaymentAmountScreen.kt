@@ -35,6 +35,7 @@ import com.nunchuk.android.compose.NcSelectableBottomSheet
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.util.CurrencyFormatter
+import com.nunchuk.android.core.util.getLocaleForCurrencyUnit
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.byzantine.payment.RecurringPaymentViewModel
 import com.nunchuk.android.main.membership.key.server.limit.toLabel
@@ -125,6 +126,7 @@ fun PaymentAmountScreen(
                 )
 
                 Row(verticalAlignment = Alignment.Bottom) {
+                    val locale = getLocaleForCurrencyUnit(unit.name)
                     NcNumberInputField(
                         modifier = Modifier
                             .padding(top = 16.dp)
@@ -141,7 +143,7 @@ fun PaymentAmountScreen(
                                 } else {
                                     2
                                 }
-                            val format = CurrencyFormatter.format(s, numberOfDigit)
+                            val format = CurrencyFormatter.format(s, numberOfDigit, locale)
                             if (useAmount) {
                                 onAmountChange(format)
                             } else {
@@ -154,6 +156,7 @@ fun PaymentAmountScreen(
                         },
                         allowDecimal = unit != SpendingCurrencyUnit.sat && useAmount || !useAmount,
                         suffix = if (useAmount) "" else "%",
+                        locale = locale,
                     )
 
                     if (useAmount) {

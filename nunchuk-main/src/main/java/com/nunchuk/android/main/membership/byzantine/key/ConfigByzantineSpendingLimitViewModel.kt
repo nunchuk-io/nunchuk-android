@@ -26,6 +26,8 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.util.LOCAL_CURRENCY
 import com.nunchuk.android.core.util.USD_FRACTION_DIGITS
 import com.nunchuk.android.core.util.formatDecimalWithoutZero
+import com.nunchuk.android.core.util.formatFiatDecimalWithoutZero
+import com.nunchuk.android.core.util.getCurrencyLocale
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.GroupKeyPolicy
 import com.nunchuk.android.model.SpendingCurrencyUnit
@@ -170,13 +172,22 @@ class ConfigByzantineSpendingLimitViewModel @Inject constructor(
         }
     }
 
-    private fun map(spendingLimit: SpendingPolicy) = InputSpendingPolicy(
-        limit = spendingLimit.limit.formatDecimalWithoutZero(
-            USD_FRACTION_DIGITS
-        ).replace(DecimalFormatSymbols.getInstance().groupingSeparator.toString(), ""),
-        spendingLimit.timeUnit,
-        spendingLimit.currencyUnit
-    )
+    private fun map(spendingLimit: SpendingPolicy): InputSpendingPolicy {
+        val isFiat = spendingLimit.currencyUnit != "BTC" && spendingLimit.currencyUnit != "sat"
+        val locale = if (isFiat) getCurrencyLocale() else java.util.Locale.US
+        val formatted = if (isFiat) {
+            spendingLimit.limit.formatFiatDecimalWithoutZero(USD_FRACTION_DIGITS)
+        } else {
+            spendingLimit.limit.formatDecimalWithoutZero(USD_FRACTION_DIGITS)
+        }
+        return InputSpendingPolicy(
+            limit = formatted.replace(
+                DecimalFormatSymbols(locale).groupingSeparator.toString(), ""
+            ),
+            spendingLimit.timeUnit,
+            spendingLimit.currencyUnit
+        )
+    }
 
     fun setCurrentEmailInteract(email: String?) {
         savedStateHandle[KEY_EMAIL] = email

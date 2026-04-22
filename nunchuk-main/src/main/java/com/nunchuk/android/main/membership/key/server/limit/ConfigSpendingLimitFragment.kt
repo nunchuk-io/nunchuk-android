@@ -80,6 +80,7 @@ import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.core.util.CurrencyFormatter
 import com.nunchuk.android.core.util.LOCAL_CURRENCY
+import com.nunchuk.android.core.util.getLocaleForCurrencyUnit
 import com.nunchuk.android.core.util.formatRoundDecimal
 import com.nunchuk.android.core.util.roundDecimal
 import com.nunchuk.android.main.R
@@ -267,6 +268,7 @@ private fun ConfigSpendingLimitContent(
                         .padding(horizontal = 16.dp)
                         .height(IntrinsicSize.Max)
                 ) {
+                    val locale = getLocaleForCurrencyUnit(currencyUnit)
                     NcTextField(
                         modifier = Modifier
                             .weight(1.0f)
@@ -274,7 +276,7 @@ private fun ConfigSpendingLimitContent(
                         title = "",
                         value = spendingLimit.value,
                         onValueChange = {
-                            spendingLimit.value = CurrencyFormatter.format(it, 2).take(15)
+                            spendingLimit.value = CurrencyFormatter.format(it, 2, locale).take(15)
                         },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                     )

@@ -109,6 +109,9 @@ var LOCAL_CURRENCY = USD_CURRENCY
 fun getCurrencyLocale(): Locale =
     android.content.res.Resources.getSystem().configuration.locales[0]
 
+fun getLocaleForCurrencyUnit(currencyUnit: String): Locale =
+    if (currencyUnit == "BTC" || currencyUnit == "sat") Locale.US else getCurrencyLocale()
+
 fun Int.densityToLevel(): Float = when (this) {
     LOW_DENSITY -> 0f
     MEDIUM_DENSITY -> 1f

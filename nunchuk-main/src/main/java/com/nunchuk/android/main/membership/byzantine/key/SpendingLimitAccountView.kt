@@ -40,6 +40,7 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.greyLight
 import com.nunchuk.android.compose.whisper
 import com.nunchuk.android.core.util.CurrencyFormatter
+import com.nunchuk.android.core.util.getLocaleForCurrencyUnit
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.SpendingTimeUnit
 import com.nunchuk.android.model.byzantine.AssistedMember
@@ -146,17 +147,18 @@ fun SpendingLimitAccountView(
                     .padding(top = 4.dp)
                     .height(IntrinsicSize.Max)
             ) {
+                val locale = getLocaleForCurrencyUnit(member.spendingPolicy.currencyUnit)
                 NcTextField(
                     modifier = Modifier
                         .weight(1.0f)
                         .padding(end = 16.dp),
                     title = "",
                     value = member.spendingPolicy.limit,
-                    visualTransformation = NumberCommaTransformation(),
+                    visualTransformation = NumberCommaTransformation(locale = locale),
                     onValueChange = {
                         onLimitChange(
                             member.member?.email,
-                            CurrencyFormatter.format(it, 2).take(15)
+                            CurrencyFormatter.format(it, 2, locale).take(15)
                         )
                     },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),

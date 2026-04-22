@@ -72,6 +72,7 @@ import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.core.util.CurrencyFormatter
+import com.nunchuk.android.core.util.getCurrencyLocale
 import com.nunchuk.android.core.util.MAX_FRACTION_DIGITS
 import com.nunchuk.android.utils.simpleGlobalDateFormat
 import com.nunchuk.android.wallet.R
@@ -367,7 +368,8 @@ private fun CoinFilterContent(
                                     isBtc = isMinBtc,
                                     currencyValue = min,
                                     onValueChange = {
-                                        min = CurrencyFormatter.format(it, MAX_FRACTION_DIGITS)
+                                        val locale = if (isMinBtc) java.util.Locale.US else getCurrencyLocale()
+                                        min = CurrencyFormatter.format(it, MAX_FRACTION_DIGITS, locale)
                                     },
                                     onSwitchBtcAndCurrency = {
                                         isMinBtc = it
@@ -378,7 +380,8 @@ private fun CoinFilterContent(
                                     isBtc = isMaxBtc,
                                     currencyValue = max,
                                     onValueChange = {
-                                        max = CurrencyFormatter.format(it)
+                                        val locale = if (isMaxBtc) java.util.Locale.US else getCurrencyLocale()
+                                        max = CurrencyFormatter.format(it, locale = locale)
                                     },
                                     onSwitchBtcAndCurrency = {
                                         isMaxBtc = it

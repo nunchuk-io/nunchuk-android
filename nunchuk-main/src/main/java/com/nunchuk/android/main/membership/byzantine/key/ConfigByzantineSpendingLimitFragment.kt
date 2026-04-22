@@ -81,6 +81,7 @@ import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.core.util.CurrencyFormatter
+import com.nunchuk.android.core.util.getLocaleForCurrencyUnit
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.main.R
@@ -360,15 +361,16 @@ private fun ConfigPolicyForAllMemberView(
             .padding(horizontal = 16.dp)
             .height(IntrinsicSize.Max)
     ) {
+        val locale = getLocaleForCurrencyUnit(policy.currencyUnit)
         NcTextField(
             modifier = Modifier
                 .weight(1.0f)
                 .padding(end = 16.dp),
             title = "",
             value = policy.limit,
-            visualTransformation = NumberCommaTransformation(),
+            visualTransformation = NumberCommaTransformation(locale = locale),
             onValueChange = {
-                onLimitChange(null, CurrencyFormatter.format(it, 2).take(15))
+                onLimitChange(null, CurrencyFormatter.format(it, 2, locale).take(15))
             },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
         )

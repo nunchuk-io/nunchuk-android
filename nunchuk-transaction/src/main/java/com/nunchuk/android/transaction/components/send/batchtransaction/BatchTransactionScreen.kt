@@ -73,6 +73,7 @@ import com.nunchuk.android.compose.fillInputText
 import com.nunchuk.android.compose.lightGray
 import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.core.util.CurrencyFormatter
+import com.nunchuk.android.core.util.getCurrencyLocale
 import com.nunchuk.android.core.util.MAX_FRACTION_DIGITS
 import com.nunchuk.android.core.util.MAX_NOTE_LENGTH
 import com.nunchuk.android.transaction.R
@@ -171,8 +172,9 @@ internal fun BatchTransactionContent(
                             onScanClick(index)
                         },
                         onInputAmountChange = {
+                            val locale = if (recipient.isBtc) java.util.Locale.US else getCurrencyLocale()
                             onInputAmountChange(
-                                index, CurrencyFormatter.format(it, MAX_FRACTION_DIGITS)
+                                index, CurrencyFormatter.format(it, MAX_FRACTION_DIGITS, locale)
                             )
                         },
                         onSwitchBtcAndCurrency = {
