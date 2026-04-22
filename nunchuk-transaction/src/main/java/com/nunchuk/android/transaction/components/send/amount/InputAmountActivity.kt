@@ -47,13 +47,10 @@ import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.formatCurrencyDecimal
 import com.nunchuk.android.core.util.formatDecimal
 import com.nunchuk.android.core.util.formatDecimalWithoutZero
-import com.nunchuk.android.core.util.formatFiatDecimal
 import com.nunchuk.android.core.util.fromBTCToCurrency
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getCurrencyAmount
-import com.nunchuk.android.core.util.getCurrencyLocale
 import com.nunchuk.android.core.util.getTextBtcUnit
-import java.util.Locale
 import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.core.util.setUnderline
 import com.nunchuk.android.core.util.toAmount
@@ -238,7 +235,6 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
 
     private fun handleState(state: InputAmountState) {
         if (state.useBtc) {
-            binding.mainCurrency.setLocale(Locale.US)
             binding.mainCurrency.allowDecimal(CURRENT_DISPLAY_UNIT_TYPE != SAT)
             binding.mainCurrencyLabel.text = getTextBtcUnit()
             binding.btnSwitch.text =
@@ -247,11 +243,10 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
             val secondaryCurrency = if (LOCAL_CURRENCY == USD_CURRENCY) {
                 state.amountUSD.formatCurrencyDecimal(maxFractionDigits = USD_FRACTION_DIGITS)
             } else {
-                "${state.amountUSD.formatFiatDecimal()} $LOCAL_CURRENCY"
+                "${state.amountUSD.formatDecimal(maxFractionDigits = USD_FRACTION_DIGITS)} $LOCAL_CURRENCY"
             }
             binding.secondaryCurrency.text = secondaryCurrency
         } else {
-            binding.mainCurrency.setLocale(getCurrencyLocale())
             binding.mainCurrency.allowDecimal(true)
             binding.mainCurrencyLabel.text = LOCAL_CURRENCY
             binding.btnSwitch.text =
@@ -344,8 +339,10 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
             if (amount > 0) {
                 if (viewModel.getUseBTC()) {
                     if (CURRENT_DISPLAY_UNIT_TYPE == SAT) amount.toAmount().value.formatDecimalWithoutZero() else amount.formatDecimal()
+                } else if (LOCAL_CURRENCY == USD_CURRENCY) {
+                    amount.formatDecimal()
                 } else {
-                    amount.formatFiatDecimal()
+                    amount.formatDecimal(maxFractionDigits = USD_FRACTION_DIGITS)
                 }
             } else ""
         )

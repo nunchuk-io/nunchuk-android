@@ -21,7 +21,6 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.greyLight
 import com.nunchuk.android.core.util.USD_FRACTION_DIGITS
 import com.nunchuk.android.core.util.formatDecimalWithoutZero
-import com.nunchuk.android.core.util.formatFiatDecimalWithoutZero
 import com.nunchuk.android.model.SpendingPolicy
 import com.nunchuk.android.model.SpendingTimeUnit
 import com.nunchuk.android.model.byzantine.AssistedMember
@@ -65,13 +64,7 @@ fun SpendingLimitAccountView(
             )
             Text(
                 modifier = Modifier.padding(top = 12.dp),
-                text = "${
-                    if (policy.currencyUnit != "BTC" && policy.currencyUnit != "sat") {
-                        policy.limit.formatFiatDecimalWithoutZero()
-                    } else {
-                        policy.limit.formatDecimalWithoutZero(maxFractionDigits = USD_FRACTION_DIGITS)
-                    }
-                } ${policy.currencyUnit}/${
+                text = "${policy.limit.formatDecimalWithoutZero(maxFractionDigits = USD_FRACTION_DIGITS)} ${policy.currencyUnit}/${
                     policy.timeUnit.name.lowercase()
                         .capitalize(Locale.current)
                 }",

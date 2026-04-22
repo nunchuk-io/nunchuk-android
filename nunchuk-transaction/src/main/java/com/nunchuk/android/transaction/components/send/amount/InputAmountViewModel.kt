@@ -27,11 +27,9 @@ import com.nunchuk.android.core.util.fromBTCToCurrency
 import com.nunchuk.android.core.util.fromCurrencyToBTC
 import com.nunchuk.android.core.domain.ParseWalletDescriptorUseCase
 import com.nunchuk.android.core.util.fromSATtoBTC
-import com.nunchuk.android.core.util.getCurrencyLocale
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.core.util.toNumericValue
-import java.util.Locale
 import com.nunchuk.android.model.BtcUri
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.SwapCurrencyEvent
@@ -133,9 +131,8 @@ internal class InputAmountViewModel @Inject constructor(
     }
 
     fun handleAmountChanged(input: String) {
+        val inputValue = input.toNumericValue().toDouble()
         val currentState = getState()
-        val locale = if (currentState.useBtc) Locale.US else getCurrencyLocale()
-        val inputValue = input.toNumericValue(locale).toDouble()
         if (currentState.useBtc) {
             if (inputValue != currentState.amountBTC) {
                 updateState {
