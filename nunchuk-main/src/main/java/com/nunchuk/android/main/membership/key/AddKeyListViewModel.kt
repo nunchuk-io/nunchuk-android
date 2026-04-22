@@ -35,7 +35,6 @@ import com.nunchuk.android.main.membership.model.toGroupWalletType
 import com.nunchuk.android.main.membership.model.toSteps
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.MembershipStepInfo
-import com.nunchuk.android.model.Result
 import com.nunchuk.android.model.SignerExtra
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.VerifyType
@@ -241,14 +240,13 @@ class AddKeyListViewModel @Inject constructor(
         viewModelScope.launch {
             singleSigners.find { it.masterFingerprint == signer.fingerPrint && it.derivationPath == signer.derivationPath }
                 ?.let { singleSigner ->
-                    val result =
-                        updateRemoteSignerUseCase.execute(singleSigner.copy(tags = listOf(tag)))
-                    if (result is Result.Success) {
-                        loadSigners()
-                        onSelectedExistingHardwareSigner(singleSigner.copy(tags = listOf(tag)))
-                    } else {
-                        _event.emit(AddKeyListEvent.ShowError((result as Result.Error).exception.message.orUnknownError()))
-                    }
+                    updateRemoteSignerUseCase(singleSigner.copy(tags = listOf(tag)))
+                        .onSuccess {
+                            loadSigners()
+                            onSelectedExistingHardwareSigner(singleSigner.copy(tags = listOf(tag)))
+                        }.onFailure {
+                            _event.emit(AddKeyListEvent.ShowError(it.message.orUnknownError()))
+                        }
                 }
         }
     }

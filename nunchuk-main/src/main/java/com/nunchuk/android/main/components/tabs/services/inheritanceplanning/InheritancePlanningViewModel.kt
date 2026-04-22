@@ -11,7 +11,6 @@ import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.main.membership.model.toGroupWalletType
 import com.nunchuk.android.model.Period
-import com.nunchuk.android.model.Result
 import com.nunchuk.android.model.TimelockBased
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.WalletServer
@@ -141,12 +140,11 @@ class InheritancePlanningViewModel @Inject constructor(
         _state.update { it.copy(isLoading = true) }
         viewModelScope.launch {
             getWalletDetail2UseCase(walletId).onSuccess { currentWallet ->
-                when (val result = createShareFileUseCase.execute("${currentWallet.id}.bsms")) {
-                    is Result.Success -> exportWallet(result.data, currentWallet)
-                    is Result.Error -> {
-                        _state.update { it.copy(isLoading = false) }
-                        _event.emit(InheritancePlanningEvent.Failure(result.exception.message.orUnknownError()))
-                    }
+                createShareFileUseCase("${currentWallet.id}.bsms").onSuccess { filePath ->
+                    exportWallet(filePath, currentWallet)
+                }.onFailure {
+                    _state.update { it.copy(isLoading = false) }
+                    _event.emit(InheritancePlanningEvent.Failure(it.message.orUnknownError()))
                 }
             }
         }

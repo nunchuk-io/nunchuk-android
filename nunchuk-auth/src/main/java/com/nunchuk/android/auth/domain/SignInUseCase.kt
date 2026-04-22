@@ -19,60 +19,40 @@
 
 package com.nunchuk.android.auth.domain
 
-import com.nunchuk.android.auth.api.UserTokenResponse
 import com.nunchuk.android.auth.data.AuthRepository
 import com.nunchuk.android.core.account.AccountInfo
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
-interface SignInUseCase {
-    fun execute(
-        email: String,
-        password: String,
-        staySignedIn: Boolean = true,
-        fetchUserInfo: Boolean = true,
-    ): Flow<AccountInfo>
-}
-
-internal class SignInUseCaseImpl @Inject constructor(
+class SignInUseCase @Inject constructor(
     private val authRepository: AuthRepository,
-    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
-    private val storeAccountUseCase: StoreAccountUseCase
-) : SignInUseCase {
+    @IoDispatcher ioDispatcher: CoroutineDispatcher,
+    private val storeAccountUseCase: StoreAccountUseCase,
+) : UseCase<SignInUseCase.Param, AccountInfo>(ioDispatcher) {
 
-    override fun execute(
-        email: String,
-        password: String,
-        staySignedIn: Boolean,
-        fetchUserInfo: Boolean
-    ): Flow<AccountInfo> =
-        authRepository.login(
-            email = email,
-            password = password
-        ).map {
-            storeAccount(email, it, staySignedIn, fetchUserInfo)
-        }.flowOn(ioDispatcher)
-
-    private suspend fun storeAccount(
-        email: String,
-        response: UserTokenResponse,
-        staySignedIn: Boolean,
-        fetchUserInfo: Boolean
-    ): AccountInfo {
+    override suspend fun execute(parameters: Param): AccountInfo {
+        val response = authRepository.login(
+            email = parameters.email,
+            password = parameters.password
+        )
         return storeAccountUseCase(
             StoreAccountUseCase.Param(
-                email = email,
+                email = parameters.email,
                 response = response,
-                staySignedIn = staySignedIn,
-                fetchUserInfo = fetchUserInfo,
+                staySignedIn = parameters.staySignedIn,
+                fetchUserInfo = parameters.fetchUserInfo,
                 loginType = SignInMode.EMAIL
             )
         ).getOrThrow()
     }
 
+    data class Param(
+        val email: String,
+        val password: String,
+        val staySignedIn: Boolean = true,
+        val fetchUserInfo: Boolean = true,
+    )
 }

@@ -47,9 +47,6 @@ import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.guestmode.isGuestMode
 import com.nunchuk.android.core.network.NunchukApiException
 import com.nunchuk.android.core.profile.UpdateUseProfileUseCase
-import com.nunchuk.android.core.retry.DEFAULT_RETRY_POLICY
-import com.nunchuk.android.core.retry.RetryPolicy
-import com.nunchuk.android.core.retry.retryIO
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.log.fileLog
 import com.nunchuk.android.model.setting.BiometricConfig
@@ -58,25 +55,19 @@ import com.nunchuk.android.usecase.GetBiometricConfigUseCase
 import com.nunchuk.android.usecase.GetPrimaryKeyListUseCase
 import com.nunchuk.android.usecase.SetFirstCreatedChatIdUseCase
 import com.nunchuk.android.utils.EmailValidator
-import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers.IO
-import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
-import javax.inject.Named
 
 @HiltViewModel
 internal class SignInViewModel @Inject constructor(
@@ -86,7 +77,6 @@ internal class SignInViewModel @Inject constructor(
     private val signInModeHolder: SignInModeHolder,
     private val getPrimaryKeyListUseCase: GetPrimaryKeyListUseCase,
     private val clearInfoSessionUseCase: ClearInfoSessionUseCase,
-    @Named(DEFAULT_RETRY_POLICY) private val retryPolicy: RetryPolicy,
     private val checkEmailAvailabilityUseCase: CheckEmailAvailabilityUseCase,
     private val registerUseCase: RegisterUseCase,
     private val updateUseProfileUseCase: UpdateUseProfileUseCase,
@@ -215,57 +205,49 @@ internal class SignInViewModel @Inject constructor(
         }
     }
 
-    private fun register(email: String) {
-        viewModelScope.launch {
-            registerUseCase.execute(email, email)
-                .onSuccess {
-                    _event.emit(SignInEvent.RequireChangePassword(isNew = true))
-                }
-                .onFailure {
-                    _event.emit(SignInErrorEvent(message = it.message.orUnknownError()))
-                }
-        }
+    private suspend fun register(email: String) {
+        registerUseCase(RegisterUseCase.Param(name = email, email = email))
+            .onSuccess {
+                _event.emit(SignInEvent.RequireChangePassword(isNew = true))
+            }
+            .onFailure {
+                _event.emit(SignInErrorEvent(message = it.message.orUnknownError()))
+            }
     }
 
     private fun handleSignIn(email: String, password: String) {
         viewModelScope.launch {
             if (validatePassword(password)) {
-                signInUseCase.execute(
-                    email = email,
-                    password = password,
-                    staySignedIn = staySignedIn
-                ).retryIO(retryPolicy)
-                    .onStart { _event.emit(ProcessingEvent()) }
-                    .flowOn(IO)
-                    .map {
-                        fileLog(message = "start initNunchuk")
-                        initNunchuk()
-                        fileLog(message = "end initNunchuk")
-                        it
+                _event.emit(ProcessingEvent())
+                signInUseCase(
+                    SignInUseCase.Param(
+                        email = email,
+                        password = password,
+                        staySignedIn = staySignedIn
+                    )
+                ).onSuccess { accountInfo ->
+                    fileLog(message = "start initNunchuk")
+                    initNunchuk()
+                    fileLog(message = "end initNunchuk")
+                    if (accountInfo.name == accountInfo.email) {
+                        _event.emit(ProcessingEvent(false))
+                        setType(SignInType.NAME)
+                    } else {
+                        _event.emit(SignInSuccessEvent())
                     }
-                    .onEach {
-                        if (it.name == it.email) {
-                            _event.emit(ProcessingEvent(false))
-                            setType(SignInType.NAME)
-                        } else {
-                            _event.emit(SignInSuccessEvent())
-                        }
-                    }
-                    .flowOn(Main)
-                    .onException {
-                        if (it is NunchukApiException) {
-                            _event.emit(
-                                SignInErrorEvent(
-                                    code = it.code,
-                                    message = it.message,
-                                    errorDetail = it.errorDetail
-                                )
+                }.onFailure {
+                    if (it is NunchukApiException) {
+                        _event.emit(
+                            SignInErrorEvent(
+                                code = it.code,
+                                message = it.message,
+                                errorDetail = it.errorDetail
                             )
-                        } else {
-                            _event.emit(SignInErrorEvent(message = it.message.orUnknownError()))
-                        }
+                        )
+                    } else {
+                        _event.emit(SignInErrorEvent(message = it.message.orUnknownError()))
                     }
-                    .collect {}
+                }
             }
         }
     }

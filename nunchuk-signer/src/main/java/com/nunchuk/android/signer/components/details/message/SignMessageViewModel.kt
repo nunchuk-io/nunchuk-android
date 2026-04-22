@@ -25,7 +25,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.signer.SignMessageByTapSignerUseCase
 import com.nunchuk.android.domain.di.IoDispatcher
-import com.nunchuk.android.model.Result
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.CreateShareFileUseCase
 import com.nunchuk.android.usecase.GetMasterSignerUseCase
@@ -168,13 +167,13 @@ class SignMessageViewModel @Inject constructor(
     fun exportSignatureToFile() {
         viewModelScope.launch {
             _event.emit(SignMessageEvent.Loading(true))
-            when (val result = createShareFileUseCase.execute("signature.txt")) {
-                is Result.Success -> exportTransaction(
-                    result.data,
+            createShareFileUseCase("signature.txt").onSuccess { filePath ->
+                exportTransaction(
+                    filePath,
                     state.value.signedMessage?.rfc2440.orEmpty()
                 )
-
-                is Result.Error -> _event.emit(SignMessageEvent.ShowError(result.exception))
+            }.onFailure {
+                _event.emit(SignMessageEvent.ShowError(it))
             }
             _event.emit(SignMessageEvent.Loading(false))
         }

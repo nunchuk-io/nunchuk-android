@@ -24,7 +24,6 @@ import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.auth.components.forgot.ForgotPasswordEvent.*
 import com.nunchuk.android.auth.domain.ForgotPasswordUseCase
 import com.nunchuk.android.auth.validator.doAfterValidate
-import com.nunchuk.android.model.Result
 import com.nunchuk.android.utils.EmailValidator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
@@ -41,10 +40,9 @@ internal class ForgotPasswordViewModel @Inject constructor(
         if (validateEmail(email)) {
             viewModelScope.launch {
                 event(LoadingEvent)
-                when (val result = forgotPasswordUseCase.execute(email = email)) {
-                    is Result.Success -> event(ForgotPasswordSuccessEvent(email))
-                    is Result.Error -> event(ForgotPasswordErrorEvent(result.exception.message))
-                }
+                forgotPasswordUseCase(email)
+                    .onSuccess { event(ForgotPasswordSuccessEvent(email)) }
+                    .onFailure { event(ForgotPasswordErrorEvent(it.message)) }
             }
         }
     }

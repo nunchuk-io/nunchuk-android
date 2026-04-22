@@ -23,21 +23,22 @@ import com.nunchuk.android.auth.api.UserTokenResponse
 import com.nunchuk.android.auth.data.AuthRepository
 import com.nunchuk.android.core.account.AccountInfo
 import com.nunchuk.android.core.account.AccountManager
-import com.nunchuk.android.usecase.BaseUseCase
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-interface RegisterUseCase {
-    suspend fun execute(name: String, email: String): Result<UserTokenResponse>
-}
-
-internal class RegisterUseCaseImpl @Inject constructor(
+class RegisterUseCase @Inject constructor(
     private val authRepository: AuthRepository,
-    private val accountManager: AccountManager
-) : BaseUseCase(), RegisterUseCase {
+    private val accountManager: AccountManager,
+    @IoDispatcher dispatcher: CoroutineDispatcher,
+) : UseCase<RegisterUseCase.Param, UserTokenResponse>(dispatcher) {
 
-    override suspend fun execute(name: String, email: String) = kotlin.runCatching {
-        authRepository.register(name = name, email = email).also {
-            accountManager.storeAccount(AccountInfo(email = email, token = it.tokenId))
+    override suspend fun execute(parameters: Param): UserTokenResponse {
+        return authRepository.register(name = parameters.name, email = parameters.email).also {
+            accountManager.storeAccount(AccountInfo(email = parameters.email, token = it.tokenId))
         }
     }
+
+    data class Param(val name: String, val email: String)
 }

@@ -20,21 +20,18 @@
 package com.nunchuk.android.usecase
 
 import android.content.Context
-import com.nunchuk.android.model.Result
+import com.nunchuk.android.domain.di.IoDispatcher
+import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-interface CreateShareFileUseCase {
-    suspend fun execute(fileId: String): Result<String>
-}
+class CreateShareFileUseCase @Inject constructor(
+    private val contextProvider: ContextProvider,
+    @IoDispatcher dispatcher: CoroutineDispatcher,
+) : UseCase<String, String>(dispatcher) {
 
-internal class CreateShareFileUseCaseImpl @Inject constructor(
-    private val contextProvider: ContextProvider
-) : BaseUseCase(), CreateShareFileUseCase {
-
-    override suspend fun execute(fileId: String) = exe {
-        "${contextProvider.context.getExternalFilesDir(null)}/$fileId"
+    override suspend fun execute(parameters: String): String {
+        return "${contextProvider.context.getExternalFilesDir(null)}/$parameters"
     }
-
 }
 
-internal class ContextProvider @Inject constructor(val context: Context)
+class ContextProvider @Inject constructor(val context: Context)

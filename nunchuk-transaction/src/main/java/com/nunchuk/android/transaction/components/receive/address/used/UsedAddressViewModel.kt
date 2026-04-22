@@ -24,8 +24,6 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.model.Amount
-import com.nunchuk.android.model.Result.Error
-import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.transaction.components.receive.address.UsedAddressModel
 import com.nunchuk.android.usecase.GetAddressBalanceUseCase
 import com.nunchuk.android.usecase.GetAddressesUseCase
@@ -82,11 +80,10 @@ internal class UsedAddressViewModel @Inject constructor(
 
     private fun getAddressBalance(addresses: List<String>) {
         viewModelScope.launch {
-            val addressModels = addresses.map {
-                when (val result = getAddressBalanceUseCase.execute(walletId, it)) {
-                    is Success -> UsedAddressModel(it, result.data)
-                    is Error -> UsedAddressModel(it, Amount.ZER0)
-                }
+            val addressModels = addresses.map { address ->
+                getAddressBalanceUseCase(GetAddressBalanceUseCase.Param(walletId, address))
+                    .getOrElse { Amount.ZER0 }
+                    .let { balance -> UsedAddressModel(address, balance) }
             }
             _state.update { it.copy(addresses = addressModels) }
         }

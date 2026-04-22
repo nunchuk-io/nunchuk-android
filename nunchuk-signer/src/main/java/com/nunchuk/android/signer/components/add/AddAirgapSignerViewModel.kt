@@ -442,10 +442,9 @@ internal class AddAirgapSignerViewModel @Inject constructor(
 
     private fun analyzeQr() {
         viewModelScope.launch {
-            val result = analyzeQrUseCase(qrDataList.toList())
-            if (result.isSuccess) {
-                Timber.d("analyzeQrUseCase: ${result.getOrThrow()}")
-                _state.update { it.copy(progress = result.getOrThrow().times(100.0)) }
+            analyzeQrUseCase(qrDataList.toList()).onSuccess { data ->
+                Timber.d("analyzeQrUseCase: $data")
+                _state.update { it.copy(progress = data.times(100.0)) }
             }
         }
     }

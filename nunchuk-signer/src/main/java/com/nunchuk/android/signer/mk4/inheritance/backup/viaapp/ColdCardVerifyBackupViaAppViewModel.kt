@@ -6,7 +6,6 @@ import com.nunchuk.android.core.domain.VerifyColdCardBackupUseCase
 import com.nunchuk.android.core.util.lastWord
 import com.nunchuk.android.core.util.replaceLastWord
 import com.nunchuk.android.domain.di.IoDispatcher
-import com.nunchuk.android.model.Result
 import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.usecase.GetBip39WordListUseCase
 import com.nunchuk.android.usecase.membership.SetKeyVerifiedUseCase
@@ -43,10 +42,8 @@ class ColdCardVerifyBackupViaAppViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            val result = getBip39WordListUseCase.execute()
-            if (result is Result.Success) {
-                bip39Words = ArrayList(result.data)
-            }
+            getBip39WordListUseCase(Unit)
+                .onSuccess { bip39Words = ArrayList(it) }
         }
     }
 

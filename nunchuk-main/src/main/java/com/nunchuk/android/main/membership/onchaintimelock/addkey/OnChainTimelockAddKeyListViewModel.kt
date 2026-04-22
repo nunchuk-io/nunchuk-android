@@ -366,22 +366,21 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
         viewModelScope.launch {
             singleSigners.find { it.masterFingerprint == signer.fingerPrint && it.derivationPath == signer.derivationPath }
                 ?.let { singleSigner ->
-                    val result =
-                        updateRemoteSignerUseCase.execute(singleSigner.copy(tags = listOf(tag)))
-                    if (result is Result.Success) {
-                        loadSigners()
-                        if (isGroupWallet) {
-                            _event.emit(
-                                AddKeyListEvent.UpdateSignerTag(
-                                    signer.copy(tags = listOf(tag))
+                    updateRemoteSignerUseCase(singleSigner.copy(tags = listOf(tag)))
+                        .onSuccess {
+                            loadSigners()
+                            if (isGroupWallet) {
+                                _event.emit(
+                                    AddKeyListEvent.UpdateSignerTag(
+                                        signer.copy(tags = listOf(tag))
+                                    )
                                 )
-                            )
-                        } else {
-                            onSelectedExistingHardwareSigner(singleSigner.copy(tags = listOf(tag)))
+                            } else {
+                                onSelectedExistingHardwareSigner(singleSigner.copy(tags = listOf(tag)))
+                            }
+                        }.onFailure {
+                            _event.emit(AddKeyListEvent.ShowError(it.message.orUnknownError()))
                         }
-                    } else {
-                        _event.emit(AddKeyListEvent.ShowError((result as Result.Error).exception.message.orUnknownError()))
-                    }
                 }
         }
     }

@@ -24,10 +24,8 @@ import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.util.getFileFromUri
-import com.nunchuk.android.core.util.messageOrUnknownError
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.domain.di.IoDispatcher
-import com.nunchuk.android.model.Result
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.usecase.CreateShareFileUseCase
 import com.nunchuk.android.usecase.SaveLocalFileUseCase
@@ -83,9 +81,10 @@ internal class SignInDummyTransactionDetailsViewModel @Inject constructor(
     fun exportTransactionToFile(dataToSign: String) {
         viewModelScope.launch {
             _event.emit(DummyTransactionDetailEvent.LoadingEvent(true))
-            when (val result = createShareFileUseCase.execute( "dummy.psbt")) {
-                is Result.Success -> exportTransaction(result.data, dataToSign)
-                is Result.Error -> _event.emit(DummyTransactionDetailEvent.TransactionError(result.exception.messageOrUnknownError()))
+            createShareFileUseCase("dummy.psbt").onSuccess { filePath ->
+                exportTransaction(filePath, dataToSign)
+            }.onFailure {
+                _event.emit(DummyTransactionDetailEvent.TransactionError(it.message.orUnknownError()))
             }
             _event.emit(DummyTransactionDetailEvent.LoadingEvent(false))
         }

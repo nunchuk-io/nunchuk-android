@@ -19,21 +19,23 @@
 
 package com.nunchuk.android.usecase
 
+import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.Amount
-import com.nunchuk.android.model.Result
 import com.nunchuk.android.nativelib.NunchukNativeSdk
+import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-interface GetAddressBalanceUseCase {
-    suspend fun execute(walletId: String, address: String): Result<Amount>
-}
+class GetAddressBalanceUseCase @Inject constructor(
+    private val nativeSdk: NunchukNativeSdk,
+    @IoDispatcher dispatcher: CoroutineDispatcher,
+) : UseCase<GetAddressBalanceUseCase.Param, Amount>(dispatcher) {
 
-internal class GetAddressBalanceUseCaseImpl @Inject constructor(
-    private val nativeSdk: NunchukNativeSdk
-) : BaseUseCase(), GetAddressBalanceUseCase {
-
-    override suspend fun execute(walletId: String, address: String) = exe {
-        nativeSdk.getAddressBalance(walletId = walletId, address = address)
+    override suspend fun execute(parameters: Param): Amount {
+        return nativeSdk.getAddressBalance(
+            walletId = parameters.walletId,
+            address = parameters.address
+        )
     }
 
+    data class Param(val walletId: String, val address: String)
 }

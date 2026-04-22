@@ -42,7 +42,6 @@ import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.wallet.InvoiceInfo
 import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.messages.usecase.message.LeaveRoomUseCase
-import com.nunchuk.android.model.Result
 import com.nunchuk.android.model.RoomWallet
 import com.nunchuk.android.model.ScriptNode
 import com.nunchuk.android.model.SingleSigner
@@ -468,27 +467,22 @@ internal class WalletConfigViewModel @Inject constructor(
 
     fun handleExportBSMS() {
         viewModelScope.launch {
-            when (val event = createShareFileUseCase.execute("${walletId}.bsms")) {
-                is Result.Success -> exportWalletToFile(walletId, event.data, ExportFormat.BSMS)
-                is Result.Error -> showError(event.exception)
-            }
+            createShareFileUseCase("${walletId}.bsms").onSuccess { filePath ->
+                exportWalletToFile(walletId, filePath, ExportFormat.BSMS)
+            }.onFailure { showError(it) }
         }
     }
 
     private fun exportWalletToFile(walletId: String, filePath: String, format: ExportFormat) {
         viewModelScope.launch {
-            when (val event = exportWalletUseCase.execute(walletId, filePath, format)) {
-                is Result.Success -> {
-                    filePathInteracting = filePath
-                    _event.emit(
-                        WalletConfigEvent.UploadWalletConfigEvent(
-                            filePath
-                        )
+            exportWalletUseCase(ExportWalletUseCase.Param(walletId, filePath, format)).onSuccess {
+                filePathInteracting = filePath
+                _event.emit(
+                    WalletConfigEvent.UploadWalletConfigEvent(
+                        filePath
                     )
-                }
-
-                is Result.Error -> showError(event.exception)
-            }
+                )
+            }.onFailure { showError(it) }
         }
     }
 
@@ -544,23 +538,19 @@ internal class WalletConfigViewModel @Inject constructor(
     }
 
     fun exportCoinControlNunchuk() = viewModelScope.launch {
-        when (val event = createShareFileUseCase.execute("${walletName()}_labels.json")) {
-            is Result.Success -> {
-                val result = exportTxCoinControlUseCase(
-                    ExportTxCoinControlUseCase.Param(
-                        walletId = walletId,
-                        filePath = event.data
-                    )
+        createShareFileUseCase("${walletName()}_labels.json").onSuccess { filePath ->
+            val result = exportTxCoinControlUseCase(
+                ExportTxCoinControlUseCase.Param(
+                    walletId = walletId,
+                    filePath = filePath
                 )
-                if (result.isSuccess) {
-                    _event.emit(WalletConfigEvent.ExportTxCoinControlSuccess(event.data))
-                } else {
-                    _event.emit(WalletConfigEvent.WalletDetailsError(result.exceptionOrNull()?.message.orUnknownError()))
-                }
+            )
+            if (result.isSuccess) {
+                _event.emit(WalletConfigEvent.ExportTxCoinControlSuccess(filePath))
+            } else {
+                _event.emit(WalletConfigEvent.WalletDetailsError(result.exceptionOrNull()?.message.orUnknownError()))
             }
-
-            is Result.Error -> showError(event.exception)
-        }
+        }.onFailure { showError(it) }
     }
 
     fun importCoinControlBIP329(filePath: String) = viewModelScope.launch {
@@ -580,62 +570,50 @@ internal class WalletConfigViewModel @Inject constructor(
     }
 
     fun exportCoinControlBIP329() = viewModelScope.launch {
-        when (val event = createShareFileUseCase.execute("${walletName()}_BIP329labels.json")) {
-            is Result.Success -> {
-                val result = exportCoinControlBIP329UseCase(
-                    ExportCoinControlBIP329UseCase.Param(
-                        walletId = walletId,
-                        filePath = event.data
-                    )
+        createShareFileUseCase("${walletName()}_BIP329labels.json").onSuccess { filePath ->
+            val result = exportCoinControlBIP329UseCase(
+                ExportCoinControlBIP329UseCase.Param(
+                    walletId = walletId,
+                    filePath = filePath
                 )
-                if (result.isSuccess) {
-                    _event.emit(WalletConfigEvent.ExportTxCoinControlSuccess(event.data))
-                } else {
-                    _event.emit(WalletConfigEvent.WalletDetailsError(result.exceptionOrNull()?.message.orUnknownError()))
-                }
+            )
+            if (result.isSuccess) {
+                _event.emit(WalletConfigEvent.ExportTxCoinControlSuccess(filePath))
+            } else {
+                _event.emit(WalletConfigEvent.WalletDetailsError(result.exceptionOrNull()?.message.orUnknownError()))
             }
-
-            is Result.Error -> showError(event.exception)
-        }
+        }.onFailure { showError(it) }
     }
 
     fun exportDescriptor() = viewModelScope.launch {
-        when (val event = createShareFileUseCase.execute("${walletName()}_descriptor.txt")) {
-            is Result.Success -> {
-                val result = getWalletDescriptorUseCase(
-                    GetWalletDescriptorUseCase.Param(
-                        walletId = walletId,
-                        filePath = event.data
-                    )
+        createShareFileUseCase("${walletName()}_descriptor.txt").onSuccess { filePath ->
+            val result = getWalletDescriptorUseCase(
+                GetWalletDescriptorUseCase.Param(
+                    walletId = walletId,
+                    filePath = filePath
                 )
-                if (result.isSuccess) {
-                    filePathInteracting = event.data
-                    _event.emit(WalletConfigEvent.ExportDescriptorSuccess(event.data))
-                } else {
-                    _event.emit(WalletConfigEvent.WalletDetailsError(result.exceptionOrNull()?.message.orUnknownError()))
-                }
+            )
+            if (result.isSuccess) {
+                filePathInteracting = filePath
+                _event.emit(WalletConfigEvent.ExportDescriptorSuccess(filePath))
+            } else {
+                _event.emit(WalletConfigEvent.WalletDetailsError(result.exceptionOrNull()?.message.orUnknownError()))
             }
-
-            is Result.Error -> showError(event.exception)
-        }
+        }.onFailure { showError(it) }
     }
 
     fun exportInvoice(invoiceInfos: List<InvoiceInfo>, fileName: String) {
         exportInvoicesJob?.cancel()
         exportInvoicesJob = viewModelScope.launch(Dispatchers.IO) {
             _progressFlow.emit(0 to invoiceInfos.size)
-            when (val event = createShareFileUseCase.execute("$fileName.pdf")) {
-                is Result.Success -> {
-                    exportInvoices.generatePDF(invoiceInfos, event.data, exportInvoicesJob!!)
-                    filePathInteracting = event.data
-                    withContext(Dispatchers.Main) {
-                        _event.emit(WalletConfigEvent.ExportInvoiceSuccess(event.data))
-                    }
+            createShareFileUseCase("$fileName.pdf").onSuccess { filePath ->
+                exportInvoices.generatePDF(invoiceInfos, filePath, exportInvoicesJob!!)
+                filePathInteracting = filePath
+                withContext(Dispatchers.Main) {
+                    _event.emit(WalletConfigEvent.ExportInvoiceSuccess(filePath))
                 }
-
-                is Result.Error -> {
-                    _event.emit(WalletConfigEvent.WalletDetailsError(event.exception.message.orUnknownError()))
-                }
+            }.onFailure {
+                _event.emit(WalletConfigEvent.WalletDetailsError(it.message.orUnknownError()))
             }
         }
     }
@@ -646,20 +624,16 @@ internal class WalletConfigViewModel @Inject constructor(
             _progressFlow.emit(0 to 100)
 
             val exportDeferred = async(Dispatchers.IO) {
-                when (val event = createShareFileUseCase.execute("$fileName.csv")) {
-                    is Result.Success -> {
-                        exportTransactionsHistoryUseCase(
-                            ExportTransactionsHistoryUseCase.Param(
-                                walletId = walletId,
-                                filePath = event.data,
-                                format = ExportFormat.CSV
-                            )
+                createShareFileUseCase("$fileName.csv").mapCatching { filePath ->
+                    exportTransactionsHistoryUseCase(
+                        ExportTransactionsHistoryUseCase.Param(
+                            walletId = walletId,
+                            filePath = filePath,
+                            format = ExportFormat.CSV
                         )
-                        filePathInteracting = event.data
-                        Result.Success(event.data)
-                    }
-
-                    is Result.Error -> event
+                    )
+                    filePathInteracting = filePath
+                    filePath
                 }
             }
 
@@ -674,14 +648,10 @@ internal class WalletConfigViewModel @Inject constructor(
             val result = exportDeferred.await()
             _progressFlow.emit(100 to 100)
 
-            when (result) {
-                is Result.Success -> {
-                    _event.emit(WalletConfigEvent.ExportInvoiceSuccess(result.data))
-                }
-
-                is Result.Error -> {
-                    _event.emit(WalletConfigEvent.WalletDetailsError(result.exception.message.orUnknownError()))
-                }
+            result.onSuccess { filePath ->
+                _event.emit(WalletConfigEvent.ExportInvoiceSuccess(filePath))
+            }.onFailure {
+                _event.emit(WalletConfigEvent.WalletDetailsError(it.message.orUnknownError()))
             }
         }
     }

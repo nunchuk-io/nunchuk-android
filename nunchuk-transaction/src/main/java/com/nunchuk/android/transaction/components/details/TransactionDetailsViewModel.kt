@@ -59,7 +59,6 @@ import com.nunchuk.android.core.util.isPendingSignatures
 import com.nunchuk.android.core.util.isRejected
 import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.core.util.isValueKeySetDisable
-import com.nunchuk.android.core.util.messageOrUnknownError
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.readableMessage
 import com.nunchuk.android.domain.di.IoDispatcher
@@ -72,8 +71,6 @@ import com.nunchuk.android.model.Contact
 import com.nunchuk.android.model.Device
 import com.nunchuk.android.model.KeySetStatus
 import com.nunchuk.android.model.MasterSigner
-import com.nunchuk.android.model.Result.Error
-import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.model.ScriptNode
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.Wallet
@@ -1065,34 +1062,28 @@ internal class TransactionDetailsViewModel @Inject constructor(
     fun exportTransactionToFile(isSaveFile: Boolean) {
         viewModelScope.launch {
             _event.emit(LoadingEvent)
-            when (val result = createShareFileUseCase.execute("${walletId}_${txId}.psbt")) {
-                is Success -> exportTransaction(result.data, isSaveFile)
-                is Error -> {
-                    val message =
-                        result.exception.messageOrUnknownError()
-                    _event.emit(TransactionError(message))
-                    CrashlyticsReporter.recordException(TransactionException(message))
-                }
+            createShareFileUseCase("${walletId}_${txId}.psbt").onSuccess { filePath ->
+                exportTransaction(filePath, isSaveFile)
+            }.onFailure {
+                val message = it.message.orUnknownError()
+                _event.emit(TransactionError(message))
+                CrashlyticsReporter.recordException(TransactionException(message))
             }
         }
     }
 
     private fun exportTransaction(filePath: String, isSaveFile: Boolean) {
         viewModelScope.launch {
-            when (val result = exportTransactionUseCase.execute(walletId, txId, filePath)) {
-                is Success -> {
-                    if (isSaveFile) {
-                        saveLocalFile(filePath)
-                    } else {
-                        _event.emit(ExportToFileSuccess(filePath))
-                    }
+            exportTransactionUseCase(ExportTransactionUseCase.Param(walletId, txId, filePath)).onSuccess {
+                if (isSaveFile) {
+                    saveLocalFile(filePath)
+                } else {
+                    _event.emit(ExportToFileSuccess(filePath))
                 }
-
-                is Error -> {
-                    val message = result.exception.messageOrUnknownError()
-                    _event.emit(TransactionError(message))
-                    CrashlyticsReporter.recordException(TransactionException(message))
-                }
+            }.onFailure {
+                val message = it.message.orUnknownError()
+                _event.emit(TransactionError(message))
+                CrashlyticsReporter.recordException(TransactionException(message))
             }
         }
     }

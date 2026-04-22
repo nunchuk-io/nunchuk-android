@@ -19,20 +19,23 @@
 
 package com.nunchuk.android.usecase
 
-import com.nunchuk.android.model.Result
+import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.nativelib.NunchukNativeSdk
+import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-interface ExportTransactionUseCase {
-    suspend fun execute(walletId: String, txId: String, filePath: String): Result<Boolean>
-}
+class ExportTransactionUseCase @Inject constructor(
+    private val nativeSdk: NunchukNativeSdk,
+    @IoDispatcher dispatcher: CoroutineDispatcher,
+) : UseCase<ExportTransactionUseCase.Param, Boolean>(dispatcher) {
 
-internal class ExportTransactionUseCaseImpl @Inject constructor(
-    private val nativeSdk: NunchukNativeSdk
-) : BaseUseCase(), ExportTransactionUseCase {
-
-    override suspend fun execute(walletId: String, txId: String, filePath: String) = exe {
-        nativeSdk.exportTransaction(walletId = walletId, txId = txId, filePath = filePath)
+    override suspend fun execute(parameters: Param): Boolean {
+        return nativeSdk.exportTransaction(
+            walletId = parameters.walletId,
+            txId = parameters.txId,
+            filePath = parameters.filePath
+        )
     }
 
+    data class Param(val walletId: String, val txId: String, val filePath: String)
 }

@@ -26,7 +26,6 @@ import com.nunchuk.android.core.util.countWords
 import com.nunchuk.android.core.util.lastWord
 import com.nunchuk.android.core.util.nativeErrorCode
 import com.nunchuk.android.core.util.replaceLastWord
-import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.signer.software.components.recover.RecoverSeedEvent.CanGoNextStepEvent
 import com.nunchuk.android.signer.software.components.recover.RecoverSeedEvent.InvalidMnemonicEvent
 import com.nunchuk.android.signer.software.components.recover.RecoverSeedEvent.MnemonicRequiredEvent
@@ -61,10 +60,8 @@ internal class RecoverSeedViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            val result = getBip39WordListUseCase.execute()
-            if (result is Success) {
-                bip39Words.addAll(result.data)
-            }
+            getBip39WordListUseCase(Unit)
+                .onSuccess { bip39Words.addAll(it) }
         }
     }
 

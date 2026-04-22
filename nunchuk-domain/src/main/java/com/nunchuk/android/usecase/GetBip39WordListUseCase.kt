@@ -19,18 +19,17 @@
 
 package com.nunchuk.android.usecase
 
-import com.nunchuk.android.model.Result
+import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.nativelib.NunchukNativeSdk
+import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-interface GetBip39WordListUseCase {
-    suspend fun execute(): Result<List<String>>
-}
+class GetBip39WordListUseCase @Inject constructor(
+    private val nativeSdk: NunchukNativeSdk,
+    @IoDispatcher dispatcher: CoroutineDispatcher,
+) : UseCase<Unit, List<String>>(dispatcher) {
 
-internal class GetBip39WordListUseCaseImpl @Inject constructor(
-    private val nativeSdk: NunchukNativeSdk
-) : BaseUseCase(), GetBip39WordListUseCase {
-
-    override suspend fun execute() = exe { nativeSdk.getBip39WordList() }
-
+    override suspend fun execute(parameters: Unit): List<String> {
+        return nativeSdk.getBip39WordList()
+    }
 }

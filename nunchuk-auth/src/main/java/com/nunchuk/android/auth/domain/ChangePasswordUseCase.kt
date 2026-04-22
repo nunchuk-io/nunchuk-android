@@ -20,20 +20,22 @@
 package com.nunchuk.android.auth.domain
 
 import com.nunchuk.android.auth.data.AuthRepository
-import kotlinx.coroutines.flow.Flow
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-interface ChangePasswordUseCase {
-    fun execute(oldPassword: String, newPassword: String): Flow<Unit>
-}
+class ChangePasswordUseCase @Inject constructor(
+    private val authRepository: AuthRepository,
+    @IoDispatcher dispatcher: CoroutineDispatcher,
+) : UseCase<ChangePasswordUseCase.Param, Unit>(dispatcher) {
 
-internal class ChangePasswordUseCaseImpl @Inject constructor(
-    private val authRepository: AuthRepository
-) : ChangePasswordUseCase {
+    override suspend fun execute(parameters: Param) {
+        authRepository.changePassword(
+            oldPassword = parameters.oldPassword,
+            newPassword = parameters.newPassword
+        )
+    }
 
-    override fun execute(oldPassword: String, newPassword: String) = authRepository.changePassword(
-        oldPassword = oldPassword,
-        newPassword = newPassword
-    )
-
+    data class Param(val oldPassword: String, val newPassword: String)
 }

@@ -14,12 +14,10 @@ import com.nunchuk.android.core.domain.membership.GetInheritanceClaimStateUseCas
 import com.nunchuk.android.core.domain.signer.SignMessageByTapSignerUseCase
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.getFileContentFromUri
-import com.nunchuk.android.core.util.messageOrUnknownError
 import com.nunchuk.android.core.util.nativeErrorCode
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.InheritanceAdditional
-import com.nunchuk.android.model.Result
 import com.nunchuk.android.model.SignedMessage
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.SignerType
@@ -224,12 +222,11 @@ class VerifyInheritanceMessageViewModel @AssistedInject constructor(
     fun exportTransactionToFile(dataToSign: String) {
         viewModelScope.launch {
             _state.update { it.copy(loadingType = LoadingType.Normal) }
-            when (val result = createShareFileUseCase.execute("coldcard_message.txt")) {
-                is Result.Success -> exportTransaction(result.data, dataToSign)
-                is Result.Error -> {
-                    _event.emit(VerifyInheritanceMessageEvent.ShowError(result.exception.messageOrUnknownError()))
-                    _state.update { it.copy(loadingType = null) }
-                }
+            createShareFileUseCase("coldcard_message.txt").onSuccess { filePath ->
+                exportTransaction(filePath, dataToSign)
+            }.onFailure {
+                _event.emit(VerifyInheritanceMessageEvent.ShowError(it.message.orUnknownError()))
+                _state.update { it.copy(loadingType = null) }
             }
         }
     }

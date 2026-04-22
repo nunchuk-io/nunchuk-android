@@ -26,8 +26,6 @@ import com.nunchuk.android.core.domain.ExportWalletToMk4UseCase
 import com.nunchuk.android.core.domain.RemoveWalletBannerStateUseCase
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.domain.di.IoDispatcher
-import com.nunchuk.android.model.Result.Error
-import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.type.ExportFormat
 import com.nunchuk.android.usecase.CreateShareFileUseCase
@@ -84,35 +82,30 @@ class SharedWalletConfigurationViewModel @Inject constructor(
 
     fun handleExportBSMS() {
         viewModelScope.launch {
-            when (val event = createShareFileUseCase.execute("${walletId}.bsms")) {
-                is Success -> exportWalletToFile(walletId, event.data, ExportFormat.BSMS)
-                is Error -> {
-                    _event.emit(ShowError(event.exception.message.orUnknownError()))
-                }
+            createShareFileUseCase("${walletId}.bsms").onSuccess { filePath ->
+                exportWalletToFile(walletId, filePath, ExportFormat.BSMS)
+            }.onFailure {
+                _event.emit(ShowError(it.message.orUnknownError()))
             }
         }
     }
 
     fun exportDescriptor() {
         viewModelScope.launch {
-            when (val event = createShareFileUseCase.execute("${walletId}_descriptor.txt")) {
-                is Success -> exportWalletToFile(walletId, event.data, ExportFormat.DESCRIPTOR)
-                is Error -> {
-                    _event.emit(ShowError(event.exception.message.orUnknownError()))
-                }
+            createShareFileUseCase("${walletId}_descriptor.txt").onSuccess { filePath ->
+                exportWalletToFile(walletId, filePath, ExportFormat.DESCRIPTOR)
+            }.onFailure {
+                _event.emit(ShowError(it.message.orUnknownError()))
             }
         }
     }
 
     private fun exportWalletToFile(walletId: String, filePath: String, format: ExportFormat) {
         viewModelScope.launch {
-            when (val event = exportWalletUseCase.execute(walletId, filePath, format)) {
-                is Success -> {
-                    _event.emit(ExportColdcardSuccess(filePath))
-                    removeBannerState()
-                }
-                is Error -> showError(event.exception)
-            }
+            exportWalletUseCase(ExportWalletUseCase.Param(walletId, filePath, format)).onSuccess {
+                _event.emit(ExportColdcardSuccess(filePath))
+                removeBannerState()
+            }.onFailure { showError(it) }
         }
     }
 
@@ -132,11 +125,10 @@ class SharedWalletConfigurationViewModel @Inject constructor(
 
     fun handleColdcardExportToFile(isSaveFile: Boolean) {
         viewModelScope.launch {
-            when (val event = createShareFileUseCase.execute(getFileName())) {
-                is Success -> exportWallet(walletId, event.data, isSaveFile)
-                is Error -> {
-                    _event.emit(ShowError(event.exception.message.orUnknownError()))
-                }
+            createShareFileUseCase(getFileName()).onSuccess { filePath ->
+                exportWallet(walletId, filePath, isSaveFile)
+            }.onFailure {
+                _event.emit(ShowError(it.message.orUnknownError()))
             }
         }
     }
@@ -151,17 +143,14 @@ class SharedWalletConfigurationViewModel @Inject constructor(
     private fun exportWallet(walletId: String, filePath: String, isSaveFile: Boolean) {
         viewModelScope.launch {
             val format = ExportFormat.DESCRIPTOR_EXTERNAL_INTERNAL
-            when (val event = exportWalletUseCase.execute(walletId, filePath, format)) {
-                is Success -> {
-                    if (isSaveFile) {
-                        saveLocalFile(filePath)
-                    } else {
-                        _event.emit(ExportColdcardSuccess(filePath))
-                    }
-                    removeBannerState()
+            exportWalletUseCase(ExportWalletUseCase.Param(walletId, filePath, format)).onSuccess {
+                if (isSaveFile) {
+                    saveLocalFile(filePath)
+                } else {
+                    _event.emit(ExportColdcardSuccess(filePath))
                 }
-                is Error -> showError(event.exception)
-            }
+                removeBannerState()
+            }.onFailure { showError(it) }
         }
     }
 

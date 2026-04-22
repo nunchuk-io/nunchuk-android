@@ -19,7 +19,6 @@ import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.ByzantineMember
-import com.nunchuk.android.model.Result
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.StateEvent
 import com.nunchuk.android.model.VerifyType
@@ -373,14 +372,13 @@ class ReplaceKeysViewModel @Inject constructor(
         viewModelScope.launch {
             singleSigners.find { it.masterFingerprint == signer.fingerPrint && it.derivationPath == signer.derivationPath }
                 ?.let { singleSigner ->
-                    val result =
-                        updateRemoteSignerUseCase.execute(singleSigner.copy(tags = listOf(tag)))
-                    if (result is Result.Success) {
-                        loadSigners()
-                        onReplaceKey(singleSigner.copy(tags = listOf(tag)))
-                    } else {
-                        _uiState.update { it.copy(message = (result as Result.Error).exception.message.orUnknownError()) }
-                    }
+                    updateRemoteSignerUseCase(singleSigner.copy(tags = listOf(tag)))
+                        .onSuccess {
+                            loadSigners()
+                            onReplaceKey(singleSigner.copy(tags = listOf(tag)))
+                        }.onFailure {
+                            _uiState.update { state -> state.copy(message = it.message.orUnknownError()) }
+                        }
                 }
         }
     }

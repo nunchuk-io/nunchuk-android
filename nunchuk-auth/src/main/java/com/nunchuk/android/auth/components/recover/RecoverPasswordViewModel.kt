@@ -36,35 +36,18 @@ import com.nunchuk.android.auth.domain.RecoverPasswordUseCase
 import com.nunchuk.android.auth.domain.SignInUseCase
 import com.nunchuk.android.auth.util.orUnknownError
 import com.nunchuk.android.auth.validator.doAfterValidate
-import com.nunchuk.android.core.guestmode.SignInMode
-import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.network.NunchukApiException
-import com.nunchuk.android.core.retry.DEFAULT_RETRY_POLICY
-import com.nunchuk.android.core.retry.RetryPolicy
-import com.nunchuk.android.core.retry.retryIO
 import com.nunchuk.android.log.fileLog
-import com.nunchuk.android.model.Result.Error
-import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.share.InitNunchukUseCase
-import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import javax.inject.Named
 
 @HiltViewModel
 internal class RecoverPasswordViewModel @Inject constructor(
     private val recoverPasswordUseCase: RecoverPasswordUseCase,
     private val signInUseCase: SignInUseCase,
     private val initNunchukUseCase: InitNunchukUseCase,
-    @Named(DEFAULT_RETRY_POLICY) private val retryPolicy: RetryPolicy,
-    private val signInModeHolder: SignInModeHolder,
 ) : NunchukViewModel<Unit, RecoverPasswordEvent>() {
 
     override val initialState = Unit
@@ -84,62 +67,54 @@ internal class RecoverPasswordViewModel @Inject constructor(
                 && validateConfirmPasswordMatched(newPassword, confirmPassword)
             ) {
                 event(LoadingEvent)
-                val result = recoverPasswordUseCase.execute(
-                    emailAddress = email,
-                    oldPassword = oldPassword,
-                    newPassword = newPassword
-                )
-                if (result is Success) {
+                recoverPasswordUseCase(
+                    RecoverPasswordUseCase.Param(
+                        emailAddress = email,
+                        oldPassword = oldPassword,
+                        newPassword = newPassword
+                    )
+                ).onSuccess {
                     signIn(newPassword)
-                } else if (result is Error) {
-                    event(RecoverPasswordErrorEvent(result.exception.message))
+                }.onFailure {
+                    event(RecoverPasswordErrorEvent(it.message))
                 }
             }
         }
     }
 
     private suspend fun signIn(password: String) {
-        signInUseCase.execute(email = email, password = password, staySignedIn = true)
-            .retryIO(retryPolicy)
-            .onStart { event(LoadingEvent) }
-            .flowOn(Dispatchers.IO)
-            .map {
-                token = it.token
-                encryptedDeviceId = it.deviceId
-                fileLog(message = "start initNunchuk")
-                val result = initNunchuk()
-                fileLog(message = "end initNunchuk")
-                result
-            }
-            .onEach {
+        event(LoadingEvent)
+        signInUseCase(
+            SignInUseCase.Param(email = email, password = password, staySignedIn = true)
+        ).onSuccess { accountInfo ->
+            token = accountInfo.token
+            encryptedDeviceId = accountInfo.deviceId
+            fileLog(message = "start initNunchuk")
+            initNunchuk()
+            fileLog(message = "end initNunchuk")
+            event(
+                RecoverPasswordSuccessEvent(
+                    token = token.orEmpty(),
+                    deviceId = encryptedDeviceId.orEmpty()
+                )
+            )
+        }.onFailure {
+            if (it is NunchukApiException) {
                 event(
-                    RecoverPasswordSuccessEvent(
-                        token = token.orEmpty(),
-                        deviceId = encryptedDeviceId.orEmpty()
+                    SignInErrorEvent(
+                        code = it.code,
+                        message = it.message,
+                        errorDetail = it.errorDetail
                     )
                 )
+            } else {
+                event(RecoverPasswordErrorEvent(it.message.orUnknownError()))
             }
-            .flowOn(Dispatchers.Main)
-            .onException {
-                if (it is NunchukApiException) {
-                    event(
-                        SignInErrorEvent(
-                            code = it.code,
-                            message = it.message,
-                            errorDetail = it.errorDetail
-                        )
-                    )
-                } else {
-                    event(RecoverPasswordErrorEvent(it.message.orUnknownError()))
-                }
-            }
-            .launchIn(viewModelScope)
+        }
     }
 
     private suspend fun initNunchuk() = initNunchukUseCase(
-        InitNunchukUseCase.Param(
-            accountId = email
-        )
+        InitNunchukUseCase.Param(accountId = email)
     )
 
     private fun validateConfirmPasswordMatched(

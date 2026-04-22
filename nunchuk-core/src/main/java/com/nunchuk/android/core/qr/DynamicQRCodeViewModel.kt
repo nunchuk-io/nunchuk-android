@@ -27,9 +27,8 @@ import com.nunchuk.android.core.domain.settings.GetQrDensitySettingUseCase
 import com.nunchuk.android.core.domain.settings.UpdateQrDensitySettingUseCase
 import com.nunchuk.android.core.util.ExportWalletQRCodeType
 import com.nunchuk.android.core.util.HIGH_DENSITY
-import com.nunchuk.android.core.util.messageOrUnknownError
+import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.toBBQRDensity
-import com.nunchuk.android.model.Result
 import com.nunchuk.android.usecase.CreateShareFileUseCase
 import com.nunchuk.android.usecase.ExportBCR2020010WalletUseCase
 import com.nunchuk.android.usecase.ExportKeystoneWalletUseCase
@@ -154,26 +153,22 @@ class DynamicQRCodeViewModel @Inject constructor(
     }
 
     fun saveBitmapToPDF(bitmaps: List<Bitmap>, isSaveLocalFile: Boolean) = viewModelScope.launch(Dispatchers.IO) {
-        when (val event = createShareFileUseCase.execute(getFileName())) {
-            is Result.Success -> {
-                saveBitmapToPDFUseCase(
-                    SaveBitmapToPDFUseCase.Param(
-                        bitmaps,
-                        event.data
-                    )
+        createShareFileUseCase(getFileName()).onSuccess { filePath ->
+            saveBitmapToPDFUseCase(
+                SaveBitmapToPDFUseCase.Param(
+                    bitmaps,
+                    filePath
                 )
-                    .onSuccess {
-                        if (isSaveLocalFile) {
-                            saveLocalFile(event.data)
-                        } else {
-                            _event.emit(DynamicQRCodeEvent.SavePDFSuccess(event.data))
-                        }
+            )
+                .onSuccess {
+                    if (isSaveLocalFile) {
+                        saveLocalFile(filePath)
+                    } else {
+                        _event.emit(DynamicQRCodeEvent.SavePDFSuccess(filePath))
                     }
-            }
-
-            is Result.Error -> {
-                _event.emit(DynamicQRCodeEvent.Error(event.exception.messageOrUnknownError()))
-            }
+                }
+        }.onFailure {
+            _event.emit(DynamicQRCodeEvent.Error(it.message.orUnknownError()))
         }
     }
 

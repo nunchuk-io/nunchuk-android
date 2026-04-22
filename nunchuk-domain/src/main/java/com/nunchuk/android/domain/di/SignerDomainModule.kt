@@ -25,8 +25,6 @@ import com.nunchuk.android.usecase.CreateKeystoneSignerUseCase
 import com.nunchuk.android.usecase.CreateKeystoneSignerUseCaseImpl
 import com.nunchuk.android.usecase.CreatePassportSignersUseCase
 import com.nunchuk.android.usecase.CreatePassportSignersUseCaseImpl
-import com.nunchuk.android.usecase.GetBip39WordListUseCase
-import com.nunchuk.android.usecase.GetBip39WordListUseCaseImpl
 import com.nunchuk.android.usecase.GetCompoundSignersUseCase
 import com.nunchuk.android.usecase.GetCompoundSignersUseCaseImpl
 import com.nunchuk.android.usecase.GetMasterSignersUseCase
@@ -35,8 +33,6 @@ import com.nunchuk.android.usecase.GetRemoteSignersUseCase
 import com.nunchuk.android.usecase.GetRemoteSignersUseCaseImpl
 import com.nunchuk.android.usecase.GetUnusedSignerFromMasterSignerUseCase
 import com.nunchuk.android.usecase.GetUnusedSignerFromMasterSignerUseCaseImpl
-import com.nunchuk.android.usecase.UpdateRemoteSignerUseCase
-import com.nunchuk.android.usecase.UpdateRemoteSignerUseCaseImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -50,13 +46,7 @@ internal interface SignerDomainModule {
     fun bindGetRemoteSignersUseCase(useCase: GetRemoteSignersUseCaseImpl): GetRemoteSignersUseCase
 
     @Binds
-    fun bindUpdateRemoteSignerUseCase(useCase: UpdateRemoteSignerUseCaseImpl): UpdateRemoteSignerUseCase
-
-    @Binds
     fun bindCreateKeystoneSignerUseCase(useCase: CreateKeystoneSignerUseCaseImpl): CreateKeystoneSignerUseCase
-
-    @Binds
-    fun bindGetBip39WordListUseCase(useCase: GetBip39WordListUseCaseImpl): GetBip39WordListUseCase
 
     @Binds
     fun bindCheckMnemonicUseCase(useCase: CheckMnemonicUseCaseImpl): CheckMnemonicUseCase

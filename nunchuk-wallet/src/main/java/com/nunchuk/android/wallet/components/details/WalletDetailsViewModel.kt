@@ -36,7 +36,6 @@ import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.util.getNearestTimeLock
 import com.nunchuk.android.core.util.hadBroadcast
-import com.nunchuk.android.core.util.messageOrUnknownError
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.readableMessage
 import com.nunchuk.android.domain.di.IoDispatcher
@@ -45,8 +44,6 @@ import com.nunchuk.android.listener.GroupReplaceListener
 import com.nunchuk.android.listener.TransactionListener
 import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.model.HistoryPeriod
-import com.nunchuk.android.model.Result
-import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.model.RoomWallet
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Transaction
@@ -716,26 +713,25 @@ internal class WalletDetailsViewModel @Inject constructor(
     fun handleExportBSMS(isShareFile: Boolean) {
         viewModelScope.launch {
             val walletId = getWallet().id
-            when (val event = createShareFileUseCase.execute("${walletId}.bsms")) {
-                is Success -> exportWalletToFile(walletId, event.data, isShareFile)
-                is Result.Error -> setEvent(WalletDetailsError(event.exception.messageOrUnknownError()))
+            createShareFileUseCase("${walletId}.bsms").onSuccess { filePath ->
+                exportWalletToFile(walletId, filePath, isShareFile)
+            }.onFailure {
+                setEvent(WalletDetailsError(it.message.orUnknownError()))
             }
         }
     }
 
     private fun exportWalletToFile(walletId: String, filePath: String, isShareFile: Boolean) {
         viewModelScope.launch {
-            when (val event = exportWalletUseCase.execute(walletId, filePath, ExportFormat.BSMS)) {
-                is Success -> {
-                    if (isShareFile) {
-                        setEvent(ShareBSMS(filePath))
-                        markGroupWalletAsBackedUp()
-                    } else {
-                        saveBSMSToLocal(filePath)
-                    }
+            exportWalletUseCase(ExportWalletUseCase.Param(walletId, filePath, ExportFormat.BSMS)).onSuccess {
+                if (isShareFile) {
+                    setEvent(ShareBSMS(filePath))
+                    markGroupWalletAsBackedUp()
+                } else {
+                    saveBSMSToLocal(filePath)
                 }
-
-                is Result.Error -> setEvent(WalletDetailsError(event.exception.messageOrUnknownError()))
+            }.onFailure {
+                setEvent(WalletDetailsError(it.message.orUnknownError()))
             }
         }
     }

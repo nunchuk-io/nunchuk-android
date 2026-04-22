@@ -21,34 +21,30 @@ package com.nunchuk.android.auth.domain
 
 import com.nunchuk.android.auth.data.AuthRepository
 import com.nunchuk.android.core.account.AccountManager
-import com.nunchuk.android.model.Result
-import com.nunchuk.android.usecase.BaseUseCase
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-interface RecoverPasswordUseCase {
-    suspend fun execute(
-        emailAddress: String?,
-        oldPassword: String,
-        newPassword: String
-    ): Result<Unit>
-}
-
-internal class RecoverPasswordUseCaseImpl @Inject constructor(
+class RecoverPasswordUseCase @Inject constructor(
     private val authRepository: AuthRepository,
-    private val accountManager: AccountManager
-) : BaseUseCase(), RecoverPasswordUseCase {
+    private val accountManager: AccountManager,
+    @IoDispatcher dispatcher: CoroutineDispatcher,
+) : UseCase<RecoverPasswordUseCase.Param, Unit>(dispatcher) {
 
-    override suspend fun execute(
-        emailAddress: String?,
-        oldPassword: String,
-        newPassword: String
-    ) = exe {
+    override suspend fun execute(parameters: Param) {
         val account = accountManager.getAccount()
         authRepository.recoverPassword(
-            email = emailAddress ?: account.email,
-            oldPassword = oldPassword,
-            newPassword = newPassword
+            email = parameters.emailAddress ?: account.email,
+            oldPassword = parameters.oldPassword,
+            newPassword = parameters.newPassword
         )
         accountManager.storeAccount(account.copy(activated = true))
     }
+
+    data class Param(
+        val emailAddress: String?,
+        val oldPassword: String,
+        val newPassword: String,
+    )
 }

@@ -477,20 +477,19 @@ class OnChainReplaceKeysViewModel @Inject constructor(
         viewModelScope.launch {
             singleSigners.find { it.masterFingerprint == signer.fingerPrint && it.derivationPath == signer.derivationPath }
                 ?.let { singleSigner ->
-                    val result =
-                        updateRemoteSignerUseCase.execute(singleSigner.copy(tags = listOf(tag)))
-                    if (result is Result.Success) {
-                        loadSigners()
-                        _event.emit(
-                            OnChainReplaceKeyEvent.UpdateSignerTag(
-                                signer.copy(
-                                    tags = listOf(tag)
+                    updateRemoteSignerUseCase(singleSigner.copy(tags = listOf(tag)))
+                        .onSuccess {
+                            loadSigners()
+                            _event.emit(
+                                OnChainReplaceKeyEvent.UpdateSignerTag(
+                                    signer.copy(
+                                        tags = listOf(tag)
+                                    )
                                 )
                             )
-                        )
-                    } else {
-                        _event.emit(OnChainReplaceKeyEvent.ShowError((result as Result.Error).exception.message.orUnknownError()))
-                    }
+                        }.onFailure {
+                            _event.emit(OnChainReplaceKeyEvent.ShowError(it.message.orUnknownError()))
+                        }
                 }
         }
     }

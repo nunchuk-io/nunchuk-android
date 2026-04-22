@@ -21,15 +21,14 @@ package com.nunchuk.android.auth.components.signup
 
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
-import com.nunchuk.android.auth.components.signup.SignUpEvent.AccountExistedEvent
 import com.nunchuk.android.auth.components.signup.SignUpEvent.EmailInvalidEvent
 import com.nunchuk.android.auth.components.signup.SignUpEvent.EmailRequiredEvent
 import com.nunchuk.android.auth.components.signup.SignUpEvent.EmailValidEvent
 import com.nunchuk.android.auth.components.signup.SignUpEvent.LoadingEvent
+import com.nunchuk.android.auth.components.signup.SignUpEvent.AccountExistedEvent
 import com.nunchuk.android.auth.components.signup.SignUpEvent.SignUpErrorEvent
 import com.nunchuk.android.auth.components.signup.SignUpEvent.SignUpSuccessEvent
 import com.nunchuk.android.auth.domain.RegisterUseCase
-import com.nunchuk.android.auth.validator.NameValidator
 import com.nunchuk.android.auth.validator.doAfterValidate
 import com.nunchuk.android.core.network.NunchukApiException
 import com.nunchuk.android.core.network.accountExisted
@@ -49,11 +48,9 @@ internal class SignUpViewModel @Inject constructor(
         if (validateEmail(email)) {
             viewModelScope.launch {
                 event(LoadingEvent)
-                registerUseCase.execute(name = name, email = email).onSuccess {
-                    event(SignUpSuccessEvent)
-                }.onFailure {
-                    handleException(it)
-                }
+                registerUseCase(RegisterUseCase.Param(name = name, email = email))
+                    .onSuccess { event(SignUpSuccessEvent) }
+                    .onFailure { handleException(it) }
             }
         }
     }

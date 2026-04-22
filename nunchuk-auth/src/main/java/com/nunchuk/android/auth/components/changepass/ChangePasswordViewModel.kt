@@ -36,14 +36,8 @@ import com.nunchuk.android.auth.domain.SignInUseCase
 import com.nunchuk.android.auth.validator.doAfterValidate
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.usecase.SetFirstCreatedChatIdUseCase
-import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers.IO
-import kotlinx.coroutines.Dispatchers.Main
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -73,25 +67,32 @@ internal class ChangePasswordViewModel @Inject constructor(
                 && validateConfirmPassword(confirmPassword)
                 && validateConfirmPasswordMatched(newPassword, confirmPassword)
             ) {
-                changePasswordUseCase.execute(oldPassword = oldPassword, newPassword = newPassword)
-                    .onStart {
-                        if (account.token.isEmpty()) {
-                            signInUseCase.execute(
-                                email = account.email,
-                                password = oldPassword,
-                                staySignedIn = false,
-                                fetchUserInfo = false
-                            ).first()
-                        }
+                event(LoadingEvent)
+                if (account.token.isEmpty()) {
+                    val signInResult = signInUseCase(
+                        SignInUseCase.Param(
+                            email = account.email,
+                            password = oldPassword,
+                            staySignedIn = false,
+                            fetchUserInfo = false
+                        )
+                    )
+                    if (signInResult.isFailure) {
+                        event(ChangePasswordSuccessError(signInResult.exceptionOrNull()?.message))
+                        return@launch
                     }
-                    .flowOn(IO)
-                    .onStart { event(LoadingEvent) }
-                    .onException { event(ChangePasswordSuccessError(it.message)) }
-                    .flowOn(Main)
-                    .collect {
-                        saveFirstCreateEmail(account.chatId)
-                        onChangePasswordSuccess()
-                    }
+                }
+                changePasswordUseCase(
+                    ChangePasswordUseCase.Param(
+                        oldPassword = oldPassword,
+                        newPassword = newPassword
+                    )
+                ).onSuccess {
+                    saveFirstCreateEmail(account.chatId)
+                    onChangePasswordSuccess()
+                }.onFailure {
+                    event(ChangePasswordSuccessError(it.message))
+                }
             }
         }
     }

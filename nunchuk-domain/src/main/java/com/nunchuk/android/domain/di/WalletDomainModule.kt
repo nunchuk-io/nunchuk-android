@@ -23,8 +23,6 @@ import com.nunchuk.android.usecase.DraftWalletUseCase
 import com.nunchuk.android.usecase.DraftWalletUseCaseImpl
 import com.nunchuk.android.usecase.ExportKeystoneWalletUseCase
 import com.nunchuk.android.usecase.ExportKeystoneWalletUseCaseImpl
-import com.nunchuk.android.usecase.ExportWalletUseCase
-import com.nunchuk.android.usecase.ExportWalletUseCaseImpl
 import com.nunchuk.android.usecase.GetWalletUseCase
 import com.nunchuk.android.usecase.GetWalletUseCaseImpl
 import com.nunchuk.android.usecase.GetWalletsUseCase
@@ -47,9 +45,6 @@ internal interface WalletDomainModule {
 
     @Binds
     fun bindDraftWalletUseCase(useCase: DraftWalletUseCaseImpl): DraftWalletUseCase
-
-    @Binds
-    fun bindExportWalletUseCase(useCase: ExportWalletUseCaseImpl): ExportWalletUseCase
 
     @Binds
     fun bindExportKeystoneWalletUseCase(useCase: ExportKeystoneWalletUseCaseImpl): ExportKeystoneWalletUseCase

@@ -29,7 +29,6 @@ import com.nunchuk.android.core.util.isColdCard
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.BannerState
-import com.nunchuk.android.model.Result
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.CreateShareFileUseCase
@@ -87,16 +86,15 @@ internal class BackupWalletViewModel @Inject constructor(
 
     fun handleBackupDescriptorEvent() {
         val currentWallet = getState().wallet ?: return
-        
+
         updateState { copy(isLoading = true) }
-        
+
         viewModelScope.launch {
-            when (val event = createShareFileUseCase.execute("${currentWallet.id}.bsms")) {
-                is Result.Success -> exportWallet(event.data, currentWallet)
-                is Result.Error -> {
-                    updateState { copy(isLoading = false) }
-                    event(Failure(event.exception.message.orUnknownError()))
-                }
+            createShareFileUseCase("${currentWallet.id}.bsms").onSuccess { filePath ->
+                exportWallet(filePath, currentWallet)
+            }.onFailure {
+                updateState { copy(isLoading = false) }
+                event(Failure(it.message.orUnknownError()))
             }
         }
     }

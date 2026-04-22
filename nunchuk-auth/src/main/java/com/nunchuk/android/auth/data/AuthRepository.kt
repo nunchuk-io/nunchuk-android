@@ -42,26 +42,22 @@ import com.nunchuk.android.core.network.ApiInterceptedException
 import com.nunchuk.android.model.setting.QrSignInData
 import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.utils.DeviceManager
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOn
 import javax.inject.Inject
 
 interface AuthRepository {
 
     suspend fun register(name: String, email: String): UserTokenResponse
 
-    fun login(email: String, password: String): Flow<UserTokenResponse>
+    suspend fun login(email: String, password: String): UserTokenResponse
 
-    fun verify(
+    suspend fun verify(
         email: String,
         loginHalfToken: String,
         pin: String,
         deviceId: String
-    ): Flow<UserTokenResponse>
+    ): UserTokenResponse
 
-    fun changePassword(oldPassword: String, newPassword: String): Flow<Unit>
+    suspend fun changePassword(oldPassword: String, newPassword: String)
 
     suspend fun recoverPassword(email: String, oldPassword: String, newPassword: String)
 
@@ -96,32 +92,30 @@ internal class AuthRepositoryImpl @Inject constructor(
         return authApi.register(payload).data
     }
 
-    override fun login(email: String, password: String) = flow {
+    override suspend fun login(email: String, password: String): UserTokenResponse {
         val payload = SignInPayload(email = email, password = password)
-        emit(authApi.signIn(payload).data)
-    }.flowOn(Dispatchers.IO)
+        return authApi.signIn(payload).data
+    }
 
-    override fun verify(
+    override suspend fun verify(
         email: String,
         loginHalfToken: String,
         pin: String,
         deviceId: String
-    ) = flow {
+    ): UserTokenResponse {
         val payload = VerifyNewDevicePayload(
             email = email, loginHalfToken = loginHalfToken, pin = pin, deviceId = deviceId
         )
-        emit(authApi.verifyNewDevice(payload).data)
-    }.flowOn(Dispatchers.IO)
+        return authApi.verifyNewDevice(payload).data
+    }
 
-    override fun changePassword(oldPassword: String, newPassword: String) = flow {
+    override suspend fun changePassword(oldPassword: String, newPassword: String) {
         val payload = ChangePasswordPayload(oldPassword = oldPassword, newPassword = newPassword)
-        emit(
-            try {
-                authApi.changePassword(payload).data
-            } catch (e: ApiInterceptedException) {
-                CrashlyticsReporter.recordException(e)
-            }
-        )
+        try {
+            authApi.changePassword(payload).data
+        } catch (e: ApiInterceptedException) {
+            CrashlyticsReporter.recordException(e)
+        }
     }
 
     override suspend fun recoverPassword(email: String, oldPassword: String, newPassword: String) {

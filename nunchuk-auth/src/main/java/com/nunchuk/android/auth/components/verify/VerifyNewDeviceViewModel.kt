@@ -26,16 +26,9 @@ import com.nunchuk.android.auth.components.verify.VerifyNewDeviceEvent.SignInSuc
 import com.nunchuk.android.auth.domain.ResendVerifyNewDeviceCodeUseCase
 import com.nunchuk.android.auth.domain.VerifyNewDeviceUseCase
 import com.nunchuk.android.core.account.AccountManager
-import com.nunchuk.android.core.guestmode.SignInMode
-import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.share.InitNunchukUseCase
-import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -44,7 +37,6 @@ internal class VerifyNewDeviceViewModel @Inject constructor(
     private val verifyNewDeviceUseCase: VerifyNewDeviceUseCase,
     private val initNunchukUseCase: InitNunchukUseCase,
     private val accountManager: AccountManager,
-    private val signInModeHolder: SignInModeHolder,
     private val resendVerifyNewDeviceCodeUseCase: ResendVerifyNewDeviceCodeUseCase,
 ) : NunchukViewModel<Unit, VerifyNewDeviceEvent>() {
 
@@ -58,22 +50,21 @@ internal class VerifyNewDeviceViewModel @Inject constructor(
         staySignedIn: Boolean
     ) {
         viewModelScope.launch {
-            verifyNewDeviceUseCase.execute(
-                email = email,
-                loginHalfToken = loginHalfToken,
-                pin = pin,
-                deviceId = deviceId,
-                staySignedIn = staySignedIn
-            ).flowOn(Dispatchers.IO)
-                .onStart { event(ProcessingEvent) }
-                .map {
-                    initNunchuk()
-                }
-                .flowOn(Dispatchers.Main)
-                .onException { setEvent(VerifyNewDeviceEvent.ProcessErrorEvent(message = it.message.orUnknownError())) }
-                .collect {
-                    event(SignInSuccessEvent)
-                }
+            event(ProcessingEvent)
+            verifyNewDeviceUseCase(
+                VerifyNewDeviceUseCase.Param(
+                    email = email,
+                    loginHalfToken = loginHalfToken,
+                    pin = pin,
+                    deviceId = deviceId,
+                    staySignedIn = staySignedIn
+                )
+            ).onSuccess {
+                initNunchuk()
+                event(SignInSuccessEvent)
+            }.onFailure {
+                setEvent(VerifyNewDeviceEvent.ProcessErrorEvent(message = it.message.orUnknownError()))
+            }
         }
     }
 
@@ -88,12 +79,9 @@ internal class VerifyNewDeviceViewModel @Inject constructor(
             loginHalfToken = loginHalfToken,
             deviceId = deviceId
         )
-        val result = resendVerifyNewDeviceCodeUseCase(data)
-        if (result.isSuccess) {
-            event(VerifyNewDeviceEvent.ResendVerifyCodeSuccessEvent)
-        } else {
-            event(VerifyNewDeviceEvent.ProcessErrorEvent(result.exceptionOrNull()?.message.orUnknownError()))
-        }
+        resendVerifyNewDeviceCodeUseCase(data)
+            .onSuccess { event(VerifyNewDeviceEvent.ResendVerifyCodeSuccessEvent) }
+            .onFailure { event(VerifyNewDeviceEvent.ProcessErrorEvent(it.message.orUnknownError())) }
     }
 
     private suspend fun initNunchuk() {

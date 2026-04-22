@@ -22,42 +22,40 @@ package com.nunchuk.android.auth.domain
 import com.nunchuk.android.auth.data.AuthRepository
 import com.nunchuk.android.core.account.AccountInfo
 import com.nunchuk.android.core.guestmode.SignInMode
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-interface VerifyNewDeviceUseCase {
-    fun execute(
-        email: String,
-        loginHalfToken: String,
-        pin: String,
-        deviceId: String,
-        staySignedIn: Boolean
-    ): Flow<AccountInfo>
-}
-
-internal class VerifyNewDeviceUseCaseImpl @Inject constructor(
+class VerifyNewDeviceUseCase @Inject constructor(
     private val authRepository: AuthRepository,
-    private val storeAccountUseCase: StoreAccountUseCase
-) : VerifyNewDeviceUseCase {
+    @IoDispatcher ioDispatcher: CoroutineDispatcher,
+    private val storeAccountUseCase: StoreAccountUseCase,
+) : UseCase<VerifyNewDeviceUseCase.Param, AccountInfo>(ioDispatcher) {
 
-    override fun execute(
-        email: String,
-        loginHalfToken: String,
-        pin: String,
-        deviceId: String,
-        staySignedIn: Boolean
-    ) = authRepository.verify(
-        email = email, loginHalfToken = loginHalfToken, pin = pin, deviceId = deviceId
-    ).map {
-        storeAccountUseCase(
+    override suspend fun execute(parameters: Param): AccountInfo {
+        val response = authRepository.verify(
+            email = parameters.email,
+            loginHalfToken = parameters.loginHalfToken,
+            pin = parameters.pin,
+            deviceId = parameters.deviceId
+        )
+        return storeAccountUseCase(
             StoreAccountUseCase.Param(
-                email = email,
-                response = it,
-                staySignedIn = staySignedIn,
+                email = parameters.email,
+                response = response,
+                staySignedIn = parameters.staySignedIn,
                 fetchUserInfo = true,
                 loginType = SignInMode.EMAIL
             )
         ).getOrThrow()
     }
+
+    data class Param(
+        val email: String,
+        val loginHalfToken: String,
+        val pin: String,
+        val deviceId: String,
+        val staySignedIn: Boolean,
+    )
 }

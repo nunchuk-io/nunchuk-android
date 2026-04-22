@@ -42,8 +42,6 @@ import com.nunchuk.android.core.util.CardIdManager
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.model.MasterSigner
-import com.nunchuk.android.model.Result.Error
-import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.signer.components.details.SignerInfoEvent.GenerateColdcardHealthMessagesSuccess
 import com.nunchuk.android.signer.components.details.SignerInfoEvent.GetTapSignerBackupKeyEvent
@@ -228,9 +226,8 @@ internal class SignerInfoViewModel @Inject constructor(
                 }
             } else {
                 state.remoteSigner?.let { signer ->
-                    when (val result =
-                        updateRemoteSignerUseCase.execute(signer = signer.copy(name = updateSignerName))) {
-                        is Success -> {
+                    updateRemoteSignerUseCase(signer.copy(name = updateSignerName))
+                        .onSuccess {
                             _state.update { it.copy(signerName = updateSignerName) }
                             _event.emit(UpdateNameSuccessEvent(updateSignerName))
                             updateServerKeyName(
@@ -238,10 +235,9 @@ internal class SignerInfoViewModel @Inject constructor(
                                 name = updateSignerName,
                                 path = signer.derivationPath
                             )
+                        }.onFailure {
+                            _event.emit(UpdateNameErrorEvent(it.message.orUnknownError()))
                         }
-
-                        is Error -> _event.emit(UpdateNameErrorEvent(result.exception.message.orUnknownError()))
-                    }
                 }
             }
         }

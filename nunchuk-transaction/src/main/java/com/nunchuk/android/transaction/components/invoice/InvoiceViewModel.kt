@@ -4,9 +4,8 @@ import android.content.Context
 import android.graphics.Bitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.nunchuk.android.core.util.messageOrUnknownError
+import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.wallet.InvoiceInfo
-import com.nunchuk.android.model.Result
 import com.nunchuk.android.usecase.CreateShareFileUseCase
 import com.nunchuk.android.usecase.SaveLocalFileUseCase
 import com.nunchuk.android.usecase.membership.SaveBitmapToPDFUseCase
@@ -39,19 +38,15 @@ class InvoiceViewModel @Inject constructor(
     fun exportInvoice(invoiceInfo: InvoiceInfo, txId: String, isSaveFile: Boolean) {
         viewModelScope.launch(Dispatchers.IO) {
             val fileName = "Transaction_$txId.pdf"
-            when (val event = createShareFileUseCase.execute(fileName)) {
-                is Result.Success -> {
-                    ExportInvoices(context = context).generatePDF(listOf(invoiceInfo), event.data, Job())
-                    if (isSaveFile) {
-                        saveLocalFile(event.data, fileName)
-                    } else {
-                        _event.emit(InvoiceEvent.ShareFile(event.data))
-                    }
+            createShareFileUseCase(fileName).onSuccess { filePath ->
+                ExportInvoices(context = context).generatePDF(listOf(invoiceInfo), filePath, Job())
+                if (isSaveFile) {
+                    saveLocalFile(filePath, fileName)
+                } else {
+                    _event.emit(InvoiceEvent.ShareFile(filePath))
                 }
-
-                is Result.Error -> {
-                    _event.emit(InvoiceEvent.Error(event.exception.messageOrUnknownError()))
-                }
+            }.onFailure {
+                _event.emit(InvoiceEvent.Error(it.message.orUnknownError()))
             }
         }
     }

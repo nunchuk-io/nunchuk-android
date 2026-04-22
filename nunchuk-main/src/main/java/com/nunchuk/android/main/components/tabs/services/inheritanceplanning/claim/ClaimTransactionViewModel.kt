@@ -14,11 +14,9 @@ import com.nunchuk.android.core.mapper.SingleSignerMapper
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.getFileContentFromUri
 import com.nunchuk.android.core.util.isNoInternetException
-import com.nunchuk.android.core.util.messageOrUnknownError
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.readableMessage
 import com.nunchuk.android.domain.di.IoDispatcher
-import com.nunchuk.android.model.Result
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.nav.args.ClaimTransactionArgs
@@ -327,12 +325,11 @@ class ClaimTransactionViewModel @AssistedInject constructor(
     fun exportTransactionToFile(psbt: String) {
         viewModelScope.launch {
             _loadingType.update { LoadingType.Normal }
-            when (val result = createShareFileUseCase.execute("transaction.psbt")) {
-                is Result.Success -> writePsbtToFile(result.data, psbt)
-                is Result.Error -> {
-                    _event.emit(ClaimTransactionEvent.ShowError(result.exception.messageOrUnknownError()))
-                    _loadingType.update { null }
-                }
+            createShareFileUseCase("transaction.psbt").onSuccess { filePath ->
+                writePsbtToFile(filePath, psbt)
+            }.onFailure {
+                _event.emit(ClaimTransactionEvent.ShowError(it.message.orUnknownError()))
+                _loadingType.update { null }
             }
         }
     }
