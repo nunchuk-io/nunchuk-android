@@ -79,7 +79,6 @@ import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import org.matrix.android.sdk.api.NoOpMatrixCallback
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.crypto.keysbackup.KeysBackupState
 import org.matrix.android.sdk.api.session.room.Room
@@ -192,7 +191,7 @@ internal class MainActivityViewModel @Inject constructor(
     private fun downloadKeys(session: Session) {
         viewModelScope.launch(dispatcher) {
             session.cryptoService()
-                .downloadKeys(listOf(session.myUserId), true, NoOpMatrixCallback())
+                .downloadKeysIfNeeded(listOf(session.myUserId), true)
         }
     }
 
@@ -506,13 +505,15 @@ internal class MainActivityViewModel @Inject constructor(
     private fun reRequestKeys(timelineEvent: TimelineEvent) {
         val session = sessionHolder.getSafeActiveSession() ?: return
         if (timelineEvent.isEncrypted() && timelineEvent.root.mCryptoError != null) {
-            val cryptoService = session.cryptoService()
-            val keysBackupService = cryptoService.keysBackupService()
-            if (keysBackupService.getState() == KeysBackupState.NotTrusted || (keysBackupService.getState() == KeysBackupState.ReadyToBackUp && keysBackupService.canRestoreKeys())) {
-                Timber.tag(TAG).d("Use backup key flow")
-            }
-            if (cryptoService.getCryptoDeviceInfo(session.myUserId).size > 1 || timelineEvent.senderInfo.userId != session.myUserId) {
-                cryptoService.reRequestRoomKeyForEvent(timelineEvent.root)
+            viewModelScope.launch(dispatcher) {
+                val cryptoService = session.cryptoService()
+                val keysBackupService = cryptoService.keysBackupService()
+                if (keysBackupService.getState() == KeysBackupState.NotTrusted || (keysBackupService.getState() == KeysBackupState.ReadyToBackUp && keysBackupService.canRestoreKeys())) {
+                    Timber.tag(TAG).d("Use backup key flow")
+                }
+                if (cryptoService.getCryptoDeviceInfo(session.myUserId).size > 1 || timelineEvent.senderInfo.userId != session.myUserId) {
+                    cryptoService.reRequestRoomKeyForEvent(timelineEvent.root)
+                }
             }
         }
     }
