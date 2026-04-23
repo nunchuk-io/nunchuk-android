@@ -29,13 +29,13 @@ class SaveSeedPhraseViewTimestampUseCase @Inject constructor(
     @IoDispatcher dispatcher: CoroutineDispatcher,
     private val repository: SignerSoftwareRepository
 ) : UseCase<SaveSeedPhraseViewTimestampUseCase.Param, Unit>(dispatcher) {
-    override suspend fun execute(parameters: Param): Unit {
+    override suspend fun execute(parameters: Param) {
         repository.saveSeedPhraseViewTimestamp(parameters.masterFingerprint, parameters.timestamp)
     }
 
     data class Param(
         val masterFingerprint: String,
-        val timestamp: Long = System.currentTimeMillis()
+        val timestamp: Long = System.currentTimeMillis(),
     )
 }
 

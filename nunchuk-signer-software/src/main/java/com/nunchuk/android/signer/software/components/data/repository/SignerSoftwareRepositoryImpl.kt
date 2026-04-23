@@ -104,5 +104,24 @@ internal class SignerSoftwareRepositoryImpl @Inject constructor(
         return dataStore.getSeedPhraseViewTimestamp(masterFingerprint)
     }
 
+    override suspend fun setSeedPhraseDelayHours(hours: Int) {
+        dataStore.setSeedPhraseDelayHours(hours)
+    }
+
+    override suspend fun getSeedPhraseDelayHours(): Int {
+        return dataStore.getSeedPhraseDelayHours()
+    }
+
+    override suspend fun setSeedPhraseDecreaseTransition(pendingHours: Int) {
+        dataStore.setSeedPhraseDecreaseTransition(pendingHours)
+    }
+
+    override suspend fun clearSeedPhraseDecreaseTransition() {
+        dataStore.clearSeedPhraseDecreaseTransition()
+    }
+
+    override suspend fun getSeedPhraseEffectiveDelayHours(): Int {
+        return dataStore.getSeedPhraseEffectiveDelayHours()
+    }
 }
 

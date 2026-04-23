@@ -14,7 +14,6 @@ import com.nunchuk.android.settings.walletsecurity.createpin.walletSecurityCreat
 import com.nunchuk.android.settings.walletsecurity.decoy.decoyPinNoteScreen
 import com.nunchuk.android.settings.walletsecurity.decoy.decoyPinScreen
 import com.nunchuk.android.settings.walletsecurity.decoy.decoyWalletCreateScreen
-import com.nunchuk.android.settings.walletsecurity.DecoyWalletCreateRoute
 import com.nunchuk.android.settings.walletsecurity.decoy.decoyWalletIntroScreen
 import com.nunchuk.android.settings.walletsecurity.decoy.decoyWalletSuccessScreen
 import com.nunchuk.android.settings.walletsecurity.decoy.navigateToDecoyPin
@@ -22,6 +21,8 @@ import com.nunchuk.android.settings.walletsecurity.decoy.navigateToDecoyPinNote
 import com.nunchuk.android.settings.walletsecurity.decoy.navigateToDecoyWalletSuccess
 import com.nunchuk.android.settings.walletsecurity.pin.navigateToPinStatus
 import com.nunchuk.android.settings.walletsecurity.pin.pinStatusScreen
+import com.nunchuk.android.settings.walletsecurity.seedphrase.navigateToSeedPhraseSettings
+import com.nunchuk.android.settings.walletsecurity.seedphrase.seedPhraseSettingsScreen
 import com.nunchuk.android.settings.walletsecurity.unlock.navigateToUnlockPin
 import com.nunchuk.android.settings.walletsecurity.unlock.unlockPinScreen
 
@@ -52,6 +53,13 @@ internal fun WalletSecuritySettingNavHost(
             onOpenPinStatus = {
                 navController.navigateToPinStatus()
             },
+            onOpenSeedPhraseSettings = {
+                navController.navigateToSeedPhraseSettings()
+            },
+        )
+
+        seedPhraseSettingsScreen(
+            navController = navController,
         )
 
         pinStatusScreen(

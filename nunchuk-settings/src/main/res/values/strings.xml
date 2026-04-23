@@ -157,4 +157,17 @@
     <string name="nc_enter_confirmation_code">Enter confirmation code</string>
     <string name="nc_confirmation_code">Confirmation code</string>
     <string name="nc_enter_confirmation_code_desc">Enter the confirmation code we sent to %1$s. Resend code</string>
+
+    <string name="nc_seed_phrase_2_hours">2 hours</string>
+    <string name="nc_seed_phrase_settings">Seed phrase settings</string>
+    <string name="nc_seed_phrase_settings_desc">Set a security waiting period before viewing any key\'s seed phrase.</string>
+    <string name="nc_seed_phrase_delay_description">Set the security waiting period required before viewing any software key\'s seed phrase.</string>
+    <string name="nc_seed_phrase_delay_custom">Custom</string>
+    <string name="nc_hours">hours</string>
+    <string name="nc_seed_phrase_delay_min_error">The security waiting period must be at least 2 hours.</string>
+    <string name="nc_seed_phrase_delay_updated">The new security waiting period has been updated.</string>
+    <string name="nc_seed_phrase_delay_updated_with_effect">The new security waiting period has been updated and will take effect in %d hours.</string>
+    <string name="nc_seed_phrase_delay_new_waiting_period">New Waiting Period</string>
+    <string name="nc_seed_phrase_delay_decrease_message">You\'re changing the waiting period from %1$d hours to %2$d hours. The new setting will apply after the current period ends.</string>
+    <string name="nc_confirm">Confirm</string>
 </resources>

@@ -118,7 +118,9 @@ fun SignerInfoContent(
         }
     }
 
-    LaunchedEffect(uiState.seedPhraseViewTimestamp) {
+    val timeoutDurationMs = uiState.activeDelayHours.hours.inWholeMilliseconds
+
+    LaunchedEffect(uiState.seedPhraseViewTimestamp, timeoutDurationMs) {
         val timestamp = uiState.seedPhraseViewTimestamp
         while (isActive) {
             if (timestamp == null || timestamp <= 0L) {
@@ -490,6 +492,7 @@ fun SignerInfoContent(
     if (showSecurityTimeoutDialog) {
         SecurityTimeoutDialog(
             isXprv = uiState.hasXprv,
+            delayHours = uiState.activeDelayHours,
             onDismiss = {
                 showSecurityTimeoutDialog = false
             },
@@ -503,7 +506,6 @@ fun SignerInfoContent(
 }
 
 
-val timeoutDurationMs = 2.hours.inWholeMilliseconds
 
 @Composable
 fun HealthCheckHistoryItem(history: HealthCheckHistory, onHistoryItemClick: () -> Unit = {}) {

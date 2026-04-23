@@ -54,3 +54,6 @@ data object DecoyWalletSuccessRoute
 
 @Serializable
 data object DecoyPinNoteRoute
+
+@Serializable
+data object SeedPhraseSettingsRoute

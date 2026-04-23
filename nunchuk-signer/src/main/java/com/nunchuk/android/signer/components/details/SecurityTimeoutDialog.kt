@@ -27,11 +27,13 @@ import com.nunchuk.android.signer.R
 @Composable
 fun SecurityTimeoutDialog(
     isXprv: Boolean = false,
+    delayHours: Int = 2,
     onDismiss: () -> Unit,
     onConfirm: () -> Unit = onDismiss,
 ) {
     val message = stringResource(
-        id = if (isXprv) R.string.nc_security_timeout_message_xprv else R.string.nc_security_timeout_message
+        id = if (isXprv) R.string.nc_security_timeout_message_xprv else R.string.nc_security_timeout_message,
+        delayHours,
     )
 
     NcConfirmationDialog(

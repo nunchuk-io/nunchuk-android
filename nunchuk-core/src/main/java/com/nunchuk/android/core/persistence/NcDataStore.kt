@@ -35,6 +35,7 @@ import com.google.gson.Gson
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.util.USD_CURRENCY
 import com.nunchuk.android.model.BannerState
+import com.nunchuk.android.model.DEFAULT_SEED_PHRASE_DELAY_HOURS
 import com.nunchuk.android.model.FeeRate
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStep
@@ -101,6 +102,10 @@ class NcDataStore @Inject constructor(
     private fun getSeedPhraseViewTimestampKey(masterFingerprint: String): Preferences.Key<Long> {
         return longPreferencesKey("seed_phrase_view_timestamp_$masterFingerprint")
     }
+
+    private val seedPhraseDelayHoursKey = intPreferencesKey("seed_phrase_delay_hours")
+    private val seedPhraseDecreaseStartElapsedKey = longPreferencesKey("seed_phrase_decrease_start_elapsed")
+    private val seedPhraseDecreasePendingHoursKey = intPreferencesKey("seed_phrase_decrease_pending_hours")
 
     /**
      * Current membership plan key
@@ -700,6 +705,55 @@ class NcDataStore @Inject constructor(
         }
     }
 
+    suspend fun setSeedPhraseDelayHours(hours: Int) {
+        context.dataStore.edit {
+            it[seedPhraseDelayHoursKey] = hours
+        }
+    }
+
+    suspend fun getSeedPhraseDelayHours(): Int {
+        return context.dataStore.data.first()[seedPhraseDelayHoursKey]
+            ?: DEFAULT_SEED_PHRASE_DELAY_HOURS
+    }
+
+    suspend fun setSeedPhraseDecreaseTransition(pendingHours: Int) {
+        context.dataStore.edit {
+            it[seedPhraseDecreaseStartElapsedKey] = SystemClock.elapsedRealtime()
+            it[seedPhraseDecreasePendingHoursKey] = pendingHours
+        }
+    }
+
+    suspend fun clearSeedPhraseDecreaseTransition() {
+        context.dataStore.edit {
+            it.remove(seedPhraseDecreaseStartElapsedKey)
+            it.remove(seedPhraseDecreasePendingHoursKey)
+        }
+    }
+
+    suspend fun getSeedPhraseEffectiveDelayHours(): Int {
+        val currentSettingHours = getSeedPhraseDelayHours()
+        val data = context.dataStore.data.first()
+        val startElapsed = data[seedPhraseDecreaseStartElapsedKey] ?: return currentSettingHours
+        val pendingHours = data[seedPhraseDecreasePendingHoursKey] ?: return currentSettingHours
+
+        val currentElapsed = SystemClock.elapsedRealtime()
+
+        if (startElapsed > currentElapsed) {
+            context.dataStore.edit {
+                it[seedPhraseDecreaseStartElapsedKey] = currentElapsed
+            }
+            return currentSettingHours
+        }
+
+        if (currentElapsed - startElapsed >= currentSettingHours * 3_600_000L) {
+            setSeedPhraseDelayHours(pendingHours)
+            clearSeedPhraseDecreaseTransition()
+            return pendingHours
+        }
+
+        return currentSettingHours
+    }
+
     suspend fun clear() {
         context.dataStore.edit {
             it.remove(syncEnableKey)
@@ -717,6 +771,9 @@ class NcDataStore @Inject constructor(
             it.remove(inactiveAssistedWalletIdsKey)
             it.remove(pendingTxInputsWalletIdKey)
             it.remove(pendingTxInputsKey)
+            it.remove(seedPhraseDelayHoursKey)
+            it.remove(seedPhraseDecreaseStartElapsedKey)
+            it.remove(seedPhraseDecreasePendingHoursKey)
             val keysToRemove = it.asMap().keys.filter { key ->
                 key.name.startsWith("seed_phrase_view_timestamp_")
             }

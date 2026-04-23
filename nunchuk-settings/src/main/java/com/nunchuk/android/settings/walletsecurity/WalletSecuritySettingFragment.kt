@@ -56,6 +56,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Observer
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
@@ -90,6 +91,7 @@ fun NavGraphBuilder.walletSecuritySettingScreen(
     passwordVerificationHelper: PasswordVerificationHelper,
     onBack: () -> Unit,
     onOpenPinStatus: () -> Unit,
+    onOpenSeedPhraseSettings: () -> Unit,
 ) {
     composable<WalletSecuritySettingRoute> {
         val viewModel = hiltViewModel<WalletSecuritySettingViewModel>()
@@ -283,6 +285,18 @@ fun NavGraphBuilder.walletSecuritySettingScreen(
             activity.getString(R.string.nc_off)
         }
 
+        val savedStateHandle = it.savedStateHandle
+        val toastMessage = savedStateHandle
+            .getStateFlow<String?>("seed_phrase_toast", null)
+            .collectAsStateWithLifecycle()
+
+        LaunchedEffect(toastMessage.value) {
+            toastMessage.value?.let { message ->
+                NCToastMessage(activity).show(message)
+                savedStateHandle.remove<String>("seed_phrase_toast")
+            }
+        }
+
         WalletSecuritySettingContentCompose(
             state = state,
             pinStatus = pinStatus,
@@ -293,6 +307,7 @@ fun NavGraphBuilder.walletSecuritySettingScreen(
             isBiometricOptionEnabled = isBiometricOptionEnabled,
             onBack = onBack,
             onOpenPinStatus = onOpenPinStatus,
+            onOpenSeedPhraseSettings = onOpenSeedPhraseSettings,
             onPasswordChanged = { enabled ->
                 if (enabled.not()) {
                     passwordVerificationHelper.showPasswordVerificationDialog(
@@ -397,6 +412,7 @@ private fun WalletSecuritySettingContentCompose(
     pinStatus: String,
     showPasswordOption: Boolean,
     showPassphraseOption: Boolean,
+    onOpenSeedPhraseSettings: () -> Unit = {},
     isPassphraseSwitchEnabled: Boolean,
     biometricChecked: Boolean,
     isBiometricOptionEnabled: Boolean,
@@ -461,6 +477,12 @@ private fun WalletSecuritySettingContentCompose(
                         onCheckedChange = onPassphraseChanged,
                     )
                 }
+
+                WalletSecurityClickableItemCompose(
+                    title = stringResource(R.string.nc_seed_phrase_settings),
+                    description = stringResource(R.string.nc_seed_phrase_settings_desc),
+                    onClick = onOpenSeedPhraseSettings,
+                )
             }
         }
     }
@@ -545,6 +567,43 @@ private fun WalletSecurityPinItemCompose(
         NcIcon(
             painter = painterResource(id = R.drawable.ic_right_arrow_dark),
             contentDescription = stringResource(R.string.nc_protect_app_with_pin),
+        )
+    }
+}
+
+@Composable
+private fun WalletSecurityClickableItemCompose(
+    title: String,
+    description: String,
+    onClick: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .padding(end = 12.dp),
+        ) {
+            Text(
+                text = title,
+                style = NunchukTheme.typography.body,
+            )
+            Text(
+                modifier = Modifier.padding(top = 4.dp),
+                text = description,
+                style = NunchukTheme.typography.bodySmall.copy(
+                    color = MaterialTheme.colorScheme.textSecondary,
+                ),
+            )
+        }
+        NcIcon(
+            painter = painterResource(id = R.drawable.ic_right_arrow_dark),
+            contentDescription = title,
         )
     }
 }

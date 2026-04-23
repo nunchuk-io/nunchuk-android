@@ -75,7 +75,9 @@ import com.nunchuk.android.usecase.UpdateRemoteSignerUseCase
 import com.nunchuk.android.usecase.byzantine.KeyHealthCheckUseCase
 import com.nunchuk.android.usecase.membership.GetAssistedKeysUseCase
 import com.nunchuk.android.usecase.membership.UpdateServerKeyNameUseCase
+import com.nunchuk.android.model.DEFAULT_SEED_PHRASE_DELAY_HOURS
 import com.nunchuk.android.usecase.signer.ClearSignerPassphraseUseCase
+import com.nunchuk.android.usecase.signer.GetEffectiveSeedPhraseDelayUseCase
 import com.nunchuk.android.usecase.signer.GetSeedPhraseViewTimestampUseCase
 import com.nunchuk.android.usecase.signer.HasSignerMasterXprvUseCase
 import com.nunchuk.android.usecase.signer.HasSignerMnemonicUseCase
@@ -129,6 +131,7 @@ internal class SignerInfoViewModel @Inject constructor(
     private val hasSignerMnemonicUseCase: HasSignerMnemonicUseCase,
     private val hasSignerMasterXprvUseCase: HasSignerMasterXprvUseCase,
     private val clearSignerPassphraseUseCase: ClearSignerPassphraseUseCase,
+    private val getEffectiveSeedPhraseDelayUseCase: GetEffectiveSeedPhraseDelayUseCase,
     savedStateHandle: SavedStateHandle,
     getAssistedKeysUseCase: GetAssistedKeysUseCase,
 ) : ViewModel() {
@@ -210,7 +213,7 @@ internal class SignerInfoViewModel @Inject constructor(
                 val timestamp = getSeedPhraseViewTimestampUseCase(args.id).getOrNull()?.takeIf { it > 0L }
                 val hasMnemonic = hasSignerMnemonicUseCase(args.id).getOrDefault(false)
                 val hasXprv = hasSignerMasterXprvUseCase(args.id).getOrDefault(false)
-                _state.update { state -> 
+                _state.update { state ->
                     state.copy(
                         seedPhraseViewTimestamp = timestamp,
                         hasMnemonic = hasMnemonic,
@@ -218,6 +221,11 @@ internal class SignerInfoViewModel @Inject constructor(
                     )
                 }
             }
+        }
+        viewModelScope.launch {
+            val effectiveDelay = getEffectiveSeedPhraseDelayUseCase(Unit)
+                .getOrDefault(DEFAULT_SEED_PHRASE_DELAY_HOURS)
+            _state.update { it.copy(activeDelayHours = effectiveDelay) }
         }
     }
 
@@ -572,8 +580,15 @@ internal class SignerInfoViewModel @Inject constructor(
     fun saveSeedPhraseViewTimestamp(masterFingerprint: String) {
         viewModelScope.launch {
             val timeStamp = SystemClock.elapsedRealtime()
-            saveSeedPhraseViewTimestampUseCase(SaveSeedPhraseViewTimestampUseCase.Param(masterFingerprint, timeStamp))
-            _state.update { state -> state.copy(seedPhraseViewTimestamp = timeStamp) }
+            saveSeedPhraseViewTimestampUseCase(
+                SaveSeedPhraseViewTimestampUseCase.Param(
+                    masterFingerprint = masterFingerprint,
+                    timestamp = timeStamp,
+                )
+            )
+            _state.update { state ->
+                state.copy(seedPhraseViewTimestamp = timeStamp)
+            }
         }
     }
 

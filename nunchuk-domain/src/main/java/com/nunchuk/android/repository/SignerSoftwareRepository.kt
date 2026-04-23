@@ -55,4 +55,14 @@ interface SignerSoftwareRepository {
     suspend fun saveSeedPhraseViewTimestamp(masterFingerprint: String, timestamp: Long)
 
     suspend fun getSeedPhraseViewTimestamp(masterFingerprint: String): Long?
+
+    suspend fun setSeedPhraseDelayHours(hours: Int)
+
+    suspend fun getSeedPhraseDelayHours(): Int
+
+    suspend fun setSeedPhraseDecreaseTransition(pendingHours: Int)
+
+    suspend fun clearSeedPhraseDecreaseTransition()
+
+    suspend fun getSeedPhraseEffectiveDelayHours(): Int
 }

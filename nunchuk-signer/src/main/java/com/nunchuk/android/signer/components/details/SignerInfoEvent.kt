@@ -23,6 +23,7 @@ import com.nunchuk.android.model.HealthCheckHistory
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.byzantine.DummyTransactionPayload
+import com.nunchuk.android.model.DEFAULT_SEED_PHRASE_DELAY_HOURS
 
 sealed class SignerInfoEvent {
 
@@ -71,4 +72,5 @@ data class SignerInfoState(
     val hasMnemonic: Boolean = false,
     val hasXprv: Boolean = false,
     val passphrase: String? = null,
+    val activeDelayHours: Int = DEFAULT_SEED_PHRASE_DELAY_HOURS,
 )

@@ -29,9 +29,8 @@ class GetSeedPhraseViewTimestampUseCase @Inject constructor(
     @IoDispatcher dispatcher: CoroutineDispatcher,
     private val repository: SignerSoftwareRepository
 ) : UseCase<String, Long?>(dispatcher) {
-    
+
     override suspend fun execute(parameters: String): Long? {
         return repository.getSeedPhraseViewTimestamp(parameters)
     }
 }
-
