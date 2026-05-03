@@ -66,6 +66,7 @@ class MembershipStepManager @Inject constructor(
     private val steps = mutableMapOf<MembershipStep, MembershipStepFlow>()
     private val _stepDone = MutableStateFlow<Set<MembershipStep>>(emptySet())
     val stepDone = _stepDone.asStateFlow()
+    private val activeStepTrackers = mutableSetOf<Int>()
 
     var currentStep: MembershipStep? = null
         private set
@@ -198,6 +199,7 @@ class MembershipStepManager @Inject constructor(
             steps[MembershipStep.CREATE_WALLET] = MembershipStepFlow(totalStep = 2)
             _remainingTime.value = calculateRemainTime(steps.toMap().values)
             _stepDone.value = emptySet()
+            activeStepTrackers.clear()
             val plan = when (groupWalletType) {
                 GroupWalletType.TWO_OF_FOUR_MULTISIG -> MembershipPlan.HONEY_BADGER
                 GroupWalletType.TWO_OF_THREE_PLATFORM_KEY -> MembershipPlan.IRON_HAND
@@ -256,7 +258,20 @@ class MembershipStepManager @Inject constructor(
     fun restart() {
         synchronized(this) {
             steps.forEach { it.value.currentStep = 0 }
+            activeStepTrackers.clear()
             updateRemainTime()
+        }
+    }
+
+    fun attachStepTracker(trackerId: Int) = synchronized(this) {
+        if (activeStepTrackers.add(trackerId)) {
+            updateStep(true)
+        }
+    }
+
+    fun detachStepTracker(trackerId: Int) = synchronized(this) {
+        if (activeStepTrackers.remove(trackerId)) {
+            updateStep(false)
         }
     }
 

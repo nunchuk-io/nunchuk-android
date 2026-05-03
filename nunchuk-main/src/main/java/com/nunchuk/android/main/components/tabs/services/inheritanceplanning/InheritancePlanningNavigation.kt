@@ -6,6 +6,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hasRoute
@@ -929,10 +932,23 @@ fun InheritancePlanningGraph(
 
 @Composable
 internal fun MembershipStepEffect(membershipStepManager: MembershipStepManager) {
-    DisposableEffect(membershipStepManager) {
-        membershipStepManager.updateStep(true)
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val trackerId = remember(lifecycleOwner) { System.identityHashCode(lifecycleOwner) }
+
+    DisposableEffect(lifecycleOwner, membershipStepManager, trackerId) {
+        membershipStepManager.attachStepTracker(trackerId)
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_DESTROY) {
+                membershipStepManager.detachStepTracker(trackerId)
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+
         onDispose {
-            membershipStepManager.updateStep(false)
+            lifecycleOwner.lifecycle.removeObserver(observer)
+            if (lifecycleOwner.lifecycle.currentState == Lifecycle.State.DESTROYED) {
+                membershipStepManager.detachStepTracker(trackerId)
+            }
         }
     }
 }
