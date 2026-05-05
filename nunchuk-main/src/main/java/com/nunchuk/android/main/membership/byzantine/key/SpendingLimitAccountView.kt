@@ -161,7 +161,7 @@ fun SpendingLimitAccountView(
                             CurrencyFormatter.format(it, 2, locale).take(15)
                         )
                     },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     enabled = isNotKeyHolderLimited,
                     readOnly = !isNotKeyHolderLimited,
                     disableBackgroundColor = MaterialTheme.colorScheme.whisper,

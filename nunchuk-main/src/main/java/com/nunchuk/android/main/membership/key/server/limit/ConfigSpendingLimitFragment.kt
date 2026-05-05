@@ -73,6 +73,7 @@ import com.nunchuk.android.compose.NcHintMessage
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NcTopAppBar
+import com.nunchuk.android.compose.NumberCommaTransformation
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
@@ -275,10 +276,11 @@ private fun ConfigSpendingLimitContent(
                             .padding(end = 16.dp),
                         title = "",
                         value = spendingLimit.value,
+                        visualTransformation = NumberCommaTransformation(locale = locale),
                         onValueChange = {
                             spendingLimit.value = CurrencyFormatter.format(it, 2, locale).take(15)
                         },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
                     )
                     Row(
                         modifier = Modifier
