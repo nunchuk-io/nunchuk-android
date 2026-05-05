@@ -3,6 +3,9 @@ package com.nunchuk.android.main.groupwallet.keypolicies
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.util.formatDecimalWithoutZero
+import com.nunchuk.android.core.util.formatFiatDecimalWithoutZero
+import com.nunchuk.android.core.util.USD_FRACTION_DIGITS
 import com.nunchuk.android.model.GroupPlatformKeyPolicy
 import com.nunchuk.android.model.GroupSpendingLimit
 import com.nunchuk.android.model.SpendingPolicy
@@ -52,11 +55,12 @@ internal fun formatSpendingLimit(policy: SpendingPolicy): String {
         SpendingTimeUnit.MONTHLY -> "Month"
         SpendingTimeUnit.YEARLY -> "Year"
     }
+    val isFiat = policy.currencyUnit != "BTC" && policy.currencyUnit != "sat"
     val limitText = if (policy.limit == 0.0) "0" else {
-        if (policy.limit % 1.0 == 0.0) {
-            policy.limit.toLong().toString()
+        if (isFiat) {
+            policy.limit.formatFiatDecimalWithoutZero(USD_FRACTION_DIGITS)
         } else {
-            policy.limit.toString()
+            policy.limit.formatDecimalWithoutZero(USD_FRACTION_DIGITS)
         }
     }
     return "${policy.currencyUnit} $limitText / $timeUnitText"
@@ -73,11 +77,12 @@ internal fun formatGroupSpendingLimit(limit: GroupSpendingLimit): String {
         else -> "Day"
     }
     val amountDouble = normalizedLimit.amount.toDoubleOrNull() ?: 0.0
+    val isFiat = normalizedLimit.currency != "BTC" && normalizedLimit.currency != "sat"
     val amountText = if (amountDouble == 0.0) "0" else {
-        if (amountDouble % 1.0 == 0.0) {
-            amountDouble.toLong().toString()
+        if (isFiat) {
+            amountDouble.formatFiatDecimalWithoutZero(USD_FRACTION_DIGITS)
         } else {
-            normalizedLimit.amount
+            amountDouble.formatDecimalWithoutZero(USD_FRACTION_DIGITS)
         }
     }
     return "${normalizedLimit.currency} $amountText / $intervalText"

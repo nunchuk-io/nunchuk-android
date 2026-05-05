@@ -47,6 +47,7 @@ import com.nunchuk.android.compose.NcSelectableBottomSheet
 import com.nunchuk.android.compose.NcSwitch
 import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NcToastType
+import com.nunchuk.android.compose.NumberCommaTransformation
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.controlFillTertiary
 import com.nunchuk.android.compose.greyLight
@@ -55,6 +56,8 @@ import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.util.CurrencyFormatter
+import com.nunchuk.android.core.util.getLocaleForCurrencyUnit
 import com.nunchuk.android.core.util.toReadableDrawableResId
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.GroupPlatformKeyPolicy
@@ -223,10 +226,13 @@ internal fun EditGlobalPolicyBottomSheet(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
+                    val locale = getLocaleForCurrencyUnit(currencyUnit)
+                    val maxDecimalDigits = if (currencyUnit.equals("BTC", ignoreCase = true)) 8 else 2
                     NcTextField(
                         modifier = Modifier.weight(1f),
                         title = "",
                         value = amount,
+                        visualTransformation = NumberCommaTransformation(locale = locale),
                         placeholder = {
                             Text(
                                 text = "0",
@@ -244,9 +250,9 @@ internal fun EditGlobalPolicyBottomSheet(
                         ),
                         onValueChange = { value ->
                             amount = if (currencyUnit.equals("sat", ignoreCase = true)) {
-                                value.filter { it.isDigit() }
+                                value.filter { it.isDigit() }.take(15)
                             } else {
-                                value
+                                CurrencyFormatter.format(value, maxDecimalDigits, locale).take(15)
                             }
                         },
                     )
@@ -509,7 +515,7 @@ internal fun EditGlobalPolicyBottomSheet(
                 val selectedCurrency = currencyOptions.getOrElse(index) { currencyOptions.first() }
                 currencyUnit = selectedCurrency.value
                 if (currencyUnit.equals("sat", ignoreCase = true)) {
-                    amount = amount.substringBefore('.').filter { it.isDigit() }
+                    amount = amount.filter { it.isDigit() }
                 }
                 showCurrencySelector = false
             },
