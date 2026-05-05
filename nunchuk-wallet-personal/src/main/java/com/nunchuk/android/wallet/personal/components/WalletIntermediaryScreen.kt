@@ -19,11 +19,13 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -37,6 +39,7 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import com.nunchuk.android.compose.NcIcon
+import com.nunchuk.android.compose.NcScaffold
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.border
@@ -57,7 +60,7 @@ fun WalletIntermediaryScreen(
     onScanQRClicked: () -> Unit = {},
 ) {
     NunchukTheme {
-        Scaffold(
+        NcScaffold(
             modifier = Modifier.navigationBarsPadding(),
             topBar = {
                 NcTopAppBar(
@@ -395,6 +398,16 @@ fun FreeUserWalletTypeContent(
             resId = if (NunchukTheme.isDark) R.drawable.ic_wallet_type_decoy_wallet_dark else R.drawable.ic_wallet_type_decoy_wallet
         )
 
+        WalletTypeItem(
+            modifier = Modifier
+                .padding(start = 16.dp, end = 16.dp, top = 24.dp)
+                .clickable {
+                    onWalletTypeSelected(WalletType.STABLECOIN)
+                },
+            title = stringResource(id = R.string.nc_stablecoin_wallet),
+            desc = stringResource(R.string.nc_stablecoin_wallet_desc),
+            resId = R.drawable.ic_wallet_type_stablecoin_wallet
+        )
     }
 }
 
@@ -476,6 +489,32 @@ fun WalletTypeItemPreview() {
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun UnassistedWalletTypeSheet(
+    onDismiss: () -> Unit,
+    onWalletTypeSelected: (WalletType) -> Unit,
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp),
+        containerColor = MaterialTheme.colorScheme.surface,
+    ) {
+        Column(
+            modifier = Modifier.padding(bottom = 24.dp)
+        ) {
+            Text(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                text = "Select unassisted wallet type:",
+                style = NunchukTheme.typography.title,
+            )
+            FreeUserWalletTypeContent(onWalletTypeSelected = onWalletTypeSelected)
+        }
+    }
+}
+
 @PreviewLightDark
 @Composable
 fun WalletIntermediaryScreenPreview() {
@@ -489,5 +528,6 @@ enum class WalletType {
     DECOY,
     ASSISTED,
     UNASSISTED,
-    MINISCRIPT
+    MINISCRIPT,
+    STABLECOIN
 }

@@ -46,7 +46,9 @@ import com.nunchuk.android.usecase.free.groupwallet.GetPendingGroupsSandboxUseCa
 import com.nunchuk.android.usecase.membership.GetGroupAssistedWalletConfigUseCase
 import com.nunchuk.android.usecase.membership.GetPersonalMembershipStepUseCase
 import com.nunchuk.android.utils.onException
-import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -59,10 +61,9 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import javax.inject.Inject
 
-@HiltViewModel
-class WalletIntermediaryViewModel @Inject constructor(
+class WalletIntermediaryViewModel @AssistedInject constructor(
+    @Assisted private val isQuickWallet: Boolean,
     private val getCompoundSignersUseCase: GetCompoundSignersUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val getLocalMembershipPlansFlowUseCase: GetLocalMembershipPlansFlowUseCase,
@@ -85,7 +86,7 @@ class WalletIntermediaryViewModel @Inject constructor(
 
     private var getWalletConfigJob: Job? = null
 
-    fun init(isQuickWallet: Boolean) {
+    init {
         viewModelScope.launch {
             getCompoundSignersUseCase.execute().collect { signers ->
                 val signerSize = signers.first.size + signers.second.size
@@ -124,6 +125,11 @@ class WalletIntermediaryViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    @AssistedFactory
+    interface Factory {
+        fun create(isQuickWallet: Boolean): WalletIntermediaryViewModel
     }
 
     fun getAssistedWalletConfig() {
