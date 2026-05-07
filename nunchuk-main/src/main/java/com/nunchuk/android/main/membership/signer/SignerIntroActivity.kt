@@ -52,8 +52,8 @@ import com.nunchuk.android.core.signer.KeyFlow
 import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.flowObserver
-import com.nunchuk.android.main.membership.key.list.SelectSignerBottomSheet
-import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragmentArgs
+import com.nunchuk.android.core.signer.SelectSignerArgs
+import com.nunchuk.android.core.signer.SelectSignerBottomSheet
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.signer.SupportedSigner
@@ -246,11 +246,11 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
 
                     if (showSignerBottomSheet && filteredSigners.isNotEmpty()) {
                         SelectSignerBottomSheet(
-                            args = TapSignerListBottomSheetFragmentArgs(
-                                signers = filteredSigners.toTypedArray(),
+                            args = SelectSignerArgs(
+                                signers = filteredSigners,
                                 type = signerType ?: SignerType.UNKNOWN,
                                 description = "",
-                                ignoreIndexCheckForAcctX = true
+                                ignoreIndexCheckForAcctX = true,
                             ),
                             onDismiss = {
                                 showSignerBottomSheet = false

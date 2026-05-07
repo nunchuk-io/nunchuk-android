@@ -241,6 +241,7 @@
     <string name="nc_notice_you_have_exist_key">We notice that you have these %1$s</string>
     <string name="nc_add_existing_key">Add existing key</string>
     <string name="nc_take_me_to_add_new_key">Take me to add a new key</string>
+    <string name="nc_keys_not_yet_supporting_taproot">Keys not yet supporting Taproot</string>
     <string name="nc_added">Added</string>
     <string name="nc_verified_backup">Verified backup</string>
     <string name="nc_self_verified_backup">Self-verified backup</string>
@@ -962,6 +963,7 @@
     <string name="nc_miniscript_wallet_desc">Build custom spending rules with signatures, timelocks, and hashlocks.</string>
     <string name="nc_stablecoin_wallet">Stablecoin wallet</string>
     <string name="nc_stablecoin_wallet_desc">Securely hold and transfer USDT for everyday transactions.</string>
+    <string name="nc_stablecoin_intro_desc">This wallet is designed for managing your USDT. It utilizes LBTC (Liquid Bitcoin) to cover network fees, ensuring fast and low-cost transactions.\n\nIn the next step, we’ll create a key to set up and access your wallet.</string>
     <string name="nc_miniscript_desc">Miniscript is a structured language for writing Bitcoin scripts in a more efficient, composable, and analyzable way. It simplifies complex spending conditions by allowing logical combinations of signatures, timelocks, and hashlocks.\n\nWith Miniscript, users can create flexible wallet rules while ensuring security and compatibility with Bitcoin’s scripting system. This makes it ideal for advanced multisig setups, automated recovery mechanisms, and custom wallet logic.</string>
     <string name="nc_fee_difference_threshold_percent">Fee difference threshold (%)</string>
     <string name="nc_automatic_fee">Automatic fee</string>

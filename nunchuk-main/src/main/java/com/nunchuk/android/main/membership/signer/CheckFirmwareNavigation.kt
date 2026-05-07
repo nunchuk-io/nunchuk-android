@@ -44,8 +44,8 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.main.R
-import com.nunchuk.android.main.membership.key.list.SelectSignerBottomSheet
-import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragmentArgs
+import com.nunchuk.android.core.signer.SelectSignerArgs
+import com.nunchuk.android.core.signer.SelectSignerBottomSheet
 import com.nunchuk.android.main.membership.onchaintimelock.checkfirmware.CheckFirmwareEvent
 import com.nunchuk.android.main.membership.onchaintimelock.checkfirmware.CheckFirmwareViewModel
 import com.nunchuk.android.nav.args.CheckFirmwareArgs
@@ -136,13 +136,13 @@ private fun CheckFirmwareNavigationScreen(
                 showSignerBottomSheet = false
                 onOpenNextScreen()
             },
-            args = TapSignerListBottomSheetFragmentArgs(
-                signers = filteredSigners.toTypedArray(),
+            args = SelectSignerArgs(
+                signers = filteredSigners,
                 type = when (args.signerTag) {
                     SignerTag.COLDCARD -> SignerType.COLDCARD_NFC
                     SignerTag.JADE -> SignerType.AIRGAP
                     else -> SignerType.UNKNOWN
-                }
+                },
             )
         )
     }

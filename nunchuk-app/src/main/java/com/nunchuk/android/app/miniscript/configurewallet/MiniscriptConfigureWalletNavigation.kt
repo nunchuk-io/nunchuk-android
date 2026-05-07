@@ -55,8 +55,8 @@ import com.nunchuk.android.core.domain.signer.DuplicateSignerData
 import com.nunchuk.android.core.miniscript.ScriptNodeType
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.main.R
-import com.nunchuk.android.main.membership.key.list.SelectSignerBottomSheet
-import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragmentArgs
+import com.nunchuk.android.core.signer.SelectSignerArgs
+import com.nunchuk.android.core.signer.SelectSignerBottomSheet
 import com.nunchuk.android.model.ScriptNode
 import com.nunchuk.android.model.signer.SupportedSigner
 import com.nunchuk.android.type.AddressType
@@ -340,9 +340,9 @@ fun MiniscriptConfigWalletScreen(
                         onAddNewKey()
                         // Keep currentKeyToAssign until we return from adding a new key
                     },
-                    args = TapSignerListBottomSheetFragmentArgs(
-                        signers = allSigners.toTypedArray(),
-                        type = SignerType.UNKNOWN
+                    args = SelectSignerArgs(
+                        signers = allSigners,
+                        type = SignerType.UNKNOWN,
                     )
                 )
             } else {

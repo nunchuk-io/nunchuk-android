@@ -81,8 +81,8 @@ import com.nunchuk.android.main.groupwallet.component.UserOnline
 import com.nunchuk.android.main.groupwallet.component.WalletInfo
 import com.nunchuk.android.main.groupwallet.keypolicies.formatGroupSpendingLimit
 import com.nunchuk.android.main.groupwallet.keypolicies.normalizeGroupPlatformKeyPolicy
-import com.nunchuk.android.main.membership.key.list.SelectSignerBottomSheet
-import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragmentArgs
+import com.nunchuk.android.core.signer.SelectSignerArgs
+import com.nunchuk.android.core.signer.SelectSignerBottomSheet
 import com.nunchuk.android.model.GroupSandbox
 import com.nunchuk.android.model.ScriptNode
 import com.nunchuk.android.model.signer.SupportedSigner
@@ -731,9 +731,9 @@ fun FreeGroupWalletScreen(
                             onAddNewKey(currentSignerIndex)
                         }
                     },
-                    args = TapSignerListBottomSheetFragmentArgs(
-                        signers = allSigners.toTypedArray(),
-                        type = SignerType.UNKNOWN
+                    args = SelectSignerArgs(
+                        signers = allSigners,
+                        type = SignerType.UNKNOWN,
                     )
                 )
             } else {

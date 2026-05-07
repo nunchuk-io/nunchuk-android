@@ -59,47 +59,49 @@ fun WalletIntermediaryScreen(
     onJoinGroupWalletClicked: () -> Unit = {},
     onScanQRClicked: () -> Unit = {},
 ) {
-    NunchukTheme {
-        NcScaffold(
-            modifier = Modifier.navigationBarsPadding(),
-            topBar = {
-                NcTopAppBar(
-                    title = "",
-                    isBack = false
-                )
-            },
-            bottomBar = {
-                if (isMembership.not()) Bottom()
-            },
-        ) { innerPadding ->
-            Column(
-                Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-                    .verticalScroll(rememberScrollState())
-            ) {
-                Text(
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    text = if (isQuickWalletFlow) stringResource(R.string.nc_you_dont_have_a_wallet_yet) else stringResource(id = R.string.nc_wallet_create_wallet),
-                    style = NunchukTheme.typography.heading,
-                )
+    NcScaffold(
+        modifier = Modifier.navigationBarsPadding(),
+        topBar = {
+            NcTopAppBar(
+                title = "",
+                isBack = false
+            )
+        },
+        bottomBar = {
+            if (isMembership.not()) Bottom()
+        },
+    ) { innerPadding ->
+        Column(
+            Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .verticalScroll(rememberScrollState())
+        ) {
+            Text(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                text = if (isQuickWalletFlow) stringResource(R.string.nc_you_dont_have_a_wallet_yet) else stringResource(
+                    id = R.string.nc_wallet_create_wallet
+                ),
+                style = NunchukTheme.typography.heading,
+            )
 
-                Text(
-                    modifier = Modifier.padding(top = 4.dp, start = 16.dp, end = 16.dp),
-                    text = if (isQuickWalletFlow) stringResource(R.string.nc_choose_type_wallet_you_want_to_create) else stringResource(id = R.string.nc_select_wallet_type),
-                    style = NunchukTheme.typography.body,
-                )
+            Text(
+                modifier = Modifier.padding(top = 4.dp, start = 16.dp, end = 16.dp),
+                text = if (isQuickWalletFlow) stringResource(R.string.nc_choose_type_wallet_you_want_to_create) else stringResource(
+                    id = R.string.nc_select_wallet_type
+                ),
+                style = NunchukTheme.typography.body,
+            )
 
-                if (isMembership) {
-                    PaidUserWalletTypeContent(
-                        remainingAssistedWallets = remainingAssistedWallets,
-                        onWalletTypeSelected = onWalletTypeSelected
-                    )
-                } else {
-                    FreeUserWalletTypeContent(
-                        onWalletTypeSelected = onWalletTypeSelected
-                    )
-                }
+            if (isMembership) {
+                PaidUserWalletTypeContent(
+                    remainingAssistedWallets = remainingAssistedWallets,
+                    onWalletTypeSelected = onWalletTypeSelected
+                )
+            } else {
+                FreeUserWalletTypeContent(
+                    onWalletTypeSelected = onWalletTypeSelected
+                )
 
                 Action(
                     onRecoverWalletClicked = onRecoverWalletClicked,

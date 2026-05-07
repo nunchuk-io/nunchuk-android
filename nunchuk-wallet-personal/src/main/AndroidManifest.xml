@@ -8,6 +8,10 @@
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Light"
             android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".components.stablecoin.StablecoinWalletActivity"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize" />
     </application>
 
 </manifest>

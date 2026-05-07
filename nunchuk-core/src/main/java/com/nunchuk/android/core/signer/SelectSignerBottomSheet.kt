@@ -17,48 +17,44 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.main.membership.key.list
+package com.nunchuk.android.core.signer
 
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import com.nunchuk.android.core.signer.SignerModel
-import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.SheetState
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
+import com.nunchuk.android.model.signer.SupportedSigner
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
-@HiltViewModel
-class TapSingerListBottomSheetViewModel @Inject constructor(
-) : ViewModel() {
-    private val _event = MutableSharedFlow<TapSignerListBottomSheetEvent>()
-    val event = _event.asSharedFlow()
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SelectSignerBottomSheet(
+    sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+    args: SelectSignerArgs,
+    onDismiss: () -> Unit = {},
+    supportedSigners: List<SupportedSigner> = emptyList(),
+    onAddExistKey: (SignerModel) -> Unit = {},
+    onAddNewKey: () -> Unit = {},
+) {
+    val coroutineScope = rememberCoroutineScope()
 
-    private val _selectSingle = MutableStateFlow<SignerModel?>(null)
-    val selectSingle = _selectSingle.asStateFlow()
-
-    fun onSignerSelected(signer: SignerModel?) {
-        _selectSingle.value = signer
-    }
-
-    fun onAddExistingKey() {
-        viewModelScope.launch {
-            _selectSingle.value?.let {
-                _event.emit(TapSignerListBottomSheetEvent.OnAddExistingKey(it))
-            }
+    ModalBottomSheet(
+        sheetState = sheetState,
+        onDismissRequest = onDismiss,
+        dragHandle = {},
+        content = {
+            TapSignerListScreen(
+                args = args,
+                onCloseClicked = {
+                    coroutineScope.launch { sheetState.hide() }
+                    onDismiss()
+                },
+                supportedSigners = supportedSigners,
+                onAddExistKey = onAddExistKey,
+                onAddNewKey = onAddNewKey,
+            )
         }
-    }
-
-    fun onAddNewKey() {
-        viewModelScope.launch {
-            _event.emit(TapSignerListBottomSheetEvent.OnAddNewKey)
-        }
-    }
-}
-
-sealed class TapSignerListBottomSheetEvent {
-    data class OnAddExistingKey(val signer: SignerModel) : TapSignerListBottomSheetEvent()
-    object OnAddNewKey : TapSignerListBottomSheetEvent()
+    )
 }

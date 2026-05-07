@@ -31,6 +31,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.base.BaseComposeCameraActivity
 import com.nunchuk.android.core.data.model.QuickWalletParam
 import com.nunchuk.android.core.guestmode.SignInModeHolder
@@ -59,6 +60,7 @@ import com.nunchuk.android.utils.viewModelProviderFactoryOf
 import com.nunchuk.android.wallet.personal.R
 import com.nunchuk.android.wallet.personal.components.recover.RecoverWalletActionBottomSheet
 import com.nunchuk.android.wallet.personal.components.recover.RecoverWalletOption
+import com.nunchuk.android.wallet.personal.components.stablecoin.StablecoinWalletActivity
 import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningDialog
@@ -124,40 +126,42 @@ class WalletIntermediaryActivity : BaseComposeCameraActivity(), BottomSheetOptio
             val state by viewModel.state.collectAsStateWithLifecycle()
             var showUnassistedSheet by rememberSaveable { mutableStateOf(false) }
 
-            WalletIntermediaryScreen(
-                isMembership = state.isMembership,
-                remainingAssistedWallets = state.walletsCount.values.sum(),
-                isQuickWalletFlow = quickWalletParam != null,
-                onWalletTypeSelected = { type ->
-                    if (type == WalletType.UNASSISTED) {
-                        showUnassistedSheet = true
-                    } else {
-                        onWalletTypeSelected(type)
-                    }
-                },
-                onRecoverWalletClicked = { openRecoverWalletScreen() },
-                onScanQRClicked = {
-                    checkRunOutGroupWallet {
-                        navigator.openScanQrCodeScreen(
-                            this,
-                            true,
-                            quickWalletParam = quickWalletParam,
-                        )
-                    }
-                },
-                onJoinGroupWalletClicked = {
-                    checkRunOutGroupWallet { showInputGroupWalletLinkDialog() }
-                },
-            )
-
-            if (showUnassistedSheet) {
-                UnassistedWalletTypeSheet(
-                    onDismiss = { showUnassistedSheet = false },
+            NunchukTheme {
+                WalletIntermediaryScreen(
+                    isMembership = state.isMembership,
+                    remainingAssistedWallets = state.walletsCount.values.sum(),
+                    isQuickWalletFlow = quickWalletParam != null,
                     onWalletTypeSelected = { type ->
-                        showUnassistedSheet = false
-                        onWalletTypeSelected(type)
+                        if (type == WalletType.UNASSISTED) {
+                            showUnassistedSheet = true
+                        } else {
+                            onWalletTypeSelected(type)
+                        }
+                    },
+                    onRecoverWalletClicked = { openRecoverWalletScreen() },
+                    onScanQRClicked = {
+                        checkRunOutGroupWallet {
+                            navigator.openScanQrCodeScreen(
+                                this,
+                                true,
+                                quickWalletParam = quickWalletParam,
+                            )
+                        }
+                    },
+                    onJoinGroupWalletClicked = {
+                        checkRunOutGroupWallet { showInputGroupWalletLinkDialog() }
                     },
                 )
+
+                if (showUnassistedSheet) {
+                    UnassistedWalletTypeSheet(
+                        onDismiss = { showUnassistedSheet = false },
+                        onWalletTypeSelected = { type ->
+                            showUnassistedSheet = false
+                            onWalletTypeSelected(type)
+                        },
+                    )
+                }
             }
         }
     }
@@ -255,9 +259,7 @@ class WalletIntermediaryActivity : BaseComposeCameraActivity(), BottomSheetOptio
 
             WalletType.MINISCRIPT -> openCreateNewWalletScreen(true)
 
-            WalletType.STABLECOIN -> {
-                // TODO: wire up Stablecoin wallet creation flow
-            }
+            WalletType.STABLECOIN -> StablecoinWalletActivity.start(this)
         }
     }
 
