@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.util.hadBroadcast
+import com.nunchuk.android.core.util.isPendingSignatures
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.type.TransactionStatus
 
@@ -31,7 +32,7 @@ fun PendingSignatureStatusView(pendingSigners: Int, status: TransactionStatus, i
         )
 
         if (!status.hadBroadcast()) {
-            if (pendingSigners > 0) {
+            if (status.isPendingSignatures() && pendingSigners > 0) {
                 NcIcon(
                     painter = painterResource(id = R.drawable.ic_pending_signatures),
                     contentDescription = "Warning",
