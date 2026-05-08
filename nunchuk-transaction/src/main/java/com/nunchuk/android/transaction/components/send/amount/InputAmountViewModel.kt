@@ -19,19 +19,20 @@
 
 package com.nunchuk.android.transaction.components.send.amount
 
+import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.nunchuk.android.arch.vm.NunchukViewModel
+import com.nunchuk.android.core.domain.ParseWalletDescriptorUseCase
 import com.nunchuk.android.core.domain.data.CURRENT_DISPLAY_UNIT_TYPE
 import com.nunchuk.android.core.domain.data.SAT
 import com.nunchuk.android.core.util.fromBTCToCurrency
+import com.nunchuk.android.core.util.fromBTCtoSAT
 import com.nunchuk.android.core.util.fromCurrencyToBTC
-import com.nunchuk.android.core.domain.ParseWalletDescriptorUseCase
 import com.nunchuk.android.core.util.fromSATtoBTC
 import com.nunchuk.android.core.util.getCurrencyLocale
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.core.util.toNumericValue
-import java.util.Locale
 import com.nunchuk.android.model.BtcUri
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.SwapCurrencyEvent
@@ -39,159 +40,182 @@ import com.nunchuk.android.transaction.components.utils.privateNote
 import com.nunchuk.android.usecase.GetWalletsUseCase
 import com.nunchuk.android.usecase.ParseBtcUriUseCase
 import com.nunchuk.android.usecase.coin.GetAllCoinUseCase
-import com.nunchuk.android.usecase.coin.GetCoinsFromTxInputsUseCase
-import com.nunchuk.android.usecase.coin.GetPendingTxInputsUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.text.DecimalFormat
+import java.text.DecimalFormatSymbols
+import java.util.Locale
 import javax.inject.Inject
 
 @HiltViewModel
 internal class InputAmountViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
     private val parseBtcUriUseCase: ParseBtcUriUseCase,
     private val getAllCoinUseCase: GetAllCoinUseCase,
     private val getWalletsUseCase: GetWalletsUseCase,
     private val parseWalletDescriptorUseCase: ParseWalletDescriptorUseCase,
-    private val getPendingTxInputsUseCase: GetPendingTxInputsUseCase,
-    private val getCoinsFromTxInputsUseCase: GetCoinsFromTxInputsUseCase,
-) : NunchukViewModel<InputAmountState, InputAmountEvent>() {
+) : ViewModel() {
 
-    private var availableAmount: Double = 0.0
+    private val args: InputAmountArgs = InputAmountArgs.fromSavedStateHandle(savedStateHandle)
+    private val availableAmount: Double = args.availableAmount
+    private val isFromSelectedCoin: Boolean = args.inputs.isNotEmpty()
     private var availableAmountWithoutUnlocked: Double = 0.0
     private var hasLockedCoin: Boolean = false
-    private var selectedCoinsHasLocked: Boolean = false
-    private var isFromSelectedCoin: Boolean = false
 
-    override val initialState = InputAmountState()
+    private val _state = MutableStateFlow(InputAmountState())
+    val state = _state.asStateFlow()
 
-    fun init(availableAmount: Double, walletId: String, isFromSelectedCoin: Boolean) {
-        updateState { initialState }
-        this.availableAmount = availableAmount
-        this.isFromSelectedCoin = isFromSelectedCoin
-        if (isFromSelectedCoin) {
-            loadSelectedCoins(walletId)
-        } else {
-            checkLockedCoin(walletId)
+    private val _event = MutableSharedFlow<InputAmountEvent>()
+    val event = _event.asSharedFlow()
+
+    init {
+        if (!isFromSelectedCoin) {
+            checkLockedCoin(args.walletId)
         }
+        args.btcUri?.let(::applyBtcUri)
     }
 
-    private fun loadSelectedCoins(walletId: String) {
-        viewModelScope.launch {
-            val txInputs = getPendingTxInputsUseCase(walletId).getOrDefault(emptyList())
-            if (txInputs.isEmpty()) return@launch
-            getCoinsFromTxInputsUseCase(
-                GetCoinsFromTxInputsUseCase.Params(walletId, txInputs)
-            ).onSuccess { coins ->
-                selectedCoinsHasLocked = coins.any { it.isLocked }
-            }
+    private fun applyBtcUri(btcUri: BtcUri) {
+        val amountBtc = btcUri.amount.pureBTC()
+        _state.update {
+            it.copy(
+                address = btcUri.address,
+                privateNote = btcUri.privateNote,
+                amountBTC = amountBtc,
+                amountUSD = amountBtc.fromBTCToCurrency(),
+                useBtc = true,
+                inputText = formatRawInput(amountBtc, useBtc = true),
+            )
         }
     }
 
     private fun checkLockedCoin(walletId: String) {
         viewModelScope.launch {
-            setEvent(InputAmountEvent.Loading(true))
-            getAllCoinUseCase(walletId).onSuccess {
-                hasLockedCoin = it.any { coin -> coin.isLocked }
+            _event.emit(InputAmountEvent.Loading(true))
+            getAllCoinUseCase(walletId).onSuccess { coins ->
+                hasLockedCoin = coins.any { it.isLocked }
                 availableAmountWithoutUnlocked =
-                    it.sumOf { coin -> if (coin.isLocked) 0.0 else coin.amount.pureBTC() }
+                    coins.sumOf { coin -> if (coin.isLocked) 0.0 else coin.amount.pureBTC() }
             }
-            setEvent(InputAmountEvent.Loading(false))
+            _event.emit(InputAmountEvent.Loading(false))
         }
     }
-
-    fun isSelectedCoinsHasLocked() = selectedCoinsHasLocked
 
     fun parseBtcUri(content: String) {
         viewModelScope.launch {
-            val result = parseBtcUriUseCase(content)
-            if (result.isSuccess) {
-                val btcUri = result.getOrThrow()
-                if (btcUri.amount.value > 0) {
-                    updateState {
-                        copy(
-                            address = btcUri.address,
-                            privateNote = btcUri.privateNote,
-                            amountBTC = btcUri.amount.pureBTC(),
-                            useBtc = true
-                        )
+            parseBtcUriUseCase(content)
+                .onSuccess { btcUri ->
+                    if (btcUri.amount.value > 0) {
+                        val amountBtc = btcUri.amount.pureBTC()
+                        _state.update {
+                            it.copy(
+                                address = btcUri.address,
+                                privateNote = btcUri.privateNote,
+                                amountBTC = amountBtc,
+                                amountUSD = amountBtc.fromBTCToCurrency(),
+                                useBtc = true,
+                                inputText = formatRawInput(amountBtc, useBtc = true),
+                            )
+                        }
+                    } else {
+                        _state.update { it.copy(address = btcUri.address) }
                     }
-                } else {
-                    updateState {
-                        copy(
-                            address = btcUri.address,
-                        )
-                    }
+                    _event.emit(InputAmountEvent.ParseBtcUriSuccess(btcUri))
                 }
-                setEvent(InputAmountEvent.ParseBtcUriSuccess(result.getOrThrow()))
-            } else {
-                setEvent(InputAmountEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
-            }
-        }
-    }
-
-    fun updateBtcUri(btcUri: BtcUri) {
-        updateState {
-            copy(
-                address = btcUri.address,
-                privateNote = btcUri.privateNote,
-                amountBTC = btcUri.amount.pureBTC(),
-                amountUSD = btcUri.amount.pureBTC().fromBTCToCurrency(),
-                useBtc = true
-            )
+                .onFailure {
+                    _event.emit(InputAmountEvent.ShowError(it.message.orUnknownError()))
+                }
         }
     }
 
     fun switchCurrency() {
-        updateState { copy(useBtc = !useBtc) }
-        val currentState = getState()
-        if (!currentState.useBtc) {
-            setEvent(SwapCurrencyEvent(currentState.amountUSD))
-        } else {
-            setEvent(SwapCurrencyEvent(currentState.amountBTC))
+        val current = _state.value
+        val newUseBtc = !current.useBtc
+        val displayAmount = if (newUseBtc) current.amountBTC else current.amountUSD
+        _state.update {
+            it.copy(
+                useBtc = newUseBtc,
+                inputText = formatRawInput(displayAmount, useBtc = newUseBtc),
+            )
         }
+        viewModelScope.launch { _event.emit(SwapCurrencyEvent(displayAmount)) }
+    }
+
+    fun setInputAmount(amount: Double) {
+        val useBtc = _state.value.useBtc
+        val text = formatRawInput(amount, useBtc = useBtc)
+        _state.update { it.copy(inputText = text) }
+        handleAmountChanged(text)
     }
 
     fun handleAmountChanged(input: String) {
-        val currentState = getState()
-        val locale = if (currentState.useBtc) Locale.US else getCurrencyLocale()
+        val current = _state.value
+        val locale = if (current.useBtc) Locale.US else getCurrencyLocale()
         val inputValue = input.toNumericValue(locale).toDouble()
-        if (currentState.useBtc) {
-            if (inputValue != currentState.amountBTC) {
-                updateState {
-                    copy(
+        if (input != current.inputText) {
+            _state.update { it.copy(inputText = input) }
+        }
+        if (current.useBtc) {
+            if (inputValue != current.amountBTC) {
+                _state.update {
+                    it.copy(
                         amountBTC = if (CURRENT_DISPLAY_UNIT_TYPE == SAT) inputValue.fromSATtoBTC() else inputValue,
-                        amountUSD = if (CURRENT_DISPLAY_UNIT_TYPE == SAT) inputValue.fromSATtoBTC()
-                            .fromBTCToCurrency() else inputValue.fromBTCToCurrency()
+                        amountUSD = if (CURRENT_DISPLAY_UNIT_TYPE == SAT) {
+                            inputValue.fromSATtoBTC().fromBTCToCurrency()
+                        } else {
+                            inputValue.fromBTCToCurrency()
+                        },
                     )
                 }
             }
         } else {
-            if (inputValue != currentState.amountUSD) {
-                updateState {
-                    copy(
+            if (inputValue != current.amountUSD) {
+                _state.update {
+                    it.copy(
                         amountBTC = inputValue.fromCurrencyToBTC(),
-                        amountUSD = inputValue
+                        amountUSD = inputValue,
                     )
                 }
             }
         }
     }
 
-    fun getUseBTC() = getState().useBtc
+    private fun formatRawInput(amount: Double, useBtc: Boolean): String {
+        if (amount <= 0.0) return ""
+        return if (useBtc && CURRENT_DISPLAY_UNIT_TYPE == SAT) {
+            amount.fromBTCtoSAT().toLong().toString()
+        } else {
+            rawDecimalFormat.format(amount)
+        }
+    }
+
+    private val rawDecimalFormat = DecimalFormat(
+        "0.########",
+        DecimalFormatSymbols(Locale.US),
+    ).apply {
+        isGroupingUsed = false
+    }
+
+    fun getUseBTC() = _state.value.useBtc
 
     fun handleContinueEvent() {
-        val amount = getState().amountBTC
-        if (amount <= 0) {
-            setEvent(InputAmountEvent.InvalidAmountEvent)
-        } else if (amount > availableAmount) {
-            setEvent(InputAmountEvent.InsufficientFundsEvent)
-        } else if (hasLockedCoin && amount > availableAmountWithoutUnlocked && !isFromSelectedCoin) {
-            setEvent(InputAmountEvent.InsufficientFundsLockedCoinEvent)
-        } else {
-            setEvent(InputAmountEvent.AcceptAmountEvent(amount))
+        val amount = _state.value.amountBTC
+        val event = when {
+            amount <= 0 -> InputAmountEvent.InvalidAmountEvent
+            amount > availableAmount -> InputAmountEvent.InsufficientFundsEvent
+            hasLockedCoin && amount > availableAmountWithoutUnlocked && !isFromSelectedCoin ->
+                InputAmountEvent.InsufficientFundsLockedCoinEvent
+            else -> InputAmountEvent.AcceptAmountEvent(amount)
         }
+        viewModelScope.launch { _event.emit(event) }
     }
 
     fun checkWallet(bsms: String?) = viewModelScope.launch {
@@ -201,7 +225,7 @@ internal class InputAmountViewModel @Inject constructor(
         val claimWalletId = claimWallet?.id
         getWalletsUseCase.execute()
             .flowOn(Dispatchers.IO)
-            .onException { setEvent(InputAmountEvent.ShowError(it.message.orUnknownError())) }
+            .onException { _event.emit(InputAmountEvent.ShowError(it.message.orUnknownError())) }
             .flowOn(Dispatchers.Main)
             .collect { wallets ->
                 val oldWalletIds = wallets.map { wallet -> wallet.wallet.id }
@@ -210,15 +234,15 @@ internal class InputAmountViewModel @Inject constructor(
                 } else {
                     oldWalletIds.isNotEmpty()
                 }
-                setEvent(InputAmountEvent.CheckHasWallet(hasWallet))
+                _event.emit(InputAmountEvent.CheckHasWallet(hasWallet))
             }
     }
 
-    fun getAddress(): String = getState().address
+    fun getAddress(): String = _state.value.address
 
-    fun getPrivateNote(): String = getState().privateNote
+    fun getPrivateNote(): String = _state.value.privateNote
 
-    fun getAmountBtc(): Double = getState().amountBTC
+    fun getAmountBtc(): Double = _state.value.amountBTC
 
     fun isHasLockedCoin() = hasLockedCoin
 }

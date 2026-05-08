@@ -39,4 +39,5 @@ data class InputAmountState(
     val useBtc: Boolean = true,
     val address: String = "",
     val privateNote: String = "",
+    val inputText: String = "",
 )

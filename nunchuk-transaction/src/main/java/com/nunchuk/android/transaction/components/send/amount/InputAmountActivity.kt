@@ -21,17 +21,17 @@ package com.nunchuk.android.transaction.components.send.amount
 
 import android.content.Context
 import android.os.Bundle
-import android.util.TypedValue
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.core.content.ContextCompat
-import androidx.core.view.doOnPreDraw
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.fragment.app.DialogFragment
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.journeyapps.barcodescanner.ScanContract
-import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.base.BaseComposeActivity
 import com.nunchuk.android.core.data.model.ClaimInheritanceTxParam
 import com.nunchuk.android.core.data.model.QuickWalletParam
-import com.nunchuk.android.core.domain.data.CURRENT_DISPLAY_UNIT_TYPE
-import com.nunchuk.android.core.domain.data.SAT
 import com.nunchuk.android.core.nfc.SweepType
 import com.nunchuk.android.core.qr.startQRCodeScan
 import com.nunchuk.android.core.sheet.BottomSheetOption
@@ -39,26 +39,12 @@ import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.util.BTC_SATOSHI_EXCHANGE_RATE
-import com.nunchuk.android.core.util.LOCAL_CURRENCY
 import com.nunchuk.android.core.util.SelectWalletType
-import com.nunchuk.android.core.util.USD_CURRENCY
-import com.nunchuk.android.core.util.USD_FRACTION_DIGITS
-import com.nunchuk.android.core.util.flowObserver
-import com.nunchuk.android.core.util.formatCurrencyDecimal
-import com.nunchuk.android.core.util.formatDecimal
-import com.nunchuk.android.core.util.formatDecimalWithoutZero
-import com.nunchuk.android.core.util.formatFiatDecimal
 import com.nunchuk.android.core.util.fromBTCToCurrency
-import com.nunchuk.android.core.util.getBTCAmount
-import com.nunchuk.android.core.util.getCurrencyAmount
-import com.nunchuk.android.core.util.getCurrencyLocale
-import com.nunchuk.android.core.util.getTextBtcUnit
-import java.util.Locale
 import com.nunchuk.android.core.util.pureBTC
-import com.nunchuk.android.core.util.setUnderline
-import com.nunchuk.android.core.util.toAmount
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.BtcUri
+import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.nav.args.AddReceiptType
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.AcceptAmountEvent
@@ -68,18 +54,13 @@ import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.I
 import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.Loading
 import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.ParseBtcUriSuccess
 import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.ShowError
-import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.SwapCurrencyEvent
-import com.nunchuk.android.transaction.databinding.ActivityTransactionInputAmountBinding
 import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCToastMessage
-import com.nunchuk.android.widget.util.setLightStatusBar
-import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
 import kotlin.math.abs
 
 @AndroidEntryPoint
-class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(),
-    BottomSheetOptionListener {
+class InputAmountActivity : BaseComposeActivity(), BottomSheetOptionListener {
 
     private val args: InputAmountArgs by lazy { InputAmountArgs.deserializeFrom(intent) }
 
@@ -91,101 +72,50 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
         }
     }
 
-    override fun initializeBinding() = ActivityTransactionInputAmountBinding.inflate(layoutInflater)
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        setLightStatusBar()
-        viewModel.init(args.availableAmount, args.walletId, args.isFromSelectedCoin)
-        args.btcUri?.let { btcUri ->
-            viewModel.updateBtcUri(btcUri)
-        }
-        setupViews()
-        observeEvent()
-    }
+        enableEdgeToEdge()
+        setContent {
+            val state by viewModel.state.collectAsStateWithLifecycle()
 
-    private fun observeEvent() {
-        viewModel.event.observe(this, ::handleEvent)
-        viewModel.state.observe(this, ::handleState)
-    }
-
-    private fun setupViews() {
-        if (isClaimInheritanceFlow()) binding.toolbarTitle.text =
-            getString(R.string.nc_withdraw_a_custom_amount)
-        binding.btnSendAll.setUnderline()
-        binding.btnSwitch.setUnderline()
-        binding.toolbar.setNavigationOnClickListener {
-            finish()
-        }
-        binding.toolbar.setOnMenuItemClickListener {
-            if (it.itemId == R.id.menu_scan_qr) {
-                startQRCodeScan(launcher)
-            } else if (it.itemId == R.id.menu_batch_transaction) {
-                openAddReceiptScreen(
-                    outputAmount = viewModel.getAmountBtc(),
-                    type = AddReceiptType.BATCH
-                )
+            LaunchedEffect(Unit) {
+                viewModel.event.collect(::handleEvent)
             }
-            true
-        }
-        val prefillAmount = args.claimInheritanceTxParam?.customAmount ?: 0.0
-        if (prefillAmount > 0.0) {
-            showAmount(prefillAmount)
-        } else {
-            binding.mainCurrency.setText("")
-        }
-        binding.mainCurrency.requestFocus()
-        binding.btnSendAll.setOnClickListener {
-            if ((args.isFromSelectedCoin && viewModel.isSelectedCoinsHasLocked()) || (!args.isFromSelectedCoin && viewModel.isHasLockedCoin())) {
-                showUnlockCoinBeforeSend()
-            } else {
-                showAmount(if (viewModel.getUseBTC()) args.availableAmount else args.availableAmount.fromBTCToCurrency())
-            }
-        }
-        binding.btnSwitch.setOnClickListener { viewModel.switchCurrency() }
-        binding.btnContinue.setOnDebounceClickListener {
-            viewModel.handleContinueEvent()
-        }
 
-        if (args.isFromSelectedCoin) {
-            binding.balanceLabel.text = getString(R.string.nc_total_amount_selected)
-            binding.amountBTC.setTextColor(ContextCompat.getColor(this, R.color.nc_slime_dark))
-            binding.amountUSD.setTextColor(ContextCompat.getColor(this, R.color.nc_slime_dark))
-        }
-        binding.amountBTC.text = args.availableAmount.getBTCAmount()
-        binding.amountUSD.text = "(${args.availableAmount.getCurrencyAmount()})"
-        binding.mainCurrencyLabel.text = getTextBtcUnit()
-
-        val originalTextSize = binding.mainCurrency.textSize
-        binding.mainCurrencyLabel.doOnPreDraw {
-            val tvWidth =
-                resources.displayMetrics.widthPixels - resources.getDimensionPixelSize(R.dimen.nc_padding_16) * 3 - it.measuredWidth
-            binding.tvMainCurrency.maxWidth = tvWidth
-        }
-        args.btcUri?.let { binding.mainCurrency.setText(it.amount.getBTCAmount()) }
-        flowObserver(
-            binding.mainCurrency.textFlow
-        ) { text ->
-            binding.tvMainCurrency.text = text
-            viewModel.handleAmountChanged(text)
-            binding.mainCurrency.post {
-                if (text.isBlank()) {
-                    binding.mainCurrency.setTextSize(TypedValue.COMPLEX_UNIT_PX, originalTextSize)
-                    binding.mainCurrencyLabel.setTextSize(
-                        TypedValue.COMPLEX_UNIT_PX,
-                        originalTextSize
+            InputAmountScreen(
+                state = state,
+                isClaimInheritance = isClaimInheritanceFlow(),
+                isFromSelectedCoin = args.inputs.isNotEmpty(),
+                availableAmount = args.availableAmount,
+                onClose = { finish() },
+                onScanQrClicked = { startQRCodeScan(launcher) },
+                onBatchTransactionClicked = {
+                    openAddReceiptScreen(
+                        outputAmount = viewModel.getAmountBtc(),
+                        type = AddReceiptType.BATCH,
                     )
-                    binding.tvMainCurrency.setTextSize(TypedValue.COMPLEX_UNIT_PX, originalTextSize)
-                } else {
-                    val optimalSize = binding.tvMainCurrency.textSize
-                    binding.mainCurrency.setTextSize(TypedValue.COMPLEX_UNIT_PX, optimalSize)
-                    binding.mainCurrencyLabel.setTextSize(TypedValue.COMPLEX_UNIT_PX, optimalSize)
-                }
-            }
+                },
+                onSendAllClicked = ::onSendAllClicked,
+                onSwitchCurrencyClicked = viewModel::switchCurrency,
+                onContinueClicked = viewModel::handleContinueEvent,
+                onInputChanged = viewModel::handleAmountChanged,
+            )
         }
-        if (args.isFromSelectedCoin) {
-            binding.btnSendAll.text = getString(R.string.nc_send_all_selected)
+    }
+
+    private fun onSendAllClicked() {
+        if ((args.inputs.isNotEmpty() && args.inputs.any { it.isLocked })
+            || (args.inputs.isEmpty() && viewModel.isHasLockedCoin())
+        ) {
+            showUnlockCoinBeforeSend()
+        } else {
+            val amount = if (viewModel.getUseBTC()) {
+                args.availableAmount
+            } else {
+                args.availableAmount.fromBTCToCurrency()
+            }
+            viewModel.setInputAmount(amount)
         }
     }
 
@@ -216,8 +146,8 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
             sweepType = sweepType,
             claimInheritanceTxParam = args.claimInheritanceTxParam?.copy(
                 customAmount = amount,
-                isUseWallet = false
-            )
+                isUseWallet = false,
+            ),
         )
     }
 
@@ -226,7 +156,10 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
             .showDialog(message = getString(R.string.nc_send_all_locked_coin_msg))
     }
 
-    private fun openAddReceiptScreen(outputAmount: Double, type: AddReceiptType = AddReceiptType.ADD_RECEIPT) {
+    private fun openAddReceiptScreen(
+        outputAmount: Double,
+        type: AddReceiptType = AddReceiptType.ADD_RECEIPT,
+    ) {
         navigator.openAddReceiptScreen(
             this,
             walletId = args.walletId,
@@ -235,40 +168,14 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
             address = viewModel.getAddress(),
             privateNote = viewModel.getPrivateNote(),
             subtractFeeFromAmount = abs(outputAmount - args.availableAmount).toAmount().value <= 0,
-            isFromSelectedCoin = args.isFromSelectedCoin,
-            type = type
+            inputs = args.inputs,
+            type = type,
         )
-    }
-
-    private fun handleState(state: InputAmountState) {
-        if (state.useBtc) {
-            binding.mainCurrency.setLocale(Locale.US)
-            binding.mainCurrency.allowDecimal(CURRENT_DISPLAY_UNIT_TYPE != SAT)
-            binding.mainCurrencyLabel.text = getTextBtcUnit()
-            binding.btnSwitch.text =
-                getString(R.string.nc_transaction_switch_to_currency_data, LOCAL_CURRENCY)
-
-            val secondaryCurrency = if (LOCAL_CURRENCY == USD_CURRENCY) {
-                state.amountUSD.formatCurrencyDecimal(maxFractionDigits = USD_FRACTION_DIGITS)
-            } else {
-                "${state.amountUSD.formatFiatDecimal()} $LOCAL_CURRENCY"
-            }
-            binding.secondaryCurrency.text = secondaryCurrency
-        } else {
-            binding.mainCurrency.setLocale(getCurrencyLocale())
-            binding.mainCurrency.allowDecimal(true)
-            binding.mainCurrencyLabel.text = LOCAL_CURRENCY
-            binding.btnSwitch.text =
-                getString(R.string.nc_transaction_switch_to_currency_data, getTextBtcUnit())
-
-            val secondaryCurrency = state.amountBTC.toAmount().getBTCAmount()
-            binding.secondaryCurrency.text = secondaryCurrency
-        }
     }
 
     private fun handleEvent(event: InputAmountEvent) {
         when (event) {
-            is SwapCurrencyEvent -> showAmount(event.amount)
+            is InputAmountEvent.SwapCurrencyEvent -> Unit
             is AcceptAmountEvent -> {
                 if (isClaimInheritanceFlow()) {
                     showSweepOptions()
@@ -278,7 +185,7 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
             }
 
             InsufficientFundsEvent -> {
-                if (args.isFromSelectedCoin) {
+                if (args.inputs.isNotEmpty()) {
                     NCToastMessage(this).showError(getString(R.string.nc_send_amount_too_large))
                 } else {
                     NCToastMessage(this).showError(getString(R.string.nc_transaction_insufficient_funds))
@@ -304,8 +211,8 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
                         type = SelectWalletType.TYPE_INHERITANCE_WALLET,
                         claimInheritanceTxParam = args.claimInheritanceTxParam?.copy(
                             customAmount = viewModel.getAmountBtc(),
-                            isUseWallet = true
-                        )
+                            isUseWallet = true,
+                        ),
                     )
                 } else {
                     navigator.openWalletIntermediaryScreen(
@@ -313,14 +220,16 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
                         quickWalletParam = QuickWalletParam(
                             claimInheritanceTxParam = args.claimInheritanceTxParam?.copy(
                                 customAmount = viewModel.getAmountBtc(),
-                                isUseWallet = true
+                                isUseWallet = true,
                             ),
-                            type = SelectWalletType.TYPE_INHERITANCE_WALLET
-                        )
+                            type = SelectWalletType.TYPE_INHERITANCE_WALLET,
+                        ),
                     )
                 }
             }
-            is InvalidAmountEvent -> NCToastMessage(this).showError(getString(R.string.nc_amount_must_be_greater_than_0))
+
+            is InvalidAmountEvent -> NCToastMessage(this)
+                .showError(getString(R.string.nc_amount_must_be_greater_than_0))
         }
     }
 
@@ -331,33 +240,24 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
                 SheetOption(
                     SheetOptionType.TYPE_SWEEP_TO_WALLET,
                     R.drawable.ic_wallet_info,
-                    R.string.nc_withdraw_nunchuk_wallet
+                    R.string.nc_withdraw_nunchuk_wallet,
                 ),
                 SheetOption(
                     SheetOptionType.TYPE_SWEEP_TO_EXTERNAL_ADDRESS,
                     R.drawable.ic_sending_bitcoin,
-                    R.string.nc_withdraw_to_an_address
+                    R.string.nc_withdraw_to_an_address,
                 ),
-            )
+            ),
         )
         dialog.show(supportFragmentManager, "BottomSheetOption")
-    }
-
-    private fun showAmount(amount: Double) {
-        binding.mainCurrency.setText(
-            if (amount > 0) {
-                if (viewModel.getUseBTC()) {
-                    if (CURRENT_DISPLAY_UNIT_TYPE == SAT) amount.toAmount().value.formatDecimalWithoutZero() else amount.formatDecimal()
-                } else {
-                    amount.formatFiatDecimal()
-                }
-            } else ""
-        )
     }
 
     private fun isClaimInheritanceFlow(): Boolean {
         return args.claimInheritanceTxParam != null
     }
+
+    private fun Double.toAmount(): Amount =
+        Amount(value = (this * BTC_SATOSHI_EXCHANGE_RATE).toLong())
 
     companion object {
 
@@ -365,17 +265,17 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
             activityContext: Context,
             walletId: String,
             availableAmount: Double,
-            isFromSelectedCoin: Boolean = false,
+            inputs: List<UnspentOutput> = emptyList(),
             claimInheritanceTxParam: ClaimInheritanceTxParam? = null,
-            btcUri: BtcUri? = null
+            btcUri: BtcUri? = null,
         ) {
             activityContext.startActivity(
                 InputAmountArgs(
                     walletId = walletId,
                     availableAmount = availableAmount,
-                    isFromSelectedCoin = isFromSelectedCoin,
+                    inputs = inputs,
                     claimInheritanceTxParam = claimInheritanceTxParam,
-                    btcUri = btcUri
+                    btcUri = btcUri,
                 ).buildIntent(activityContext)
             )
         }
