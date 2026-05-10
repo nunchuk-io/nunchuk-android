@@ -38,6 +38,7 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.lightGray
 import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.signer.KeyFlow
+import com.nunchuk.android.core.signer.KeyFlow.isPrimaryKeyFlow
 import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.core.signer.getSelectKeyTypeSubtitleRes
 import com.nunchuk.android.model.signer.SupportedSigner
@@ -128,6 +129,7 @@ fun SignerIntroScreenContent(
             SignerSelection(
                 supportedSigners = signersToDisplay,
                 originalSupportedSigners = originalSupportedSigners,
+                keyFlow = keyFlow,
                 isDisableAll = isDisableAll,
                 isGenericAirgapEnable = state.isGenericAirgapEnable,
                 onChainAddSignerParam = onChainAddSignerParam,
@@ -141,6 +143,7 @@ fun SignerIntroScreenContent(
 internal fun SignerSelection(
     supportedSigners: List<SupportedSigner>,
     originalSupportedSigners: List<SupportedSigner>,
+    keyFlow: Int,
     isDisableAll: Boolean,
     isGenericAirgapEnable: Boolean,
     onChainAddSignerParam: OnChainAddSignerParam? = null,
@@ -195,7 +198,7 @@ internal fun SignerSelection(
 
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.clickable(enabled = !isDisableAll) {
+            modifier = Modifier.clickable(enabled = keyFlow.isPrimaryKeyFlow() || !isDisableAll) {
                 onClick(KeyType.SOFTWARE)
             }
         ) {
