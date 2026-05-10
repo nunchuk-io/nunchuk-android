@@ -91,12 +91,12 @@ private val SlimeDark = Color(0xFF1C652D)
 
 // Match the legacy XML's android:maxLength="20" and stay safely under
 // Long.MAX_VALUE (19 digits) so NumberCommaTransformation can format the integer part.
-private const val MAX_TOTAL_LENGTH = 20
-private const val MAX_INTEGER_DIGITS = 16
+internal const val MAX_TOTAL_LENGTH = 20
+internal const val MAX_INTEGER_DIGITS = 16
 
 // NumberCommaTransformation reads from DecimalFormatSymbols.getInstance() — mirror that
 // so we never disagree with the visual transformation about which char is the decimal point.
-private val decimalSeparator: Char get() = DecimalFormatSymbols.getInstance().decimalSeparator
+internal val decimalSeparator: Char get() = DecimalFormatSymbols.getInstance().decimalSeparator
 
 /**
  * Renders the raw numeric input as `"12,345 BTC"`, keeping the cursor between the number and
@@ -104,7 +104,7 @@ private val decimalSeparator: Char get() = DecimalFormatSymbols.getInstance().de
  * When the input is empty the suffix is still shown, with the cursor positioned at offset 0 so
  * it doesn't land in the middle of the label.
  */
-private class AmountWithSuffixTransformation(private val suffix: String) : VisualTransformation {
+internal class AmountWithSuffixTransformation(private val suffix: String) : VisualTransformation {
     private val gap = if (suffix.isEmpty()) "" else " "
 
     override fun filter(text: AnnotatedString): TransformedText {
@@ -264,7 +264,7 @@ fun InputAmountScreen(
 }
 
 @Composable
-private fun CurrencyInputBlock(
+internal fun CurrencyInputBlock(
     inputText: String,
     unitLabel: String,
     maxDecimalDigits: Int,
@@ -345,7 +345,7 @@ private fun CurrencyInputBlock(
 }
 
 @Composable
-private fun autoSizeFontSize(
+internal fun autoSizeFontSize(
     measurer: TextMeasurer,
     rawInput: String,
     unitLabel: String,
@@ -373,7 +373,7 @@ private fun autoSizeFontSize(
     return size.sp
 }
 
-private fun applyThousandsGrouping(raw: String): String {
+internal fun applyThousandsGrouping(raw: String): String {
     if (raw.isEmpty()) return raw
     val sep = decimalSeparator
     val dot = raw.indexOf(sep)
@@ -418,7 +418,7 @@ private fun BalanceBlock(
     }
 }
 
-private fun filterCurrencyInput(
+internal fun filterCurrencyInput(
     input: String,
     allowDecimal: Boolean,
 ): String {

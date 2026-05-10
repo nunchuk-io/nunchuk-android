@@ -65,6 +65,7 @@ class InputAmountActivity : BaseComposeActivity(), BottomSheetOptionListener {
     private val args: InputAmountArgs by lazy { InputAmountArgs.deserializeFrom(intent) }
 
     private val viewModel: InputAmountViewModel by viewModels()
+    private val stablecoinViewModel: InputStablecoinAmountViewModel by viewModels()
 
     private val launcher = registerForActivityResult(ScanContract()) { result ->
         result.contents?.let { content ->
@@ -77,30 +78,66 @@ class InputAmountActivity : BaseComposeActivity(), BottomSheetOptionListener {
 
         enableEdgeToEdge()
         setContent {
-            val state by viewModel.state.collectAsStateWithLifecycle()
+            if (args.isStablecoin) {
+                val stablecoinState by stablecoinViewModel.state.collectAsStateWithLifecycle()
 
-            LaunchedEffect(Unit) {
-                viewModel.event.collect(::handleEvent)
+                LaunchedEffect(Unit) {
+                    stablecoinViewModel.event.collect(::handleStablecoinEvent)
+                }
+
+                InputStablecoinAmountScreen(
+                    state = stablecoinState,
+                    onClose = { finish() },
+                    onScanQrClicked = { startQRCodeScan(launcher) },
+                    onBatchTransactionClicked = { /* TODO(stablecoin): batch flow */ },
+                    onTokenSelected = stablecoinViewModel::selectToken,
+                    onSendAllClicked = stablecoinViewModel::sendAll,
+                    onSwitchCurrencyClicked = stablecoinViewModel::switchCurrency,
+                    onContinueClicked = stablecoinViewModel::handleContinueEvent,
+                    onInputChanged = stablecoinViewModel::handleAmountChanged,
+                )
+            } else {
+                val state by viewModel.state.collectAsStateWithLifecycle()
+
+                LaunchedEffect(Unit) {
+                    viewModel.event.collect(::handleEvent)
+                }
+
+                InputAmountScreen(
+                    state = state,
+                    isClaimInheritance = isClaimInheritanceFlow(),
+                    isFromSelectedCoin = args.inputs.isNotEmpty(),
+                    availableAmount = args.availableAmount,
+                    onClose = { finish() },
+                    onScanQrClicked = { startQRCodeScan(launcher) },
+                    onBatchTransactionClicked = {
+                        openAddReceiptScreen(
+                            outputAmount = viewModel.getAmountBtc(),
+                            type = AddReceiptType.BATCH,
+                        )
+                    },
+                    onSendAllClicked = ::onSendAllClicked,
+                    onSwitchCurrencyClicked = viewModel::switchCurrency,
+                    onContinueClicked = viewModel::handleContinueEvent,
+                    onInputChanged = viewModel::handleAmountChanged,
+                )
+            }
+        }
+    }
+
+    private fun handleStablecoinEvent(event: InputStablecoinAmountEvent) {
+        when (event) {
+            is InputStablecoinAmountEvent.AcceptAmountEvent -> {
+                // TODO(stablecoin): forward to next step in stablecoin send flow.
             }
 
-            InputAmountScreen(
-                state = state,
-                isClaimInheritance = isClaimInheritanceFlow(),
-                isFromSelectedCoin = args.inputs.isNotEmpty(),
-                availableAmount = args.availableAmount,
-                onClose = { finish() },
-                onScanQrClicked = { startQRCodeScan(launcher) },
-                onBatchTransactionClicked = {
-                    openAddReceiptScreen(
-                        outputAmount = viewModel.getAmountBtc(),
-                        type = AddReceiptType.BATCH,
-                    )
-                },
-                onSendAllClicked = ::onSendAllClicked,
-                onSwitchCurrencyClicked = viewModel::switchCurrency,
-                onContinueClicked = viewModel::handleContinueEvent,
-                onInputChanged = viewModel::handleAmountChanged,
-            )
+            InputStablecoinAmountEvent.InsufficientFundsEvent ->
+                NCToastMessage(this).showError(getString(R.string.nc_transaction_insufficient_funds))
+
+            InputStablecoinAmountEvent.InvalidAmountEvent ->
+                NCToastMessage(this).showError(getString(R.string.nc_amount_must_be_greater_than_0))
+
+            is InputStablecoinAmountEvent.ShowError -> NCToastMessage(this).showError(event.message)
         }
     }
 
@@ -268,6 +305,7 @@ class InputAmountActivity : BaseComposeActivity(), BottomSheetOptionListener {
             inputs: List<UnspentOutput> = emptyList(),
             claimInheritanceTxParam: ClaimInheritanceTxParam? = null,
             btcUri: BtcUri? = null,
+            isStablecoin: Boolean = false,
         ) {
             activityContext.startActivity(
                 InputAmountArgs(
@@ -276,6 +314,7 @@ class InputAmountActivity : BaseComposeActivity(), BottomSheetOptionListener {
                     inputs = inputs,
                     claimInheritanceTxParam = claimInheritanceTxParam,
                     btcUri = btcUri,
+                    isStablecoin = isStablecoin,
                 ).buildIntent(activityContext)
             )
         }

@@ -36,7 +36,8 @@ data class InputAmountArgs(
     val availableAmount: Double,
     val inputs: List<UnspentOutput> = emptyList(),
     val claimInheritanceTxParam: ClaimInheritanceTxParam?,
-    val btcUri: BtcUri?
+    val btcUri: BtcUri?,
+    val isStablecoin: Boolean = false,
 ) : ActivityArgs {
 
     override fun buildIntent(activityContext: Context) = Intent(
@@ -48,6 +49,7 @@ data class InputAmountArgs(
         putParcelableArrayListExtra(EXTRA_INPUT, ArrayList(inputs))
         putExtra(EXTRA_CLAIM_INHERITANCE_TX_PARAM, claimInheritanceTxParam)
         putExtra(EXTRA_BTC_URI, btcUri)
+        putExtra(EXTRA_IS_STABLECOIN, isStablecoin)
     }
 
     companion object {
@@ -56,13 +58,15 @@ data class InputAmountArgs(
         const val EXTRA_INPUT = "EXTRA_INPUT"
         const val EXTRA_CLAIM_INHERITANCE_TX_PARAM = "EXTRA_CLAIM_INHERITANCE_TX_PARAM"
         const val EXTRA_BTC_URI = "EXTRA_BTC_URI"
+        const val EXTRA_IS_STABLECOIN = "EXTRA_IS_STABLECOIN"
 
         fun deserializeFrom(intent: Intent) = InputAmountArgs(
             intent.extras.getStringValue(EXTRA_WALLET_ID),
             intent.extras.getDoubleValue(EXTRA_AVAILABLE_AMOUNT),
             intent.extras?.parcelableArrayList<UnspentOutput>(EXTRA_INPUT).orEmpty(),
             intent.extras?.parcelable<ClaimInheritanceTxParam>(EXTRA_CLAIM_INHERITANCE_TX_PARAM),
-            intent.extras?.parcelable<BtcUri>(EXTRA_BTC_URI)
+            intent.extras?.parcelable<BtcUri>(EXTRA_BTC_URI),
+            intent.extras?.getBoolean(EXTRA_IS_STABLECOIN) == true,
         )
 
         fun fromSavedStateHandle(handle: SavedStateHandle) = InputAmountArgs(
@@ -71,6 +75,7 @@ data class InputAmountArgs(
             inputs = handle.get<ArrayList<UnspentOutput>>(EXTRA_INPUT).orEmpty(),
             claimInheritanceTxParam = handle.get<ClaimInheritanceTxParam>(EXTRA_CLAIM_INHERITANCE_TX_PARAM),
             btcUri = handle.get<BtcUri>(EXTRA_BTC_URI),
+            isStablecoin = handle.get<Boolean>(EXTRA_IS_STABLECOIN) == true,
         )
     }
 }
