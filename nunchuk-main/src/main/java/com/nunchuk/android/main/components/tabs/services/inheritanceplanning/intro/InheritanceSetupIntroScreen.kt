@@ -67,6 +67,7 @@ private fun InheritanceSetupIntroContent(
             topBar = {
                 NcImageAppBar(
                     backgroundRes = R.drawable.bg_inheritance,
+                    backIconRes = com.nunchuk.android.core.R.drawable.ic_close,
                     title = stringResource(
                         id = R.string.nc_estimate_remain_time,
                         remainTime

@@ -38,6 +38,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -65,7 +67,6 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.NcDatePickerDialog
 import com.nunchuk.android.compose.NcHighlightText
-import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcSnackBarHost
 import com.nunchuk.android.compose.NcTextField
@@ -206,33 +207,44 @@ internal fun InheritanceReleaseScheduleStageEditScreen(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
-                            NcOutlineButton(
-                                modifier = Modifier.weight(1f),
-                                onClick = {
-                                    currentStep = StageEditStep.WITHDRAWAL_RULE
+                                Button(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .height(48.dp),
+                                    onClick = {
+                                        currentStep = StageEditStep.WITHDRAWAL_RULE
+                                    },
+                                    shape = RoundedCornerShape(44.dp),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = MaterialTheme.colorScheme.lightGray,
+                                        contentColor = MaterialTheme.colorScheme.textPrimary
+                                    )
+                                ) {
+                                    Text(
+                                        text = stringResource(id = R.string.nc_release_schedule_back),
+                                        style = NunchukTheme.typography.title
+                                    )
                                 }
-                            ) {
-                                Text(text = stringResource(id = R.string.nc_release_schedule_back))
-                            }
-                            NcPrimaryDarkButton(
-                                modifier = Modifier.weight(1f),
-                                enabled = !showDateOrderError,
-                                onClick = {
-                                    if (isDateOrderInvalid) {
-                                        showDateOrderValidation = true
-                                        coroutineScope.launch {
-                                            snackState.showNunchukSnackbar(
-                                                message = dateOrderErrorMessage,
-                                                type = NcToastType.ERROR
-                                            )
+
+                                NcPrimaryDarkButton(
+                                    modifier = Modifier.weight(1f),
+                                    enabled = !showDateOrderError,
+                                    onClick = {
+                                        if (isDateOrderInvalid) {
+                                            showDateOrderValidation = true
+                                            coroutineScope.launch {
+                                                snackState.showNunchukSnackbar(
+                                                    message = dateOrderErrorMessage,
+                                                    type = NcToastType.ERROR
+                                                )
+                                            }
+                                        } else {
+                                            onConfirmClicked(draft.toUpdatedStage(stage))
                                         }
-                                    } else {
-                                        onConfirmClicked(draft.toUpdatedStage(stage))
                                     }
+                                ) {
+                                    Text(text = stringResource(id = WidgetR.string.nc_text_confirm))
                                 }
-                            ) {
-                                Text(text = stringResource(id = WidgetR.string.nc_text_confirm))
-                            }
                             }
                         }
                     }
@@ -579,7 +591,7 @@ private fun FirstWithdrawalDateStep(
             .fillMaxWidth()
             .padding(top = 16.dp)
             .background(
-                color = MaterialTheme.colorScheme.fillInputText,
+                color = MaterialTheme.colorScheme.lightGray,
                 shape = RoundedCornerShape(12.dp)
             )
             .padding(16.dp)

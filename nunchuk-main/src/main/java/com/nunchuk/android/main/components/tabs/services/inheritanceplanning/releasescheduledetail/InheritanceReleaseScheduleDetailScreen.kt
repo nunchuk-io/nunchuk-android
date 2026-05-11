@@ -402,6 +402,7 @@ internal fun StageCard(
         ) {
             Box(
                 modifier = Modifier
+                    .padding(top = 5.dp)
                     .size(10.dp)
                     .background(
                         color = if (isDisabled) Color(0xFFE3E3E3) else Color(0xFFD8D8D8),

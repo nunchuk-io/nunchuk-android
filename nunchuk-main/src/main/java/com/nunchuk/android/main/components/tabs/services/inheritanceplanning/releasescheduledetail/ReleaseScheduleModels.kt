@@ -276,7 +276,7 @@ data class ReleaseScheduleUiState(
             allocationPercent = 0,
             firstWithdrawalDate = firstWithdrawalDate,
             installmentConfig = ReleaseInstallmentConfig(
-                installmentPercent = 20,
+                installmentPercent = 5,
                 repeatEvery = 1,
                 frequency = ReleaseInstallmentFrequency.ANNUALLY,
             ),
@@ -293,7 +293,7 @@ data class ReleaseScheduleUiState(
                     allocationPercent = 100,
                     firstWithdrawalDate = ReleaseScheduleDate(month = 5, day = 29, year = 2028),
                     installmentConfig = ReleaseInstallmentConfig(
-                        installmentPercent = 20,
+                        installmentPercent = 5,
                         repeatEvery = 1,
                         frequency = ReleaseInstallmentFrequency.ANNUALLY,
                     ),
