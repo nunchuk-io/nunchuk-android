@@ -6,6 +6,7 @@ import com.nunchuk.android.core.domain.GetElectrumServersUseCase
 import com.nunchuk.android.core.domain.GetLocalElectrumServersUseCase
 import com.nunchuk.android.core.domain.UpdateAppSettingUseCase
 import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.type.Chain
 import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.first
@@ -25,7 +26,8 @@ class AutoSelectElectrumSeverUseCase @Inject constructor(
         val servers = getElectrumServersUseCase(Unit).getOrNull()?.mainnet?.map { it.url }.orEmpty()
         val localServers = getLocalElectrumServersUseCase(Unit).map { it.getOrThrow().map { it.url } }.first()
         val appSettings = getAppSettingUseCase(Unit).getOrThrow()
-        val currentMainnetServer = appSettings.mainnetServers.firstOrNull()
+        if (appSettings.chain != Chain.MAIN) return
+        val currentMainnetServer = appSettings.electrumServers.firstOrNull()
         val isCustomServer = !currentMainnetServer.isNullOrEmpty()
                 && currentMainnetServer != MAIN_NET_HOST
                 && (servers.indexOf(currentMainnetServer) > 0 || localServers.indexOf(currentMainnetServer) >= 0)
@@ -34,7 +36,7 @@ class AutoSelectElectrumSeverUseCase @Inject constructor(
             Timber.d("save autoServer: $autoServer")
             updateAppSettingUseCase(
                 appSettings.copy(
-                    mainnetServers = listOf(autoServer),
+                    electrumServers = listOf(autoServer),
                 )
             )
         }

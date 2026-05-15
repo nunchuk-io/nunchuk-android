@@ -23,9 +23,10 @@ class ConfigureGapLimitViewModel @Inject constructor(
             val result = getAppSettingUseCase(Unit)
             if (result.isSuccess) {
                 val appSettings = result.getOrThrow()
-                val url = when (appSettings.chain) {
-                    Chain.MAIN -> appSettings.mainnetServers[0]
-                    else -> ""
+                val url = if (appSettings.chain == Chain.MAIN) {
+                    appSettings.electrumServers.firstOrNull().orEmpty()
+                } else {
+                    ""
                 }
                 _event.emit(
                     ConfigureGapLimitEvent.GetAppSettingSuccess(url)

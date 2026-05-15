@@ -20,9 +20,8 @@
 package com.nunchuk.android.core.domain
 
 import com.nunchuk.android.core.constants.Constants.GLOBAL_SIGNET_EXPLORER
+import com.nunchuk.android.core.constants.Constants.LIQUID_MAIN_NET_HOST
 import com.nunchuk.android.core.constants.Constants.MAIN_NET_HOST
-import com.nunchuk.android.core.constants.Constants.SIG_NET_HOST
-import com.nunchuk.android.core.constants.Constants.TEST_NET_HOST
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.AppSettings
 import com.nunchuk.android.type.BackendType
@@ -44,9 +43,8 @@ class InitAppSettingsUseCase @Inject constructor(
             AppSettings(
                 chain = Chain.MAIN,
                 hwiPath = "bin/hwi",
-                testnetServers = listOf(TEST_NET_HOST),
-                mainnetServers = listOf(MAIN_NET_HOST),
-                signetServers = listOf(SIG_NET_HOST),
+                electrumServers = listOf(MAIN_NET_HOST),
+                liquidServers = listOf(LIQUID_MAIN_NET_HOST),
                 backendType = BackendType.ELECTRUM,
                 storagePath = path,
                 signetExplorerHost = GLOBAL_SIGNET_EXPLORER

@@ -24,11 +24,18 @@ import com.nunchuk.android.model.AppSettings
 data class NetworkSettingState(
     val appSetting: AppSettings = AppSettings(),
     val customMainnetServerName: String? = null,
+    val mainnetServer: String = "",
+    val testnetServer: String = "",
+    val signetServer: String = "",
 )
 
 sealed class NetworkSettingEvent {
     data class UpdateSettingSuccessEvent(val appSetting: AppSettings) : NetworkSettingEvent()
-    data class ResetTextHostServerEvent(val appSetting: AppSettings) : NetworkSettingEvent()
+    data class ResetTextHostServerEvent(
+        val mainnetServer: String,
+        val testnetServer: String,
+        val signetServer: String,
+    ) : NetworkSettingEvent()
     object SignOutSuccessEvent : NetworkSettingEvent()
     data class LoadingEvent(val loading: Boolean) : NetworkSettingEvent()
 }

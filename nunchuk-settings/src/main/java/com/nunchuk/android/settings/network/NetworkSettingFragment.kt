@@ -42,7 +42,6 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import com.nunchuk.android.core.base.BaseFragment
-import com.nunchuk.android.core.constants.Constants.SIG_NET_HOST
 import com.nunchuk.android.core.util.hideLoading
 import com.nunchuk.android.core.util.openExternalLink
 import com.nunchuk.android.core.util.showLoading
@@ -73,9 +72,7 @@ class NetworkSettingFragment : BaseFragment<ActivityNetworkSettingBinding>(){
                 }
                 binding.tvMainNetHost.text = name ?: server
                 Timber.d("Selected server: $server")
-                viewModel.currentAppSettings?.copy(
-                    mainnetServers = listOf(server)
-                )?.let(viewModel::updateCurrentState)
+                viewModel.onHostChanged(Chain.MAIN, server)
             }
         }
 
@@ -134,7 +131,7 @@ class NetworkSettingFragment : BaseFragment<ActivityNetworkSettingBinding>(){
     }
 
     private fun isAppSettingChanged(): Boolean {
-        return viewModel.currentAppSettings != viewModel.initAppSettings
+        return viewModel.hasPendingChanges()
     }
 
     private fun TextView.setupNetworkViewInfo(currentChain: Chain, selectedChain: Chain) {
@@ -171,17 +168,9 @@ class NetworkSettingFragment : BaseFragment<ActivityNetworkSettingBinding>(){
             }
 
             is NetworkSettingEvent.ResetTextHostServerEvent -> {
-                binding.tvMainNetHost.text = viewModel.customMainnetServerName ?: event.appSetting.mainnetServers[0]
-                binding.tvTestNetHost.setText(
-                    event.appSetting.testnetServers[0]
-                )
-                binding.tvSigNetHost.setText(
-                    if (event.appSetting.signetServers.isEmpty()) {
-                        SIG_NET_HOST
-                    } else {
-                        event.appSetting.signetServers[0]
-                    }
-                )
+                binding.tvMainNetHost.text = viewModel.customMainnetServerName ?: event.mainnetServer
+                binding.tvTestNetHost.setText(event.testnetServer)
+                binding.tvSigNetHost.setText(event.signetServer)
             }
 
             is NetworkSettingEvent.LoadingEvent -> showLoading()
@@ -235,9 +224,7 @@ class NetworkSettingFragment : BaseFragment<ActivityNetworkSettingBinding>(){
         }
 
         binding.btnSave.setOnClickListener {
-            viewModel.currentAppSettings?.let {
-                viewModel.updateAppSettings(it)
-            }
+            viewModel.saveCurrentSettings()
         }
 
         binding.btnReset.setOnClickListener {
@@ -255,7 +242,7 @@ class NetworkSettingFragment : BaseFragment<ActivityNetworkSettingBinding>(){
                 SelectElectrumServerActivity.buildIntent(
                     activity = requireActivity(),
                     chain = Chain.MAIN,
-                    server = viewModel.currentAppSettings?.mainnetServers?.firstOrNull().orEmpty()
+                    server = viewModel.state.value?.mainnetServer.orEmpty()
                 )
             )
         }
@@ -341,29 +328,19 @@ class NetworkSettingFragment : BaseFragment<ActivityNetworkSettingBinding>(){
             else -> Chain.TESTNET
         }
 
-        viewModel.currentAppSettings?.copy(
-            chain = chain,
-            testnetServers = listOf(binding.tvTestNetHost.text.toString()),
-            signetServers = listOf(binding.tvSigNetHost.text.toString())
-        )?.let(viewModel::updateCurrentState)
+        viewModel.onHostChanged(
+            Chain.TESTNET,
+            binding.tvTestNetHost.text.toString()
+        )
+        viewModel.onHostChanged(
+            Chain.SIGNET,
+            binding.tvSigNetHost.text.toString()
+        )
+        viewModel.onChainChanged(chain)
     }
 
     private fun handleNetworkHostTextCallBack(text: String, chain: Chain) {
-        when (chain) {
-            Chain.SIGNET -> viewModel.currentAppSettings?.copy(
-                signetServers = listOf(text)
-            )
-
-            Chain.TESTNET -> viewModel.currentAppSettings?.copy(
-                testnetServers = listOf(text)
-            )
-
-            Chain.MAIN -> viewModel.currentAppSettings?.copy(
-                mainnetServers = listOf(text)
-            )
-
-            else -> viewModel.currentAppSettings
-        }?.let(viewModel::updateCurrentState)
+        viewModel.onHostChanged(chain, text)
     }
 
     companion object {

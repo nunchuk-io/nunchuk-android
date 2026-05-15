@@ -21,14 +21,19 @@ package com.nunchuk.android.settings.network
 
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
+import com.nunchuk.android.core.constants.Constants.MAIN_NET_HOST
+import com.nunchuk.android.core.constants.Constants.SIG_NET_HOST
+import com.nunchuk.android.core.constants.Constants.TEST_NET_HOST
 import com.nunchuk.android.core.domain.ClearInfoSessionUseCase
 import com.nunchuk.android.core.domain.GetAppSettingUseCase
 import com.nunchuk.android.core.domain.GetRemoteElectrumServersCacheUseCase
 import com.nunchuk.android.core.domain.InitAppSettingsUseCase
 import com.nunchuk.android.core.domain.UpdateAppSettingUseCase
 import com.nunchuk.android.core.guestmode.SignInModeHolder
+import com.nunchuk.android.core.persistence.NCSharePreferences
 import com.nunchuk.android.core.profile.SendSignOutUseCase
 import com.nunchuk.android.model.AppSettings
+import com.nunchuk.android.type.Chain
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.firstOrNull
@@ -46,6 +51,7 @@ internal class NetworkSettingViewModel @Inject constructor(
     private val clearInfoSessionUseCase: ClearInfoSessionUseCase,
     private val getRemoteElectrumServersCacheUseCase: GetRemoteElectrumServersCacheUseCase,
     private val signInModeHolder: SignInModeHolder,
+    private val ncSharePreferences: NCSharePreferences,
 ) : NunchukViewModel<NetworkSettingState, NetworkSettingEvent>() {
 
     override val initialState = NetworkSettingState()
@@ -57,15 +63,31 @@ internal class NetworkSettingViewModel @Inject constructor(
         get() = state.value?.customMainnetServerName
 
     var initAppSettings: AppSettings? = null
+    private var initMainnetServer: String = ""
+    private var initTestnetServer: String = ""
+    private var initSignetServer: String = ""
 
     init {
         viewModelScope.launch {
             getAppSettingUseCase(Unit).onSuccess { appSettings ->
+                val mainnet = ncSharePreferences.customMainnetServer.ifBlank { MAIN_NET_HOST }
+                val testnet = ncSharePreferences.customTestnetServer.ifBlank { TEST_NET_HOST }
+                val signet = ncSharePreferences.customSignetServer.ifBlank { SIG_NET_HOST }
                 initAppSettings = appSettings
-                updateCurrentState(appSettings)
-                loadCustomMainnetServer(appSettings.mainnetServers.firstOrNull())
+                initMainnetServer = mainnet
+                initTestnetServer = testnet
+                initSignetServer = signet
+                updateState {
+                    copy(
+                        appSetting = appSettings,
+                        mainnetServer = mainnet,
+                        testnetServer = testnet,
+                        signetServer = signet,
+                    )
+                }
+                loadCustomMainnetServer(mainnet)
                 setEvent(
-                    NetworkSettingEvent.ResetTextHostServerEvent(appSettings)
+                    NetworkSettingEvent.ResetTextHostServerEvent(mainnet, testnet, signet)
                 )
             }
         }
@@ -87,28 +109,99 @@ internal class NetworkSettingViewModel @Inject constructor(
         }
     }
 
-    fun updateAppSettings(appSettings: AppSettings) {
+    fun onHostChanged(chain: Chain, host: String) {
+        val current = state.value ?: return
+        val withHost = when (chain) {
+            Chain.MAIN -> current.copy(mainnetServer = host)
+            Chain.TESTNET -> current.copy(testnetServer = host)
+            Chain.SIGNET -> current.copy(signetServer = host)
+            else -> current
+        }
+        val withAppSetting = if (current.appSetting.chain == chain) {
+            withHost.copy(appSetting = withHost.appSetting.copy(electrumServers = listOf(host)))
+        } else {
+            withHost
+        }
+        updateState { withAppSetting }
+    }
+
+    fun onChainChanged(chain: Chain) {
+        val current = state.value ?: return
+        val newHost = when (chain) {
+            Chain.MAIN -> current.mainnetServer
+            Chain.TESTNET -> current.testnetServer
+            Chain.SIGNET -> current.signetServer
+            else -> current.appSetting.electrumServers.firstOrNull().orEmpty()
+        }
+        updateState {
+            copy(
+                appSetting = appSetting.copy(
+                    chain = chain,
+                    electrumServers = listOf(newHost),
+                )
+            )
+        }
+    }
+
+    fun hasPendingChanges(): Boolean {
+        val current = state.value ?: return false
+        return current.appSetting != initAppSettings
+                || current.mainnetServer != initMainnetServer
+                || current.testnetServer != initTestnetServer
+                || current.signetServer != initSignetServer
+    }
+
+    fun saveCurrentSettings() {
+        val current = state.value ?: return
+        ncSharePreferences.customMainnetServer = current.mainnetServer
+        ncSharePreferences.customTestnetServer = current.testnetServer
+        ncSharePreferences.customSignetServer = current.signetServer
+        updateAppSettings(current.appSetting)
+    }
+
+    private fun updateAppSettings(appSettings: AppSettings) {
         viewModelScope.launch {
             val result = updateAppSettingUseCase(appSettings)
             if (result.isSuccess) {
-                initAppSettings = result.getOrThrow()
+                val saved = result.getOrThrow()
+                initAppSettings = saved
+                initMainnetServer = state.value?.mainnetServer.orEmpty()
+                initTestnetServer = state.value?.testnetServer.orEmpty()
+                initSignetServer = state.value?.signetServer.orEmpty()
                 updateState {
-                    copy(appSetting = result.getOrThrow())
+                    copy(appSetting = saved)
                 }
-                setEvent(NetworkSettingEvent.UpdateSettingSuccessEvent(result.getOrThrow()))
+                setEvent(NetworkSettingEvent.UpdateSettingSuccessEvent(saved))
             }
         }
     }
 
     fun resetToDefaultAppSetting() {
         viewModelScope.launch {
+            ncSharePreferences.customMainnetServer = MAIN_NET_HOST
+            ncSharePreferences.customTestnetServer = TEST_NET_HOST
+            ncSharePreferences.customSignetServer = SIG_NET_HOST
             val result = initAppSettingsUseCase(Unit)
             result.getOrNull()?.let {
                 initAppSettings = it
+                initMainnetServer = MAIN_NET_HOST
+                initTestnetServer = TEST_NET_HOST
+                initSignetServer = SIG_NET_HOST
                 updateState {
-                    copy(appSetting = it)
+                    copy(
+                        appSetting = it,
+                        mainnetServer = MAIN_NET_HOST,
+                        testnetServer = TEST_NET_HOST,
+                        signetServer = SIG_NET_HOST,
+                    )
                 }
-                setEvent(NetworkSettingEvent.ResetTextHostServerEvent(it))
+                setEvent(
+                    NetworkSettingEvent.ResetTextHostServerEvent(
+                        MAIN_NET_HOST,
+                        TEST_NET_HOST,
+                        SIG_NET_HOST,
+                    )
+                )
                 setEvent(NetworkSettingEvent.UpdateSettingSuccessEvent(it))
             }
         }

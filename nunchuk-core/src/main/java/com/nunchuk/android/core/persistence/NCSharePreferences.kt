@@ -49,6 +49,18 @@ class NCSharePreferences @Inject constructor(context: Context) {
         get() = prefs.getString(SP_KEY_DEVELOPER_SETTING, "").orEmpty()
         set(value) = prefs.edit().putString(SP_KEY_DEVELOPER_SETTING, value).apply()
 
+    var customMainnetServer: String
+        get() = prefs.getString(SP_KEY_CUSTOM_MAINNET_SERVER, "").orEmpty()
+        set(value) = prefs.edit().putString(SP_KEY_CUSTOM_MAINNET_SERVER, value).apply()
+
+    var customTestnetServer: String
+        get() = prefs.getString(SP_KEY_CUSTOM_TESTNET_SERVER, "").orEmpty()
+        set(value) = prefs.edit().putString(SP_KEY_CUSTOM_TESTNET_SERVER, value).apply()
+
+    var customSignetServer: String
+        get() = prefs.getString(SP_KEY_CUSTOM_SIGNET_SERVER, "").orEmpty()
+        set(value) = prefs.edit().putString(SP_KEY_CUSTOM_SIGNET_SERVER, value).apply()
+
     companion object {
         private const val PACKAGE_PREFIX = "com.nunchuk.android"
         private const val APP_SHARE_PREFERENCE_NAME = "${PACKAGE_PREFIX}.pref"
@@ -58,5 +70,8 @@ class NCSharePreferences @Inject constructor(context: Context) {
         private const val SP_KEY_DEVICE_SHOW_BANNER_NEW_CHAT = "${PACKAGE_PREFIX}.key.show.banner.new.chat.v2"
         private const val SP_KEY_FCM_TOKEN = "${PACKAGE_PREFIX}.key.fcm.token"
         private const val SP_KEY_DEVELOPER_SETTING = "${PACKAGE_PREFIX}.key.developer.setting"
+        private const val SP_KEY_CUSTOM_MAINNET_SERVER = "${PACKAGE_PREFIX}.key.custom.server.mainnet"
+        private const val SP_KEY_CUSTOM_TESTNET_SERVER = "${PACKAGE_PREFIX}.key.custom.server.testnet"
+        private const val SP_KEY_CUSTOM_SIGNET_SERVER = "${PACKAGE_PREFIX}.key.custom.server.signet"
     }
 }

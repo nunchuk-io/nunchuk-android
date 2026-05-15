@@ -11,6 +11,7 @@ import com.nunchuk.android.core.domain.GetLocalElectrumServersUseCase
 import com.nunchuk.android.core.domain.GetRemoteElectrumServersCacheUseCase
 import com.nunchuk.android.core.domain.RemoveLocalElectrumServersUseCase
 import com.nunchuk.android.core.domain.UpdateAppSettingUseCase
+import com.nunchuk.android.core.persistence.NCSharePreferences
 import com.nunchuk.android.core.profile.SendSignOutUseCase
 import com.nunchuk.android.model.ElectrumServer
 import com.nunchuk.android.model.RemoteElectrumServer
@@ -37,6 +38,7 @@ class SelectElectrumServerViewModel @Inject constructor(
     private val appScope: CoroutineScope,
     private val clearInfoSessionUseCase: ClearInfoSessionUseCase,
     private val sendSignOutUseCase: SendSignOutUseCase,
+    private val ncSharePreferences: NCSharePreferences,
     saveStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val chain =
@@ -83,9 +85,10 @@ class SelectElectrumServerViewModel @Inject constructor(
             if (!isLocalExist && !isRemoteExist) {
                 addLocalElectrumServersUseCase(ElectrumServer(url = server, chain = chain))
                 val currentSettings = getAppSettingUseCase(Unit).getOrThrow()
+                ncSharePreferences.customMainnetServer = server
                 updateAppSettingUseCase(
                     currentSettings.copy(
-                        mainnetServers = listOf(server),
+                        electrumServers = listOf(server),
                         chain = Chain.MAIN
                     )
                 )

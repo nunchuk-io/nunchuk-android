@@ -25,6 +25,9 @@ object Constants {
     const val OLD_SIG_NET_HOST = "signet.nunchuk.io:50002"
     const val SIG_NET_HOST = "ssl://mempool.space:60602"
 
+    const val LIQUID_MAIN_NET_HOST = "blockstream.info:995"
+    const val LIQUID_TEST_NET_HOST = "13.214.164.4:40001"
+
     const val TESTNET_URL_TEMPLATE = "https://mempool.space/testnet4/tx/"
     const val MAINNET_URL_TEMPLATE = "https://mempool.space/tx/"
     const val BLOCKSTREAM_MAINNET_ADDRESS_TEMPLATE = "https://mempool.space/address/"
