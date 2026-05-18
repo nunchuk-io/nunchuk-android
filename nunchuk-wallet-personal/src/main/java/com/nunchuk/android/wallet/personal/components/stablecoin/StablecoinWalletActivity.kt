@@ -38,9 +38,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.base.BaseComposeActivity
+import com.nunchuk.android.core.signer.KeyFlow
 import com.nunchuk.android.core.signer.SelectSignerArgs
 import com.nunchuk.android.core.signer.SelectSignerBottomSheet
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.model.signer.SupportedSigner
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.wallet.personal.components.stablecoin.intro.StablecoinIntroScreenRoute
 import com.nunchuk.android.wallet.personal.components.stablecoin.intro.stablecoinIntroScreen
@@ -93,7 +95,7 @@ class StablecoinWalletActivity : BaseComposeActivity() {
                             if (state.softwareSigners.isNotEmpty()) {
                                 showSelectSignerSheet = true
                             } else {
-                                openSignerIntro()
+                                openSignerIntro(state.liquidSupportedSigners)
                             }
                         },
                     )
@@ -112,7 +114,7 @@ class StablecoinWalletActivity : BaseComposeActivity() {
                         },
                         onAddNewKey = {
                             showSelectSignerSheet = false
-                            openSignerIntro()
+                            openSignerIntro(state.liquidSupportedSigners)
                         },
                     )
                 }
@@ -120,12 +122,13 @@ class StablecoinWalletActivity : BaseComposeActivity() {
         }
     }
 
-    private fun openSignerIntro() {
+    private fun openSignerIntro(supportedSigners: List<SupportedSigner>) {
         navigator.openSignerIntroScreen(
             launcher = signerIntroLauncher,
             activityContext = this,
             groupId = null,
-            supportedSigners = null,
+            supportedSigners = supportedSigners,
+            keyFlow = KeyFlow.ADD_AND_PUSH,
         )
     }
 

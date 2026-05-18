@@ -30,6 +30,7 @@ object KeyFlow {
     const val REPLACE_KEY_IN_FREE_WALLET = 4
     const val ADD_AND_RETURN = 5
     const val ADD_AND_RETURN_PASSPHRASE = 6
+    const val ADD_AND_PUSH = 7
 
     @IntDef(
         NONE,
@@ -39,12 +40,13 @@ object KeyFlow {
         REPLACE_KEY_IN_FREE_WALLET,
         ADD_AND_RETURN,
         ADD_AND_RETURN_PASSPHRASE,
+        ADD_AND_PUSH,
     )
     @Retention(AnnotationRetention.SOURCE)
     annotation class PrimaryFlowInfo
 
     fun Int.isPrimaryKeyFlow() =
-        this != NONE && this != REPLACE_KEY_IN_FREE_WALLET && this != ADD_AND_RETURN_PASSPHRASE && this != ADD_AND_RETURN
+        this != NONE && this != REPLACE_KEY_IN_FREE_WALLET && this != ADD_AND_RETURN_PASSPHRASE && this != ADD_AND_RETURN && this != ADD_AND_PUSH
 
     fun Int.isSignUpFlow() = this == SIGN_UP
     fun Int.isSignInFlow() = this == SIGN_IN
@@ -52,4 +54,5 @@ object KeyFlow {
     fun Int.isReplaceKeyInFreeWalletFlow() = this == REPLACE_KEY_IN_FREE_WALLET
     fun Int.isAddAndReturnFlow() = this == ADD_AND_RETURN
     fun Int.isAddAndReturnWithPassphraseFlow() = this == ADD_AND_RETURN_PASSPHRASE
+    fun Int.isAddAndPushFlow() = this == ADD_AND_PUSH
 }

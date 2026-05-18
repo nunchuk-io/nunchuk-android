@@ -30,6 +30,7 @@ import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.signer.KeyFlow.isAddAndReturnWithPassphraseFlow
 import com.nunchuk.android.core.signer.KeyFlow.isPrimaryKeyFlow
 import com.nunchuk.android.core.signer.KeyFlow.isReplaceFlow
+import com.nunchuk.android.core.signer.KeyFlow.isAddAndPushFlow
 import com.nunchuk.android.core.signer.KeyFlow.isReplaceKeyInFreeWalletFlow
 import com.nunchuk.android.core.signer.KeyFlow.isSignUpFlow
 import com.nunchuk.android.core.util.gson
@@ -216,10 +217,12 @@ internal class SetPassphraseViewModel @Inject constructor(
                     syncKeyToGroup(signer, groupId)
                 } else if (isQuickWallet) {
                     createQuickWallet(signer)
-                } else if (primaryKeyFlow.isReplaceKeyInFreeWalletFlow() || groupId.isNotEmpty()) {
-                    // for replace key in free wallet flow and group sandbox
+                } else if (primaryKeyFlow.isReplaceKeyInFreeWalletFlow() || primaryKeyFlow.isAddAndPushFlow() || groupId.isNotEmpty()) {
+                    // for replace key in free wallet flow, group sandbox, and add-and-push (e.g. stablecoin) flow
                     if (groupId.isNotEmpty()) {
                         getSingleSignerForFreeWallet(signer, WalletType.MULTI_SIG)
+                    } else if (primaryKeyFlow.isAddAndPushFlow()) {
+                        getSingleSignerForFreeWallet(signer, WalletType.SINGLE_SIG)
                     } else {
                         getSingleSignerForFreeWallet(signer, walletId)
                     }

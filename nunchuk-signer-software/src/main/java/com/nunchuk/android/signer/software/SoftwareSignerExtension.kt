@@ -2,6 +2,7 @@ package com.nunchuk.android.signer.software
 
 import android.app.Activity
 import com.nunchuk.android.core.manager.ActivityManager
+import com.nunchuk.android.core.signer.KeyFlow.isAddAndPushFlow
 import com.nunchuk.android.core.signer.KeyFlow.isReplaceFlow
 import com.nunchuk.android.core.signer.KeyFlow.isReplaceKeyInFreeWalletFlow
 import com.nunchuk.android.core.signer.KeyFlow.isSignUpFlow
@@ -46,7 +47,7 @@ fun Activity.onCreateSignerCompleted(
             setPassphrase = !skipPassphrase,
             isReplacePrimaryKey = true
         )
-    } else if (groupId.isNotEmpty() || replacedXfp.isNotEmpty() || keyFlow.isReplaceKeyInFreeWalletFlow()) {
+    } else if (groupId.isNotEmpty() || replacedXfp.isNotEmpty() || keyFlow.isReplaceKeyInFreeWalletFlow() || keyFlow.isAddAndPushFlow()) {
         ActivityManager.popUntil(SoftwareSignerIntroActivity::class.java, true)
     } else {
         navigator.returnToMainScreen(this)

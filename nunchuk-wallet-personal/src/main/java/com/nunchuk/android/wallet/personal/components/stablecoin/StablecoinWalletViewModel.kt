@@ -25,12 +25,16 @@ import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.signer.toSignerTag
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.core.util.toSignerType
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.model.signer.SupportedSigner
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.WalletType
+import com.nunchuk.android.usecase.GetUserWalletConfigsSetupUseCase
 import com.nunchuk.android.usecase.signer.GetMasterSigners2UseCase
 import com.nunchuk.android.usecase.signer.GetUnusedSignerFromMasterSignerV2UseCase
 import com.nunchuk.android.usecase.wallet.CreateUsdtWalletFromSignerUseCase
@@ -50,6 +54,7 @@ class StablecoinWalletViewModel @Inject constructor(
     private val masterSignerMapper: MasterSignerMapper,
     private val getUnusedSignerFromMasterSignerV2UseCase: GetUnusedSignerFromMasterSignerV2UseCase,
     private val createUsdtWalletFromSignerUseCase: CreateUsdtWalletFromSignerUseCase,
+    private val getUserWalletConfigsSetupUseCase: GetUserWalletConfigsSetupUseCase,
     pushEventManager: PushEventManager,
 ) : ViewModel() {
 
@@ -68,6 +73,23 @@ class StablecoinWalletViewModel @Inject constructor(
                 masterSigners.clear()
                 masterSigners.addAll(software)
                 _state.update { it.copy(softwareSigners = software.map { s -> masterSignerMapper(s) }) }
+            }
+        }
+        viewModelScope.launch {
+            getUserWalletConfigsSetupUseCase(Unit).onSuccess { configs ->
+                val liquidSigners = configs.supportedSigners
+                    .filter { it.walletType == WalletType.LIQUID.name }
+                    .map { config ->
+                        val type = config.signerType.toSignerType()
+                        val tag = config.signerTag.toSignerTag()
+                        SupportedSigner(
+                            type = type,
+                            tag = tag,
+                            walletType = WalletType.LIQUID,
+                            addressType = AddressType.NATIVE_SEGWIT,
+                        )
+                    }
+                _state.update { it.copy(liquidSupportedSigners = liquidSigners) }
             }
         }
         viewModelScope.launch {
@@ -116,6 +138,7 @@ class StablecoinWalletViewModel @Inject constructor(
 
 data class StablecoinWalletState(
     val softwareSigners: List<SignerModel> = emptyList(),
+    val liquidSupportedSigners: List<SupportedSigner> = emptyList(),
     val isLoading: Boolean = false,
 )
 
