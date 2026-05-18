@@ -22,8 +22,6 @@ package com.nunchuk.android.wallet.components.details
 import android.util.LruCache
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
-import androidx.paging.Pager
-import androidx.paging.PagingConfig
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.GetGroupDeviceUIDUseCase
@@ -34,6 +32,7 @@ import com.nunchuk.android.core.domain.wallet.GetWalletBsmsUseCase
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
+import com.nunchuk.android.core.util.canBroadCast
 import com.nunchuk.android.core.util.getNearestTimeLock
 import com.nunchuk.android.core.util.hadBroadcast
 import com.nunchuk.android.core.util.orUnknownError
@@ -49,6 +48,8 @@ import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.toRole
+import com.nunchuk.android.model.membership.isActiveWallet
+import com.nunchuk.android.model.transaction.ExtendedTransaction
 import com.nunchuk.android.model.transaction.ServerTransaction
 import com.nunchuk.android.model.wallet.WalletStatus
 import com.nunchuk.android.type.ExportFormat
@@ -87,11 +88,9 @@ import com.nunchuk.android.utils.GroupChatManager
 import com.nunchuk.android.utils.onException
 import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.ImportPSBTSuccess
 import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.Loading
-import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.PaginationTransactions
 import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.SaveLocalFile
 import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.SendMoneyEvent
 import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.ShareBSMS
-import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.UpdateUnusedAddress
 import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.WalletDetailsError
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -100,6 +99,9 @@ import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.onStart
@@ -162,6 +164,9 @@ internal class WalletDetailsViewModel @Inject constructor(
         WalletDetailsFragmentArgs.fromSavedStateHandle(savedStateHandle)
 
     private val transactions = mutableListOf<Transaction>()
+
+    private val _extendedTransactions = MutableStateFlow<List<ExtendedTransaction>>(emptyList())
+    val extendedTransactions: StateFlow<List<ExtendedTransaction>> = _extendedTransactions.asStateFlow()
 
     override val initialState = WalletDetailsState()
 
@@ -568,25 +573,41 @@ internal class WalletDetailsViewModel @Inject constructor(
         }
     }
 
-    fun paginateTransactions() =
-        Pager(
-            config = PagingConfig(pageSize = PAGE_SIZE, enablePlaceholders = false),
-            pagingSourceFactory = {
-                TransactionPagingSource(
-                    transactions = transactions.toList(),
-                    brief = assistedWalletManager.getBriefWallet(args.walletId),
-                    serverTransactionCache = serverTransactionCache,
-                    lockedTimeTransactionCache = timelockTransactionCache,
-                    lockedBase = walletLockedBase[args.walletId] ?: MiniscriptTimelockBased.NONE,
+    fun rebuildExtendedTransactions() {
+        val brief = assistedWalletManager.getBriefWallet(args.walletId)
+        val lockedBase = walletLockedBase[args.walletId] ?: MiniscriptTimelockBased.NONE
+        _extendedTransactions.value = transactions.map { transaction ->
+            val lockedTime = timelockTransactionCache.get(transaction.txId) ?: 0L
+            if (brief?.isActiveWallet == true && transaction.status.canBroadCast()) {
+                ExtendedTransaction(
+                    transaction = transaction,
+                    serverTransaction = serverTransactionCache[transaction.txId],
+                    hideFiatCurrency = brief.hideFiatCurrency,
+                    lockedTime = lockedTime,
+                    lockedBase = lockedBase,
                 )
-            }).flow.flowOn(ioDispatcher)
+            } else {
+                ExtendedTransaction(
+                    transaction = transaction,
+                    hideFiatCurrency = brief?.hideFiatCurrency == true,
+                    lockedTime = lockedTime,
+                    lockedBase = lockedBase,
+                )
+            }
+        }
+    }
 
     private fun onRetrievedTransactionHistory() {
+        rebuildExtendedTransactions()
+        updateState {
+            copy(
+                hasTransactions = transactions.isNotEmpty(),
+                transactionsLoaded = true,
+            )
+        }
+        event(Loading(false))
         if (transactions.isEmpty()) {
             getUnusedAddresses()
-            event(PaginationTransactions(false))
-        } else {
-            event(PaginationTransactions(true))
         }
     }
 
@@ -602,15 +623,15 @@ internal class WalletDetailsViewModel @Inject constructor(
         if (addresses.isEmpty()) {
             generateNewAddress()
         } else {
-            event(UpdateUnusedAddress(addresses.first()))
+            updateState { copy(unusedAddress = addresses.first()) }
         }
     }
 
     private fun generateNewAddress() {
         viewModelScope.launch {
             newAddressUseCase.execute(walletId = args.walletId).flowOn(IO)
-                .onException { event(UpdateUnusedAddress("")) }
-                .collect { event(UpdateUnusedAddress(it)) }
+                .onException { updateState { copy(unusedAddress = "") } }
+                .collect { address -> updateState { copy(unusedAddress = address) } }
         }
     }
 

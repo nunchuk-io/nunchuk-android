@@ -26,27 +26,14 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.runtime.getValue
-import androidx.constraintlayout.motion.widget.MotionLayout
-import androidx.core.content.ContextCompat
-import androidx.core.view.isGone
-import androidx.core.view.isVisible
-import androidx.core.widget.TextViewCompat
 import androidx.fragment.app.clearFragmentResult
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.asFlow
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.withResumed
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import androidx.paging.CombinedLoadStates
-import androidx.paging.LoadState
-import androidx.paging.PagingData
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.nunchuk.android.core.base.BaseShareSaveFileFragment
 import com.nunchuk.android.core.constants.RoomAction
 import com.nunchuk.android.core.groupchathistory.GroupChatHistoryArgs
@@ -54,65 +41,36 @@ import com.nunchuk.android.core.groupchathistory.GroupChatHistoryFragment
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
-import com.nunchuk.android.core.qr.convertToQRCode
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.util.CHOOSE_FILE_REQUEST_CODE
-import com.nunchuk.android.core.util.ClickAbleText
-import com.nunchuk.android.core.util.RENEW_ACCOUNT_LINK
 import com.nunchuk.android.core.util.TextUtils
-import com.nunchuk.android.core.util.getBTCAmount
-import com.nunchuk.android.core.util.getCurrencyAmount
 import com.nunchuk.android.core.util.getFileFromUri
 import com.nunchuk.android.core.util.hideKeyboard
 import com.nunchuk.android.core.util.hideLoading
-import com.nunchuk.android.core.util.makeTextLink
 import com.nunchuk.android.core.util.openExternalLink
 import com.nunchuk.android.core.util.openSelectFileChooser
 import com.nunchuk.android.core.util.pureBTC
-import com.nunchuk.android.core.util.setUnderline
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.core.util.showSuccess
-import com.nunchuk.android.model.BannerState
-import com.nunchuk.android.model.HistoryPeriod
-import com.nunchuk.android.model.byzantine.AssistedWalletRole
-import com.nunchuk.android.model.wallet.WalletStatus
 import com.nunchuk.android.nav.args.BackUpWalletArgs
 import com.nunchuk.android.nav.args.BackUpWalletType
 import com.nunchuk.android.nav.args.ClaimArgs
-import com.nunchuk.android.share.wallet.bindWalletConfiguration
-import com.nunchuk.android.type.MiniscriptTimelockBased
-import com.nunchuk.android.utils.Utils
-import com.nunchuk.android.utils.consumeEdgeToEdge
 import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.utils.serializable
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.components.config.WalletConfigAction
 import com.nunchuk.android.wallet.components.config.WalletConfigActivity
-import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.ImportPSBTSuccess
-import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.Loading
-import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.PaginationTransactions
-import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.SaveLocalFile
-import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.SendMoneyEvent
-import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.UpdateUnusedAddress
-import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.WalletDetailsError
 import com.nunchuk.android.wallet.databinding.FragmentWalletDetailBinding
 import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCToastMessage
-import com.nunchuk.android.widget.util.setOnDebounceClickListener
+import com.nunchuk.android.model.HistoryPeriod
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.distinctUntilChangedBy
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import kotlin.math.ceil
-
 
 @AndroidEntryPoint
 class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBinding>(),
@@ -127,31 +85,28 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
     @Inject
     lateinit var pushEventManager: PushEventManager
 
+    private val viewModel: WalletDetailsViewModel by viewModels()
+    private val args: WalletDetailsFragmentArgs by navArgs()
+
     private val launcher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             val data = it.data
             if (it.resultCode == Activity.RESULT_OK && data != null) {
                 when (data.serializable<WalletConfigAction>(WalletConfigActivity.EXTRA_WALLET_ACTION)) {
-                    WalletConfigAction.DELETE -> {
-                        closeScreen()
-                    }
-
+                    WalletConfigAction.DELETE -> closeScreen()
                     WalletConfigAction.UPDATE_NAME -> viewModel.getWalletDetails(false)
-                    WalletConfigAction.FORCE_REFRESH -> viewModel.setForceRefreshWalletProcessing(
-                        true
-                    )
+                    WalletConfigAction.FORCE_REFRESH ->
+                        viewModel.setForceRefreshWalletProcessing(true)
 
-                    null -> {}
+                    null -> Unit
                 }
             }
         }
 
-    private var previousProgress: Float = 0f // To track scroll direction
-
-    private fun closeScreen() {
-        if (requireActivity() is WalletDetailsActivity) requireActivity().finish()
-        else findNavController().popBackStack()
-    }
+    override fun initializeBinding(
+        inflater: LayoutInflater, container: ViewGroup?,
+    ): FragmentWalletDetailBinding =
+        FragmentWalletDetailBinding.inflate(inflater, container, false)
 
     override fun onResume() {
         super.onResume()
@@ -163,60 +118,59 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
         }
     }
 
-    private val viewModel: WalletDetailsViewModel by viewModels()
-
-    private val adapter: TransactionAdapter = TransactionAdapter {
-        navigator.openTransactionDetailsScreen(
-            activityContext = requireActivity(),
-            walletId = args.walletId,
-            txId = it.txId,
-            roomId = viewModel.getRoomWallet()?.roomId.orEmpty()
-        )
-    }
-
-    private val args: WalletDetailsFragmentArgs by navArgs()
-
-    override fun initializeBinding(
-        inflater: LayoutInflater, container: ViewGroup?,
-    ): FragmentWalletDetailBinding {
-        return FragmentWalletDetailBinding.inflate(inflater, container, false)
-    }
-
-    private var updateDataJob: Job? = null
-    private var animateLayoutJob: Job? = null
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         view.hideKeyboard()
-        setupViews()
-        observeEvent()
 
-        requireActivity().supportFragmentManager.setFragmentResultListener(
-            GroupChatHistoryFragment.REQUEST_KEY, this
-        ) { _: String?, bundle: Bundle ->
-            val historyPeriod =
-                bundle.parcelable<HistoryPeriod>(GroupChatHistoryFragment.EXTRA_HISTORY_PERIOD)
-                    ?: return@setFragmentResultListener
-            viewModel.updateGroupChatHistoryPeriod(historyPeriod)
-            showSuccess(message = getString(R.string.nc_chat_setting_updated))
-            clearFragmentResult(GroupChatHistoryFragment.REQUEST_KEY)
-        }
-
-        setUpGroupWalletChatView()
-    }
-
-    private fun setUpGroupWalletChatView() {
-        binding.chatView.setContent {
-            val state by viewModel.state.asFlow().collectAsStateWithLifecycle(WalletDetailsState())
-            GroupWalletChatView(
+        binding.composeRoot.setContent {
+            WalletDetailsScreen(
                 viewModel = viewModel,
-                chatBarState = state.chatBarState,
-                messages = state.groupChatMessages,
-                unreadCount = state.unreadMessagesCount,
-                onSendMessage = {
-                    viewModel.sendMessage(it)
+                onBack = { requireActivity().onBackPressedDispatcher.onBackPressed() },
+                onSearch = ::handleSearch,
+                onMenu = ::onMoreClicked,
+                onToggleMask = viewModel::updateHideWalletDetailLocal,
+                onSend = viewModel::handleSendMoneyEvent,
+                onReceive = {
+                    navigator.openReceiveTransactionScreen(requireActivity(), args.walletId)
                 },
+                onViewCoin = {
+                    navigator.openCoinList(context = requireContext(), walletId = args.walletId)
+                },
+                onWalletConfig = {
+                    navigator.openWalletConfigScreen(
+                        launcher = launcher,
+                        activityContext = requireActivity(),
+                        walletId = args.walletId,
+                        keyPolicy = args.keyPolicy,
+                    )
+                },
+                onSpendable = {
+                    navigator.openCoinList(context = requireContext(), walletId = args.walletId)
+                },
+                onTransactionClick = { tx ->
+                    navigator.openTransactionDetailsScreen(
+                        activityContext = requireActivity(),
+                        walletId = args.walletId,
+                        txId = tx.txId,
+                        roomId = viewModel.getRoomWallet()?.roomId.orEmpty(),
+                    )
+                },
+                onClaimInheritance = ::openClaiInheritance,
+                onNeedBackup = ::onWarningClick,
+                onBannerBackupAndRegister = ::onBannerBackupAndRegisterClick,
+                onBannerBackupOnly = ::onBannerBackupOnlyClick,
+                onBannerRegisterOnly = ::onBannerRegisterOnlyClick,
+                onOpenExternalLink = { url -> requireActivity().openExternalLink(url) },
+                onCopyAddress = ::copyAddress,
+                onShareAddress = { controller.shareText(it) },
+                onAcceptOrDenyReplaceGroup = viewModel::acceptOrDenyReplaceGroup,
+                onOpenReplacementSetup = { groupId ->
+                    navigator.openFreeGroupWalletScreen(
+                        activityContext = requireActivity(),
+                        groupId = groupId,
+                    )
+                },
+                onSendMessage = viewModel::sendMessage,
                 onOpenChat = {
                     navigator.openGroupChatScreen(
                         activityContext = requireActivity(),
@@ -225,168 +179,76 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
                 },
             )
         }
-        handleChatViewCollapseExpand()
+
+        observeEvents()
+        setupFragmentResult()
     }
 
-    private fun configureToolbar(state: WalletDetailsState) {
-        val searchMenu = binding.toolbar.menu.findItem(R.id.menu_search)
-        searchMenu.isVisible =
-            state.walletExtended.wallet.name.isNotEmpty() && state.isFreeGroupWallet.not()
-        if (state.groupId.isNullOrEmpty()
-                .not() && state.walletStatus != WalletStatus.REPLACED.name
-        ) {
-            searchMenu.icon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_groups_menu)
-        } else if (state.isAssistedWallet) {
-            searchMenu.icon =
-                ContextCompat.getDrawable(requireContext(), R.drawable.ic_health_check_menu)
-        } else {
-            searchMenu.icon =
-                ContextCompat.getDrawable(requireContext(), R.drawable.ic_search_white)
-        }
-        binding.toolbar.menu.findItem(R.id.menu_more).isVisible =
-            state.walletStatus != WalletStatus.LOCKED.name && viewModel.isFacilitatorAdmin()
-                .not() && viewModel.isEmptyTransaction().not()
-                    || state.isFreeGroupWallet
-    }
-
-    override fun onOptionClicked(option: SheetOption) {
-        super.onOptionClicked(option)
-        when (option.type) {
-            SheetOptionType.TYPE_IMPORT_TX -> showImportTransactionOption()
-            SheetOptionType.TYPE_IMPORT_PSBT -> handleImportPSBT()
-            SheetOptionType.TYPE_IMPORT_PSBT_QR -> openImportTransactionScreen()
-            SheetOptionType.TYPE_SEARCH_TX -> openSearchTransaction()
-            SheetOptionType.TYPE_GROUP_CHAT_HISTORY -> {
-                GroupChatHistoryFragment.show(
-                    childFragmentManager,
-                    GroupChatHistoryArgs(
-                        historyPeriods = viewModel.state.value?.historyPeriods.orEmpty()
-                            .sortedBy { it.id.toInt() },
-                        historyPeriodIdSelected = viewModel.state.value?.selectedHistoryPeriod?.id
-                            ?: "7",
-                        isFreeGroupWalletFlow = viewModel.isFreeGroupWallet(),
-                        walletId = args.walletId,
-                        roomId = "",
-                        groupId = ""
-                    )
-                )
-            }
-
-            else -> {}
-        }
-    }
-
-    private fun openSearchTransaction() {
-        if (viewModel.isHideWalletDetailLocal) return
-        navigator.openSearchTransaction(
-            requireContext(), walletId = args.walletId,
-            roomId = viewModel.getRoomWallet()?.roomId.orEmpty(),
-        )
-    }
-
-    private fun setupPaginationAdapter() {
-        binding.transactionList.adapter = adapter.withLoadStateFooter(LoadStateAdapter())
-        adapter.addLoadStateListener {
-            when (it.refresh) {
-                is LoadState.Loading -> {}
-                is LoadState.Error -> hideLoading()
-                is LoadState.NotLoading -> hideLoading()
-            }
-        }
-        lifecycleScope.launch {
-            adapter.loadStateFlow.distinctUntilChangedBy(CombinedLoadStates::refresh)
-                .filter { it.refresh is LoadState.NotLoading }
-                .collect { binding.transactionList.scrollToPosition(0) }
-        }
-    }
-
-    private fun paginateTransactions() {
-        adapter.submitData(lifecycle, PagingData.empty())
-        updateDataJob?.cancel()
-        updateDataJob = lifecycleScope.launch {
-            viewModel.paginateTransactions().catch { hideLoading() }
-                .collectLatest(adapter::submitData)
-        }
-    }
-
-    private fun observeEvent() {
+    private fun observeEvents() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                // skip calling syncData here in-case forceRefreshWallet since it will show the an empty state for a while
-                if (viewModel.isForceRefreshProcessing.not()) {
+                if (!viewModel.isForceRefreshProcessing) {
                     viewModel.syncData()
                 } else {
                     viewModel.setForceRefreshWalletProcessing(false)
                 }
             }
         }
-        viewModel.state.observe(viewLifecycleOwner, ::handleState)
         viewModel.event.observe(viewLifecycleOwner, ::handleEvent)
         viewLifecycleOwner.lifecycleScope.launch {
             pushEventManager.event.collectLatest {
                 if (it is PushEvent.CloseWalletDetail) {
-                    viewLifecycleOwner.lifecycle.withResumed {
-                        closeScreen()
-                    }
+                    viewLifecycleOwner.lifecycle.withResumed { closeScreen() }
                 }
             }
         }
     }
 
+    private fun setupFragmentResult() {
+        requireActivity().supportFragmentManager.setFragmentResultListener(
+            GroupChatHistoryFragment.REQUEST_KEY, this
+        ) { _: String, bundle: Bundle ->
+            val historyPeriod =
+                bundle.parcelable<HistoryPeriod>(GroupChatHistoryFragment.EXTRA_HISTORY_PERIOD)
+                    ?: return@setFragmentResultListener
+            viewModel.updateGroupChatHistoryPeriod(historyPeriod)
+            showSuccess(message = getString(R.string.nc_chat_setting_updated))
+            clearFragmentResult(GroupChatHistoryFragment.REQUEST_KEY)
+        }
+    }
+
     private fun handleEvent(event: WalletDetailsEvent) {
         when (event) {
-            is WalletDetailsError -> onGetWalletError(event)
-            is SendMoneyEvent -> openInputAmountScreen(event)
-            is UpdateUnusedAddress -> bindUnusedAddress(event.address)
-            is Loading -> showOrHideLoading(event.loading)
-            ImportPSBTSuccess -> onPSBTImported()
-            is PaginationTransactions -> startPagination(event.hasTransactions)
+            is WalletDetailsEvent.WalletDetailsError -> {
+                hideLoading()
+                NCToastMessage(requireActivity()).showError(event.message)
+            }
+
+            is WalletDetailsEvent.SendMoneyEvent -> openInputAmountScreen(event)
+            is WalletDetailsEvent.Loading -> showOrHideLoading(event.loading)
+            WalletDetailsEvent.ImportPSBTSuccess -> {
+                viewModel.syncData()
+                hideLoading()
+                NCToastMessage(requireActivity()).showMessage(getString(R.string.nc_wallet_psbt_imported))
+            }
+
             is WalletDetailsEvent.OpenSetupGroupWallet -> navigator.openFreeGroupWalletScreen(
                 activityContext = requireActivity(),
-                groupId = event.groupId
+                groupId = event.groupId,
             )
 
-            is SaveLocalFile -> {
-                if (event.isSuccess) {
-                    NCToastMessage(requireActivity()).showMessage(getString(R.string.nc_save_file_success))
-                } else {
-                    NCToastMessage(requireActivity()).showError(getString(R.string.nc_save_file_failed))
-                }
+            is WalletDetailsEvent.SaveLocalFile -> {
+                val message = if (event.isSuccess) getString(R.string.nc_save_file_success)
+                else getString(R.string.nc_save_file_failed)
+                if (event.isSuccess) NCToastMessage(requireActivity()).showMessage(message)
+                else NCToastMessage(requireActivity()).showError(message)
             }
 
             is WalletDetailsEvent.ShareBSMS -> controller.shareFile(event.filePath)
         }
     }
 
-    override fun shareFile() {
-        viewModel.handleExportBSMS(true)
-    }
-
-    override fun saveFileToLocal() {
-        viewModel.handleExportBSMS(false)
-    }
-
-    private fun startPagination(hasTx: Boolean) {
-        hideLoading()
-        emptyTxVisibility(!hasTx)
-        binding.transactionList.isVisible = hasTx
-        if (hasTx) {
-            paginateTransactions()
-        }
-    }
-
-    private fun onPSBTImported() {
-        viewModel.syncData()
-        hideLoading()
-        NCToastMessage(requireActivity()).showMessage(getString(R.string.nc_wallet_psbt_imported))
-    }
-
-    private fun onGetWalletError(event: WalletDetailsError) {
-        hideLoading()
-        NCToastMessage(requireActivity()).showError(event.message)
-    }
-
-    private fun openInputAmountScreen(event: SendMoneyEvent) {
+    private fun openInputAmountScreen(event: WalletDetailsEvent.SendMoneyEvent) {
         if (event.walletExtended.isShared) {
             val roomWallet = event.walletExtended.roomWallet!!
             if (viewModel.isLeaveRoom) {
@@ -400,7 +262,7 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
                 navigator.openRoomDetailActivity(
                     activityContext = requireActivity(),
                     roomId = event.walletExtended.roomWallet!!.roomId,
-                    roomAction = RoomAction.SEND
+                    roomAction = RoomAction.SEND,
                 )
             }
         } else {
@@ -412,647 +274,39 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
         }
     }
 
-    private fun bindUnusedAddress(address: String) {
-        hideLoading()
-        if (address.isEmpty()) {
-            emptyTxVisibility(false)
-        } else {
-            emptyTxVisibility(true)
-            binding.addressQR.setImageBitmap(address.convertToQRCode())
-            binding.addressText.text = address
-        }
-    }
-
-    private fun emptyTxVisibility(isVisible: Boolean) {
-        binding.emptyTxFacilitatorAdmin.isVisible = isVisible && viewModel.isFacilitatorAdmin()
-        binding.emptyTxContainer.isVisible = isVisible && viewModel.isFacilitatorAdmin().not()
-    }
-
-    private fun handleState(state: WalletDetailsState) {
-        binding.fab.isGone = state.role == AssistedWalletRole.FACILITATOR_ADMIN
-        val wallet = state.walletExtended.wallet
-        adapter.setHideWalletDetail(state.hideWalletDetailLocal)
-        binding.toolbarTitle.text =
-            if (state.isDeprecatedGroupWallet) getString(R.string.nc_deprecated_prefix) + wallet.name else wallet.name
-        configureToolbar(state)
-        binding.configuration.bindWalletConfiguration(
-            wallet,
-            hideWalletDetail = state.hideWalletDetailLocal
-        )
-
-        binding.btcAmount.text = Utils.maskValue(wallet.getBTCAmount(), state.hideWalletDetailLocal)
-        binding.cashAmount.text =
-            Utils.maskValue(wallet.getCurrencyAmount(), state.hideWalletDetailLocal)
-
-        val hasSpendableCoins = state.noTimelockCoinsAmount.value > 0
-        binding.spendableNowText.isVisible = hasSpendableCoins
-        if (hasSpendableCoins) {
-            binding.spendableNowText.text = getString(
-                R.string.nc_spendable_now,
-                Utils.maskValue(
-                    state.noTimelockCoinsAmount.getBTCAmount(),
-                    state.hideWalletDetailLocal
-                )
-            )
-        }
-
-        binding.shareIcon.isVisible =
-            state.walletExtended.isShared || state.isAssistedWallet
-                    || state.walletStatus == WalletStatus.REPLACED.name || state.isDeprecatedGroupWallet
-        handleWalletBackground(state)
-        updateFabIcon(state.hideWalletDetailLocal)
-        binding.ivSendBtc.isEnabled = state.walletStatus != WalletStatus.LOCKED.name
-        binding.ivSendBtc.alpha = if (binding.ivSendBtc.isEnabled) 1.0f else 0.7f
-        binding.ivViewCoin.isEnabled = state.isHasCoin && viewModel.isFacilitatorAdmin().not()
-        binding.ivViewCoin.alpha =
-            if (state.isHasCoin && viewModel.isFacilitatorAdmin().not()) 1.0f else 0.7f
-        // Handle wallet warnings with priority: claim wallet > backup warnings > banner state
-        val needsBackup =
-            state.walletExtended.wallet.needBackup || (state.isNeedBackUpGroupWallet && state.isFreeGroupWallet && state.isDeprecatedGroupWallet.not())
-        val bannerState = state.bannerState
-
-        binding.tvWalletWarning.isVisible =
-            state.isClaimWallet || needsBackup || bannerState != null || viewModel.isInactiveAssistedWallet()
-
-        if (binding.tvWalletWarning.isVisible) {
-            when {
-                state.isClaimWallet && state.walletExtended.wallet.balance.value > 0 -> {
-                    handleClaimWalletWarning()
-                }
-
-                needsBackup -> {
-                    handleNeedBackupWallet(state.isFreeGroupWallet)
-                }
-
-                bannerState != null -> {
-                    handleBannerStateWarning(bannerState)
-                }
-                viewModel.isInactiveAssistedWallet() -> {
-                    handleInactiveAssistedWallet()
-                }
-            }
-        }
-        if (state.hideWalletDetailLocal) {
-            binding.chatView.isVisible = false
-        } else {
-            binding.chatView.isVisible = state.isFreeGroupWallet
-        }
-        handleNearestTimeLock(state.nearestTimeLock, state.currentBlock)
-    }
-
-    private fun handleNearestTimeLock(
-        nearestTimeLock: Pair<MiniscriptTimelockBased, Long>?,
-        currentBlock: Int
-    ) {
-        binding.tvTimelockWarning.isVisible = nearestTimeLock != null
-        nearestTimeLock ?: return
-        val (lockBased, lockValue) = nearestTimeLock
-
-        // Calculate remaining time/blocks based on lock type
-        val (isWarningState, lockInfo) = when (lockBased) {
-            MiniscriptTimelockBased.TIME_LOCK -> {
-                val currentTime = System.currentTimeMillis() / 1000L
-                val remainingSeconds = lockValue - currentTime
-                val remainingDays = ceil(remainingSeconds / 86400.0).toInt()
-                val isWarning = remainingDays < 7
-                isWarning to getString(
-                    R.string.nc_timelock_expiring_info,
-                    resources.getQuantityString(
-                        R.plurals.nc_day, remainingDays, remainingDays
-                    )
-                ).takeIf { remainingDays > 0 }
-            }
-
-            MiniscriptTimelockBased.HEIGHT_LOCK -> {
-                val remainingBlocks = lockValue.toInt() - currentBlock
-                val isWarning = remainingBlocks < 1008
-                isWarning to getString(
-                    R.string.nc_timelock_expiring_info,
-                    resources.getQuantityString(
-                        R.plurals.nc_block, remainingBlocks, remainingBlocks
-                    )
-                ).takeIf { remainingBlocks > 0 }
-            }
-
-            else -> false to ""
-        }
-
-        if (lockInfo.isNullOrEmpty()) {
-            binding.tvTimelockWarning.isVisible = false
-        } else {
-            binding.tvTimelockWarning.text = lockInfo
-
-            if (isWarningState) {
-                binding.tvTimelockWarning.setCompoundDrawablesRelativeWithIntrinsicBounds(
-                    R.drawable.ic_warning_outline, 0, 0, 0
-                )
-                binding.tvTimelockWarning.setBackgroundResource(R.drawable.nc_wallet_warning_background)
-                binding.tvTimelockWarning.setTextColor(
-                    ContextCompat.getColor(requireContext(), R.color.nc_grey_g7)
-                )
-                TextViewCompat.setCompoundDrawableTintList(
-                    binding.tvTimelockWarning,
-                    ContextCompat.getColorStateList(requireContext(), R.color.nc_grey_g7)
-                )
-            } else {
-                binding.tvTimelockWarning.setCompoundDrawablesRelativeWithIntrinsicBounds(
-                    R.drawable.ic_info_36, 0, 0, 0
-                )
-                binding.tvTimelockWarning.setBackgroundResource(R.drawable.nc_rounded_whisper_background)
-                binding.tvTimelockWarning.setTextColor(
-                    ContextCompat.getColor(requireContext(), R.color.nc_text_primary)
-                )
-                TextViewCompat.setCompoundDrawableTintList(
-                    binding.tvTimelockWarning,
-                    ContextCompat.getColorStateList(requireContext(), R.color.nc_text_primary)
-                )
-            }
-
-            binding.tvTimelockWarning.makeTextLink(
-                binding.tvTimelockWarning.text.toString(),
-                ClickAbleText(content = getString(R.string.nc_view_coins), onClick = {
-                    navigator.openCoinList(context = requireContext(), walletId = args.walletId)
-                })
-            )
-        }
-    }
-
-    private fun handleWalletBackground(state: WalletDetailsState) {
-        if (state.isFreeGroupWallet && !state.isDeprecatedGroupWallet && !state.walletExtended.wallet.archived) {
-            binding.statusBarBackground.setBackgroundResource(R.drawable.nc_header_free_group_wallet_background)
-            binding.cashAmount.setTextColor(
-                ContextCompat.getColor(
-                    requireContext(),
-                    R.color.nc_white_color
-                )
-            )
-        } else if (state.walletStatus == WalletStatus.REPLACED.name || state.walletStatus == WalletStatus.LOCKED.name
-            || state.isDeprecatedGroupWallet || state.walletExtended.wallet.archived
-        ) {
-            val color = ContextCompat.getColor(requireContext(), R.color.nc_grey_dark_color)
-            binding.statusBarBackground.setBackgroundColor(color)
-            binding.shareIcon.text = getString(R.string.nc_deactivated)
-            binding.shareIcon.setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0, 0, 0)
-        } else if (state.walletExtended.wallet.needBackup) {
-            binding.statusBarBackground.setBackgroundColor(
-                ContextCompat.getColor(
-                    requireContext(),
-                    R.color.nc_beeswax_dark
-                )
-            )
-            binding.cashAmount.setTextColor(
-                ContextCompat.getColor(
-                    requireContext(),
-                    R.color.nc_beeswax_tint
-                )
-            )
-        } else if (state.isAssistedWallet) {
-            binding.statusBarBackground.setBackgroundResource(R.drawable.nc_header_membership_gradient_background)
-            binding.shareIcon.text =
-                Utils.maskValue(getString(R.string.nc_assisted), state.hideWalletDetailLocal)
-            binding.cashAmount.setTextColor(
-                ContextCompat.getColor(
-                    requireContext(),
-                    R.color.nc_denim_tint_color
-                )
-            )
-        } else {
-            binding.statusBarBackground.setBackgroundResource(R.drawable.nc_header_gradient_background)
-            binding.cashAmount.setTextColor(
-                ContextCompat.getColor(
-                    requireContext(),
-                    R.color.nc_denim_tint_color
-                )
-            )
-        }
-    }
-
-    private fun setupViews() {
-        binding.toolbar.consumeEdgeToEdge()
-        binding.transactionList.layoutManager =
-            LinearLayoutManager(context, RecyclerView.VERTICAL, false)
-        binding.transactionList.isNestedScrollingEnabled = false
-        binding.transactionList.setHasFixedSize(false)
-        binding.transactionList.adapter = adapter
-
-        binding.viewWalletConfig.setUnderline()
-        binding.viewWalletConfig.setOnClickListener {
-            navigator.openWalletConfigScreen(
-                launcher = launcher,
-                activityContext = requireActivity(),
-                walletId = args.walletId,
-                keyPolicy = args.keyPolicy
-            )
-        }
-        binding.ivReceiveBtc.setOnClickListener {
-            navigator.openReceiveTransactionScreen(
-                requireActivity(), args.walletId
-            )
-        }
-        binding.ivSendBtc.setOnClickListener { viewModel.handleSendMoneyEvent() }
-        binding.toolbar.setNavigationOnClickListener {
-            requireActivity().onBackPressedDispatcher.onBackPressed()
-        }
-        binding.spendableNowText.setOnDebounceClickListener {
-            navigator.openCoinList(
-                context = requireContext(),
-                walletId = args.walletId
-            )
-        }
-
-        binding.toolbar.setOnMenuItemClickListener { menu ->
-            when (menu.itemId) {
-                R.id.menu_search -> {
-                    if (viewModel.isAssistedWallet || viewModel.isLockedAssistedWallet) {
-                        navigator.openGroupDashboardScreen(
-                            groupId = viewModel.groupId,
-                            walletId = args.walletId,
-                            activityContext = requireActivity()
-                        )
-                    } else {
-                        openSearchTransaction()
-                    }
-                    true
-                }
-
-                R.id.menu_more -> {
-                    onMoreClicked()
-                    true
-                }
-
-                else -> false
-            }
-        }
-
-        binding.copyAddressLayout.setOnClickListener { copyAddress(binding.addressText.text.toString()) }
-        binding.shareLayout.setOnClickListener { controller.shareText(binding.addressText.text.toString()) }
-        binding.ivViewCoin.setOnDebounceClickListener {
-            navigator.openCoinList(context = requireContext(), walletId = args.walletId)
-        }
-        binding.fab.setOnClickListener {
-            viewModel.updateHideWalletDetailLocal()
-        }
-        binding.container.setTransitionDuration(150)
-        binding.transactionList.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
-                if (newState == RecyclerView.SCROLL_STATE_IDLE) {
-                    if (!recyclerView.canScrollVertically(-1)) {
-                        animateLayout(false)
-                    } else {
-                        animateLayout(true)
-                    }
-                } else {
-                    animateLayout(true)
-                }
-            }
-
-            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                val currentState = viewModel.getChatBarState()
-                when {
-                    dy > 0 && currentState == ChatBarState.EXPANDED -> {
-                        // Scrolling down: collapse if expanded
-                        viewModel.setChatBarState(ChatBarState.AUTO_COLLAPSED)
-                    }
-
-                    dy < 0 && currentState == ChatBarState.AUTO_COLLAPSED -> {
-                        // Scrolling up: expand only if auto-collapsed
-                        viewModel.setChatBarState(ChatBarState.EXPANDED)
-                    }
-                }
-            }
-        })
-        setupPaginationAdapter()
-        binding.replaceWalletView.setContent {
-            val state by viewModel.state.asFlow()
-                .collectAsStateWithLifecycle(WalletDetailsState())
-
-            if (state.replaceGroups.isNotEmpty() && !state.isDeprecatedGroupWallet) {
-                ReplacedGroupView(
-                    replacedGroups = state.replaceGroups,
-                    onAcceptOrDeny = { groupId, isAccept ->
-                        viewModel.acceptOrDenyReplaceGroup(groupId, isAccept)
-                    },
-                    onOpenSetupGroupWallet = { groupId ->
-                        navigator.openFreeGroupWalletScreen(
-                            activityContext = requireActivity(),
-                            groupId = groupId
-                        )
-                    },
-                )
-            }
-        }
-    }
-
-    private fun handleChatViewCollapseExpand() {
-        val motionLayout = binding.container
-        motionLayout.setTransitionListener(object : MotionLayout.TransitionListener {
-            override fun onTransitionStarted(
-                motionLayout: MotionLayout?,
-                startId: Int,
-                endId: Int
-            ) {
-            }
-
-            override fun onTransitionChange(
-                motionLayout: MotionLayout?,
-                startId: Int,
-                endId: Int,
-                progress: Float
-            ) {
-                when {
-                    // Scrolling down: progress increases
-                    progress > previousProgress -> {
-                        if (viewModel.getChatBarState() == ChatBarState.EXPANDED) {
-                            lifecycleScope.launch {
-                                delay(150)
-                                viewModel.setChatBarState(ChatBarState.AUTO_COLLAPSED)
-                            }
-                        }
-                    }
-                    // Scrolling up: progress decreases
-                    progress < previousProgress -> {
-                        if (viewModel.getChatBarState() == ChatBarState.AUTO_COLLAPSED) {
-                            lifecycleScope.launch {
-                                delay(150)
-                                viewModel.setChatBarState(ChatBarState.EXPANDED)
-                            }
-                        }
-                    }
-                }
-                previousProgress = progress
-            }
-
-            override fun onTransitionCompleted(motionLayout: MotionLayout?, currentId: Int) {
-            }
-
-            override fun onTransitionTrigger(
-                motionLayout: MotionLayout?,
-                triggerId: Int,
-                positive: Boolean,
-                progress: Float
-            ) {
-            }
-        })
-    }
-
-    private fun animateLayout(isEnd: Boolean) {
-        animateLayoutJob?.cancel()
-        animateLayoutJob = viewLifecycleOwner.lifecycleScope.launch {
-            delay(100L)
-            if (isEnd) binding.container.transitionToEnd() else binding.container.transitionToStart()
-        }
-    }
-
-    private fun updateFabIcon(hideWalletDetail: Boolean) {
-        val icon = if (hideWalletDetail) ContextCompat.getDrawable(
-            requireContext(),
-            R.drawable.ic_visibility
-        ) else ContextCompat.getDrawable(requireContext(), R.drawable.ic_hide_pass)
-        binding.fab.setImageDrawable(icon)
-    }
-
-    private fun handleInactiveAssistedWallet() {
-        binding.tvWalletWarning.makeTextLink(
-            getString(R.string.nc_assisted_wallet_downgrade_hint),
-            ClickAbleText(content = getString(R.string.nc_renew_subscription), onClick = {
-                requireActivity().openExternalLink(RENEW_ACCOUNT_LINK)
-            })
-        )
-        binding.tvWalletWarning.setCompoundDrawablesRelativeWithIntrinsicBounds(
-            R.drawable.ic_info, 0, 0, 0
-        )
-        binding.tvWalletWarning.setBackgroundResource(R.drawable.nc_rounded_whisper_background)
-    }
-
-    private fun handleClaimWalletWarning() {
-        binding.tvWalletWarning.makeTextLink(
-            getString(R.string.nc_inheritance_unlocked_warning) + " " + getString(R.string.nc_do_it_now),
-            ClickAbleText(content = getString(R.string.nc_do_it_now), onClick = {
-                openClaiInheritance()
-            })
-        )
-
-        binding.tvWalletWarning.setCompoundDrawablesRelativeWithIntrinsicBounds(
-            R.drawable.ic_claim_warning, 0, 0, 0
-        )
-        binding.tvWalletWarning.setBackgroundResource(R.drawable.nc_rounded_beeswax_background)
-        binding.tvWalletWarning.setTextColor(
-            ContextCompat.getColor(
-                requireContext(),
-                R.color.nc_text_primary
-            )
-        )
-        TextViewCompat.setCompoundDrawableTintList(binding.tvWalletWarning, null)
-    }
-
-    private fun openClaiInheritance() {
-        lifecycleScope.launch {
-            viewModel.getWalletBsms()?.let { bsms ->
-                navigator.openClaimInheritanceScreen(
-                    requireActivity(),
-                    args = ClaimArgs(bsms = bsms)
-                )
-            }
-        }
-    }
-
-    private fun handleNeedBackupWallet(isFreeGroupWallet: Boolean) {
-        binding.tvWalletWarning.makeTextLink(
-            if (isFreeGroupWallet) getString(R.string.nc_save_bsms_file_warning) else getString(R.string.nc_write_down_the_seed_pharse_warning),
-            ClickAbleText(content = getString(R.string.nc_do_it_now), onClick = {
-            })
-        )
-        binding.tvWalletWarning.setCompoundDrawablesRelativeWithIntrinsicBounds(
-            R.drawable.ic_warning_outline, 0, 0, 0
-        )
-        binding.tvWalletWarning.setBackgroundResource(R.drawable.nc_wallet_warning_background)
-        binding.tvWalletWarning.setTextColor(
-            ContextCompat.getColor(
-                requireContext(),
-                R.color.cl_031F2B
-            )
-        )
-        TextViewCompat.setCompoundDrawableTintList(
-            binding.tvWalletWarning,
-            ContextCompat.getColorStateList(
-                requireContext(),
-                R.color.cl_031F2B
-            )
-        )
-        binding.tvWalletWarning.setOnClickListener {
-            onWarningClick()
-        }
-
-    }
-
-    private fun handleBannerStateWarning(bannerState: BannerState) {
-        val (message, actionText, clickAction) = when (bannerState) {
-            BannerState.BACKUP_AND_REGISTER -> Triple(
-                getString(R.string.nc_banner_backup_and_register),
-                getString(R.string.nc_do_it_now)
-            ) { onBannerBackupAndRegisterClick() }
-
-            BannerState.BACKUP_ONLY -> Triple(
-                getString(R.string.nc_banner_backup_only),
-                getString(R.string.nc_do_it_now)
-            ) { onBannerBackupOnlyClick() }
-
-            BannerState.REGISTER_ONLY -> Triple(
-                getString(R.string.nc_banner_register_only),
-                getString(R.string.nc_do_it_now)
-            ) { onBannerRegisterOnlyClick() }
-        }
-
-        binding.tvWalletWarning.makeTextLink(
-            message,
-            ClickAbleText(content = actionText, onClick = clickAction)
-        )
-        binding.tvWalletWarning.setCompoundDrawablesRelativeWithIntrinsicBounds(
-            R.drawable.ic_warning_outline, 0, 0, 0
-        )
-        binding.tvWalletWarning.setBackgroundResource(R.drawable.nc_wallet_warning_background)
-        binding.tvWalletWarning.setTextColor(
-            ContextCompat.getColor(
-                requireContext(),
-                R.color.cl_031F2B
-            )
-        )
-        TextViewCompat.setCompoundDrawableTintList(
-            binding.tvWalletWarning,
-            ContextCompat.getColorStateList(
-                requireContext(),
-                R.color.cl_031F2B
-            )
-        )
-        binding.tvWalletWarning.setOnClickListener {
-            clickAction()
-        }
-    }
-
-    private fun onWarningClick() {
-        if (viewModel.isFreeGroupWallet()) {
-            showSaveShareOption()
-        } else {
-            lifecycleScope.launch {
-                viewModel.hasSigner(viewModel.getWallet().signers.first())
-                    .onSuccess {
-                        if (it) {
-                            showConfirmBackupDialog()
-                        } else {
-                            showHotKeyDeleted()
-                        }
-                    }
-            }
-        }
-    }
-
-    private fun onBannerBackupAndRegisterClick() {
-        // Open backup wallet screen for BACKUP_AND_REGISTER state
-        navigator.openBackupWalletScreen(
-            requireActivity(),
-            BackUpWalletArgs(
-                wallet = viewModel.getWallet(),
-                backUpWalletType = BackUpWalletType.NORMAL
-            )
-        )
-    }
-
-    private fun onBannerBackupOnlyClick() {
-        // Open backup wallet screen for BACKUP_ONLY state
-        navigator.openBackupWalletScreen(
-            requireActivity(),
-            BackUpWalletArgs(
-                wallet = viewModel.getWallet(),
-                backUpWalletType = BackUpWalletType.NORMAL
-            )
-        )
-    }
-
-    private fun onBannerRegisterOnlyClick() {
-        // Open upload configuration screen for REGISTER_ONLY state
-        navigator.openUploadConfigurationScreen(requireActivity(), args.walletId)
-    }
-
-    private fun showHotKeyDeleted() {
-        NCInfoDialog(requireActivity()).showDialog(
-            title = getString(R.string.nc_confirmation),
-            message = getString(R.string.nc_hot_key_deleted),
-        )
-    }
-
-    private fun showConfirmBackupDialog() {
-        NCInfoDialog(requireActivity())
-            .showDialog(
-                message = getString(R.string.nc_back_up_seed_phrase_confirmation),
-                btnYes = getString(R.string.nc_text_continue),
-                btnInfo = getString(R.string.nc_text_do_this_later),
-                onYesClick = {
-                    navigator.openCreateNewSeedScreen(
-                        activityContext = requireActivity(),
+    override fun onOptionClicked(option: SheetOption) {
+        super.onOptionClicked(option)
+        when (option.type) {
+            SheetOptionType.TYPE_IMPORT_TX -> showImportTransactionOption()
+            SheetOptionType.TYPE_IMPORT_PSBT -> openSelectFileChooser()
+            SheetOptionType.TYPE_IMPORT_PSBT_QR -> openImportTransactionScreen()
+            SheetOptionType.TYPE_SEARCH_TX -> openSearchTransaction()
+            SheetOptionType.TYPE_GROUP_CHAT_HISTORY -> {
+                GroupChatHistoryFragment.show(
+                    childFragmentManager,
+                    GroupChatHistoryArgs(
+                        historyPeriods = viewModel.state.value?.historyPeriods.orEmpty()
+                            .sortedBy { it.id.toInt() },
+                        historyPeriodIdSelected = viewModel.state.value?.selectedHistoryPeriod?.id
+                            ?: "7",
+                        isFreeGroupWalletFlow = viewModel.isFreeGroupWallet(),
                         walletId = args.walletId,
+                        roomId = "",
+                        groupId = "",
                     )
-                }
-            )
-    }
-
-    private fun onMoreClicked() {
-        val options = mutableListOf<SheetOption>()
-        options.add(
-            SheetOption(
-                SheetOptionType.TYPE_IMPORT_TX,
-                R.drawable.ic_import,
-                R.string.nc_import_transaction
-            )
-        )
-        if (viewModel.isAssistedWallet || viewModel.isFreeGroupWallet() == true) {
-            options.add(
-                SheetOption(
-                    SheetOptionType.TYPE_SEARCH_TX,
-                    R.drawable.ic_search_dark,
-                    R.string.nc_search_transactions
                 )
-            )
+            }
+
+            else -> Unit
         }
-        if (viewModel.isFreeGroupWallet() == true) {
-            options.add(
-                SheetOption(
-                    SheetOptionType.TYPE_GROUP_CHAT_HISTORY,
-                    R.drawable.ic_clock,
-                    R.string.nc_manage_group_chat_history
-                )
-            )
-        }
-        val bottomSheet = BottomSheetOption.newInstance(options)
-        bottomSheet.show(childFragmentManager, "BottomSheetOption")
     }
 
-    private fun showImportTransactionOption() {
-        BottomSheetOption.newInstance(
-            title = getString(R.string.nc_select_import_method),
-            options = listOf(
-                SheetOption(
-                    SheetOptionType.TYPE_IMPORT_PSBT_QR,
-                    R.drawable.ic_qr,
-                    R.string.nc_import_via_qr
-                ),
-                SheetOption(
-                    SheetOptionType.TYPE_IMPORT_PSBT,
-                    R.drawable.ic_import,
-                    R.string.nc_import_via_file
-                )
-            )
-        ).show(childFragmentManager, "BottomSheetOption")
+    override fun shareFile() {
+        viewModel.handleExportBSMS(true)
     }
 
-    private fun openImportTransactionScreen() {
-        navigator.openImportTransactionScreen(
-            activityContext = requireActivity(),
-            walletId = args.walletId
-        )
-    }
-
-    private fun handleImportPSBT() {
-        openSelectFileChooser()
+    override fun saveFileToLocal() {
+        viewModel.handleExportBSMS(false)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {
@@ -1064,8 +318,157 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
         }
     }
 
+    private fun handleSearch() {
+        if (viewModel.isAssistedWallet || viewModel.isLockedAssistedWallet) {
+            navigator.openGroupDashboardScreen(
+                groupId = viewModel.groupId,
+                walletId = args.walletId,
+                activityContext = requireActivity(),
+            )
+        } else {
+            openSearchTransaction()
+        }
+    }
+
+    private fun openSearchTransaction() {
+        if (viewModel.isHideWalletDetailLocal) return
+        navigator.openSearchTransaction(
+            requireContext(),
+            walletId = args.walletId,
+            roomId = viewModel.getRoomWallet()?.roomId.orEmpty(),
+        )
+    }
+
     private fun copyAddress(address: String) {
         textUtils.copyText(text = address)
         NCToastMessage(requireActivity()).showMessage(getString(R.string.nc_address_copy_to_clipboard))
+    }
+
+    private fun onMoreClicked() {
+        val options = mutableListOf<SheetOption>()
+        options.add(
+            SheetOption(
+                SheetOptionType.TYPE_IMPORT_TX,
+                R.drawable.ic_import,
+                R.string.nc_import_transaction,
+            )
+        )
+        if (viewModel.isAssistedWallet || viewModel.isFreeGroupWallet()) {
+            options.add(
+                SheetOption(
+                    SheetOptionType.TYPE_SEARCH_TX,
+                    R.drawable.ic_search_dark,
+                    R.string.nc_search_transactions,
+                )
+            )
+        }
+        if (viewModel.isFreeGroupWallet()) {
+            options.add(
+                SheetOption(
+                    SheetOptionType.TYPE_GROUP_CHAT_HISTORY,
+                    R.drawable.ic_clock,
+                    R.string.nc_manage_group_chat_history,
+                )
+            )
+        }
+        BottomSheetOption.newInstance(options).show(childFragmentManager, "BottomSheetOption")
+    }
+
+    private fun showImportTransactionOption() {
+        BottomSheetOption.newInstance(
+            title = getString(R.string.nc_select_import_method),
+            options = listOf(
+                SheetOption(
+                    SheetOptionType.TYPE_IMPORT_PSBT_QR,
+                    R.drawable.ic_qr,
+                    R.string.nc_import_via_qr,
+                ),
+                SheetOption(
+                    SheetOptionType.TYPE_IMPORT_PSBT,
+                    R.drawable.ic_import,
+                    R.string.nc_import_via_file,
+                ),
+            )
+        ).show(childFragmentManager, "BottomSheetOption")
+    }
+
+    private fun openImportTransactionScreen() {
+        navigator.openImportTransactionScreen(
+            activityContext = requireActivity(),
+            walletId = args.walletId,
+        )
+    }
+
+    private fun openClaiInheritance() {
+        lifecycleScope.launch {
+            viewModel.getWalletBsms()?.let { bsms ->
+                navigator.openClaimInheritanceScreen(
+                    requireActivity(),
+                    args = ClaimArgs(bsms = bsms),
+                )
+            }
+        }
+    }
+
+    private fun onBannerBackupAndRegisterClick() {
+        navigator.openBackupWalletScreen(
+            requireActivity(),
+            BackUpWalletArgs(
+                wallet = viewModel.getWallet(),
+                backUpWalletType = BackUpWalletType.NORMAL,
+            )
+        )
+    }
+
+    private fun onBannerBackupOnlyClick() {
+        navigator.openBackupWalletScreen(
+            requireActivity(),
+            BackUpWalletArgs(
+                wallet = viewModel.getWallet(),
+                backUpWalletType = BackUpWalletType.NORMAL,
+            )
+        )
+    }
+
+    private fun onBannerRegisterOnlyClick() {
+        navigator.openUploadConfigurationScreen(requireActivity(), args.walletId)
+    }
+
+    private fun onWarningClick() {
+        if (viewModel.isFreeGroupWallet()) {
+            showSaveShareOption()
+        } else {
+            lifecycleScope.launch {
+                viewModel.hasSigner(viewModel.getWallet().signers.first()).onSuccess {
+                    if (it) showConfirmBackupDialog() else showHotKeyDeleted()
+                }
+            }
+        }
+    }
+
+    private fun showHotKeyDeleted() {
+        NCInfoDialog(requireActivity()).showDialog(
+            title = getString(R.string.nc_confirmation),
+            message = getString(R.string.nc_hot_key_deleted),
+        )
+    }
+
+    private fun showConfirmBackupDialog() {
+        NCInfoDialog(requireActivity()).showDialog(
+            message = getString(R.string.nc_back_up_seed_phrase_confirmation),
+            btnYes = getString(R.string.nc_text_continue),
+            btnInfo = getString(R.string.nc_text_do_this_later),
+            onYesClick = {
+                navigator.openCreateNewSeedScreen(
+                    activityContext = requireActivity(),
+                    walletId = args.walletId,
+                )
+            }
+        )
+    }
+
+    private fun closeScreen() {
+        if (requireActivity() is WalletDetailsActivity) requireActivity().finish()
+        else findNavController().popBackStack()
     }
 }

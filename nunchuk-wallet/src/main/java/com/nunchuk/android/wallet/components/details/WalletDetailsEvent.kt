@@ -29,10 +29,8 @@ import com.nunchuk.android.type.MiniscriptTimelockBased
 
 sealed class WalletDetailsEvent {
     data class Loading(val loading: Boolean) : WalletDetailsEvent()
-    data class UpdateUnusedAddress(val address: String) : WalletDetailsEvent()
     data class SendMoneyEvent(val walletExtended: WalletExtended) : WalletDetailsEvent()
     data class WalletDetailsError(val message: String) : WalletDetailsEvent()
-    data class PaginationTransactions(val hasTransactions: Boolean = true) : WalletDetailsEvent()
     data object ImportPSBTSuccess : WalletDetailsEvent()
     data class OpenSetupGroupWallet(val groupId: String) : WalletDetailsEvent()
     data class SaveLocalFile(val isSuccess: Boolean) : WalletDetailsEvent()
@@ -64,4 +62,7 @@ data class WalletDetailsState(
     val noTimelockCoinsAmount: Amount = Amount(),
     val currentBlock: Int = 0,
     val isClaimWallet: Boolean = false,
+    val unusedAddress: String = "",
+    val hasTransactions: Boolean = false,
+    val transactionsLoaded: Boolean = false,
 )
