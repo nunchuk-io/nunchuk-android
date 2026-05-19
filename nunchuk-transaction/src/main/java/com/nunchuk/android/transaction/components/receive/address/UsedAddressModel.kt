@@ -23,5 +23,6 @@ import com.nunchuk.android.model.Amount
 
 data class UsedAddressModel(
     val address: String = "",
-    val balance: Amount = Amount.ZER0
+    val balance: Amount = Amount.ZER0,
+    val assets: Map<String, Amount> = emptyMap(),
 )

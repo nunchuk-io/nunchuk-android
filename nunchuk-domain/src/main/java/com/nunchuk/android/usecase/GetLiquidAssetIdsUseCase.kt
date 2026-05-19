@@ -17,20 +17,22 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.transaction.components.receive.address.used
+package com.nunchuk.android.usecase
 
-import com.nunchuk.android.transaction.components.receive.address.UsedAddressModel
-import com.nunchuk.android.type.WalletType
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.nativelib.NunchukNativeSdk
+import kotlinx.coroutines.CoroutineDispatcher
+import javax.inject.Inject
 
-sealed class UsedAddressEvent {
-    data class GetUsedAddressErrorEvent(val message: String) : UsedAddressEvent()
-}
+class GetLiquidAssetIdsUseCase @Inject constructor(
+    @IoDispatcher dispatcher: CoroutineDispatcher,
+    private val nativeSdk: NunchukNativeSdk,
+) : UseCase<Unit, GetLiquidAssetIdsUseCase.Result>(dispatcher) {
 
-data class UsedAddressState(
-    val addresses: List<UsedAddressModel> = emptyList(),
-    val walletType: WalletType = WalletType.MULTI_SIG,
-    val usdtAssetId: String = "",
-    val lbtcAssetId: String = "",
-) {
-    val isLiquidWallet: Boolean get() = walletType == WalletType.LIQUID
+    override suspend fun execute(parameters: Unit): Result = Result(
+        usdtAssetId = nativeSdk.getUSDTAssetId(),
+        lbtcAssetId = nativeSdk.getLBTCAssetId(),
+    )
+
+    data class Result(val usdtAssetId: String, val lbtcAssetId: String)
 }

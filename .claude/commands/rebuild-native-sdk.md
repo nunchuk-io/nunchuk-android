@@ -30,10 +30,14 @@ cd /Users/mega_lh/MyProject/nunchuk-android-nativesdk && ./gradlew publish
 
 Confirm `BUILD SUCCESSFUL`.
 
-### Step 4: Build debug APK and install
+### Step 4: Build debug APK and install the Nunchuk app
+
+Install the Nunchuk app (`:nunchuk-app`) — NOT the native SDK's test app. Always target the module + flavor explicitly so the task can't be misrouted if cwd shifts.
+
+The app has product flavors (`development`, `production`); `installDebug` alone is ambiguous. Use the `development` flavor for dev work:
 
 ```bash
-cd /Users/mega_lh/MyProject/my-android && ./gradlew installDebug
+cd /Users/mega_lh/MyProject/my-android && ./gradlew :nunchuk-app:installDevelopmentDebug
 ```
 
 Use a 10-minute timeout. Confirm the APK was installed on the device.

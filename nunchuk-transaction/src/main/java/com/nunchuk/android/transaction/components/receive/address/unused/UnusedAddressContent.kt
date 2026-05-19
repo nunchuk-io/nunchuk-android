@@ -36,6 +36,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -56,11 +59,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
+import com.nunchuk.android.compose.HighlightMessageType
+import com.nunchuk.android.compose.NcHintMessage
 import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
@@ -75,6 +81,7 @@ import com.nunchuk.android.transaction.components.details.view.InspectAddressBot
 @Composable
 internal fun UnusedAddressContent(
     addresses: List<String> = emptyList(),
+    isLiquidWallet: Boolean = false,
     onAddressClick: (String) -> Unit = {},
     onGenerateAddressClick: () -> Unit = {},
     onShareClick: () -> Unit = {},
@@ -110,16 +117,22 @@ internal fun UnusedAddressContent(
     Column(
         modifier = Modifier.fillMaxSize(),
     ) {
-        Column(modifier = Modifier.weight(1f)) {
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .verticalScroll(rememberScrollState()),
+        ) {
             HorizontalPager(
                 state = pagerState,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 24.dp),
+                verticalAlignment = Alignment.Top,
             ) { page ->
                 if (page < addresses.size) {
                     AddressCard(
                         address = addresses[page],
+                        isLiquidWallet = isLiquidWallet,
                         onClick = { onAddressClick(addresses[page]) },
                         onInspectClick = { inspectAddress = addresses[page] },
                     )
@@ -148,6 +161,21 @@ internal fun UnusedAddressContent(
                         painter = painterResource(id = com.nunchuk.android.widget.R.drawable.ic_more_white),
                         contentDescription = "More options",
                         tint = MaterialTheme.colorScheme.textPrimary,
+                    )
+                }
+            }
+
+            if (isLiquidWallet && hasAddresses) {
+                NcHintMessage(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    type = HighlightMessageType.WARNING,
+                ) {
+                    Text(
+                        text = stringResource(R.string.nc_liquid_address_warning),
+                        style = NunchukTheme.typography.bodySmall,
+                        color = colorResource(id = com.nunchuk.android.core.R.color.nc_grey_g7),
                     )
                 }
             }
@@ -197,6 +225,7 @@ internal fun UnusedAddressContent(
 private fun AddressCard(
     address: String,
     modifier: Modifier = Modifier,
+    isLiquidWallet: Boolean = false,
     onClick: () -> Unit = {},
     onInspectClick: () -> Unit = {},
 ) {
@@ -206,7 +235,7 @@ private fun AddressCard(
 
     Box(
         modifier = modifier
-            .fillMaxSize()
+            .fillMaxWidth()
             .padding(horizontal = 16.dp),
         contentAlignment = Alignment.TopCenter,
     ) {
@@ -221,8 +250,17 @@ private fun AddressCard(
                 .padding(8.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
+            if (isLiquidWallet) {
+                Text(
+                    modifier = Modifier.padding(top = 4.dp, bottom = 8.dp),
+                    text = stringResource(R.string.nc_network_liquid),
+                    style = NunchukTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.textPrimary,
+                )
+            }
             BoxWithConstraints(
                 modifier = Modifier
+                    .widthIn(max = 220.dp)
                     .fillMaxWidth()
                     .aspectRatio(1f),
             ) {
@@ -271,7 +309,7 @@ private fun GenerateAddressCard(
 ) {
     Box(
         modifier = modifier
-            .fillMaxSize()
+            .fillMaxWidth()
             .padding(horizontal = 16.dp),
         contentAlignment = Alignment.TopCenter,
     ) {
@@ -288,7 +326,7 @@ private fun GenerateAddressCard(
         ) {
             Box(
                 modifier = Modifier
-                    .size(300.dp)
+                    .size(220.dp)
                     .background(
                         color = MaterialTheme.colorScheme.whisper,
                         shape = RoundedCornerShape(8.dp),

@@ -106,9 +106,7 @@ class ReceiveTransactionActivity : BasePortalActivity<ActivityTransactionReceive
     companion object {
         fun start(activityContext: Context, walletId: String) {
             activityContext.startActivity(
-                ReceiveTransactionArgs(walletId = walletId).buildIntent(
-                    activityContext
-                )
+                ReceiveTransactionArgs(walletId = walletId).buildIntent(activityContext)
             )
         }
     }

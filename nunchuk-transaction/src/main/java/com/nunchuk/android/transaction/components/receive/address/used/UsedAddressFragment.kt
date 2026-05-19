@@ -64,6 +64,9 @@ internal class UsedAddressFragment : BaseFragment<ViewBinding>() {
                 NunchukTheme {
                     UsedAddressContent(
                         addresses = state.addresses,
+                        isLiquidWallet = state.isLiquidWallet,
+                        usdtAssetId = state.usdtAssetId,
+                        lbtcAssetId = state.lbtcAssetId,
                         onAddressClick = { model ->
                             navigator.openAddressDetailsScreen(
                                 activityContext = requireActivity(),

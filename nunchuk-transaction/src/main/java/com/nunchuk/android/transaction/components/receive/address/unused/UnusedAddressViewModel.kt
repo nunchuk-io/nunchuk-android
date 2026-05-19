@@ -24,6 +24,7 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.model.Wallet
+import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.GetAddressPathUseCase
 import com.nunchuk.android.usecase.GetAddressesUseCase
 import com.nunchuk.android.usecase.GetWalletUseCase
@@ -66,6 +67,8 @@ internal class UnusedAddressViewModel @Inject constructor(
         getUnusedAddresses()
         getWallet()
     }
+
+    fun isLiquidWallet(): Boolean = _state.value.wallet.walletType == WalletType.LIQUID
 
     private fun getWallet() {
         viewModelScope.launch {

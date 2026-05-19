@@ -25,8 +25,12 @@ import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.transaction.components.receive.address.UsedAddressModel
+import com.nunchuk.android.type.WalletType
+import com.nunchuk.android.usecase.GetAddressAssetsUseCase
 import com.nunchuk.android.usecase.GetAddressBalanceUseCase
 import com.nunchuk.android.usecase.GetAddressesUseCase
+import com.nunchuk.android.usecase.GetLiquidAssetIdsUseCase
+import com.nunchuk.android.usecase.GetWalletUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -35,14 +39,18 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 internal class UsedAddressViewModel @Inject constructor(
+    private val getWalletUseCase: GetWalletUseCase,
     private val getAddressesUseCase: GetAddressesUseCase,
     private val getAddressBalanceUseCase: GetAddressBalanceUseCase,
+    private val getAddressAssetsUseCase: GetAddressAssetsUseCase,
+    private val getLiquidAssetIdsUseCase: GetLiquidAssetIdsUseCase,
     private val pushEventManager: PushEventManager,
 ) : ViewModel() {
 
@@ -67,14 +75,35 @@ internal class UsedAddressViewModel @Inject constructor(
 
     fun init(walletId: String) {
         this.walletId = walletId
-        getUsedAddresses()
+        viewModelScope.launch {
+            val wallet = runCatching {
+                getWalletUseCase.execute(walletId).first().wallet
+            }.getOrNull()
+            if (wallet != null) {
+                _state.update { it.copy(walletType = wallet.walletType) }
+            }
+            if (_state.value.walletType == WalletType.LIQUID) {
+                getLiquidAssetIdsUseCase(Unit).onSuccess { ids ->
+                    _state.update {
+                        it.copy(usdtAssetId = ids.usdtAssetId, lbtcAssetId = ids.lbtcAssetId)
+                    }
+                }
+            }
+            getUsedAddresses()
+        }
     }
 
     private fun getUsedAddresses() {
         viewModelScope.launch {
             getAddressesUseCase.execute(walletId = walletId, used = true)
                 .onException { _event.emit(UsedAddressEvent.GetUsedAddressErrorEvent(it.message.orEmpty())) }
-                .collect { getAddressBalance(it) }
+                .collect { addresses ->
+                    if (_state.value.walletType == WalletType.LIQUID) {
+                        getAddressAssets(addresses)
+                    } else {
+                        getAddressBalance(addresses)
+                    }
+                }
         }
     }
 
@@ -84,6 +113,18 @@ internal class UsedAddressViewModel @Inject constructor(
                 getAddressBalanceUseCase(GetAddressBalanceUseCase.Param(walletId, address))
                     .getOrElse { Amount.ZER0 }
                     .let { balance -> UsedAddressModel(address, balance) }
+            }
+            _state.update { it.copy(addresses = addressModels) }
+        }
+    }
+
+    private fun getAddressAssets(addresses: List<String>) {
+        viewModelScope.launch {
+            val addressModels = addresses.map { address ->
+                val assets = getAddressAssetsUseCase(
+                    GetAddressAssetsUseCase.Param(walletId, address)
+                ).getOrDefault(emptyMap())
+                UsedAddressModel(address = address, assets = assets)
             }
             _state.update { it.copy(addresses = addressModels) }
         }

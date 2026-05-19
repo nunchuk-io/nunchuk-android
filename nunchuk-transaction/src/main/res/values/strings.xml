@@ -123,4 +123,9 @@
     <string name="nc_network_fee">Network Fee</string>
     <string name="nc_usdt">USDT</string>
     <string name="nc_lbtc">LBTC</string>
+    <string name="nc_address_balance">Address balance:</string>
+    <string name="nc_amount_usdt">%1$s USDT</string>
+    <string name="nc_amount_lbtc">%1$s LBTC</string>
+    <string name="nc_network_liquid">Network: Liquid Network</string>
+    <string name="nc_liquid_address_warning">Only send USDT (Liquid) or LBTC to this address. USDT on other networks must be converted to USDT (Liquid) before sending, or the funds may be permanently lost.</string>
 </resources>

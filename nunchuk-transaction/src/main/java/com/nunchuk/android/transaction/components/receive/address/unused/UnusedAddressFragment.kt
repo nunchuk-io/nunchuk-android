@@ -82,6 +82,7 @@ internal class UnusedAddressFragment : BaseFragment<ViewBinding>(),
                 NunchukTheme {
                     UnusedAddressContent(
                         addresses = state.addresses,
+                        isLiquidWallet = state.isLiquidWallet,
                         onAddressClick = ::copyAddress,
                         onGenerateAddressClick = viewModel::generateAddress,
                         onShareClick = ::handleShareAddress,
@@ -158,13 +159,15 @@ internal class UnusedAddressFragment : BaseFragment<ViewBinding>(),
                 label = getString(R.string.nc_mark_address_as_used),
             )
         )
-        options.add(
-            SheetOption(
-                type = SheetOptionType.TYPE_VERIFY_ADDRESS_DEVICE,
-                resId = R.drawable.ic_visibility,
-                label = getString(R.string.nc_verify_address_via_portal),
+        if (!viewModel.isLiquidWallet()) {
+            options.add(
+                SheetOption(
+                    type = SheetOptionType.TYPE_VERIFY_ADDRESS_DEVICE,
+                    resId = R.drawable.ic_visibility,
+                    label = getString(R.string.nc_verify_address_via_portal),
+                )
             )
-        )
+        }
         if (viewModel.isSingleSignWallet()) {
             options.add(
                 SheetOption(

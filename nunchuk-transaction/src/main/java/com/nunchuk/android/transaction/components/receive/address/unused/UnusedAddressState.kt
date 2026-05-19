@@ -20,6 +20,7 @@
 package com.nunchuk.android.transaction.components.receive.address.unused
 
 import com.nunchuk.android.model.Wallet
+import com.nunchuk.android.type.WalletType
 
 sealed class UnusedAddressEvent {
     data class GenerateAddressErrorEvent(val message: String) : UnusedAddressEvent()
@@ -31,4 +32,6 @@ data class UnusedAddressState(
     val addresses: List<String> = emptyList(),
     val wallet: Wallet = Wallet(),
     val totalUsedAddresses: Int = 0,
-)
+) {
+    val isLiquidWallet: Boolean get() = wallet.walletType == WalletType.LIQUID
+}

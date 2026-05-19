@@ -23,6 +23,7 @@ import android.graphics.Bitmap
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -30,9 +31,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -53,9 +55,13 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.border
+import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.core.qr.convertToQRCode
+import com.nunchuk.android.core.util.formatDecimalWithoutZero
 import com.nunchuk.android.core.util.getBTCAmount
+import com.nunchuk.android.core.util.pureBTC
+import com.nunchuk.android.model.Amount
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.details.view.AddressWithInspect
 import com.nunchuk.android.transaction.components.details.view.InspectAddressBottomSheet
@@ -65,6 +71,9 @@ import com.nunchuk.android.transaction.components.receive.address.UsedAddressMod
 @Composable
 internal fun UsedAddressContent(
     addresses: List<UsedAddressModel> = emptyList(),
+    isLiquidWallet: Boolean = false,
+    usdtAssetId: String = "",
+    lbtcAssetId: String = "",
     onAddressClick: (UsedAddressModel) -> Unit = {},
     onCopyAddress: (String) -> Unit = {},
 ) {
@@ -92,12 +101,29 @@ internal fun UsedAddressContent(
             modifier = Modifier
                 .fillMaxWidth()
         ) {
-            items(addresses) { item ->
-                UsedAddressItem(
-                    model = item,
-                    onClick = { onAddressClick(item) },
-                    onInspectClick = { inspectAddress = item.address },
-                )
+            itemsIndexed(addresses) { index, item ->
+                if (index > 0) {
+                    HorizontalDivider(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        color = MaterialTheme.colorScheme.strokePrimary,
+                        thickness = 1.dp,
+                    )
+                }
+                if (isLiquidWallet) {
+                    LiquidUsedAddressItem(
+                        model = item,
+                        usdtAssetId = usdtAssetId,
+                        lbtcAssetId = lbtcAssetId,
+                        onClick = { onAddressClick(item) },
+                        onInspectClick = { inspectAddress = item.address },
+                    )
+                } else {
+                    UsedAddressItem(
+                        model = item,
+                        onClick = { onAddressClick(item) },
+                        onInspectClick = { inspectAddress = item.address },
+                    )
+                }
             }
         }
     }
@@ -157,6 +183,85 @@ private fun UsedAddressItem(
             contentDescription = null,
             tint = MaterialTheme.colorScheme.textPrimary,
         )
+    }
+}
+
+@Composable
+private fun LiquidUsedAddressItem(
+    model: UsedAddressModel,
+    usdtAssetId: String,
+    lbtcAssetId: String,
+    onClick: () -> Unit = {},
+    onInspectClick: () -> Unit = {},
+) {
+    val qrSize = with(LocalDensity.current) { 48.dp.toPx().toInt() }
+    val qrCode = produceState<Bitmap?>(initialValue = null, model.address) {
+        value = model.address.convertToQRCode(width = qrSize, height = qrSize)
+    }
+    val usdtAmount = model.assets[usdtAssetId] ?: Amount.ZER0
+    val lbtcAmount = model.assets[lbtcAssetId] ?: Amount.ZER0
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            qrCode.value?.let { bitmap ->
+                val imageBitmap = remember(bitmap) { bitmap.asImageBitmap() }
+                Image(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                        .border(
+                            1.dp,
+                            color = MaterialTheme.colorScheme.border,
+                            RoundedCornerShape(4.dp),
+                        ),
+                    bitmap = imageBitmap,
+                    contentDescription = "QR Code",
+                )
+            }
+            AddressWithInspect(
+                modifier = Modifier.padding(start = 12.dp),
+                address = model.address,
+                onCopyText = {},
+                onInspectAddress = { onInspectClick() },
+            )
+        }
+        Text(
+            modifier = Modifier.padding(top = 12.dp),
+            text = stringResource(R.string.nc_address_balance),
+            style = NunchukTheme.typography.body,
+            color = MaterialTheme.colorScheme.textPrimary,
+        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 4.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Text(
+                text = stringResource(
+                    R.string.nc_amount_usdt,
+                    usdtAmount.pureBTC().formatDecimalWithoutZero(maxFractionDigits = 2),
+                ),
+                style = NunchukTheme.typography.title,
+                color = MaterialTheme.colorScheme.textPrimary,
+            )
+            Text(
+                text = stringResource(
+                    R.string.nc_amount_lbtc,
+                    lbtcAmount.pureBTC().formatDecimalWithoutZero(maxFractionDigits = 8),
+                ),
+                style = NunchukTheme.typography.title,
+                color = MaterialTheme.colorScheme.textPrimary,
+            )
+        }
     }
 }
 
