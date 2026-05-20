@@ -37,17 +37,11 @@ import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.lightGray
 import com.nunchuk.android.compose.textSecondary
-import com.nunchuk.android.core.signer.KeyFlow
-import com.nunchuk.android.core.signer.KeyFlow.isPrimaryKeyFlow
 import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.core.signer.getSelectKeyTypeSubtitleRes
-import com.nunchuk.android.model.signer.SupportedSigner
-import com.nunchuk.android.type.SignerTag
-import com.nunchuk.android.type.SignerType
 
 @Composable
 fun SignerIntroScreen(
-    keyFlow: Int = KeyFlow.NONE,
     viewModel: SignerIntroViewModel,
     onChainAddSignerParam: OnChainAddSignerParam? = null,
     onClick: (KeyType) -> Unit = {},
@@ -56,7 +50,6 @@ fun SignerIntroScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     SignerIntroScreenContent(
         state = state,
-        keyFlow = keyFlow,
         onChainAddSignerParam = onChainAddSignerParam,
         onClick = onClick,
         onMoreClicked = onMoreClicked,
@@ -66,12 +59,10 @@ fun SignerIntroScreen(
 @Composable
 fun SignerIntroScreenContent(
     state: SignerIntroState,
-    keyFlow: Int = KeyFlow.NONE,
     onChainAddSignerParam: OnChainAddSignerParam? = null,
     onClick: (KeyType) -> Unit = {},
     onMoreClicked: () -> Unit = {},
 ) {
-    val isDisableAll = keyFlow != KeyFlow.NONE
     Scaffold(topBar = {
         NcTopAppBar(
             title = "",
@@ -112,28 +103,9 @@ fun SignerIntroScreenContent(
                 style = NunchukTheme.typography.body
             )
 
-            val (signersToDisplay, originalSupportedSigners) = when {
-                state.dynamicSupportedSigners.isNotEmpty() && onChainAddSignerParam != null -> {
-                    state.dynamicSupportedSigners to state.dynamicSupportedSigners
-                }
-
-                state.supportedSigners.isNotEmpty() -> {
-                    state.supportedSigners to state.supportedSigners
-                }
-
-                else -> {
-                    defaultSupportedSigners to emptyList()
-                }
-            }
-
             SignerSelection(
-                supportedSigners = signersToDisplay,
-                originalSupportedSigners = originalSupportedSigners,
-                keyFlow = keyFlow,
-                isDisableAll = isDisableAll,
-                isGenericAirgapEnable = state.isGenericAirgapEnable,
-                onChainAddSignerParam = onChainAddSignerParam,
-                onClick = onClick
+                displayInfos = state.signerDisplayInfos,
+                onClick = onClick,
             )
         }
     }
@@ -141,257 +113,95 @@ fun SignerIntroScreenContent(
 
 @Composable
 internal fun SignerSelection(
-    supportedSigners: List<SupportedSigner>,
-    originalSupportedSigners: List<SupportedSigner>,
-    keyFlow: Int,
-    isDisableAll: Boolean,
-    isGenericAirgapEnable: Boolean,
-    onChainAddSignerParam: OnChainAddSignerParam? = null,
-    onClick: (KeyType) -> Unit
+    displayInfos: List<SignerDisplayInfo>,
+    onClick: (KeyType) -> Unit,
 ) {
-    val cardSigners = mutableListOf<SupportedSigner>()
-    val softwareSigner = supportedSigners.firstOrNull { it.type == SignerType.SOFTWARE }
+    val cardItems = displayInfos.filter { it.category == SignerDisplayCategory.CARD }
+    val rowItems = displayInfos.filter { it.category == SignerDisplayCategory.ROW }
+    val simpleRowItems = displayInfos.filter { it.category == SignerDisplayCategory.ROW_SIMPLE }
 
-    supportedSigners.forEach { signer ->
-        if (signer.type != SignerType.SOFTWARE) {
-            cardSigners.add(signer)
-        }
-    }
-
-    val signerItemsData = cardSigners.mapNotNull { signer ->
-        mapSupportedSignerToItemData(
-            signer,
-            originalSupportedSigners,
-            isDisableAll,
-            onChainAddSignerParam
-        )
-    }
-
-    signerItemsData.chunked(2).forEach { rowItems ->
+    cardItems.chunked(2).forEach { pair ->
         Row(
             modifier = Modifier
                 .padding(top = 16.dp)
                 .fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            rowItems.forEach { itemData ->
+            pair.forEach { item ->
                 SignerItem(
                     modifier = Modifier.weight(1f),
-                    iconRes = itemData.iconRes,
-                    title = itemData.title,
-                    subtitle = itemData.subtitle,
-                    onClick = { onClick(itemData.keyType) },
-                    isDisabled = itemData.isDisabled
+                    iconRes = item.iconRes,
+                    title = stringResource(item.titleRes),
+                    subtitle = if (item.descriptionRes != 0) stringResource(item.descriptionRes) else "",
+                    onClick = { onClick(item.keyType) },
+                    isDisabled = item.isDisabled
                 )
             }
 
-            if (rowItems.size == 1) {
+            if (pair.size == 1) {
                 Spacer(modifier = Modifier.weight(1f))
             }
         }
     }
 
-    if (softwareSigner != null) {
+    rowItems.forEach { item ->
         HorizontalDivider(
             modifier = Modifier.padding(vertical = 16.dp)
         )
 
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.clickable(enabled = keyFlow.isPrimaryKeyFlow() || !isDisableAll) {
-                onClick(KeyType.SOFTWARE)
+            modifier = Modifier.clickable(enabled = !item.isDisabled) {
+                onClick(item.keyType)
             }
         ) {
             NcCircleImage(
-                resId = R.drawable.ic_logo_dark_small,
+                resId = item.iconRes,
             )
 
             Column(modifier = Modifier.padding(start = 12.dp)) {
                 Text(
-                    text = stringResource(R.string.nc_software),
+                    text = stringResource(item.titleRes),
                     style = NunchukTheme.typography.body
                 )
-                Text(
-                    modifier = Modifier.padding(top = 4.dp),
-                    text = stringResource(R.string.nc_text_ss_desc),
-                    style = NunchukTheme.typography.bodySmall
-                        .copy(color = MaterialTheme.colorScheme.textSecondary)
-                )
+                if (item.descriptionRes != 0) {
+                    Text(
+                        modifier = Modifier.padding(top = 4.dp),
+                        text = stringResource(item.descriptionRes),
+                        style = NunchukTheme.typography.bodySmall
+                            .copy(color = MaterialTheme.colorScheme.textSecondary)
+                    )
+                }
             }
         }
     }
 
-    if (supportedSigners.any { it.type == SignerType.SERVER }) {
-        HorizontalDivider(
-            modifier = Modifier.padding(vertical = 16.dp)
-        )
-
+    simpleRowItems.forEach { item ->
         Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.clickable(enabled = !isDisableAll) {
-                onClick(KeyType.PLATFORM_KEY)
-            }
+            modifier = Modifier
+                .padding(top = 16.dp)
+                .fillMaxWidth()
+                .alpha(if (!item.isDisabled) 1f else 0.6f)
+                .clickable(enabled = !item.isDisabled) {
+                    onClick(item.keyType)
+                },
+            verticalAlignment = Alignment.CenterVertically
         ) {
             NcCircleImage(
-                resId = R.drawable.ic_server_key_dark,
+                resId = item.iconRes,
             )
 
-            Column(modifier = Modifier.padding(start = 12.dp)) {
-                Text(
-                    text = stringResource(R.string.nc_server_key),
-                    style = NunchukTheme.typography.body
-                )
-                Text(
-                    modifier = Modifier.padding(top = 4.dp),
-                    text = stringResource(R.string.nc_platform_key_desc),
-                    style = NunchukTheme.typography.bodySmall
-                        .copy(color = MaterialTheme.colorScheme.textSecondary)
-                )
-            }
+            Text(
+                modifier = Modifier.padding(start = 12.dp),
+                text = stringResource(item.titleRes),
+                style = NunchukTheme.typography.body
+            )
         }
-    }
-
-    Row(
-        modifier = Modifier
-            .padding(top = 16.dp)
-            .fillMaxWidth()
-            .alpha(if (isGenericAirgapEnable) 1f else 0.6f)
-            .clickable(enabled = isGenericAirgapEnable) {
-                onClick(KeyType.GENERIC_AIRGAP)
-            },
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        NcCircleImage(
-            resId = R.drawable.ic_split,
-        )
-
-        Text(
-            modifier = Modifier.padding(start = 12.dp),
-            text = stringResource(R.string.nc_generic_airgap),
-            style = NunchukTheme.typography.body
-        )
-    }
-}
-
-private data class SignerItemData(
-    val iconRes: Int,
-    val title: String,
-    val subtitle: String = "",
-    val keyType: KeyType,
-    val isDisabled: Boolean = false
-)
-
-@Composable
-private fun mapSupportedSignerToItemData(
-    signer: SupportedSigner,
-    allSupportedSigners: List<SupportedSigner>,
-    isDisableAll: Boolean,
-    onChainAddSignerParam: OnChainAddSignerParam? = null
-): SignerItemData? {
-    return when (signer.type) {
-        SignerType.NFC -> SignerItemData(
-            iconRes = R.drawable.ic_nfc_card,
-            title = stringResource(id = R.string.nc_tapsigner),
-            keyType = KeyType.TAPSIGNER,
-            isDisabled = allSupportedSigners.isNotEmpty() && !allSupportedSigners.any { it.type == SignerType.NFC } || isDisableAll
-        )
-
-        SignerType.COLDCARD_NFC -> SignerItemData(
-            iconRes = R.drawable.ic_coldcard_small,
-            title = stringResource(id = R.string.nc_coldcard),
-            keyType = KeyType.COLDCARD,
-            isDisabled = allSupportedSigners.isNotEmpty() && !allSupportedSigners.any { it.type == SignerType.COLDCARD_NFC } || isDisableAll
-        )
-
-        SignerType.AIRGAP -> {
-            when (signer.tag) {
-                SignerTag.JADE -> SignerItemData(
-                    iconRes = R.drawable.ic_air_gapped_jade,
-                    title = stringResource(id = R.string.nc_jade),
-                    keyType = KeyType.JADE,
-                    isDisabled = allSupportedSigners.isNotEmpty()
-                            && !allSupportedSigners.any { it.type == SignerType.AIRGAP && (it.tag == SignerTag.JADE || it.tag == null) } || isDisableAll
-                )
-
-                SignerTag.SEEDSIGNER -> SignerItemData(
-                    iconRes = R.drawable.ic_air_gapped_seedsigner,
-                    title = stringResource(id = R.string.nc_seedsigner),
-                    keyType = KeyType.SEEDSIGNER,
-                    isDisabled = allSupportedSigners.isNotEmpty()
-                            && !allSupportedSigners.any { it.type == SignerType.AIRGAP && (it.tag == SignerTag.SEEDSIGNER || it.tag == null) } || isDisableAll
-                )
-
-                SignerTag.KEYSTONE -> SignerItemData(
-                    iconRes = R.drawable.ic_air_gapped_keystone,
-                    title = stringResource(id = R.string.nc_keystone),
-                    keyType = KeyType.KEYSTONE,
-                    isDisabled = allSupportedSigners.isNotEmpty()
-                            && !allSupportedSigners.any { it.type == SignerType.AIRGAP && (it.tag == SignerTag.KEYSTONE || it.tag == null) } || isDisableAll
-                )
-
-                SignerTag.PASSPORT -> SignerItemData(
-                    iconRes = R.drawable.ic_air_gapped_passport,
-                    title = stringResource(id = R.string.nc_foundation),
-                    keyType = KeyType.FOUNDATION,
-                    isDisabled = allSupportedSigners.isNotEmpty()
-                            && !allSupportedSigners.any { it.type == SignerType.AIRGAP && (it.tag == SignerTag.PASSPORT || it.tag == null) } || isDisableAll
-                )
-
-                else -> null
-            }
-        }
-
-        SignerType.PORTAL_NFC -> SignerItemData(
-            iconRes = R.drawable.ic_portal_nfc,
-            title = stringResource(id = R.string.nc_portal),
-            keyType = KeyType.PORTAL,
-            isDisabled = allSupportedSigners.isNotEmpty() && !allSupportedSigners.any { it.type == SignerType.PORTAL_NFC } || isDisableAll
-        )
-
-        SignerType.HARDWARE -> {
-            val isHardwareDisabled = onChainAddSignerParam == null
-            when (signer.tag) {
-                SignerTag.LEDGER -> SignerItemData(
-                    iconRes = R.drawable.ic_ledger_hardware,
-                    title = stringResource(id = R.string.nc_ledger),
-                    subtitle = stringResource(id = R.string.nc_desktop_only),
-                    keyType = KeyType.LEDGER,
-                    isDisabled = isHardwareDisabled
-                )
-
-                SignerTag.TREZOR -> SignerItemData(
-                    iconRes = R.drawable.ic_trezor_hardware,
-                    title = stringResource(id = R.string.nc_trezor),
-                    subtitle = stringResource(id = R.string.nc_desktop_only),
-                    keyType = KeyType.TREZOR,
-                    isDisabled = isHardwareDisabled
-                )
-
-                SignerTag.BITBOX -> SignerItemData(
-                    iconRes = R.drawable.ic_bitbox_hardware,
-                    title = stringResource(id = R.string.nc_bitbox),
-                    subtitle = stringResource(id = R.string.nc_desktop_only),
-                    keyType = KeyType.BITBOX,
-                    isDisabled = isHardwareDisabled
-                )
-
-                else -> null
-            }
-        }
-
-        SignerType.SOFTWARE -> SignerItemData(
-            iconRes = R.drawable.ic_logo_dark_small,
-            title = stringResource(id = R.string.nc_software),
-            keyType = KeyType.SOFTWARE,
-            isDisabled = false
-        )
-
-        else -> null
     }
 }
 
 @Composable
-internal fun SignerItem(
+private fun SignerItem(
     modifier: Modifier = Modifier,
     iconRes: Int,
     title: String,
@@ -443,8 +253,16 @@ internal fun SignerItem(
 fun SignerIntroScreenContentPreview() {
     NunchukTheme {
         SignerIntroScreenContent(
-            state = SignerIntroState(supportedSigners = defaultSupportedSigners),
-            keyFlow = KeyFlow.NONE,
+            state = SignerIntroState(
+                supportedSigners = defaultSupportedSigners,
+                signerDisplayInfos = defaultSupportedSigners.mapNotNull { it.toDisplayInfo() }
+                    + SignerDisplayInfo(
+                        iconRes = R.drawable.ic_split,
+                        titleRes = R.string.nc_generic_airgap,
+                        keyType = KeyType.GENERIC_AIRGAP,
+                        category = SignerDisplayCategory.ROW_SIMPLE,
+                    ),
+            ),
             onChainAddSignerParam = null,
             onClick = {},
             onMoreClicked = {},

@@ -202,7 +202,6 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
                     ) {
                         signerIntroDestination(
                             viewModel = viewModel,
-                            keyFlow = keyFlow,
                             onChainAddSignerParam = onChainAddSignerParam,
                             onClick = { keyType: KeyType ->
                                 when (keyType) {

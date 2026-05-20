@@ -49,7 +49,8 @@ data class SignerIntroState(
     val dynamicSupportedSigners: List<SupportedSigner> = emptyList(),
     val showDynamicSelection: Boolean = false,
     val isGenericAirgapEnable: Boolean = false,
-    val isSeverKeyEnable: Boolean = false
+    val isSeverKeyEnable: Boolean = false,
+    val signerDisplayInfos: List<SignerDisplayInfo> = emptyList(),
 )
 
 @HiltViewModel
@@ -128,6 +129,7 @@ class SignerIntroViewModel @Inject constructor(
                 )
             }
         }
+        updateSignerDisplayInfos()
     }
 
     private fun calculateIsGenericAirgapEnable(
@@ -136,6 +138,64 @@ class SignerIntroViewModel @Inject constructor(
         val isDisableAll = keyFlow != KeyFlow.NONE
         return (supportedSigners.isEmpty()
                 || supportedSigners.any { it.type == SignerType.AIRGAP && it.tag == null }) && isDisableAll.not()
+    }
+
+    private fun updateSignerDisplayInfos() {
+        val currentState = _state.value
+        val (signersToDisplay, allowedSigners) = resolveSignersToDisplay(currentState)
+        val isDisableAll = keyFlow != KeyFlow.NONE
+
+        val displayInfos = signersToDisplay.mapNotNull { signer ->
+            signer.toDisplayInfo()?.copy(
+                isDisabled = signer.isDisabledIn(
+                    allowedSigners = allowedSigners,
+                    isDisableAll = isDisableAll,
+                    onChainAddSignerParam = onChainAddSignerParam,
+                    keyFlow = keyFlow,
+                )
+            )
+        } + SignerDisplayInfo(
+            iconRes = R.drawable.ic_split,
+            titleRes = R.string.nc_generic_airgap,
+            keyType = KeyType.GENERIC_AIRGAP,
+            category = SignerDisplayCategory.ROW_SIMPLE,
+            isDisabled = !currentState.isGenericAirgapEnable,
+        )
+
+        _state.update { it.copy(signerDisplayInfos = displayInfos) }
+    }
+
+    private fun resolveSignersToDisplay(
+        state: SignerIntroState,
+    ): Pair<List<SupportedSigner>, List<SupportedSigner>> = when {
+        state.dynamicSupportedSigners.isNotEmpty() && onChainAddSignerParam != null -> {
+            state.dynamicSupportedSigners to state.dynamicSupportedSigners
+        }
+        onChainAddSignerParam != null && state.supportedSigners.isNotEmpty() -> {
+            state.supportedSigners to state.supportedSigners
+        }
+        state.supportedSigners.isNotEmpty() -> {
+            val allowedSigners = state.supportedSigners.filter {
+                !(it.type == SignerType.AIRGAP && it.tag == null)
+            }
+            buildFullDisplayList(state.supportedSigners) to allowedSigners
+        }
+        else -> {
+            defaultSupportedSigners to emptyList()
+        }
+    }
+
+    private fun buildFullDisplayList(
+        supportedSigners: List<SupportedSigner>,
+    ): List<SupportedSigner> {
+        val result = defaultSupportedSigners.toMutableList()
+        supportedSigners.forEach { signer ->
+            if (signer.type == SignerType.AIRGAP && signer.tag == null) return@forEach
+            if (result.none { it.type == signer.type && it.tag == signer.tag }) {
+                result.add(signer)
+            }
+        }
+        return result
     }
 
     private fun fetchUserWalletConfigs() {
@@ -186,6 +246,7 @@ class SignerIntroViewModel @Inject constructor(
             it.isInheritanceKey == currentState.isAddInheritanceSigner
         }
         _state.update { it.copy(dynamicSupportedSigners = convertToSupportedSigners(dynamicSigners)) }
+        updateSignerDisplayInfos()
     }
 
     private fun fetchAndFilterTapSigners() {
