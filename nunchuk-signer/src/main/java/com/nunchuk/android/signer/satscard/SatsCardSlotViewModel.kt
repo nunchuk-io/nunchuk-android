@@ -56,7 +56,7 @@ class SatsCardSlotViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             BlockListener.getBlockChainFlow().collect {
-                loadActiveSlotBalance()
+                if (!it.isLiquid) loadActiveSlotBalance()
             }
         }
         loadActiveSlotBalance()
