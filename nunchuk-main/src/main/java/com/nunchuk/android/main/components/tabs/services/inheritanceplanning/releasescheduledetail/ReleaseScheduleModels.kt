@@ -22,6 +22,7 @@ package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.re
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.LocalDate
+import java.util.Calendar
 import java.util.TimeZone
 
 data class ReleaseScheduleDate(
@@ -261,7 +262,7 @@ data class ReleaseScheduleUiState(
         val nextStageNumber = (stages.maxOfOrNull { it.stageNumber } ?: 0) + 1
         val previousStage = stages.maxByOrNull { it.stageNumber }
         val firstWithdrawalDate = if (previousStage == null) {
-            ReleaseScheduleDate(month = 5, day = 29, year = 2028)
+            defaultFirstWithdrawalDate()
         } else {
             val previousFinalDate = previousStage.finalWithdrawalDate()
             previousFinalDate.plus(
@@ -291,7 +292,7 @@ data class ReleaseScheduleUiState(
                     id = 1,
                     stageNumber = 1,
                     allocationPercent = 100,
-                    firstWithdrawalDate = ReleaseScheduleDate(month = 5, day = 29, year = 2028),
+                    firstWithdrawalDate = defaultFirstWithdrawalDate(),
                     installmentConfig = ReleaseInstallmentConfig(
                         installmentPercent = 5,
                         repeatEvery = 1,
@@ -372,6 +373,17 @@ data class ReleaseScheduleUiState(
             )
         }
     }
+}
+
+private fun defaultFirstWithdrawalDate(): ReleaseScheduleDate {
+    val calendar = Calendar.getInstance().apply {
+        add(Calendar.YEAR, 2)
+    }
+    return ReleaseScheduleDate(
+        month = calendar.get(Calendar.MONTH) + 1,
+        day = calendar.get(Calendar.DAY_OF_MONTH),
+        year = calendar.get(Calendar.YEAR),
+    )
 }
 
 fun ReleaseScheduleUiState.withTimezone(
