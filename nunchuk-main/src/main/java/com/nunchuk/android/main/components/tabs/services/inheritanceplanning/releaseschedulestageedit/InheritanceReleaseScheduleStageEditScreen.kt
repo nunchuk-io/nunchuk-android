@@ -551,7 +551,12 @@ private fun RepeatEveryField(
             tonalElevation = 0.dp,
             shadowElevation = 12.dp
         ) {
-            ReleaseRepeatUnit.entries.forEach { unit ->
+            listOf(
+                ReleaseRepeatUnit.YEAR,
+                ReleaseRepeatUnit.MONTH,
+                ReleaseRepeatUnit.WEEK,
+                ReleaseRepeatUnit.DAY,
+            ).forEach { unit ->
                 DropdownMenuItem(
                     text = {
                         Text(
