@@ -249,6 +249,8 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
     }
 
     private fun openInputAmountScreen(event: WalletDetailsEvent.SendMoneyEvent) {
+        val isStablecoin =
+            event.walletExtended.wallet.walletType == com.nunchuk.android.type.WalletType.LIQUID
         if (event.walletExtended.isShared) {
             val roomWallet = event.walletExtended.roomWallet!!
             if (viewModel.isLeaveRoom) {
@@ -257,6 +259,7 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
                     activityContext = requireActivity(),
                     walletId = roomWallet.walletId,
                     availableAmount = event.walletExtended.wallet.balance.pureBTC(),
+                    isStablecoin = isStablecoin,
                 )
             } else {
                 navigator.openRoomDetailActivity(
@@ -270,6 +273,7 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
                 activityContext = requireActivity(),
                 walletId = args.walletId,
                 availableAmount = event.walletExtended.wallet.balance.pureBTC(),
+                isStablecoin = isStablecoin,
             )
         }
     }

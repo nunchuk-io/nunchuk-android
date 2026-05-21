@@ -58,7 +58,8 @@ interface TransactionNavigator {
         availableAmount: Double,
         isFromSelectedCoin: Boolean = false,
         claimInheritanceTxParam: ClaimInheritanceTxParam? = null,
-        btcUri: BtcUri? = null
+        btcUri: BtcUri? = null,
+        isStablecoin: Boolean = false,
     )
 
     fun openAddReceiptScreen(

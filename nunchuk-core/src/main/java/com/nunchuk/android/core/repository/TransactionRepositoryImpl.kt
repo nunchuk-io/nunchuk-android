@@ -68,6 +68,19 @@ internal class TransactionRepositoryImpl @Inject constructor(
         return fee
     }
 
+    override suspend fun getLiquidFees(): EstimateFeeRates {
+        val data = when (chain.value) {
+            Chain.MAIN -> transactionApi.getLiquidFees()
+            else -> transactionApi.getLiquidTestnetFees()
+        }
+        return EstimateFeeRates(
+            priorityRate = data.priorityRate,
+            standardRate = data.standardRate,
+            economicRate = data.economicRate,
+            minimumFee = data.minimumFee,
+        )
+    }
+
     override suspend fun getLocalFee(): EstimateFeeRates {
         return runCatching {
             gson.fromJson(

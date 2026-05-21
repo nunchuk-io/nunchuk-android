@@ -19,15 +19,23 @@
 
 package com.nunchuk.android.transaction.components.send.amount
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.util.fromBTCToCurrency
+import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.core.util.toNumericValue
+import com.nunchuk.android.model.defaultRate
+import com.nunchuk.android.usecase.EstimateLiquidFeeUseCase
+import com.nunchuk.android.usecase.GetWalletUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
@@ -35,13 +43,64 @@ import java.util.Locale
 import javax.inject.Inject
 
 @HiltViewModel
-internal class InputStablecoinAmountViewModel @Inject constructor() : ViewModel() {
+internal class InputStablecoinAmountViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
+    private val getWalletUseCase: GetWalletUseCase,
+    private val estimateLiquidFeeUseCase: EstimateLiquidFeeUseCase,
+) : ViewModel() {
+
+    private val args = InputAmountArgs.fromSavedStateHandle(savedStateHandle)
 
     private val _state = MutableStateFlow(InputStablecoinAmountState())
     val state = _state.asStateFlow()
 
     private val _event = MutableSharedFlow<InputStablecoinAmountEvent>()
     val event = _event.asSharedFlow()
+
+    init {
+        loadWalletBalances()
+        loadLiquidFee()
+    }
+
+    private fun loadWalletBalances() {
+        if (args.walletId.isEmpty()) return
+        viewModelScope.launch {
+            getWalletUseCase.execute(args.walletId)
+                .flowOn(Dispatchers.IO)
+                .collect { extended ->
+                    val wallet = extended.wallet
+                    val usdt = wallet.usdtBalance.pureBTC()
+                    val lbtc = wallet.lbtcBalance.pureBTC()
+                    _state.update {
+                        it.copy(
+                            usdtBalance = usdt,
+                            // USDT is pegged 1:1 to USD.
+                            usdtBalanceUsd = usdt,
+                            lbtcBalance = lbtc,
+                            lbtcBalanceUsd = lbtc.fromBTCToCurrency(),
+                        )
+                    }
+                }
+        }
+    }
+
+    private fun loadLiquidFee() {
+        viewModelScope.launch {
+            estimateLiquidFeeUseCase(Unit).onSuccess { rates ->
+                // Fee rate is sat/kvB. Liquid simple 1-in/2-out confidential tx ≈ 1.5 kvB.
+                val rateSatPerKvB = rates.defaultRate
+                val estimatedSizeKvB = LIQUID_TX_ESTIMATED_KVB
+                val feeSat = rateSatPerKvB * estimatedSizeKvB
+                val feeLbtc = feeSat / SAT_PER_BTC
+                _state.update {
+                    it.copy(
+                        networkFeeLbtc = feeLbtc,
+                        networkFeeUsd = feeLbtc.fromBTCToCurrency(),
+                    )
+                }
+            }
+        }
+    }
 
     fun selectToken(token: StablecoinToken) {
         if (_state.value.selectedToken == token) return
@@ -154,5 +213,11 @@ internal class InputStablecoinAmountViewModel @Inject constructor() : ViewModel(
         DecimalFormatSymbols(Locale.US),
     ).apply {
         isGroupingUsed = false
+    }
+
+    companion object {
+        // Liquid confidential 1-in/2-out p2wpkh tx is ~1.5 kvB after rangeproof discount.
+        private const val LIQUID_TX_ESTIMATED_KVB = 1.5
+        private const val SAT_PER_BTC = 100_000_000.0
     }
 }

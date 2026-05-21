@@ -25,6 +25,8 @@ import com.nunchuk.android.model.TxInput
 interface TransactionRepository {
     suspend fun getFees(): EstimateFeeRates
 
+    suspend fun getLiquidFees(): EstimateFeeRates
+
     suspend fun getLocalFee(): EstimateFeeRates
     suspend fun batchTransactions(
         walletId: String,

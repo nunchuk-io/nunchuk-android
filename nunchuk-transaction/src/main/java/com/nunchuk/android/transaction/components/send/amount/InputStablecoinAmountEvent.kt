@@ -34,12 +34,10 @@ data class InputStablecoinAmountState(
     val inputText: String = "",
     val amountToken: Double = 0.0,
     val amountUsd: Double = 0.0,
-    // TODO(stablecoin): wire to real balance source.
-    val usdtBalance: Double = 1024.0,
-    val usdtBalanceUsd: Double = 1024.25,
-    val lbtcBalance: Double = 0.0004,
-    val lbtcBalanceUsd: Double = 29.80,
-    // TODO(stablecoin): wire to real fee estimator.
+    val usdtBalance: Double = 0.0,
+    val usdtBalanceUsd: Double = 0.0,
+    val lbtcBalance: Double = 0.0,
+    val lbtcBalanceUsd: Double = 0.0,
     val networkFeeLbtc: Double = 0.0,
     val networkFeeUsd: Double = 0.0,
 )

@@ -17,24 +17,20 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.core.data.api
+package com.nunchuk.android.usecase
 
-import com.nunchuk.android.core.data.model.EstimateFeeResponse
-import retrofit2.http.GET
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.model.EstimateFeeRates
+import com.nunchuk.android.repository.TransactionRepository
+import kotlinx.coroutines.CoroutineDispatcher
+import javax.inject.Inject
 
-interface TransactionApi {
-    @GET("fees/recommended")
-    suspend fun getFees(): EstimateFeeResponse
+class EstimateLiquidFeeUseCase @Inject constructor(
+    @IoDispatcher ioDispatcher: CoroutineDispatcher,
+    private val repository: TransactionRepository,
+) : UseCase<Unit, EstimateFeeRates>(ioDispatcher) {
 
-    @GET("fees/testnet/recommended")
-    suspend fun getTestnetFees(): EstimateFeeResponse
-
-    @GET("fees/signet/recommended")
-    suspend fun getSignetFees(): EstimateFeeResponse
-
-    @GET("fees/liquid/recommended")
-    suspend fun getLiquidFees(): EstimateFeeResponse
-
-    @GET("fees/liquid/testnet/recommended")
-    suspend fun getLiquidTestnetFees(): EstimateFeeResponse
+    override suspend fun execute(parameters: Unit): EstimateFeeRates {
+        return repository.getLiquidFees()
+    }
 }

@@ -81,7 +81,8 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         availableAmount: Double,
         isFromSelectedCoin: Boolean,
         claimInheritanceTxParam: ClaimInheritanceTxParam?,
-        btcUri: BtcUri?
+        btcUri: BtcUri?,
+        isStablecoin: Boolean,
     ) {
         InputAmountActivity.start(
             activityContext = activityContext,
@@ -89,7 +90,8 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
             availableAmount = availableAmount,
             isFromSelectedCoin = isFromSelectedCoin,
             claimInheritanceTxParam = claimInheritanceTxParam,
-            btcUri = btcUri
+            btcUri = btcUri,
+            isStablecoin = isStablecoin,
         )
     }
 
