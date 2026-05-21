@@ -23,8 +23,15 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.nunchuk.android.core.R
+import com.nunchuk.android.core.util.MAX_FRACTION_DIGITS
+import com.nunchuk.android.core.util.USD_FRACTION_DIGITS
+import com.nunchuk.android.core.util.formatDecimal
+import com.nunchuk.android.core.util.formatDecimalWithoutZero
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getCurrencyAmount
+import com.nunchuk.android.core.util.getDisplayCurrency
+import com.nunchuk.android.core.util.pureBTC
+import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.WalletExtended
@@ -33,6 +40,7 @@ import com.nunchuk.android.model.byzantine.isFacilitatorAdmin
 import com.nunchuk.android.model.byzantine.isKeyHolderLimited
 import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.model.wallet.WalletStatus
+import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.utils.Utils
 
 @Composable
@@ -47,8 +55,13 @@ fun ActiveWallet(
     isDeprecatedGroupWallet: Boolean = false,
 ) {
     val wallet = walletsExtended.wallet
-    val balance = "(${wallet.getCurrencyAmount()})"
+    val isLiquid = wallet.walletType == WalletType.LIQUID
+    val mask = role.toRole.isKeyHolderLimited || role.toRole.isFacilitatorAdmin || hideWalletDetail
     val name = if (isDeprecatedGroupWallet) "[DEPRECATED] ${wallet.name}" else wallet.name
+
+    val primaryAmount = if (isLiquid) "${wallet.usdtBalance.formatUsdtToken()} USDT" else wallet.getBTCAmount()
+    val cashAmount = if (isLiquid) "(${wallet.usdtBalance.formatUsdtAsCash()})" else "(${wallet.getCurrencyAmount()})"
+
     Row(modifier = Modifier.height(IntrinsicSize.Min)) {
         Column(modifier = Modifier.weight(1f)) {
             Text(
@@ -56,19 +69,13 @@ fun ActiveWallet(
             )
             Text(
                 modifier = Modifier.padding(top = 2.dp),
-                text = Utils.maskValue(
-                    wallet.getBTCAmount(),
-                    role.toRole.isKeyHolderLimited || role.toRole.isFacilitatorAdmin || hideWalletDetail
-                ),
+                text = Utils.maskValue(primaryAmount, mask),
                 style = if (useLargeFont) NunchukTheme.typography.title else NunchukTheme.typography.titleSmall,
                 color = Color.White
             )
             Text(
                 modifier = Modifier.padding(top = 2.dp),
-                text = Utils.maskValue(
-                    balance,
-                    role.toRole.isKeyHolderLimited || role.toRole.isFacilitatorAdmin || hideWalletDetail
-                ),
+                text = Utils.maskValue(cashAmount, mask),
                 style = if (useLargeFont) NunchukTheme.typography.body else NunchukTheme.typography.bodySmall,
                 color = Color.White
             )
@@ -79,7 +86,20 @@ fun ActiveWallet(
             verticalArrangement = Arrangement.Bottom,
             horizontalAlignment = Alignment.End
         ) {
-            if (walletsExtended.isShared || isAssistedWallet
+            if (isLiquid) {
+                Badge(containerColor = Color.White) {
+                    Text(
+                        modifier = Modifier.padding(
+                            horizontal = 8.dp, vertical = 2.dp
+                        ),
+                        text = stringResource(R.string.nc_liquid),
+                        style = NunchukTheme.typography.titleSmall.copy(
+                            fontSize = 10.sp,
+                            color = colorResource(R.color.nc_grey_g7)
+                        )
+                    )
+                }
+            } else if (walletsExtended.isShared || isAssistedWallet
                 || walletStatus == WalletStatus.REPLACED.name
                 || walletStatus == WalletStatus.LOCKED.name
                 || isSandboxWallet
@@ -130,34 +150,42 @@ fun ActiveWallet(
                 }
             }
 
-            Badge(modifier = Modifier.padding(top = 4.dp), containerColor = Color.White) {
-                val requireSigns = wallet.totalRequireSigns
-                val totalSigns = wallet.signers.size
-                val text = if (hideWalletDetail) {
-                    '\u2022'.toString().repeat(6)
-                } else if (wallet.miniscript.isNotEmpty()) {
-                    stringResource(R.string.nc_miniscript)
-                } else if (totalSigns == 0 || requireSigns == 0) {
-                    stringResource(R.string.nc_wallet_not_configured)
-                } else if (totalSigns == 1 && requireSigns == 1) {
-                    stringResource(R.string.nc_wallet_single_sig)
-                } else {
-                    "$requireSigns/$totalSigns ${stringResource(R.string.nc_wallet_multisig)}"
-                }
-                Text(
-                    modifier = Modifier.padding(
-                        horizontal = 8.dp, vertical = 2.dp
-                    ),
-                    text = text,
-                    style = NunchukTheme.typography.titleSmall.copy(
-                        fontSize = 10.sp,
-                        color = colorResource(R.color.nc_grey_g7)
+            if (!isLiquid) {
+                Badge(modifier = Modifier.padding(top = 4.dp), containerColor = Color.White) {
+                    val requireSigns = wallet.totalRequireSigns
+                    val totalSigns = wallet.signers.size
+                    val text = if (hideWalletDetail) {
+                        '\u2022'.toString().repeat(6)
+                    } else if (wallet.miniscript.isNotEmpty()) {
+                        stringResource(R.string.nc_miniscript)
+                    } else if (totalSigns == 0 || requireSigns == 0) {
+                        stringResource(R.string.nc_wallet_not_configured)
+                    } else if (totalSigns == 1 && requireSigns == 1) {
+                        stringResource(R.string.nc_wallet_single_sig)
+                    } else {
+                        "$requireSigns/$totalSigns ${stringResource(R.string.nc_wallet_multisig)}"
+                    }
+                    Text(
+                        modifier = Modifier.padding(
+                            horizontal = 8.dp, vertical = 2.dp
+                        ),
+                        text = text,
+                        style = NunchukTheme.typography.titleSmall.copy(
+                            fontSize = 10.sp,
+                            color = colorResource(R.color.nc_grey_g7)
+                        )
                     )
-                )
+                }
             }
         }
     }
 }
+
+private fun Amount.formatUsdtToken(): String =
+    pureBTC().formatDecimalWithoutZero(maxFractionDigits = MAX_FRACTION_DIGITS)
+
+private fun Amount.formatUsdtAsCash(): String =
+    "${getDisplayCurrency()}${pureBTC().formatDecimal(maxFractionDigits = USD_FRACTION_DIGITS)}"
 
 fun isLimitAccess(group: ByzantineGroup?, role: String, walletStatus: String?): Boolean {
     return group?.isLocked == true
@@ -179,6 +207,8 @@ fun getWalletColors(
         listOf(MaterialTheme.colorScheme.fillBeewax, MaterialTheme.colorScheme.fillBeewax)
     } else if (isLimitAccess || wallet.archived) {
         disableWalletColor
+    } else if (wallet.walletType == WalletType.LIQUID) {
+        listOf(Color(0xFF189EC9), Color(0xFF0E6A86))
     } else if (hasGroup || isAssistedWallet) {
         listOf(MaterialTheme.colorScheme.ming, MaterialTheme.colorScheme.everglade)
     } else if (isFreeGroupWallet) {

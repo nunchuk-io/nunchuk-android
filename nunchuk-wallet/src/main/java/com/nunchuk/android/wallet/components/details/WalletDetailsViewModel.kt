@@ -38,6 +38,7 @@ import com.nunchuk.android.core.util.hadBroadcast
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.readableMessage
 import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.listener.BalancesListener
 import com.nunchuk.android.listener.GroupMessageListener
 import com.nunchuk.android.listener.GroupReplaceListener
 import com.nunchuk.android.listener.TransactionListener
@@ -54,6 +55,7 @@ import com.nunchuk.android.model.transaction.ServerTransaction
 import com.nunchuk.android.model.wallet.WalletStatus
 import com.nunchuk.android.type.ExportFormat
 import com.nunchuk.android.type.MiniscriptTimelockBased
+import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.CreateShareFileUseCase
 import com.nunchuk.android.usecase.ExportWalletUseCase
 import com.nunchuk.android.usecase.GetAddressesUseCase
@@ -63,6 +65,7 @@ import com.nunchuk.android.usecase.GetGroupWalletConfigUseCase
 import com.nunchuk.android.usecase.GetGroupWalletMessageUnreadCountUseCase
 import com.nunchuk.android.usecase.GetTimelockedUntilUseCase
 import com.nunchuk.android.usecase.GetTransactionHistoryUseCase
+import com.nunchuk.android.usecase.GetLiquidAssetIdsUseCase
 import com.nunchuk.android.usecase.GetWalletSecuritySettingUseCase
 import com.nunchuk.android.usecase.GetWalletUseCase
 import com.nunchuk.android.usecase.ImportTransactionUseCase
@@ -159,6 +162,7 @@ internal class WalletDetailsViewModel @Inject constructor(
     private val getTimelockedUntilUseCase: GetTimelockedUntilUseCase,
     private val isClaimWalletUseCase: IsClaimWalletUseCase,
     private val getWalletBsmsUseCase: GetWalletBsmsUseCase,
+    private val getLiquidAssetIdsUseCase: GetLiquidAssetIdsUseCase,
 ) : NunchukViewModel<WalletDetailsState, WalletDetailsEvent>() {
     private val args: WalletDetailsFragmentArgs =
         WalletDetailsFragmentArgs.fromSavedStateHandle(savedStateHandle)
@@ -182,6 +186,18 @@ internal class WalletDetailsViewModel @Inject constructor(
                     }
                 }
             }
+        }
+        viewModelScope.launch {
+            BalancesListener.balancesUpdateFlow
+                .debounce(500L)
+                .collect { update ->
+                    if (update.walletId != args.walletId) return@collect
+                    if (getWallet().walletType != WalletType.LIQUID) return@collect
+                    // Liquid sync just refreshed asset balances; re-read the wallet so
+                    // wallet.usdtBalance / wallet.lbtcBalance reflect the new state, and
+                    // reload tx history in case new transactions arrived together.
+                    syncData(loadingSilent = true)
+                }
         }
         viewModelScope.launch {
             getWalletSecuritySettingUseCase(Unit)
@@ -507,7 +523,20 @@ internal class WalletDetailsViewModel @Inject constructor(
                     getFreeGroupWalletConfig()
                     getWalletBannerState()
                     checkClaimWallet()
+                    refreshAssetBalancesIfStable(it.wallet.walletType)
                 }
+        }
+    }
+
+    private fun refreshAssetBalancesIfStable(walletType: WalletType) {
+        if (walletType != WalletType.LIQUID) return
+        if (getState().usdtAssetId.isNotEmpty()) return
+        viewModelScope.launch {
+            getLiquidAssetIdsUseCase(Unit).onSuccess { ids ->
+                updateState {
+                    copy(usdtAssetId = ids.usdtAssetId, lbtcAssetId = ids.lbtcAssetId)
+                }
+            }
         }
     }
 

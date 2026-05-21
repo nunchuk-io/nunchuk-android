@@ -34,12 +34,21 @@ import com.nunchuk.android.compose.TransactionNoteView
 import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.textSecondary
+import com.nunchuk.android.core.util.MAX_FRACTION_DIGITS
+import com.nunchuk.android.core.util.USD_FRACTION_DIGITS
 import com.nunchuk.android.core.util.canBroadCast
+import com.nunchuk.android.core.util.formatDecimal
+import com.nunchuk.android.core.util.formatDecimalWithoutZero
+import com.nunchuk.android.core.util.fromBTCToCurrency
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getCurrencyAmount
+import com.nunchuk.android.core.util.getDisplayCurrency
 import com.nunchuk.android.core.util.getFormatDate
+import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.core.util.truncatedAddress
+import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.Transaction
+import com.nunchuk.android.model.TxOutput
 import com.nunchuk.android.model.transaction.ExtendedTransaction
 import com.nunchuk.android.model.transaction.ServerTransaction
 import com.nunchuk.android.model.transaction.ServerTransactionType
@@ -58,6 +67,8 @@ internal fun TransactionList(
     hideWalletDetail: Boolean,
     contentPadding: PaddingValues = PaddingValues(),
     listState: LazyListState = rememberLazyListState(),
+    isStableWallet: Boolean = false,
+    usdtAssetId: String = "",
     onClick: (Transaction) -> Unit,
 ) {
     LazyColumn(
@@ -69,6 +80,8 @@ internal fun TransactionList(
             TransactionRow(
                 extended = extended,
                 hideWalletDetail = hideWalletDetail,
+                isStableWallet = isStableWallet,
+                usdtAssetId = usdtAssetId,
                 onClick = { if (!hideWalletDetail) onClick(extended.transaction) },
             )
         }
@@ -79,6 +92,8 @@ internal fun TransactionList(
 internal fun TransactionRow(
     extended: ExtendedTransaction,
     hideWalletDetail: Boolean,
+    isStableWallet: Boolean = false,
+    usdtAssetId: String = "",
     onClick: () -> Unit,
 ) {
     val transaction = extended.transaction
@@ -87,11 +102,16 @@ internal fun TransactionRow(
         lockedBase = extended.lockedBase,
         currentBlock = LocalContext.current.currentBlock,
     )
-    val isReceive = transaction.isReceive
+
+    val stableDisplay = if (isStableWallet) {
+        rememberStableTxDisplay(transaction, usdtAssetId, extended.hideFiatCurrency, hideWalletDetail)
+    } else null
+
+    val isReceive = stableDisplay?.isReceive ?: transaction.isReceive
     val amountColor = if (isReceive) colorResource(com.nunchuk.android.wallet.R.color.nc_slime_dark)
     else MaterialTheme.colorScheme.textPrimary
 
-    val receiverText = when {
+    val receiverText = stableDisplay?.receiverText ?: when {
         isReceive && transaction.receiveOutputs.size > 1 ->
             stringResource(R.string.nc_multiple_addresses)
 
@@ -110,12 +130,12 @@ internal fun TransactionRow(
         }
     }
 
-    val btcAmount = if (isReceive) {
+    val btcAmount = stableDisplay?.tokenAmount ?: if (isReceive) {
         Utils.maskValue(transaction.totalAmount.getBTCAmount(), hideWalletDetail)
     } else {
         Utils.maskValue("- ${transaction.totalAmount.getBTCAmount()}", hideWalletDetail)
     }
-    val cashAmount = if (extended.hideFiatCurrency) "" else {
+    val cashAmount = stableDisplay?.cashAmount ?: if (extended.hideFiatCurrency) "" else {
         if (isReceive) {
             Utils.maskValue(transaction.totalAmount.getCurrencyAmount(), hideWalletDetail)
         } else {
@@ -294,3 +314,94 @@ private fun isTimelockedActive(
     MiniscriptTimelockBased.HEIGHT_LOCK -> currentBlock > 0 && currentBlock < lockedTime
     else -> false
 }
+
+private data class StableTxDisplay(
+    val isReceive: Boolean,
+    val receiverText: String,
+    val tokenAmount: String,
+    val cashAmount: String,
+)
+
+@Composable
+private fun rememberStableTxDisplay(
+    transaction: Transaction,
+    usdtAssetId: String,
+    hideFiatCurrency: Boolean,
+    hideWalletDetail: Boolean,
+): StableTxDisplay {
+    // For Liquid wallets, the BTC-side Transaction.isReceive is unreliable for asset-only
+    // (USDT-only) transfers because the LBTC sub-amount can be zero. Derive direction from
+    // the per-output TxOutput.isReceive / TxOutput.userAmount flags exposed in the new API.
+    val isReceive = transaction.receiveOutputs.isNotEmpty() && transaction.userOutputs.isEmpty()
+
+    // Pick the asset we should headline: prefer USDT when the transaction involves USDT,
+    // otherwise show LBTC. Asset id matching is case-insensitive because the SDK returns hex.
+    val relevantOutputs: List<TxOutput> =
+        if (isReceive) transaction.receiveOutputs else transaction.userOutputs
+
+    val totalsByAsset: Map<String, Long> = relevantOutputs.groupBy { it.assetId }
+        .mapValues { (_, outs) ->
+            outs.sumOf { out -> if (isReceive) out.second.value else out.userAmount.value }
+        }
+
+    // A Liquid tx can carry both LBTC and USDT outputs (e.g. USDT transfer + LBTC change/fee
+    // phantoms). Only headline the asset that actually has a non-zero amount so we don't
+    // render "0 USDT" for what is in practice a LBTC-only receive.
+    val usdtTotal = if (usdtAssetId.isEmpty()) 0L else {
+        totalsByAsset.entries
+            .firstOrNull { it.key.equals(usdtAssetId, ignoreCase = true) }?.value ?: 0L
+    }
+    val isUsdt = usdtTotal != 0L
+    val total = if (isUsdt) usdtTotal else totalsByAsset.values.sum()
+    val amount = Amount(value = total)
+
+    val receiverText = when {
+        isReceive && transaction.receiveOutputs.size > 1 ->
+            stringResource(R.string.nc_multiple_addresses)
+
+        isReceive -> Utils.maskValue(
+            transaction.receiveOutputs.firstOrNull()?.first.orEmpty().truncatedAddress(),
+            hideWalletDetail,
+        )
+
+        else -> {
+            val sendOuts = if (transaction.userOutputs.isNotEmpty()) {
+                transaction.userOutputs
+            } else {
+                transaction.outputs.filter { !it.isChange }
+            }
+            if (sendOuts.size > 1) stringResource(R.string.nc_multiple_addresses)
+            else Utils.maskValue(
+                sendOuts.firstOrNull()?.first.orEmpty().truncatedAddress(),
+                hideWalletDetail,
+            )
+        }
+    }
+
+    val sign = if (isReceive) "" else "- "
+    val tokenRaw = if (isUsdt) "${amount.formatUsdtToken()} USDT" else "${amount.formatLbtcToken()} LBTC"
+    val tokenAmount = Utils.maskValue("$sign$tokenRaw", hideWalletDetail)
+    val cashAmount = if (hideFiatCurrency) "" else {
+        val cashRaw = if (isUsdt) amount.formatUsdtAsCash() else amount.formatLbtcAsCash()
+        Utils.maskValue("$sign$cashRaw", hideWalletDetail)
+    }
+
+    return StableTxDisplay(
+        isReceive = isReceive,
+        receiverText = receiverText,
+        tokenAmount = tokenAmount,
+        cashAmount = cashAmount,
+    )
+}
+
+private fun Amount.formatUsdtToken(): String =
+    pureBTC().formatDecimalWithoutZero(maxFractionDigits = MAX_FRACTION_DIGITS)
+
+private fun Amount.formatLbtcToken(): String =
+    pureBTC().formatDecimal(minFractionDigits = MAX_FRACTION_DIGITS)
+
+private fun Amount.formatUsdtAsCash(): String =
+    "${getDisplayCurrency()}${pureBTC().formatDecimal(maxFractionDigits = USD_FRACTION_DIGITS)}"
+
+private fun Amount.formatLbtcAsCash(): String =
+    "${getDisplayCurrency()}${pureBTC().fromBTCToCurrency().formatDecimal(maxFractionDigits = USD_FRACTION_DIGITS)}"

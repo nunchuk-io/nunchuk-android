@@ -65,4 +65,6 @@ data class WalletDetailsState(
     val unusedAddress: String = "",
     val hasTransactions: Boolean = false,
     val transactionsLoaded: Boolean = false,
+    val usdtAssetId: String = "",
+    val lbtcAssetId: String = "",
 )

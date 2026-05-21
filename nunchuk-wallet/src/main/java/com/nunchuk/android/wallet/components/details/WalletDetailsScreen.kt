@@ -24,6 +24,7 @@ import androidx.lifecycle.asFlow
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.model.BannerState
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
+import com.nunchuk.android.type.WalletType
 
 @Composable
 internal fun WalletDetailsScreen(
@@ -54,8 +55,11 @@ internal fun WalletDetailsScreen(
     val state by viewModel.state.asFlow().collectAsStateWithLifecycle(WalletDetailsState())
     val extendedTransactions by viewModel.extendedTransactions.collectAsState()
 
-    val headerState = rememberCollapsingHeaderState(expandedBodyHeight = EXPANDED_BODY_HEIGHT)
+    val isStableWallet = state.walletExtended.wallet.walletType == WalletType.LIQUID
+    val expandedBodyHeight = if (isStableWallet) STABLE_EXPANDED_BODY_HEIGHT else EXPANDED_BODY_HEIGHT
+    val headerState = rememberCollapsingHeaderState(expandedBodyHeight = expandedBodyHeight)
     val headerModel = rememberWalletHeaderModel(state)
+    val stableHeaderModel = rememberStableWalletHeaderModel(state)
     val listState = rememberLazyListState()
 
     val isInactiveAssisted = viewModel.isInactiveAssistedWallet()
@@ -108,22 +112,37 @@ internal fun WalletDetailsScreen(
                 .nestedScroll(headerState.nestedScrollConnection),
         ) {
             Column(modifier = Modifier.fillMaxSize()) {
-                CollapsingWalletHeader(
-                    model = headerModel,
-                    headerState = headerState,
-                    showSearch = showSearch,
-                    showMenu = showMenu,
-                    isFreeGroupWallet = state.isFreeGroupWallet,
-                    onBack = onBack,
-                    onSearch = onSearch,
-                    onMenu = onMenu,
-                    onToggleMask = onToggleMask,
-                    onSend = onSend,
-                    onReceive = onReceive,
-                    onViewCoin = onViewCoin,
-                    onWalletConfig = onWalletConfig,
-                    onSpendable = onSpendable,
-                )
+                if (isStableWallet) {
+                    StableCollapsingWalletHeader(
+                        model = stableHeaderModel,
+                        headerState = headerState,
+                        showSearch = showSearch,
+                        showMenu = showMenu,
+                        onBack = onBack,
+                        onSearch = onSearch,
+                        onMenu = onMenu,
+                        onToggleMask = onToggleMask,
+                        onSend = onSend,
+                        onReceive = onReceive,
+                    )
+                } else {
+                    CollapsingWalletHeader(
+                        model = headerModel,
+                        headerState = headerState,
+                        showSearch = showSearch,
+                        showMenu = showMenu,
+                        isFreeGroupWallet = state.isFreeGroupWallet,
+                        onBack = onBack,
+                        onSearch = onSearch,
+                        onMenu = onMenu,
+                        onToggleMask = onToggleMask,
+                        onSend = onSend,
+                        onReceive = onReceive,
+                        onViewCoin = onViewCoin,
+                        onWalletConfig = onWalletConfig,
+                        onSpendable = onSpendable,
+                    )
+                }
 
                 if (warning != null) {
                     WalletWarningBanner(
@@ -162,6 +181,8 @@ internal fun WalletDetailsScreen(
                             items = extendedTransactions,
                             hideWalletDetail = state.hideWalletDetailLocal,
                             listState = listState,
+                            isStableWallet = isStableWallet,
+                            usdtAssetId = state.usdtAssetId,
                             contentPadding = PaddingValues(
                                 start = 16.dp,
                                 end = 16.dp,

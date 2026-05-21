@@ -316,6 +316,7 @@
     <string name="nc_check_out_assisted_wallet">Check out our assisted wallet</string>
     <string name="nc_confirm_restart_wizard">Are you sure you want to restart the wizard? All wizard data will be cleared.</string>
     <string name="nc_assisted">Assisted</string>
+    <string name="nc_liquid">Liquid</string>
     <string name="nc_your_inheritance_key">Your inheritance key</string>
     <string name="nc_inheritance_intro_desc">This TAPSIGNER will be your designated inheritance key.\n\nPlease take a moment to mark or label this key.</string>
     <string name="nc_inheritance_key_tip_desc">[B]The inheritance key is designed to be used exclusively for the purpose of inheritance.[/B] As such, it should rarely be accessed. However, in an emergency, it can function as a backup signing key.\n\nWe recommend that you put it away in a safe place. Only use this key to sign daily transactions as a last resort.</string>

@@ -1,0 +1,33 @@
+<!--
+  ~ Copyright (C) 2026 The Android Open Source Project
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="17dp"
+    android:height="20dp"
+    android:viewportWidth="17"
+    android:viewportHeight="20">
+  <group>
+    <clip-path
+        android:pathData="M0,2.813h16.25v14.375h-16.25z"/>
+    <path
+        android:pathData="M2.975,2.883L0.012,9.212C0.001,9.236 -0.003,9.262 0.002,9.288C0.007,9.314 0.019,9.337 0.038,9.355L8.04,17.153C8.063,17.175 8.093,17.188 8.125,17.188C8.156,17.188 8.186,17.175 8.209,17.153L16.211,9.356C16.23,9.338 16.243,9.314 16.247,9.288C16.252,9.263 16.249,9.236 16.237,9.213L13.274,2.884C13.265,2.862 13.249,2.844 13.23,2.832C13.211,2.819 13.188,2.812 13.165,2.813H3.085C3.062,2.812 3.039,2.819 3.02,2.831C3,2.844 2.985,2.862 2.975,2.883Z"
+        android:fillColor="#50AF95"
+        android:fillType="evenOdd"/>
+    <path
+        android:pathData="M9.153,9.862C9.096,9.866 8.799,9.884 8.137,9.884C7.61,9.884 7.236,9.868 7.105,9.862C5.07,9.771 3.551,9.411 3.551,8.979C3.551,8.548 5.07,8.188 7.105,8.096V9.503C7.238,9.513 7.619,9.536 8.146,9.536C8.778,9.536 9.094,9.509 9.151,9.504V8.097C11.182,8.189 12.698,8.549 12.698,8.979C12.698,9.41 11.183,9.77 9.151,9.861L9.153,9.862ZM9.153,7.951V6.692H11.987V4.771H4.271V6.692H7.105V7.951C4.801,8.058 3.069,8.522 3.069,9.078C3.069,9.634 4.801,10.097 7.105,10.206V14.241H9.153V10.204C11.451,10.097 13.18,9.633 13.18,9.078C13.18,8.522 11.452,8.059 9.153,7.951L9.153,7.951Z"
+        android:fillColor="#ffffff"
+        android:fillType="evenOdd"/>
+  </group>
+</vector>
