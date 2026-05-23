@@ -19,6 +19,8 @@
 
 package com.nunchuk.android.domain.di
 
+import com.nunchuk.android.manager.WalletManager
+import com.nunchuk.android.manager.WalletManagerImpl
 import com.nunchuk.android.usecase.DraftWalletUseCase
 import com.nunchuk.android.usecase.DraftWalletUseCaseImpl
 import com.nunchuk.android.usecase.ExportKeystoneWalletUseCase
@@ -57,4 +59,7 @@ internal interface WalletDomainModule {
 
     @Binds
     fun bindImportWalletUseCase(useCase: ImportWalletUseCaseImpl): ImportWalletUseCase
+
+    @Binds
+    fun bindWalletManager(impl: WalletManagerImpl): WalletManager
 }

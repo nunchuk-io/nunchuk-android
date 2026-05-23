@@ -19,8 +19,10 @@
 
 package com.nunchuk.android.usecase
 
+import com.nunchuk.android.manager.WalletManager
 import com.nunchuk.android.model.TransactionExtended
 import com.nunchuk.android.nativelib.NunchukNativeSdk
+import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.utils.CrashlyticsReporter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -34,7 +36,8 @@ interface GetTransactionsUseCase {
 }
 
 internal class GetTransactionsUseCaseImpl @Inject constructor(
-    private val nativeSdk: NunchukNativeSdk
+    private val nativeSdk: NunchukNativeSdk,
+    private val walletManager: WalletManager,
 ) : GetTransactionsUseCase {
 
     override fun execute(walletId: String, eventIds: List<Pair<String, Boolean>>) = flow {
@@ -56,7 +59,8 @@ internal class GetTransactionsUseCaseImpl @Inject constructor(
                 nativeSdk.getRoomTransaction(initEventId).txId
             }
             if (txId.isEmpty()) return null
-            val chainTip = nativeSdk.getChainTip()
+            val isLiquid = walletManager.getWalletType(walletId) == WalletType.LIQUID
+            val chainTip = nativeSdk.getChainTip(liquid = isLiquid)
             val tx = nativeSdk.getTransaction(walletId, txId = txId)
             return TransactionExtended(walletId = walletId, initEventId, tx.copy(height = tx.getConfirmations(chainTip)))
         } catch (t: Throwable) {

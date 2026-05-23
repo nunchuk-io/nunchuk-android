@@ -21,10 +21,12 @@ package com.nunchuk.android.usecase
 
 import com.nunchuk.android.FlowUseCase
 import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.manager.WalletManager
 import com.nunchuk.android.model.transaction.ExtendedTransaction
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.repository.PremiumWalletRepository
 import com.nunchuk.android.type.TransactionStatus
+import com.nunchuk.android.type.WalletType
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -34,11 +36,13 @@ import javax.inject.Inject
 class GetTransactionUseCase @Inject constructor(
     private val nativeSdk: NunchukNativeSdk,
     private val repository: PremiumWalletRepository,
+    private val walletManager: WalletManager,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : FlowUseCase<GetTransactionUseCase.Params, ExtendedTransaction>(ioDispatcher) {
 
     override fun execute(parameters: Params): Flow<ExtendedTransaction> = flow {
-        val chainTip = nativeSdk.getChainTip()
+        val isLiquid = walletManager.getWalletType(parameters.walletId) == WalletType.LIQUID
+        val chainTip = nativeSdk.getChainTip(liquid = isLiquid)
         val tx = nativeSdk.getTransaction(walletId = parameters.walletId, txId = parameters.txId)
         emit(ExtendedTransaction(transaction = tx.copy(height = tx.getConfirmations(chainTip))))
         if (parameters.isAssistedWallet && tx.status.isPending()) {

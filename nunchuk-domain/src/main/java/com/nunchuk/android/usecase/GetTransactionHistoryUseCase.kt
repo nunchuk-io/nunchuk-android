@@ -19,8 +19,10 @@
 
 package com.nunchuk.android.usecase
 
+import com.nunchuk.android.manager.WalletManager
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.nativelib.NunchukNativeSdk
+import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.utils.CrashlyticsReporter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -34,11 +36,13 @@ interface GetTransactionHistoryUseCase {
 }
 
 internal class GetTransactionHistoryUseCaseImpl @Inject constructor(
-    private val nativeSdk: NunchukNativeSdk
+    private val nativeSdk: NunchukNativeSdk,
+    private val walletManager: WalletManager,
 ) : GetTransactionHistoryUseCase {
 
     override fun execute(walletId: String, count: Int, skip: Int) = flow {
-        val chainTip = nativeSdk.getChainTip()
+        val isLiquid = walletManager.getWalletType(walletId) == WalletType.LIQUID
+        val chainTip = nativeSdk.getChainTip(liquid = isLiquid)
         val transactions = nativeSdk.getTransactionHistory(
             walletId = walletId,
             count = count,
