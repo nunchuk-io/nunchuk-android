@@ -22,7 +22,9 @@ package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.re
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
@@ -44,11 +46,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
@@ -62,12 +60,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.drawscope.clipRect
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextMeasurer
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -80,6 +82,7 @@ import com.nunchuk.android.compose.lightGray
 import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.main.R
+import kotlinx.coroutines.launch
 import com.nunchuk.android.widget.R as WidgetR
 
 private val SUMMARY_STAGE_COLORS = listOf(
@@ -89,11 +92,11 @@ private val SUMMARY_STAGE_COLORS = listOf(
     Color(0xFF57B7D9),
     Color(0xFFE88767),
 )
+private val SUMMARY_TEXT_END_PADDING = 8.dp
+private val SUMMARY_MIN_STAGE_WIDTH = 92.dp
+private val SUMMARY_MIN_REMAINING_WIDTH = 120.dp
 private val SUMMARY_EDGE_FADE_WIDTH = 56.dp
 private val SUMMARY_ARROW_SIZE = 24.dp
-private val SUMMARY_ARROW_SPACING = 8.dp
-private val SUMMARY_ARROW_RESERVED_WIDTH = SUMMARY_ARROW_SIZE + SUMMARY_ARROW_SPACING
-private const val SUMMARY_VISIBLE_STAGE_WINDOW_SIZE = 3
 private val STAGE_CARD_TOP_SPACING = 24.dp
 private val STAGE_TIMELINE_DOT_TOP_PADDING = 5.dp
 private val STAGE_TIMELINE_DOT_SIZE = 10.dp
@@ -692,140 +695,193 @@ internal fun ReleaseScheduleSummaryProgress(
     } else {
         surfaceColor
     }
-    val pageStartIndexes = remember(segments.size) {
-        buildSummaryPageStartIndexes(
-            totalSegments = segments.size,
-            windowSize = SUMMARY_VISIBLE_STAGE_WINDOW_SIZE
-        )
-    }
-    var selectedPageIndex by rememberSaveable(segments.size) { mutableIntStateOf(0) }
-    val safeSelectedPageIndex = selectedPageIndex.coerceIn(0, (pageStartIndexes.size - 1).coerceAtLeast(0))
 
-    val visibleSegments = if (segments.isEmpty()) {
-        emptyList()
-    } else {
-        val startIndex = pageStartIndexes.getOrElse(safeSelectedPageIndex) { 0 }
-        segments.drop(startIndex).take(SUMMARY_VISIBLE_STAGE_WINDOW_SIZE)
-    }
+    val scrollState = rememberScrollState()
+    val coroutineScope = rememberCoroutineScope()
+    val density = LocalDensity.current
+    val textMeasurer = rememberTextMeasurer()
+    val labelTextStyle = NunchukTheme.typography.captionSmall
+    val dateTextStyle = NunchukTheme.typography.captionSmall
 
-    val canGoPreviousPage = safeSelectedPageIndex > 0
-    val canGoNextPage = safeSelectedPageIndex < pageStartIndexes.lastIndex
-    val isLastPage = safeSelectedPageIndex == pageStartIndexes.lastIndex
-    val isWindowedSummary = pageStartIndexes.size > 1
-
-    val windowStartPercent = visibleSegments.firstOrNull()?.startPercent ?: 0
-    val lastVisibleEndPercent = visibleSegments.lastOrNull()?.endPercent ?: 0
-    val windowEndPercent = if (isWindowedSummary && !isLastPage) {
-        lastVisibleEndPercent
-    } else {
-        summaryScalePercent
-    }
-    val windowRemainingPercent = (windowEndPercent - lastVisibleEndPercent).coerceAtLeast(0)
-    val labelRemainingPercent = if (isWindowedSummary) windowRemainingPercent else remainingSummaryPercent
-    val showUnallocatedLabel = remainingSummaryPercent > 0 && (!isWindowedSummary || isLastPage)
-    val unallocatedLabelPercent = if (showUnallocatedLabel) remainingSummaryPercent else 0
-    val startArrowInset = if (canGoPreviousPage) SUMMARY_ARROW_RESERVED_WIDTH else 0.dp
-    val endArrowInset = if (canGoNextPage) SUMMARY_ARROW_RESERVED_WIDTH else 0.dp
-
-    Box(
+    BoxWithConstraints(
         modifier = modifier
             .fillMaxWidth()
     ) {
-        Column(modifier = Modifier.fillMaxWidth()) {
-            BottomSummaryStageLabels(
-                modifier = Modifier.padding(start = startArrowInset, end = endArrowInset),
-                segments = visibleSegments,
-                remainingPercent = labelRemainingPercent,
-                unallocatedPercent = unallocatedLabelPercent,
-                labelColorForSegment = labelColorForSegment,
+        val safeScalePercent = summaryScalePercent
+            .coerceAtLeast(segments.sumOf { it.allocationPercent } + remainingSummaryPercent)
+            .coerceAtLeast(1)
+        val stageItems = segments.map { segment ->
+            val label = stringResource(
+                id = R.string.nc_release_schedule_stage_label_with_value,
+                segment.stageNumber,
+                segment.allocationPercent
             )
+            val date = segment.firstWithdrawalDate.display()
+            val minWidth = maxOf(
+                SUMMARY_MIN_STAGE_WIDTH,
+                measureSummaryTextWidth(textMeasurer, density, label, labelTextStyle) + SUMMARY_TEXT_END_PADDING,
+                measureSummaryTextWidth(textMeasurer, density, date, dateTextStyle) + SUMMARY_TEXT_END_PADDING,
+            )
+            val proportionalWidth =
+                maxWidth * (segment.allocationPercent.coerceAtLeast(0) / safeScalePercent.toFloat())
+            SummaryStageItem(
+                segment = segment,
+                label = label,
+                date = date,
+                width = maxOf(proportionalWidth, minWidth),
+            )
+        }
+        val remainingItem = if (remainingSummaryPercent > 0) {
+            val label = stringResource(
+                id = R.string.nc_release_schedule_unallocated_with_value,
+                remainingSummaryPercent
+            )
+            val minWidth = maxOf(
+                SUMMARY_MIN_REMAINING_WIDTH,
+                measureSummaryTextWidth(textMeasurer, density, label, labelTextStyle) + SUMMARY_TEXT_END_PADDING,
+            )
+            val proportionalWidth =
+                maxWidth * (remainingSummaryPercent / safeScalePercent.toFloat())
+            SummaryRemainingItem(
+                label = label,
+                width = maxOf(proportionalWidth, minWidth),
+            )
+        } else {
+            null
+        }
+        val contentWidth = maxOf(
+            maxWidth,
+            stageItems.fold(0.dp) { total, item -> total + item.width } + (remainingItem?.width ?: 0.dp)
+        )
+        val isScrollable = contentWidth > maxWidth
+        val canScrollPrevious = isScrollable && scrollState.value > 0
+        val canScrollNext = isScrollable && scrollState.value < scrollState.maxValue
+        val scrollBy = with(density) { maxWidth.roundToPx() }
 
-            SummaryProgressBarRow(
-                modifier = Modifier.padding(top = 8.dp),
-                showPreviousButton = canGoPreviousPage,
-                showNextButton = canGoNextPage,
-                onPreviousClick = { selectedPageIndex = safeSelectedPageIndex - 1 },
-                onNextClick = { selectedPageIndex = safeSelectedPageIndex + 1 },
-            ) { contentModifier ->
+        Box(modifier = Modifier.fillMaxWidth()) {
+            Column(
+                modifier = Modifier
+                    .horizontalScroll(scrollState)
+                    .width(contentWidth)
+            ) {
+                BottomSummaryStageLabels(
+                    modifier = Modifier.width(contentWidth),
+                    stageItems = stageItems,
+                    remainingItem = remainingItem,
+                    labelColorForSegment = labelColorForSegment,
+                )
+
                 SegmentedAllocationProgressBar(
-                    modifier = contentModifier.height(10.dp),
-                    segments = visibleSegments,
-                    scaleStartPercent = windowStartPercent,
-                    scaleEndPercent = windowEndPercent,
-                    remainingPercent = windowRemainingPercent
+                    modifier = Modifier
+                        .padding(top = 8.dp)
+                        .width(contentWidth)
+                        .height(10.dp),
+                    stageItems = stageItems,
+                    remainingItem = remainingItem,
+                )
+
+                BottomSummaryStageDates(
+                    modifier = Modifier
+                        .padding(top = 8.dp)
+                        .width(contentWidth),
+                    stageItems = stageItems,
+                    remainingItem = remainingItem,
+                    dateColorForSegment = dateColorForSegment,
                 )
             }
 
-            BottomSummaryStageDates(
-                modifier = Modifier.padding(top = 8.dp, start = startArrowInset, end = endArrowInset),
-                segments = visibleSegments,
-                remainingPercent = labelRemainingPercent,
-                dateColorForSegment = dateColorForSegment,
-            )
-        }
+            if (canScrollPrevious) {
+                SummaryEdgeFadeOverlay(
+                    modifier = Modifier.matchParentSize(),
+                    side = SummaryEdgeFadeSide.START,
+                    surfaceColor = effectiveSurfaceColor,
+                )
+                SummaryScrollArrow(
+                    modifier = Modifier.align(Alignment.CenterStart),
+                    isPrevious = true,
+                    onClick = {
+                        coroutineScope.launch {
+                            scrollState.animateScrollTo((scrollState.value - scrollBy).coerceAtLeast(0))
+                        }
+                    },
+                )
+            }
 
-        if (canGoPreviousPage) {
-            SummaryEdgeFadeOverlay(
-                modifier = Modifier.matchParentSize(),
-                horizontalInset = startArrowInset,
-                side = SummaryEdgeFadeSide.START,
-                surfaceColor = effectiveSurfaceColor,
-            )
-        }
-
-        if (canGoNextPage) {
-            SummaryEdgeFadeOverlay(
-                modifier = Modifier.matchParentSize(),
-                horizontalInset = endArrowInset,
-                side = SummaryEdgeFadeSide.END,
-                surfaceColor = effectiveSurfaceColor,
-            )
+            if (canScrollNext) {
+                SummaryEdgeFadeOverlay(
+                    modifier = Modifier.matchParentSize(),
+                    side = SummaryEdgeFadeSide.END,
+                    surfaceColor = effectiveSurfaceColor,
+                )
+                SummaryScrollArrow(
+                    modifier = Modifier.align(Alignment.CenterEnd),
+                    isPrevious = false,
+                    onClick = {
+                        coroutineScope.launch {
+                            scrollState.animateScrollTo((scrollState.value + scrollBy).coerceAtMost(scrollState.maxValue))
+                        }
+                    },
+                )
+            }
         }
     }
+}
+
+private data class SummaryStageItem(
+    val segment: ReleaseScheduleAllocationSegment,
+    val label: String,
+    val date: String,
+    val width: Dp,
+)
+
+private data class SummaryRemainingItem(
+    val label: String,
+    val width: Dp,
+)
+
+private fun measureSummaryTextWidth(
+    textMeasurer: TextMeasurer,
+    density: Density,
+    text: String,
+    style: TextStyle,
+): Dp = with(density) {
+    textMeasurer.measure(
+        text = text,
+        style = style,
+    ).size.width.toDp()
 }
 
 @Composable
 private fun BottomSummaryStageLabels(
     modifier: Modifier = Modifier,
-    segments: List<ReleaseScheduleAllocationSegment>,
-    remainingPercent: Int,
-    unallocatedPercent: Int = 0,
+    stageItems: List<SummaryStageItem>,
+    remainingItem: SummaryRemainingItem? = null,
     labelColorForSegment: ((ReleaseScheduleAllocationSegment) -> Color)? = null,
 ) {
-    Row(modifier = modifier.fillMaxWidth()) {
-        segments.forEach { segment ->
+    Row(modifier = modifier) {
+        stageItems.forEach { item ->
             Text(
                 modifier = Modifier
-                    .weight(segment.allocationPercent.toFloat())
-                    .padding(end = 8.dp),
-                text = stringResource(
-                    id = R.string.nc_release_schedule_stage_label_with_value,
-                    segment.stageNumber,
-                    segment.allocationPercent
-                ),
+                    .width(item.width)
+                    .padding(end = SUMMARY_TEXT_END_PADDING),
+                text = item.label,
                 style = NunchukTheme.typography.captionSmall,
-                color = labelColorForSegment?.invoke(segment) ?: MaterialTheme.colorScheme.textPrimary,
+                color = labelColorForSegment?.invoke(item.segment) ?: MaterialTheme.colorScheme.textPrimary,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                softWrap = false,
             )
         }
-        if (remainingPercent > 0) {
-            if (unallocatedPercent > 0) {
-                Text(
-                    modifier = Modifier
-                        .weight(remainingPercent.toFloat()),
-                    text = stringResource(
-                        id = R.string.nc_release_schedule_unallocated_with_value,
-                        unallocatedPercent
-                    ),
-                    style = NunchukTheme.typography.captionSmall,
-                    textAlign = TextAlign.End,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            } else {
-                Spacer(modifier = Modifier.weight(remainingPercent.toFloat()))
-            }
+        if (remainingItem != null) {
+            Text(
+                modifier = Modifier
+                    .width(remainingItem.width)
+                    .padding(end = SUMMARY_TEXT_END_PADDING),
+                text = remainingItem.label,
+                style = NunchukTheme.typography.captionSmall,
+                color = MaterialTheme.colorScheme.textPrimary,
+                maxLines = 1,
+                softWrap = false,
+            )
         }
     }
 }
@@ -883,70 +939,45 @@ private fun SummaryEdgeFadeOverlay(
 }
 
 @Composable
-private fun SummaryProgressBarRow(
+private fun SummaryScrollArrow(
     modifier: Modifier = Modifier,
-    showPreviousButton: Boolean,
-    showNextButton: Boolean,
-    onPreviousClick: () -> Unit,
-    onNextClick: () -> Unit,
-    content: @Composable (Modifier) -> Unit,
+    isPrevious: Boolean,
+    onClick: () -> Unit,
 ) {
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        if (showPreviousButton) {
-            Icon(
-                modifier = Modifier
-                    .size(SUMMARY_ARROW_SIZE)
-                    .rotate(180f)
-                    .clickable(onClick = onPreviousClick),
-                painter = painterResource(id = WidgetR.drawable.ic_circle_arrow),
-                contentDescription = null,
-                tint = Color.Unspecified
-            )
-            Spacer(modifier = Modifier.width(SUMMARY_ARROW_SPACING))
-        }
-
-        content(Modifier.weight(1f))
-
-        if (showNextButton) {
-            Spacer(modifier = Modifier.width(SUMMARY_ARROW_SPACING))
-            Icon(
-                modifier = Modifier
-                    .size(SUMMARY_ARROW_SIZE)
-                    .clickable(onClick = onNextClick),
-                painter = painterResource(id = WidgetR.drawable.ic_circle_arrow),
-                contentDescription = null,
-                tint = Color.Unspecified
-            )
-        }
-    }
+    Icon(
+        modifier = modifier
+            .size(SUMMARY_ARROW_SIZE)
+            .rotate(if (isPrevious) 180f else 0f)
+            .clickable(onClick = onClick),
+        painter = painterResource(id = WidgetR.drawable.ic_circle_arrow),
+        contentDescription = null,
+        tint = Color.Unspecified
+    )
 }
 
 @Composable
 private fun BottomSummaryStageDates(
     modifier: Modifier = Modifier,
-    segments: List<ReleaseScheduleAllocationSegment>,
-    remainingPercent: Int,
+    stageItems: List<SummaryStageItem>,
+    remainingItem: SummaryRemainingItem? = null,
     dateColorForSegment: ((ReleaseScheduleAllocationSegment) -> Color)? = null,
 ) {
-    Row(modifier = modifier.fillMaxWidth()) {
-        segments.forEach { segment ->
+    Row(modifier = modifier) {
+        stageItems.forEach { item ->
             Text(
                 modifier = Modifier
-                    .weight(segment.allocationPercent.toFloat())
-                    .padding(end = 8.dp),
-                text = segment.firstWithdrawalDate.display(),
+                    .width(item.width)
+                    .padding(end = SUMMARY_TEXT_END_PADDING),
+                text = item.date,
                 style = NunchukTheme.typography.captionSmall.copy(
-                    color = dateColorForSegment?.invoke(segment) ?: MaterialTheme.colorScheme.textSecondary
+                    color = dateColorForSegment?.invoke(item.segment) ?: MaterialTheme.colorScheme.textSecondary
                 ),
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                softWrap = false,
             )
         }
-        if (remainingPercent > 0) {
-            Spacer(modifier = Modifier.weight(remainingPercent.toFloat()))
+        if (remainingItem != null) {
+            Spacer(modifier = Modifier.width(remainingItem.width))
         }
     }
 }
@@ -954,14 +985,9 @@ private fun BottomSummaryStageDates(
 @Composable
 private fun SegmentedAllocationProgressBar(
     modifier: Modifier = Modifier,
-    segments: List<ReleaseScheduleAllocationSegment>,
-    scaleStartPercent: Int,
-    scaleEndPercent: Int,
-    remainingPercent: Int,
+    stageItems: List<SummaryStageItem>,
+    remainingItem: SummaryRemainingItem? = null,
 ) {
-    val safeStart = scaleStartPercent.coerceAtLeast(0)
-    val safeEnd = scaleEndPercent.coerceAtLeast(safeStart + 1)
-    val safeScale = (safeEnd - safeStart).coerceAtLeast(1)
     Canvas(modifier = modifier) {
         val trackPath = Path().apply {
             addRoundRect(
@@ -981,26 +1007,26 @@ private fun SegmentedAllocationProgressBar(
         clipPath(trackPath) {
             drawRect(color = Color(0xFFE3E3E3), size = size)
 
-            segments.forEach { segment ->
-                val startX = size.width * (((segment.startPercent - safeStart).coerceIn(0, safeScale)) / safeScale.toFloat())
-                val endX = size.width * (((segment.endPercent - safeStart).coerceIn(0, safeScale)) / safeScale.toFloat())
-                if (endX > startX) {
+            var startX = 0f
+            stageItems.forEach { item ->
+                val itemWidth = item.width.toPx()
+                if (itemWidth > 0f) {
                     drawRect(
-                        color = SUMMARY_STAGE_COLORS[(segment.stageNumber - 1).mod(SUMMARY_STAGE_COLORS.size)],
+                        color = SUMMARY_STAGE_COLORS[(item.segment.stageNumber - 1).mod(SUMMARY_STAGE_COLORS.size)],
                         topLeft = Offset(startX, 0f),
-                        size = Size(endX - startX, size.height)
+                        size = Size(itemWidth, size.height)
                     )
                 }
+                startX += itemWidth
             }
 
-            if (remainingPercent > 0) {
-                val allocatedEndPercent = segments.lastOrNull()?.endPercent ?: safeStart
-                val hatchStartX = size.width * (((allocatedEndPercent - safeStart).coerceIn(0, safeScale)) / safeScale.toFloat())
-                clipRect(left = hatchStartX, top = 0f, right = size.width, bottom = size.height) {
+            if (remainingItem != null) {
+                val hatchEndX = (startX + remainingItem.width.toPx()).coerceAtMost(size.width)
+                clipRect(left = startX, top = 0f, right = hatchEndX, bottom = size.height) {
                     val hatchSpacing = 7.dp.toPx()
                     val hatchStroke = 1.dp.toPx()
-                    var x = hatchStartX - size.height
-                    while (x < size.width + size.height) {
+                    var x = startX - size.height
+                    while (x < hatchEndX + size.height) {
                         drawLine(
                             color = Color(0xFFD3D3D3),
                             start = Offset(x, size.height),
@@ -1013,29 +1039,6 @@ private fun SegmentedAllocationProgressBar(
             }
         }
     }
-}
-
-private fun buildSummaryPageStartIndexes(
-    totalSegments: Int,
-    windowSize: Int,
-): List<Int> {
-    if (totalSegments <= 0 || windowSize <= 0) return listOf(0)
-    if (totalSegments <= windowSize) return listOf(0)
-
-    val safeWindow = windowSize.coerceAtLeast(1)
-    val pageStep = (safeWindow - 1).coerceAtLeast(1)
-    val starts = mutableListOf<Int>()
-    var start = 0
-    while (start + safeWindow < totalSegments) {
-        starts += start
-        start += pageStep
-    }
-
-    val lastStart = (totalSegments - safeWindow).coerceAtLeast(0)
-    if (starts.lastOrNull() != lastStart) {
-        starts += lastStart
-    }
-    return starts
 }
 
 @PreviewLightDark
