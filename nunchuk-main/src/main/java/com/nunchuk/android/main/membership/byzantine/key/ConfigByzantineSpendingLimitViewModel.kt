@@ -28,6 +28,7 @@ import com.nunchuk.android.core.util.USD_FRACTION_DIGITS
 import com.nunchuk.android.core.util.formatDecimalWithoutZero
 import com.nunchuk.android.core.util.formatFiatDecimalWithoutZero
 import com.nunchuk.android.core.util.getCurrencyLocale
+import com.nunchuk.android.core.util.toWalletTypeOrNull
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.GroupKeyPolicy
 import com.nunchuk.android.model.SpendingCurrencyUnit
@@ -71,7 +72,7 @@ class ConfigByzantineSpendingLimitViewModel @Inject constructor(
 
     init {
         val keyPolicy = args.keyPolicy
-        val walletType = args.walletType?.let { runCatching { WalletType.valueOf(it) }.getOrNull() }
+        val walletType = args.walletType.toWalletTypeOrNull()
         val isApplyToAllMember = if (walletType == WalletType.MINISCRIPT && keyPolicy == null) {
             true
         } else {

@@ -44,6 +44,7 @@ import com.nunchuk.android.core.util.hideLoading
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.core.util.showSuccess
+import com.nunchuk.android.core.util.toWalletTypeOrNull
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.Alert
 import com.nunchuk.android.model.MembershipStage
@@ -51,7 +52,6 @@ import com.nunchuk.android.model.byzantine.AlertType
 import com.nunchuk.android.model.byzantine.DummyTransactionPayload
 import com.nunchuk.android.model.transaction.AlertPayload
 import com.nunchuk.android.nav.NunchukNavigator
-import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -150,7 +150,7 @@ class AlertActionIntroFragment : Fragment() {
                     groupStep = MembershipStage.REPLACE_KEY,
                     walletId = args.walletId,
                     groupId = args.groupId,
-                    walletType = args.walletType?.let { WalletType.valueOf(it) }
+                    walletType = args.walletType.toWalletTypeOrNull()
                 )
                 goBack()
             },

@@ -10,6 +10,7 @@ import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.isRecommendedMultiSigPath
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.core.util.toWalletTypeOrNull
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.SingleSigner
@@ -159,11 +160,21 @@ class SignerIntroViewModel @Inject constructor(
     }
 
     private fun convertToSupportedSigners(configs: List<SupportedSignerConfig>): List<SupportedSigner> {
-        return configs.map { config ->
+        return configs.mapNotNull { config ->
+            val signerType = runCatching { SignerType.valueOf(config.signerType) }.getOrNull()
+            val signerTag = config.signerTag
+                ?.takeIf { it.isNotBlank() }
+                ?.let { runCatching { SignerTag.valueOf(it) }.getOrNull() }
+            val walletType = config.walletType.toWalletTypeOrNull()
+
+            if (signerType == null || walletType == null || (config.signerTag.isNullOrBlank().not() && signerTag == null)) {
+                return@mapNotNull null
+            }
+
             SupportedSigner(
-                type = SignerType.valueOf(config.signerType),
-                tag = config.signerTag?.let { SignerTag.valueOf(it) },
-                walletType = WalletType.valueOf(config.walletType),
+                type = signerType,
+                tag = signerTag,
+                walletType = walletType,
                 addressType = AddressType.NATIVE_SEGWIT
             )
         }
@@ -400,4 +411,3 @@ sealed class SignerIntroEvent {
     data class Error(val message: String) : SignerIntroEvent()
     data class CreateSoftwareSignerSuccess(val signer: SignerModel) : SignerIntroEvent()
 }
-

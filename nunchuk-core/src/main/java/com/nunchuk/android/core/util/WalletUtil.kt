@@ -107,3 +107,7 @@ val Wallet.isValueKeySetDisable: Boolean
 const val MusigKeyPrefix = "key_musig_"
 
 fun WalletType.isMiniscript() = this == WalletType.MINISCRIPT
+
+fun String?.toWalletTypeOrNull(): WalletType? {
+    return this?.let { runCatching { WalletType.valueOf(it) }.getOrNull() }
+}

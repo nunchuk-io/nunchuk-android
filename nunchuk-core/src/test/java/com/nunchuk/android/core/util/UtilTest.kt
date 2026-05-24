@@ -19,7 +19,9 @@
 
 package com.nunchuk.android.core.util
 
+import com.nunchuk.android.type.WalletType
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Test
 
 class UtilTest {
@@ -35,5 +37,12 @@ class UtilTest {
         assertEquals("12.15", (12.15).formatDecimal())
         assertEquals("0.0001", (0.00010).formatDecimal())
         assertEquals("0.00000001", (0.00000001).formatDecimal())
+    }
+
+    @Test
+    fun toWalletTypeOrNull() {
+        assertEquals(WalletType.MULTI_SIG, "MULTI_SIG".toWalletTypeOrNull())
+        assertNull("LIQUID".toWalletTypeOrNull())
+        assertNull(null.toWalletTypeOrNull())
     }
 }
