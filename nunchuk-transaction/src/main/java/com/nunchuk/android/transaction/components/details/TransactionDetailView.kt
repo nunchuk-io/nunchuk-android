@@ -63,7 +63,9 @@ import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.InheritanceClaimTxDetailInfo
 import com.nunchuk.android.core.util.canBroadCast
+import com.nunchuk.android.core.util.formatDecimalWithoutZero
 import com.nunchuk.android.core.util.getBTCAmount
+import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.core.util.getFormatDate
 import com.nunchuk.android.core.util.getPendingSignatures
 import com.nunchuk.android.core.util.hadBroadcast
@@ -202,7 +204,8 @@ fun TransactionDetailView(
                     userRole = state.userRole,
                     showDetail = showDetail,
                     onShowDetails = { showDetail = !showDetail },
-                    onManageCoinClick = onManageCoinClick
+                    onManageCoinClick = onManageCoinClick,
+                    usdtAssetId = state.usdtAssetId,
                 )
             }
 
@@ -226,7 +229,8 @@ fun TransactionDetailView(
                         output = output,
                         onCopyText = onCopyText,
                         onInspectAddress = { inspectAddress = it },
-                        hideFiatCurrency = state.hideFiatCurrency
+                        hideFiatCurrency = state.hideFiatCurrency,
+                        usdtAssetId = state.usdtAssetId,
                     )
 
                     if (!transaction.isReceive || index < outputs.lastIndex) {
@@ -633,6 +637,7 @@ private fun TransactionHeader(
     onShowDetails: () -> Unit,
     onManageCoinClick: () -> Unit,
     isDummyTx: Boolean,
+    usdtAssetId: String = "",
 ) {
     val sendToAddress = if (outputs.size >= 2) {
         stringResource(R.string.nc_multiple_addresses)
@@ -747,11 +752,28 @@ private fun TransactionHeader(
             )
         }
 
-        Text(
-            text = transaction.totalAmount.getBTCAmount(),
-            style = NunchukTheme.typography.heading,
-            modifier = Modifier.padding(top = 4.dp),
-        )
+        if (usdtAssetId.isNotEmpty()) {
+            val perAsset = outputs
+                .groupBy { it.assetId }
+                .mapValues { (_, outs) -> Amount(outs.sumOf { o -> o.second.value }) }
+            perAsset.entries.forEachIndexed { index, (assetId, amount) ->
+                val symbol = if (assetId == usdtAssetId) "USDT" else "LBTC"
+                val value =
+                    amount.pureBTC().formatDecimalWithoutZero(maxFractionDigits = 8)
+                Text(
+                    text = "$value $symbol",
+                    style = NunchukTheme.typography.heading,
+                    modifier = if (index == 0) Modifier.padding(top = 4.dp)
+                    else Modifier.padding(top = 2.dp),
+                )
+            }
+        } else {
+            Text(
+                text = transaction.totalAmount.getBTCAmount(),
+                style = NunchukTheme.typography.heading,
+                modifier = Modifier.padding(top = 4.dp),
+            )
+        }
 
         if (inheritanceClaimTxDetailInfo == null && !isDummyTx) {
             Text(

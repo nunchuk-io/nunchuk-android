@@ -199,6 +199,8 @@ class WalletComposeBottomSheet : BaseComposeBottomSheet() {
 
         val SHOW_ADDRESS = 1 shl 0 // 0001
         val SHOW_DEACTIVATED_WALLETS = 1 shl 1 // 0010
+        val FILTER_LIQUID_ONLY = 1 shl 2 // 0100
+        val FILTER_NON_LIQUID = 1 shl 3 // 1000
 
         fun fromFlags(vararg options: Int): Int {
             var combinedFlags = 0
@@ -216,6 +218,8 @@ class WalletComposeBottomSheet : BaseComposeBottomSheet() {
     ) : Parcelable {
         fun isShowAddress(): Boolean = flags and SHOW_ADDRESS != 0
         fun isShowDeactivatedWallets(): Boolean = flags and SHOW_DEACTIVATED_WALLETS != 0
+        fun isLiquidOnly(): Boolean = flags and FILTER_LIQUID_ONLY != 0
+        fun isNonLiquidOnly(): Boolean = flags and FILTER_NON_LIQUID != 0
     }
 }
 

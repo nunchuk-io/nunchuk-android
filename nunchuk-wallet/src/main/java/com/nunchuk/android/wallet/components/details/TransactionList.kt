@@ -365,9 +365,7 @@ private fun rememberStableTxDisplay(
         )
 
         else -> {
-            val sendOuts = if (transaction.userOutputs.isNotEmpty()) {
-                transaction.userOutputs
-            } else {
+            val sendOuts = transaction.userOutputs.ifEmpty {
                 transaction.outputs.filter { !it.isChange }
             }
             if (sendOuts.size > 1) stringResource(R.string.nc_multiple_addresses)

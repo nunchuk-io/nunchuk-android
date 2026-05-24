@@ -31,6 +31,7 @@ import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.model.isNonePlan
 import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.model.wallet.WalletStatus
+import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.GetGroupsUseCase
 import com.nunchuk.android.usecase.GetWalletsUseCase
 import com.nunchuk.android.usecase.free.groupwallet.GetFreeGroupWalletsUseCase
@@ -118,8 +119,11 @@ class WalletsBottomSheetViewModel @Inject constructor(
             getWalletsUseCase.execute()
                 .catch { Timber.e(it) }
                 .collect { wallets ->
-                    val filterWallets = wallets.filter { it.wallet.id !in exclusiveWalletIds }
+                    val config = _state.value.config
+                    val filterWallets = wallets
+                        .filter { it.wallet.id !in exclusiveWalletIds }
                         .filter { if (walletIds.isEmpty()) true else it.wallet.id in walletIds }
+                        .filter { matchesWalletTypeFilter(it.wallet.walletType, config) }
                     _state.update { it.copy(wallets = filterWallets) }
                     composeWalletUiModels()
                 }
@@ -148,6 +152,15 @@ class WalletsBottomSheetViewModel @Inject constructor(
                 }
 
         }
+    }
+
+    private fun matchesWalletTypeFilter(
+        type: WalletType,
+        config: WalletComposeBottomSheet.ConfigArgs,
+    ): Boolean = when {
+        config.isLiquidOnly() -> type == WalletType.LIQUID
+        config.isNonLiquidOnly() -> type != WalletType.LIQUID
+        else -> true
     }
 
     private fun composeWalletUiModels() {

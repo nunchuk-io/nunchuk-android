@@ -244,7 +244,7 @@ private fun AddReceiptContent(
                     NcTextField(
                         title = addressLabel,
                         value = address,
-                        inputBoxHeight = 70.dp,
+                        minLines = 2,
                         error = errorMessage,
                         onValueChange = { value ->
                             onAddressChange(value)

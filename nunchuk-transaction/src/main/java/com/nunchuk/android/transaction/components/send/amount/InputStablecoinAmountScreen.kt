@@ -253,19 +253,18 @@ private fun BalanceFeeRow(
         StablecoinToken.USDT -> Triple(usdtBalance, usdtBalanceUsd, StablecoinToken.USDT.label())
         StablecoinToken.LBTC -> Triple(lbtcBalance, lbtcBalanceUsd, StablecoinToken.LBTC.label())
     }
-    Row(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 16.dp),
-        horizontalArrangement = Arrangement.SpaceEvenly,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         InfoColumn(
-            modifier = Modifier.weight(1f),
             title = stringResource(R.string.nc_transaction_balance),
             valueLine = "${balanceAmount.formatDecimalWithoutZero(maxFractionDigits = MAX_DECIMAL_DIGITS)} $tokenLabel ($${balanceUsd.formatDecimal(maxFractionDigits = USD_FRACTION_DIGITS)})",
         )
         InfoColumn(
-            modifier = Modifier.weight(1f),
             title = stringResource(R.string.nc_network_fee),
             valueLine = "${networkFeeLbtc.formatDecimalWithoutZero(maxFractionDigits = MAX_DECIMAL_DIGITS)} ${StablecoinToken.LBTC.label()} ($${networkFeeUsd.formatDecimalWithoutZero(maxFractionDigits = USD_FRACTION_DIGITS)})",
         )

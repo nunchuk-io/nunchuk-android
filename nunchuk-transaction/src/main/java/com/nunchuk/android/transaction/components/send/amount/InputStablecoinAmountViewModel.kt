@@ -27,6 +27,8 @@ import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.core.util.toNumericValue
 import com.nunchuk.android.model.defaultRate
 import com.nunchuk.android.usecase.EstimateLiquidFeeUseCase
+import com.nunchuk.android.usecase.GetLbtcAssetIdUseCase
+import com.nunchuk.android.usecase.GetUsdtAssetIdUseCase
 import com.nunchuk.android.usecase.GetWalletUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -47,6 +49,8 @@ internal class InputStablecoinAmountViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val getWalletUseCase: GetWalletUseCase,
     private val estimateLiquidFeeUseCase: EstimateLiquidFeeUseCase,
+    private val getUsdtAssetIdUseCase: GetUsdtAssetIdUseCase,
+    private val getLbtcAssetIdUseCase: GetLbtcAssetIdUseCase,
 ) : ViewModel() {
 
     private val args = InputAmountArgs.fromSavedStateHandle(savedStateHandle)
@@ -183,15 +187,26 @@ internal class InputStablecoinAmountViewModel @Inject constructor(
     }
 
     fun handleContinueEvent() {
-        val current = _state.value
-        val amount = current.amountToken
-        val balance = balanceForToken(current.selectedToken)
-        val event = when {
-            amount <= 0 -> InputStablecoinAmountEvent.InvalidAmountEvent
-            amount > balance -> InputStablecoinAmountEvent.InsufficientFundsEvent
-            else -> InputStablecoinAmountEvent.AcceptAmountEvent(amount, current.selectedToken)
+        viewModelScope.launch {
+            val current = _state.value
+            val amount = current.amountToken
+            val balance = balanceForToken(current.selectedToken)
+            val event = when {
+                amount <= 0 -> InputStablecoinAmountEvent.InvalidAmountEvent
+                amount > balance -> InputStablecoinAmountEvent.InsufficientFundsEvent
+                else -> InputStablecoinAmountEvent.AcceptAmountEvent(
+                    amount = amount,
+                    token = current.selectedToken,
+                    tokenAssetId = assetIdFor(current.selectedToken),
+                )
+            }
+            _event.emit(event)
         }
-        viewModelScope.launch { _event.emit(event) }
+    }
+
+    private suspend fun assetIdFor(token: StablecoinToken): String = when (token) {
+        StablecoinToken.USDT -> getUsdtAssetIdUseCase(Unit).getOrDefault("")
+        StablecoinToken.LBTC -> getLbtcAssetIdUseCase(Unit).getOrDefault("")
     }
 
     fun getAmountToken(): Double = _state.value.amountToken

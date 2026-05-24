@@ -77,6 +77,7 @@ import com.nunchuk.android.core.sheet.BottomSheetTooltip
 import com.nunchuk.android.core.util.InheritanceClaimTxDetailInfo
 import com.nunchuk.android.core.util.copyToClipboard
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.formatDecimalWithoutZero
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getCurrencyAmount
 import com.nunchuk.android.core.util.hasChangeIndex
@@ -342,11 +343,36 @@ private fun TransactionConfirmScreen(
 
     val fee = uiState.transaction.fee
     val outputAmount = args.txReceipts.sumOf { it.amount }
+    val isLiquid = uiState.isLiquid
+    val outputAssetId = args.txReceipts.firstOrNull()?.tokenAssetId.orEmpty()
     val totalAmount = if (args.subtractFeeFromAmount) {
         outputAmount
     } else {
-        outputAmount + fee.pureBTC()
+        outputAmount + (if (isLiquid) 0.0 else fee.pureBTC())
     }
+    val totalAmountPrimary = if (isLiquid) {
+        formatLiquidAmount(outputAmount, outputAssetId, uiState.usdtAssetId)
+    } else {
+        totalAmount.getBTCAmount()
+    }
+    val totalAmountSecondary = if (isLiquid) {
+        formatLiquidFee(fee)
+    } else {
+        totalAmount.getCurrencyAmount()
+    }
+    val liquidAssetTotals: Map<String, Amount> = if (isLiquid) {
+        val txOutputs = uiState.transaction.outputs
+        if (txOutputs.isNotEmpty()) {
+            val hasChange = uiState.transaction.hasChangeIndex()
+            val changeIndex = uiState.transaction.changeIndex
+            txOutputs
+                .filterIndexed { index, _ -> !hasChange || index != changeIndex }
+                .groupBy { it.assetId }
+                .mapValues { (_, outs) -> Amount(outs.sumOf { o -> o.second.value }) }
+        } else if (outputAssetId.isNotEmpty()) {
+            mapOf(outputAssetId to (outputAmount * 1.0e8).toLong().let(::Amount))
+        } else emptyMap()
+    } else emptyMap()
 
     NunchukTheme {
         if (isLoading) {
@@ -370,8 +396,11 @@ private fun TransactionConfirmScreen(
             outputs = outputs,
             savedAddresses = uiState.savedAddress,
             fee = fee,
-            totalAmountBtc = totalAmount.getBTCAmount(),
-            totalAmountCurrency = totalAmount.getCurrencyAmount(),
+            isLiquid = isLiquid,
+            usdtAssetId = uiState.usdtAssetId,
+            liquidAssetTotals = liquidAssetTotals,
+            totalAmountBtc = totalAmountPrimary,
+            totalAmountCurrency = totalAmountSecondary,
             changeAddress = changeAddress,
             changeAmount = changeAmount,
             isOffChainClaim = viewModel.isOffChainClaimingFlow(),
@@ -411,6 +440,9 @@ internal fun TransactionConfirmContent(
     outputs: List<TxOutput> = emptyList(),
     savedAddresses: Map<String, String> = emptyMap(),
     fee: Amount = Amount(0),
+    isLiquid: Boolean = false,
+    usdtAssetId: String = "",
+    liquidAssetTotals: Map<String, Amount> = emptyMap(),
     totalAmountBtc: String = "",
     totalAmountCurrency: String = "",
     changeAddress: String = "",
@@ -477,6 +509,7 @@ internal fun TransactionConfirmContent(
                     output = output,
                     onCopyText = onCopyText,
                     onInspectAddress = { inspectAddress = it },
+                    usdtAssetId = usdtAssetId,
                 )
                 if (index < outputs.lastIndex) {
                     HorizontalDivider(
@@ -510,7 +543,14 @@ internal fun TransactionConfirmContent(
                         )
                     }
                 }
-                AmountView(fee)
+                if (isLiquid) {
+                    Text(
+                        text = formatLiquidFee(fee),
+                        style = NunchukTheme.typography.title,
+                    )
+                } else {
+                    AmountView(fee)
+                }
             }
 
             // Total amount
@@ -527,15 +567,29 @@ internal fun TransactionConfirmContent(
                     modifier = Modifier.weight(1f),
                 )
                 Column(horizontalAlignment = Alignment.End) {
-                    Text(
-                        text = totalAmountBtc,
-                        style = NunchukTheme.typography.title,
-                    )
-                    Text(
-                        text = totalAmountCurrency,
-                        style = NunchukTheme.typography.bodySmall,
-                        modifier = Modifier.padding(top = 4.dp),
-                    )
+                    if (isLiquid && liquidAssetTotals.isNotEmpty()) {
+                        liquidAssetTotals.entries.forEachIndexed { index, (assetId, amount) ->
+                            Text(
+                                text = formatLiquidAmount(
+                                    amount = amount.pureBTC(),
+                                    assetId = assetId,
+                                    usdtAssetId = usdtAssetId,
+                                ),
+                                style = NunchukTheme.typography.title,
+                                modifier = if (index == 0) Modifier else Modifier.padding(top = 4.dp),
+                            )
+                        }
+                    } else {
+                        Text(
+                            text = totalAmountBtc,
+                            style = NunchukTheme.typography.title,
+                        )
+                        Text(
+                            text = totalAmountCurrency,
+                            style = NunchukTheme.typography.bodySmall,
+                            modifier = Modifier.padding(top = 4.dp),
+                        )
+                    }
                 }
             }
 
@@ -560,6 +614,7 @@ internal fun TransactionConfirmContent(
                     tags = emptyMap(),
                     onCopyText = onCopyText,
                     onInspectAddress = { inspectAddress = it },
+                    usdtAssetId = usdtAssetId,
                 )
             }
 
@@ -607,15 +662,29 @@ internal fun TransactionConfirmContent(
     }
 }
 
+private fun formatLiquidAmount(amount: Double, assetId: String, usdtAssetId: String): String {
+    val symbol = if (assetId.isNotEmpty() && assetId == usdtAssetId) "USDT" else "LBTC"
+    return "${amount.formatDecimalWithoutZero(maxFractionDigits = LIQUID_MAX_FRACTION_DIGITS)} $symbol"
+}
+
+private fun formatLiquidFee(fee: Amount): String {
+    val lbtc = fee.pureBTC().formatDecimalWithoutZero(maxFractionDigits = LIQUID_MAX_FRACTION_DIGITS)
+    return "$lbtc LBTC"
+}
+
+private const val LIQUID_MAX_FRACTION_DIGITS = 8
+
 @PreviewLightDark
 @Composable
 private fun TransactionConfirmContentPreview() {
-    TransactionConfirmContent(
-        title = "Confirm transaction",
-        confirmButtonText = "Confirm and create transaction",
-        totalAmountBtc = "0.001 BTC",
-        totalAmountCurrency = "$5,400.52",
-        fee = Amount(10000),
-        privateNote = "Test note",
-    )
+    NunchukTheme {
+        TransactionConfirmContent(
+            title = "Confirm transaction",
+            confirmButtonText = "Confirm and create transaction",
+            totalAmountBtc = "0.001 BTC",
+            totalAmountCurrency = "$5,400.52",
+            fee = Amount(10000),
+            privateNote = "Test note",
+        )
+    }
 }

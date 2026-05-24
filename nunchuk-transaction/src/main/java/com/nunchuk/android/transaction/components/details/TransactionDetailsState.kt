@@ -49,6 +49,7 @@ data class TransactionDetailsState(
     val enabledSigners: Set<String> = emptySet(),
     val isFreeGroupWallet: Boolean = false,
     val groupTransactionState: GroupTransactionState? = null,
+    val usdtAssetId: String = "",
 )
 
 data class TransactionMiniscriptUiState(

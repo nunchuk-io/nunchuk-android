@@ -42,6 +42,7 @@ data class AddReceiptArgs(
     val claimInheritanceTxParam: ClaimInheritanceTxParam? = null,
     val rollOverWalletParam: RollOverWalletParam? = null,
     val type: AddReceiptType = AddReceiptType.ADD_RECEIPT,
+    val tokenAssetId: String = "",
 ) {
 
     fun buildBundle(): Bundle = Bundle().apply {
@@ -58,6 +59,7 @@ data class AddReceiptArgs(
         putBoolean(EXTRA_IS_FROM_SELECTED_COIN, isFromSelectedCoin)
         txId?.let { putString(EXTRA_TX_ID, it) }
         putParcelable(EXTRA_ROLL_OVER_WALLET_PARAM, rollOverWalletParam)
+        putString(EXTRA_TOKEN_ASSET_ID, tokenAssetId)
     }
 
     companion object {
@@ -74,6 +76,7 @@ data class AddReceiptArgs(
         const val EXTRA_IS_FROM_SELECTED_COIN = "is_from_select_coin"
         const val EXTRA_TX_ID = "EXTRA_TX_ID"
         const val EXTRA_ROLL_OVER_WALLET_PARAM = "EXTRA_ROLL_OVER_WALLET_PARAM"
+        const val EXTRA_TOKEN_ASSET_ID = "EXTRA_TOKEN_ASSET_ID"
 
         fun fromBundle(bundle: Bundle): AddReceiptArgs = AddReceiptArgs(
             walletId = bundle.getString(EXTRA_WALLET_ID) ?: "",
@@ -88,7 +91,8 @@ data class AddReceiptArgs(
             claimInheritanceTxParam = bundle.parcelable(EXTRA_CLAIM_INHERITANCE_TX_PARAM),
             type = bundle.serializable<AddReceiptType>(EXTRA_RECEIPT_TYPE) ?: AddReceiptType.ADD_RECEIPT,
             txId = bundle.getString(EXTRA_TX_ID, null),
-            rollOverWalletParam = bundle.parcelable(EXTRA_ROLL_OVER_WALLET_PARAM)
+            rollOverWalletParam = bundle.parcelable(EXTRA_ROLL_OVER_WALLET_PARAM),
+            tokenAssetId = bundle.getString(EXTRA_TOKEN_ASSET_ID) ?: "",
         )
     }
 }

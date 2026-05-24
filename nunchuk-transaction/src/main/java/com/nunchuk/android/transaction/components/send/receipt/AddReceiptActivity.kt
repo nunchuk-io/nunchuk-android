@@ -163,7 +163,9 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
             walletId = args.walletId,
             txReceipts = listOf(
                 TxReceipt(
-                    args.address, args.outputAmount
+                    address = args.address,
+                    amount = args.outputAmount,
+                    tokenAssetId = args.tokenAssetId,
                 )
             ),
             subtractFeeFromAmount = args.subtractFeeFromAmount,
@@ -286,6 +288,11 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
                             startQRCodeScan(qrLauncher)
                         },
                         onDropdownClick = {
+                            val walletTypeFilter = if (args.tokenAssetId.isNotEmpty()) {
+                                WalletComposeBottomSheet.FILTER_LIQUID_ONLY
+                            } else {
+                                WalletComposeBottomSheet.FILTER_NON_LIQUID
+                            }
                             WalletComposeBottomSheet.show(
                                 supportFragmentManager,
                                 exclusiveAssistedWalletIds = arrayListOf(args.walletId),
@@ -293,6 +300,7 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
                                 configArgs = WalletComposeBottomSheet.ConfigArgs(
                                     flags = WalletComposeBottomSheet.fromFlags(
                                         WalletComposeBottomSheet.SHOW_ADDRESS,
+                                        walletTypeFilter,
                                     )
                                 )
                             )
@@ -482,7 +490,9 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
         flowObserver(viewModel.event) { event ->
             when (event) {
                 is AddReceiptEvent.AcceptedAddressEvent -> {
-                    if (event.isCreateTransaction || event.isMiniscript) {
+                    if (args.tokenAssetId.isNotEmpty()) {
+                        createLiquidTransactionDirect()
+                    } else if (event.isCreateTransaction || event.isMiniscript) {
                         estimateFeeViewModel.getEstimateFeeRates(false)
                     } else {
                         openEstimatedFeeScreen()
@@ -556,7 +566,13 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
                 val subtractFeeFromAmount =
                     if (amount.value > 0) false else args.subtractFeeFromAmount
                 handleCreateTransaction(
-                    txReceipts = listOf(TxReceipt(address, finalAmount)),
+                    txReceipts = listOf(
+                        TxReceipt(
+                            address = address,
+                            amount = finalAmount,
+                            tokenAssetId = args.tokenAssetId,
+                        )
+                    ),
                     subtractFeeFromAmount = subtractFeeFromAmount,
                     note = state.privateNote,
                     state = state,
@@ -687,7 +703,13 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
                 activityContext = this,
                 walletId = args.walletId,
                 availableAmount = args.availableAmount,
-                txReceipts = listOf(TxReceipt(address, finalAmount)),
+                txReceipts = listOf(
+                    TxReceipt(
+                        address = address,
+                        amount = finalAmount,
+                        tokenAssetId = args.tokenAssetId,
+                    )
+                ),
                 privateNote = privateNote,
                 subtractFeeFromAmount = subtractFeeFromAmount,
                 sweepType = args.sweepType,
@@ -697,6 +719,27 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
                 signingPath = signingPath
             )
         }
+    }
+
+    private fun createLiquidTransactionDirect() {
+        val state = viewModel.getAddReceiptState()
+        val finalAmount = if (state.amount.value > 0) state.amount.pureBTC() else args.outputAmount
+        transactionConfirmViewModel.init(
+            walletId = args.walletId,
+            txReceipts = listOf(
+                TxReceipt(
+                    address = state.address,
+                    amount = finalAmount,
+                    tokenAssetId = args.tokenAssetId,
+                )
+            ),
+            subtractFeeFromAmount = false,
+            privateNote = state.privateNote,
+            manualFeeRate = -1,
+            inputs = args.inputs,
+            antiFeeSniping = state.antiFeeSniping,
+        )
+        transactionConfirmViewModel.handleConfirmEvent(true)
     }
 
     private fun handleCreateTransaction(
@@ -785,6 +828,7 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
             isFromSelectedCoin: Boolean = false,
             claimInheritanceTxParam: ClaimInheritanceTxParam? = null,
             receiptType: AddReceiptType = AddReceiptType.ADD_RECEIPT,
+            tokenAssetId: String = "",
         ) {
             val intent = Intent(activityContext, AddReceiptActivity::class.java).apply {
                 putExtras(
@@ -799,7 +843,8 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
                         sweepType = sweepType,
                         isFromSelectedCoin = isFromSelectedCoin,
                         claimInheritanceTxParam = claimInheritanceTxParam,
-                        type = receiptType
+                        type = receiptType,
+                        tokenAssetId = tokenAssetId,
                     ).buildBundle()
                 )
             }

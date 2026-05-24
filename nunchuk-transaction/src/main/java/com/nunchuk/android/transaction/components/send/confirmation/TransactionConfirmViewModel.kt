@@ -32,12 +32,12 @@ import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.util.fromBTCToCurrency
-import com.nunchuk.android.core.util.fromSATtoBTC
 import com.nunchuk.android.core.util.hasChangeIndex
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.core.util.toAmount
 import com.nunchuk.android.manager.AssistedWalletManager
+import com.nunchuk.android.manager.WalletManager
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.model.SatsCardSlot
@@ -57,21 +57,23 @@ import com.nunchuk.android.transaction.components.send.confirmation.TransactionC
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.LoadingEvent
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.UpdateChangeAddress
 import com.nunchuk.android.transaction.components.send.receipt.TimelockCoin
+import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.CreateTransactionUseCase
+import com.nunchuk.android.usecase.CreateUsdtTransactionUseCase
 import com.nunchuk.android.usecase.DraftSatsCardTransactionUseCase
 import com.nunchuk.android.usecase.DraftTransactionUseCase
+import com.nunchuk.android.usecase.DraftUsdtTransactionUseCase
 import com.nunchuk.android.usecase.EstimateFeeForSigningPathsUseCase
 import com.nunchuk.android.usecase.EstimateFeeUseCase
+import com.nunchuk.android.usecase.EstimateLiquidFeeUseCase
 import com.nunchuk.android.usecase.EstimateRollOverFeeForSigningPathsUseCase
 import com.nunchuk.android.usecase.GetTaprootSelectionFeeSettingUseCase
 import com.nunchuk.android.usecase.GetTimelockedCoinsUseCase
+import com.nunchuk.android.usecase.GetUsdtAssetIdUseCase
 import com.nunchuk.android.usecase.coin.AddToCoinTagUseCase
-import com.nunchuk.android.usecase.coin.ClearPendingTxInputsUseCase
 import com.nunchuk.android.usecase.coin.GetAllTagsUseCase
 import com.nunchuk.android.usecase.coin.GetCoinsFromTxInputsUseCase
-import com.nunchuk.android.usecase.coin.GetPendingTxInputsUseCase
 import com.nunchuk.android.usecase.coin.IsMyCoinUseCase
-import com.nunchuk.android.usecase.coin.SavePendingTxInputsUseCase
 import com.nunchuk.android.usecase.membership.GetSavedAddressListLocalUseCase
 import com.nunchuk.android.usecase.room.transaction.InitRoomTransactionUseCase
 import com.nunchuk.android.usecase.transaction.GetTransaction2UseCase
@@ -113,9 +115,11 @@ class TransactionConfirmViewModel @Inject constructor(
     private val getTransaction2UseCase: GetTransaction2UseCase,
     private val estimateRollOverFeeForSigningPathsUseCase: EstimateRollOverFeeForSigningPathsUseCase,
     private val estimateFeeUseCase: EstimateFeeUseCase,
-    private val getPendingTxInputsUseCase: GetPendingTxInputsUseCase,
-    private val clearPendingTxInputsUseCase: ClearPendingTxInputsUseCase,
-    private val savePendingTxInputsUseCase: SavePendingTxInputsUseCase,
+    private val estimateLiquidFeeUseCase: EstimateLiquidFeeUseCase,
+    private val draftUsdtTransactionUseCase: DraftUsdtTransactionUseCase,
+    private val createUsdtTransactionUseCase: CreateUsdtTransactionUseCase,
+    private val getUsdtAssetIdUseCase: GetUsdtAssetIdUseCase,
+    private val walletManager: WalletManager,
     private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     private val _state = MutableStateFlow(TransactionConfirmUiState())
@@ -158,7 +162,7 @@ class TransactionConfirmViewModel @Inject constructor(
         privateNote: String = "",
         manualFeeRate: Int = -1,
         slots: List<SatsCardSlot> = emptyList(),
-        isFromSelectedCoin: Boolean = false,
+        inputs: List<UnspentOutput> = emptyList(),
         claimInheritanceTxParam: ClaimInheritanceTxParam? = null,
         antiFeeSniping: Boolean = false,
     ) {
@@ -172,19 +176,20 @@ class TransactionConfirmViewModel @Inject constructor(
             clear()
             addAll(slots)
         }
-        this.inputs.clear()
+        this.inputs.apply {
+            clear()
+            addAll(inputs)
+        }
         this.claimInheritanceTxParam = claimInheritanceTxParam
-        if (isFromSelectedCoin) {
+        if (inputs.isNotEmpty()) {
+            getAllTags()
+        }
+        val isLiquid = isLiquidWallet()
+        _state.update { it.copy(isLiquid = isLiquid) }
+        if (isLiquid) {
             viewModelScope.launch {
-                val txInputs = getPendingTxInputsUseCase(walletId).getOrDefault(emptyList())
-                if (txInputs.isEmpty()) return@launch
-                getCoinsFromTxInputsUseCase(
-                    GetCoinsFromTxInputsUseCase.Params(walletId, txInputs)
-                ).onSuccess { coins ->
-                    inputs.addAll(coins)
-                    _state.update { it.copy(inputs = coins) }
-                    getAllTags()
-                }
+                val usdtAssetId = getUsdtAssetIdUseCase(Unit).getOrDefault("")
+                _state.update { it.copy(usdtAssetId = usdtAssetId) }
             }
         }
     }
@@ -193,24 +198,9 @@ class TransactionConfirmViewModel @Inject constructor(
      * @param isSendAll indicates whether the transaction is sending all coins include locked coins in the timelock notice screen
      * It doesn't mean all coins in the wallet.
      */
-    fun prepareCreateTransactionFromTimelock(walletId: String, coins: List<UnspentOutput>) {
-        viewModelScope.launch {
-            savePendingTxInputsUseCase(
-                SavePendingTxInputsUseCase.Param(
-                    walletId = walletId,
-                    inputs = coins.map { TxInput(it.txid, it.vout) }
-                )
-            )
-            val availableAmount = coins
-                .sumOf { it.amount.value }.toDouble().fromSATtoBTC()
-            _event.emit(TransactionConfirmEvent.OpenInputAmountFromTimelock(walletId, availableAmount))
-        }
-    }
-
     fun updateInputs(isSendAll: Boolean, inputs: List<UnspentOutput>) {
         this.inputs.clear()
         this.inputs.addAll(inputs)
-        _state.update { it.copy(inputs = inputs) }
         if (!isSendAll) {
             if (txReceipts.size == 1) {
                 txReceipts = txReceipts.toMutableList().apply {
@@ -265,8 +255,46 @@ class TransactionConfirmViewModel @Inject constructor(
             draftInheritanceTransaction()
         } else if (slots.isNotEmpty()) {
             draftSatsCardTransaction()
+        } else if (isLiquidWallet()) {
+            draftLiquidTransaction()
         } else {
             draftNormalTransaction(signingPath)
+        }
+    }
+
+    private fun isLiquidWallet(): Boolean =
+        walletId.isNotEmpty() && walletManager.getWalletType(walletId) == WalletType.LIQUID
+
+    private fun getLiquidOutputs(): Map<String, Map<String, Amount>> {
+        // Group receipts by asset id, then by address → amount.
+        return txReceipts
+            .groupBy { it.tokenAssetId }
+            .mapValues { (_, receipts) ->
+                receipts.associate { it.address to it.amount.toAmount() }
+            }
+    }
+
+    private fun draftLiquidTransaction() {
+        viewModelScope.launch {
+            _event.emit(LoadingEvent())
+            fetchLiquidFeeRateIfNeeded()
+            draftUsdtTransactionUseCase(
+                DraftUsdtTransactionUseCase.Param(
+                    walletId = walletId,
+                    outputs = getLiquidOutputs(),
+                    feeRate = manualFeeRate.toManualFeeRate(),
+                )
+            ).onSuccess {
+                onDraftTransactionSuccess(it)
+            }.onFailure {
+                _event.emit(CreateTxErrorEvent(it.message.orUnknownError()))
+            }
+        }
+    }
+
+    private suspend fun fetchLiquidFeeRateIfNeeded() {
+        if (manualFeeRate <= 0) {
+            manualFeeRate = estimateLiquidFeeUseCase(Unit).getOrNull()?.defaultRate ?: manualFeeRate
         }
     }
 
@@ -390,11 +418,6 @@ class TransactionConfirmViewModel @Inject constructor(
                     _event.emit(CreateTxErrorEvent("No coins found for the transaction inputs."))
                     return@launch
                 }
-                if (inputs.isEmpty()) {
-                    inputs.addAll(coins)
-                }
-                _state.update { it.copy(inputs = coins) }
-                if (_state.value.allTags.isEmpty()) getAllTags()
                 getTimelockedCoinsUseCase(
                     GetTimelockedCoinsUseCase.Params(
                         walletId = walletId,
@@ -471,15 +494,35 @@ class TransactionConfirmViewModel @Inject constructor(
     ) {
         if (sessionHolder.hasActiveRoom()) {
             initRoomTransaction()
+        } else if (isInheritanceClaimingFlow()) {
+            createInheritanceTransaction()
+        } else if (isLiquidWallet()) {
+            createLiquidTransaction()
         } else {
-            if (isInheritanceClaimingFlow()) {
-                createInheritanceTransaction()
-            } else {
-                createNewTransaction(
-                    isQuickCreateTransaction = isQuickCreateTransaction,
-                    keySetIndex = keySetIndex,
-                    signingPath = signingPath
+            createNewTransaction(
+                isQuickCreateTransaction = isQuickCreateTransaction,
+                keySetIndex = keySetIndex,
+                signingPath = signingPath
+            )
+        }
+    }
+
+    private fun createLiquidTransaction() {
+        viewModelScope.launch {
+            _event.emit(LoadingEvent())
+            fetchLiquidFeeRateIfNeeded()
+            createUsdtTransactionUseCase(
+                CreateUsdtTransactionUseCase.Param(
+                    walletId = walletId,
+                    outputs = getLiquidOutputs(),
+                    feeRate = manualFeeRate.toManualFeeRate(),
+                    memo = privateNote,
                 )
+            ).onSuccess { transaction ->
+                _event.emit(CreateTxSuccessEvent(transaction))
+                pushEventManager.push(PushEvent.TransactionCreatedEvent)
+            }.onFailure { exception ->
+                _event.emit(CreateTxErrorEvent(exception.message.orUnknownError()))
             }
         }
     }
@@ -543,7 +586,6 @@ class TransactionConfirmViewModel @Inject constructor(
                         )
                     }
                 } else {
-                    clearPendingTxInputsUseCase(Unit)
                     _event.emit(CreateTxSuccessEvent(transaction))
                 }
                 pushEventManager.push(PushEvent.TransactionCreatedEvent)
@@ -572,7 +614,6 @@ class TransactionConfirmViewModel @Inject constructor(
             )
         )
         if (result.isSuccess) {
-            clearPendingTxInputsUseCase(Unit)
             _event.emit(
                 CreateTxSuccessEvent(
                     result.getOrThrow().transaction,
@@ -728,7 +769,8 @@ data class TransactionConfirmUiState(
     val transaction: Transaction = Transaction(),
     val savedAddress: Map<String, String> = emptyMap(),
     val feeSelectionSetting: TaprootFeeSelectionSetting = TaprootFeeSelectionSetting(),
-    val inputs: List<UnspentOutput> = emptyList(),
+    val isLiquid: Boolean = false,
+    val usdtAssetId: String = "",
 )
 
 internal fun Int.toManualFeeRate() = if (this > 0) toAmount() else Amount(-1)

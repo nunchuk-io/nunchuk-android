@@ -39,9 +39,11 @@ import com.nunchuk.android.transaction.components.send.receipt.AddReceiptEvent.S
 import com.nunchuk.android.transaction.components.utils.privateNote
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletTemplate
+import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.CheckAddressValidUseCase
 import com.nunchuk.android.usecase.GetDefaultAntiFeeSnipingUseCase
 import com.nunchuk.android.usecase.GetScriptNodeFromMiniscriptTemplateUseCase
+import com.nunchuk.android.usecase.IsLiquidAddressUseCase
 import com.nunchuk.android.usecase.ParseBtcUriUseCase
 import com.nunchuk.android.usecase.wallet.GetUnusedWalletAddressUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
@@ -57,6 +59,7 @@ import javax.inject.Inject
 @HiltViewModel
 internal class AddReceiptViewModel @Inject constructor(
     private val checkAddressValidUseCase: CheckAddressValidUseCase,
+    private val isLiquidAddressUseCase: IsLiquidAddressUseCase,
     private val parseBtcUriUseCase: ParseBtcUriUseCase,
     private val getUnusedWalletAddressUseCase: GetUnusedWalletAddressUseCase,
     private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
@@ -194,10 +197,15 @@ internal class AddReceiptViewModel @Inject constructor(
                     _event.emit(AddressRequiredEvent)
                 }
                 else -> {
-                    val result =
+                    val isValid = if (currentState.wallet.walletType == WalletType.LIQUID) {
+                        isLiquidAddressUseCase(address).getOrDefault(false)
+                    } else {
                         checkAddressValidUseCase(CheckAddressValidUseCase.Params(listOf(address)))
+                            .map { it.isEmpty() }
+                            .getOrDefault(false)
+                    }
                     _event.emit(AddReceiptEvent.Loading(false))
-                    if (result.isSuccess && result.getOrThrow().isEmpty()) {
+                    if (isValid) {
                         _event.emit(
                             AcceptedAddressEvent(
                                 isCreateTransaction = isCreateTransaction,

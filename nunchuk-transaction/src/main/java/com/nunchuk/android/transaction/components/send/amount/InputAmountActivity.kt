@@ -128,7 +128,14 @@ class InputAmountActivity : BaseComposeActivity(), BottomSheetOptionListener {
     private fun handleStablecoinEvent(event: InputStablecoinAmountEvent) {
         when (event) {
             is InputStablecoinAmountEvent.AcceptAmountEvent -> {
-                // TODO(stablecoin): forward to next step in stablecoin send flow.
+                navigator.openAddReceiptScreen(
+                    activityContext = this,
+                    walletId = args.walletId,
+                    outputAmount = event.amount,
+                    availableAmount = args.availableAmount,
+                    inputs = args.inputs,
+                    tokenAssetId = event.tokenAssetId,
+                )
             }
 
             InputStablecoinAmountEvent.InsufficientFundsEvent ->

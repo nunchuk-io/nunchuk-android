@@ -22,7 +22,11 @@ package com.nunchuk.android.transaction.components.send.amount
 enum class StablecoinToken { USDT, LBTC }
 
 sealed class InputStablecoinAmountEvent {
-    data class AcceptAmountEvent(val amount: Double, val token: StablecoinToken) : InputStablecoinAmountEvent()
+    data class AcceptAmountEvent(
+        val amount: Double,
+        val token: StablecoinToken,
+        val tokenAssetId: String,
+    ) : InputStablecoinAmountEvent()
     object InvalidAmountEvent : InputStablecoinAmountEvent()
     object InsufficientFundsEvent : InputStablecoinAmountEvent()
     data class ShowError(val message: String) : InputStablecoinAmountEvent()

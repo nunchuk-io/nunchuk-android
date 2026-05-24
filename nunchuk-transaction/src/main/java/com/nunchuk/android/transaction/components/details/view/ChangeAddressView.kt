@@ -22,7 +22,8 @@ fun ChangeAddressView(
     tags: Map<Int, CoinTag>,
     onCopyText: (String) -> Unit,
     onInspectAddress: (String) -> Unit,
-    hideFiatCurrency: Boolean = false
+    hideFiatCurrency: Boolean = false,
+    usdtAssetId: String = "",
 ) {
     Column(
         modifier = modifier
@@ -42,7 +43,12 @@ fun ChangeAddressView(
                 onInspectAddress = onInspectAddress,
             )
 
-            AmountView(txOutput.second, hideFiatCurrency)
+            AmountView(
+                amount = txOutput.second,
+                hideFiatCurrency = hideFiatCurrency,
+                assetId = txOutput.assetId,
+                usdtAssetId = usdtAssetId,
+            )
         }
 
         if (output != null && output.tags.isNotEmpty()) {

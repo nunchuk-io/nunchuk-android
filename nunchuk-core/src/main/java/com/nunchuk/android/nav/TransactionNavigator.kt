@@ -74,7 +74,8 @@ interface TransactionNavigator {
         sweepType: SweepType = SweepType.NONE,
         isFromSelectedCoin: Boolean = false,
         claimInheritanceTxParam: ClaimInheritanceTxParam? = null,
-        type: AddReceiptType = AddReceiptType.ADD_RECEIPT
+        type: AddReceiptType = AddReceiptType.ADD_RECEIPT,
+        tokenAssetId: String = "",
     )
 
     fun openEstimatedFeeScreen(

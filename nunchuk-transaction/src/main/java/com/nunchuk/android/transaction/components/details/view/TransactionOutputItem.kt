@@ -41,7 +41,8 @@ fun TransactionOutputItem(
     output: TxOutput,
     onCopyText: (String) -> Unit,
     onInspectAddress: (String) -> Unit,
-    hideFiatCurrency: Boolean = false
+    hideFiatCurrency: Boolean = false,
+    usdtAssetId: String = "",
 ) {
     Column(
         Modifier.padding(horizontal = 16.dp, vertical = 24.dp)
@@ -69,7 +70,8 @@ fun TransactionOutputItem(
             output = output,
             onCopyText = onCopyText,
             onInspectAddress = onInspectAddress,
-            hideFiatCurrency = hideFiatCurrency
+            hideFiatCurrency = hideFiatCurrency,
+            usdtAssetId = usdtAssetId,
         )
     }
 }
@@ -79,7 +81,8 @@ fun TransactionOutputItem(
     output: TxOutput,
     onCopyText: (String) -> Unit,
     onInspectAddress: (String) -> Unit,
-    hideFiatCurrency: Boolean = false
+    hideFiatCurrency: Boolean = false,
+    usdtAssetId: String = "",
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -93,7 +96,12 @@ fun TransactionOutputItem(
             onInspectAddress = onInspectAddress,
         )
 
-        AmountView(output.second, hideFiatCurrency)
+        AmountView(
+            amount = output.second,
+            hideFiatCurrency = hideFiatCurrency,
+            assetId = output.assetId,
+            usdtAssetId = usdtAssetId,
+        )
     }
 }
 
