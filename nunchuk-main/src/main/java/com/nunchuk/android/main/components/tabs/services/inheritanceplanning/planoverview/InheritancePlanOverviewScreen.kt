@@ -195,7 +195,7 @@ private fun SingleBeneficiaryOverviewItems(groupWalletType: GroupWalletType? = n
     NCLabelWithIndex(
         modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
         index = 1,
-        label = stringResource(R.string.nc_a_magical_phrase),
+        label = stringResource(R.string.nc_plan_overview_magic_phrase),
     )
     NCLabelWithIndex(
         modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
@@ -203,7 +203,7 @@ private fun SingleBeneficiaryOverviewItems(groupWalletType: GroupWalletType? = n
         label = if (groupWalletType == GroupWalletType.THREE_OF_FIVE_INHERITANCE) {
             stringResource(id = R.string.nc_two_backup_password)
         } else {
-            stringResource(id = R.string.nc_a_backup_password)
+            stringResource(id = R.string.nc_plan_overview_backup_password)
         },
     )
     NCLabelWithIndex(
@@ -233,7 +233,7 @@ private fun MultiBeneficiaryOverviewItems() {
     NCLabelWithIndex(
         modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
         index = 4,
-        label = stringResource(R.string.nc_a_backup_password),
+        label = stringResource(R.string.nc_plan_overview_backup_password),
     )
 }
 

@@ -123,9 +123,15 @@ internal fun FindBackupPasswordContent(
                         start = 16.dp,
                         end = 16.dp
                     ),
-                    text = if (inheritanceKeyType == InheritanceKeyType.TAPSIGNER) stringResource(id = R.string.nc_find_backup_passwords) else stringResource(
-                        R.string.nc_record_your_backup_password
-                    ),
+                    text = if (inheritanceKeyType == InheritanceKeyType.TAPSIGNER) {
+                        if (numOfKeys > 1) {
+                            stringResource(id = R.string.nc_find_backup_passwords)
+                        } else {
+                            stringResource(id = R.string.nc_find_backup_password)
+                        }
+                    } else {
+                        stringResource(R.string.nc_record_your_backup_password)
+                    },
                     style = NunchukTheme.typography.heading
                 )
                 NcSpannedText(

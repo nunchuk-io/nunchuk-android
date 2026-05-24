@@ -124,11 +124,6 @@ private fun InheritanceCustomizedDistributionContent(
                     text = stringResource(id = R.string.nc_customized_distribution_desc),
                     style = NunchukTheme.typography.body
                 )
-                Text(
-                    modifier = Modifier.padding(top = 24.dp),
-                    text = stringResource(id = R.string.nc_customized_distribution_question),
-                    style = NunchukTheme.typography.body
-                )
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
