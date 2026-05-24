@@ -152,7 +152,7 @@ private fun ClaimReleaseScheduleContent(
                     val isDisabled = index > currentStageIndex
 
                     StageCard(
-                        modifier = Modifier.padding(top = 24.dp),
+                        topSpacing = 24.dp,
                         stage = releaseStage,
                         isExpanded = isExpanded,
                         isDisabled = isDisabled,
@@ -161,6 +161,7 @@ private fun ClaimReleaseScheduleContent(
                         baseAllocatedPercent = releaseScheduleUiState.allocatedBeforeStage(
                             releaseStage.id
                         ),
+                        showIncomingConnector = index > 0,
                         showConnector = index != stages.lastIndex,
                         onToggleExpand = { expandedStages[index] = !isExpanded },
                     )

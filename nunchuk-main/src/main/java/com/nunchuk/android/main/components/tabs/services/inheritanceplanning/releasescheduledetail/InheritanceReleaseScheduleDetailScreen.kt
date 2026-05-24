@@ -94,6 +94,11 @@ private val SUMMARY_ARROW_SIZE = 24.dp
 private val SUMMARY_ARROW_SPACING = 8.dp
 private val SUMMARY_ARROW_RESERVED_WIDTH = SUMMARY_ARROW_SIZE + SUMMARY_ARROW_SPACING
 private const val SUMMARY_VISIBLE_STAGE_WINDOW_SIZE = 3
+private val STAGE_CARD_TOP_SPACING = 24.dp
+private val STAGE_TIMELINE_DOT_TOP_PADDING = 5.dp
+private val STAGE_TIMELINE_DOT_SIZE = 10.dp
+private val STAGE_TIMELINE_CONNECTOR_TOP_PADDING = 4.dp
+private val STAGE_TIMELINE_CONNECTOR_COLOR = Color(0xFFD5D5D5)
 
 private enum class SummaryEdgeFadeSide {
     START,
@@ -210,10 +215,11 @@ private fun InheritanceReleaseScheduleDetailContent(
 
                     uiState.stages.forEachIndexed { index, stage ->
                         StageCard(
-                            modifier = Modifier.padding(top = 24.dp),
+                            topSpacing = STAGE_CARD_TOP_SPACING,
                             stage = stage,
                             isExpanded = stage.isExpanded,
                             baseAllocatedPercent = uiState.allocatedBeforeStage(stage.id),
+                            showIncomingConnector = index > 0,
                             showConnector = index != uiState.stages.lastIndex,
                             onEditClick = { onEditStage(stage) },
                             onToggleExpand = { onToggleExpand(stage.id) }
@@ -378,6 +384,8 @@ internal fun StageCard(
     stage: ReleaseScheduleStage,
     isExpanded: Boolean,
     baseAllocatedPercent: Int,
+    topSpacing: Dp = 0.dp,
+    showIncomingConnector: Boolean = false,
     showConnector: Boolean = false,
     showEditIcon: Boolean = true,
     isDisabled: Boolean = false,
@@ -387,6 +395,7 @@ internal fun StageCard(
 ) {
     val textColor = if (isDisabled) MaterialTheme.colorScheme.textSecondary else Color.Unspecified
     val installmentLines = stage.buildInstallmentLines(baseAllocatedPercent)
+    val incomingConnectorHeight = topSpacing + STAGE_TIMELINE_DOT_TOP_PADDING
 
     Row(
         modifier = modifier
@@ -400,22 +409,26 @@ internal fun StageCard(
                 .fillMaxHeight(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            if (incomingConnectorHeight > 0.dp) {
+                if (showIncomingConnector) {
+                    TimelineConnector(modifier = Modifier.height(incomingConnectorHeight))
+                } else {
+                    Spacer(modifier = Modifier.height(incomingConnectorHeight))
+                }
+            }
             Box(
                 modifier = Modifier
-                    .padding(top = 5.dp)
-                    .size(10.dp)
+                    .size(STAGE_TIMELINE_DOT_SIZE)
                     .background(
                         color = if (isDisabled) Color(0xFFE3E3E3) else Color(0xFFD8D8D8),
                         shape = CircleShape
                     )
             )
             if (showConnector) {
-                Box(
+                TimelineConnector(
                     modifier = Modifier
-                        .padding(top = 4.dp)
-                        .width(1.dp)
+                        .padding(top = STAGE_TIMELINE_CONNECTOR_TOP_PADDING)
                         .weight(1f)
-                        .background(Color(0xFFD5D5D5))
                 )
             }
         }
@@ -423,7 +436,7 @@ internal fun StageCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 12.dp, end = 16.dp)
+                .padding(start = 12.dp, top = topSpacing, end = 16.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -566,6 +579,15 @@ internal fun StageCard(
             }
         }
     }
+}
+
+@Composable
+private fun TimelineConnector(modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .width(1.dp)
+            .background(STAGE_TIMELINE_CONNECTOR_COLOR)
+    )
 }
 
 @Composable
