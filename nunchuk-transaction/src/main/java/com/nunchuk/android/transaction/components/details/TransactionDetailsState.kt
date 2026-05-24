@@ -25,6 +25,7 @@ import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.model.CoinsGroup
 import com.nunchuk.android.model.GroupTransactionState
 import com.nunchuk.android.model.KeySetStatus
+import com.nunchuk.android.model.LiquidNetworkStatus
 import com.nunchuk.android.model.ScriptNode
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.UnspentOutput
@@ -49,6 +50,7 @@ data class TransactionDetailsState(
     val enabledSigners: Set<String> = emptySet(),
     val isFreeGroupWallet: Boolean = false,
     val groupTransactionState: GroupTransactionState? = null,
+    val liquidNetworkStatus: LiquidNetworkStatus = LiquidNetworkStatus(),
 )
 
 data class TransactionMiniscriptUiState(

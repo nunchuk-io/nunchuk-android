@@ -41,6 +41,7 @@ import com.nunchuk.android.core.data.model.InheritanceClaimCreateTransactionRequ
 import com.nunchuk.android.core.data.model.InheritanceClaimDownloadBackupRequest
 import com.nunchuk.android.core.data.model.InheritanceClaimStatusRequest
 import com.nunchuk.android.core.data.model.InitWalletConfigRequest
+import com.nunchuk.android.core.data.model.LiquidNetworkStatusResponse
 import com.nunchuk.android.core.data.model.LockdownUpdateRequest
 import com.nunchuk.android.core.data.model.MarkRecoverStatusRequest
 import com.nunchuk.android.core.data.model.RequestRecoverKeyRequest
@@ -139,6 +140,9 @@ internal interface UserWalletsApi {
         @Query("derivation_path") derivationPath: String,
         @Body body: KeyPolicyUpdateRequest
     ): Data<CreateServerKeyResponse>
+
+    @GET("/v1.1/user-wallets/liquid/status")
+    suspend fun getLiquidNetworkStatus(): Data<LiquidNetworkStatusResponse>
 
     @GET("/v1.1/user-wallets/security-questions")
     suspend fun getSecurityQuestion(): Data<SecurityQuestionDataResponse>

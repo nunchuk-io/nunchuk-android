@@ -20,12 +20,15 @@
 package com.nunchuk.android.repository
 
 import com.nunchuk.android.model.EstimateFeeRates
+import com.nunchuk.android.model.LiquidNetworkStatus
 import com.nunchuk.android.model.TxInput
 
 interface TransactionRepository {
     suspend fun getFees(): EstimateFeeRates
 
     suspend fun getLiquidFees(): EstimateFeeRates
+
+    suspend fun getLiquidNetworkStatus(): LiquidNetworkStatus
 
     suspend fun getLocalFee(): EstimateFeeRates
     suspend fun batchTransactions(

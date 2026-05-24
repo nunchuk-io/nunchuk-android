@@ -46,15 +46,18 @@ fun NcHintMessage(
 ) {
     val backgroundColor = when(type) {
         HighlightMessageType.WARNING -> colorResource(id = R.color.nc_beeswax_tint)
+        HighlightMessageType.ERROR -> colorResource(id = R.color.nc_orange_dark_color)
         HighlightMessageType.HINT -> colorResource(id = R.color.nc_bg_mid_gray)
     }
     val contentColor = when(type) {
         HighlightMessageType.WARNING -> colorResource(id = R.color.nc_grey_g7)
+        HighlightMessageType.ERROR -> colorResource(id = R.color.nc_white_color)
         HighlightMessageType.HINT -> colorResource(id = R.color.nc_text_primary)
     }
     val icon =  when(type) {
         HighlightMessageType.HINT -> painterResource(id = R.drawable.ic_info)
         HighlightMessageType.WARNING -> painterResource(id = R.drawable.ic_warning_amber)
+        HighlightMessageType.ERROR -> painterResource(id = R.drawable.ic_info)
     }
     Card(
         modifier = modifier,
@@ -87,14 +90,17 @@ fun NcHintMessage(
 ) {
     val backgroundColor = when(type) {
         HighlightMessageType.WARNING -> colorResource(id = R.color.nc_beeswax_tint)
+        HighlightMessageType.ERROR -> colorResource(id = R.color.nc_orange_dark_color)
         HighlightMessageType.HINT -> colorResource(id = R.color.nc_bg_mid_gray)
     }
     val icon =  when(type) {
         HighlightMessageType.HINT -> painterResource(id = R.drawable.ic_info)
         HighlightMessageType.WARNING -> painterResource(id = R.drawable.ic_warning_amber)
+        HighlightMessageType.ERROR -> painterResource(id = R.drawable.ic_info)
     }
     val contentColor = when(type) {
         HighlightMessageType.WARNING -> colorResource(id = R.color.nc_grey_g7)
+        HighlightMessageType.ERROR -> colorResource(id = R.color.nc_white_color)
         HighlightMessageType.HINT -> colorResource(id = R.color.nc_text_primary)
     }
     Card(
@@ -119,7 +125,7 @@ fun NcHintMessage(
 }
 
 enum class HighlightMessageType {
-    HINT, WARNING
+    HINT, WARNING, ERROR
 }
 
 @Preview

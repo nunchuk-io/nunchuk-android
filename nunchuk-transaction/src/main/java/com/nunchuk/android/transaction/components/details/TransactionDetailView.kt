@@ -42,12 +42,16 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
+import com.nunchuk.android.compose.HighlightMessageType
+import com.nunchuk.android.compose.NcHintMessage
 import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcScaffold
 import com.nunchuk.android.compose.NcSwitch
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.core.util.ClickAbleText
+import com.nunchuk.android.model.LiquidNetworkStatus
 import com.nunchuk.android.compose.backgroundMidGray
 import com.nunchuk.android.compose.coin.MODE_VIEW_ONLY
 import com.nunchuk.android.compose.coin.PreviewCoinCard
@@ -190,6 +194,18 @@ fun TransactionDetailView(
                 .padding(innerPadding)
                 .fillMaxSize()
         ) {
+            if (state.liquidNetworkStatus.hasIssue) {
+                item {
+                    NcHintMessage(
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                        messages = listOf(ClickAbleText(state.liquidNetworkStatus.viewMessage)),
+                        type = when (state.liquidNetworkStatus.severity) {
+                            LiquidNetworkStatus.Severity.ERROR -> HighlightMessageType.ERROR
+                            else -> HighlightMessageType.WARNING
+                        },
+                    )
+                }
+            }
             item {
                 TransactionHeader(
                     isDummyTx = isDummyTx,

@@ -27,6 +27,7 @@ import com.nunchuk.android.core.data.model.membership.TransactionPayload
 import com.nunchuk.android.core.manager.UserWalletApiManager
 import com.nunchuk.android.core.persistence.NcDataStore
 import com.nunchuk.android.model.EstimateFeeRates
+import com.nunchuk.android.model.LiquidNetworkStatus
 import com.nunchuk.android.model.TxInput
 import com.nunchuk.android.repository.TransactionRepository
 import com.nunchuk.android.type.Chain
@@ -78,6 +79,20 @@ internal class TransactionRepositoryImpl @Inject constructor(
             standardRate = data.standardRate,
             economicRate = data.economicRate,
             minimumFee = data.minimumFee,
+        )
+    }
+
+    override suspend fun getLiquidNetworkStatus(): LiquidNetworkStatus {
+        val response = userWalletApiManager.walletApi.getLiquidNetworkStatus().data
+        val severity = when (response.status?.lowercase()) {
+            "warning" -> LiquidNetworkStatus.Severity.WARNING
+            "error" -> LiquidNetworkStatus.Severity.ERROR
+            else -> LiquidNetworkStatus.Severity.OK
+        }
+        return LiquidNetworkStatus(
+            severity = severity,
+            viewMessage = response.viewMessage.orEmpty(),
+            toastMessage = response.toastMessage.orEmpty(),
         )
     }
 
