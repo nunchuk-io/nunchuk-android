@@ -66,6 +66,7 @@ import com.nunchuk.android.usecase.GetGroupWalletMessageUnreadCountUseCase
 import com.nunchuk.android.usecase.GetTimelockedUntilUseCase
 import com.nunchuk.android.usecase.GetTransactionHistoryUseCase
 import com.nunchuk.android.usecase.GetLiquidAssetIdsUseCase
+import com.nunchuk.android.usecase.GetLiquidNetworkStatusUseCase
 import com.nunchuk.android.usecase.GetWalletSecuritySettingUseCase
 import com.nunchuk.android.usecase.GetWalletUseCase
 import com.nunchuk.android.usecase.ImportTransactionUseCase
@@ -163,6 +164,7 @@ internal class WalletDetailsViewModel @Inject constructor(
     private val isClaimWalletUseCase: IsClaimWalletUseCase,
     private val getWalletBsmsUseCase: GetWalletBsmsUseCase,
     private val getLiquidAssetIdsUseCase: GetLiquidAssetIdsUseCase,
+    private val getLiquidNetworkStatusUseCase: GetLiquidNetworkStatusUseCase,
 ) : NunchukViewModel<WalletDetailsState, WalletDetailsEvent>() {
     private val args: WalletDetailsFragmentArgs =
         WalletDetailsFragmentArgs.fromSavedStateHandle(savedStateHandle)
@@ -524,6 +526,7 @@ internal class WalletDetailsViewModel @Inject constructor(
                     getWalletBannerState()
                     checkClaimWallet()
                     refreshAssetBalancesIfStable(it.wallet.walletType)
+                    refreshLiquidNetworkStatusIfStable(it.wallet.walletType)
                 }
         }
     }
@@ -537,6 +540,15 @@ internal class WalletDetailsViewModel @Inject constructor(
                     copy(usdtAssetId = ids.usdtAssetId, lbtcAssetId = ids.lbtcAssetId)
                 }
             }
+        }
+    }
+
+    private fun refreshLiquidNetworkStatusIfStable(walletType: WalletType) {
+        if (walletType != WalletType.LIQUID) return
+        viewModelScope.launch {
+            getLiquidNetworkStatusUseCase(Unit)
+                .onSuccess { status -> updateState { copy(liquidNetworkStatus = status) } }
+                .onFailure { Timber.e(it, "Failed to load liquid network status") }
         }
     }
 

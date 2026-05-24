@@ -23,6 +23,7 @@ import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.BannerState
 import com.nunchuk.android.model.FreeGroupMessage
 import com.nunchuk.android.model.HistoryPeriod
+import com.nunchuk.android.model.LiquidNetworkStatus
 import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.type.MiniscriptTimelockBased
@@ -67,4 +68,5 @@ data class WalletDetailsState(
     val transactionsLoaded: Boolean = false,
     val usdtAssetId: String = "",
     val lbtcAssetId: String = "",
+    val liquidNetworkStatus: LiquidNetworkStatus = LiquidNetworkStatus(),
 )

@@ -104,14 +104,12 @@ import com.nunchuk.android.type.MiniscriptTimelockBased
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.type.WalletTemplate
-import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.BroadcastTransactionUseCase
 import com.nunchuk.android.usecase.CreateShareFileUseCase
 import com.nunchuk.android.usecase.DeleteTransactionUseCase
 import com.nunchuk.android.usecase.ExportTransactionUseCase
 import com.nunchuk.android.usecase.GetChainTipUseCase
 import com.nunchuk.android.usecase.GetKeySetStatusUseCase
-import com.nunchuk.android.usecase.GetLiquidNetworkStatusUseCase
 import com.nunchuk.android.usecase.GetMasterSignersUseCase
 import com.nunchuk.android.usecase.GetScriptNodeFromMiniscriptTemplateUseCase
 import com.nunchuk.android.usecase.GetTimelockedUntilUseCase
@@ -218,7 +216,6 @@ internal class TransactionDetailsViewModel @Inject constructor(
     private val getTransactionSignersUseCase: GetTransactionSignersUseCase,
     private val getFreeGroupWalletsUseCase: GetFreeGroupWalletsUseCase,
     private val getGroupTransactionStateUseCase: GetGroupTransactionStateUseCase,
-    private val getLiquidNetworkStatusUseCase: GetLiquidNetworkStatusUseCase,
     private val timelockTransactionCache: LruCache<String, Long>,
     private val walletLockedBase: LruCache<String, MiniscriptTimelockBased>,
 ) : ViewModel() {
@@ -534,9 +531,6 @@ internal class TransactionDetailsViewModel @Inject constructor(
                             ?: false,
                     )
                 }
-                if (wallet.wallet.walletType == WalletType.LIQUID) {
-                    loadLiquidNetworkStatus()
-                }
                 if (wallet.wallet.miniscript.isEmpty()) {
                     val signers = wallet.wallet.signers.map { signer ->
                         singleSignerMapper(signer)
@@ -554,16 +548,6 @@ internal class TransactionDetailsViewModel @Inject constructor(
                     }
                 }
             }
-        }
-    }
-
-    private fun loadLiquidNetworkStatus() {
-        viewModelScope.launch {
-            getLiquidNetworkStatusUseCase(Unit)
-                .onSuccess { status ->
-                    _state.update { it.copy(liquidNetworkStatus = status) }
-                }
-                .onFailure { Timber.e(it, "Failed to load liquid network status") }
         }
     }
 

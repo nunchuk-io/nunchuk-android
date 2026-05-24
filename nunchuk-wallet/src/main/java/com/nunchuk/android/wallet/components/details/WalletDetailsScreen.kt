@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -21,8 +22,12 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.asFlow
+import com.nunchuk.android.compose.HighlightMessageType
+import com.nunchuk.android.compose.NcHintMessage
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.model.BannerState
+import com.nunchuk.android.model.LiquidNetworkStatus
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.type.WalletType
 
@@ -153,6 +158,17 @@ internal fun WalletDetailsScreen(
                         onBannerBackupOnly = onBannerBackupOnly,
                         onBannerRegisterOnly = onBannerRegisterOnly,
                         onOpenExternalLink = onOpenExternalLink,
+                    )
+                }
+
+                if (isStableWallet && state.liquidNetworkStatus.hasIssue) {
+                    NcHintMessage(
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                        messages = listOf(ClickAbleText(state.liquidNetworkStatus.viewMessage)),
+                        type = when (state.liquidNetworkStatus.severity) {
+                            LiquidNetworkStatus.Severity.ERROR -> HighlightMessageType.ERROR
+                            else -> HighlightMessageType.WARNING
+                        },
                     )
                 }
 
