@@ -56,7 +56,7 @@ val RecurringPayment.formatAmount: String
         amount.getBTCAmountWithoutSat()
     } else {
         amount.formatFiatDecimal(
-            minFractionDigits = MIN_FRACTION_DIGITS,
+            minFractionDigits = 0,
             maxFractionDigits = MIN_FRACTION_DIGITS
         )
     }
