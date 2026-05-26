@@ -167,7 +167,7 @@ class SignerIntroViewModel @Inject constructor(
                 ?.let { runCatching { SignerTag.valueOf(it) }.getOrNull() }
             val walletType = config.walletType.toWalletTypeOrNull()
 
-            if (signerType == null || walletType == null || (config.signerTag.isNullOrBlank().not() && signerTag == null)) {
+            if (signerType == null) {
                 return@mapNotNull null
             }
 
