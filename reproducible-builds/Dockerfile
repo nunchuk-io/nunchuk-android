@@ -1,18 +1,20 @@
-FROM docker.io/debian:bookworm-20250811-slim
+FROM docker.io/debian:trixie-20250811-slim
 
 RUN set -ex; \
     apt-get update; \
     DEBIAN_FRONTEND=noninteractive apt-get install --yes -o APT::Install-Suggests=false --no-install-recommends \
         bzip2 make automake ninja-build g++-multilib libtool binutils-gold \
-        bsdextrautils pkg-config python3 patch bison curl unzip git openjdk-17-jdk disorderfs; \
+        bsdextrautils pkg-config python3 patch bison curl unzip git openjdk-21-jdk disorderfs; \
     rm -rf /var/lib/apt/lists/*;
 
+ENV JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
+ENV PATH=${JAVA_HOME}/bin:${PATH}
 ENV ANDROID_SDK_ROOT=/sdk
 ENV ANDROID_SDK=/sdk
 ENV ANDROID_HOME=/sdk
 ENV ANDROID_SDK_URL=https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
-ENV ANDROID_BUILD_TOOLS_VERSION=34.0.0
-ENV ANDROID_VERSION=35
+ENV ANDROID_BUILD_TOOLS_VERSION=36.0.0
+ENV ANDROID_VERSION=36
 ENV ANDROID_NDK_VERSION=27.2.12479018
 ENV ANDROID_CMAKE_VERSION=3.22.1
 ENV ANDROID_NDK_HOME=${ANDROID_HOME}/ndk/${ANDROID_NDK_VERSION}
