@@ -106,8 +106,12 @@ const val USD_CURRENCY = "USD"
 
 var LOCAL_CURRENCY = USD_CURRENCY
 
-fun getCurrencyLocale(): Locale =
-    android.content.res.Resources.getSystem().configuration.locales[0]
+fun getCurrencyLocale(): Locale = try {
+    val locales = android.content.res.Resources.getSystem().configuration.locales
+    if (locales.isEmpty) Locale.US else locales[0]
+} catch (_: Exception) {
+    Locale.US
+}
 
 fun getLocaleForCurrencyUnit(currencyUnit: String): Locale =
     if (currencyUnit == "BTC" || currencyUnit == "sat") Locale.US else getCurrencyLocale()
