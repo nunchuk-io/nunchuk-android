@@ -26,7 +26,6 @@ import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.signer.SupportedSigner
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.Chain
-import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.CreateMiniscriptWalletUseCase
 import com.nunchuk.android.usecase.GetMasterSignerUseCase
@@ -126,20 +125,18 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
 
     private fun loadInfo() {
         viewModelScope.launch {
-            getAllSignersUseCase(false).onSuccess { pair ->
-                val singleSigner = pair.second.filter { it.type != SignerType.SERVER }
+            getAllSignersUseCase(true).onSuccess { pair ->
                 singleSigners.apply {
                     clear()
-                    addAll(singleSigner)
+                    addAll(pair.second)
                 }
                 masterSigners.apply {
                     clear()
                     addAll(pair.first)
                 }
-                val signers = pair.first.filter { it.type != SignerType.SERVER }
-                    .map { signer ->
-                        masterSignerMapper(signer)
-                    } + singleSigner.map { signer -> signer.toModel() }
+                val signers = pair.first.map { signer ->
+                    masterSignerMapper(signer)
+                } + pair.second.map { signer -> signer.toModel() }
                 _uiState.update { it.copy(allSigners = signers) }
 
                 Timber.tag(TAG).d("Loaded signers: $signers")
@@ -153,10 +150,9 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
         if (currentKeyToAssign.isEmpty()) return
 
         viewModelScope.launch {
-            getAllSignersUseCase(false).onSuccess { pair ->
-                val currentSigners = pair.first.filter { it.type != SignerType.SERVER }
-                    .map { masterSignerMapper(it) }
-                    .plus(pair.second.filter { it.type != SignerType.SERVER }.map { it.toModel() })
+            getAllSignersUseCase(true).onSuccess { pair ->
+                val currentSigners = pair.first.map { masterSignerMapper(it) }
+                    .plus(pair.second.map { it.toModel() })
                 val newSigners = currentSigners.filter { !oldSigners.contains(it.fingerPrint) }
                 if (newSigners.isNotEmpty()) {
                     addSignerToState(newSigners.first(), currentKeyToAssign)
