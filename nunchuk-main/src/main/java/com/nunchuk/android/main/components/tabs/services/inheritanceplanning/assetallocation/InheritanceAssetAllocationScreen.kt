@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.assetallocation
 
+import android.util.Patterns
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -80,6 +81,17 @@ import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 import com.nunchuk.android.widget.R as WidgetR
 
+private enum class AssetAllocationEmailError {
+    EMPTY,
+    DUPLICATE,
+    INVALID,
+}
+
+private data class AssetAllocationEmailValidationResult(
+    val errors: Map<Int, AssetAllocationEmailError> = emptyMap(),
+    val messageError: AssetAllocationEmailError? = null,
+)
+
 @Composable
 internal fun InheritanceAssetAllocationScreen(
     remainTime: Int,
@@ -97,18 +109,22 @@ internal fun InheritanceAssetAllocationScreen(
             }
         )
     }
+    var emailErrors by remember { mutableStateOf<Map<Int, AssetAllocationEmailError>>(emptyMap()) }
     val snackState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val emailEmptyError = stringResource(R.string.nc_asset_allocation_email_empty_error)
     val emailDuplicateError = stringResource(R.string.nc_asset_allocation_email_duplicate_error)
+    val emailInvalidError = stringResource(R.string.nc_asset_allocation_email_invalid_error)
     InheritanceAssetAllocationContent(
         remainTime = remainTime,
         beneficiaries = beneficiaries,
+        emailErrors = emailErrors,
         snackState = snackState,
         onEmailChanged = { index, email ->
             beneficiaries = beneficiaries.toMutableList().apply {
                 this[index] = this[index].copy(email = email)
             }
+            emailErrors = emailErrors - index
         },
         onAllocationChanged = { index, percent ->
             beneficiaries = beneficiaries.toMutableList().apply {
@@ -122,25 +138,30 @@ internal fun InheritanceAssetAllocationScreen(
                 email = "",
                 allocationPercent = 0
             )
+            emailErrors = emptyMap()
         },
         onRemoveBeneficiary = { index ->
             if (beneficiaries.size > 2) {
                 beneficiaries = beneficiaries.toMutableList().apply { removeAt(index) }
+                emailErrors = emptyMap()
             }
         },
         onBackClicked = onBackClicked,
         onContinueClicked = {
-            val hasEmptyEmail = beneficiaries.any { it.email.isBlank() }
-            val emails = beneficiaries.map { it.email.trim().lowercase() }
-            val hasDuplicateEmail = emails.filter { it.isNotEmpty() }.size != emails.filter { it.isNotEmpty() }.toSet().size
-            when {
-                hasEmptyEmail -> scope.launch {
-                    snackState.showNunchukSnackbar(message = emailEmptyError, type = NcToastType.ERROR)
+            val validationResult = validateBeneficiaryEmails(beneficiaries)
+            emailErrors = validationResult.errors
+            val errorMessage = when (validationResult.messageError) {
+                AssetAllocationEmailError.EMPTY -> emailEmptyError
+                AssetAllocationEmailError.INVALID -> emailInvalidError
+                AssetAllocationEmailError.DUPLICATE -> emailDuplicateError
+                null -> null
+            }
+            if (errorMessage != null) {
+                scope.launch {
+                    snackState.showNunchukSnackbar(message = errorMessage, type = NcToastType.ERROR)
                 }
-                hasDuplicateEmail -> scope.launch {
-                    snackState.showNunchukSnackbar(message = emailDuplicateError, type = NcToastType.ERROR)
-                }
-                else -> onContinueClicked(beneficiaries)
+            } else {
+                onContinueClicked(beneficiaries.map { it.copy(email = it.email.trim()) })
             }
         },
     )
@@ -150,6 +171,7 @@ internal fun InheritanceAssetAllocationScreen(
 private fun InheritanceAssetAllocationContent(
     remainTime: Int = 0,
     beneficiaries: List<InheritanceBeneficiaryAllocation> = emptyList(),
+    emailErrors: Map<Int, AssetAllocationEmailError> = emptyMap(),
     snackState: SnackbarHostState = remember { SnackbarHostState() },
     onEmailChanged: (Int, String) -> Unit = { _, _ -> },
     onAllocationChanged: (Int, Int) -> Unit = { _, _ -> },
@@ -223,6 +245,7 @@ private fun InheritanceAssetAllocationContent(
                         email = beneficiary.email,
                         allocationPercent = beneficiary.allocationPercent,
                         showRemove = beneficiaries.size > 2,
+                        hasEmailError = emailErrors.containsKey(index),
                         onEmailChanged = { onEmailChanged(index, it) },
                         onAllocationChanged = { onAllocationChanged(index, it) },
                         onRemoveClicked = { onRemoveBeneficiary(index) },
@@ -259,6 +282,7 @@ private fun BeneficiaryCard(
     email: String,
     allocationPercent: Int,
     showRemove: Boolean = false,
+    hasEmailError: Boolean = false,
     onEmailChanged: (String) -> Unit = {},
     onAllocationChanged: (Int) -> Unit = {},
     onRemoveClicked: () -> Unit = {},
@@ -293,6 +317,8 @@ private fun BeneficiaryCard(
                     )
                 },
                 onValueChange = onEmailChanged,
+                hasError = hasEmailError,
+                singleLine = true,
             )
             Row(
                 modifier = Modifier
@@ -360,6 +386,48 @@ private fun BeneficiaryCard(
             }
         }
     }
+}
+
+private fun validateBeneficiaryEmails(
+    beneficiaries: List<InheritanceBeneficiaryAllocation>,
+): AssetAllocationEmailValidationResult {
+    val emptyEmailErrors = beneficiaries.mapIndexedNotNull { index, beneficiary ->
+        index.takeIf { beneficiary.email.isBlank() }
+    }.associateWith { AssetAllocationEmailError.EMPTY }
+    if (emptyEmailErrors.isNotEmpty()) {
+        return AssetAllocationEmailValidationResult(
+            errors = emptyEmailErrors,
+            messageError = AssetAllocationEmailError.EMPTY,
+        )
+    }
+
+    val invalidEmailErrors = beneficiaries.mapIndexedNotNull { index, beneficiary ->
+        index.takeIf { beneficiary.email.trim().isValidBeneficiaryEmail().not() }
+    }.associateWith { AssetAllocationEmailError.INVALID }
+    if (invalidEmailErrors.isNotEmpty()) {
+        return AssetAllocationEmailValidationResult(
+            errors = invalidEmailErrors,
+            messageError = AssetAllocationEmailError.INVALID,
+        )
+    }
+
+    val seenEmails = mutableSetOf<String>()
+    val duplicateEmailErrors = beneficiaries.mapIndexedNotNull { index, beneficiary ->
+        val normalizedEmail = beneficiary.email.trim().lowercase()
+        index.takeIf { seenEmails.add(normalizedEmail).not() }
+    }.associateWith { AssetAllocationEmailError.DUPLICATE }
+    if (duplicateEmailErrors.isNotEmpty()) {
+        return AssetAllocationEmailValidationResult(
+            errors = duplicateEmailErrors,
+            messageError = AssetAllocationEmailError.DUPLICATE,
+        )
+    }
+
+    return AssetAllocationEmailValidationResult()
+}
+
+private fun String.isValidBeneficiaryEmail(): Boolean {
+    return Patterns.EMAIL_ADDRESS.matcher(this).matches()
 }
 
 @PreviewLightDark
