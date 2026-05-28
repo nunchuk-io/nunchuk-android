@@ -110,12 +110,12 @@ import com.nunchuk.android.usecase.DeleteTransactionUseCase
 import com.nunchuk.android.usecase.ExportTransactionUseCase
 import com.nunchuk.android.usecase.GetChainTipUseCase
 import com.nunchuk.android.usecase.GetKeySetStatusUseCase
+import com.nunchuk.android.usecase.GetLiquidAssetIdsUseCase
 import com.nunchuk.android.usecase.GetMasterSignersUseCase
 import com.nunchuk.android.usecase.GetScriptNodeFromMiniscriptTemplateUseCase
 import com.nunchuk.android.usecase.GetTimelockedUntilUseCase
 import com.nunchuk.android.usecase.GetTransactionFromNetworkUseCase
 import com.nunchuk.android.usecase.GetTransactionUseCase
-import com.nunchuk.android.usecase.GetUsdtAssetIdUseCase
 import com.nunchuk.android.usecase.GetWalletUseCase
 import com.nunchuk.android.usecase.ImportTransactionUseCase
 import com.nunchuk.android.usecase.IsPreimageRevealedUseCase
@@ -217,7 +217,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
     private val getTransactionSignersUseCase: GetTransactionSignersUseCase,
     private val getFreeGroupWalletsUseCase: GetFreeGroupWalletsUseCase,
     private val getGroupTransactionStateUseCase: GetGroupTransactionStateUseCase,
-    private val getUsdtAssetIdUseCase: GetUsdtAssetIdUseCase,
+    private val getLiquidAssetIdsUseCase: GetLiquidAssetIdsUseCase,
     private val timelockTransactionCache: LruCache<String, Long>,
     private val walletLockedBase: LruCache<String, MiniscriptTimelockBased>,
 ) : ViewModel() {
@@ -330,6 +330,16 @@ internal class TransactionDetailsViewModel @Inject constructor(
                         Timber.e(it, "Failed to get chain tip")
                     }
                 delay(60000) // Refresh every minute
+            }
+        }
+        viewModelScope.launch {
+            getLiquidAssetIdsUseCase(Unit).onSuccess { ids ->
+                _state.update {
+                    it.copy(
+                        usdtAssetId = ids.usdtAssetId,
+                        lbtcAssetId = ids.lbtcAssetId,
+                    )
+                }
             }
         }
     }

@@ -42,6 +42,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
+import com.nunchuk.android.compose.CosignStatusView
 import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcScaffold
@@ -65,7 +66,6 @@ import com.nunchuk.android.core.util.InheritanceClaimTxDetailInfo
 import com.nunchuk.android.core.util.canBroadCast
 import com.nunchuk.android.core.util.formatDecimalWithoutZero
 import com.nunchuk.android.core.util.getBTCAmount
-import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.core.util.getFormatDate
 import com.nunchuk.android.core.util.getPendingSignatures
 import com.nunchuk.android.core.util.hadBroadcast
@@ -74,6 +74,7 @@ import com.nunchuk.android.core.util.isPendingSignatures
 import com.nunchuk.android.core.util.isRejected
 import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.core.util.isValueKeySetDisable
+import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.core.util.signDone
 import com.nunchuk.android.core.util.truncatedAddress
 import com.nunchuk.android.model.Amount
@@ -89,7 +90,6 @@ import com.nunchuk.android.model.transaction.ServerTransactionType
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.details.view.AmountView
 import com.nunchuk.android.transaction.components.details.view.ChangeAddressView
-import com.nunchuk.android.compose.CosignStatusView
 import com.nunchuk.android.transaction.components.details.view.InspectAddressBottomSheet
 import com.nunchuk.android.transaction.components.details.view.PendingSignatureStatusView
 import com.nunchuk.android.transaction.components.details.view.TimeLockUtilView
@@ -134,9 +134,7 @@ fun TransactionDetailView(
         if (inheritanceClaimTxDetailInfo != null) state.transaction.copy(changeIndex = inheritanceClaimTxDetailInfo.changePos) else state.transaction
     val outputs = if (transaction.isReceive) {
         transaction.receiveOutputs
-    } else {
-        transaction.outputs.filterIndexed { index, _ -> index != transaction.changeIndex }
-    }
+    } else transaction.userOutputs.filter { !it.isChange }
     val signerMap by remember(state.signers) {
         derivedStateOf {
             state.signers.associateBy { it.fingerPrint }
@@ -205,6 +203,7 @@ fun TransactionDetailView(
                     showDetail = showDetail,
                     onShowDetails = { showDetail = !showDetail },
                     onManageCoinClick = onManageCoinClick,
+                    isLiquid = state.isLiquidWallet,
                     usdtAssetId = state.usdtAssetId,
                 )
             }
@@ -247,7 +246,10 @@ fun TransactionDetailView(
                         TransactionEstimateFee(
                             modifier = Modifier.padding(top = 24.dp),
                             fee = transaction.fee,
-                            hideFiatCurrency = state.hideFiatCurrency
+                            hideFiatCurrency = state.hideFiatCurrency,
+                            isLiquid = state.isLiquidWallet,
+                            lbtcAssetId = state.lbtcAssetId,
+                            usdtAssetId = state.usdtAssetId,
                         )
                     }
 
@@ -255,7 +257,12 @@ fun TransactionDetailView(
                         TransactionTotalAmount(
                             modifier = Modifier.padding(top = 16.dp),
                             total = transaction.totalAmount,
-                            hideFiatCurrency = state.hideFiatCurrency
+                            fee = transaction.fee,
+                            outputs = outputs,
+                            hideFiatCurrency = state.hideFiatCurrency,
+                            isLiquid = state.isLiquidWallet,
+                            lbtcAssetId = state.lbtcAssetId,
+                            usdtAssetId = state.usdtAssetId,
                         )
                     }
                 }
@@ -290,7 +297,7 @@ fun TransactionDetailView(
 
                     item {
                         ChangeAddressView(
-                            txOutput = transaction.outputs[transaction.changeIndex],
+                            txOutput = transaction.outputs.first { it.isChange },
                             output = changeCoin,
                             tags = state.tags,
                             onCopyText = onCopyText,
@@ -637,6 +644,7 @@ private fun TransactionHeader(
     onShowDetails: () -> Unit,
     onManageCoinClick: () -> Unit,
     isDummyTx: Boolean,
+    isLiquid: Boolean = false,
     usdtAssetId: String = "",
 ) {
     val sendToAddress = if (outputs.size >= 2) {
@@ -752,7 +760,7 @@ private fun TransactionHeader(
             )
         }
 
-        if (usdtAssetId.isNotEmpty()) {
+        if (isLiquid) {
             val perAsset = outputs
                 .groupBy { it.assetId }
                 .mapValues { (_, outs) -> Amount(outs.sumOf { o -> o.second.value }) }
@@ -836,7 +844,10 @@ private fun TransactionHeader(
 private fun TransactionEstimateFee(
     modifier: Modifier = Modifier,
     fee: Amount,
-    hideFiatCurrency: Boolean = false
+    hideFiatCurrency: Boolean = false,
+    isLiquid: Boolean = false,
+    lbtcAssetId: String = "",
+    usdtAssetId: String = "",
 ) {
     Row(
         modifier = modifier
@@ -851,7 +862,12 @@ private fun TransactionEstimateFee(
 
         Spacer(modifier = Modifier.weight(1f))
 
-        AmountView(fee, hideFiatCurrency)
+        AmountView(
+            amount = fee,
+            hideFiatCurrency = hideFiatCurrency,
+            assetId = if (isLiquid) lbtcAssetId else "",
+            usdtAssetId = usdtAssetId,
+        )
     }
 }
 
@@ -859,8 +875,51 @@ private fun TransactionEstimateFee(
 private fun TransactionTotalAmount(
     modifier: Modifier = Modifier,
     total: Amount,
-    hideFiatCurrency: Boolean = false
+    fee: Amount = Amount.ZER0,
+    outputs: List<TxOutput> = emptyList(),
+    hideFiatCurrency: Boolean = false,
+    isLiquid: Boolean = false,
+    lbtcAssetId: String = "",
+    usdtAssetId: String = "",
 ) {
+    if (isLiquid) {
+        // Liquid fees are always paid in LBTC. Group user outputs by assetId
+        // so each asset is rendered with the correct symbol, then add the LBTC
+        // fee to the LBTC line (creating one if outputs are USDT-only).
+        val perAsset = outputs
+            .groupBy { it.assetId }
+            .mapValues { (_, outs) -> outs.sumOf { it.second.value } }
+            .toMutableMap()
+        perAsset[lbtcAssetId] = (perAsset[lbtcAssetId] ?: 0L) + fee.value
+
+        Row(
+            modifier = modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            verticalAlignment = Alignment.Top,
+        ) {
+            Text(
+                text = stringResource(R.string.nc_transaction_total_amount),
+                style = NunchukTheme.typography.body,
+                modifier = Modifier.weight(1f),
+            )
+            Column(
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.spacedBy(2.dp),
+            ) {
+                perAsset.forEach { (assetId, value) ->
+                    AmountView(
+                        amount = Amount(value),
+                        hideFiatCurrency = true,
+                        assetId = assetId.ifEmpty { lbtcAssetId },
+                        usdtAssetId = usdtAssetId,
+                    )
+                }
+            }
+        }
+        return
+    }
+
     Row(
         modifier = modifier
             .fillMaxWidth()

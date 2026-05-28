@@ -32,6 +32,7 @@ import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.transaction.ServerTransaction
 import com.nunchuk.android.type.MiniscriptTimelockBased
+import com.nunchuk.android.type.WalletType
 
 data class TransactionDetailsState(
     val transaction: Transaction = Transaction(),
@@ -50,7 +51,10 @@ data class TransactionDetailsState(
     val isFreeGroupWallet: Boolean = false,
     val groupTransactionState: GroupTransactionState? = null,
     val usdtAssetId: String = "",
-)
+    val lbtcAssetId: String = "",
+) {
+    val isLiquidWallet: Boolean get() = wallet.walletType == WalletType.LIQUID
+}
 
 data class TransactionMiniscriptUiState(
     val signerMap: Map<String, SignerModel?> = emptyMap(),
