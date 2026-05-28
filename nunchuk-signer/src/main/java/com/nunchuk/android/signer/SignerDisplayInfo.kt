@@ -173,7 +173,11 @@ fun SupportedSigner.isDisabledIn(
     keyFlow: Int = KeyFlow.NONE,
 ): Boolean = when (type) {
     SignerType.HARDWARE -> onChainAddSignerParam == null
-    SignerType.SOFTWARE -> !keyFlow.isPrimaryKeyFlow() && isDisableAll
+    SignerType.SOFTWARE -> {
+        val explicitlyAllowed =
+            allowedSigners.isNotEmpty() && allowedSigners.any { it.matches(this) }
+        !keyFlow.isPrimaryKeyFlow() && isDisableAll && !explicitlyAllowed
+    }
     SignerType.SERVER -> isDisableAll
     else -> isDisableAll || (allowedSigners.isNotEmpty() && !allowedSigners.any { it.matches(this) })
 }
