@@ -6,11 +6,11 @@ import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-class GetHotWalletMnemonicUseCase @Inject constructor(
+class GetUnbackedUpWalletMnemonicUseCase @Inject constructor(
     private val nativeSdk: NunchukNativeSdk,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : UseCase<String, String>(ioDispatcher) {
     override suspend fun execute(parameters: String): String {
-        return nativeSdk.getMnemonicFromHotWallet(parameters)
+        return nativeSdk.getMnemonicFromUnbackedUpWallet(parameters)
     }
 }

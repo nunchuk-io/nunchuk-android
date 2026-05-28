@@ -28,9 +28,9 @@ import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.signer.software.components.create.CreateNewSeedEvent.GenerateMnemonicCodeErrorEvent
 import com.nunchuk.android.signer.software.components.create.CreateNewSeedEvent.OpenSelectPhraseEvent
 import com.nunchuk.android.usecase.GenerateMnemonicUseCase
-import com.nunchuk.android.usecase.GetHotKeyMnemonicUseCase
+import com.nunchuk.android.usecase.GetUnbackedUpKeyMnemonicUseCase
 import com.nunchuk.android.usecase.signer.GetSignerMnemonicUseCase
-import com.nunchuk.android.usecase.wallet.GetHotWalletMnemonicUseCase
+import com.nunchuk.android.usecase.wallet.GetUnbackedUpWalletMnemonicUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -45,9 +45,9 @@ import javax.inject.Inject
 internal class CreateNewSeedViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val generateMnemonicUseCase: GenerateMnemonicUseCase,
-    private val getHotWalletMnemonicUseCase: GetHotWalletMnemonicUseCase,
+    private val getUnbackedUpWalletMnemonicUseCase: GetUnbackedUpWalletMnemonicUseCase,
     private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
-    private val getHotKeyMnemonicUseCase: GetHotKeyMnemonicUseCase,
+    private val getUnbackedUpKeyMnemonicUseCase: GetUnbackedUpKeyMnemonicUseCase,
     private val assistedWalletManager: AssistedWalletManager,
     private val getSignerMnemonicUseCase: GetSignerMnemonicUseCase,
 ) : ViewModel() {
@@ -76,7 +76,7 @@ internal class CreateNewSeedViewModel @Inject constructor(
             }
         } else if (args.backupHotKeySignerId.isNotEmpty()) {
             viewModelScope.launch {
-                getHotKeyMnemonicUseCase(args.backupHotKeySignerId)
+                getUnbackedUpKeyMnemonicUseCase(args.backupHotKeySignerId)
                     .onSuccess { mnemonic ->
                         _state.update { state ->
                             state.copy(
@@ -88,7 +88,7 @@ internal class CreateNewSeedViewModel @Inject constructor(
             }
         } else if (args.walletId.isNotEmpty() && args.replacedXfp.isEmpty() && !args.primaryKeyFlow.isReplaceKeyInFreeWalletFlow()) {
             viewModelScope.launch {
-                getHotWalletMnemonicUseCase(args.walletId)
+                getUnbackedUpWalletMnemonicUseCase(args.walletId)
                     .onSuccess { mnemonic ->
                         _state.update { state ->
                             state.copy(
