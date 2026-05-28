@@ -384,9 +384,8 @@ class TransactionConfirmViewModel @Inject constructor(
             state.copy(transaction = data)
         }
         _event.emit(DraftTransactionSuccess(data))
-        val hasChange: Boolean = data.hasChangeIndex()
-        if (hasChange) {
-            val txOutput = data.outputs[data.changeIndex]
+        val txOutput = data.outputs.firstOrNull { it.isChange }
+        if (txOutput != null) {
             _event.emit(UpdateChangeAddress(txOutput.first, txOutput.second))
         } else {
             _event.emit(UpdateChangeAddress("", Amount(0)))
@@ -662,7 +661,7 @@ class TransactionConfirmViewModel @Inject constructor(
                 estimateFeeForSigningPathsUseCase(
                     EstimateFeeForSigningPathsUseCase.Params(
                         walletId = walletId,
-                        outputs = transaction.outputs.filterIndexed { index, _ -> index != transaction.changeIndex }
+                        outputs = transaction.outputs.filter { !it.isChange }
                             .associate { it.first to it.second },
                         subtractFeeFromAmount = transaction.subtractFeeFromAmount,
                         feeRate = transaction.feeRate,

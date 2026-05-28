@@ -166,8 +166,8 @@ private fun ConfirmReplaceTransactionScreen(
     }
 
     val transaction = uiState.transaction ?: return
-    val outputs = transaction.outputs.filterIndexed { index, _ -> index != transaction.changeIndex }
-    val txOutput = transaction.outputs.getOrNull(transaction.changeIndex)
+    val outputs = transaction.outputs.filter { !it.isChange }
+    val txOutput = transaction.outputs.firstOrNull { it.isChange }
     val changeAddress = txOutput?.first.orEmpty()
 
     NunchukTheme {

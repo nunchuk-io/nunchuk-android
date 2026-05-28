@@ -138,7 +138,7 @@ internal class TransactionAdapter(
                     "- ${data.transaction.totalAmount.getCurrencyAmount()}",
                     hideWalletDetail
                 )
-                val outputs = data.transaction.outputs.filterIndexed { index, _ -> index != data.transaction.changeIndex }
+                val outputs = data.transaction.outputs.filter { !it.isChange }
                 if (outputs.size > 1) {
                     binding.receiverName.text = getString(R.string.nc_multiple_addresses)
                 } else {

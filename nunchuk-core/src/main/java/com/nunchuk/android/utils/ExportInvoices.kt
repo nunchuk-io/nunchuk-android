@@ -378,9 +378,8 @@ fun Transaction.toInvoiceInfo(context: Context, isInheritanceClaimingFlow: Boole
     val transaction = this
     val coins = if (transaction.isReceive)
         transaction.receiveOutputs else
-        transaction.outputs.filterIndexed { index, _ -> index != transaction.changeIndex }
-    val txOutput =
-        if (transaction.hasChangeIndex()) transaction.outputs[transaction.changeIndex] else null
+        transaction.outputs.filter { !it.isChange }
+    val txOutput = transaction.outputs.firstOrNull { it.isChange }
     return InvoiceInfo(
         amountSent = transaction.totalAmount.getBTCAmount(),
         confirmTime = if (isInheritanceClaimingFlow.not()) transaction.getFormatDate() else "",

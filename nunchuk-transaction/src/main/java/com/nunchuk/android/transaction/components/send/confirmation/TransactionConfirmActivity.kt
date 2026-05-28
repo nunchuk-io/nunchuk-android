@@ -319,7 +319,7 @@ private fun TransactionConfirmScreen(
                         event.transaction.outputs
                     } else {
                         if (viewModel.isInheritanceClaimingFlow() && event.transaction.hasChangeIndex()) {
-                            event.transaction.outputs.filterIndexed { index, _ -> index != event.transaction.changeIndex }
+                            event.transaction.outputs.filter { !it.isChange }
                         } else {
                             event.transaction.outputs.filter { viewModel.isMyCoin(it) == event.transaction.isReceive }
                         }
@@ -363,10 +363,8 @@ private fun TransactionConfirmScreen(
     val liquidAssetTotals: Map<String, Amount> = if (isLiquid) {
         val txOutputs = uiState.transaction.outputs
         if (txOutputs.isNotEmpty()) {
-            val hasChange = uiState.transaction.hasChangeIndex()
-            val changeIndex = uiState.transaction.changeIndex
             txOutputs
-                .filterIndexed { index, _ -> !hasChange || index != changeIndex }
+                .filter { !it.isChange }
                 .groupBy { it.assetId }
                 .mapValues { (_, outs) -> Amount(outs.sumOf { o -> o.second.value }) }
         } else if (outputAssetId.isNotEmpty()) {

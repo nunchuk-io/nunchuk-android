@@ -77,7 +77,7 @@ fun Transaction.formatAddress(context: Context) : String {
     }
 }
 
-fun Transaction.hasChangeIndex() = outputs.isNotEmpty() && changeIndex >= 0 && changeIndex < outputs.size
+fun Transaction.hasChangeIndex() = outputs.any { it.isChange }
 
 fun CoinStatus.toName(context: Context) : String {
     return when(this) {

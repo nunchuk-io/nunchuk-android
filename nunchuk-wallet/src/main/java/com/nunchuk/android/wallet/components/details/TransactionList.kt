@@ -121,7 +121,7 @@ internal fun TransactionRow(
         )
 
         else -> {
-            val outs = transaction.outputs.filterIndexed { index, _ -> index != transaction.changeIndex }
+            val outs = transaction.outputs.filter { !it.isChange }
             if (outs.size > 1) stringResource(R.string.nc_multiple_addresses)
             else Utils.maskValue(
                 outs.firstOrNull()?.first.orEmpty().truncatedAddress(),
