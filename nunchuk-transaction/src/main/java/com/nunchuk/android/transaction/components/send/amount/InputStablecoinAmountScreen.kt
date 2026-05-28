@@ -50,7 +50,11 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcScaffold
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.controlFillPrimary
+import com.nunchuk.android.compose.controlFillTertiary
+import com.nunchuk.android.compose.controlTextPrimary
 import com.nunchuk.android.compose.textPrimary
+import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.util.USD_CURRENCY
 import com.nunchuk.android.core.util.USD_FRACTION_DIGITS
 import com.nunchuk.android.core.util.formatDecimal
@@ -194,7 +198,7 @@ private fun TokenSwitcher(
     onSelected: (StablecoinToken) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val trackBg = Color(0xFFEAEAEA)
+    val trackBg = MaterialTheme.colorScheme.controlFillTertiary
     Row(
         modifier = modifier
             .clip(RoundedCornerShape(100.dp))
@@ -219,9 +223,9 @@ private fun SwitcherChip(
     isSelected: Boolean,
     onClick: () -> Unit,
 ) {
-    val activeBg = MaterialTheme.colorScheme.textPrimary
-    val activeText = Color.White
-    val inactiveText = Color(0xFF757575)
+    val activeBg = MaterialTheme.colorScheme.controlFillPrimary
+    val activeText = MaterialTheme.colorScheme.controlTextPrimary
+    val inactiveText = MaterialTheme.colorScheme.textSecondary
     Row(
         modifier = Modifier
             .clip(RoundedCornerShape(100.dp))
