@@ -20,6 +20,8 @@
 package com.nunchuk.android.transaction.usecase
 
 import com.nunchuk.android.core.constants.Constants.GLOBAL_SIGNET_EXPLORER
+import com.nunchuk.android.core.constants.Constants.LIQUID_MAINNET_URL_TEMPLATE
+import com.nunchuk.android.core.constants.Constants.LIQUID_TESTNET_URL_TEMPLATE
 import com.nunchuk.android.core.constants.Constants.MAINNET_URL_TEMPLATE
 import com.nunchuk.android.core.constants.Constants.TESTNET_URL_TEMPLATE
 import com.nunchuk.android.core.domain.GetAppSettingUseCase
@@ -34,15 +36,15 @@ class GetBlockchainExplorerUrlUseCase @Inject constructor(
     private val appSettingsUseCase: GetAppSettingUseCase,
     @IoDispatcher private val dispatcher: CoroutineDispatcher,
     private val getCustomExplorerUrlFlowUseCase: GetCustomExplorerUrlFlowUseCase,
-) : UseCase<String, String>(dispatcher) {
+) : UseCase<GetBlockchainExplorerUrlUseCase.Params, String>(dispatcher) {
 
-    override suspend fun execute(parameters: String): String {
+    override suspend fun execute(parameters: Params): String {
         val settings = appSettingsUseCase(Unit).getOrThrow()
-        return formatUrl(settings.chain, parameters)
+        return formatUrl(settings.chain, parameters.txId, parameters.isLiquid)
     }
 
-    private suspend fun formatUrl(chain: Chain, txId: String) =
-        getCustomUrl(chain) + txId
+    private suspend fun formatUrl(chain: Chain, txId: String, isLiquid: Boolean) =
+        if (isLiquid) getLiquidTemplate(chain) + txId else getCustomUrl(chain) + txId
 
     private suspend fun getCustomUrl(chain: Chain) =
         getCustomExplorerUrlFlowUseCase(chain)
@@ -59,5 +61,11 @@ class GetBlockchainExplorerUrlUseCase @Inject constructor(
         else -> ""
     }
 
+    private fun getLiquidTemplate(chain: Chain) = when (chain) {
+        Chain.MAIN -> LIQUID_MAINNET_URL_TEMPLATE
+        else -> LIQUID_TESTNET_URL_TEMPLATE
+    }
+
+    data class Params(val txId: String, val isLiquid: Boolean = false)
 }
 

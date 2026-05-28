@@ -972,7 +972,12 @@ internal class TransactionDetailsViewModel @Inject constructor(
     }
 
     fun handleViewBlockchainEvent() = viewModelScope.launch {
-        val result = getBlockchainExplorerUrlUseCase(txId)
+        val result = getBlockchainExplorerUrlUseCase(
+            GetBlockchainExplorerUrlUseCase.Params(
+                txId = txId,
+                isLiquid = getState().isLiquidWallet,
+            )
+        )
         if (result.isSuccess) {
             _event.emit(ViewBlockchainExplorer(result.getOrThrow()))
         } else {

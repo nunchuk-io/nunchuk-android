@@ -32,6 +32,8 @@ object Constants {
     const val MAINNET_URL_TEMPLATE = "https://mempool.space/tx/"
     const val BLOCKSTREAM_MAINNET_ADDRESS_TEMPLATE = "https://mempool.space/address/"
     const val GLOBAL_SIGNET_EXPLORER = "https://mempool.space/signet/tx/"
+    const val LIQUID_MAINNET_URL_TEMPLATE = "https://liquid.network/tx/"
+    const val LIQUID_TESTNET_URL_TEMPLATE = "https://liquid.network/testnet/tx/"
 
     const val CLAIM_URL = "https://www.nunchuk.io/claim"
 

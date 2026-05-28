@@ -344,7 +344,7 @@ fun TransactionDetailView(
                     }
                 }
 
-                if (state.txInputCoins.isNotEmpty()) {
+                if (!state.isLiquidWallet && state.txInputCoins.isNotEmpty()) {
                     item {
                         Box(
                             modifier = Modifier
@@ -791,7 +791,7 @@ private fun TransactionHeader(
             )
         }
 
-        if (allTxCoins.isNotEmpty() && transaction.status.hadBroadcast() && userRole.isKeyHolderLimited.not()) {
+        if (!isLiquid && allTxCoins.isNotEmpty() && transaction.status.hadBroadcast() && userRole.isKeyHolderLimited.not()) {
             Row(
                 modifier = Modifier
                     .padding(top = 16.dp)
