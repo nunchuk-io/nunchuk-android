@@ -160,7 +160,7 @@ internal fun InheritanceBeneficiarySchedulesScreen(
                         SharedScheduleEmptyState(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(460.dp)
+                                .padding(top = 100.dp)
                         )
                     }
                 } else {
@@ -315,7 +315,6 @@ private fun SharedScheduleEmptyState(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.weight(1f))
         Icon(
             modifier = Modifier.size(60.dp),
             painter = painterResource(id = WidgetR.drawable.ic_plus_square),
@@ -332,7 +331,6 @@ private fun SharedScheduleEmptyState(
                 textAlign = TextAlign.Center
             )
         )
-        Spacer(modifier = Modifier.weight(1f))
     }
 }
 
