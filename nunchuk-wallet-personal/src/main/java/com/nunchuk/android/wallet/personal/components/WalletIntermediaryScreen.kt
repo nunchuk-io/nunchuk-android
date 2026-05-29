@@ -102,13 +102,13 @@ fun WalletIntermediaryScreen(
                 FreeUserWalletTypeContent(
                     onWalletTypeSelected = onWalletTypeSelected
                 )
-
-                Action(
-                    onRecoverWalletClicked = onRecoverWalletClicked,
-                    onJoinGroupWalletClicked = onJoinGroupWalletClicked,
-                    onScanQRClicked = onScanQRClicked
-                )
             }
+
+            Action(
+                onRecoverWalletClicked = onRecoverWalletClicked,
+                onJoinGroupWalletClicked = onJoinGroupWalletClicked,
+                onScanQRClicked = onScanQRClicked
+            )
         }
     }
 }
