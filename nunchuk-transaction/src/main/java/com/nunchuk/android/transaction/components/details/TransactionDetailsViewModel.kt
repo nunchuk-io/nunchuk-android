@@ -123,6 +123,7 @@ import com.nunchuk.android.usecase.IsScriptNodeSatisfiableUseCase
 import com.nunchuk.android.usecase.SaveLocalFileUseCase
 import com.nunchuk.android.usecase.SendSignerPassphraseUseCase
 import com.nunchuk.android.usecase.SignTransactionUseCase
+import com.nunchuk.android.usecase.SignUsdtTransactionUseCase
 import com.nunchuk.android.usecase.UpdateTransactionMemo
 import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
 import com.nunchuk.android.usecase.coin.GetAllCoinUseCase
@@ -171,6 +172,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
     private val getTransactionUseCase: GetTransactionUseCase,
     private val deleteTransactionUseCase: DeleteTransactionUseCase,
     private val signTransactionUseCase: SignTransactionUseCase,
+    private val signUsdtTransactionUseCase: SignUsdtTransactionUseCase,
     private val signRoomTransactionUseCase: SignRoomTransactionUseCase,
     private val broadcastTransactionUseCase: BroadcastTransactionUseCase,
     private val broadcastRoomTransactionUseCase: BroadcastRoomTransactionUseCase,
@@ -1126,14 +1128,25 @@ internal class TransactionDetailsViewModel @Inject constructor(
 
     private fun signPersonalTransaction(device: Device, signerId: String) {
         viewModelScope.launch {
-            val result = signTransactionUseCase(
-                SignTransactionUseCase.Param(
-                    walletId = walletId,
-                    txId = txId,
-                    device = device,
-                    signerId = signerId,
+            val result = if (getState().isLiquidWallet) {
+                signUsdtTransactionUseCase(
+                    SignUsdtTransactionUseCase.Param(
+                        walletId = walletId,
+                        txId = txId,
+                        device = device,
+                        signerId = signerId,
+                    )
                 )
-            )
+            } else {
+                signTransactionUseCase(
+                    SignTransactionUseCase.Param(
+                        walletId = walletId,
+                        txId = txId,
+                        device = device,
+                        signerId = signerId,
+                    )
+                )
+            }
             if (result.isSuccess) {
                 updateTransaction(
                     transaction = result.getOrThrow(),
