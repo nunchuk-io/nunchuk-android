@@ -83,8 +83,8 @@ internal fun WalletDetailsScreen(
     val isFacilitatorAdmin = state.role == AssistedWalletRole.FACILITATOR_ADMIN
     val isWalletNamed = state.walletExtended.wallet.name.isNotEmpty()
     val showSearch = isWalletNamed && !state.isFreeGroupWallet
-    val showMenu = state.walletStatus != com.nunchuk.android.model.wallet.WalletStatus.LOCKED.name &&
-            !isFacilitatorAdmin && state.hasTransactions || state.isFreeGroupWallet
+    val showMenu = (state.walletStatus != com.nunchuk.android.model.wallet.WalletStatus.LOCKED.name &&
+            !isFacilitatorAdmin) || state.isFreeGroupWallet
     val showChat = state.isFreeGroupWallet && !state.hideWalletDetailLocal
 
     // Drive chat bar auto-collapse from list scroll direction.
