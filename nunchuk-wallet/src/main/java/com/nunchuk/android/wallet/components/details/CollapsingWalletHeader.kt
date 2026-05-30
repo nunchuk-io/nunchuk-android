@@ -215,6 +215,7 @@ internal fun CollapsingWalletHeader(
     onViewCoin: () -> Unit,
     onWalletConfig: () -> Unit,
     onSpendable: () -> Unit,
+    topBanners: @Composable () -> Unit = {},
 ) {
     val fraction = headerState.collapseFraction
     val headerBackground: Brush = when (model.theme) {
@@ -254,6 +255,8 @@ internal fun CollapsingWalletHeader(
             showMenu = showMenu,
             isFreeGroupWallet = isFreeGroupWallet,
         )
+
+        topBanners()
 
         // The compact strip appears as we collapse — BTC + inline icons.
         if (fraction > 0.01f) {

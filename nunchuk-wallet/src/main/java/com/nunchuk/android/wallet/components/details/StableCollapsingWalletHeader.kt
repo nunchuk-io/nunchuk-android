@@ -112,6 +112,7 @@ internal fun StableCollapsingWalletHeader(
     onToggleMask: () -> Unit,
     onSend: () -> Unit,
     onReceive: () -> Unit,
+    topBanners: @Composable () -> Unit = {},
 ) {
     val fraction = headerState.collapseFraction
     val headerBackground: Brush = Brush.verticalGradient(
@@ -132,6 +133,8 @@ internal fun StableCollapsingWalletHeader(
             showSearch = showSearch,
             showMenu = showMenu,
         )
+
+        topBanners()
 
         if (fraction > 0.01f) {
             StableCompactStrip(

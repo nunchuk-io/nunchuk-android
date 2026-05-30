@@ -116,6 +116,23 @@ internal fun WalletDetailsScreen(
                 .fillMaxSize()
                 .nestedScroll(headerState.nestedScrollConnection),
         ) {
+            // Wallet warning banner sits inside the gradient header (below the toolbar,
+            // above the balance block) to match the pre-refactor `tv_wallet_warning`
+            // placement in fragment_wallet_detail.xml.
+            val topBanners: @Composable () -> Unit = {
+                if (warning != null) {
+                    WalletWarningBanner(
+                        warning = warning,
+                        onClaimInheritance = onClaimInheritance,
+                        onNeedBackup = onNeedBackup,
+                        onBannerBackupAndRegister = onBannerBackupAndRegister,
+                        onBannerBackupOnly = onBannerBackupOnly,
+                        onBannerRegisterOnly = onBannerRegisterOnly,
+                        onOpenExternalLink = onOpenExternalLink,
+                    )
+                }
+            }
+
             Column(modifier = Modifier.fillMaxSize()) {
                 if (isStableWallet) {
                     StableCollapsingWalletHeader(
@@ -129,6 +146,7 @@ internal fun WalletDetailsScreen(
                         onToggleMask = onToggleMask,
                         onSend = onSend,
                         onReceive = onReceive,
+                        topBanners = topBanners,
                     )
                 } else {
                     CollapsingWalletHeader(
@@ -146,21 +164,12 @@ internal fun WalletDetailsScreen(
                         onViewCoin = onViewCoin,
                         onWalletConfig = onWalletConfig,
                         onSpendable = onSpendable,
+                        topBanners = topBanners,
                     )
                 }
 
-                if (warning != null) {
-                    WalletWarningBanner(
-                        warning = warning,
-                        onClaimInheritance = onClaimInheritance,
-                        onNeedBackup = onNeedBackup,
-                        onBannerBackupAndRegister = onBannerBackupAndRegister,
-                        onBannerBackupOnly = onBannerBackupOnly,
-                        onBannerRegisterOnly = onBannerRegisterOnly,
-                        onOpenExternalLink = onOpenExternalLink,
-                    )
-                }
-
+                // Liquid network status banner sits BELOW the gradient header (on the
+                // light background) per the stablecoin wallet design.
                 if (isStableWallet && state.liquidNetworkStatus.hasIssue) {
                     NcHintMessage(
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
