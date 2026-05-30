@@ -285,6 +285,13 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
             SheetOptionType.TYPE_IMPORT_PSBT -> openSelectFileChooser()
             SheetOptionType.TYPE_IMPORT_PSBT_QR -> openImportTransactionScreen()
             SheetOptionType.TYPE_SEARCH_TX -> openSearchTransaction()
+            SheetOptionType.TYPE_VIEW_WALLET_CONFIG -> navigator.openWalletConfigScreen(
+                launcher = launcher,
+                activityContext = requireActivity(),
+                walletId = args.walletId,
+                keyPolicy = args.keyPolicy,
+            )
+
             SheetOptionType.TYPE_GROUP_CHAT_HISTORY -> {
                 GroupChatHistoryFragment.show(
                     childFragmentManager,
@@ -372,6 +379,18 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
                     SheetOptionType.TYPE_GROUP_CHAT_HISTORY,
                     R.drawable.ic_clock,
                     R.string.nc_manage_group_chat_history,
+                )
+            )
+        }
+        // Liquid/stablecoin wallets don't surface "View wallet config" inline in the
+        // header (unlike regular wallets, which render it as a link below the balance),
+        // so add it to the overflow menu here.
+        if (viewModel.getWallet().walletType == com.nunchuk.android.type.WalletType.LIQUID) {
+            options.add(
+                SheetOption(
+                    SheetOptionType.TYPE_VIEW_WALLET_CONFIG,
+                    R.drawable.ic_settings_dark,
+                    R.string.nc_wallet_view_wallet_config,
                 )
             )
         }

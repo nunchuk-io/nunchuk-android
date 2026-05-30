@@ -170,4 +170,5 @@ object SheetOptionType {
     const val TYPE_EXPORT_QR_DESCRIPTOR = 103
     const val TYPE_CHANGE_ON_CHAIN_TIMELOCK = 104
     const val TYPE_REPLACE_KEY_CHANGE_TIMELOCK = 105
+    const val TYPE_VIEW_WALLET_CONFIG = 106
 }
