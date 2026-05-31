@@ -81,6 +81,7 @@ import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.ADD_WALLET_RESULT
+import com.nunchuk.android.core.util.isPlatformKey
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.groupwallet.FreeGroupWalletActivity
 import com.nunchuk.android.main.groupwallet.component.WalletInfo
@@ -359,7 +360,8 @@ fun FreeGroupWalletRecoverScreen(
                     }
                 }
             } else {
-                itemsIndexed(state.signerUis) { index, ui ->
+                val signerUis = state.signerUis.withPlatformKeyAtBottom()
+                itemsIndexed(signerUis) { index, ui ->
                     FreeAddKeyRecoverCard(
                         index = index,
                         signer = ui.signer,
@@ -414,6 +416,11 @@ fun FreeGroupWalletRecoverScreen(
             )
         }
     }
+}
+
+private fun List<SignerModelRecoverUi>.withPlatformKeyAtBottom(): List<SignerModelRecoverUi> {
+    val (platformKeyUis, signerUis) = partition { it.signer.type.isPlatformKey }
+    return signerUis + platformKeyUis
 }
 
 @Composable
