@@ -134,7 +134,7 @@ fun TransactionDetailView(
         if (inheritanceClaimTxDetailInfo != null) state.transaction.copy(changeIndex = inheritanceClaimTxDetailInfo.changePos) else state.transaction
     val outputs = if (transaction.isReceive) {
         transaction.receiveOutputs
-    } else transaction.userOutputs.filter { !it.isChange }
+    } else transaction.outputs.filter { !it.isReceive }
     val signerMap by remember(state.signers) {
         derivedStateOf {
             state.signers.associateBy { it.fingerPrint }

@@ -13,6 +13,10 @@ class CreateUsdtWalletFromSignerUseCase @Inject constructor(
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : UseCase<SingleSigner, Wallet>(ioDispatcher) {
     override suspend fun execute(parameters: SingleSigner): Wallet {
-        return nativeSdk.createLiquidWallet(parameters)
+        return nativeSdk.createLiquidWallet(parameters).also { wallet ->
+            if (parameters.hasMasterSigner && nativeSdk.getMasterSigner(parameters.masterSignerId).isNeedBackup) {
+                nativeSdk.updateWallet(wallet.copy(needBackup = true))
+            }
+        }
     }
 }
