@@ -527,7 +527,10 @@ class FreeGroupWalletViewModel @Inject constructor(
         return keyNames
     }
 
-    private suspend fun mapSigners(signers: List<SingleSigner>) =
+    private suspend fun mapSigners(
+        signers: List<SingleSigner>,
+        keepOfflineSignerInfo: Boolean = false,
+    ) =
         signers.mapIndexed { index, groupSigner ->
             groupSigner.takeIf { it.masterFingerprint.isNotEmpty() || it.name == KEY_NOT_SYNCED_NAME }
                 ?.let { signer ->
@@ -536,7 +539,12 @@ class FreeGroupWalletViewModel @Inject constructor(
                     } else if (groupSigner.name == KEY_NOT_SYNCED_NAME) {
                         groupSigner.toModel().copy(isVisible = false)
                     } else {
-                        groupSigner.toModel().copy(isVisible = false, name = "Key #${index.inc()}")
+                        val offlineSigner = groupSigner.toModel().copy(isVisible = false)
+                        if (keepOfflineSignerInfo) {
+                            offlineSigner
+                        } else {
+                            offlineSigner.copy(name = "Key #${index.inc()}")
+                        }
                     }
                 }
         }
@@ -965,7 +973,7 @@ class FreeGroupWalletViewModel @Inject constructor(
         if (wallet != null) return
         getWalletDetail2UseCase(walletId).onSuccess { wallet ->
             this.wallet = wallet
-            val signers = mapSigners(wallet.signers)
+            val signers = mapSigners(wallet.signers, keepOfflineSignerInfo = true)
             _uiState.update { it.copy(signers = signers) }
         }
     }

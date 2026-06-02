@@ -60,31 +60,24 @@ fun FreeAddKeyCard(
     avatarColor: Color = avatarColors[0],
     isInReplace: Boolean = false,
 ) {
-    val isJoined = isInReplace && replacedSigner != null
-    val isReplaced = replacedSigner != null && replacedSigner.fingerPrint != signer?.fingerPrint
+    val pendingReplaceSigner = replacedSigner
+        ?.takeUnless { isInReplace && it.isPendingReplacementPlaceholder() }
+    val isReplaced = pendingReplaceSigner != null && pendingReplaceSigner.fingerPrint != signer?.fingerPrint
     if (signer != null && signer.name == KEY_NOT_SYNCED_NAME) {
         KeyNotSyncView(modifier = modifier, index = index)
     } else if (signer != null) {
-        if (!isInReplace || isReplaced || isJoined) {
-            KeyAddedView(
-                modifier = modifier,
-                isInReplace = isInReplace,
-                signer = signer,
-                replacedSigner = replacedSigner.takeIf { isReplaced },
-                showBip32Path = showBip32Path,
-                onChangeBip32Path = onChangeBip32Path,
-                index = index,
-                avatarColor = avatarColor,
-                onRemoveOrReplaceClicked = onRemoveOrReplaceClicked,
-            )
-        } else {
-            KeyNotJoinedView(
-                modifier = modifier,
-                index = index,
-                signer = signer,
-                onAddClicked = onAddClicked
-            )
-        }
+        KeyAddedView(
+            modifier = modifier,
+            isInReplace = isInReplace,
+            signer = signer,
+            replacedSigner = pendingReplaceSigner.takeIf { isReplaced },
+            showBip32Path = showBip32Path,
+            onChangeBip32Path = onChangeBip32Path,
+            index = index,
+            avatarColor = avatarColor,
+            showSignerCardForInvisibleSigner = isInReplace && !isReplaced,
+            onRemoveOrReplaceClicked = onRemoveOrReplaceClicked,
+        )
     } else {
         KeyNotAddedView(
             modifier = modifier,
@@ -200,6 +193,7 @@ private fun KeyAddedView(
     onChangeBip32Path: (Int, SignerModel) -> Unit,
     index: Int,
     avatarColor: Color,
+    showSignerCardForInvisibleSigner: Boolean,
     onRemoveOrReplaceClicked: (Boolean) -> Unit
 ) {
     val targetSigner = replacedSigner ?: signer
@@ -220,7 +214,7 @@ private fun KeyAddedView(
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            if (targetSigner.isVisible) {
+            if (targetSigner.isVisible || showSignerCardForInvisibleSigner) {
                 SignerCard(item = targetSigner, modifier = Modifier.weight(1.0f)) {
                     if (showBip32Path) {
                         Row(
@@ -344,6 +338,10 @@ private fun KeyAddedView(
             }
         }
     }
+}
+
+private fun SignerModel.isPendingReplacementPlaceholder(): Boolean {
+    return name == KEY_NOT_SYNCED_NAME || fingerPrint.isBlank()
 }
 
 @Composable

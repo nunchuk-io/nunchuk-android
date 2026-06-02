@@ -527,13 +527,17 @@ fun FreeGroupWalletScreen(
 
                     var colorIndex = 0
                     itemsIndexed(state.signers) { index, signer ->
-                        if (!isInReplace && index == platformKeyIndex && platformKeyIndex >= 0) {
-                            PlatformKeyCard(
-                                onConfigClicked = onConfigPlatformKey,
-                                isConfigured = isPlatformKeyConfigured,
-                                subtitle = platformKeySubtitle,
-                            )
-                        } else if (index != platformKeyIndex || platformKeyIndex < 0) {
+                        val isPlatformKey = (index == platformKeyIndex && platformKeyIndex >= 0) ||
+                                signer?.type?.isPlatformKey == true
+                        if (isPlatformKey) {
+                            if (!isInReplace) {
+                                PlatformKeyCard(
+                                    onConfigClicked = onConfigPlatformKey,
+                                    isConfigured = isPlatformKeyConfigured,
+                                    subtitle = platformKeySubtitle,
+                                )
+                            }
+                        } else {
                             FreeAddKeyCard(
                                 index = index,
                                 isOccupied = state.occupiedSlotsIndex.contains(index),
