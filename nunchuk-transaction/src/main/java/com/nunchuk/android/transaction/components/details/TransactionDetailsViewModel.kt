@@ -297,7 +297,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
         }
         viewModelScope.launch {
             state.filter { it.transaction.txId.isNotEmpty() && it.wallet.id.isNotEmpty() }
-                .map { it.transaction.status }
+                .map { it.transaction.status to it.defaultKeySetIndex }
                 .distinctUntilChanged()
                 .collect {
                     val wallet = getState().wallet
@@ -519,20 +519,16 @@ internal class TransactionDetailsViewModel @Inject constructor(
             getWalletUseCase.execute(walletId).collect { wallet ->
                 _minscriptState.update { it.copy(isMiniscriptWallet = wallet.isMiniscriptWallet()) }
                 val account = accountManager.getAccount()
-                _state.update {
-                    it.copy(
-                        wallet = wallet.wallet,
-                        hideFiatCurrency = assistedWalletManager.getBriefWallet(walletId)?.hideFiatCurrency
-                            ?: false,
-                    )
-                }
                 val defaultKeySetIndex =
                     if (wallet.wallet.walletTemplate != WalletTemplate.DISABLE_KEY_PATH && wallet.wallet.addressType.isTaproot()) {
                         loadKeySetSelection()
                     } else 0
                 _state.update {
                     it.copy(
+                        wallet = wallet.wallet,
                         defaultKeySetIndex = defaultKeySetIndex,
+                        hideFiatCurrency = assistedWalletManager.getBriefWallet(walletId)?.hideFiatCurrency
+                            ?: false,
                     )
                 }
                 if (wallet.wallet.miniscript.isEmpty()) {
