@@ -38,6 +38,7 @@ import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.guestmode.isGuestMode
 import com.nunchuk.android.core.portal.PortalDeviceArgs
 import com.nunchuk.android.core.portal.PortalDeviceFlow
+import com.nunchuk.android.core.signer.RecoverWalletMode
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.CommonInputBottomSheet
@@ -360,7 +361,13 @@ class WalletIntermediaryActivity : BaseComposeCameraActivity(), BottomSheetOptio
                 RecoverWalletOption.ColdCard -> showOptionImportFromColdCard()
                 RecoverWalletOption.HotWallet -> navigator.openRecoverSeedScreen(
                     activityContext = this,
-                    isRecoverHotWallet = true,
+                    recoverWalletMode = RecoverWalletMode.HOT_WALLET,
+                    quickWalletParam = quickWalletParam,
+                )
+
+                RecoverWalletOption.LiquidWallet -> navigator.openRecoverSeedScreen(
+                    activityContext = this,
+                    recoverWalletMode = RecoverWalletMode.LIQUID_WALLET,
                     quickWalletParam = quickWalletParam,
                 )
 

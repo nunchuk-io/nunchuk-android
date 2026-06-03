@@ -26,6 +26,7 @@ import com.nunchuk.android.core.data.model.ClaimInheritanceTxParam
 import com.nunchuk.android.core.data.model.QuickWalletParam
 import com.nunchuk.android.core.domain.membership.WalletsExistingKey
 import com.nunchuk.android.core.signer.KeyFlow
+import com.nunchuk.android.core.signer.RecoverWalletMode
 import com.nunchuk.android.model.PrimaryKey
 import com.nunchuk.android.model.SatsCardSlot
 import com.nunchuk.android.nav.args.AddAirSignerArgs
@@ -96,7 +97,7 @@ interface SignerNavigator {
         launcher: ActivityResultLauncher<Intent>? = null,
         passphrase: String = "",
         @KeyFlow.PrimaryFlowInfo keyFlow: Int = KeyFlow.NONE,
-        isRecoverHotWallet: Boolean = false,
+        recoverWalletMode: RecoverWalletMode = RecoverWalletMode.DEFAULT,
         walletId: String = "",
         groupId: String? = null,
         replacedXfp: String? = null,

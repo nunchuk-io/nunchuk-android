@@ -22,6 +22,7 @@ package com.nunchuk.android.signer.software.components.recover
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.constants.NativeErrorCode
+import com.nunchuk.android.core.signer.RecoverWalletMode
 import com.nunchuk.android.core.util.countWords
 import com.nunchuk.android.core.util.lastWord
 import com.nunchuk.android.core.util.nativeErrorCode
@@ -36,6 +37,7 @@ import com.nunchuk.android.usecase.CheckMnemonicUseCase
 import com.nunchuk.android.usecase.GetBip39WordListUseCase
 import com.nunchuk.android.usecase.GetMasterFingerprintUseCase
 import com.nunchuk.android.usecase.byzantine.GetReplaceSignerNameUseCase
+import com.nunchuk.android.usecase.wallet.CreateUsdtWalletFromMnemonicUseCase
 import com.nunchuk.android.usecase.wallet.RecoverHotWalletUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -51,6 +53,7 @@ internal class RecoverSeedViewModel @Inject constructor(
     private val getBip39WordListUseCase: GetBip39WordListUseCase,
     private val checkMnemonicUseCase: CheckMnemonicUseCase,
     private val recoverHotWalletUseCase: RecoverHotWalletUseCase,
+    private val createUsdtWalletFromMnemonicUseCase: CreateUsdtWalletFromMnemonicUseCase,
     private val getMasterFingerprintUseCase: GetMasterFingerprintUseCase,
     private val getReplaceSignerNameUseCase: GetReplaceSignerNameUseCase,
 ) : NunchukViewModel<RecoverSeedState, RecoverSeedEvent>() {
@@ -99,14 +102,16 @@ internal class RecoverSeedViewModel @Inject constructor(
         updateState { copy(suggestions = filteredWords) }
     }
 
-    fun handleContinueEvent(isHotWalletRecovery: Boolean) {
+    fun handleContinueEvent(recoverWalletMode: RecoverWalletMode) {
         val mnemonic = getState().mnemonic
         if (mnemonic.isEmpty()) {
             event(MnemonicRequiredEvent)
-        } else if (isHotWalletRecovery) {
-            recoverHotWallet(false)
-        } else {
-            checkMnemonic(mnemonic)
+            return
+        }
+        when (recoverWalletMode) {
+            RecoverWalletMode.LIQUID_WALLET -> recoverLiquidWallet()
+            RecoverWalletMode.HOT_WALLET -> recoverHotWallet(false)
+            RecoverWalletMode.DEFAULT -> checkMnemonic(mnemonic)
         }
     }
 
@@ -118,6 +123,18 @@ internal class RecoverSeedViewModel @Inject constructor(
             updatedMnemonic.countWords() in MIN_ACCEPTED_NUM_WORDS..MAX_ACCEPTED_NUM_WORDS
         event(CanGoNextStepEvent(canGoNext))
         event(UpdateMnemonicEvent(updatedMnemonic))
+    }
+
+    private fun recoverLiquidWallet() {
+        viewModelScope.launch {
+            createUsdtWalletFromMnemonicUseCase(
+                CreateUsdtWalletFromMnemonicUseCase.Param(mnemonic = getState().mnemonic)
+            ).onSuccess {
+                setEvent(RecoverSeedEvent.RecoverLiquidWalletSuccess(it.id))
+            }.onFailure {
+                setEvent(InvalidMnemonicEvent)
+            }
+        }
     }
 
     fun recoverHotWallet(replace: Boolean) {

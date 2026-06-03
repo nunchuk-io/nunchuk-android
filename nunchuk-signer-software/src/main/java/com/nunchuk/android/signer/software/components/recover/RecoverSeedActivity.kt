@@ -33,6 +33,7 @@ import com.nunchuk.android.core.signer.KeyFlow
 import com.nunchuk.android.core.signer.KeyFlow.isAddAndReturnFlow
 import com.nunchuk.android.core.signer.KeyFlow.isAddAndReturnWithPassphraseFlow
 import com.nunchuk.android.core.signer.KeyFlow.isSignInFlow
+import com.nunchuk.android.core.signer.RecoverWalletMode
 import com.nunchuk.android.core.util.bindEnableState
 import com.nunchuk.android.core.util.navigateToSelectWallet
 import com.nunchuk.android.manager.AssistedWalletManager
@@ -68,8 +69,9 @@ class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
 
     private lateinit var adapter: RecoverSeedSuggestionAdapter
 
-    private val isHotWalletRecovery: Boolean by lazy {
-        intent.getBooleanExtra(EXTRA_RECOVER_HOT_WALLET, false)
+    private val recoverWalletMode: RecoverWalletMode by lazy {
+        val name = intent.getStringExtra(EXTRA_RECOVER_WALLET_MODE)
+        RecoverWalletMode.entries.firstOrNull { it.name == name } ?: RecoverWalletMode.DEFAULT
     }
 
     private val groupId: String? by lazy {
@@ -207,6 +209,20 @@ class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
                 NcToastManager.scheduleShowMessage(getString(R.string.nc_my_hot_wallet_has_been_recovered))
             }
 
+            is RecoverSeedEvent.RecoverLiquidWalletSuccess -> {
+                navigateToSelectWallet(
+                    navigator = navigator,
+                    quickWalletParam = quickWalletParam
+                ) {
+                    navigator.returnToMainScreen(this)
+                    navigator.openWalletDetailsScreen(
+                        activityContext = this,
+                        walletId = event.walletId
+                    )
+                }
+                NcToastManager.scheduleShowMessage(getString(R.string.nc_my_liquid_wallet_has_been_recovered))
+            }
+
             is RecoverSeedEvent.ExistingSignerEvent -> {
                 NCInfoDialog(this)
                     .showDialog(
@@ -232,8 +248,14 @@ class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
     }
 
     private fun setupViews() {
-        if (isHotWalletRecovery) {
-            binding.toolbarTitle.text = getString(R.string.nc_recover_hot_wallet)
+        when (recoverWalletMode) {
+            RecoverWalletMode.LIQUID_WALLET ->
+                binding.toolbarTitle.text = getString(R.string.nc_recover_liquid_wallet)
+
+            RecoverWalletMode.HOT_WALLET ->
+                binding.toolbarTitle.text = getString(R.string.nc_recover_hot_wallet)
+
+            RecoverWalletMode.DEFAULT -> Unit
         }
         binding.mnemonic.heightExtended(resources.getDimensionPixelSize(R.dimen.nc_height_120))
         binding.mnemonic.addTextChangedCallback(viewModel::handleInputEvent)
@@ -245,14 +267,14 @@ class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
             finish()
         }
         binding.btnContinue.setOnClickListener {
-            viewModel.handleContinueEvent(isHotWalletRecovery)
+            viewModel.handleContinueEvent(recoverWalletMode)
         }
     }
 
     companion object {
         private const val EXTRA_PASSPHRASE = "EXTRA_PASSPHRASE"
         private const val EXTRA_PRIMARY_KEY_FLOW = "EXTRA_PRIMARY_KEY_FLOW"
-        private const val EXTRA_RECOVER_HOT_WALLET = "EXTRA_RECOVER_HOT_WALLET"
+        private const val EXTRA_RECOVER_WALLET_MODE = "EXTRA_RECOVER_WALLET_MODE"
         private const val EXTRA_GROUP_ID = "EXTRA_GROUP_ID"
         private const val EXTRA_REPLACED_XFP = "EXTRA_REPLACED_XFP"
         private const val EXTRA_WALLET_ID = "EXTRA_WALLET_ID"
@@ -262,7 +284,7 @@ class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
             activityContext: Context,
             passphrase: String,
             primaryKeyFlow: Int,
-            isRecoverHotWallet: Boolean = false,
+            recoverWalletMode: RecoverWalletMode = RecoverWalletMode.DEFAULT,
             groupId: String? = null,
             replacedXfp: String? = null,
             walletId: String = "",
@@ -273,7 +295,7 @@ class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
                     activityContext,
                     primaryKeyFlow,
                     passphrase,
-                    isRecoverHotWallet,
+                    recoverWalletMode,
                     groupId,
                     replacedXfp,
                     walletId,
@@ -286,7 +308,7 @@ class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
             activityContext: Context,
             keyFlow: Int = 0,
             passphrase: String = "",
-            isRecoverHotWallet: Boolean = false,
+            recoverWalletMode: RecoverWalletMode = RecoverWalletMode.DEFAULT,
             groupId: String? = null,
             replacedXfp: String? = null,
             walletId: String = "",
@@ -295,18 +317,9 @@ class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
             activityContext,
             RecoverSeedActivity::class.java
         ).apply {
-            putExtra(
-                EXTRA_PRIMARY_KEY_FLOW,
-                keyFlow
-            )
-            putExtra(
-                EXTRA_PASSPHRASE,
-                passphrase
-            )
-            putExtra(
-                EXTRA_RECOVER_HOT_WALLET,
-                isRecoverHotWallet
-            )
+            putExtra(EXTRA_PRIMARY_KEY_FLOW, keyFlow)
+            putExtra(EXTRA_PASSPHRASE, passphrase)
+            putExtra(EXTRA_RECOVER_WALLET_MODE, recoverWalletMode.name)
             putExtra(EXTRA_GROUP_ID, groupId)
             putExtra(EXTRA_REPLACED_XFP, replacedXfp)
             putExtra(EXTRA_WALLET_ID, walletId)
