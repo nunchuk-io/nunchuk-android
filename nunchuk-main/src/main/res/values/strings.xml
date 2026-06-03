@@ -547,7 +547,7 @@
     <string name="nc_on_chain_timelock">On-chain timelock</string>
     <string name="nc_managed_by_nunchuk">Managed by Nunchuk</string>
     <string name="nc_enforced_on_bitcoin">Enforced on Bitcoin</string>
-    <string name="nc_off_chain_pros">You can change the timelock as many times as needed without disrupting your existing setup.</string>
+    <string name="nc_off_chain_pros">You can split the inheritance across beneficiaries and time, and change the timelock or plan as often as needed without disrupting your setup.</string>
     <string name="nc_off_chain_cons">Claiming the inheritance depends on Nunchuk services being available.</string>
     <string name="nc_on_chain_pros">Your Beneficiary can claim the inheritance with or without Nunchuk\'s assistance once the timelock expires.</string>
     <string name="nc_on_chain_cons">Changing the timelock requires creating a new wallet and moving funds, though Nunchuk can help automate this.</string>
