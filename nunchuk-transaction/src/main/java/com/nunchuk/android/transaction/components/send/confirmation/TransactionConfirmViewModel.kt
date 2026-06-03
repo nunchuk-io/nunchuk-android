@@ -757,6 +757,14 @@ class TransactionConfirmViewModel @Inject constructor(
         savedStateHandle[CUSTOMIZE_TRANSACTION_KEY] = isCustomize
     }
 
+    fun updateLiquidManualFee(absoluteFeeSats: Long) {
+        if (absoluteFeeSats <= 0L) return
+        val tx = _state.value.transaction
+        val currentFee = tx.fee.value.coerceAtLeast(1L)
+        manualFeeRate = (absoluteFeeSats * tx.feeRate.value / currentFee).toInt().coerceAtLeast(1)
+        draftLiquidTransaction()
+    }
+
     companion object {
         private const val WAITING_FOR_CONSUME_EVENT_SECONDS = 5L
         private const val CUSTOMIZE_TRANSACTION_KEY = "customize_transaction"

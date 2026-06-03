@@ -25,22 +25,28 @@ import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -54,6 +60,8 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.DefaultLifecycleObserver
@@ -61,11 +69,14 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.viewbinding.ViewBinding
 import com.nunchuk.android.compose.NcIcon
+import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
+import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.backgroundMidGray
 import com.nunchuk.android.compose.dialog.NcLoadingDialog
+import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.data.model.ClaimInheritanceTxParam
 import com.nunchuk.android.core.data.model.TxReceipt
 import com.nunchuk.android.core.data.model.isOffChainClaim
@@ -78,8 +89,12 @@ import com.nunchuk.android.core.util.InheritanceClaimTxDetailInfo
 import com.nunchuk.android.core.util.copyToClipboard
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.formatDecimalWithoutZero
+import com.nunchuk.android.core.util.formatFiatDecimal
+import com.nunchuk.android.core.util.fromBTCToCurrency
+import com.nunchuk.android.core.util.fromBTCtoSAT
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getCurrencyAmount
+import com.nunchuk.android.core.util.getDisplayCurrency
 import com.nunchuk.android.core.util.hasChangeIndex
 import com.nunchuk.android.core.util.isPendingSignatures
 import com.nunchuk.android.core.util.pureBTC
@@ -114,6 +129,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
 import timber.log.Timber
 import javax.inject.Inject
+import kotlin.math.round
 
 @AndroidEntryPoint
 class TransactionConfirmActivity : BaseNfcActivity<ViewBinding>() {
@@ -362,19 +378,35 @@ private fun TransactionConfirmScreen(
     }
     val liquidAssetTotals: Map<String, Amount> = if (isLiquid) {
         val txOutputs = uiState.transaction.outputs
-        if (txOutputs.isNotEmpty()) {
-            txOutputs
-                .filter { !it.isChange }
+        val base = if (txOutputs.isNotEmpty()) {
+            txOutputs.filter { !it.isChange }
                 .groupBy { it.assetId }
-                .mapValues { (_, outs) -> Amount(outs.sumOf { o -> o.second.value }) }
+                .mapValues { (_, outs) -> Amount(outs.sumOf { it.second.value }) }
         } else if (outputAssetId.isNotEmpty()) {
             mapOf(outputAssetId to (outputAmount * 1.0e8).toLong().let(::Amount))
         } else emptyMap()
+        if (!args.subtractFeeFromAmount && fee.value > 0L) {
+            // Fee is always LBTC — merge into the non-USDT entry (or add one for USDT-only sends).
+            val lbtcKey = base.keys.firstOrNull { it != uiState.usdtAssetId } ?: ""
+            base + (lbtcKey to Amount((base[lbtcKey]?.value ?: 0L) + fee.value))
+        } else base
     } else emptyMap()
+
+    var showCustomizeFee by remember { mutableStateOf(false) }
 
     NunchukTheme {
         if (isLoading) {
             NcLoadingDialog(customMessage = loadingMessage)
+        }
+        if (showCustomizeFee && isLiquid) {
+            CustomizeLiquidFeeBottomSheet(
+                currentFee = fee,
+                onDismiss = { showCustomizeFee = false },
+                onApply = { feeSats ->
+                    viewModel.updateLiquidManualFee(feeSats)
+                    showCustomizeFee = false
+                },
+            )
         }
         TransactionConfirmContent(
             title = args.sweepType.toTitle(
@@ -416,6 +448,7 @@ private fun TransactionConfirmScreen(
                     )
                 }
             },
+            onCustomizeFeeClick = { showCustomizeFee = true },
             onCopyText = { content ->
                 activity.copyToClipboard(label = "Nunchuk", text = content)
                 NCToastMessage(activity).showMessage(context.getString(R.string.nc_copied_to_clipboard))
@@ -451,6 +484,7 @@ internal fun TransactionConfirmContent(
     allTags: Map<Int, CoinTag> = emptyMap(),
     onBackPressed: () -> Unit = {},
     onConfirmClick: () -> Unit = {},
+    onCustomizeFeeClick: () -> Unit = {},
     onCopyText: (String) -> Unit = {},
     onEstimatedFeeInfoClick: () -> Unit = {},
 ) {
@@ -474,13 +508,30 @@ internal fun TransactionConfirmContent(
             )
         },
         bottomBar = {
-            NcPrimaryDarkButton(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                onClick = onConfirmClick,
-            ) {
-                Text(text = confirmButtonText)
+            Column {
+                NcPrimaryDarkButton(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .padding(top = 16.dp),
+                    onClick = onConfirmClick,
+                ) {
+                    Text(text = confirmButtonText)
+                }
+                if (isLiquid) {
+                    NcOutlineButton(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp)
+                            .padding(top = 8.dp, bottom = 16.dp)
+                            .height(48.dp),
+                        onClick = onCustomizeFeeClick,
+                    ) {
+                        Text(text = stringResource(R.string.nc_customize_fee))
+                    }
+                } else {
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
             }
         },
     ) { innerPadding ->
@@ -666,11 +717,120 @@ private fun formatLiquidAmount(amount: Double, assetId: String, usdtAssetId: Str
 }
 
 private fun formatLiquidFee(fee: Amount): String {
-    val lbtc = fee.pureBTC().formatDecimalWithoutZero(maxFractionDigits = LIQUID_MAX_FRACTION_DIGITS)
+    val lbtc =
+        fee.pureBTC().formatDecimalWithoutZero(maxFractionDigits = LIQUID_MAX_FRACTION_DIGITS)
     return "$lbtc LBTC"
 }
 
 private const val LIQUID_MAX_FRACTION_DIGITS = 8
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun CustomizeLiquidFeeBottomSheet(
+    currentFee: Amount,
+    onDismiss: () -> Unit,
+    onApply: (Long) -> Unit,
+) {
+    val initial = remember(currentFee) {
+        currentFee.pureBTC()
+            .formatDecimalWithoutZero(maxFractionDigits = LIQUID_MAX_FRACTION_DIGITS)
+    }
+    var text by rememberSaveable(initial) { mutableStateOf(initial) }
+    val lbtcValue = text.replace(',', '.').toDoubleOrNull() ?: 0.0
+    val usdLabel = "${getDisplayCurrency()}${lbtcValue.fromBTCToCurrency().formatFiatDecimal()}"
+
+    ModalBottomSheet(
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+        shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp),
+        onDismissRequest = onDismiss,
+        containerColor = MaterialTheme.colorScheme.background,
+        tonalElevation = 0.dp,
+        dragHandle = { },
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .navigationBarsPadding()
+                .padding(horizontal = 16.dp)
+                .padding(top = 24.dp, bottom = 16.dp),
+        ) {
+            Text(
+                text = stringResource(R.string.nc_customize_fee_in_lbtc),
+                style = NunchukTheme.typography.title,
+            )
+            NcTextField(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 12.dp),
+                title = "",
+                value = text,
+                onValueChange = { text = sanitizeLbtcInput(it) },
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Decimal,
+                    imeAction = ImeAction.Done,
+                ),
+                rightContent = {
+                    Text(
+                        text = usdLabel,
+                        style = NunchukTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.textSecondary),
+                    )
+                },
+            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 24.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                NcOutlineButton(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(48.dp),
+                    onClick = onDismiss,
+                ) {
+                    Text(text = stringResource(R.string.nc_cancel))
+                }
+                NcPrimaryDarkButton(
+                    modifier = Modifier.weight(1f),
+                    onClick = {
+                        val feeSats = round(lbtcValue.fromBTCtoSAT()).toLong()
+                        if (feeSats > 0L) onApply(feeSats)
+                    },
+                ) {
+                    Text(text = stringResource(R.string.nc_apply))
+                }
+            }
+        }
+    }
+}
+
+private fun sanitizeLbtcInput(raw: String): String {
+    val normalized = raw.replace(',', '.')
+    val builder = StringBuilder()
+    var seenDot = false
+    var fractionDigits = 0
+    for (ch in normalized) {
+        when {
+            ch.isDigit() -> {
+                if (seenDot) {
+                    if (fractionDigits < LIQUID_MAX_FRACTION_DIGITS) {
+                        builder.append(ch)
+                        fractionDigits++
+                    }
+                } else {
+                    builder.append(ch)
+                }
+            }
+
+            ch == '.' && !seenDot -> {
+                if (builder.isEmpty()) builder.append('0')
+                builder.append('.')
+                seenDot = true
+            }
+        }
+    }
+    return builder.toString()
+}
 
 @PreviewLightDark
 @Composable

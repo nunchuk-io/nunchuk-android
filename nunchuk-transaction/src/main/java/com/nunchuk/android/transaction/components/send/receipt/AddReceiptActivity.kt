@@ -75,6 +75,7 @@ import com.nunchuk.android.transaction.components.send.batchtransaction.BatchTra
 import com.nunchuk.android.transaction.components.send.batchtransaction.BatchTransactionViewModel
 import com.nunchuk.android.transaction.components.send.batchtransaction.SelectAddressType
 import com.nunchuk.android.transaction.components.send.confirmation.TaprootDraftTransaction
+import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmActivity
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmViewModel
 import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeEvent
@@ -82,6 +83,7 @@ import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeViewModel
 import com.nunchuk.android.transaction.components.utils.openTransactionDetailScreen
 import com.nunchuk.android.transaction.components.utils.returnActiveRoom
 import com.nunchuk.android.transaction.components.utils.showCreateTransactionError
+import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCToastMessage
@@ -490,8 +492,11 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
         flowObserver(viewModel.event) { event ->
             when (event) {
                 is AddReceiptEvent.AcceptedAddressEvent -> {
-                    if (args.tokenAssetId.isNotEmpty()) {
+                    val isLiquid = viewModel.getAddReceiptState().wallet.walletType == WalletType.LIQUID
+                    if (isLiquid && event.isCreateTransaction) {
                         createLiquidTransactionDirect()
+                    } else if (isLiquid) {
+                        openTransactionConfirmForLiquid()
                     } else if (event.isCreateTransaction || event.isMiniscript) {
                         estimateFeeViewModel.getEstimateFeeRates(false)
                     } else {
@@ -719,6 +724,33 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
                 signingPath = signingPath
             )
         }
+    }
+
+    private fun openTransactionConfirmForLiquid() {
+        val state = viewModel.getAddReceiptState()
+        val finalAmount = if (state.amount.value > 0) state.amount.pureBTC() else args.outputAmount
+        TransactionConfirmActivity.start(
+            activityContext = this,
+            walletId = args.walletId,
+            availableAmount = args.availableAmount,
+            txReceipts = listOf(
+                TxReceipt(
+                    address = state.address,
+                    amount = finalAmount,
+                    tokenAssetId = args.tokenAssetId,
+                )
+            ),
+            privateNote = state.privateNote,
+            subtractFeeFromAmount = false,
+            manualFeeRate = 0,
+            sweepType = args.sweepType,
+            slots = args.slots,
+            claimInheritanceTxParam = args.claimInheritanceTxParam,
+            inputs = args.inputs,
+            signingPath = null,
+            actionButtonText = "",
+            antiFeeSniping = state.antiFeeSniping,
+        )
     }
 
     private fun createLiquidTransactionDirect() {
