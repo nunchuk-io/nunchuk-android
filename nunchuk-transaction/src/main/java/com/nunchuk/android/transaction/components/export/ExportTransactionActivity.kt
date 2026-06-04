@@ -91,7 +91,7 @@ class ExportTransactionActivity : BaseActivity<ActivityExportTransactionBinding>
     }
 
     override fun onDestroy() {
-        qrBitmaps.values.forEach { it?.recycle() }
+        qrBitmaps.clear()
         super.onDestroy()
     }
 
@@ -142,9 +142,8 @@ class ExportTransactionActivity : BaseActivity<ActivityExportTransactionBinding>
     private fun handleState(state: ExportTransactionState) {
         binding.slider.value = state.density.densityToLevel()
         if (state.qrStrings.isNotEmpty()) {
-            qrBitmaps.values.forEach { it?.recycle() }
-            qrBitmaps.clear()
             showQrJob?.cancel()
+            qrBitmaps.clear()
             showQrJob = lifecycleScope.launch {
                 repeat(Int.MAX_VALUE) {
                     ensureActive()
