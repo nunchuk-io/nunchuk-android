@@ -42,6 +42,7 @@ import com.nunchuk.android.core.util.USD_FRACTION_DIGITS
 import com.nunchuk.android.core.util.formatDecimal
 import com.nunchuk.android.core.util.formatDecimalWithoutZero
 import com.nunchuk.android.core.util.fromBTCToCurrency
+import com.nunchuk.android.core.util.fromUsdtToCurrency
 import com.nunchuk.android.core.util.getDisplayCurrency
 import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.model.Amount
@@ -93,9 +94,8 @@ private fun Amount.formatUsdt(): String =
 private fun Amount.formatLbtc(): String =
     pureBTC().formatDecimal(minFractionDigits = MAX_FRACTION_DIGITS)
 
-// USDT is pegged 1:1 to USD; display fiat value directly from the token amount.
 private fun Amount.formatUsdtAsUsd(): String =
-    "${getDisplayCurrency()}${pureBTC().formatDecimal(maxFractionDigits = USD_FRACTION_DIGITS)}"
+    "${getDisplayCurrency()}${pureBTC().fromUsdtToCurrency().formatDecimal(maxFractionDigits = USD_FRACTION_DIGITS)}"
 
 private fun Amount.formatLbtcAsUsd(): String =
     "${getDisplayCurrency()}${pureBTC().fromBTCToCurrency().formatDecimal(maxFractionDigits = USD_FRACTION_DIGITS)}"

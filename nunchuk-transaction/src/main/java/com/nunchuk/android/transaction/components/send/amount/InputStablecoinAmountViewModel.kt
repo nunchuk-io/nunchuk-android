@@ -22,7 +22,10 @@ package com.nunchuk.android.transaction.components.send.amount
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.util.BTC_CURRENCY_EXCHANGE_RATE
+import com.nunchuk.android.core.util.USDT_CURRENCY_EXCHANGE_RATE
 import com.nunchuk.android.core.util.fromBTCToCurrency
+import com.nunchuk.android.core.util.fromUsdtToCurrency
 import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.core.util.toNumericValue
 import com.nunchuk.android.model.defaultRate
@@ -78,8 +81,7 @@ internal class InputStablecoinAmountViewModel @Inject constructor(
                     _state.update {
                         it.copy(
                             usdtBalance = usdt,
-                            // USDT is pegged 1:1 to USD.
-                            usdtBalanceUsd = usdt,
+                            usdtBalanceUsd = usdt.fromUsdtToCurrency(),
                             lbtcBalance = lbtc,
                             lbtcBalanceUsd = lbtc.fromBTCToCurrency(),
                         )
@@ -144,17 +146,16 @@ internal class InputStablecoinAmountViewModel @Inject constructor(
         if (input != current.inputText) {
             _state.update { it.copy(inputText = input) }
         }
-        // TODO(stablecoin): use real fx rates per token. Stubbed 1:1 for USDT, ~$74,500 for LBTC.
-        val tokenToUsd = when (current.selectedToken) {
-            StablecoinToken.USDT -> 1.0
-            StablecoinToken.LBTC -> 74_500.0
+        val tokenToFiat = when (current.selectedToken) {
+            StablecoinToken.USDT -> USDT_CURRENCY_EXCHANGE_RATE
+            StablecoinToken.LBTC -> BTC_CURRENCY_EXCHANGE_RATE
         }
         if (current.useToken) {
             if (inputValue != current.amountToken) {
                 _state.update {
                     it.copy(
                         amountToken = inputValue,
-                        amountUsd = inputValue * tokenToUsd,
+                        amountUsd = inputValue * tokenToFiat,
                     )
                 }
             }
@@ -162,7 +163,7 @@ internal class InputStablecoinAmountViewModel @Inject constructor(
             if (inputValue != current.amountUsd) {
                 _state.update {
                     it.copy(
-                        amountToken = if (tokenToUsd == 0.0) 0.0 else inputValue / tokenToUsd,
+                        amountToken = if (tokenToFiat == 0.0) 0.0 else inputValue / tokenToFiat,
                         amountUsd = inputValue,
                     )
                 }

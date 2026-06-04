@@ -30,6 +30,7 @@ import com.nunchuk.android.core.domain.CheckUpdateRecommendUseCase
 import com.nunchuk.android.core.domain.CreateOrUpdateSyncFileUseCase
 import com.nunchuk.android.core.domain.DeleteSyncFileUseCase
 import com.nunchuk.android.core.domain.GetLocalBtcPriceFlowUseCase
+import com.nunchuk.android.core.domain.GetLocalUsdtPriceFlowUseCase
 import com.nunchuk.android.core.domain.GetRemotePriceConvertBTCUseCase
 import com.nunchuk.android.core.domain.GetSyncFileUseCase
 import com.nunchuk.android.core.domain.GetSyncSettingUseCase
@@ -43,6 +44,7 @@ import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.matrix.UploadFileUseCase
 import com.nunchuk.android.core.util.AppUpdateStateHolder
 import com.nunchuk.android.core.util.BTC_CURRENCY_EXCHANGE_RATE
+import com.nunchuk.android.core.util.USDT_CURRENCY_EXCHANGE_RATE
 import com.nunchuk.android.core.util.PAGINATION
 import com.nunchuk.android.core.util.TimelineListenerAdapter
 import com.nunchuk.android.core.util.orFalse
@@ -109,6 +111,7 @@ internal class MainActivityViewModel @Inject constructor(
     private val createOrUpdateSyncFileUseCase: CreateOrUpdateSyncFileUseCase,
     private val deleteSyncFileUseCase: DeleteSyncFileUseCase,
     private val getLocalBtcPriceFlowUseCase: GetLocalBtcPriceFlowUseCase,
+    private val getLocalUsdtPriceFlowUseCase: GetLocalUsdtPriceFlowUseCase,
     private val sessionHolder: SessionHolder,
     private val accountManager: AccountManager,
     private val notificationDeviceRegisterUseCase: NotificationDeviceRegisterUseCase,
@@ -154,6 +157,7 @@ internal class MainActivityViewModel @Inject constructor(
         checkMissingSyncFile()
         observeInitialSync()
         listenBtcPrice()
+        listenUsdtPrice()
     }
 
     private fun listenBtcPrice() {
@@ -161,6 +165,16 @@ internal class MainActivityViewModel @Inject constructor(
             getLocalBtcPriceFlowUseCase(Unit).collect {
                 if (it.isSuccess) {
                     BTC_CURRENCY_EXCHANGE_RATE = it.getOrThrow()
+                }
+            }
+        }
+    }
+
+    private fun listenUsdtPrice() {
+        viewModelScope.launch {
+            getLocalUsdtPriceFlowUseCase(Unit).collect {
+                if (it.isSuccess) {
+                    USDT_CURRENCY_EXCHANGE_RATE = it.getOrThrow()
                 }
             }
         }

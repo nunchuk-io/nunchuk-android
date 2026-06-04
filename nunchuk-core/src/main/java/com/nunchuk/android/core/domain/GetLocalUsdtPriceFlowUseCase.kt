@@ -17,28 +17,20 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.core.data.model
+package com.nunchuk.android.core.domain
 
-import com.google.gson.annotations.SerializedName
+import com.nunchuk.android.FlowUseCase
+import com.nunchuk.android.core.repository.BtcRepository
+import com.nunchuk.android.domain.di.IoDispatcher
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.Flow
+import javax.inject.Inject
 
-data class PriceWrapperResponse(
-    @SerializedName("prices")
-    val prices: PriceResponse
-)
-
-data class PriceResponse(
-    @SerializedName("BTC")
-    val btc: PriceBTCResponse? = null,
-    @SerializedName("USDT")
-    val usdt: PriceUSDTResponse? = null,
-)
-
-data class PriceBTCResponse(
-    @SerializedName("USD")
-    val usd: Double? = null
-)
-
-data class PriceUSDTResponse(
-    @SerializedName("USD")
-    val usd: Double? = null
-)
+class GetLocalUsdtPriceFlowUseCase @Inject constructor(
+    @IoDispatcher dispatcher: CoroutineDispatcher,
+    private val repository: BtcRepository
+) : FlowUseCase<Unit, Double>(dispatcher) {
+    override fun execute(parameters: Unit): Flow<Double> {
+        return repository.getLocalUsdtPrice()
+    }
+}

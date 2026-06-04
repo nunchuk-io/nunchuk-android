@@ -41,6 +41,7 @@ import javax.inject.Inject
 interface BtcRepository {
     suspend fun getRemotePrice()
     fun getLocalPrice(): Flow<Double>
+    fun getLocalUsdtPrice(): Flow<Double>
     suspend fun getForexCurrencies(): HashMap<String, String>
     suspend fun getElectrumServers(): ElectrumServers
     fun getLocalElectrumServers(): Flow<List<ElectrumServer>>
@@ -61,16 +62,21 @@ internal class BtcRepositoryImpl @Inject constructor(
     override suspend fun getRemotePrice() {
         coroutineScope {
             val ratesResult = async { priceConverterAPI.getForexRates() }
-            val btcPriceResult = async { priceConverterAPI.getPrices() }
+            val pricesResult = async { priceConverterAPI.getPrices() }
             val rates = ratesResult.await()
-            val btcPrice = btcPriceResult.await().data.prices.btc?.usd ?: 0.0
+            val prices = pricesResult.await().data.prices
+            val btcPrice = prices.btc?.usd ?: 0.0
+            val usdtPrice = prices.usdt?.usd ?: 1.0
             val localCurrency = ncDataStore.localCurrencyFlow.first()
             val rate = rates[localCurrency] ?: 0.0
             ncDataStore.updateBtcPrice(rate * btcPrice)
+            ncDataStore.updateUsdtPrice(rate * usdtPrice)
         }
     }
 
     override fun getLocalPrice(): Flow<Double> = ncDataStore.btcPriceFlow
+
+    override fun getLocalUsdtPrice(): Flow<Double> = ncDataStore.usdtPriceFlow
 
     override suspend fun getForexCurrencies(): HashMap<String, String> {
         return priceConverterAPI.getForexCurrencies()

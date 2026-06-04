@@ -63,6 +63,7 @@ class NcDataStore @Inject constructor(
     private val accountManager: AccountManager,
 ) {
     private val btcPriceKey = doublePreferencesKey("btc_price")
+    private val usdtPriceKey = doublePreferencesKey("usdt_price")
     private val turnOnNotificationKey = booleanPreferencesKey("turn_on_notification")
     private val syncEnableKey = booleanPreferencesKey("sync_enable")
     private val isShowNfcUniversalKey = booleanPreferencesKey("show_nfc_universal")
@@ -161,6 +162,9 @@ class NcDataStore @Inject constructor(
     val btcPriceFlow: Flow<Double>
         get() = context.dataStore.data.map { it[btcPriceKey] ?: 45000.0 }
 
+    val usdtPriceFlow: Flow<Double>
+        get() = context.dataStore.data.map { it[usdtPriceKey] ?: 1.0 }
+
     val syncEnableFlow: Flow<Boolean>
         get() = context.dataStore.data.map {
             it[syncEnableKey] == true
@@ -246,6 +250,12 @@ class NcDataStore @Inject constructor(
     suspend fun updateBtcPrice(price: Double) {
         context.dataStore.edit { settings ->
             settings[btcPriceKey] = price
+        }
+    }
+
+    suspend fun updateUsdtPrice(price: Double) {
+        context.dataStore.edit { settings ->
+            settings[usdtPriceKey] = price
         }
     }
 

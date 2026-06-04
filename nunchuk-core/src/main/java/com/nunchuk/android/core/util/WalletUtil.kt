@@ -51,6 +51,8 @@ fun Double.fromBTCToCurrency() = this * BTC_CURRENCY_EXCHANGE_RATE
 
 fun Double.fromCurrencyToBTC() = this / BTC_CURRENCY_EXCHANGE_RATE
 
+fun Double.fromUsdtToCurrency() = this * USDT_CURRENCY_EXCHANGE_RATE
+
 fun Amount.pureBTC() = value.toDouble().fromSATtoBTC()
 
 fun Double.getBTCAmount() = when (CURRENT_DISPLAY_UNIT_TYPE) {
