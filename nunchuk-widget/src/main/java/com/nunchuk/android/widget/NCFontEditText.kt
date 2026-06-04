@@ -26,10 +26,12 @@ import android.text.InputType
 import android.text.method.HideReturnsTransformationMethod
 import android.text.method.PasswordTransformationMethod
 import android.util.AttributeSet
+import android.view.KeyEvent
 import android.view.MotionEvent
 import androidx.appcompat.widget.AppCompatEditText
 import androidx.core.content.ContextCompat
 import com.nunchuk.android.widget.util.FontInitializer
+import timber.log.Timber
 
 class NCFontEditText : AppCompatEditText {
     private var isMasked = true
@@ -53,6 +55,15 @@ class NCFontEditText : AppCompatEditText {
 
     constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : super(context, attrs, defStyleAttr) {
         initializer.initTypeface(this, attrs)
+    }
+
+    override fun onKeyUp(keyCode: Int, event: KeyEvent): Boolean = try {
+        super.onKeyUp(keyCode, event)
+    } catch (e: IllegalStateException) {
+        // Workaround for framework bug: focus search may return a view that can't take focus
+        // in mixed Compose/View hierarchies (TextView.onKeyUp throws).
+        Timber.w(e, "Suppressed focus-search crash on NCFontEditText")
+        true
     }
 
     override fun onTextContextMenuItem(id: Int): Boolean {

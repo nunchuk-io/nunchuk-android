@@ -24,12 +24,14 @@ import android.graphics.Rect
 import android.text.InputType
 import android.text.method.DigitsKeyListener
 import android.util.AttributeSet
+import android.view.KeyEvent
 import com.google.android.material.textfield.TextInputEditText
 import com.nunchuk.android.widget.currency.CurrencyInputWatcher
 import com.nunchuk.android.widget.currency.getLocaleFromTag
 import com.nunchuk.android.widget.currency.parseMoneyValueWithLocale
 import com.nunchuk.android.widget.util.FontInitializer
 import kotlinx.coroutines.flow.MutableStateFlow
+import timber.log.Timber
 import java.math.BigDecimal
 import java.text.DecimalFormatSymbols
 import java.util.Locale
@@ -147,6 +149,15 @@ class NCFontCurrencyEditText : TextInputEditText {
                 currencySymbolPrefix
             ).toString()
         )
+    }
+
+    override fun onKeyUp(keyCode: Int, event: KeyEvent): Boolean = try {
+        super.onKeyUp(keyCode, event)
+    } catch (e: IllegalStateException) {
+        // Workaround for framework bug: focus search may return a view that can't take focus
+        // in mixed Compose/View hierarchies (TextView.onKeyUp throws).
+        Timber.w(e, "Suppressed focus-search crash on NCFontCurrencyEditText")
+        true
     }
 
     override fun setText(text: CharSequence?, type: BufferType?) {

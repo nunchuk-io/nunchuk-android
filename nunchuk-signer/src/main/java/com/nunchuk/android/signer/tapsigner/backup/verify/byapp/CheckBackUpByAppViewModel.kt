@@ -73,12 +73,17 @@ class CheckBackUpByAppViewModel @Inject constructor(
 
     fun onContinueClicked(groupId: String, masterSignerId: String, isOnChainBackUp: Boolean) {
         viewModelScope.launch {
-            val newFile = downloadBackupKeyIfNeeded(
-                isReplaceKey = false,
-                masterSignerId = masterSignerId,
-                groupId = groupId,
-                walletId = ""
-            )
+            val newFile = try {
+                downloadBackupKeyIfNeeded(
+                    isReplaceKey = false,
+                    masterSignerId = masterSignerId,
+                    groupId = groupId,
+                    walletId = ""
+                )
+            } catch (e: Exception) {
+                _event.emit(CheckBackUpByAppEvent.ShowError(e))
+                return@launch
+            }
             val result =
                 verifyTapSignerBackupUseCase(
                     VerifyTapSignerBackupUseCase.Data(
@@ -119,12 +124,17 @@ class CheckBackUpByAppViewModel @Inject constructor(
         isOnChainBackUp: Boolean
     ) {
         viewModelScope.launch {
-            val newFile = downloadBackupKeyIfNeeded(
-                isReplaceKey = true,
-                groupId = groupId,
-                walletId = walletId,
-                masterSignerId = masterSignerId
-            )
+            val newFile = try {
+                downloadBackupKeyIfNeeded(
+                    isReplaceKey = true,
+                    groupId = groupId,
+                    walletId = walletId,
+                    masterSignerId = masterSignerId
+                )
+            } catch (e: Exception) {
+                _event.emit(CheckBackUpByAppEvent.ShowError(e))
+                return@launch
+            }
             val checkSum = if (isOnChainBackUp) "" else getChecksum(newFile)
             val result =
                 verifyTapSignerBackupUseCase(

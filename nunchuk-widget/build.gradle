@@ -20,5 +20,6 @@ dependencies {
 
     implementation zxingDeps.values()
     implementation androidxDeps.values()
+    implementation loggingDeps.timber
 
 }

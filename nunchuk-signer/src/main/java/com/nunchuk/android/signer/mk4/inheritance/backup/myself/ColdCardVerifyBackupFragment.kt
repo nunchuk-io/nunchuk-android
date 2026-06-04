@@ -50,6 +50,8 @@ import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.controlTextPrimary
 import com.nunchuk.android.compose.textPrimary
+import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.mk4.Mk4Activity
@@ -98,6 +100,7 @@ class ColdCardVerifyBackupFragment : MembershipFragment() {
                         }
 
                         is ColdCardVerifyBackUpMyselfEvent.SaveLocalFile -> showSaveFileState(event.isSuccess)
+                        is ColdCardVerifyBackUpMyselfEvent.ShowError -> showError(event.e?.message.orUnknownError())
                     }
                 }
         }

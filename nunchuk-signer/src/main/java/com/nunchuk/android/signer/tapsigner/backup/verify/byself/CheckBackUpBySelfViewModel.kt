@@ -83,7 +83,12 @@ class CheckBackUpBySelfViewModel @Inject constructor(
     private fun handleDownloadBackupKey(keyId: String, groupId: String, walletId: String) {
         viewModelScope.launch {
             getTapSignerStatusByIdUseCase(args.masterSignerId).onSuccess { status ->
-                val newFile = downloadBackupKey(keyId.isNotEmpty(), groupId, walletId)
+                val newFile = try {
+                    downloadBackupKey(keyId.isNotEmpty(), groupId, walletId)
+                } catch (e: Exception) {
+                    _event.emit(ShowError(e))
+                    return@launch
+                }
                 downloadBackupFilePath = newFile.absolutePath
                 _event.emit(GetBackUpKeySuccess(downloadBackupFilePath))
             }
@@ -110,10 +115,20 @@ class CheckBackUpBySelfViewModel @Inject constructor(
 
     fun setReplaceKeyVerified(keyId: String, groupId: String, walletId: String, isOnChainBackUp: Boolean) {
         viewModelScope.launch {
+            val checkSum = if (isOnChainBackUp) {
+                ""
+            } else {
+                try {
+                    getChecksum(true, groupId = groupId, walletId = walletId)
+                } catch (e: Exception) {
+                    _event.emit(ShowError(e))
+                    return@launch
+                }
+            }
             setReplaceKeyVerifiedUseCase(
                 SetReplaceKeyVerifiedUseCase.Param(
                     keyId = keyId,
-                    checkSum = if (isOnChainBackUp) "" else getChecksum(true, groupId = groupId, walletId = walletId),
+                    checkSum = checkSum,
                     verifyType = VerifyType.SELF_VERIFIED,
                     groupId = groupId,
                     walletId = walletId

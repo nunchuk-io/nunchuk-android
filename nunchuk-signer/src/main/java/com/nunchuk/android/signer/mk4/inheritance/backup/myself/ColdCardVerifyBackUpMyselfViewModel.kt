@@ -36,40 +36,45 @@ class ColdCardVerifyBackUpMyselfViewModel @Inject constructor(
         walletId: String, isReplaceKey: Boolean
     ) {
         viewModelScope.launch {
-            val newFile = withContext(ioDispatcher) {
-                var file: File
-                runCatching {
-                    if (File(filePath).exists().not()) {
-                        throw Exception("File not found")
+            val newFile = try {
+                withContext(ioDispatcher) {
+                    var file: File
+                    runCatching {
+                        if (File(filePath).exists().not()) {
+                            throw Exception("File not found")
+                        }
+                    }.also {
+                        file = if (it.isSuccess) {
+                            File(filePath)
+                        } else {
+                            File(
+                                if (isReplaceKey.not()) {
+                                    getDownloadBackUpKeyUseCase(
+                                        GetDownloadBackUpKeyUseCase.Param(
+                                            xfp = xfp,
+                                            groupId = groupId
+                                        )
+                                    ).getOrThrow()
+                                } else {
+                                    getDownloadBackUpKeyReplacementUseCase(
+                                        GetDownloadBackUpKeyReplacementUseCase.Param(
+                                            xfp = xfp,
+                                            groupId = groupId,
+                                            walletId = walletId
+                                        )
+                                    ).getOrThrow()
+                                }
+                            )
+                        }
                     }
-                }.also {
-                    file = if (it.isSuccess) {
-                        File(filePath)
-                    } else {
-                        File(
-                            if (isReplaceKey.not()) {
-                                getDownloadBackUpKeyUseCase(
-                                    GetDownloadBackUpKeyUseCase.Param(
-                                        xfp = xfp,
-                                        groupId = groupId
-                                    )
-                                ).getOrThrow()
-                            } else {
-                                getDownloadBackUpKeyReplacementUseCase(
-                                    GetDownloadBackUpKeyReplacementUseCase.Param(
-                                        xfp = xfp,
-                                        groupId = groupId,
-                                        walletId = walletId
-                                    )
-                                ).getOrThrow()
-                            }
-                        )
-                    }
+                    file.copyTo(
+                        nfcFileManager.getBackUpKeyFileWithName(backUpFileName),
+                        true
+                    )
                 }
-                file.copyTo(
-                    nfcFileManager.getBackUpKeyFileWithName(backUpFileName),
-                    true
-                )
+            } catch (e: Exception) {
+                _event.emit(ColdCardVerifyBackUpMyselfEvent.ShowError(e))
+                return@launch
             }
             downloadBackupFilePath = newFile.absolutePath
             _event.emit(ColdCardVerifyBackUpMyselfEvent.GetBackUpKeySuccess(downloadBackupFilePath))
@@ -90,4 +95,5 @@ class ColdCardVerifyBackUpMyselfViewModel @Inject constructor(
 sealed class ColdCardVerifyBackUpMyselfEvent {
     data class GetBackUpKeySuccess(val filePath: String) : ColdCardVerifyBackUpMyselfEvent()
     data class SaveLocalFile(val isSuccess: Boolean) : ColdCardVerifyBackUpMyselfEvent()
+    data class ShowError(val e: Throwable?) : ColdCardVerifyBackUpMyselfEvent()
 }
