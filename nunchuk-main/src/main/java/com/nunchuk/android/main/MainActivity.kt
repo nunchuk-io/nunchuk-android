@@ -44,6 +44,7 @@ import com.nunchuk.android.core.util.AppEvenBus
 import com.nunchuk.android.core.util.AppEvent
 import com.nunchuk.android.core.util.AppEventListener
 import com.nunchuk.android.core.util.DeeplinkHolder
+import com.nunchuk.android.core.util.ShortcutAction
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.main.components.tabs.wallet.WalletsViewModel
@@ -194,6 +195,19 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
                 ),
             )
             deeplinkHolder.clearBtcUri()
+        }
+        flowObserver(
+            deeplinkHolder.pendingShortcutAction.filterNotNull().distinctUntilChanged()
+        ) { action ->
+            val type = when (action) {
+                ShortcutAction.Send -> MainComposeArgs.TYPE_CHOOSE_WALLET_TO_SEND
+                ShortcutAction.Receive -> MainComposeArgs.TYPE_CHOOSE_WALLET_TO_RECEIVE
+            }
+            navigator.openMainComposeScreen(
+                activity = this@MainActivity,
+                args = MainComposeArgs(type = type),
+            )
+            deeplinkHolder.clearPendingShortcutAction()
         }
     }
 

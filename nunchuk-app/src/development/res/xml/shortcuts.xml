@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <shortcut
+        android:shortcutId="send_bitcoin"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_send"
+        android:shortcutShortLabel="@string/nc_shortcut_send_short_label"
+        android:shortcutLongLabel="@string/nc_shortcut_send_long_label">
+        <intent
+            android:action="com.nunchuk.android.action.SHORTCUT_SEND"
+            android:targetPackage="com.nunchuk.android.dev"
+            android:targetClass="com.nunchuk.android.app.splash.SplashActivity" />
+        <categories android:name="android.shortcut.conversation" />
+    </shortcut>
+
+    <shortcut
+        android:shortcutId="receive_bitcoin"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_receive"
+        android:shortcutShortLabel="@string/nc_shortcut_receive_short_label"
+        android:shortcutLongLabel="@string/nc_shortcut_receive_long_label">
+        <intent
+            android:action="com.nunchuk.android.action.SHORTCUT_RECEIVE"
+            android:targetPackage="com.nunchuk.android.dev"
+            android:targetClass="com.nunchuk.android.app.splash.SplashActivity" />
+        <categories android:name="android.shortcut.conversation" />
+    </shortcut>
+
+</shortcuts>

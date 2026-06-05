@@ -24,6 +24,9 @@ class DeeplinkHolder @Inject constructor(
     private val _btcUri = MutableStateFlow<BtcUri?>(null)
     val btcUri = _btcUri.asStateFlow()
 
+    private val _pendingShortcutAction = MutableStateFlow<ShortcutAction?>(null)
+    val pendingShortcutAction = _pendingShortcutAction.asStateFlow()
+
     fun setDeeplinkInfo(json: String) {
         if (json.isBlank()) return
         applicationScope.launch {
@@ -53,5 +56,13 @@ class DeeplinkHolder @Inject constructor(
 
     fun clearBtcUri() {
         _btcUri.value = null
+    }
+
+    fun setPendingShortcutAction(action: ShortcutAction) {
+        _pendingShortcutAction.value = action
+    }
+
+    fun clearPendingShortcutAction() {
+        _pendingShortcutAction.value = null
     }
 }

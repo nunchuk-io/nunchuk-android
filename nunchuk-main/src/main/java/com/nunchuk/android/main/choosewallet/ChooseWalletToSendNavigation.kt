@@ -13,6 +13,10 @@ fun NavGraphBuilder.chooseWalletToSendScreen(
     onClose: () -> Unit = { }
 ) {
     composable<ChooseWalletToSend> {
-        ChooseWalletToSendRoute(onWalletSelected = onWalletSelected, onClose = onClose)
+        ChooseWalletToSendRoute(
+            excludeZeroBalance = true,
+            onWalletSelected = onWalletSelected,
+            onClose = onClose
+        )
     }
 } 

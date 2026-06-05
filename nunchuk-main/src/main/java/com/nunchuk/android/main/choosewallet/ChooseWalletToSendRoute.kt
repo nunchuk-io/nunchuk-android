@@ -21,6 +21,7 @@ import com.nunchuk.android.compose.NcScaffold
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.provider.WalletExtendedListProvider
+import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.core.wallet.AssistedWallet
 import com.nunchuk.android.core.wallet.WalletUiModel
 import com.nunchuk.android.main.R
@@ -30,10 +31,22 @@ import com.nunchuk.android.model.byzantine.AssistedWalletRole
 @Composable
 internal fun ChooseWalletToSendRoute(
     viewModel: ChooseWalletToSendViewModel = hiltViewModel(),
+    title: String = stringResource(R.string.nc_choose_wallet_to_send),
+    excludeZeroBalance: Boolean = false,
     onWalletSelected: (WalletExtended) -> Unit = {},
     onClose: () -> Unit = { }
 ) {
-    val uiState by viewModel.state.collectAsStateWithLifecycle()
+    val rawState by viewModel.state.collectAsStateWithLifecycle()
+    val uiState = if (excludeZeroBalance) {
+        rawState.copy(
+            wallets = rawState.wallets.filter { it.wallet.balance.pureBTC() > 0.0 },
+            walletUiModels = rawState.walletUiModels.filter {
+                it.wallet.wallet.balance.pureBTC() > 0.0
+            }
+        )
+    } else {
+        rawState
+    }
 
     LaunchedEffect(uiState.wallets.size) {
         if (uiState.wallets.size == 1) {
@@ -41,8 +54,10 @@ internal fun ChooseWalletToSendRoute(
         }
     }
 
-    LaunchedEffect(uiState.hasNoWallets) {
-        if (uiState.hasNoWallets) {
+    LaunchedEffect(uiState.hasNoWallets, uiState.wallets.isEmpty(), rawState.wallets.isEmpty()) {
+        if (uiState.hasNoWallets ||
+            (excludeZeroBalance && rawState.wallets.isNotEmpty() && uiState.wallets.isEmpty())
+        ) {
             onClose()
         }
     }
@@ -50,6 +65,7 @@ internal fun ChooseWalletToSendRoute(
     if (uiState.wallets.isNotEmpty()) {
         ChooseWalletToSendContent(
             uiState = uiState,
+            title = title,
             onWalletSelected = onWalletSelected
         )
     }
@@ -58,6 +74,7 @@ internal fun ChooseWalletToSendRoute(
 @Composable
 internal fun ChooseWalletToSendContent(
     uiState: ChooseWalletToSendUiState,
+    title: String = stringResource(R.string.nc_choose_wallet_to_send),
     onWalletSelected: (WalletExtended) -> Unit
 ) {
     NcScaffold(
@@ -65,7 +82,7 @@ internal fun ChooseWalletToSendContent(
             .navigationBarsPadding(),
         topBar = {
             NcTopAppBar(
-                title = stringResource(R.string.nc_choose_wallet_to_send),
+                title = title,
                 textStyle = NunchukTheme.typography.titleLarge,
             )
         }

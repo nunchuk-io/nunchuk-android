@@ -97,6 +97,10 @@
                 <data android:scheme="https" android:host="nunchuk-alternate.app.link" />
             </intent-filter>
 
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
+
         </activity>
         <activity android:name="com.nunchuk.android.app.wallet.QuickWalletActivity"
             android:label="@string/nc_wallet_add_wallet_title"

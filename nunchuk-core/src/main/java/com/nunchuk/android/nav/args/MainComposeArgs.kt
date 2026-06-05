@@ -20,6 +20,7 @@ data class MainComposeArgs(
         const val TYPE_ARCHIVE = 1
         const val TYPE_GUEST_WALLET_NOTICE = 2
         const val TYPE_CHOOSE_WALLET_TO_SEND = 3
+        const val TYPE_CHOOSE_WALLET_TO_RECEIVE = 4
 
         private const val EXTRA_TYPE = "EXTRA_TYPE"
         private const val EXTRA_BTC_URI = "EXTRA_BTC_URI"

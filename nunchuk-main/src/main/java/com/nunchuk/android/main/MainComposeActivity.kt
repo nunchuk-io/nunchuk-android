@@ -12,7 +12,9 @@ import com.nunchuk.android.core.base.BaseComposeActivity
 import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.main.archive.Archive
 import com.nunchuk.android.main.archive.archiveScreen
+import com.nunchuk.android.main.choosewallet.ChooseWalletToReceive
 import com.nunchuk.android.main.choosewallet.ChooseWalletToSend
+import com.nunchuk.android.main.choosewallet.chooseWalletToReceiveScreen
 import com.nunchuk.android.main.choosewallet.chooseWalletToSendScreen
 import com.nunchuk.android.main.guest.GuestWalletNotice
 import com.nunchuk.android.main.guest.guestWalletNoticeScreen
@@ -35,6 +37,7 @@ class MainComposeActivity : BaseComposeActivity() {
                 MainComposeArgs.TYPE_ARCHIVE -> Archive
                 MainComposeArgs.TYPE_GUEST_WALLET_NOTICE -> GuestWalletNotice
                 MainComposeArgs.TYPE_CHOOSE_WALLET_TO_SEND -> ChooseWalletToSend
+                MainComposeArgs.TYPE_CHOOSE_WALLET_TO_RECEIVE -> ChooseWalletToReceive
                 else -> throw IllegalArgumentException("Unknown type: ${args.type}")
             }
 
@@ -61,6 +64,18 @@ class MainComposeActivity : BaseComposeActivity() {
                                 walletId = walletExtended.wallet.id,
                                 availableAmount = walletExtended.wallet.balance.pureBTC(),
                                 btcUri = args.btcUri
+                            )
+                            finish()
+                        },
+                        onClose = {
+                            finish()
+                        }
+                    )
+                    chooseWalletToReceiveScreen(
+                        onWalletSelected = { walletExtended ->
+                            navigator.openReceiveTransactionScreen(
+                                activityContext = this@MainComposeActivity,
+                                walletId = walletExtended.wallet.id
                             )
                             finish()
                         },

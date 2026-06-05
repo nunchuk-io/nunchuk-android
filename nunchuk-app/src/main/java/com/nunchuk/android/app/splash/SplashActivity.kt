@@ -25,6 +25,7 @@ import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import com.nunchuk.android.core.util.DeeplinkHolder
+import com.nunchuk.android.core.util.ShortcutAction
 import com.nunchuk.android.core.util.UnlockPinSourceFlow
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.nav.NunchukNavigator
@@ -68,6 +69,14 @@ internal class SplashActivity : AppCompatActivity() {
             handleBranchDeepLink(branchUniversalObject, linkProperties, error)
         }.reInit()
         deeplinkHolder.setBtcUri(intent.data?.toString().orEmpty())
+        captureShortcutAction(intent)
+    }
+
+    private fun captureShortcutAction(intent: Intent) {
+        when (intent.action) {
+            ACTION_SHORTCUT_SEND -> deeplinkHolder.setPendingShortcutAction(ShortcutAction.Send)
+            ACTION_SHORTCUT_RECEIVE -> deeplinkHolder.setPendingShortcutAction(ShortcutAction.Receive)
+        }
     }
 
     private fun handleBranchDeepLink(branchUniversalObject: BranchUniversalObject?, linkProperties: LinkProperties?, error: BranchError?) {
@@ -99,6 +108,7 @@ internal class SplashActivity : AppCompatActivity() {
         setTransparentStatusBar()
         subscribeEvents()
         deeplinkHolder.setBtcUri(intent.data?.toString().orEmpty())
+        captureShortcutAction(intent)
     }
 
     private fun subscribeEvents() {
@@ -145,6 +155,9 @@ internal class SplashActivity : AppCompatActivity() {
     }
 
     companion object {
+        const val ACTION_SHORTCUT_SEND = "com.nunchuk.android.action.SHORTCUT_SEND"
+        const val ACTION_SHORTCUT_RECEIVE = "com.nunchuk.android.action.SHORTCUT_RECEIVE"
+
         fun navigate(activityContext: Context) {
             val intent = Intent(activityContext, SplashActivity::class.java)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
