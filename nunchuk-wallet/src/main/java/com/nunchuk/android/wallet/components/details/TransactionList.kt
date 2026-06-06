@@ -107,11 +107,11 @@ internal fun TransactionRow(
         rememberStableTxDisplay(transaction, usdtAssetId, extended.hideFiatCurrency, hideWalletDetail)
     } else null
 
-    val isReceive = stableDisplay?.isReceive ?: transaction.isReceive
+    val isReceive = transaction.isReceive
     val amountColor = if (isReceive) colorResource(com.nunchuk.android.wallet.R.color.nc_slime_dark)
     else MaterialTheme.colorScheme.textPrimary
 
-    val receiverText = stableDisplay?.receiverText ?: when {
+    val receiverText = when {
         isReceive && transaction.receiveOutputs.size > 1 ->
             stringResource(R.string.nc_multiple_addresses)
 
@@ -316,8 +316,6 @@ private fun isTimelockedActive(
 }
 
 private data class StableTxDisplay(
-    val isReceive: Boolean,
-    val receiverText: String,
     val tokenAmount: String,
     val cashAmount: String,
 )
@@ -329,24 +327,15 @@ private fun rememberStableTxDisplay(
     hideFiatCurrency: Boolean,
     hideWalletDetail: Boolean,
 ): StableTxDisplay {
-    // For Liquid wallets, the BTC-side Transaction.isReceive is unreliable for asset-only
-    // (USDT-only) transfers because the LBTC sub-amount can be zero. Derive direction from
-    // the per-output TxOutput.isReceive / TxOutput.userAmount flags exposed in the new API.
-    val isReceive = transaction.receiveOutputs.isNotEmpty() && transaction.userOutputs.isEmpty()
-
-    // Pick the asset we should headline: prefer USDT when the transaction involves USDT,
-    // otherwise show LBTC. Asset id matching is case-insensitive because the SDK returns hex.
-    val relevantOutputs: List<TxOutput> =
-        if (isReceive) transaction.receiveOutputs else transaction.userOutputs
+    val isReceive = transaction.isReceive
+    val relevantOutputs: List<TxOutput> = if (isReceive) {
+        transaction.receiveOutputs
+    } else {
+        transaction.outputs.filter { !it.isReceive }
+    }
 
     val totalsByAsset: Map<String, Long> = relevantOutputs.groupBy { it.assetId }
-        .mapValues { (_, outs) ->
-            outs.sumOf { out -> if (isReceive) out.second.value else out.userAmount.value }
-        }
-
-    // A Liquid tx can carry both LBTC and USDT outputs (e.g. USDT transfer + LBTC change/fee
-    // phantoms). Only headline the asset that actually has a non-zero amount so we don't
-    // render "0 USDT" for what is in practice a LBTC-only receive.
+        .mapValues { (_, outs) -> outs.sumOf { it.second.value } }
     val usdtTotal = if (usdtAssetId.isEmpty()) 0L else {
         totalsByAsset.entries
             .firstOrNull { it.key.equals(usdtAssetId, ignoreCase = true) }?.value ?: 0L
@@ -354,27 +343,6 @@ private fun rememberStableTxDisplay(
     val isUsdt = usdtTotal != 0L
     val total = if (isUsdt) usdtTotal else totalsByAsset.values.sum()
     val amount = Amount(value = total)
-
-    val receiverText = when {
-        isReceive && transaction.receiveOutputs.size > 1 ->
-            stringResource(R.string.nc_multiple_addresses)
-
-        isReceive -> Utils.maskValue(
-            transaction.receiveOutputs.firstOrNull()?.first.orEmpty().truncatedAddress(),
-            hideWalletDetail,
-        )
-
-        else -> {
-            val sendOuts = transaction.userOutputs.ifEmpty {
-                transaction.outputs.filter { !it.isChange }
-            }
-            if (sendOuts.size > 1) stringResource(R.string.nc_multiple_addresses)
-            else Utils.maskValue(
-                sendOuts.firstOrNull()?.first.orEmpty().truncatedAddress(),
-                hideWalletDetail,
-            )
-        }
-    }
 
     val sign = if (isReceive) "" else "- "
     val tokenRaw = if (isUsdt) "${amount.formatUsdtToken()} USDT" else "${amount.formatLbtcToken()} LBTC"
@@ -385,8 +353,6 @@ private fun rememberStableTxDisplay(
     }
 
     return StableTxDisplay(
-        isReceive = isReceive,
-        receiverText = receiverText,
         tokenAmount = tokenAmount,
         cashAmount = cashAmount,
     )
