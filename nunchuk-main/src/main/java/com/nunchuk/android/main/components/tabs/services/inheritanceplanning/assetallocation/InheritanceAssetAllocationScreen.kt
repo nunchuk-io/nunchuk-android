@@ -212,10 +212,11 @@ private fun InheritanceAssetAllocationContent(
                         )
                     }
                     val totalAllocation = beneficiaries.sumOf { it.allocationPercent }
+                    val hasZeroAllocation = beneficiaries.any { it.allocationPercent <= 0 }
                     NcPrimaryDarkButton(
                         modifier = Modifier
                             .fillMaxWidth(),
-                        enabled = totalAllocation >= 100,
+                        enabled = totalAllocation >= 100 && hasZeroAllocation.not(),
                         onClick = onContinueClicked,
                     ) {
                         Text(text = stringResource(id = R.string.nc_text_continue))
