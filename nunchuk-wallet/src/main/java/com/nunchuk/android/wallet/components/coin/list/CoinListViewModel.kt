@@ -25,9 +25,11 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.compose.miniscript.analyzeMiniscriptForTimelocks
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
+import com.nunchuk.android.core.util.fromSATtoBTC
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.listener.TransactionListener
 import com.nunchuk.android.manager.AssistedWalletManager
+import com.nunchuk.android.model.TxInput
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.usecase.GetScriptNodeFromMiniscriptTemplateUseCase
 import com.nunchuk.android.usecase.coin.GetAllCoinUseCase
@@ -36,6 +38,7 @@ import com.nunchuk.android.usecase.coin.GetAllTagsUseCase
 import com.nunchuk.android.usecase.coin.LockCoinUseCase
 import com.nunchuk.android.usecase.coin.RemoveCoinFromCollectionUseCase
 import com.nunchuk.android.usecase.coin.RemoveCoinFromTagUseCase
+import com.nunchuk.android.usecase.coin.SavePendingTxInputsUseCase
 import com.nunchuk.android.usecase.coin.UnLockCoinUseCase
 import com.nunchuk.android.usecase.miniscript.GetSpendableNowAmountUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
@@ -65,7 +68,8 @@ class CoinListViewModel @Inject constructor(
     private val pushEventManager: PushEventManager,
     private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
     private val getSpendableNowAmountUseCase: GetSpendableNowAmountUseCase,
-    private val getScriptNodeFromMiniscriptTemplateUseCase: GetScriptNodeFromMiniscriptTemplateUseCase
+    private val getScriptNodeFromMiniscriptTemplateUseCase: GetScriptNodeFromMiniscriptTemplateUseCase,
+    private val savePendingTxInputsUseCase: SavePendingTxInputsUseCase,
 ) : ViewModel() {
     private val walletId = savedStateHandle.get<String>("wallet_id").orEmpty()
     private val _state = MutableStateFlow(CoinListUiState())
@@ -254,6 +258,21 @@ class CoinListViewModel @Inject constructor(
 
     fun getSelectedCoins() = _state.value.selectedCoins.toList()
 
+    fun prepareCreateTransaction() {
+        viewModelScope.launch {
+            val selectedCoins = _state.value.selectedCoins.toList()
+            savePendingTxInputsUseCase(
+                SavePendingTxInputsUseCase.Param(
+                    walletId = walletId,
+                    inputs = selectedCoins.map { TxInput(it.txid, it.vout) }
+                )
+            )
+            val availableAmount = selectedCoins
+                .sumOf { it.amount.value }.toDouble().fromSATtoBTC()
+            _event.emit(CoinListEvent.OpenCreateTransaction(availableAmount))
+        }
+    }
+
     fun getLockedCoins() = _state.value.coins.filter { it.isLocked }
 
     private fun getSpendableAmount() {
@@ -297,4 +316,5 @@ sealed class CoinListEvent {
     data class CoinUnlocked(val isCreateTransaction: Boolean) : CoinListEvent()
     object RemoveCoinFromTagSuccess : CoinListEvent()
     object RemoveCoinFromCollectionSuccess : CoinListEvent()
+    data class OpenCreateTransaction(val availableAmount: Double) : CoinListEvent()
 }

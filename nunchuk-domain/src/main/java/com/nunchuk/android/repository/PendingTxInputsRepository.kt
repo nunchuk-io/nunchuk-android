@@ -19,49 +19,10 @@
 
 package com.nunchuk.android.repository
 
-import com.nunchuk.android.model.EstimateFeeRates
 import com.nunchuk.android.model.TxInput
 
-interface TransactionRepository {
-    suspend fun getFees(): EstimateFeeRates
-
-    suspend fun getLocalFee(): EstimateFeeRates
-    suspend fun batchTransactions(
-        walletId: String,
-        groupId: String,
-        notes: List<String>,
-        psbts: List<String>
-    )
-    suspend fun randomizeBroadcastBatchTransactions(
-        walletId: String,
-        groupId: String,
-        transactionIds: List<String>,
-        days: Int
-    )
-
-    /**
-     * Save the selected key set index for a taproot transaction.
-     */
-    suspend fun saveTaprootKeySetSelection(transactionId: String, keySetIndex: Int)
-
-    /**
-     * Get the selected key set index for a taproot transaction, or null if not set.
-     */
-    suspend fun getTaprootKeySetSelection(transactionId: String): Int?
-
-    /**
-     * Persist the user-selected coin inputs of the in-flight transaction draft.
-     * Keeps Intent extras small to avoid TransactionTooLargeException.
-     */
-    suspend fun savePendingTxInputs(walletId: String, inputs: List<TxInput>)
-
-    /**
-     * Returns the saved inputs only when they belong to [walletId]; otherwise an empty list.
-     */
-    suspend fun getPendingTxInputs(walletId: String): List<TxInput>
-
-    /**
-     * Clears the saved pending transaction inputs, e.g. after a transaction is created.
-     */
-    suspend fun clearPendingTxInputs()
+interface PendingTxInputsRepository {
+    suspend fun save(walletId: String, inputs: List<TxInput>)
+    suspend fun get(walletId: String): List<TxInput>
+    suspend fun clear()
 }

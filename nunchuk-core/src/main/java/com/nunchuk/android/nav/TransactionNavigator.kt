@@ -35,7 +35,6 @@ import com.nunchuk.android.model.SatsCardSlot
 import com.nunchuk.android.model.SavedAddress
 import com.nunchuk.android.model.SigningPath
 import com.nunchuk.android.model.Transaction
-import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.nav.args.AddReceiptType
 import com.nunchuk.android.share.model.SignFlowType
 
@@ -57,7 +56,7 @@ interface TransactionNavigator {
         activityContext: Activity,
         walletId: String,
         availableAmount: Double,
-        inputs: List<UnspentOutput> = emptyList(),
+        isFromSelectedCoin: Boolean = false,
         claimInheritanceTxParam: ClaimInheritanceTxParam? = null,
         btcUri: BtcUri? = null
     )
@@ -72,7 +71,7 @@ interface TransactionNavigator {
         subtractFeeFromAmount: Boolean = false,
         slots: List<SatsCardSlot> = emptyList(),
         sweepType: SweepType = SweepType.NONE,
-        inputs: List<UnspentOutput> = emptyList(),
+        isFromSelectedCoin: Boolean = false,
         claimInheritanceTxParam: ClaimInheritanceTxParam? = null,
         type: AddReceiptType = AddReceiptType.ADD_RECEIPT
     )
@@ -86,7 +85,7 @@ interface TransactionNavigator {
         subtractFeeFromAmount: Boolean = false,
         sweepType: SweepType = SweepType.NONE,
         slots: List<SatsCardSlot> = emptyList(),
-        inputs: List<UnspentOutput> = emptyList(),
+        isFromSelectedCoin: Boolean = false,
         claimInheritanceTxParam: ClaimInheritanceTxParam? = null,
         isConsolidateFlow: Boolean = false,
         title: String = "",
@@ -105,7 +104,7 @@ interface TransactionNavigator {
         manualFeeRate: Int = 0,
         sweepType: SweepType = SweepType.NONE,
         slots: List<SatsCardSlot> = emptyList(),
-        inputs: List<UnspentOutput> = emptyList(),
+        isFromSelectedCoin: Boolean = false,
         claimInheritanceTxParam: ClaimInheritanceTxParam? = null,
         actionButtonText: String = "",
         signingPath: SigningPath? = null,

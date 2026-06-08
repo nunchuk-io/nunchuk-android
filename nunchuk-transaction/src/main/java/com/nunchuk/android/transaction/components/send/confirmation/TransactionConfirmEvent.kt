@@ -62,4 +62,8 @@ sealed class TransactionConfirmEvent {
     data class AutoSelectSigningPath(
         val signingPath: SigningPath
     ) : TransactionConfirmEvent()
+    data class OpenInputAmountFromTimelock(
+        val walletId: String,
+        val availableAmount: Double,
+    ) : TransactionConfirmEvent()
 }

@@ -27,6 +27,7 @@ import com.nunchuk.android.core.data.model.membership.TransactionPayload
 import com.nunchuk.android.core.manager.UserWalletApiManager
 import com.nunchuk.android.core.persistence.NcDataStore
 import com.nunchuk.android.model.EstimateFeeRates
+import com.nunchuk.android.model.TxInput
 import com.nunchuk.android.repository.TransactionRepository
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.persistence.dao.TaprootTransactionDao
@@ -142,5 +143,17 @@ internal class TransactionRepositoryImpl @Inject constructor(
 
     override suspend fun getTaprootKeySetSelection(transactionId: String): Int? {
         return taprootTransactionDao.getByTransactionId(transactionId).first()?.keySetIndex
+    }
+
+    override suspend fun savePendingTxInputs(walletId: String, inputs: List<TxInput>) {
+        ncDataStore.savePendingTxInputs(walletId, inputs)
+    }
+
+    override suspend fun getPendingTxInputs(walletId: String): List<TxInput> {
+        return ncDataStore.getPendingTxInputs(walletId)
+    }
+
+    override suspend fun clearPendingTxInputs() {
+        ncDataStore.clearPendingTxInputs()
     }
 }

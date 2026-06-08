@@ -32,6 +32,7 @@ import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.util.fromBTCToCurrency
+import com.nunchuk.android.core.util.fromSATtoBTC
 import com.nunchuk.android.core.util.hasChangeIndex
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.pureBTC
@@ -65,9 +66,12 @@ import com.nunchuk.android.usecase.EstimateRollOverFeeForSigningPathsUseCase
 import com.nunchuk.android.usecase.GetTaprootSelectionFeeSettingUseCase
 import com.nunchuk.android.usecase.GetTimelockedCoinsUseCase
 import com.nunchuk.android.usecase.coin.AddToCoinTagUseCase
+import com.nunchuk.android.usecase.coin.ClearPendingTxInputsUseCase
 import com.nunchuk.android.usecase.coin.GetAllTagsUseCase
 import com.nunchuk.android.usecase.coin.GetCoinsFromTxInputsUseCase
+import com.nunchuk.android.usecase.coin.GetPendingTxInputsUseCase
 import com.nunchuk.android.usecase.coin.IsMyCoinUseCase
+import com.nunchuk.android.usecase.coin.SavePendingTxInputsUseCase
 import com.nunchuk.android.usecase.membership.GetSavedAddressListLocalUseCase
 import com.nunchuk.android.usecase.room.transaction.InitRoomTransactionUseCase
 import com.nunchuk.android.usecase.transaction.GetTransaction2UseCase
@@ -109,6 +113,9 @@ class TransactionConfirmViewModel @Inject constructor(
     private val getTransaction2UseCase: GetTransaction2UseCase,
     private val estimateRollOverFeeForSigningPathsUseCase: EstimateRollOverFeeForSigningPathsUseCase,
     private val estimateFeeUseCase: EstimateFeeUseCase,
+    private val getPendingTxInputsUseCase: GetPendingTxInputsUseCase,
+    private val clearPendingTxInputsUseCase: ClearPendingTxInputsUseCase,
+    private val savePendingTxInputsUseCase: SavePendingTxInputsUseCase,
     private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     private val _state = MutableStateFlow(TransactionConfirmUiState())
@@ -151,7 +158,7 @@ class TransactionConfirmViewModel @Inject constructor(
         privateNote: String = "",
         manualFeeRate: Int = -1,
         slots: List<SatsCardSlot> = emptyList(),
-        inputs: List<UnspentOutput> = emptyList(),
+        isFromSelectedCoin: Boolean = false,
         claimInheritanceTxParam: ClaimInheritanceTxParam? = null,
         antiFeeSniping: Boolean = false,
     ) {
@@ -165,13 +172,20 @@ class TransactionConfirmViewModel @Inject constructor(
             clear()
             addAll(slots)
         }
-        this.inputs.apply {
-            clear()
-            addAll(inputs)
-        }
+        this.inputs.clear()
         this.claimInheritanceTxParam = claimInheritanceTxParam
-        if (inputs.isNotEmpty()) {
-            getAllTags()
+        if (isFromSelectedCoin) {
+            viewModelScope.launch {
+                val txInputs = getPendingTxInputsUseCase(walletId).getOrDefault(emptyList())
+                if (txInputs.isEmpty()) return@launch
+                getCoinsFromTxInputsUseCase(
+                    GetCoinsFromTxInputsUseCase.Params(walletId, txInputs)
+                ).onSuccess { coins ->
+                    inputs.addAll(coins)
+                    _state.update { it.copy(inputs = coins) }
+                    getAllTags()
+                }
+            }
         }
     }
 
@@ -179,9 +193,24 @@ class TransactionConfirmViewModel @Inject constructor(
      * @param isSendAll indicates whether the transaction is sending all coins include locked coins in the timelock notice screen
      * It doesn't mean all coins in the wallet.
      */
+    fun prepareCreateTransactionFromTimelock(walletId: String, coins: List<UnspentOutput>) {
+        viewModelScope.launch {
+            savePendingTxInputsUseCase(
+                SavePendingTxInputsUseCase.Param(
+                    walletId = walletId,
+                    inputs = coins.map { TxInput(it.txid, it.vout) }
+                )
+            )
+            val availableAmount = coins
+                .sumOf { it.amount.value }.toDouble().fromSATtoBTC()
+            _event.emit(TransactionConfirmEvent.OpenInputAmountFromTimelock(walletId, availableAmount))
+        }
+    }
+
     fun updateInputs(isSendAll: Boolean, inputs: List<UnspentOutput>) {
         this.inputs.clear()
         this.inputs.addAll(inputs)
+        _state.update { it.copy(inputs = inputs) }
         if (!isSendAll) {
             if (txReceipts.size == 1) {
                 txReceipts = txReceipts.toMutableList().apply {
@@ -361,6 +390,11 @@ class TransactionConfirmViewModel @Inject constructor(
                     _event.emit(CreateTxErrorEvent("No coins found for the transaction inputs."))
                     return@launch
                 }
+                if (inputs.isEmpty()) {
+                    inputs.addAll(coins)
+                }
+                _state.update { it.copy(inputs = coins) }
+                if (_state.value.allTags.isEmpty()) getAllTags()
                 getTimelockedCoinsUseCase(
                     GetTimelockedCoinsUseCase.Params(
                         walletId = walletId,
@@ -509,6 +543,7 @@ class TransactionConfirmViewModel @Inject constructor(
                         )
                     }
                 } else {
+                    clearPendingTxInputsUseCase(Unit)
                     _event.emit(CreateTxSuccessEvent(transaction))
                 }
                 pushEventManager.push(PushEvent.TransactionCreatedEvent)
@@ -537,6 +572,7 @@ class TransactionConfirmViewModel @Inject constructor(
             )
         )
         if (result.isSuccess) {
+            clearPendingTxInputsUseCase(Unit)
             _event.emit(
                 CreateTxSuccessEvent(
                     result.getOrThrow().transaction,
@@ -692,6 +728,7 @@ data class TransactionConfirmUiState(
     val transaction: Transaction = Transaction(),
     val savedAddress: Map<String, String> = emptyMap(),
     val feeSelectionSetting: TaprootFeeSelectionSetting = TaprootFeeSelectionSetting(),
+    val inputs: List<UnspentOutput> = emptyList(),
 )
 
 internal fun Int.toManualFeeRate() = if (this > 0) toAmount() else Amount(-1)

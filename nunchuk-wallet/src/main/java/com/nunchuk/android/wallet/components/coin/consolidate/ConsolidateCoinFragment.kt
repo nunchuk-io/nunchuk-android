@@ -14,6 +14,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -61,48 +62,54 @@ class ConsolidateCoinFragment : Fragment() {
             setContent {
                 val viewModel = hiltViewModel<ConsolidateCoinViewModel>()
                 val state by viewModel.uiState.collectAsStateWithLifecycle()
+                LaunchedEffect(viewModel) {
+                    viewModel.event.collect { event ->
+                        val availableAmount = args.selectedCoins
+                            .sumOf { it.amount.value }.toDouble().fromSATtoBTC()
+                        when (event) {
+                            is ConsolidateCoinEvent.OpenTransactionConfirm -> {
+                                navigator.openTransactionConfirmScreen(
+                                    activityContext = requireActivity(),
+                                    walletId = args.walletId,
+                                    availableAmount = availableAmount,
+                                    txReceipts = listOf(
+                                        TxReceipt(
+                                            address = state.address,
+                                            amount = availableAmount,
+                                        )
+                                    ),
+                                    privateNote = event.note,
+                                    subtractFeeFromAmount = true,
+                                    manualFeeRate = state.manualFeeRate,
+                                    isFromSelectedCoin = true,
+                                    antiFeeSniping = false
+                                )
+                            }
+
+                            is ConsolidateCoinEvent.OpenEstimatedFee -> {
+                                navigator.openEstimatedFeeScreen(
+                                    activityContext = requireActivity(),
+                                    walletId = args.walletId,
+                                    availableAmount = availableAmount,
+                                    txReceipts = listOf(
+                                        TxReceipt(
+                                            address = state.address,
+                                            amount = availableAmount,
+                                        )
+                                    ),
+                                    privateNote = event.note,
+                                    subtractFeeFromAmount = true,
+                                    isFromSelectedCoin = true,
+                                    isConsolidateFlow = true
+                                )
+                            }
+                        }
+                    }
+                }
                 ConsolidateCoinScreen(
                     state = state,
-                    onCreateTransaction = { note ->
-                        val availableAmount =
-                            args.selectedCoins.sumOf { it.amount.value }.toDouble().fromSATtoBTC()
-                        navigator.openTransactionConfirmScreen(
-                            activityContext = requireActivity(),
-                            walletId = args.walletId,
-                            availableAmount = availableAmount,
-                            txReceipts = listOf(
-                                TxReceipt(
-                                    address = state.address,
-                                    amount = availableAmount,
-                                )
-                            ),
-                            privateNote = note,
-                            subtractFeeFromAmount = true,
-                            manualFeeRate = state.manualFeeRate,
-                            inputs = args.selectedCoins.toList(),
-                            antiFeeSniping = false
-                        )
-                    },
-                    onCustomizeTransaction = { note ->
-                        val availableAmount =
-                            args.selectedCoins.sumOf { it.amount.value }.toDouble().fromSATtoBTC()
-
-                        navigator.openEstimatedFeeScreen(
-                            activityContext = requireActivity(),
-                            walletId = args.walletId,
-                            availableAmount = availableAmount,
-                            txReceipts = listOf(
-                                TxReceipt(
-                                    address = state.address,
-                                    amount = availableAmount,
-                                )
-                            ),
-                            privateNote = note,
-                            subtractFeeFromAmount = true,
-                            inputs = args.selectedCoins.toList(),
-                            isConsolidateFlow = true
-                        )
-                    },
+                    onCreateTransaction = viewModel::prepareCreateTransaction,
+                    onCustomizeTransaction = viewModel::prepareCustomizeTransaction,
                     handleGenerateAddressError = viewModel::handleGenerateAddressError
                 )
             }

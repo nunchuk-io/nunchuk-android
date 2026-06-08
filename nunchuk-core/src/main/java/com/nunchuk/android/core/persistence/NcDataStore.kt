@@ -38,6 +38,7 @@ import com.nunchuk.android.model.BannerState
 import com.nunchuk.android.model.FeeRate
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStep
+import com.nunchuk.android.model.TxInput
 import com.nunchuk.android.model.WalletBannerState
 import com.nunchuk.android.model.setting.BiometricConfig
 import com.nunchuk.android.model.setting.HomeDisplaySetting
@@ -93,7 +94,9 @@ class NcDataStore @Inject constructor(
     private val claimWallets = stringSetPreferencesKey("claim_wallets")
     private val claimedWalletUserIds = stringSetPreferencesKey("claimed_wallet_user_ids")
     private val inactiveAssistedWalletIdsKey = stringSetPreferencesKey("inactive_assisted_wallet_ids")
-    
+    private val pendingTxInputsWalletIdKey = stringPreferencesKey("pending_tx_inputs_wallet_id")
+    private val pendingTxInputsKey = stringPreferencesKey("pending_tx_inputs")
+
     private fun getSeedPhraseViewTimestampKey(masterFingerprint: String): Preferences.Key<Long> {
         return longPreferencesKey("seed_phrase_view_timestamp_$masterFingerprint")
     }
@@ -662,6 +665,31 @@ class NcDataStore @Inject constructor(
         return stored
     }
 
+    suspend fun savePendingTxInputs(walletId: String, inputs: List<TxInput>) {
+        context.dataStore.edit {
+            it[pendingTxInputsWalletIdKey] = walletId
+            it[pendingTxInputsKey] = gson.toJson(inputs)
+        }
+    }
+
+    suspend fun getPendingTxInputs(walletId: String): List<TxInput> {
+        val prefs = context.dataStore.data.first()
+        val savedWalletId = prefs[pendingTxInputsWalletIdKey].orEmpty()
+        if (savedWalletId != walletId) return emptyList()
+        val json = prefs[pendingTxInputsKey].orEmpty()
+        if (json.isEmpty()) return emptyList()
+        return runCatching {
+            gson.fromJson(json, Array<TxInput>::class.java)?.toList().orEmpty()
+        }.getOrDefault(emptyList())
+    }
+
+    suspend fun clearPendingTxInputs() {
+        context.dataStore.edit {
+            it.remove(pendingTxInputsWalletIdKey)
+            it.remove(pendingTxInputsKey)
+        }
+    }
+
     suspend fun clear() {
         context.dataStore.edit {
             it.remove(syncEnableKey)
@@ -677,6 +705,8 @@ class NcDataStore @Inject constructor(
             it.remove(walletBannerStatesKey)
             it.remove(claimWallets)
             it.remove(inactiveAssistedWalletIdsKey)
+            it.remove(pendingTxInputsWalletIdKey)
+            it.remove(pendingTxInputsKey)
             val keysToRemove = it.asMap().keys.filter { key ->
                 key.name.startsWith("seed_phrase_view_timestamp_")
             }

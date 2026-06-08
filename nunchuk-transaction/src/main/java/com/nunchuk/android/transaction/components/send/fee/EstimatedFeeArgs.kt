@@ -32,7 +32,6 @@ import com.nunchuk.android.core.util.getDoubleValue
 import com.nunchuk.android.core.util.getStringValue
 import com.nunchuk.android.model.SatsCardSlot
 import com.nunchuk.android.model.SigningPath
-import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.utils.parcelableArrayList
 import com.nunchuk.android.utils.serializable
@@ -46,7 +45,7 @@ data class EstimatedFeeArgs(
     val sweepType: SweepType = SweepType.NONE,
     val slots: List<SatsCardSlot> = emptyList(),
     val claimInheritanceTxParam: ClaimInheritanceTxParam? = null,
-    val inputs: List<UnspentOutput> = emptyList(),
+    val isFromSelectedCoin: Boolean = false,
     val isConsolidateFlow: Boolean = false,
     val title: String = "",
     val rollOverWalletParam: RollOverWalletParam? = null,
@@ -62,7 +61,7 @@ data class EstimatedFeeArgs(
             putExtra(EXTRA_SUBTRACT_FEE, subtractFeeFromAmount)
             putExtra(EXTRA_SWEEP_TYPE, sweepType)
             putParcelableArrayListExtra(EXTRA_SLOTS, ArrayList(slots))
-            putParcelableArrayListExtra(EXTRA_INPUT, ArrayList(inputs))
+            putExtra(EXTRA_IS_FROM_SELECTED_COIN, isFromSelectedCoin)
             putParcelableArrayListExtra(EXTRA_TX_RECEIPTS, ArrayList(txReceipts))
             putExtra(EXTRA_CLAIM_INHERITANCE_TX_PARAM, claimInheritanceTxParam)
             putExtra(EXTRA_IS_CONSOLIDATE_FLOW, isConsolidateFlow)
@@ -79,7 +78,7 @@ data class EstimatedFeeArgs(
         putBoolean(EXTRA_SUBTRACT_FEE, subtractFeeFromAmount)
         putSerializable(EXTRA_SWEEP_TYPE, sweepType)
         putParcelableArrayList(EXTRA_SLOTS, ArrayList(slots))
-        putParcelableArrayList(EXTRA_INPUT, ArrayList(inputs))
+        putBoolean(EXTRA_IS_FROM_SELECTED_COIN, isFromSelectedCoin)
         putParcelableArrayList(EXTRA_TX_RECEIPTS, ArrayList(txReceipts))
         putParcelable(EXTRA_CLAIM_INHERITANCE_TX_PARAM, claimInheritanceTxParam)
         putBoolean(EXTRA_IS_CONSOLIDATE_FLOW, isConsolidateFlow)
@@ -96,7 +95,7 @@ data class EstimatedFeeArgs(
         private const val EXTRA_SUBTRACT_FEE = "EXTRA_SUBTRACT_FEE"
         private const val EXTRA_SWEEP_TYPE = "EXTRA_SWEEP_TYPE"
         private const val EXTRA_SLOTS = "EXTRA_SLOTS"
-        private const val EXTRA_INPUT = "EXTRA_INPUT"
+        private const val EXTRA_IS_FROM_SELECTED_COIN = "EXTRA_IS_FROM_SELECTED_COIN"
         private const val EXTRA_TX_RECEIPTS = "EXTRA_TX_RECEIPTS"
         private const val EXTRA_CLAIM_INHERITANCE_TX_PARAM = "EXTRA_CLAIM_INHERITANCE_TX_PARAM"
         private const val EXTRA_IS_CONSOLIDATE_FLOW = "EXTRA_IS_CONSOLIDATE_FLOW"
@@ -114,7 +113,7 @@ data class EstimatedFeeArgs(
             sweepType = intent.extras?.serializable(EXTRA_SWEEP_TYPE)!!,
             slots = intent.extras?.parcelableArrayList<SatsCardSlot>(EXTRA_SLOTS).orEmpty(),
             claimInheritanceTxParam = intent.extras?.parcelable(EXTRA_CLAIM_INHERITANCE_TX_PARAM),
-            inputs = intent.extras?.parcelableArrayList<UnspentOutput>(EXTRA_INPUT).orEmpty(),
+            isFromSelectedCoin = intent.extras.getBooleanValue(EXTRA_IS_FROM_SELECTED_COIN),
             txReceipts = intent.extras?.parcelableArrayList<TxReceipt>(EXTRA_TX_RECEIPTS).orEmpty(),
             isConsolidateFlow = intent.extras.getBooleanValue(EXTRA_IS_CONSOLIDATE_FLOW),
             title = intent.extras.getStringValue(EXTRA_TITLE),
@@ -133,7 +132,7 @@ data class EstimatedFeeArgs(
             sweepType = bundle.serializable(EXTRA_SWEEP_TYPE)!!,
             slots = bundle.parcelableArrayList<SatsCardSlot>(EXTRA_SLOTS).orEmpty(),
             claimInheritanceTxParam = bundle.parcelable(EXTRA_CLAIM_INHERITANCE_TX_PARAM),
-            inputs = bundle.parcelableArrayList<UnspentOutput>(EXTRA_INPUT).orEmpty(),
+            isFromSelectedCoin = bundle.getBooleanValue(EXTRA_IS_FROM_SELECTED_COIN),
             txReceipts = bundle.parcelableArrayList<TxReceipt>(EXTRA_TX_RECEIPTS).orEmpty(),
             isConsolidateFlow = bundle.getBooleanValue(EXTRA_IS_CONSOLIDATE_FLOW),
             title = bundle.getStringValue(EXTRA_TITLE),

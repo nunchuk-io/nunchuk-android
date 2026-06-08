@@ -24,12 +24,15 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.util.fromCurrencyToBTC
+import com.nunchuk.android.core.util.fromSATtoBTC
 import com.nunchuk.android.core.util.getBtcSat
 import com.nunchuk.android.core.util.toAmount
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.CoinCollection
 import com.nunchuk.android.model.CoinTag
+import com.nunchuk.android.model.TxInput
 import com.nunchuk.android.model.UnspentOutput
+import com.nunchuk.android.usecase.coin.SavePendingTxInputsUseCase
 import com.nunchuk.android.wallet.components.coin.filter.CoinFilterUiState
 import com.nunchuk.android.wallet.components.coin.list.CoinListMode
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -49,6 +52,7 @@ import javax.inject.Inject
 class CoinSearchViewModel @Inject constructor(
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val savedStateHandle: SavedStateHandle,
+    private val savePendingTxInputsUseCase: SavePendingTxInputsUseCase,
 ) : ViewModel() {
     private val args: CoinSearchFragmentArgs =
         CoinSearchFragmentArgs.fromSavedStateHandle(savedStateHandle)
@@ -216,6 +220,21 @@ class CoinSearchViewModel @Inject constructor(
 
     fun getSelectedCoins() = _state.value.selectedCoins.toList()
 
+    fun prepareCreateTransaction() {
+        viewModelScope.launch {
+            val selectedCoins = _state.value.selectedCoins.toList()
+            savePendingTxInputsUseCase(
+                SavePendingTxInputsUseCase.Param(
+                    walletId = args.walletId,
+                    inputs = selectedCoins.map { TxInput(it.txid, it.vout) }
+                )
+            )
+            val availableAmount = selectedCoins
+                .sumOf { it.amount.value }.toDouble().fromSATtoBTC()
+            _event.emit(CoinSearchFragmentEvent.OpenCreateTransaction(availableAmount))
+        }
+    }
+
     private val isCustomizeCoinFlow: Boolean
         get() = !args.inputs.isNullOrEmpty()
 
@@ -231,4 +250,6 @@ class CoinSearchViewModel @Inject constructor(
     }
 }
 
-sealed class CoinSearchFragmentEvent
+sealed class CoinSearchFragmentEvent {
+    data class OpenCreateTransaction(val availableAmount: Double) : CoinSearchFragmentEvent()
+}

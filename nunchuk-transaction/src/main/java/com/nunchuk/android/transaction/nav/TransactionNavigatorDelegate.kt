@@ -34,7 +34,6 @@ import com.nunchuk.android.model.SatsCardSlot
 import com.nunchuk.android.model.SavedAddress
 import com.nunchuk.android.model.SigningPath
 import com.nunchuk.android.model.Transaction
-import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.nav.TransactionNavigator
 import com.nunchuk.android.nav.args.AddReceiptType
 import com.nunchuk.android.share.model.SignFlowType
@@ -80,7 +79,7 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         activityContext: Activity,
         walletId: String,
         availableAmount: Double,
-        inputs: List<UnspentOutput>,
+        isFromSelectedCoin: Boolean,
         claimInheritanceTxParam: ClaimInheritanceTxParam?,
         btcUri: BtcUri?
     ) {
@@ -88,7 +87,7 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
             activityContext = activityContext,
             walletId = walletId,
             availableAmount = availableAmount,
-            inputs = inputs,
+            isFromSelectedCoin = isFromSelectedCoin,
             claimInheritanceTxParam = claimInheritanceTxParam,
             btcUri = btcUri
         )
@@ -104,7 +103,7 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         subtractFeeFromAmount: Boolean,
         slots: List<SatsCardSlot>,
         sweepType: SweepType,
-        inputs: List<UnspentOutput>,
+        isFromSelectedCoin: Boolean,
         claimInheritanceTxParam: ClaimInheritanceTxParam?,
         type: AddReceiptType,
     ) {
@@ -119,7 +118,7 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
             slots = slots,
             sweepType = sweepType,
             claimInheritanceTxParam = claimInheritanceTxParam,
-            inputs = inputs,
+            isFromSelectedCoin = isFromSelectedCoin,
             receiptType = type
         )
     }
@@ -133,7 +132,7 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         subtractFeeFromAmount: Boolean,
         sweepType: SweepType,
         slots: List<SatsCardSlot>,
-        inputs: List<UnspentOutput>,
+        isFromSelectedCoin: Boolean,
         claimInheritanceTxParam: ClaimInheritanceTxParam?,
         isConsolidateFlow: Boolean,
         title: String,
@@ -151,7 +150,7 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
             sweepType = sweepType,
             slots = slots,
             claimInheritanceTxParam = claimInheritanceTxParam,
-            inputs = inputs,
+            isFromSelectedCoin = isFromSelectedCoin,
             isConsolidateFlow = isConsolidateFlow,
             title = title,
             rollOverWalletParam = rollOverWalletParam,
@@ -170,7 +169,7 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         manualFeeRate: Int,
         sweepType: SweepType,
         slots: List<SatsCardSlot>,
-        inputs: List<UnspentOutput>,
+        isFromSelectedCoin: Boolean,
         claimInheritanceTxParam: ClaimInheritanceTxParam?,
         actionButtonText: String,
         signingPath: SigningPath?,
@@ -187,7 +186,7 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
             sweepType = sweepType,
             slots = slots,
             claimInheritanceTxParam = claimInheritanceTxParam,
-            inputs = inputs,
+            isFromSelectedCoin = isFromSelectedCoin,
             actionButtonText = actionButtonText,
             antiFeeSniping = antiFeeSniping,
             signingPath = signingPath

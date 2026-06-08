@@ -39,6 +39,8 @@ import com.nunchuk.android.transaction.components.utils.privateNote
 import com.nunchuk.android.usecase.GetWalletsUseCase
 import com.nunchuk.android.usecase.ParseBtcUriUseCase
 import com.nunchuk.android.usecase.coin.GetAllCoinUseCase
+import com.nunchuk.android.usecase.coin.GetCoinsFromTxInputsUseCase
+import com.nunchuk.android.usecase.coin.GetPendingTxInputsUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -52,11 +54,14 @@ internal class InputAmountViewModel @Inject constructor(
     private val getAllCoinUseCase: GetAllCoinUseCase,
     private val getWalletsUseCase: GetWalletsUseCase,
     private val parseWalletDescriptorUseCase: ParseWalletDescriptorUseCase,
+    private val getPendingTxInputsUseCase: GetPendingTxInputsUseCase,
+    private val getCoinsFromTxInputsUseCase: GetCoinsFromTxInputsUseCase,
 ) : NunchukViewModel<InputAmountState, InputAmountEvent>() {
 
     private var availableAmount: Double = 0.0
     private var availableAmountWithoutUnlocked: Double = 0.0
     private var hasLockedCoin: Boolean = false
+    private var selectedCoinsHasLocked: Boolean = false
     private var isFromSelectedCoin: Boolean = false
 
     override val initialState = InputAmountState()
@@ -65,8 +70,22 @@ internal class InputAmountViewModel @Inject constructor(
         updateState { initialState }
         this.availableAmount = availableAmount
         this.isFromSelectedCoin = isFromSelectedCoin
-        if (!isFromSelectedCoin) {
+        if (isFromSelectedCoin) {
+            loadSelectedCoins(walletId)
+        } else {
             checkLockedCoin(walletId)
+        }
+    }
+
+    private fun loadSelectedCoins(walletId: String) {
+        viewModelScope.launch {
+            val txInputs = getPendingTxInputsUseCase(walletId).getOrDefault(emptyList())
+            if (txInputs.isEmpty()) return@launch
+            getCoinsFromTxInputsUseCase(
+                GetCoinsFromTxInputsUseCase.Params(walletId, txInputs)
+            ).onSuccess { coins ->
+                selectedCoinsHasLocked = coins.any { it.isLocked }
+            }
         }
     }
 
@@ -81,6 +100,8 @@ internal class InputAmountViewModel @Inject constructor(
             setEvent(InputAmountEvent.Loading(false))
         }
     }
+
+    fun isSelectedCoinsHasLocked() = selectedCoinsHasLocked
 
     fun parseBtcUri(content: String) {
         viewModelScope.launch {

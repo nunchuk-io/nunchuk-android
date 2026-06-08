@@ -59,7 +59,6 @@ import com.nunchuk.android.core.util.setUnderline
 import com.nunchuk.android.core.util.toAmount
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.BtcUri
-import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.nav.args.AddReceiptType
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.AcceptAmountEvent
@@ -98,7 +97,7 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
         super.onCreate(savedInstanceState)
 
         setLightStatusBar()
-        viewModel.init(args.availableAmount, args.walletId, args.inputs.isNotEmpty())
+        viewModel.init(args.availableAmount, args.walletId, args.isFromSelectedCoin)
         args.btcUri?.let { btcUri ->
             viewModel.updateBtcUri(btcUri)
         }
@@ -133,7 +132,7 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
         binding.mainCurrency.setText("")
         binding.mainCurrency.requestFocus()
         binding.btnSendAll.setOnClickListener {
-            if ((args.inputs.isNotEmpty() && args.inputs.any { it.isLocked }) || (args.inputs.isEmpty() && viewModel.isHasLockedCoin())) {
+            if ((args.isFromSelectedCoin && viewModel.isSelectedCoinsHasLocked()) || (!args.isFromSelectedCoin && viewModel.isHasLockedCoin())) {
                 showUnlockCoinBeforeSend()
             } else {
                 showAmount(if (viewModel.getUseBTC()) args.availableAmount else args.availableAmount.fromBTCToCurrency())
@@ -144,7 +143,7 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
             viewModel.handleContinueEvent()
         }
 
-        if (args.inputs.isNotEmpty()) {
+        if (args.isFromSelectedCoin) {
             binding.balanceLabel.text = getString(R.string.nc_total_amount_selected)
             binding.amountBTC.setTextColor(ContextCompat.getColor(this, R.color.nc_slime_dark))
             binding.amountUSD.setTextColor(ContextCompat.getColor(this, R.color.nc_slime_dark))
@@ -180,7 +179,7 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
                 }
             }
         }
-        if (args.inputs.isNotEmpty()) {
+        if (args.isFromSelectedCoin) {
             binding.btnSendAll.text = getString(R.string.nc_send_all_selected)
         }
     }
@@ -231,7 +230,7 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
             address = viewModel.getAddress(),
             privateNote = viewModel.getPrivateNote(),
             subtractFeeFromAmount = abs(outputAmount - args.availableAmount).toAmount().value <= 0,
-            inputs = args.inputs,
+            isFromSelectedCoin = args.isFromSelectedCoin,
             type = type
         )
     }
@@ -274,7 +273,7 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
             }
 
             InsufficientFundsEvent -> {
-                if (args.inputs.isNotEmpty()) {
+                if (args.isFromSelectedCoin) {
                     NCToastMessage(this).showError(getString(R.string.nc_send_amount_too_large))
                 } else {
                     NCToastMessage(this).showError(getString(R.string.nc_transaction_insufficient_funds))
@@ -361,7 +360,7 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
             activityContext: Context,
             walletId: String,
             availableAmount: Double,
-            inputs: List<UnspentOutput> = emptyList(),
+            isFromSelectedCoin: Boolean = false,
             claimInheritanceTxParam: ClaimInheritanceTxParam? = null,
             btcUri: BtcUri? = null
         ) {
@@ -369,7 +368,7 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
                 InputAmountArgs(
                     walletId = walletId,
                     availableAmount = availableAmount,
-                    inputs = inputs,
+                    isFromSelectedCoin = isFromSelectedCoin,
                     claimInheritanceTxParam = claimInheritanceTxParam,
                     btcUri = btcUri
                 ).buildIntent(activityContext)
