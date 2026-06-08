@@ -491,7 +491,13 @@
     <string name="nc_2_of_3_multisig_without_inheritance_planning">2-of-3 multisig without inheritance planning</string>
     <string name="nc_software_key_upgrade_to_hardware_key">The software key (%1$s) was upgraded to a hardware key from another device. Do you want to remove the software key from this device?</string>
     <string name="nc_replace_keys">Replace key</string>
+    <string name="nc_replace_key_title">Replace key</string>
+    <string name="nc_replace_key_intro_desc_simple">If a key in a wallet is lost or has been compromised, you can replace it here.</string>
+    <string name="nc_replace_key_intro_note_simple">Note that replacing a key with a new one will create a brand new wallet. You will need to transfer the existing balance over to the new wallet afterwards.</string>
+    <string name="nc_replace_key_change_timelock_desc">If keys in this wallet are lost or compromised, or if you want to change the timelocks, you can do it here.</string>
+    <string name="nc_replace_key_change_timelock_note">Changing any timelock or replacing any key will create a brand new wallet. You will need to transfer the existing balance to the new wallet afterwards.</string>
     <string name="nc_replace_key_desc">If a key in a wallet is lost or has been compromised, you can replace it here.\n\nNote that replacing a key with a new one will create a brand new assisted wallet. You will need to transfer the existing balance over to the new wallet afterwards.</string>
+    <string name="nc_replace_key_policy_review">Review policy</string>
     <string name="nc_continue_to_create_a_new_wallet">Continue to create a new wallet</string>
     <string name="nc_which_key_would_you_like_to_replace">Which key would you like to replace?</string>
     <string name="nc_replace_one_or_multiple_keys">Replace one or multiple keys.</string>
@@ -678,7 +684,7 @@
     <string name="nc_an_inheritance_key">An inheritance key</string>
     <string name="nc_two_inheritance_keys">Two inheritance keys</string>
     <string name="nc_inheritance_notify_pref_warning_on_chain">You are still personally responsible for sharing the Magic Phrase and inheritance key seed phrase with the Beneficiary or Trustee. The notification emails won’t include these information.</string>
-    
+
     <!-- On-chain timelock validation strings -->
     <string name="nc_confirm_timelock_date_title">Confirm timelock date</string>
     <string name="nc_confirm_timelock_date_message">The selected date is more than %1$d years in the future. Your Beneficiary will not be able to access the funds until this date. Is this correct?</string>

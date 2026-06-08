@@ -10,6 +10,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.ComposeView
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.nunchuk.android.R
@@ -22,22 +23,40 @@ import com.nunchuk.android.app.miniscript.custom.MiniscriptCustomTemplate
 import com.nunchuk.android.app.miniscript.custom.miniscriptCustomTemplateDestination
 import com.nunchuk.android.app.miniscript.intro.MiniscriptIntro
 import com.nunchuk.android.app.miniscript.intro.miniscriptIntroDestination
+import com.nunchuk.android.app.miniscript.replacekey.MiniscriptReplaceIntro
+import com.nunchuk.android.app.miniscript.replacekey.MiniscriptReplaceKeyRoute
+import com.nunchuk.android.app.miniscript.replacekey.miniscriptReplaceKeyDestination
+import com.nunchuk.android.app.miniscript.replacekey.miniscriptReplaceKeyIntroDestination
 import com.nunchuk.android.app.miniscript.reviewwallet.MiniscriptReviewWallet
 import com.nunchuk.android.app.miniscript.reviewwallet.miniscriptReviewWalletDestination
 import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.miniscript.MultisignType
 import com.nunchuk.android.core.nfc.BaseComposeNfcActivity
+import com.nunchuk.android.core.push.PushEvent
+import com.nunchuk.android.core.util.RollOverWalletFlow
+import com.nunchuk.android.core.util.RollOverWalletSource
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.signer.SignerIntroFlow
 import com.nunchuk.android.core.signer.SignerIntroRequest
+import com.nunchuk.android.core.util.navigateToSelectWallet
+import com.nunchuk.android.core.util.pureBTC
+import com.nunchuk.android.main.membership.wallet.createWalletSuccessScreen
+import com.nunchuk.android.main.membership.wallet.navigateCreateWalletSuccessScreen
 import com.nunchuk.android.nav.args.MiniscriptArgs
+import com.nunchuk.android.usecase.GetWalletUseCase
 import com.nunchuk.android.wallet.InputBipPathBottomSheet
 import com.nunchuk.android.wallet.InputBipPathBottomSheetListener
+import com.nunchuk.android.widget.NCInfoDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MiniscriptActivity : BaseComposeNfcActivity(), InputBipPathBottomSheetListener {
+
+    @Inject
+    lateinit var getWalletUseCase: GetWalletUseCase
 
     private val args: MiniscriptArgs by lazy {
         MiniscriptArgs.deserializeFrom(
@@ -46,6 +65,8 @@ class MiniscriptActivity : BaseComposeNfcActivity(), InputBipPathBottomSheetList
     }
 
     private val sharedWalletViewModel: MiniscriptSharedWalletViewModel by viewModels()
+
+    private var newWalletId: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -74,6 +95,11 @@ class MiniscriptActivity : BaseComposeNfcActivity(), InputBipPathBottomSheetList
                     }
 
                     val startDestination = when {
+                        args.replaceWalletId.isNotEmpty() -> MiniscriptReplaceIntro(
+                            isReplaceKeyWithTimelock = args.isReplaceKeyWithTimelock,
+                            walletId = args.replaceWalletId
+                        )
+
                         args.fromAddWallet && args.multisignType == MultisignType.CUSTOM -> MiniscriptCustomTemplate(
                             template = args.template,
                             addressType = args.addressType
@@ -199,9 +225,94 @@ class MiniscriptActivity : BaseComposeNfcActivity(), InputBipPathBottomSheetList
                         }
 
                         miniscriptSelectTimeZoneDestination(navController = navHostController)
+
+                        miniscriptReplaceKeyIntroDestination(
+                            onContinueClicked = { walletId ->
+                                navHostController.navigate(
+                                    route = MiniscriptReplaceKeyRoute(
+                                        walletId = walletId
+                                    )
+                                )
+                            }
+                        )
+
+                        miniscriptReplaceKeyDestination(
+                            onCreateWalletSuccess = { wallet ->
+                                newWalletId = wallet.id
+                                navHostController.navigateCreateWalletSuccessScreen(
+                                    walletId = wallet.id,
+                                    replacedWalletId = args.replaceWalletId
+                                )
+                            }
+                        )
+
+                        createWalletSuccessScreen(
+                            onBackPress = {
+                                navigateToSelectWallet(
+                                    navigator = navigator,
+                                    quickWalletParam = null
+                                ) {
+                                    returnToMainScreen()
+                                }
+                            },
+                            onContinueClicked = {
+                                if (args.replaceWalletId.isNotEmpty() && newWalletId != null) {
+                                    checkWalletBalance(
+                                        replacedWalletId = args.replaceWalletId,
+                                        newWalletId = newWalletId!!
+                                    )
+                                } else {
+                                    navigateToSelectWallet(
+                                        navigator = navigator,
+                                        quickWalletParam = null
+                                    ) {
+                                        returnToMainScreen()
+                                    }
+                                }
+                            }
+                        )
                     }
                 }
             })
+    }
+
+    private fun returnToMainScreen() = lifecycleScope.launch {
+        navigator.returnToMainScreen(this@MiniscriptActivity)
+        pushEventManager.push(PushEvent.CloseWalletDetail)
+    }
+
+    private fun checkWalletBalance(replacedWalletId: String, newWalletId: String) {
+        lifecycleScope.launch {
+            getWalletUseCase.execute(replacedWalletId).collect { replacedWallet ->
+                if (replacedWallet.wallet.balance.pureBTC() == 0.0) {
+                    returnToMainScreen()
+                } else {
+                    NCInfoDialog(this@MiniscriptActivity)
+                        .showDialog(
+                            title = getString(com.nunchuk.android.main.R.string.nc_confirmation),
+                            message = getString(com.nunchuk.android.main.R.string.nc_transfer_fund_desc),
+                            btnYes = getString(com.nunchuk.android.main.R.string.nc_yes_do_it_now),
+                            btnInfo = getString(com.nunchuk.android.main.R.string.nc_i_ll_do_it_later),
+                            onYesClick = {
+                                navigator.openRollOverWalletScreen(
+                                    activityContext = this@MiniscriptActivity,
+                                    oldWalletId = replacedWalletId,
+                                    newWalletId = newWalletId,
+                                    startScreen = RollOverWalletFlow.REFUND,
+                                    source = RollOverWalletSource.REPLACE_KEY
+                                )
+                            },
+                            onInfoClick = {
+                                returnToMainScreen()
+                                navigator.openWalletDetailsScreen(
+                                    activityContext = this@MiniscriptActivity,
+                                    walletId = newWalletId
+                                )
+                            }
+                        )
+                }
+            }
+        }
     }
 
     override fun onInputDone(masterSignerId: String, newInput: String) {

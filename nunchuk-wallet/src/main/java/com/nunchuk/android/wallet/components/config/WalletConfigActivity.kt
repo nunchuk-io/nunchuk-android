@@ -57,6 +57,7 @@ import com.nunchuk.android.model.byzantine.isKeyHolderLimited
 import com.nunchuk.android.model.byzantine.isKeyHolderWithoutKeyHolderLimited
 import com.nunchuk.android.model.byzantine.isMasterOrAdmin
 import com.nunchuk.android.model.byzantine.isNone
+import com.nunchuk.android.nav.args.MiniscriptArgs
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.SignerType
@@ -371,9 +372,22 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
             SheetOptionType.TYPE_ARCHIVE -> viewModel.archiveWallet()
 
             SheetOptionType.TYPE_REPLACE_KEY_CHANGE_TIMELOCK -> {
-                showReEnterPassword(TargetAction.REPLACE_KEYS)
+                if (viewModel.isMiniscriptWallet()) {
+                    val wallet = viewModel.state.value.walletExtended.wallet
+                    navigator.openMiniscriptScreen(
+                        activityContext = this,
+                        args = MiniscriptArgs(
+                            walletName = wallet.name,
+                            addressType = wallet.addressType,
+                            template = wallet.miniscript,
+                            replaceWalletId = viewModel.getReplaceWalletId(),
+                            isReplaceKeyWithTimelock = viewModel.isReplaceKeyWithTimelock()
+                        )
+                    )
+                } else {
+                    showReEnterPassword(TargetAction.REPLACE_KEYS)
+                }
             }
-
         }
     }
 
@@ -717,7 +731,7 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
             }
 
             if (!viewModel.isReplacedOrLocked()) {
-                if (viewModel.isOnChainWallet()) {
+                if (viewModel.isOnChainWallet() || viewModel.hasMiniscriptTimelock()) {
                     options.add(
                         SheetOption(
                             SheetOptionType.TYPE_REPLACE_KEY_CHANGE_TIMELOCK,

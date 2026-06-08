@@ -91,8 +91,16 @@ enum class ScriptMode {
     CONFIG,
     SIGN,
     SINGLE_SELECT,
-    SELECTING
+    SELECTING,
+    CHANGE_KEY
 }
+
+data class ReplaceKeyData(
+    val originalSigner: SignerModel? = null,
+    val replacedSigner: SignerModel? = null,
+    val originalTimeLock: ScriptNode? = null,
+    val replacedTimeLock: ScriptNode? = null
+)
 
 private val LocalScriptContentAlpha = compositionLocalOf { 1f }
 
@@ -112,7 +120,8 @@ fun ScriptNodeTree(
     onChangeBip32Path: (String, SignerModel) -> Unit = { _, _ -> },
     onActionKey: (String, SignerModel?) -> Unit = { _, _ -> },
     data: ScriptNodeData = ScriptNodeData(),
-    customActionButton: (@Composable ColumnScope.(key: String, signer: SignerModel?) -> Unit)? = null
+    customActionButton: (@Composable ColumnScope.(key: String, signer: SignerModel?) -> Unit)? = null,
+    onChangeTimelockButton: (ScriptNode) -> Unit = { }
 ) {
     val isNormalNode =
         data.signingPath.path.isEmpty() || signingPathContainsNodeId(data.signingPath.path, node.id)
@@ -122,7 +131,7 @@ fun ScriptNodeTree(
     val isSatisfiableNode = data.satisfiableMap[node.idString] != false
     val isPathDisabled = data.mode == ScriptMode.SELECTING && data.isPathDisabled(node.id)
     val contentAlpha = when {
-        data.mode == ScriptMode.CONFIG -> 1f
+        data.mode.isConfigOrChange() -> 1f
         data.mode == ScriptMode.SIGN && (node.type == ScriptNodeType.AFTER.name || node.type == ScriptNodeType.OLDER.name) -> 1f
         data.mode == ScriptMode.SIGN && isSatisfiableNode -> 1f
         (data.mode == ScriptMode.VIEW || data.mode == ScriptMode.SINGLE_SELECT) && isNormalNode -> 1f
@@ -165,7 +174,8 @@ fun ScriptNodeTree(
                             level = level,
                             isInDisableBranch = isInDisableBranch,
                             modifier = modifier,
-                            customActionButton = customActionButton
+                            customActionButton = customActionButton,
+                            onChangeTimelockButton = onChangeTimelockButton
                         )
                     }
                 }
@@ -185,7 +195,8 @@ fun ScriptNodeTree(
                     modifier = modifier,
                     showThreadCurve = showThreadCurve,
                     data = data,
-                    node = node
+                    node = node,
+                    onChangeTimelockButton = onChangeTimelockButton
                 ) {
                     if (showDetail) {
                         NodeContent(
@@ -196,7 +207,8 @@ fun ScriptNodeTree(
                             level = level,
                             isInDisableBranch = isInDisableBranch,
                             modifier = modifier,
-                            customActionButton = customActionButton
+                            customActionButton = customActionButton,
+                            onChangeTimelockButton = onChangeTimelockButton
                         )
                     }
                 }
@@ -270,7 +282,8 @@ fun ScriptNodeTree(
                             level = level,
                             isInDisableBranch = isInDisableBranch,
                             modifier = modifier,
-                            customActionButton = customActionButton
+                            customActionButton = customActionButton,
+                            onChangeTimelockButton = onChangeTimelockButton
                         )
                     }
                 }
@@ -301,7 +314,8 @@ fun ScriptNodeTree(
                             level = level,
                             isInDisableBranch = isInDisableBranch,
                             modifier = modifier,
-                            customActionButton = customActionButton
+                            customActionButton = customActionButton,
+                            onChangeTimelockButton = onChangeTimelockButton
                         )
                     }
                 }
@@ -341,7 +355,8 @@ fun ScriptNodeTree(
                             level = level,
                             isInDisableBranch = isInDisableBranch,
                             modifier = modifier,
-                            customActionButton = customActionButton
+                            customActionButton = customActionButton,
+                            onChangeTimelockButton = onChangeTimelockButton
                         )
                     }
                 }
@@ -354,7 +369,8 @@ fun ScriptNodeTree(
             onActionKey = onActionKey,
             data = data,
             level = level,
-            customActionButton = customActionButton
+            customActionButton = customActionButton,
+            onChangeTimelockButton = onChangeTimelockButton
         )
     }
 }
@@ -409,13 +425,14 @@ internal fun CreateKeyItem(
             data = data,
             avatarColor = avatarColor,
             isOccupied = !isPlatformKey && data.isSlotOccupied(key),
+            replaceKeyData = data.replaceKeyData[key],
             keyIconResId = if (isPlatformKey) R.drawable.ic_server_key_dark else R.drawable.ic_key,
             bottomContent = {
                 if (data.showBip32Path && signer != null && !signer.type.isPlatformKey) {
                     val isDuplicateSigner =
                         data.duplicateSignerKeys.contains(signer.signerKey())
                     Row(
-                        modifier = if (data.mode == ScriptMode.CONFIG) Modifier.clickable(
+                        modifier = if (data.mode.isConfigOrChange()) Modifier.clickable(
                             onClick = {
                                 onChangeBip32Path(key, signer)
                             },
@@ -430,7 +447,7 @@ internal fun CreateKeyItem(
                                 R.string.nc_bip32_path,
                                 signer.derivationPath
                             ),
-                            style = if (data.mode == ScriptMode.CONFIG && signer.isMasterSigner) {
+                            style = if (data.mode.isConfigOrChange() && signer.isMasterSigner) {
                                 NunchukTheme.typography.bodySmall.copy(textDecoration = TextDecoration.Underline)
                             } else {
                                 NunchukTheme.typography.bodySmall
@@ -441,7 +458,7 @@ internal fun CreateKeyItem(
                                 MaterialTheme.colorScheme.textSecondary
                             }
                         )
-                        if (data.mode == ScriptMode.CONFIG && signer.isMasterSigner) {
+                        if (data.mode.isConfigOrChange() && signer.isMasterSigner) {
                             NcIcon(
                                 modifier = Modifier.size(12.dp),
                                 painter = painterResource(id = R.drawable.ic_edit_small),
@@ -475,7 +492,7 @@ internal fun CreateKeyItem(
             },
             actionContent = {
                 when {
-                    data.mode == ScriptMode.CONFIG -> {
+                    data.mode.isConfigOrChange() -> {
                         if (customActionButton != null) {
                             Column {
                                 customActionButton(key, signer)
@@ -602,7 +619,8 @@ private fun NodeSubs(
     onActionKey: (String, SignerModel?) -> Unit,
     data: ScriptNodeData,
     level: Int,
-    customActionButton: (@Composable ColumnScope.(key: String, signer: SignerModel?) -> Unit)? = null
+    customActionButton: (@Composable ColumnScope.(key: String, signer: SignerModel?) -> Unit)? = null,
+    onChangeTimelockButton: (ScriptNode) -> Unit = { }
 ) {
     var localColorIndex = data.colorIndex
     node.subs.forEachIndexed { i, sub ->
@@ -615,7 +633,8 @@ private fun NodeSubs(
             onChangeBip32Path = onChangeBip32Path,
             onActionKey = onActionKey,
             data = childData,
-            customActionButton = customActionButton
+            customActionButton = customActionButton,
+            onChangeTimelockButton = onChangeTimelockButton
         )
         // Increment the colorIndex for the next child
         localColorIndex++
@@ -631,7 +650,8 @@ private fun NodeContent(
     level: Int,
     isInDisableBranch: Boolean,
     modifier: Modifier = Modifier,
-    customActionButton: (@Composable ColumnScope.(key: String, signer: SignerModel?) -> Unit)? = null
+    customActionButton: (@Composable ColumnScope.(key: String, signer: SignerModel?) -> Unit)? = null,
+    onChangeTimelockButton: (ScriptNode) -> Unit = { }
 ) {
     NodeKeys(
         node = node,
@@ -649,7 +669,8 @@ private fun NodeContent(
         onActionKey = onActionKey,
         data = data,
         level = level,
-        customActionButton = customActionButton
+        customActionButton = customActionButton,
+        onChangeTimelockButton = onChangeTimelockButton
     )
 }
 
@@ -684,7 +705,8 @@ data class ScriptNodeData(
     val isViewServerKeyPolicy: Boolean = false,
     val onViewPolicy: (SignerModel) -> Unit = {},
     val platformKeySubtitle: String? = null,
-    val isDummyTx: Boolean = false
+    val isDummyTx: Boolean = false,
+    val replaceKeyData: Map<String, ReplaceKeyData> = emptyMap()
 ) {
     fun isSlotOccupied(position: String): Boolean {
         return occupiedSlots.contains(position)
@@ -1136,14 +1158,28 @@ fun TimelockItem(
     showThreadCurve: Boolean = true,
     node: ScriptNode,
     data: ScriptNodeData,
+    onChangeTimelockButton: (ScriptNode) -> Unit = { },
     content: @Composable () -> Unit = {},
 ) {
     val blockHeightManager = rememberBlockHeightManager()
     val currentBlockHeight by blockHeightManager.state.collectAsStateWithLifecycle()
 
     val mode: ScriptMode = data.mode
-    val title = node.displayName
-    val description = node.getAfterBlockDescription(currentBlockHeight)
+    val replaceKeyData = data.replaceKeyData[node.idString]
+    val hasReplacedTimelock = replaceKeyData?.replacedTimeLock != null
+
+    // Use replaced timelock's displayName if available, otherwise use original node's displayName
+    val title = if (hasReplacedTimelock) {
+        replaceKeyData?.replacedTimeLock?.displayName ?: node.displayName
+    } else {
+        node.displayName
+    }
+    // Use replaced timelock's description when a replacement exists, otherwise original node's description
+    val description = if (hasReplacedTimelock) {
+        replaceKeyData?.replacedTimeLock?.getAfterBlockDescription(currentBlockHeight) ?: node.getAfterBlockDescription(currentBlockHeight)
+    } else {
+        node.getAfterBlockDescription(currentBlockHeight)
+    }
 
     // Calculate if timelock is unlocked based on type
     val isUnlocked = if (mode == ScriptMode.SIGN) when (node.type) {
@@ -1205,7 +1241,8 @@ fun TimelockItem(
                 NcIcon(
                     painter = painterResource(R.drawable.ic_timer),
                     contentDescription = null,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(20.dp),
+                    tint = MaterialTheme.colorScheme.textPrimary
                 )
                 Column(
                     modifier = Modifier
@@ -1214,7 +1251,17 @@ fun TimelockItem(
                 ) {
                     Text(
                         text = "${node.idString}. $title",
-                        style = NunchukTheme.typography.body
+                        style = NunchukTheme.typography.body,
+                        modifier = if (hasReplacedTimelock) {
+                            Modifier
+                                .background(
+                                    color = colorResource(R.color.nc_slime_tint_color),
+                                    shape = RoundedCornerShape(8.dp)
+                                )
+                                .padding(horizontal = 12.dp, vertical = 4.dp)
+                        } else {
+                            Modifier
+                        }
                     )
 
                     // Hide description for timestamp timelocks in SIGN mode
@@ -1226,10 +1273,36 @@ fun TimelockItem(
                             )
                         )
                     }
+
+                    // Show "Replacing existing timelock" info when there's a replacement
+                    if (hasReplacedTimelock && replaceKeyData?.originalTimeLock != null) {
+                        Row(
+                            modifier = Modifier.padding(top = 8.dp),
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            NcIcon(
+                                painter = painterResource(id = R.drawable.ic_replace),
+                                contentDescription = "Replace icon"
+                            )
+                            Text(
+                                text = "Replacing existing timelock (${replaceKeyData.originalTimeLock.displayName})",
+                                style = NunchukTheme.typography.bodySmall,
+                            )
+                        }
+                    }
                 }
 
+                // Show change button in CHANGE_KEY mode
+                if (mode == ScriptMode.CHANGE_KEY) {
+                    NcOutlineButton(
+                        height = 36.dp,
+                        onClick = { onChangeTimelockButton(node) },
+                    ) {
+                        Text(stringResource(R.string.nc_change))
+                    }
+                }
                 // Show locked/unlocked status in SIGN mode
-                if (mode == ScriptMode.SIGN) {
+                else if (mode == ScriptMode.SIGN) {
                     if (isUnlocked) {
                         CheckedLabel(text = stringResource(R.string.nc_unlocked))
                     } else {
@@ -1336,9 +1409,11 @@ fun KeyItem(
     avatarColor: Color = avatarColors[0],
     isOccupied: Boolean = false,
     keyIconResId: Int = R.drawable.ic_key,
+    replaceKeyData: ReplaceKeyData? = null,
     bottomContent: @Composable ColumnScope.() -> Unit = {},
     actionContent: @Composable RowScope.() -> Unit = {}
 ) {
+    val hasReplacedSigner = replaceKeyData?.replacedSigner != null && replaceKeyData.originalSigner != null
     val alpha = LocalScriptContentAlpha.current
     Row(
         modifier = modifier
@@ -1370,6 +1445,7 @@ fun KeyItem(
                         .size(20.dp),
                     painter = painterResource(keyIconResId),
                     contentDescription = null,
+                    tint = MaterialTheme.colorScheme.textPrimary
                 )
             }
             Row(
@@ -1388,7 +1464,16 @@ fun KeyItem(
                     Text(
                         text = if (position.isNotEmpty()) "$position. $title" else title,
                         style = NunchukTheme.typography.body,
-                        modifier = Modifier
+                        modifier = if (hasReplacedSigner) {
+                            Modifier
+                                .background(
+                                    color = colorResource(R.color.nc_slime_tint_color),
+                                    shape = RoundedCornerShape(8.dp)
+                                )
+                                .padding(horizontal = 12.dp, vertical = 4.dp)
+                        } else {
+                            Modifier
+                        }
                     )
                     if (xfp.isNotEmpty()) {
                         Text(
@@ -1404,6 +1489,23 @@ fun KeyItem(
                         )
                     }
                     bottomContent()
+
+                    if (hasReplacedSigner) {
+                        Row(
+                            modifier = Modifier.padding(top = 8.dp),
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            NcIcon(
+                                painter = painterResource(id = R.drawable.ic_replace),
+                                contentDescription = "Replace icon"
+                            )
+
+                            Text(
+                                text = "Replacing ${replaceKeyData!!.originalSigner!!.name}(${replaceKeyData.originalSigner.getXfpOrCardIdLabel()})",
+                                style = NunchukTheme.typography.bodySmall,
+                            )
+                        }
+                    }
                 }
                 actionContent()
             }
@@ -1744,4 +1846,8 @@ private fun signingPathContainsNodeId(path: List<List<Int>>, nodeId: List<Int>):
         (nodeId.size <= idList.size && idList.take(nodeId.size) == nodeId) ||
                 (idList.size <= nodeId.size && nodeId.take(idList.size) == idList)
     }
+}
+
+private fun ScriptMode.isConfigOrChange(): Boolean {
+    return this == ScriptMode.CONFIG || this == ScriptMode.CHANGE_KEY
 }
