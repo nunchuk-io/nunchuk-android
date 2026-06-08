@@ -204,16 +204,24 @@ fun InheritancePlanningGraph(
                 activityViewModel.setupOrReviewParam.finalScheduledPayoutTimeMillis()
             },
             onBackClicked = { navController.popBackStack() },
-            onContinueClicked = { value ->
+            onContinueClicked = { value, returnToReviewPlan ->
                 activityViewModel.setOrUpdate(
                     activityViewModel.setupOrReviewParam.copy(
                         fallbackSettings = value
                     )
                 )
-                val didPopToBeneficiarySchedules =
-                    navController.popBackStack<InheritanceBeneficiarySchedulesRoute>(inclusive = false)
-                if (!didPopToBeneficiarySchedules) {
-                    navController.popBackStack()
+                if (returnToReviewPlan) {
+                    val didPopToReviewPlan =
+                        navController.popBackStack<InheritanceReviewPlanRoute>(inclusive = false)
+                    if (!didPopToReviewPlan) {
+                        navController.popBackStack()
+                    }
+                } else {
+                    val didPopToBeneficiarySchedules =
+                        navController.popBackStack<InheritanceBeneficiarySchedulesRoute>(inclusive = false)
+                    if (!didPopToBeneficiarySchedules) {
+                        navController.popBackStack()
+                    }
                 }
             },
         )
@@ -871,7 +879,7 @@ fun InheritancePlanningGraph(
                 navController.navigateToInheritanceBeneficiarySchedules()
             },
             onEditFallbackSettingsClick = {
-                navController.navigateToInheritanceFallbackSettings()
+                navController.navigateToInheritanceFallbackSettings(returnToReviewPlan = true)
             },
         )
 
