@@ -44,14 +44,20 @@ class InheritanceNotifyPrefViewModel @Inject constructor(
     val remainTime = membershipStepManager.remainingTime
 
     fun init(param: InheritancePlanningParam.SetupOrReview, isUpdateRequest: Boolean) {
-        if (isUpdateRequest) {
+        val initialEmails = param.emails.ifEmpty {
+            param.beneficiaryAllocations
+                .map { it.email.trim() }
+                .filter { it.isNotEmpty() }
+                .distinctBy { it.lowercase() }
+        }
+        if (isUpdateRequest || initialEmails.isNotEmpty()) {
             _state.update {
                 it.copy(
                     isNotify = param.isNotify,
-                    emails = param.emails.map { email ->
+                    emails = initialEmails.map { email ->
                         EmailWithState(
                             email = email,
-                            valid = true
+                            valid = EmailValidator.valid(email)
                         )
                     }
                 )
