@@ -360,7 +360,13 @@ private fun Inheritance.toSetupOrReviewParamForView(
         individualScheduleConfigs = individualScheduleConfigs,
         isSharedScheduleConfigured = sharedScheduleConfig != null,
         bufferPeriodApplyType = sharedBufferApplyType,
-        fallbackSettings = fallbackPolicy?.toFallbackSettingsValue(timezone),
+        fallbackSettings = fallbackPolicy?.toFallbackSettingsValue(timezone)
+            ?: InheritanceFallbackSettingsValue(
+                selectedOption = InheritanceFallbackOption.NO_FALLBACK,
+                triggerValue = "5",
+                triggerUnit = FallbackTriggerUnit.YEAR,
+                fallbackDate = DEFAULT_FALLBACK_DATE,
+            ),
     )
 }
 
