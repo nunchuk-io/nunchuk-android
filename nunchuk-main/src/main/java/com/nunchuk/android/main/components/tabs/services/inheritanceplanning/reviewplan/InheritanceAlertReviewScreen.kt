@@ -430,13 +430,16 @@ private fun androidx.compose.foundation.lazy.LazyListScope.newFlowItems(
     // Fallback settings
     item(key = "fallback_settings") {
         val fallbackPolicy = newData.fallbackPolicy
+        val fallbackTimezoneId = newData.timezone.ifEmpty {
+            sharedUiState.setupOrReviewParam.selectedZoneId
+        }
         ReviewPlanSectionHeader(
             modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 24.dp),
             title = stringResource(id = R.string.nc_fallback_settings_title),
         )
         NoteDisplayBox(
             modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 12.dp),
-            note = getFallbackPolicySummary(fallbackPolicy),
+            note = getFallbackPolicySummary(fallbackPolicy, fallbackTimezoneId),
             textColor = onTextColor(fallbackPolicy != oldData?.fallbackPolicy),
         )
     }

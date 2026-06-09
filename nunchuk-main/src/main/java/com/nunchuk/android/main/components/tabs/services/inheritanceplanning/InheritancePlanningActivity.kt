@@ -450,7 +450,7 @@ private fun InheritancePlanStage.toReleaseInstallmentConfig(): ReleaseInstallmen
     )
 }
 
-private fun InheritancePlanFallbackPolicy.toFallbackSettingsValue(
+internal fun InheritancePlanFallbackPolicy.toFallbackSettingsValue(
     timezoneId: String,
 ): InheritanceFallbackSettingsValue {
     return when (type.uppercase()) {
