@@ -119,11 +119,13 @@ fun BeneficiaryNotesSection(
     textColor: @Composable (isChanged: Boolean) -> Color = { MaterialTheme.colorScheme.controlFillPrimary },
 ) {
     val expandedNotes = remember { mutableStateMapOf<String, Boolean>() }
+    val canExpandNotes = remember { mutableStateMapOf<String, Boolean>() }
 
     Column(modifier = modifier) {
         if (beneficiaries.isNotEmpty() && (forcePerBeneficiaryNotes || beneficiaries.any { it.note.isNotBlank() })) {
             beneficiaries.forEach { beneficiary ->
                 val isExpanded = expandedNotes[beneficiary.email] ?: false
+                val canExpand = canExpandNotes[beneficiary.email] ?: false
                 val noteChanged = changedEmailKeys.contains(beneficiary.email.toEmailKey())
 
                 Box(
@@ -147,30 +149,32 @@ fun BeneficiaryNotesSection(
                                 text = beneficiary.email,
                                 style = NunchukTheme.typography.title,
                             )
-                            Text(
-                                modifier = Modifier.clickable {
-                                    expandedNotes[beneficiary.email] = !isExpanded
-                                },
-                                text = stringResource(
-                                    id = if (isExpanded) R.string.nc_collapse else R.string.nc_expand
-                                ),
-                                style = NunchukTheme.typography.title.copy(
-                                    textDecoration = TextDecoration.Underline
-                                ),
-                            )
-                            NcIcon(
-                                modifier = Modifier
-                                    .padding(start = 4.dp)
-                                    .size(16.dp)
-                                    .clickable {
+                            if (canExpand) {
+                                Text(
+                                    modifier = Modifier.clickable {
                                         expandedNotes[beneficiary.email] = !isExpanded
                                     },
-                                painter = painterResource(
-                                    id = if (isExpanded) WidgetR.drawable.ic_collapse
-                                    else WidgetR.drawable.ic_expand
-                                ),
-                                contentDescription = null,
-                            )
+                                    text = stringResource(
+                                        id = if (isExpanded) R.string.nc_collapse else R.string.nc_expand
+                                    ),
+                                    style = NunchukTheme.typography.title.copy(
+                                        textDecoration = TextDecoration.Underline
+                                    ),
+                                )
+                                NcIcon(
+                                    modifier = Modifier
+                                        .padding(start = 4.dp)
+                                        .size(16.dp)
+                                        .clickable {
+                                            expandedNotes[beneficiary.email] = !isExpanded
+                                        },
+                                    painter = painterResource(
+                                        id = if (isExpanded) WidgetR.drawable.ic_collapse
+                                        else WidgetR.drawable.ic_expand
+                                    ),
+                                    contentDescription = null,
+                                )
+                            }
                         }
                         Text(
                             modifier = Modifier.padding(top = 8.dp),
@@ -180,6 +184,11 @@ fun BeneficiaryNotesSection(
                             ),
                             maxLines = if (isExpanded) Int.MAX_VALUE else 2,
                             overflow = TextOverflow.Ellipsis,
+                            onTextLayout = { result ->
+                                if (!isExpanded) {
+                                    canExpandNotes[beneficiary.email] = result.hasVisualOverflow
+                                }
+                            },
                         )
                     }
                 }
