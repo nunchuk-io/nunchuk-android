@@ -428,19 +428,17 @@ private fun androidx.compose.foundation.lazy.LazyListScope.newFlowItems(
     }
 
     // Fallback settings
-    val fallbackPolicy = newData.fallbackPolicy
-    if (fallbackPolicy != null) {
-        item(key = "fallback_settings") {
-            ReviewPlanSectionHeader(
-                modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 24.dp),
-                title = stringResource(id = R.string.nc_fallback_settings_title),
-            )
-            NoteDisplayBox(
-                modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 12.dp),
-                note = getFallbackPolicySummary(fallbackPolicy),
-                textColor = onTextColor(fallbackPolicy != oldData?.fallbackPolicy),
-            )
-        }
+    item(key = "fallback_settings") {
+        val fallbackPolicy = newData.fallbackPolicy
+        ReviewPlanSectionHeader(
+            modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 24.dp),
+            title = stringResource(id = R.string.nc_fallback_settings_title),
+        )
+        NoteDisplayBox(
+            modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 12.dp),
+            note = getFallbackPolicySummary(fallbackPolicy),
+            textColor = onTextColor(fallbackPolicy != oldData?.fallbackPolicy),
+        )
     }
 
     // Note to Beneficiary

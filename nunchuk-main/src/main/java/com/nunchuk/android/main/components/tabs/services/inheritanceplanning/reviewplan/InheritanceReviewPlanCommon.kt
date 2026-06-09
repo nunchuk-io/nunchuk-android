@@ -468,13 +468,30 @@ fun getBufferApplyOnText(
 // ─── Fallback policy summary ────────────────────────────────────────────────
 
 @Composable
-fun getFallbackPolicySummary(policy: InheritancePlanFallbackPolicy): String {
-    return when (policy.type) {
-        "NONE" -> stringResource(id = R.string.nc_fallback_option_none_title)
+fun getFallbackPolicySummary(policy: InheritancePlanFallbackPolicy?): String {
+    if (policy == null) return stringResource(id = R.string.nc_fallback_summary_no_fallback)
+    return when (policy.type.uppercase()) {
         "INACTIVITY" -> {
-            val count = policy.inactivityIntervalCount ?: 0
-            val unit = policy.inactivityInterval.orEmpty().lowercase()
-            "Redistribute equally if no withdrawal occurs for $count ${unit}s after the last scheduled payout."
+            val rawCount = policy.inactivityIntervalCount?.coerceAtLeast(1) ?: 1
+            val interval = policy.inactivityInterval.orEmpty().uppercase()
+            val (count, unitRes) = when (interval) {
+                "YEAR" -> rawCount to if (rawCount == 1) R.string.nc_fallback_unit_year else R.string.nc_fallback_unit_years
+                "MONTH" -> rawCount to if (rawCount == 1) R.string.nc_fallback_unit_month else R.string.nc_fallback_unit_months
+                "DAY" -> {
+                    if (rawCount % 7 == 0) {
+                        val weeks = (rawCount / 7).coerceAtLeast(1)
+                        weeks to if (weeks == 1) R.string.nc_fallback_unit_week else R.string.nc_fallback_unit_weeks
+                    } else {
+                        rawCount to if (rawCount == 1) R.string.nc_fallback_unit_day else R.string.nc_fallback_unit_days
+                    }
+                }
+                else -> rawCount to if (rawCount == 1) R.string.nc_fallback_unit_year else R.string.nc_fallback_unit_years
+            }
+            stringResource(
+                id = R.string.nc_fallback_summary_inactivity,
+                count,
+                stringResource(id = unitRes),
+            )
         }
 
         "DATE_BASED" -> {
@@ -484,14 +501,10 @@ fun getFallbackPolicySummary(policy: InheritancePlanFallbackPolicy): String {
             } else {
                 ""
             }
-            if (dateText.isNotEmpty()) {
-                "Redistribute equally on $dateText if no withdrawal occurs."
-            } else {
-                "Date-based fallback"
-            }
+            stringResource(id = R.string.nc_fallback_summary_date_based, dateText)
         }
 
-        else -> policy.type
+        else -> stringResource(id = R.string.nc_fallback_summary_no_fallback)
     }
 }
 
