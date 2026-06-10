@@ -42,6 +42,7 @@ import com.nunchuk.android.compose.controlFillPrimary
 import com.nunchuk.android.compose.dialog.NcConfirmationDialog
 import com.nunchuk.android.compose.greyLight
 import com.nunchuk.android.compose.textPrimary
+import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.data.model.byzantine.InheritanceDataExtended
 import com.nunchuk.android.core.data.model.byzantine.InheritancePayload
 import com.nunchuk.android.core.util.orDefault
@@ -60,6 +61,8 @@ import com.nunchuk.android.model.inheritance.InheritancePlanFallbackPolicy
 import com.nunchuk.android.model.inheritance.InheritancePlanStage
 import com.nunchuk.android.utils.simpleGlobalDateFormat
 import java.util.Date
+
+private val CHANGED_TEXT_COLOR = Color(0xffCF4018)
 
 @Composable
 fun InheritanceAlertReviewScreen(
@@ -289,10 +292,26 @@ private fun androidx.compose.foundation.lazy.LazyListScope.newFlowItems(
     onTextColor: @Composable (isChanged: Boolean) -> Color,
 ) {
     val isMultiBeneficiary = newData.beneficiaryMode == "MULTIPLE"
+    val assetAllocationChangedEmails = assetAllocationChangedEmailKeys(newData, oldData)
+    val individualScheduleHighlightsByEmail =
+        individualScheduleHighlights(newData.beneficiaries, oldData?.beneficiaries)
+    val sharedScheduleHighlights = scheduleHighlights(
+        newStages = newData.stages,
+        oldStages = oldData?.stages,
+        newBufferPeriodId = newData.bufferPeriod?.id,
+        oldBufferPeriodId = oldData?.bufferPeriod?.id,
+        newBufferApplyOn = newData.bufferApplyOn,
+        oldBufferApplyOn = oldData?.bufferApplyOn,
+    )
 
     // Asset allocation (multi-beneficiary only)
     if (isMultiBeneficiary && newData.beneficiaries.isNotEmpty()) {
         item(key = "asset_allocation") {
+            val defaultPrimaryColor = MaterialTheme.colorScheme.textPrimary
+            val defaultSecondaryColor = MaterialTheme.colorScheme.textSecondary
+            val isAssetAllocationChanged: (String) -> Boolean = { email ->
+                assetAllocationChangedEmails.contains(email.toEmailKey())
+            }
             ReviewPlanSectionHeader(
                 modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 24.dp),
                 title = stringResource(id = R.string.nc_asset_allocation),
@@ -306,6 +325,14 @@ private fun androidx.compose.foundation.lazy.LazyListScope.newFlowItems(
                         email = it.email,
                         allocationPercent = it.assetPercentage,
                     )
+                },
+                labelPrimaryColorForBeneficiary = { beneficiary ->
+                    if (isAssetAllocationChanged(beneficiary.email)) CHANGED_TEXT_COLOR
+                    else defaultPrimaryColor
+                },
+                labelSecondaryColorForBeneficiary = { beneficiary ->
+                    if (isAssetAllocationChanged(beneficiary.email)) CHANGED_TEXT_COLOR
+                    else defaultSecondaryColor
                 },
             )
         }
@@ -351,6 +378,9 @@ private fun androidx.compose.foundation.lazy.LazyListScope.newFlowItems(
                         shape = RoundedCornerShape(8.dp)
                     ),
                 beneficiary = beneficiary,
+                scheduleHighlights = individualScheduleHighlightsByEmail[beneficiary.email.toEmailKey()]
+                    ?: ScheduleChangeHighlights(),
+                changedTextColor = CHANGED_TEXT_COLOR,
             )
         }
     } else if (isMultiBeneficiary && newData.stages.isNotEmpty()) {
@@ -369,12 +399,29 @@ private fun androidx.compose.foundation.lazy.LazyListScope.newFlowItems(
                 stages = newData.stages,
                 bufferPeriod = newData.bufferPeriod,
                 bufferApplyOn = newData.bufferApplyOn,
+                scheduleHighlights = sharedScheduleHighlights,
+                changedTextColor = CHANGED_TEXT_COLOR,
             )
         }
     } else if (!isMultiBeneficiary) {
         val stages = newData.stages.ifEmpty {
             newData.beneficiaries.firstOrNull()?.stages.orEmpty()
         }
+        val oldStages = oldData?.stages?.ifEmpty {
+            oldData.beneficiaries.firstOrNull()?.stages.orEmpty()
+        }
+        val singleHighlights = scheduleHighlights(
+            newStages = stages,
+            oldStages = oldStages,
+            newBufferPeriodId = newData.bufferPeriod?.id
+                ?: newData.beneficiaries.firstOrNull()?.bufferPeriod?.id,
+            oldBufferPeriodId = oldData?.bufferPeriod?.id
+                ?: oldData?.beneficiaries?.firstOrNull()?.bufferPeriod?.id,
+            newBufferApplyOn = newData.bufferApplyOn
+                ?: newData.beneficiaries.firstOrNull()?.bufferApplyOn,
+            oldBufferApplyOn = oldData?.bufferApplyOn
+                ?: oldData?.beneficiaries?.firstOrNull()?.bufferApplyOn,
+        )
         if (stages.isNotEmpty()) {
             item(key = "single_beneficiary_schedule") {
                 ReviewPlanSectionHeader(
@@ -392,6 +439,8 @@ private fun androidx.compose.foundation.lazy.LazyListScope.newFlowItems(
                     bufferPeriod = newData.bufferPeriod,
                     bufferApplyOn = newData.bufferApplyOn
                         ?: newData.beneficiaries.firstOrNull()?.bufferApplyOn,
+                    scheduleHighlights = singleHighlights,
+                    changedTextColor = CHANGED_TEXT_COLOR,
                 )
             }
         }
@@ -655,6 +704,81 @@ private fun androidx.compose.foundation.lazy.LazyListScope.oldFlowItems(
             }
         }
     }
+}
+
+// ─── Change-highlight helpers ───────────────────────────────────────────────
+
+private fun assetAllocationChangedEmailKeys(
+    newData: InheritanceDataExtended,
+    oldData: InheritanceDataExtended?,
+): Set<String> {
+    val newAllocations = newData.beneficiaries.associate {
+        it.email.toEmailKey() to it.assetPercentage
+    }
+    val oldAllocations = oldData?.beneficiaries?.associate {
+        it.email.toEmailKey() to it.assetPercentage
+    }.orEmpty()
+    return (newAllocations.keys + oldAllocations.keys)
+        .filterTo(mutableSetOf()) { emailKey ->
+            newAllocations[emailKey] != oldAllocations[emailKey]
+        }
+}
+
+private fun individualScheduleHighlights(
+    newBeneficiaries: List<InheritancePlanBeneficiary>,
+    oldBeneficiaries: List<InheritancePlanBeneficiary>?,
+): Map<String, ScheduleChangeHighlights> {
+    val oldByEmail = oldBeneficiaries?.associateBy { it.email.toEmailKey() }.orEmpty()
+    val newByEmail = newBeneficiaries.associateBy { it.email.toEmailKey() }
+    return (newByEmail.keys + oldByEmail.keys).associateWith { emailKey ->
+        val new = newByEmail[emailKey]
+        val old = oldByEmail[emailKey]
+        scheduleHighlights(
+            newStages = new?.stages.orEmpty(),
+            oldStages = old?.stages,
+            newBufferPeriodId = new?.bufferPeriod?.id ?: new?.bufferPeriodId,
+            oldBufferPeriodId = old?.bufferPeriod?.id ?: old?.bufferPeriodId,
+            newBufferApplyOn = new?.bufferApplyOn,
+            oldBufferApplyOn = old?.bufferApplyOn,
+        )
+    }
+}
+
+private fun scheduleHighlights(
+    newStages: List<InheritancePlanStage>,
+    oldStages: List<InheritancePlanStage>?,
+    newBufferPeriodId: String?,
+    oldBufferPeriodId: String?,
+    newBufferApplyOn: String?,
+    oldBufferApplyOn: String?,
+): ScheduleChangeHighlights {
+    if (oldStages == null && oldBufferPeriodId == null && oldBufferApplyOn == null) {
+        return ScheduleChangeHighlights()
+    }
+    val firstWithdrawalChanged = newStages.firstOrNull()?.firstWithdrawalTimeMillis !=
+            oldStages?.firstOrNull()?.firstWithdrawalTimeMillis
+    val bufferPeriodChanged = newBufferPeriodId != oldBufferPeriodId ||
+            newBufferApplyOn != oldBufferApplyOn
+    val totalStages = maxOf(newStages.size, oldStages?.size ?: 0)
+    val changedStageLabelNumbers = mutableSetOf<Int>()
+    val changedStageDateNumbers = mutableSetOf<Int>()
+    for (index in 0 until totalStages) {
+        val newStage = newStages.getOrNull(index)
+        val oldStage = oldStages?.getOrNull(index)
+        val stageNumber = index + 1
+        if (newStage?.totalStageAllocationPercentage != oldStage?.totalStageAllocationPercentage) {
+            changedStageLabelNumbers += stageNumber
+        }
+        if (newStage?.firstWithdrawalTimeMillis != oldStage?.firstWithdrawalTimeMillis) {
+            changedStageDateNumbers += stageNumber
+        }
+    }
+    return ScheduleChangeHighlights(
+        firstWithdrawalChanged = firstWithdrawalChanged,
+        bufferPeriodChanged = bufferPeriodChanged,
+        changedStageLabelNumbers = changedStageLabelNumbers,
+        changedStageDateNumbers = changedStageDateNumbers,
+    )
 }
 
 // ─── Previews ───────────────────────────────────────────────────────────────

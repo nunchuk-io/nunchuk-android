@@ -33,6 +33,7 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.controlFillPrimary
 import com.nunchuk.android.compose.greyLight
 import com.nunchuk.android.compose.textPrimary
+import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.compose.whisper
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.fallbackSettingsSummaryText
@@ -311,12 +312,16 @@ fun NotificationPreferencesSection(
 fun BeneficiaryScheduleReviewCard(
     modifier: Modifier = Modifier,
     beneficiary: InheritancePlanBeneficiary,
+    scheduleHighlights: ScheduleChangeHighlights = ScheduleChangeHighlights(),
+    changedTextColor: Color = Color.Unspecified,
 ) {
     val stages = beneficiary.stages
     val segments = remember(stages) { stages.toAllocationSegments() }
     val totalAllocated = segments.sumOf { it.allocationPercent }
     val summaryScale = totalAllocated.coerceAtLeast(100)
     val remaining = (summaryScale - totalAllocated).coerceAtLeast(0)
+    val defaultPrimaryTextColor = MaterialTheme.colorScheme.controlFillPrimary
+    val defaultSecondaryTextColor = MaterialTheme.colorScheme.textSecondary
 
     Box(
         modifier = modifier
@@ -346,7 +351,13 @@ fun BeneficiaryScheduleReviewCard(
                             id = R.string.nc_release_schedule_first_withdrawal,
                             formatDateInTimezone(firstStage.firstWithdrawalTimeMillis)
                         ),
-                        style = NunchukTheme.typography.body,
+                        style = NunchukTheme.typography.body.copy(
+                            color = if (scheduleHighlights.firstWithdrawalChanged) {
+                                changedTextColor
+                            } else {
+                                defaultPrimaryTextColor
+                            }
+                        ),
                     )
                 }
             }
@@ -356,6 +367,11 @@ fun BeneficiaryScheduleReviewCard(
                 BufferPeriodRow(
                     modifier = Modifier.padding(top = 10.dp),
                     text = bufferText,
+                    textColor = if (scheduleHighlights.bufferPeriodChanged) {
+                        changedTextColor
+                    } else {
+                        defaultPrimaryTextColor
+                    },
                 )
             }
 
@@ -365,6 +381,20 @@ fun BeneficiaryScheduleReviewCard(
                     segments = segments,
                     summaryScalePercent = summaryScale,
                     remainingSummaryPercent = remaining,
+                    labelColorForSegment = { segment ->
+                        if (scheduleHighlights.changedStageLabelNumbers.contains(segment.stageNumber)) {
+                            changedTextColor
+                        } else {
+                            defaultPrimaryTextColor
+                        }
+                    },
+                    dateColorForSegment = { segment ->
+                        if (scheduleHighlights.changedStageDateNumbers.contains(segment.stageNumber)) {
+                            changedTextColor
+                        } else {
+                            defaultSecondaryTextColor
+                        }
+                    },
                 )
             }
         }
@@ -377,11 +407,15 @@ fun SharedScheduleReviewCard(
     stages: List<InheritancePlanStage>,
     bufferPeriod: Period?,
     bufferApplyOn: String?,
+    scheduleHighlights: ScheduleChangeHighlights = ScheduleChangeHighlights(),
+    changedTextColor: Color = Color.Unspecified,
 ) {
     val segments = remember(stages) { stages.toAllocationSegments() }
     val totalAllocated = segments.sumOf { it.allocationPercent }
     val summaryScale = totalAllocated.coerceAtLeast(100)
     val remaining = (summaryScale - totalAllocated).coerceAtLeast(0)
+    val defaultPrimaryTextColor = MaterialTheme.colorScheme.controlFillPrimary
+    val defaultSecondaryTextColor = MaterialTheme.colorScheme.textSecondary
 
     Box(
         modifier = modifier
@@ -408,7 +442,13 @@ fun SharedScheduleReviewCard(
                             id = R.string.nc_release_schedule_first_withdrawal,
                             formatDateInTimezone(firstStage.firstWithdrawalTimeMillis)
                         ),
-                        style = NunchukTheme.typography.body,
+                        style = NunchukTheme.typography.body.copy(
+                            color = if (scheduleHighlights.firstWithdrawalChanged) {
+                                changedTextColor
+                            } else {
+                                defaultPrimaryTextColor
+                            }
+                        ),
                     )
                 }
             }
@@ -418,6 +458,11 @@ fun SharedScheduleReviewCard(
                 BufferPeriodRow(
                     modifier = Modifier.padding(top = 10.dp),
                     text = bufferText,
+                    textColor = if (scheduleHighlights.bufferPeriodChanged) {
+                        changedTextColor
+                    } else {
+                        defaultPrimaryTextColor
+                    },
                 )
             }
 
@@ -427,6 +472,20 @@ fun SharedScheduleReviewCard(
                     segments = segments,
                     summaryScalePercent = summaryScale,
                     remainingSummaryPercent = remaining,
+                    labelColorForSegment = { segment ->
+                        if (scheduleHighlights.changedStageLabelNumbers.contains(segment.stageNumber)) {
+                            changedTextColor
+                        } else {
+                            defaultPrimaryTextColor
+                        }
+                    },
+                    dateColorForSegment = { segment ->
+                        if (scheduleHighlights.changedStageDateNumbers.contains(segment.stageNumber)) {
+                            changedTextColor
+                        } else {
+                            defaultSecondaryTextColor
+                        }
+                    },
                 )
             }
         }
@@ -437,6 +496,7 @@ fun SharedScheduleReviewCard(
 private fun BufferPeriodRow(
     modifier: Modifier = Modifier,
     text: String,
+    textColor: Color = Color.Unspecified,
 ) {
     Row(
         modifier = modifier,
@@ -450,7 +510,7 @@ private fun BufferPeriodRow(
         Text(
             modifier = Modifier.padding(start = 8.dp),
             text = text,
-            style = NunchukTheme.typography.body,
+            style = NunchukTheme.typography.body.copy(color = textColor),
         )
     }
 }
