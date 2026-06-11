@@ -3,17 +3,12 @@ package com.nunchuk.android.wallet.components.coin.consolidate
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.nunchuk.android.model.TxInput
-import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.model.defaultRate
 import com.nunchuk.android.usecase.EstimateFeeUseCase
-import com.nunchuk.android.usecase.coin.SavePendingTxInputsUseCase
 import com.nunchuk.android.usecase.wallet.GetUnusedWalletAddressUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -27,26 +22,17 @@ data class ConsolidateCoinUiState(
     val showGenerateAddressError: Boolean = false
 )
 
-sealed class ConsolidateCoinEvent {
-    data class OpenTransactionConfirm(val note: String) : ConsolidateCoinEvent()
-    data class OpenEstimatedFee(val note: String) : ConsolidateCoinEvent()
-}
-
 @HiltViewModel
 class ConsolidateCoinViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val getUnusedWalletAddressUseCase: GetUnusedWalletAddressUseCase,
-    private val estimateFeeUseCase: EstimateFeeUseCase,
-    private val savePendingTxInputsUseCase: SavePendingTxInputsUseCase,
+    private val estimateFeeUseCase: EstimateFeeUseCase
 ) : ViewModel() {
     private val args: ConsolidateCoinFragmentArgs =
         ConsolidateCoinFragmentArgs.fromSavedStateHandle(savedStateHandle)
 
     private val _uiState = MutableStateFlow(ConsolidateCoinUiState())
     val uiState: StateFlow<ConsolidateCoinUiState> = _uiState.asStateFlow()
-
-    private val _event = MutableSharedFlow<ConsolidateCoinEvent>()
-    val event = _event.asSharedFlow()
 
     init {
         viewModelScope.launch {
@@ -80,28 +66,5 @@ class ConsolidateCoinViewModel @Inject constructor(
         _uiState.update { state ->
             state.copy(showGenerateAddressError = false)
         }
-    }
-
-    fun prepareCreateTransaction(note: String) {
-        viewModelScope.launch {
-            saveSelectedCoins(args.selectedCoins.toList())
-            _event.emit(ConsolidateCoinEvent.OpenTransactionConfirm(note))
-        }
-    }
-
-    fun prepareCustomizeTransaction(note: String) {
-        viewModelScope.launch {
-            saveSelectedCoins(args.selectedCoins.toList())
-            _event.emit(ConsolidateCoinEvent.OpenEstimatedFee(note))
-        }
-    }
-
-    private suspend fun saveSelectedCoins(coins: List<UnspentOutput>) {
-        savePendingTxInputsUseCase(
-            SavePendingTxInputsUseCase.Param(
-                walletId = args.walletId,
-                inputs = coins.map { TxInput(it.txid, it.vout) }
-            )
-        )
     }
 }

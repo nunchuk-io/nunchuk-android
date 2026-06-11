@@ -81,6 +81,21 @@ internal class InputAmountViewModel @Inject constructor(
             checkLockedCoin(args.walletId)
         }
         args.btcUri?.let(::applyBtcUri)
+        val prefillAmount = args.claimInheritanceTxParam?.customAmount ?: 0.0
+        if (args.btcUri == null && prefillAmount > 0.0) {
+            applyPrefillAmount(prefillAmount)
+        }
+    }
+
+    private fun applyPrefillAmount(amountBtc: Double) {
+        _state.update {
+            it.copy(
+                amountBTC = amountBtc,
+                amountUSD = amountBtc.fromBTCToCurrency(),
+                useBtc = true,
+                inputText = formatRawInput(amountBtc, useBtc = true),
+            )
+        }
     }
 
     private fun applyBtcUri(btcUri: BtcUri) {

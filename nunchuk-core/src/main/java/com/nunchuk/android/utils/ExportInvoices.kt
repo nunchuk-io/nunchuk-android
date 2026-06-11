@@ -6,10 +6,15 @@ import android.graphics.Paint
 import android.graphics.pdf.PdfDocument
 import androidx.core.content.res.ResourcesCompat
 import com.nunchuk.android.core.R
+import com.nunchuk.android.core.util.MAX_FRACTION_DIGITS
+import com.nunchuk.android.core.util.formatDecimal
+import com.nunchuk.android.core.util.formatDecimalWithoutZero
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getFormatDate
 import com.nunchuk.android.core.util.hasChangeIndex
+import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.core.wallet.InvoiceInfo
+import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.Transaction
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.ensureActive
@@ -167,14 +172,16 @@ class ExportInvoices(private val context: Context) {
         yPosition += 60f
         invoiceInfo.txOutputs.forEachIndexed { index, txOutput ->
             yPosition += if (index != 0) 40f else 20f
+            val outputAmount = invoiceInfo.outputAmounts.getOrNull(index)
+                ?: txOutput.second.getBTCAmount()
             val textWidthSendToAdd = paintText.apply {
                 textSize = 18f
                 typeface = latoBold
                 color = colorPrimary
-            }.measureText(txOutput.second.getBTCAmount())
+            }.measureText(outputAmount)
             val xPositionSendToAdd = canvas.width - margin36 - textWidthSendToAdd - margin12
             canvas.drawText(
-                txOutput.second.getBTCAmount(),
+                outputAmount,
                 xPositionSendToAdd,
                 yPosition,
                 paintText
@@ -374,22 +381,79 @@ class ExportInvoices(private val context: Context) {
     }
 }
 
-fun Transaction.toInvoiceInfo(context: Context, isInheritanceClaimingFlow: Boolean): InvoiceInfo {
+fun Transaction.toInvoiceInfo(
+    context: Context,
+    isInheritanceClaimingFlow: Boolean,
+    isLiquid: Boolean = false,
+    usdtAssetId: String = "",
+): InvoiceInfo {
     val transaction = this
     val coins = if (transaction.isReceive)
         transaction.receiveOutputs else
         transaction.outputs.filter { !it.isChange }
-    val txOutput = transaction.outputs.firstOrNull { it.isChange }
+    val changeOutput = transaction.outputs.firstOrNull { it.isChange }
+
+    if (!isLiquid) {
+        return InvoiceInfo(
+            amountSent = transaction.totalAmount.getBTCAmount(),
+            confirmTime = if (isInheritanceClaimingFlow.not()) transaction.getFormatDate() else "",
+            transactionId = transaction.txId,
+            txOutputs = coins,
+            estimatedFee = if (!transaction.isReceive) transaction.fee.getBTCAmount() else "",
+            changeAddress = if (transaction.hasChangeIndex()) changeOutput?.first.orEmpty() else "",
+            changeAddressAmount = if (transaction.hasChangeIndex()) changeOutput?.second?.getBTCAmount()
+                .orEmpty() else "",
+            note = transaction.memo,
+            isReceive = transaction.isReceive,
+        )
+    }
+
+    // Liquid wallet: format amounts per asset (LBTC vs USDT) instead of "BTC".
+    val coinsTotalByAsset: Map<String, Long> = coins.groupBy { it.assetId }
+        .mapValues { (_, outs) -> outs.sumOf { it.second.value } }
+    val usdtTotal = if (usdtAssetId.isEmpty()) 0L else {
+        coinsTotalByAsset.entries
+            .firstOrNull { it.key.equals(usdtAssetId, ignoreCase = true) }?.value ?: 0L
+    }
+    val isUsdtTransfer = usdtTotal != 0L
+    val totalValue = if (isUsdtTransfer) usdtTotal else coinsTotalByAsset.values.sum()
+    val amountSent = Amount(value = totalValue).formatLiquidAmount(
+        isUsdt = isUsdtTransfer,
+    )
+
+    val outputAmounts = coins.map { output ->
+        output.second.formatLiquidAmount(
+            isUsdt = usdtAssetId.isNotEmpty() && output.assetId.equals(usdtAssetId, ignoreCase = true),
+        )
+    }
+
+    val estimatedFee = if (!transaction.isReceive) {
+        // Liquid fees are paid in LBTC.
+        transaction.fee.formatLiquidAmount(isUsdt = false)
+    } else ""
+
+    val changeAmount = if (transaction.hasChangeIndex() && changeOutput != null) {
+        changeOutput.second.formatLiquidAmount(
+            isUsdt = usdtAssetId.isNotEmpty() && changeOutput.assetId.equals(usdtAssetId, ignoreCase = true),
+        )
+    } else ""
+
     return InvoiceInfo(
-        amountSent = transaction.totalAmount.getBTCAmount(),
+        amountSent = amountSent,
         confirmTime = if (isInheritanceClaimingFlow.not()) transaction.getFormatDate() else "",
         transactionId = transaction.txId,
         txOutputs = coins,
-        estimatedFee = if (!transaction.isReceive) transaction.fee.getBTCAmount() else "",
-        changeAddress = if (transaction.hasChangeIndex()) txOutput?.first.orEmpty() else "",
-        changeAddressAmount = if (transaction.hasChangeIndex()) txOutput?.second?.getBTCAmount()
-            .orEmpty() else "",
+        estimatedFee = estimatedFee,
+        changeAddress = if (transaction.hasChangeIndex()) changeOutput?.first.orEmpty() else "",
+        changeAddressAmount = changeAmount,
         note = transaction.memo,
         isReceive = transaction.isReceive,
+        outputAmounts = outputAmounts,
     )
+}
+
+private fun Amount.formatLiquidAmount(isUsdt: Boolean): String = if (isUsdt) {
+    "${pureBTC().formatDecimalWithoutZero(maxFractionDigits = MAX_FRACTION_DIGITS)} USDT"
+} else {
+    "${pureBTC().formatDecimal(minFractionDigits = MAX_FRACTION_DIGITS)} LBTC"
 }

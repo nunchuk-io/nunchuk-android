@@ -55,10 +55,12 @@ import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.ExportFormat
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.WalletTemplate
+import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.CreateShareFileUseCase
 import com.nunchuk.android.usecase.DeleteWalletUseCase
 import com.nunchuk.android.usecase.ExportTransactionsHistoryUseCase
 import com.nunchuk.android.usecase.ExportWalletUseCase
+import com.nunchuk.android.usecase.GetLiquidAssetIdsUseCase
 import com.nunchuk.android.usecase.GetScriptNodeFromMiniscriptTemplateUseCase
 import com.nunchuk.android.usecase.GetTransactionHistoryUseCase
 import com.nunchuk.android.usecase.GetWalletUseCase
@@ -133,6 +135,7 @@ internal class WalletConfigViewModel @Inject constructor(
     private val parseSignerStringUseCase: ParseSignerStringUseCase,
     private val getWalletDescriptorUseCase: GetWalletDescriptorUseCase,
     private val singleSignerMapper: SingleSignerMapper,
+    private val getLiquidAssetIdsUseCase: GetLiquidAssetIdsUseCase,
     @ApplicationContext private val context: Context,
 ) : ViewModel() {
     private val _state = MutableStateFlow(WalletConfigState())
@@ -231,6 +234,7 @@ internal class WalletConfigViewModel @Inject constructor(
                         )
                     }
                     getMiniscriptInfo()
+                    loadLiquidAssetIdsIfNeeded()
                 }
         }
     }
@@ -663,6 +667,21 @@ internal class WalletConfigViewModel @Inject constructor(
 
     fun isOnChainWallet(): Boolean {
         return isMiniscriptWallet() && isAssistedWallet()
+    }
+
+    fun isLiquidWallet(): Boolean =
+        state.value.walletExtended.wallet.walletType == WalletType.LIQUID
+
+    fun getUsdtAssetId(): String = state.value.usdtAssetId
+
+    private fun loadLiquidAssetIdsIfNeeded() {
+        if (!isLiquidWallet()) return
+        if (getState().usdtAssetId.isNotEmpty()) return
+        viewModelScope.launch {
+            getLiquidAssetIdsUseCase(Unit).onSuccess { ids ->
+                _state.update { it.copy(usdtAssetId = ids.usdtAssetId) }
+            }
+        }
     }
 
     fun isMiniscriptWallet(): Boolean {

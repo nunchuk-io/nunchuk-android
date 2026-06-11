@@ -173,7 +173,7 @@ class TransactionConfirmActivity : BaseNfcActivity<ViewBinding>() {
             manualFeeRate = args.manualFeeRate,
             slots = args.slots,
             claimInheritanceTxParam = args.claimInheritanceTxParam,
-            isFromSelectedCoin = args.isFromSelectedCoin,
+            inputs = args.inputs,
             antiFeeSniping = args.antiFeeSniping
         )
         viewModel.draftTransaction(args.signingPath)
@@ -206,7 +206,7 @@ class TransactionConfirmActivity : BaseNfcActivity<ViewBinding>() {
             sweepType: SweepType = SweepType.NONE,
             slots: List<SatsCardSlot> = emptyList(),
             claimInheritanceTxParam: ClaimInheritanceTxParam? = null,
-            isFromSelectedCoin: Boolean = false,
+            inputs: List<UnspentOutput> = emptyList(),
             signingPath: SigningPath? = null,
             actionButtonText: String,
             antiFeeSniping: Boolean
@@ -222,7 +222,7 @@ class TransactionConfirmActivity : BaseNfcActivity<ViewBinding>() {
                     sweepType = sweepType,
                     slots = slots,
                     claimInheritanceTxParam = claimInheritanceTxParam,
-                    isFromSelectedCoin = isFromSelectedCoin,
+                    inputs = inputs,
                     actionButtonText = actionButtonText,
                     antiFeeSniping = antiFeeSniping,
                     signingPath = signingPath
@@ -351,7 +351,6 @@ private fun TransactionConfirmScreen(
 
                 is TransactionConfirmEvent.ShowTimeLockNotice,
                 is TransactionConfirmEvent.CustomizeTransaction,
-                is TransactionConfirmEvent.OpenInputAmountFromTimelock,
                 is TransactionConfirmEvent.ChooseSigningPathsSuccess -> Unit
             }
         }
@@ -435,7 +434,7 @@ private fun TransactionConfirmScreen(
             changeAmount = changeAmount,
             isOffChainClaim = viewModel.isOffChainClaimingFlow(),
             privateNote = args.privateNote,
-            inputs = uiState.inputs,
+            inputs = args.inputs,
             allTags = uiState.allTags,
             onBackPressed = { activity.finish() },
             onConfirmClick = {

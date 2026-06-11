@@ -48,8 +48,6 @@ import com.nunchuk.android.usecase.GetDefaultAntiFeeSnipingUseCase
 import com.nunchuk.android.usecase.GetScriptNodeFromMiniscriptTemplateUseCase
 import com.nunchuk.android.usecase.coin.GetAllCoinUseCase
 import com.nunchuk.android.usecase.coin.GetAllTagsUseCase
-import com.nunchuk.android.usecase.coin.GetCoinsFromTxInputsUseCase
-import com.nunchuk.android.usecase.coin.GetPendingTxInputsUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
@@ -74,8 +72,6 @@ class EstimatedFeeViewModel @Inject constructor(
     private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
     private val getDefaultAntiFeeSnipingUseCase: GetDefaultAntiFeeSnipingUseCase,
     private val getScriptNodeFromMiniscriptTemplateUseCase: GetScriptNodeFromMiniscriptTemplateUseCase,
-    private val getPendingTxInputsUseCase: GetPendingTxInputsUseCase,
-    private val getCoinsFromTxInputsUseCase: GetCoinsFromTxInputsUseCase,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(EstimatedFeeState())
@@ -103,25 +99,18 @@ class EstimatedFeeViewModel @Inject constructor(
             clear()
             addAll(args.slots)
         }
-        this.inputs.clear()
+        this.inputs.apply {
+            clear()
+            addAll(args.inputs)
+        }
         address = args.txReceipts.first().address
         forceSubtractFeeFromAmount = args.subtractFeeFromAmount
         claimInheritanceTxParam = args.claimInheritanceTxParam
         rollOverWalletParam = args.rollOverWalletParam
-        viewModelScope.launch {
-            if (args.isFromSelectedCoin) {
-                val txInputs = getPendingTxInputsUseCase(walletId).getOrDefault(emptyList())
-                if (txInputs.isNotEmpty()) {
-                    getCoinsFromTxInputsUseCase(
-                        GetCoinsFromTxInputsUseCase.Params(walletId, txInputs)
-                    ).onSuccess { coins -> inputs.addAll(coins) }
-                }
-            }
-            if (rollOverWalletParam != null) {
-                getEstimateRollOverAmount()
-            } else {
-                getEstimateFeeRates()
-            }
+        if (rollOverWalletParam != null) {
+            getEstimateRollOverAmount()
+        } else {
+            getEstimateFeeRates()
         }
         if (slots.isEmpty()) {
             getAllTags()

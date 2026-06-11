@@ -31,6 +31,7 @@ import com.nunchuk.android.core.util.getIntValue
 import com.nunchuk.android.core.util.getStringValue
 import com.nunchuk.android.model.SatsCardSlot
 import com.nunchuk.android.model.SigningPath
+import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.utils.parcelableArrayList
 import com.nunchuk.android.utils.serializable
@@ -45,7 +46,7 @@ data class TransactionConfirmArgs(
     val sweepType: SweepType,
     val slots: List<SatsCardSlot>,
     val claimInheritanceTxParam: ClaimInheritanceTxParam? = null,
-    val isFromSelectedCoin: Boolean = false,
+    val inputs: List<UnspentOutput> = emptyList(),
     val actionButtonText: String = "",
     val antiFeeSniping: Boolean,
     val signingPath: SigningPath?,
@@ -62,7 +63,7 @@ data class TransactionConfirmArgs(
             putExtra(EXTRA_CLAIM_INHERITANCE_TX_PARAM, claimInheritanceTxParam)
             putParcelableArrayListExtra(EXTRA_TX_RECEIPTS, ArrayList(txReceipts))
             putParcelableArrayListExtra(EXTRA_SLOTS, ArrayList(slots))
-            putExtra(EXTRA_IS_FROM_SELECTED_COIN, isFromSelectedCoin)
+            putParcelableArrayListExtra(EXTRA_INPUTS, ArrayList(inputs))
             putExtra(EXTRA_ACTION_BUTTON_TEXT, actionButtonText)
             putExtra(EXTRA_ANTI_FEE_SNIPING, antiFeeSniping)
             putExtra(EXTRA_SIGNING_PATH, signingPath)
@@ -76,7 +77,7 @@ data class TransactionConfirmArgs(
         private const val EXTRA_MANUAL_FEE_RATE = "EXTRA_MANUAL_FEE_RATE"
         private const val EXTRA_SWEEP_TYPE = "EXTRA_SWEEP_TYPE"
         private const val EXTRA_SLOTS = "EXTRA_SLOTS"
-        private const val EXTRA_IS_FROM_SELECTED_COIN = "EXTRA_IS_FROM_SELECTED_COIN"
+        private const val EXTRA_INPUTS = "EXTRA_INPUTS"
         private const val EXTRA_TX_RECEIPTS = "EXTRA_TX_RECEIPTS"
         private const val EXTRA_CLAIM_INHERITANCE_TX_PARAM = "EXTRA_CLAIM_INHERITANCE_TX_PARAM"
         private const val EXTRA_ACTION_BUTTON_TEXT = "EXTRA_ACTION_BUTTON_TEXT"
@@ -94,7 +95,7 @@ data class TransactionConfirmArgs(
                 sweepType = extras?.serializable(EXTRA_SWEEP_TYPE)!!,
                 slots = extras.parcelableArrayList<SatsCardSlot>(EXTRA_SLOTS).orEmpty(),
                 claimInheritanceTxParam = extras.parcelable(EXTRA_CLAIM_INHERITANCE_TX_PARAM),
-                isFromSelectedCoin = extras.getBooleanValue(EXTRA_IS_FROM_SELECTED_COIN),
+                inputs = extras.parcelableArrayList<UnspentOutput>(EXTRA_INPUTS).orEmpty(),
                 txReceipts = extras.parcelableArrayList<TxReceipt>(EXTRA_TX_RECEIPTS).orEmpty(),
                 actionButtonText = extras.getStringValue(EXTRA_ACTION_BUTTON_TEXT),
                 antiFeeSniping = extras.getBooleanValue(EXTRA_ANTI_FEE_SNIPING, false),

@@ -138,7 +138,7 @@ class CoinListFragment : BaseCoinListFragment() {
                                     }
                                 )
                         } else {
-                            coinListViewModel.prepareCreateTransaction()
+                            openCreateTransaction()
                         }
                     },
                     onShowSelectedCoinMoreOption = {
@@ -168,12 +168,13 @@ class CoinListFragment : BaseCoinListFragment() {
         }
     }
 
-    private fun openCreateTransaction(availableAmount: Double) {
+    private fun openCreateTransaction() {
         navigator.openInputAmountScreen(
             activityContext = requireActivity(),
             walletId = args.walletId,
-            availableAmount = availableAmount,
-            isFromSelectedCoin = true
+            availableAmount = coinListViewModel.getSelectedCoins()
+                .sumOf { it.amount.value }.toDouble().fromSATtoBTC(),
+            inputs = coinListViewModel.getSelectedCoins()
         )
     }
 
@@ -184,10 +185,8 @@ class CoinListFragment : BaseCoinListFragment() {
             clearFragmentResult(CoinTagSelectColorBottomSheetFragment.REQUEST_KEY)
         }
         flowObserver(coinListViewModel.event) {
-            when (it) {
-                is CoinListEvent.CoinUnlocked -> if (it.isCreateTransaction) coinListViewModel.prepareCreateTransaction()
-                is CoinListEvent.OpenCreateTransaction -> openCreateTransaction(it.availableAmount)
-                else -> Unit
+            if (it is CoinListEvent.CoinUnlocked && it.isCreateTransaction) {
+                openCreateTransaction()
             }
         }
     }

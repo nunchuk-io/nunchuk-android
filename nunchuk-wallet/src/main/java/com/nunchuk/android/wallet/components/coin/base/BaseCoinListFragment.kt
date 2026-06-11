@@ -75,8 +75,6 @@ abstract class BaseCoinListFragment : Fragment(), BottomSheetOptionListener {
                             showSuccess(getString(R.string.nc_collection_updated))
                             requireActivity().onBackPressedDispatcher.onBackPressed()
                         }
-
-                        is CoinListEvent.OpenCreateTransaction -> Unit
                     }
                 }
         }

@@ -37,6 +37,7 @@ import com.nunchuk.android.core.data.model.TxReceipt
 import com.nunchuk.android.core.nfc.SweepType
 import com.nunchuk.android.model.SatsCardSlot
 import com.nunchuk.android.model.SigningPath
+import com.nunchuk.android.model.UnspentOutput
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -78,7 +79,7 @@ class EstimatedFeeActivity : BaseComposeActivity() {
             sweepType: SweepType = SweepType.NONE,
             slots: List<SatsCardSlot>,
             claimInheritanceTxParam: ClaimInheritanceTxParam? = null,
-            isFromSelectedCoin: Boolean = false,
+            inputs: List<UnspentOutput> = emptyList(),
             isConsolidateFlow: Boolean = false,
             title: String = "",
             rollOverWalletParam: RollOverWalletParam? = null,
@@ -94,14 +95,14 @@ class EstimatedFeeActivity : BaseComposeActivity() {
                 sweepType = sweepType,
                 slots = slots,
                 claimInheritanceTxParam = claimInheritanceTxParam,
-                isFromSelectedCoin = isFromSelectedCoin,
+                inputs = inputs,
                 isConsolidateFlow = isConsolidateFlow,
                 title = title,
                 rollOverWalletParam = rollOverWalletParam,
                 confirmTxActionButtonText = confirmTxActionButtonText,
                 signingPath = signingPath
             )
-
+            
             activityContext.startActivity(args.buildIntent(activityContext))
         }
     }

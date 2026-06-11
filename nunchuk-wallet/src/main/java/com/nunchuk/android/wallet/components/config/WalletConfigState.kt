@@ -45,4 +45,5 @@ data class WalletConfigState(
     val group: ByzantineGroup? = null,
     val isGroupSandboxWallet: Boolean = false,
     val isDeprecatedGroupWallet: Boolean = false,
+    val usdtAssetId: String = "",
 )

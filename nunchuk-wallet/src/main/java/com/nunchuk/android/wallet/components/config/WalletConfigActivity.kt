@@ -328,8 +328,17 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
                         isCancelExportInvoice = true
                     }
                 )
+                val isLiquid = viewModel.isLiquidWallet()
+                val usdtAssetId = viewModel.getUsdtAssetId()
                 viewModel.exportInvoice(
-                    viewModel.getTransactions().map { it.toInvoiceInfo(this, false) },
+                    viewModel.getTransactions().map {
+                        it.toInvoiceInfo(
+                            context = this,
+                            isInheritanceClaimingFlow = false,
+                            isLiquid = isLiquid,
+                            usdtAssetId = usdtAssetId,
+                        )
+                    },
                     "${viewModel.getWalletName()}_transaction_history_${
                         System.currentTimeMillis().formatddMMMyyyyDate.upperCase()
                     }"
@@ -783,13 +792,16 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
         val wallet = viewModel.state.value.walletExtended.wallet
         val isMiniscript = viewModel.isMiniscriptWallet()
         val isMultisig = wallet.signers.size > 1
+        val isLiquid = wallet.walletType == WalletType.LIQUID
         val addressType = wallet.addressType
         val isSupportedType = addressType == AddressType.LEGACY ||
                 addressType == AddressType.NESTED_SEGWIT ||
                 addressType == AddressType.NATIVE_SEGWIT || addressType == AddressType.TAPROOT
 
         val options = mutableListOf<SheetOption>()
-        options.add(SheetOption(SheetOptionType.TYPE_EXPORT_BSMS, stringId = R.string.nc_bsms))
+        if (!isLiquid) {
+            options.add(SheetOption(SheetOptionType.TYPE_EXPORT_BSMS, stringId = R.string.nc_bsms))
+        }
         options.add(
             SheetOption(
                 SheetOptionType.TYPE_EXPORT_DESCRIPTOR,

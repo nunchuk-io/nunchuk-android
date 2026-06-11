@@ -24,6 +24,7 @@ import com.nunchuk.android.core.data.model.ClaimInheritanceTxParam
 import com.nunchuk.android.core.data.model.RollOverWalletParam
 import com.nunchuk.android.core.nfc.SweepType
 import com.nunchuk.android.model.SatsCardSlot
+import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.utils.parcelableArrayList
 import com.nunchuk.android.utils.serializable
@@ -38,7 +39,7 @@ data class AddReceiptArgs(
     val address: String = "",
     val privateNote: String = "",
     val sweepType: SweepType = SweepType.NONE,
-    val isFromSelectedCoin: Boolean = false,
+    val inputs: List<UnspentOutput> = emptyList(),
     val claimInheritanceTxParam: ClaimInheritanceTxParam? = null,
     val rollOverWalletParam: RollOverWalletParam? = null,
     val type: AddReceiptType = AddReceiptType.ADD_RECEIPT,
@@ -55,8 +56,9 @@ data class AddReceiptArgs(
         putString(EXTRA_PRIVATE_NOTE, privateNote)
         putParcelableArrayList(EXTRA_SLOTS, ArrayList(slots))
         putParcelable(EXTRA_CLAIM_INHERITANCE_TX_PARAM, claimInheritanceTxParam)
+        putParcelableArrayList(EXTRA_INPUT, ArrayList(inputs))
         putSerializable(EXTRA_RECEIPT_TYPE, type)
-        putBoolean(EXTRA_IS_FROM_SELECTED_COIN, isFromSelectedCoin)
+        putBoolean(EXTRA_IS_FROM_SELECTED_COIN, inputs.isNotEmpty())
         txId?.let { putString(EXTRA_TX_ID, it) }
         putParcelable(EXTRA_ROLL_OVER_WALLET_PARAM, rollOverWalletParam)
         putString(EXTRA_TOKEN_ASSET_ID, tokenAssetId)
@@ -72,6 +74,7 @@ data class AddReceiptArgs(
         const val EXTRA_ADDRESS = "EXTRA_ADDRESS"
         const val EXTRA_PRIVATE_NOTE = "EXTRA_PRIVATE_NOTE"
         const val EXTRA_CLAIM_INHERITANCE_TX_PARAM = "EXTRA_CLAIM_INHERITANCE_TX_PARAM"
+        const val EXTRA_INPUT = "unspent_outputs"
         const val EXTRA_RECEIPT_TYPE = "EXTRA_RECEIPT_TYPE"
         const val EXTRA_IS_FROM_SELECTED_COIN = "is_from_select_coin"
         const val EXTRA_TX_ID = "EXTRA_TX_ID"
@@ -87,7 +90,7 @@ data class AddReceiptArgs(
             address = bundle.getString(EXTRA_ADDRESS) ?: "",
             privateNote = bundle.getString(EXTRA_PRIVATE_NOTE) ?: "",
             sweepType = bundle.serializable<SweepType>(EXTRA_SWEEP_TYPE)!!,
-            isFromSelectedCoin = bundle.getBoolean(EXTRA_IS_FROM_SELECTED_COIN),
+            inputs = bundle.parcelableArrayList<UnspentOutput>(EXTRA_INPUT) ?: emptyList(),
             claimInheritanceTxParam = bundle.parcelable(EXTRA_CLAIM_INHERITANCE_TX_PARAM),
             type = bundle.serializable<AddReceiptType>(EXTRA_RECEIPT_TYPE) ?: AddReceiptType.ADD_RECEIPT,
             txId = bundle.getString(EXTRA_TX_ID, null),

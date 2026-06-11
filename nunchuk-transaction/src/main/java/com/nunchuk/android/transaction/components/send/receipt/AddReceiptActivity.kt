@@ -60,6 +60,7 @@ import com.nunchuk.android.core.wallet.WalletComposeBottomSheet
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.SatsCardSlot
 import com.nunchuk.android.model.SigningPath
+import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.model.defaultRate
 import com.nunchuk.android.nav.args.AddReceiptArgs
 import com.nunchuk.android.nav.args.AddReceiptType
@@ -463,9 +464,12 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
                             walletId = args.walletId,
                             onContinue = { isSendAll, coins ->
                                 if (!isSendAll && args.type == AddReceiptType.BATCH) {
-                                    transactionConfirmViewModel.prepareCreateTransactionFromTimelock(
+                                    navigator.openInputAmountScreen(
+                                        activityContext = this@AddReceiptActivity,
                                         walletId = args.walletId,
-                                        coins = coins
+                                        availableAmount = coins
+                                            .sumOf { it.amount.value }.toDouble().fromSATtoBTC(),
+                                        inputs = coins
                                     )
                                 } else {
                                     transactionConfirmViewModel.run {
@@ -521,7 +525,7 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
                 is BatchTransactionEvent.Error -> NCToastMessage(this).showError(event.message)
                 is BatchTransactionEvent.Loading -> if (event.loading) showLoading() else hideLoading()
                 BatchTransactionEvent.InsufficientFundsEvent -> {
-                    if (args.isFromSelectedCoin) {
+                    if (args.inputs.isNotEmpty()) {
                         NCToastMessage(this).showError(getString(R.string.nc_send_amount_too_large))
                     } else {
                         NCToastMessage(this).showError(getString(R.string.nc_transaction_insufficient_funds))
@@ -667,15 +671,6 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
 
             is TransactionConfirmEvent.AutoSelectSigningPath -> signingPathSelected(event.signingPath)
 
-            is TransactionConfirmEvent.OpenInputAmountFromTimelock -> {
-                navigator.openInputAmountScreen(
-                    activityContext = this,
-                    walletId = event.walletId,
-                    availableAmount = event.availableAmount,
-                    isFromSelectedCoin = true,
-                )
-            }
-
             else -> {}
         }
     }
@@ -693,7 +688,7 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
                 subtractFeeFromAmount = batchTransactionViewModel.getSubtractFeeFromAmount(),
                 sweepType = args.sweepType,
                 slots = args.slots,
-                isFromSelectedCoin = args.isFromSelectedCoin,
+                inputs = args.inputs,
                 claimInheritanceTxParam = args.claimInheritanceTxParam,
                 signingPath = signingPath
             )
@@ -719,7 +714,7 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
                 subtractFeeFromAmount = subtractFeeFromAmount,
                 sweepType = args.sweepType,
                 slots = args.slots,
-                isFromSelectedCoin = args.isFromSelectedCoin,
+                inputs = args.inputs,
                 claimInheritanceTxParam = args.claimInheritanceTxParam,
                 signingPath = signingPath
             )
@@ -793,7 +788,7 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
                 privateNote = note,
                 manualFeeRate = manualFeeRate,
                 slots = args.slots,
-                isFromSelectedCoin = args.isFromSelectedCoin,
+                inputs = args.inputs,
                 claimInheritanceTxParam = args.claimInheritanceTxParam,
                 antiFeeSniping = viewModel.getAddReceiptState().antiFeeSniping,
             )
@@ -857,7 +852,7 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
             subtractFeeFromAmount: Boolean = false,
             slots: List<SatsCardSlot> = emptyList(),
             sweepType: SweepType = SweepType.NONE,
-            isFromSelectedCoin: Boolean = false,
+            inputs: List<UnspentOutput> = emptyList(),
             claimInheritanceTxParam: ClaimInheritanceTxParam? = null,
             receiptType: AddReceiptType = AddReceiptType.ADD_RECEIPT,
             tokenAssetId: String = "",
@@ -873,7 +868,7 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
                         address = address,
                         privateNote = privateNote,
                         sweepType = sweepType,
-                        isFromSelectedCoin = isFromSelectedCoin,
+                        inputs = inputs,
                         claimInheritanceTxParam = claimInheritanceTxParam,
                         type = receiptType,
                         tokenAssetId = tokenAssetId,
