@@ -31,19 +31,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
-import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.Velocity
-import androidx.compose.ui.unit.lerp
 import androidx.compose.ui.unit.sp
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.util.getBTCAmount
@@ -149,9 +148,10 @@ private fun configurationLabel(wallet: Wallet, hide: Boolean): String {
  * Holds the collapsing-header animation state and exposes a [NestedScrollConnection]
  * to drive collapse from a [androidx.compose.foundation.lazy.LazyColumn] below.
  */
-internal class CollapsingHeaderState(
-    val expandedBodyHeightPx: Float,
-) {
+internal class CollapsingHeaderState {
+    var expandedBodyHeightPx by mutableFloatStateOf(0f)
+        internal set
+
     var offsetPx by mutableFloatStateOf(0f)
         private set
 
@@ -189,9 +189,8 @@ internal class CollapsingHeaderState(
 }
 
 @Composable
-internal fun rememberCollapsingHeaderState(expandedBodyHeight: Dp): CollapsingHeaderState {
-    val px = with(LocalDensity.current) { expandedBodyHeight.toPx() }
-    return remember(px) { CollapsingHeaderState(px) }
+internal fun rememberCollapsingHeaderState(): CollapsingHeaderState {
+    return remember { CollapsingHeaderState() }
 }
 
 /**
@@ -213,7 +212,6 @@ internal fun CollapsingWalletHeader(
     onSend: () -> Unit,
     onReceive: () -> Unit,
     onViewCoin: () -> Unit,
-    onWalletConfig: () -> Unit,
     onSpendable: () -> Unit,
     topBanners: @Composable () -> Unit = {},
 ) {
@@ -270,18 +268,33 @@ internal fun CollapsingWalletHeader(
             )
         }
 
-        // The expanded body collapses from EXPANDED_BODY_HEIGHT to 0.
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(lerp(EXPANDED_BODY_HEIGHT, 0.dp, fraction)),
-        ) {
-            if (fraction < 0.99f) {
+        // The expanded body wraps its content; we read its intrinsic height during
+        // layout, push it into headerState, and shrink the visible band to
+        // intrinsic * (1 - fraction) as the user scrolls.
+        if (fraction < 0.99f) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clipToBounds()
+                    .layout { measurable, constraints ->
+                        val placeable = measurable.measure(
+                            constraints.copy(minHeight = 0, maxHeight = Constraints.Infinity)
+                        )
+                        val intrinsic = placeable.height.toFloat()
+                        if (headerState.expandedBodyHeightPx != intrinsic) {
+                            headerState.expandedBodyHeightPx = intrinsic
+                        }
+                        val visibleHeight =
+                            (intrinsic * (1f - fraction)).toInt().coerceAtLeast(0)
+                        layout(placeable.width, visibleHeight) {
+                            placeable.place(0, 0)
+                        }
+                    },
+            ) {
                 ExpandedBody(
                     model = model,
                     alpha = (1f - fraction * 2f).coerceIn(0f, 1f),
                     onToggleMask = onToggleMask,
-                    onWalletConfig = onWalletConfig,
                     onSpendable = onSpendable,
                     onSend = onSend,
                     onReceive = onReceive,
@@ -401,7 +414,6 @@ private fun ExpandedBody(
     model: WalletHeaderUiModel,
     alpha: Float,
     onToggleMask: () -> Unit,
-    onWalletConfig: () -> Unit,
     onSpendable: () -> Unit,
     onSend: () -> Unit,
     onReceive: () -> Unit,
@@ -452,17 +464,6 @@ private fun ExpandedBody(
                 )
             }
         }
-        Spacer(Modifier.height(16.dp))
-        Text(
-            modifier = Modifier
-                .clickable { onWalletConfig() }
-                .padding(horizontal = 8.dp, vertical = 4.dp),
-            text = stringResource(R.string.nc_wallet_view_wallet_config),
-            style = NunchukTheme.typography.body.copy(
-                color = Color.White,
-                textDecoration = TextDecoration.Underline,
-            ),
-        )
         Spacer(Modifier.height(24.dp))
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -608,5 +609,4 @@ private fun cashAmountColor(theme: HeaderTheme): Color = when (theme) {
     else -> Color(0xFFB5DCFA)
 }
 
-internal val EXPANDED_BODY_HEIGHT = 280.dp
 internal val TOOLBAR_HEIGHT = 56.dp

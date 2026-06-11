@@ -136,14 +136,6 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
                 onViewCoin = {
                     navigator.openCoinList(context = requireContext(), walletId = args.walletId)
                 },
-                onWalletConfig = {
-                    navigator.openWalletConfigScreen(
-                        launcher = launcher,
-                        activityContext = requireActivity(),
-                        walletId = args.walletId,
-                        keyPolicy = args.keyPolicy,
-                    )
-                },
                 onSpendable = {
                     navigator.openCoinList(context = requireContext(), walletId = args.walletId)
                 },
@@ -382,18 +374,13 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
                 )
             )
         }
-        // Liquid/stablecoin wallets don't surface "View wallet config" inline in the
-        // header (unlike regular wallets, which render it as a link below the balance),
-        // so add it to the overflow menu here.
-        if (viewModel.getWallet().walletType == com.nunchuk.android.type.WalletType.LIQUID) {
-            options.add(
-                SheetOption(
-                    SheetOptionType.TYPE_VIEW_WALLET_CONFIG,
-                    R.drawable.ic_settings_dark,
-                    R.string.nc_wallet_view_wallet_config,
-                )
+        options.add(
+            SheetOption(
+                SheetOptionType.TYPE_VIEW_WALLET_CONFIG,
+                R.drawable.ic_settings_dark,
+                R.string.nc_wallet_view_wallet_config,
             )
-        }
+        )
         BottomSheetOption.newInstance(options).show(childFragmentManager, "BottomSheetOption")
     }
 

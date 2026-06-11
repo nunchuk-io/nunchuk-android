@@ -26,15 +26,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.PreviewLightDark
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.lerp
 import androidx.compose.ui.unit.sp
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.util.MAX_FRACTION_DIGITS
@@ -145,12 +147,26 @@ internal fun StableCollapsingWalletHeader(
             )
         }
 
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(lerp(STABLE_EXPANDED_BODY_HEIGHT, 0.dp, fraction)),
-        ) {
-            if (fraction < 0.99f) {
+        if (fraction < 0.99f) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clipToBounds()
+                    .layout { measurable, constraints ->
+                        val placeable = measurable.measure(
+                            constraints.copy(minHeight = 0, maxHeight = Constraints.Infinity)
+                        )
+                        val intrinsic = placeable.height.toFloat()
+                        if (headerState.expandedBodyHeightPx != intrinsic) {
+                            headerState.expandedBodyHeightPx = intrinsic
+                        }
+                        val visibleHeight =
+                            (intrinsic * (1f - fraction)).toInt().coerceAtLeast(0)
+                        layout(placeable.width, visibleHeight) {
+                            placeable.place(0, 0)
+                        }
+                    },
+            ) {
                 StableExpandedBody(
                     model = model,
                     alpha = (1f - fraction * 2f).coerceIn(0f, 1f),
@@ -232,7 +248,7 @@ private fun StableExpandedBody(
         modifier = Modifier
             .fillMaxWidth()
             .alpha(alpha)
-            .padding(horizontal = 16.dp),
+            .padding(horizontal = 16.dp, vertical = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
@@ -492,13 +508,11 @@ private fun StableMaskToggleIcon(hide: Boolean, onClick: () -> Unit) {
     )
 }
 
-internal val STABLE_EXPANDED_BODY_HEIGHT = 280.dp
-
 @PreviewLightDark
 @Composable
 private fun StableCollapsingWalletHeaderPreview() {
     NunchukTheme {
-        val headerState = remember { CollapsingHeaderState(expandedBodyHeightPx = 1000f) }
+        val headerState = remember { CollapsingHeaderState() }
         StableCollapsingWalletHeader(
             model = StableWalletHeaderUiModel(
                 title = "USDT wallet",

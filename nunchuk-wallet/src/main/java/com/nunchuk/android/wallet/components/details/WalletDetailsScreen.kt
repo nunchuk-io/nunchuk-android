@@ -41,7 +41,6 @@ internal fun WalletDetailsScreen(
     onSend: () -> Unit,
     onReceive: () -> Unit,
     onViewCoin: () -> Unit,
-    onWalletConfig: () -> Unit,
     onSpendable: () -> Unit,
     onTransactionClick: (com.nunchuk.android.model.Transaction) -> Unit,
     onClaimInheritance: () -> Unit,
@@ -61,8 +60,7 @@ internal fun WalletDetailsScreen(
     val extendedTransactions by viewModel.extendedTransactions.collectAsState()
 
     val isStableWallet = state.walletExtended.wallet.walletType == WalletType.LIQUID
-    val expandedBodyHeight = if (isStableWallet) STABLE_EXPANDED_BODY_HEIGHT else EXPANDED_BODY_HEIGHT
-    val headerState = rememberCollapsingHeaderState(expandedBodyHeight = expandedBodyHeight)
+    val headerState = rememberCollapsingHeaderState()
     val headerModel = rememberWalletHeaderModel(state)
     val stableHeaderModel = rememberStableWalletHeaderModel(state)
     val listState = rememberLazyListState()
@@ -162,7 +160,6 @@ internal fun WalletDetailsScreen(
                         onSend = onSend,
                         onReceive = onReceive,
                         onViewCoin = onViewCoin,
-                        onWalletConfig = onWalletConfig,
                         onSpendable = onSpendable,
                         topBanners = topBanners,
                     )
