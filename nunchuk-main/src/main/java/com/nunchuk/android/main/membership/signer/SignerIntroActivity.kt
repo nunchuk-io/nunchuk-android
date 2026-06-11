@@ -68,8 +68,10 @@ import com.nunchuk.android.signer.mk4.Mk4Activity
 import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.utils.parcelableArrayList
+import com.nunchuk.android.utils.serializable
 import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningDialog
@@ -86,6 +88,7 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
         intent.parcelableArrayList<SupportedSigner>(EXTRA_SUPPORTED_SIGNERS).orEmpty()
     }
     private val keyFlow by lazy { intent.getIntExtra(EXTRA_KEY_FLOW, KeyFlow.NONE) }
+    private val walletType by lazy { intent.serializable<WalletType>(EXTRA_WALLET_TYPE) }
     private val onChainAddSignerParam by lazy {
         intent.parcelable<OnChainAddSignerParam>(EXTRA_ONCHAIN_ADD_SIGNER_PARAM)
     }
@@ -142,7 +145,8 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
         viewModel.init(
             onChainAddSignerParam = onChainAddSignerParam,
             supportedSigners = supportedSigners,
-            keyFlow = keyFlow
+            keyFlow = keyFlow,
+            walletType = walletType
         )
 
         setContentView(ComposeView(this).apply {
@@ -603,6 +607,7 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
         private const val EXTRA_SUPPORTED_SIGNERS = "supported_signers"
         private const val EXTRA_KEY_FLOW = "key_flow"
         private const val EXTRA_ONCHAIN_ADD_SIGNER_PARAM = "onchain_add_signer_param"
+        private const val EXTRA_WALLET_TYPE = "wallet_type"
 
         fun start(
             activityContext: Context,
@@ -611,6 +616,7 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
             supportedSigners: List<SupportedSigner>? = null,
             @KeyFlow.PrimaryFlowInfo keyFlow: Int = KeyFlow.NONE,
             onChainAddSignerParam: OnChainAddSignerParam? = null,
+            walletType: WalletType? = null,
         ) {
             activityContext.startActivity(
                 buildIntent(
@@ -619,7 +625,8 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
                     groupId,
                     supportedSigners,
                     keyFlow,
-                    onChainAddSignerParam
+                    onChainAddSignerParam,
+                    walletType
                 )
             )
         }
@@ -631,12 +638,14 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
             supportedSigners: List<SupportedSigner>? = null,
             @KeyFlow.PrimaryFlowInfo keyFlow: Int = KeyFlow.NONE,
             onChainAddSignerParam: OnChainAddSignerParam? = null,
+            walletType: WalletType? = null,
         ): Intent {
             return Intent(activityContext, SignerIntroActivity::class.java).apply {
                 putExtra(EXTRA_WALLET_ID, walletId)
                 putExtra(EXTRA_GROUP_ID, groupId)
                 putExtra(EXTRA_KEY_FLOW, keyFlow)
                 putExtra(EXTRA_ONCHAIN_ADD_SIGNER_PARAM, onChainAddSignerParam)
+                putExtra(EXTRA_WALLET_TYPE, walletType)
                 supportedSigners?.let {
                     putParcelableArrayListExtra(EXTRA_SUPPORTED_SIGNERS, ArrayList(it))
                 }

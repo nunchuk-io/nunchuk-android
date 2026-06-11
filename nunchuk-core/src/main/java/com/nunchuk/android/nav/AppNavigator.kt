@@ -210,6 +210,7 @@ interface AppNavigator {
         supportedSigners: List<SupportedSigner>? = null,
         @KeyFlow.PrimaryFlowInfo keyFlow: Int = KeyFlow.NONE,
         onChainAddSignerParam: OnChainAddSignerParam? = null,
+        walletType: WalletType? = null,
     )
 
     fun returnMembershipScreen()

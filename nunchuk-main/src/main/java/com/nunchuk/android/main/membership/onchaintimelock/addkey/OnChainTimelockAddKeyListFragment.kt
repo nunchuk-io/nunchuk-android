@@ -125,6 +125,7 @@ import com.nunchuk.android.signer.mk4.inheritance.ColdCardIntroFragment
 import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.widget.NCInfoDialog
 import dagger.hilt.android.AndroidEntryPoint
@@ -491,7 +492,8 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                         keyIndex = allSigners.size,
                         currentSigner = allSigners.firstOrNull(),
                         existingSigners = getAllExistingSigners()
-                    )
+                    ),
+                    walletType = WalletType.MINISCRIPT
                 )
             }
         } else {

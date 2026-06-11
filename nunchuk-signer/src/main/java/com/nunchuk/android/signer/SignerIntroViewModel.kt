@@ -72,6 +72,7 @@ class SignerIntroViewModel @Inject constructor(
 
     private var onChainAddSignerParam: OnChainAddSignerParam? = null
     private var keyFlow: Int = KeyFlow.NONE
+    private var walletType: WalletType? = null
     private var isTestNet: Boolean = false
 
     private val _state = MutableStateFlow(SignerIntroState())
@@ -93,10 +94,12 @@ class SignerIntroViewModel @Inject constructor(
     fun init(
         onChainAddSignerParam: OnChainAddSignerParam?,
         supportedSigners: List<SupportedSigner> = emptyList(),
-        keyFlow: Int = KeyFlow.NONE
+        keyFlow: Int = KeyFlow.NONE,
+        walletType: WalletType? = null
     ) {
         this.onChainAddSignerParam = onChainAddSignerParam
         this.keyFlow = keyFlow
+        this.walletType = walletType
 
         if (supportedSigners.isNotEmpty()) {
             _state.update {
@@ -202,10 +205,14 @@ class SignerIntroViewModel @Inject constructor(
         viewModelScope.launch {
             getUserWalletConfigsSetupFromCacheUseCase(Unit).collect { result ->
                 result.getOrNull()?.let { walletConfigs ->
-                    val supportedSigners = convertToSupportedSigners(walletConfigs.supportedSigners)
+                    val relevantConfigs = filterConfigsByWalletType(
+                        configs = walletConfigs.supportedSigners,
+                        walletType = walletType,
+                    )
+                    val supportedSigners = convertToSupportedSigners(relevantConfigs)
                     _state.update {
                         it.copy(
-                            supportedSignerConfigs = walletConfigs.supportedSigners,
+                            supportedSignerConfigs = relevantConfigs,
                             supportedSigners = supportedSigners,
                             isGenericAirgapEnable = calculateIsGenericAirgapEnable(supportedSigners),
                         )
@@ -217,6 +224,20 @@ class SignerIntroViewModel @Inject constructor(
         viewModelScope.launch {
             getUserWalletConfigsSetupUseCase(Unit)
         }
+    }
+
+    /**
+     * Keeps only the signer configs that match the wallet type this flow is building ([walletType]).
+     * The backend may return signers scoped to unrelated wallet types (e.g. a SOFTWARE signer for
+     * LIQUID), which must not be offered when building, say, a MINISCRIPT wallet. When no wallet
+     * type is provided, all configs are kept so flows that don't scope by wallet type are unaffected.
+     */
+    private fun filterConfigsByWalletType(
+        configs: List<SupportedSignerConfig>,
+        walletType: WalletType?,
+    ): List<SupportedSignerConfig> {
+        if (walletType == null) return configs
+        return configs.filter { it.walletType == walletType.name }
     }
 
     private fun convertToSupportedSigners(configs: List<SupportedSignerConfig>): List<SupportedSigner> {

@@ -520,7 +520,8 @@ interface AppNavigatorDelegate : AppNavigator {
         groupId: String?,
         supportedSigners: List<SupportedSigner>?,
         keyFlow: Int,
-        onChainAddSignerParam: OnChainAddSignerParam?
+        onChainAddSignerParam: OnChainAddSignerParam?,
+        walletType: WalletType?
     ) {
         launcher?.launch(
             SignerIntroActivity.buildIntent(
@@ -529,7 +530,8 @@ interface AppNavigatorDelegate : AppNavigator {
                 groupId = groupId,
                 supportedSigners = supportedSigners,
                 keyFlow = keyFlow,
-                onChainAddSignerParam = onChainAddSignerParam
+                onChainAddSignerParam = onChainAddSignerParam,
+                walletType = walletType
             )
         ) ?: SignerIntroActivity.start(
             activityContext = activityContext,
@@ -537,7 +539,8 @@ interface AppNavigatorDelegate : AppNavigator {
             groupId = groupId,
             supportedSigners = supportedSigners,
             keyFlow = keyFlow,
-            onChainAddSignerParam = onChainAddSignerParam
+            onChainAddSignerParam = onChainAddSignerParam,
+            walletType = walletType
         )
     }
 
