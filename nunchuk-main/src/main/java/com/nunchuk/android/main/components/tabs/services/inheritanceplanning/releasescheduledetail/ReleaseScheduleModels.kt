@@ -32,6 +32,12 @@ data class ReleaseScheduleDate(
 ) {
     fun display(): String = "%02d/%02d/%04d".format(month, day, year)
 
+    fun isAfter(other: ReleaseScheduleDate): Boolean = toLocalDate().isAfter(other.toLocalDate())
+
+    fun isBefore(other: ReleaseScheduleDate): Boolean = toLocalDate().isBefore(other.toLocalDate())
+
+    private fun toLocalDate(): LocalDate = LocalDate.of(year, month, day)
+
     fun plusYears(years: Int): ReleaseScheduleDate = copy(year = year + years)
 
     fun plus(
@@ -256,6 +262,10 @@ data class ReleaseScheduleUiState(
         if (stageNumber <= 1) return null
         val previousStage = stages.firstOrNull { it.stageNumber == stageNumber - 1 } ?: return null
         return previousStage.finalWithdrawalDate()
+    }
+
+    fun nextStageDate(stageNumber: Int): ReleaseScheduleDate? {
+        return stages.firstOrNull { it.stageNumber == stageNumber + 1 }?.firstWithdrawalDate
     }
 
     fun buildNewStage(): ReleaseScheduleStage {

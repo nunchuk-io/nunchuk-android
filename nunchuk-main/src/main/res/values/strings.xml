@@ -142,7 +142,9 @@
     <string name="nc_release_schedule_first_withdrawal_date_field">First withdrawal date</string>
     <string name="nc_release_schedule_amount_per_release_error">Amount per release must be greater than 0%.</string>
     <string name="nc_release_schedule_total_allocation_error">Total stage allocation cannot exceed 100%.</string>
-    <string name="nc_release_schedule_first_withdrawal_later_error">First withdrawal date must be later than the previous stage</string>
+    <string name="nc_release_schedule_first_withdrawal_current_error">First withdrawal date must be later than current date.</string>
+    <string name="nc_release_schedule_first_withdrawal_later_error">First withdrawal date must be later than the previous stage.</string>
+    <string name="nc_release_schedule_last_withdrawal_sooner_error">Last withdrawal date %1$s must be sooner than the follower stage.</string>
     <string name="nc_release_schedule_delete_stage_title">Delete stage %1$d</string>
     <string name="nc_release_schedule_delete_stage_message">Deleting this stage will permanently remove it and its allocated portion. You will need to redistribute that amount across the remaining stages.\n\nThe remaining stages will be renumbered automatically.</string>
     <string name="nc_release_schedule_repeat_day">day</string>

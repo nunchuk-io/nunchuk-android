@@ -93,6 +93,7 @@ import com.nunchuk.android.compose.lightGray
 import com.nunchuk.android.widget.R as WidgetR
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.time.ZoneId
 import java.util.Calendar
 import java.util.TimeZone
 
@@ -106,6 +107,7 @@ internal fun InheritanceReleaseScheduleStageEditScreen(
     remainTime: Int,
     stage: ReleaseScheduleStage,
     previousStageDate: ReleaseScheduleDate? = null,
+    nextStageDate: ReleaseScheduleDate? = null,
     isNewStage: Boolean = false,
     onBackClicked: () -> Unit = {},
     onDeleteClicked: (Int) -> Unit = {},
@@ -117,7 +119,7 @@ internal fun InheritanceReleaseScheduleStageEditScreen(
     var showDeleteConfirmation by rememberSaveable(stage.id) { mutableStateOf(false) }
     var showDatePicker by rememberSaveable(stage.id) { mutableStateOf(false) }
     var showTimePicker by rememberSaveable(stage.id) { mutableStateOf(false) }
-    var showDateOrderValidation by rememberSaveable(stage.id) { mutableStateOf(false) }
+    var showDateValidation by rememberSaveable(stage.id) { mutableStateOf(false) }
     val snackState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
 
@@ -128,16 +130,30 @@ internal fun InheritanceReleaseScheduleStageEditScreen(
     }
     var selectedTimeZone by remember(stage.id) { mutableStateOf(defaultTimeZone) }
     val isStageOne = draft.stageNumber == 1
-    val isDateOrderInvalid = previousStageDate != null &&
-        !draft.firstWithdrawalDate.isAfter(previousStageDate)
-    val showDateOrderError = showDateOrderValidation && isDateOrderInvalid
+    val currentDate = remember(draft.timeZoneId) { currentReleaseScheduleDate(draft.timeZoneId) }
+    val lastWithdrawalDate = remember(draft, stage) { draft.toUpdatedStage(stage).finalWithdrawalDate() }
+    val dateValidationError = firstWithdrawalDateValidationError(
+        firstWithdrawalDate = draft.firstWithdrawalDate,
+        lastWithdrawalDate = lastWithdrawalDate,
+        currentDate = currentDate,
+        previousStageDate = previousStageDate,
+        nextStageDate = nextStageDate,
+    )
+    val showDateError = showDateValidation && dateValidationError != null
 
     val showAmountPerReleaseError = stepOneValidationError == StageEditValidationError.AMOUNT_PER_RELEASE
     val showTotalAllocationError = stepOneValidationError == StageEditValidationError.TOTAL_STAGE_ALLOCATION
     val amountPerReleaseErrorMessage = stringResource(id = R.string.nc_release_schedule_amount_per_release_error)
     val totalAllocationErrorMessage = stringResource(id = R.string.nc_release_schedule_total_allocation_error)
-    val dateOrderErrorMessage = stringResource(
+    val firstBeforeCurrentMessage = stringResource(
+        id = R.string.nc_release_schedule_first_withdrawal_current_error
+    )
+    val firstBeforePreviousMessage = stringResource(
         id = R.string.nc_release_schedule_first_withdrawal_later_error
+    )
+    val lastAfterFollowerMessage = stringResource(
+        id = R.string.nc_release_schedule_last_withdrawal_sooner_error,
+        lastWithdrawalDate.display()
     )
 
     NunchukTheme {
@@ -228,13 +244,19 @@ internal fun InheritanceReleaseScheduleStageEditScreen(
 
                                 NcPrimaryDarkButton(
                                     modifier = Modifier.weight(1f),
-                                    enabled = !showDateOrderError,
+                                    enabled = !showDateError,
                                     onClick = {
-                                        if (isDateOrderInvalid) {
-                                            showDateOrderValidation = true
+                                        val error = dateValidationError
+                                        if (error != null) {
+                                            showDateValidation = true
+                                            val message = when (error) {
+                                                StageDateValidationError.FIRST_BEFORE_CURRENT -> firstBeforeCurrentMessage
+                                                StageDateValidationError.FIRST_BEFORE_PREVIOUS -> firstBeforePreviousMessage
+                                                StageDateValidationError.LAST_AFTER_FOLLOWER -> lastAfterFollowerMessage
+                                            }
                                             coroutineScope.launch {
                                                 snackState.showNunchukSnackbar(
-                                                    message = dateOrderErrorMessage,
+                                                    message = message,
                                                     type = NcToastType.ERROR
                                                 )
                                             }
@@ -294,7 +316,7 @@ internal fun InheritanceReleaseScheduleStageEditScreen(
                         FirstWithdrawalDateStep(
                             draft = draft,
                             isStageOne = isStageOne,
-                            showDateError = showDateOrderError,
+                            showDateError = showDateError,
                             selectedTimeZone = selectedTimeZone,
                             onTimeZoneSelected = { timeZone ->
                                 selectedTimeZone = timeZone
@@ -339,7 +361,7 @@ internal fun InheritanceReleaseScheduleStageEditScreen(
                 draft = draft.copy(
                     firstWithdrawalDate = selectedMillis.toReleaseScheduleDate(draft.timeZoneId)
                 )
-                showDateOrderValidation = false
+                showDateValidation = false
                 showDatePicker = false
             },
             convertLocalToUtc = true,
@@ -705,8 +727,16 @@ private fun Long.toReleaseScheduleDate(timeZoneId: String): ReleaseScheduleDate 
     )
 }
 
-private fun ReleaseScheduleDate.isAfter(other: ReleaseScheduleDate): Boolean {
-    return LocalDate.of(year, month, day).isAfter(LocalDate.of(other.year, other.month, other.day))
+private fun currentReleaseScheduleDate(timeZoneId: String): ReleaseScheduleDate {
+    val zoneId = runCatching {
+        if (timeZoneId.isBlank()) ZoneId.systemDefault() else ZoneId.of(timeZoneId)
+    }.getOrDefault(ZoneId.systemDefault())
+    val today = LocalDate.now(zoneId)
+    return ReleaseScheduleDate(
+        month = today.monthValue,
+        day = today.dayOfMonth,
+        year = today.year,
+    )
 }
 
 @PreviewLightDark

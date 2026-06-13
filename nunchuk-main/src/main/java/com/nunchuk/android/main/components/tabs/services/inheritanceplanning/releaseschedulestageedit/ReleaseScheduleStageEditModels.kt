@@ -36,6 +36,39 @@ internal enum class StageEditValidationError {
     TOTAL_STAGE_ALLOCATION,
 }
 
+internal enum class StageDateValidationError {
+    FIRST_BEFORE_CURRENT,
+    FIRST_BEFORE_PREVIOUS,
+    LAST_AFTER_FOLLOWER,
+}
+
+/**
+ * Validates the first withdrawal date of the stage being edited against:
+ * - the current date (first withdrawal date must be later than today),
+ * - the previous stage's final withdrawal date (no overlap with the prior stage),
+ * - the follower stage's first withdrawal date (no overlap with the next stage).
+ *
+ * Returns the first failing rule, or null when the date range is valid.
+ */
+internal fun firstWithdrawalDateValidationError(
+    firstWithdrawalDate: ReleaseScheduleDate,
+    lastWithdrawalDate: ReleaseScheduleDate,
+    currentDate: ReleaseScheduleDate,
+    previousStageDate: ReleaseScheduleDate?,
+    nextStageDate: ReleaseScheduleDate?,
+): StageDateValidationError? {
+    if (!firstWithdrawalDate.isAfter(currentDate)) {
+        return StageDateValidationError.FIRST_BEFORE_CURRENT
+    }
+    if (previousStageDate != null && !firstWithdrawalDate.isAfter(previousStageDate)) {
+        return StageDateValidationError.FIRST_BEFORE_PREVIOUS
+    }
+    if (nextStageDate != null && !lastWithdrawalDate.isBefore(nextStageDate)) {
+        return StageDateValidationError.LAST_AFTER_FOLLOWER
+    }
+    return null
+}
+
 internal data class ReleaseScheduleStageDraft(
     val stageId: Int,
     val stageNumber: Int,

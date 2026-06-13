@@ -54,10 +54,12 @@ fun NavGraphBuilder.inheritanceReleaseScheduleStageEdit(
             }
         } else {
             val previousStageDate = releaseScheduleUiState.previousStageFinalDate(stage.stageNumber)
+            val nextStageDate = releaseScheduleUiState.nextStageDate(stage.stageNumber)
             InheritanceReleaseScheduleStageEditScreen(
                 remainTime = remainTime,
                 stage = stage,
                 previousStageDate = previousStageDate,
+                nextStageDate = nextStageDate,
                 isNewStage = route.isNewStage,
                 onBackClicked = { onBackClicked(route.isNewStage, draftId) },
                 onDeleteClicked = { stageId -> onDeleteStage(stageId, route.isNewStage, draftId) },
