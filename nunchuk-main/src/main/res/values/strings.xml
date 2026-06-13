@@ -52,6 +52,7 @@
     <string name="nc_inheritance_distribution_customized">Customized distribution</string>
     <string name="nc_inheritance_distribution_customized_desc">Split assets among multiple beneficiaries, set a gradual release schedule, or both.</string>
     <string name="nc_release_method_title">Release method</string>
+    <string name="nc_asset_allocation_and_release_method">Asset allocation &amp; Release method</string>
     <string name="nc_release_method_desc">Choose how you want to schedule the distribution for your beneficiaries.</string>
     <string name="nc_release_method_shared_schedule">Shared schedule</string>
     <string name="nc_release_method_shared_schedule_desc">Apply the same release schedule to all Beneficiaries. Simple and easy to manage.</string>

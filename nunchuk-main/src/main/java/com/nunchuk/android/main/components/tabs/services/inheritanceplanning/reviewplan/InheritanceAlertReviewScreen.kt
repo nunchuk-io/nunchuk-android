@@ -309,9 +309,9 @@ private fun androidx.compose.foundation.lazy.LazyListScope.newFlowItems(
         )
     } else ScheduleChangeHighlights()
 
-    // Asset allocation (multi-beneficiary only)
+    // Asset allocation & Release method (multi-beneficiary only)
     if (isMultiBeneficiary && newData.beneficiaries.isNotEmpty()) {
-        item(key = "asset_allocation") {
+        item(key = "asset_allocation_and_release_method") {
             val defaultPrimaryColor = MaterialTheme.colorScheme.textPrimary
             val defaultSecondaryColor = MaterialTheme.colorScheme.textSecondary
             val isAssetAllocationChanged: (String) -> Boolean = { email ->
@@ -319,7 +319,7 @@ private fun androidx.compose.foundation.lazy.LazyListScope.newFlowItems(
             }
             ReviewPlanSectionHeader(
                 modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 24.dp),
-                title = stringResource(id = R.string.nc_asset_allocation),
+                title = stringResource(id = R.string.nc_asset_allocation_and_release_method),
             )
             AllocationDonutChart(
                 modifier = Modifier
@@ -340,26 +340,18 @@ private fun androidx.compose.foundation.lazy.LazyListScope.newFlowItems(
                     else defaultSecondaryColor
                 },
             )
-        }
-    }
-
-    // Release method (multi-beneficiary only)
-    if (isMultiBeneficiary && newData.releaseMethod != null) {
-        item(key = "release_method") {
-            ReviewPlanSectionHeader(
-                modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 24.dp),
-                title = stringResource(id = R.string.nc_release_method_title),
-            )
-            Text(
-                modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 4.dp),
-                text = when (newData.releaseMethod) {
-                    "INDIVIDUAL" -> stringResource(id = R.string.nc_release_method_individual_schedules)
-                    else -> stringResource(id = R.string.nc_release_method_shared_schedule)
-                },
-                style = NunchukTheme.typography.body.copy(
-                    color = onTextColor(newData.releaseMethod != oldData?.releaseMethod)
-                ),
-            )
+            if (newData.releaseMethod != null) {
+                Text(
+                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 4.dp),
+                    text = when (newData.releaseMethod) {
+                        "INDIVIDUAL" -> stringResource(id = R.string.nc_release_method_individual_schedules)
+                        else -> stringResource(id = R.string.nc_release_method_shared_schedule)
+                    },
+                    style = NunchukTheme.typography.body.copy(
+                        color = onTextColor(newData.releaseMethod != oldData?.releaseMethod)
+                    ),
+                )
+            }
         }
     }
 
