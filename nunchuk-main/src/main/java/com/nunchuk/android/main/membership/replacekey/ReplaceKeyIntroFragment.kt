@@ -23,6 +23,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -106,6 +107,9 @@ class ReplaceKeyIntroFragment : Fragment() {
 fun ReplaceKeyIntroScreen(
     isLoading: Boolean = false,
     snackState: SnackbarHostState = remember { SnackbarHostState() },
+    @StringRes titleRes: Int = R.string.nc_replace_keys,
+    @StringRes descRes: Int = R.string.nc_replace_key_desc,
+    @StringRes noteRes: Int = 0,
     onContinueClicked: () -> Unit = {}
 ) = NunchukTheme {
     if (isLoading) {
@@ -139,14 +143,21 @@ fun ReplaceKeyIntroScreen(
         ) {
             Text(
                 modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
-                text = stringResource(id = R.string.nc_replace_keys),
+                text = stringResource(id = titleRes),
                 style = NunchukTheme.typography.heading
             )
             Text(
                 modifier = Modifier.padding(16.dp),
-                text = stringResource(R.string.nc_replace_key_desc),
+                text = stringResource(descRes),
                 style = NunchukTheme.typography.body
             )
+            if (noteRes != 0) {
+                Text(
+                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
+                    text = stringResource(noteRes),
+                    style = NunchukTheme.typography.body
+                )
+            }
         }
     }
 }

@@ -7,6 +7,8 @@ import android.nfc.tech.IsoDep
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.compose.miniscript.ReplaceKeyData
+import com.nunchuk.android.compose.miniscript.TimelockData
 import com.nunchuk.android.core.domain.EnableGroupPlatformKeyUseCase
 import com.nunchuk.android.core.domain.GetGroupDeviceUIDUseCase
 import com.nunchuk.android.core.domain.HasSignerUseCase
@@ -32,10 +34,12 @@ import com.nunchuk.android.model.GroupSandbox
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.ScriptNode
 import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.model.TimeLock
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.signer.SupportedSigner
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.Chain
+import com.nunchuk.android.type.MiniscriptTimelockType
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.GetScriptNodeFromMiniscriptTemplateUseCase
@@ -126,6 +130,23 @@ class FreeGroupWalletViewModel @Inject constructor(
     private var wallet: Wallet? = null
     private var groupUpdateJob: Job? = null
 
+    // Baseline map (key name -> original signer) for the replace sandbox, captured from the
+    // sandbox's first load in replace mode (which holds the wallet's original keys). Used to
+    // derive which keys have since been swapped (drives the "Replacing X" annotation).
+    // TODO(native): for full cross-device correctness the baseline should come from the
+    //  original wallet / sandbox metadata, so replacements made on other devices before this
+    //  device first loads the sandbox are also flagged here.
+    private var replaceOriginalNamedSigners: Map<String, SignerModel?> = emptyMap()
+
+    // Same baseline as above but the raw SingleSigners, so a replaced key can be reverted to
+    // its exact original signer + derivation path (see removeReplacedKey).
+    private var replaceOriginalSingleSigners: Map<String, SingleSigner> = emptyMap()
+
+    // Pending timelock changes (node idString -> ReplaceKeyData), kept separate from the
+    // key-swap diff and merged into uiState.replaceKeyData so a sandbox refresh doesn't
+    // clobber them.
+    private val pendingTimelockReplacements = mutableMapOf<String, ReplaceKeyData>()
+
     // State variables for handling TapSigner caching during addSignerToGroupWithKeyName
     private var pendingAddSignerState: PendingAddSignerState? = null
 
@@ -140,6 +161,9 @@ class FreeGroupWalletViewModel @Inject constructor(
             } else {
                 getGroupOnline()
             }
+        }
+        if (replaceWalletId.isNotEmpty()) {
+            detectReplaceTimelock(replaceWalletId)
         }
         viewModelScope.launch {
             pushEventManager.event.filterIsInstance<PushEvent.LocalUserSignerAdded>()
@@ -387,12 +411,26 @@ class FreeGroupWalletViewModel @Inject constructor(
             Timber.tag("miniscript-feature")
                 .d("loadMiniscriptScriptNode: Updating UI namedSigners=${signerMap.map { "${it.key} -> ${it.value?.fingerPrint}:${it.value?.derivationPath}" }}")
 
+            if (replaceWalletId.isNotEmpty() &&
+                replaceOriginalNamedSigners.isEmpty() &&
+                signerMap.values.any { it != null }
+            ) {
+                // First load of the replace sandbox holds the wallet's original keys.
+                replaceOriginalNamedSigners = signerMap
+                replaceOriginalSingleSigners = groupSandbox.namedSigners.toMap()
+            }
+
             _uiState.update {
                 it.copy(
                     scriptNode = result.scriptNode,
                     keyPath = result.keyPath,
                     scriptNodeMuSig = scriptNodeMuSig,
-                    namedSigners = signerMap
+                    namedSigners = signerMap,
+                    replaceKeyData = if (replaceWalletId.isNotEmpty()) {
+                        deriveReplaceKeyData(signerMap) + pendingTimelockReplacements
+                    } else {
+                        emptyMap()
+                    }
                 )
             }
 
@@ -982,6 +1020,125 @@ class FreeGroupWalletViewModel @Inject constructor(
 
     fun resetReplaceGroup() {
         _uiState.update { it.copy(isCreatedReplaceGroup = false) }
+    }
+
+    /**
+     * Detects whether the wallet being replaced has a timelock, which selects the replace
+     * intro screen variant ("Replace key" vs. "Replace key or change timelock").
+     */
+    private fun detectReplaceTimelock(walletId: String) {
+        viewModelScope.launch {
+            getWalletDetail2UseCase(walletId).onSuccess { wallet ->
+                if (wallet.miniscript.isEmpty()) return@onSuccess
+                getScriptNodeFromMiniscriptTemplateUseCase(wallet.miniscript).onSuccess { result ->
+                    _uiState.update {
+                        it.copy(isReplaceKeyWithTimelock = hasMiniscriptTimelock(result.scriptNode))
+                    }
+                }.onFailure {
+                    Timber.tag("miniscript-feature")
+                        .e("Failed to parse original miniscript for replace: $it")
+                }
+            }.onFailure {
+                Timber.tag("miniscript-feature")
+                    .e("Failed to load original wallet for replace: $it")
+            }
+        }
+    }
+
+    private fun hasMiniscriptTimelock(root: ScriptNode?): Boolean {
+        root ?: return false
+        val stack = ArrayDeque<ScriptNode>()
+        stack.add(root)
+        while (stack.isNotEmpty()) {
+            val node = stack.removeLast()
+            if (node.type == ScriptNodeType.AFTER.name || node.type == ScriptNodeType.OLDER.name) {
+                return true
+            }
+            node.subs.forEach { stack.add(it) }
+        }
+        return false
+    }
+
+    /**
+     * Diffs the current sandbox named signers against the original wallet's keys to build the
+     * per-key replacement info. A key counts as "replaced" when its assigned signer
+     * (fingerprint + derivation path) differs from the original.
+     */
+    private fun deriveReplaceKeyData(
+        currentNamedSigners: Map<String, SignerModel?>
+    ): Map<String, ReplaceKeyData> {
+        if (replaceOriginalNamedSigners.isEmpty()) return emptyMap()
+        val result = mutableMapOf<String, ReplaceKeyData>()
+        currentNamedSigners.forEach { (keyName, current) ->
+            val original = replaceOriginalNamedSigners[keyName] ?: return@forEach
+            val isReplaced = current != null &&
+                    (current.fingerPrint != original.fingerPrint ||
+                            current.derivationPath != original.derivationPath)
+            if (isReplaced) {
+                result[keyName] = ReplaceKeyData(
+                    originalSigner = original,
+                    replacedSigner = current,
+                )
+            }
+        }
+        return result
+    }
+
+    /**
+     * Reverts a replaced key back to the wallet's exact original signer (fingerprint +
+     * derivation path), bypassing the "find unused account index" path so the original BIP32
+     * path is restored faithfully and the key no longer shows as replaced.
+     * TODO(native): confirm NunchukNativeSdk supports restoring a replaced key in a miniscript
+     *  replace group, including when the original signer is not present on this device.
+     */
+    fun removeReplacedKey(keyName: String) {
+        val original = replaceOriginalSingleSigners[keyName] ?: return
+        viewModelScope.launch {
+            addSignerToGroupWithKeyName(original, keyName, skipConflictCheck = true)
+        }
+    }
+
+    /**
+     * Records a pending timelock change for a node. Drives the changed timelock + green
+     * "Replacing existing timelock" annotation in the tree. Stored separately from the
+     * key-swap diff and merged into uiState.replaceKeyData.
+     * TODO(native): apply the resulting miniscript template to the group sandbox before
+     *  finalize, so other devices and the created wallet pick up the timelock change.
+     */
+    fun updateTimelockReplaceData(originalNode: ScriptNode, timelockData: TimelockData) {
+        val newType = when (timelockData.timelockType) {
+            MiniscriptTimelockType.ABSOLUTE -> ScriptNodeType.AFTER.name
+            MiniscriptTimelockType.RELATIVE -> ScriptNodeType.OLDER.name
+        }
+        val replacedNode = ScriptNode(
+            id = originalNode.id,
+            type = newType,
+            keys = originalNode.keys,
+            subs = originalNode.subs,
+            k = originalNode.k,
+            data = originalNode.data,
+            timeLock = TimeLock(
+                value = timelockData.value,
+                based = timelockData.timeUnit,
+                type = timelockData.timelockType,
+            ),
+        )
+        pendingTimelockReplacements[originalNode.idString] = ReplaceKeyData(
+            originalTimeLock = originalNode,
+            replacedTimeLock = replacedNode,
+        )
+        refreshReplaceKeyData()
+    }
+
+    fun removeReplacedTimelock(nodeId: String) {
+        pendingTimelockReplacements.remove(nodeId)
+        refreshReplaceKeyData()
+    }
+
+    private fun refreshReplaceKeyData() {
+        _uiState.update {
+            it.copy(replaceKeyData = deriveReplaceKeyData(it.namedSigners) + pendingTimelockReplacements)
+        }
     }
 
     fun finalizeGroup(group: GroupSandbox) {

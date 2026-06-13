@@ -372,7 +372,15 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
             SheetOptionType.TYPE_ARCHIVE -> viewModel.archiveWallet()
 
             SheetOptionType.TYPE_REPLACE_KEY_CHANGE_TIMELOCK -> {
-                if (viewModel.isMiniscriptWallet()) {
+                if (viewModel.isGroupSandboxWallet()) {
+                    // Free group miniscript wallet -> collaborative replace flow
+                    // (FreeGroupWalletActivity, started in replace mode via the wallet id).
+                    navigator.openFreeGroupWalletScreen(
+                        activityContext = this,
+                        walletId = args.walletId,
+                    )
+                } else if (viewModel.isMiniscriptWallet()) {
+                    // Personal miniscript wallet -> single-device replace flow.
                     val wallet = viewModel.state.value.walletExtended.wallet
                     navigator.openMiniscriptScreen(
                         activityContext = this,
@@ -739,7 +747,9 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
                             R.string.nc_replace_key_change_timelock,
                         ),
                     )
-                } else if (viewModel.isMiniscriptWallet().not()) {
+                } else if (viewModel.isMiniscriptWallet().not() || viewModel.isGroupSandboxWallet()) {
+                    // Non-miniscript wallets, plus free group miniscript wallets without a
+                    // timelock (collaborative replace handles those via the group sandbox).
                     options.add(
                         SheetOption(
                             SheetOptionType.TYPE_REPLACE_KEY,

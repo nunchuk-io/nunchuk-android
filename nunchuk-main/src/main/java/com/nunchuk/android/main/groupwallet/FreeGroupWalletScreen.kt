@@ -57,11 +57,13 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.dialog.NcConfirmationDialog
 import com.nunchuk.android.compose.dialog.NcInfoDialog
 import com.nunchuk.android.compose.dialog.NcLoadingDialog
+import com.nunchuk.android.compose.miniscript.EditTimelockBottomSheet
 import com.nunchuk.android.compose.miniscript.MiniscriptTaproot
 import com.nunchuk.android.compose.miniscript.PolicyHeader
 import com.nunchuk.android.compose.miniscript.ScriptMode
 import com.nunchuk.android.compose.miniscript.ScriptNodeData
 import com.nunchuk.android.compose.miniscript.ScriptNodeTree
+import com.nunchuk.android.compose.miniscript.TimelockData
 import com.nunchuk.android.compose.provider.SignersModelProvider
 import com.nunchuk.android.compose.pullrefresh.PullRefreshIndicator
 import com.nunchuk.android.compose.pullrefresh.pullRefresh
@@ -89,7 +91,10 @@ import com.nunchuk.android.model.signer.SupportedSigner
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.nav.args.AddWalletArgs
 import com.nunchuk.android.share.groupwallet.avatarColors
+import com.nunchuk.android.share.miniscript.rememberBlockHeightManager
 import com.nunchuk.android.type.AddressType
+import com.nunchuk.android.type.MiniscriptTimelockBased
+import com.nunchuk.android.type.MiniscriptTimelockType
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.WalletType
 import kotlinx.serialization.Serializable
@@ -193,6 +198,15 @@ fun NavGraphBuilder.freeGroupWallet(
             onRemoveSignerForKey = { keyName ->
                 viewModel.removeSignerForKey(keyName)
             },
+            onRemoveReplacedKey = { keyName ->
+                viewModel.removeReplacedKey(keyName)
+            },
+            onUpdateTimelockReplaceData = { node, timelockData ->
+                viewModel.updateTimelockReplaceData(node, timelockData)
+            },
+            onRemoveReplacedTimelock = { nodeId ->
+                viewModel.removeReplacedTimelock(nodeId)
+            },
             onMarkEventHandled = {
                 viewModel.markEventHandled()
             },
@@ -223,6 +237,9 @@ fun FreeGroupWalletScreen(
     onSetCurrentKey: (String) -> Unit = {},
     onStartAddKeyForMiniscript: (String) -> Unit = {},
     onRemoveSignerForKey: (String) -> Unit = {},
+    onRemoveReplacedKey: (String) -> Unit = {},
+    onUpdateTimelockReplaceData: (ScriptNode, TimelockData) -> Unit = { _, _ -> },
+    onRemoveReplacedTimelock: (String) -> Unit = {},
     onMarkEventHandled: () -> Unit = {},
     onConfigPlatformKey: () -> Unit = {},
 ) {
@@ -240,7 +257,13 @@ fun FreeGroupWalletScreen(
     var keyToRemove by rememberSaveable { mutableStateOf("") }
     var showDuplicateSignerWarning by rememberSaveable { mutableStateOf(false) }
     var duplicateSignerData by rememberSaveable { mutableStateOf<DuplicateSignerData?>(null) }
-    
+
+    // Timelock change (replace flow) state
+    var showTimelockBottomSheet by remember { mutableStateOf(false) }
+    var selectedTimelockNode by remember { mutableStateOf<ScriptNode?>(null) }
+    var showRemoveTimelockConfirmation by rememberSaveable { mutableStateOf(false) }
+    var timelockNodeToRemove by remember { mutableStateOf<ScriptNode?>(null) }
+
     val isInReplace = state.isInReplaceMode
     val isButtonEnabled = if (state.group != null) {
         val signers = if (isInReplace) state.replaceSigners else state.signers
@@ -435,6 +458,17 @@ fun FreeGroupWalletScreen(
 
                         state.scriptNode?.let { scriptNode ->
                             val startingColorIndex = 0
+                            // Keys that end up sharing the same signer + BIP32 path (no
+                            // alternative account index was available) are flagged in red.
+                            val duplicateSignerKeys = remember(state.namedSigners) {
+                                state.namedSigners.values
+                                    .filterNotNull()
+                                    .map { "${it.fingerPrint}:${it.derivationPath}" }
+                                    .groupingBy { it }
+                                    .eachCount()
+                                    .filterValues { it > 1 }
+                                    .keys
+                            }
                             ScriptNodeTree(
                                 node = scriptNode,
                                 data = ScriptNodeData(
@@ -445,10 +479,22 @@ fun FreeGroupWalletScreen(
                                     occupiedSlots = state.namedOccupied,
                                     colorIndex = startingColorIndex,
                                     platformKeySubtitle = if (isPlatformKeyConfigured) platformKeySubtitle else null,
+                                    replaceKeyData = state.replaceKeyData,
+                                    duplicateSignerKeys = duplicateSignerKeys,
+                                    allowTimelockChange = isInReplace,
                                 ),
                                 onChangeBip32Path = { keyPath, signer ->
                                     onSetCurrentKey(keyPath)
                                     onChangeBip32Path(-1, signer)
+                                },
+                                onChangeTimelockButton = { node ->
+                                    if (state.replaceKeyData[node.idString]?.replacedTimeLock != null) {
+                                        timelockNodeToRemove = node
+                                        showRemoveTimelockConfirmation = true
+                                    } else {
+                                        selectedTimelockNode = node
+                                        showTimelockBottomSheet = true
+                                    }
                                 },
                                 onActionKey = { keyPath, signer ->
                                     onSetCurrentKey(keyPath)
@@ -467,11 +513,12 @@ fun FreeGroupWalletScreen(
                                     }
                                 },
                                 customActionButton = { key, signer ->
+                                    val isReplaced = state.replaceKeyData[key]?.replacedSigner != null
                                     when {
                                         signer == null -> {
                                             NcOutlineButton(
                                                 height = 36.dp,
-                                                onClick = { 
+                                                onClick = {
                                                     onSetCurrentKey(key)
                                                     onStartAddKeyForMiniscript(key)
                                                     if (state.allSigners.isNotEmpty()) {
@@ -496,11 +543,42 @@ fun FreeGroupWalletScreen(
                                                 Text(stringResource(com.nunchuk.android.core.R.string.nc_config))
                                             }
                                         }
-                                        
+
+                                        // Replace mode: a key that has already been swapped can be
+                                        // reverted, but only by the device that added the new key.
+                                        isInReplace && isReplaced -> {
+                                            if (signer.isVisible) {
+                                                NcOutlineButton(
+                                                    height = 36.dp,
+                                                    onClick = { onRemoveReplacedKey(key) },
+                                                ) {
+                                                    Text(stringResource(R.string.nc_remove))
+                                                }
+                                            }
+                                        }
+
+                                        // Replace mode: any untouched key can be replaced.
+                                        isInReplace -> {
+                                            NcOutlineButton(
+                                                height = 36.dp,
+                                                onClick = {
+                                                    onSetCurrentKey(key)
+                                                    onStartAddKeyForMiniscript(key)
+                                                    if (state.allSigners.isNotEmpty()) {
+                                                        showSignerBottomSheet = true
+                                                    } else {
+                                                        onAddNewKeyForMiniscript(state.supportedTypes)
+                                                    }
+                                                },
+                                            ) {
+                                                Text(stringResource(R.string.nc_replace))
+                                            }
+                                        }
+
                                         signer.isVisible -> {
                                             NcOutlineButton(
                                                 height = 36.dp,
-                                                onClick = { 
+                                                onClick = {
                                                     onSetCurrentKey(key)
                                                     keyToRemove = key
                                                     showRemoveConfirmation = true
@@ -509,7 +587,7 @@ fun FreeGroupWalletScreen(
                                                 Text(stringResource(R.string.nc_remove))
                                             }
                                         }
-                                        
+
                                         else -> {
 
                                         }
@@ -675,6 +753,53 @@ fun FreeGroupWalletScreen(
                 onDismiss = {
                     showRemoveConfirmation = false
                     keyToRemove = ""
+                }
+            )
+        }
+
+        if (showTimelockBottomSheet) {
+            val node = selectedTimelockNode
+            if (node != null) {
+                val blockHeightManager = rememberBlockHeightManager()
+                val currentBlockHeight by blockHeightManager.state.collectAsStateWithLifecycle()
+                val timelockType = when (node.type) {
+                    ScriptNodeType.AFTER.name -> MiniscriptTimelockType.ABSOLUTE
+                    ScriptNodeType.OLDER.name -> MiniscriptTimelockType.RELATIVE
+                    else -> MiniscriptTimelockType.ABSOLUTE
+                }
+                EditTimelockBottomSheet(
+                    currentBlockHeight = currentBlockHeight.toLong(),
+                    initialData = TimelockData(
+                        timelockType = timelockType,
+                        timeUnit = node.timeLock?.based ?: MiniscriptTimelockBased.TIME_LOCK,
+                        value = node.timeLock?.value ?: 0L,
+                    ),
+                    snackbarHostState = snackState,
+                    onDismiss = {
+                        showTimelockBottomSheet = false
+                        selectedTimelockNode = null
+                    },
+                    onSave = { timelockData ->
+                        onUpdateTimelockReplaceData(node, timelockData)
+                        showTimelockBottomSheet = false
+                        selectedTimelockNode = null
+                    },
+                )
+            }
+        }
+
+        if (showRemoveTimelockConfirmation && timelockNodeToRemove != null) {
+            NcConfirmationDialog(
+                title = stringResource(id = R.string.nc_text_warning),
+                message = "Are you sure you want to remove this timelock change?",
+                onPositiveClick = {
+                    timelockNodeToRemove?.let { onRemoveReplacedTimelock(it.idString) }
+                    showRemoveTimelockConfirmation = false
+                    timelockNodeToRemove = null
+                },
+                onDismiss = {
+                    showRemoveTimelockConfirmation = false
+                    timelockNodeToRemove = null
                 }
             )
         }

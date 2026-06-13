@@ -199,7 +199,7 @@ class MiniscriptReplaceKeyViewModel @Inject constructor(
         return signerMap
     }
 
-    fun updateTimelockReplaceData(originalNode: ScriptNode, timelockData: com.nunchuk.android.app.miniscript.contractpolicy.TimelockData) {
+    fun updateTimelockReplaceData(originalNode: ScriptNode, timelockData: com.nunchuk.android.compose.miniscript.TimelockData) {
         val nodeId = originalNode.idString
         
         viewModelScope.launch {

@@ -45,8 +45,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
-import com.nunchuk.android.app.miniscript.contractpolicy.EditTimelockBottomSheet
-import com.nunchuk.android.app.miniscript.contractpolicy.TimelockData
 import com.nunchuk.android.compose.NcBadgePrimary
 import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
@@ -55,10 +53,12 @@ import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.dialog.NcConfirmationDialog
 import com.nunchuk.android.compose.dialog.NcLoadingDialog
+import com.nunchuk.android.compose.miniscript.EditTimelockBottomSheet
 import com.nunchuk.android.compose.miniscript.MiniscriptTaproot
 import com.nunchuk.android.compose.miniscript.ScriptMode
 import com.nunchuk.android.compose.miniscript.ScriptNodeData
 import com.nunchuk.android.compose.miniscript.ScriptNodeTree
+import com.nunchuk.android.compose.miniscript.TimelockData
 import com.nunchuk.android.compose.provider.ScriptNodeProvider
 import com.nunchuk.android.core.miniscript.ScriptNodeType
 import com.nunchuk.android.core.signer.SignerModel

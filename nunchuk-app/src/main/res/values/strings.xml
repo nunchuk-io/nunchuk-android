@@ -47,21 +47,10 @@
     <!-- Miniscript -->
     <string name="nc_miniscript_select_timezone">Select Timezone</string>
     <string name="nc_miniscript_search_time_zone">Search time zone</string>
-    <string name="nc_miniscript_select_time_zone">Select Time zone</string>
     <string name="nc_miniscript_add_another_account_of_key">Add another account of this key to use it in more than one policy</string>
     <string name="nc_miniscript_no_derivation_paths_for_related_keys">Could not find available derivation paths for all related keys</string>
     <string name="nc_miniscript_no_derivation_path_for_key">Could not find available derivation path for key</string>
     <string name="nc_miniscript_rescan_tapsigner_new_xpub">Please rescan your TAPSIGNER to get a new XPUB</string>
-    <string name="nc_miniscript_invalid_timelock_max_days">Invalid value. Timelock must not exceed 388 days.</string>
-    <string name="nc_miniscript_enter_at_least_one_time_value">Please enter at least one time value.</string>
-    <string name="nc_miniscript_invalid_relative_block_height">Invalid block height. Enter a value between 0 and 65,534 blocks.</string>
-    <string name="nc_miniscript_unlock_after_fixed_date_time">Unlock after a fixed date &amp; time</string>
-    <string name="nc_miniscript_current_block_height">Current Bitcoin block height is %1$s</string>
-    <string name="nc_miniscript_unit_days">(days)</string>
-    <string name="nc_miniscript_unit_blocks">(blocks)</string>
-    <string name="nc_miniscript_unit_days_hours_minutes">(days, hours, minutes)</string>
-    <string name="nc_miniscript_days">Days</string>
-    <string name="nc_miniscript_hours">Hours</string>
     <string name="nc_miniscript_spending_rules">Spending rules</string>
     <string name="nc_miniscript_reuse_keys_across_policies">Reuse keys across policies (extra XPUBs might be required)</string>
     <string name="nc_miniscript_zen_hodl">Zen Hodl</string>

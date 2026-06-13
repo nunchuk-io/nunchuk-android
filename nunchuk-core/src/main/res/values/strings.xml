@@ -1356,4 +1356,15 @@
         <item quantity="one">%1$d more tag</item>
         <item quantity="other">%1$d more tags</item>
     </plurals>
+    <string name="nc_miniscript_select_time_zone">Select Time zone</string>
+    <string name="nc_miniscript_invalid_timelock_max_days">Invalid value. Timelock must not exceed 388 days.</string>
+    <string name="nc_miniscript_enter_at_least_one_time_value">Please enter at least one time value.</string>
+    <string name="nc_miniscript_invalid_relative_block_height">Invalid block height. Enter a value between 0 and 65,534 blocks.</string>
+    <string name="nc_miniscript_unlock_after_fixed_date_time">Unlock after a fixed date &amp; time</string>
+    <string name="nc_miniscript_current_block_height">Current Bitcoin block height is %1$s</string>
+    <string name="nc_miniscript_unit_days">(days)</string>
+    <string name="nc_miniscript_unit_blocks">(blocks)</string>
+    <string name="nc_miniscript_unit_days_hours_minutes">(days, hours, minutes)</string>
+    <string name="nc_miniscript_days">Days</string>
+    <string name="nc_miniscript_hours">Hours</string>
 </resources>

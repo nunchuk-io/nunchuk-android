@@ -1,6 +1,7 @@
 package com.nunchuk.android.main.groupwallet
 
 import com.nunchuk.android.core.util.UiText
+import com.nunchuk.android.compose.miniscript.ReplaceKeyData
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.model.GroupSandbox
 import com.nunchuk.android.model.ScriptNode
@@ -24,6 +25,11 @@ data class FreeGroupWalletUiState(
     val finalizeGroup: GroupSandbox? = null,
     val finalizedWalletId: String? = null,
     val isInReplaceMode: Boolean = false,
+    val isReplaceKeyWithTimelock: Boolean = false,
+    // Per-key replacement info for miniscript wallets, derived by diffing the current
+    // sandbox keys against the original wallet's keys. Drives the green "Replacing X"
+    // annotation and the Replace/Remove buttons in the ScriptNodeTree.
+    val replaceKeyData: Map<String, ReplaceKeyData> = emptyMap(),
     val miniscriptTemplate: String = "",
     val scriptNode: ScriptNode? = null,
     val keyPath: List<String> = emptyList(),

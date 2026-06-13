@@ -1,4 +1,4 @@
-package com.nunchuk.android.app.miniscript.contractpolicy
+package com.nunchuk.android.compose.miniscript
 
 import android.icu.text.SimpleDateFormat
 import androidx.compose.foundation.background
@@ -40,7 +40,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import com.nunchuk.android.R
+import com.nunchuk.android.core.R
 import com.nunchuk.android.compose.NcDatePickerDialog
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcRadioButton

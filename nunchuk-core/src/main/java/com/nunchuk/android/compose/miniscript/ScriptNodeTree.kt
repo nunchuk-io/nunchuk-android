@@ -706,7 +706,10 @@ data class ScriptNodeData(
     val onViewPolicy: (SignerModel) -> Unit = {},
     val platformKeySubtitle: String? = null,
     val isDummyTx: Boolean = false,
-    val replaceKeyData: Map<String, ReplaceKeyData> = emptyMap()
+    val replaceKeyData: Map<String, ReplaceKeyData> = emptyMap(),
+    // When true, timelock nodes show a "Change" button even outside CHANGE_KEY mode (used by
+    // the collaborative group replace flow, which renders in CONFIG mode).
+    val allowTimelockChange: Boolean = false
 ) {
     fun isSlotOccupied(position: String): Boolean {
         return occupiedSlots.contains(position)
@@ -1292,8 +1295,9 @@ fun TimelockItem(
                     }
                 }
 
-                // Show change button in CHANGE_KEY mode
-                if (mode == ScriptMode.CHANGE_KEY) {
+                // Show change button in CHANGE_KEY mode, or when a flow explicitly allows
+                // timelock changes (e.g. the collaborative group replace flow in CONFIG mode).
+                if (mode == ScriptMode.CHANGE_KEY || data.allowTimelockChange) {
                     NcOutlineButton(
                         height = 36.dp,
                         onClick = { onChangeTimelockButton(node) },
