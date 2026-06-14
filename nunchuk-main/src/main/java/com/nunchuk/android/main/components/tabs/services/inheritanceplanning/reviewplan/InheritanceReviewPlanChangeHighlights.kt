@@ -7,7 +7,15 @@ import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.ben
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasescheduledetail.ReleaseScheduleAllocationSegment
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasescheduledetail.ReleaseScheduleDate
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasescheduledetail.ReleaseScheduleUiState
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasescheduledetail.withTimezone
 import com.nunchuk.android.model.inheritance.InheritanceNotificationSettings
+
+/**
+ * Canonical time zone used to compare schedules. Converting every schedule to the same zone
+ * before comparison ensures a pure time-zone change (which only shifts the displayed wall-clock
+ * dates while keeping the same moment in time) is not mistaken for a schedule edit.
+ */
+private const val COMPARISON_ZONE_ID = "UTC"
 
 data class InheritanceReviewPlanChangeHighlights(
     val assetAllocationChangedEmails: Set<String> = emptySet(),
@@ -132,15 +140,25 @@ private fun InheritanceBeneficiaryScheduleConfig?.bufferSnapshot(): BufferSnapsh
 }
 
 private fun InheritanceBeneficiaryScheduleConfig?.firstWithdrawalDateOrNull(): ReleaseScheduleDate? {
-    return this?.releaseScheduleUiState?.stages?.firstOrNull()?.firstWithdrawalDate
+    return normalizedUiStateForComparison()?.stages?.firstOrNull()?.firstWithdrawalDate
 }
 
 private fun InheritanceBeneficiaryScheduleConfig?.toSegmentsByStageNumber(): Map<Int, ReleaseScheduleAllocationSegment> {
-    return this?.releaseScheduleUiState
-        ?.normalizeForComparison()
+    return normalizedUiStateForComparison()
         ?.allocationSegments
         ?.associateBy { it.stageNumber }
         ?: emptyMap()
+}
+
+/**
+ * Builds a canonical schedule for change detection: every stage is converted to a common time
+ * zone so equivalent moments compare equal regardless of the display zone, then stages are
+ * re-indexed. This prevents a pure time-zone change from being highlighted as a schedule edit.
+ */
+private fun InheritanceBeneficiaryScheduleConfig?.normalizedUiStateForComparison(): ReleaseScheduleUiState? {
+    return this?.releaseScheduleUiState
+        ?.withTimezone(newZoneId = COMPARISON_ZONE_ID, fallbackZoneId = COMPARISON_ZONE_ID)
+        ?.normalizeForComparison()
 }
 
 private fun ReleaseScheduleUiState.normalizeForComparison(): ReleaseScheduleUiState {
