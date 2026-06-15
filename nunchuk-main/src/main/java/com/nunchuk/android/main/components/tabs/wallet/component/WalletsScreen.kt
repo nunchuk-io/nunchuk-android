@@ -184,9 +184,10 @@ internal fun WalletsScreen(
         } else {
             if (isShowEmptyState) {
                 WalletEmptyStateView(
-                    modifier = Modifier.padding(padding)
-                        .padding(16.dp)
-                        .verticalScroll(rememberScrollState()),
+                    modifier = Modifier
+                        .padding(top = padding.calculateTopPadding())
+                        .verticalScroll(rememberScrollState())
+                        .padding(16.dp),
                     activityContext = activity,
                     navigator = navigator,
                     groupStage = state.stage,
