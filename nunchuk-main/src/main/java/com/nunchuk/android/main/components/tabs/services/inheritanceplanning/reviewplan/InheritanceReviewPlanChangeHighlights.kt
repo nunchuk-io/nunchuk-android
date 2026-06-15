@@ -26,7 +26,9 @@ data class InheritanceReviewPlanChangeHighlights(
     val fallbackSettingsChanged: Boolean = false,
     val globalNoteChanged: Boolean = false,
     val noteChangedEmails: Set<String> = emptySet(),
-    val notificationPreferencesChanged: Boolean = false,
+    val notificationSettingsChanged: Boolean = false,
+    val notificationEmailChanged: Boolean = false,
+    val notifyTodayChanged: Boolean = false,
 ) {
     val isAssetAllocationChanged: Boolean
         get() = assetAllocationChangedEmails.isNotEmpty()
@@ -93,12 +95,12 @@ internal fun calculateReviewPlanChangeHighlights(
         fallbackSettingsChanged = initial.fallbackSettings != current.fallbackSettings,
         globalNoteChanged = initial.note != current.note,
         noteChangedEmails = noteChangedEmails,
-        notificationPreferencesChanged = !notificationSettingsEqual(
+        notificationSettingsChanged = !notificationSettingsEqual(
             first = initial.notificationSettings,
             second = current.notificationSettings
-        ) ||
-            initial.emails != current.emails ||
-            initial.isNotify != current.isNotify
+        ),
+        notificationEmailChanged = initial.emails != current.emails,
+        notifyTodayChanged = initial.isNotify != current.isNotify,
     )
 }
 

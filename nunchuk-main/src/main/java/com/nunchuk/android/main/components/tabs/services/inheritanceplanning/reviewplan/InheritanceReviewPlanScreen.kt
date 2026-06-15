@@ -634,17 +634,17 @@ fun InheritanceReviewPlanScreenContent(
                         userEmail = userEmail,
                         emails = setupOrReviewParam.emails,
                         isNotifyToday = setupOrReviewParam.isNotify,
-                        textColor = if (shouldHighlightChangedSection && highlights.notificationPreferencesChanged) {
+                        textColor = if (shouldHighlightChangedSection && highlights.notificationSettingsChanged) {
                             changeHighlightColor
                         } else {
                             MaterialTheme.colorScheme.textPrimary
                         },
-                        emailTextColor = if (shouldHighlightChangedSection && highlights.notificationPreferencesChanged) {
+                        emailTextColor = if (shouldHighlightChangedSection && highlights.notificationEmailChanged) {
                             changeHighlightColor
                         } else {
                             MaterialTheme.colorScheme.textPrimary
                         },
-                        notifyTextColor = if (shouldHighlightChangedSection && highlights.notificationPreferencesChanged) {
+                        notifyTextColor = if (shouldHighlightChangedSection && highlights.notifyTodayChanged) {
                             changeHighlightColor
                         } else {
                             MaterialTheme.colorScheme.textPrimary

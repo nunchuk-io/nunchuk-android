@@ -333,7 +333,9 @@ private fun Inheritance.toSetupOrReviewParamForView(
     return InheritancePlanningParam.SetupOrReview(
         activationDate = activationTimeMilis,
         emails = notificationEmails,
-        isNotify = notificationEmails.isNotEmpty(),
+        // In the VIEW flow "Also notify them today" is a one-time action, so it always starts as
+        // false when opening the review screen and only turns on if the user explicitly enables it.
+        isNotify = false,
         magicalPhrase = magic,
         note = note,
         verifyToken = verifyToken,
