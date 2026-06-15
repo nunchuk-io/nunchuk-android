@@ -76,6 +76,7 @@ internal fun MagicalPhraseIntroScreen(
         MultiBeneficiaryMagicalPhraseIntroContent(
             remainTime = remainTime,
             beneficiaryAllocations = state.beneficiaryAllocations,
+            isResultReady = state.isResultReady,
             onContinueClicked = viewModel::onContinueClicked,
         )
     } else {
@@ -193,6 +194,7 @@ private fun MagicalPhraseIntroContent(
 private fun MultiBeneficiaryMagicalPhraseIntroContent(
     remainTime: Int = 0,
     beneficiaryAllocations: List<InheritanceBeneficiaryAllocation> = emptyList(),
+    isResultReady: Boolean = false,
     onContinueClicked: () -> Unit = {},
 ) {
     NunchukTheme {
@@ -214,6 +216,7 @@ private fun MultiBeneficiaryMagicalPhraseIntroContent(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp),
+                    enabled = isResultReady,
                     onClick = onContinueClicked,
                 ) {
                     Text(text = stringResource(id = R.string.nc_text_continue))
@@ -322,6 +325,7 @@ private fun MagicalPhraseIntroScreenMiniscriptPreview() {
 private fun MultiBeneficiaryMagicalPhraseIntroPreview() {
     MultiBeneficiaryMagicalPhraseIntroContent(
         remainTime = 5,
+        isResultReady = true,
         beneficiaryAllocations = listOf(
             InheritanceBeneficiaryAllocation(
                 email = "wife@gmail.com",

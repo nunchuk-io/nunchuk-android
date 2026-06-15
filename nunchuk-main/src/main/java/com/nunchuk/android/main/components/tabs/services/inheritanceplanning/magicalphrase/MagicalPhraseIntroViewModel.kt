@@ -95,7 +95,8 @@ class MagicalPhraseIntroViewModel @Inject constructor(
                                 magic = beneficiary.magic,
                                 note = beneficiary.note,
                             )
-                        }
+                        },
+                        isResultReady = true,
                     )
                 }
             } else {
@@ -118,7 +119,8 @@ class MagicalPhraseIntroViewModel @Inject constructor(
                 _state.update {
                     it.copy(
                         magicalPhrase = inheritance.magic,
-                        inheritanceKeys = inheritance.inheritanceKeys.map { key -> key.xfp }
+                        inheritanceKeys = inheritance.inheritanceKeys.map { key -> key.xfp },
+                        isResultReady = true,
                     )
                 }
             } else {
@@ -128,6 +130,7 @@ class MagicalPhraseIntroViewModel @Inject constructor(
 
     fun onContinueClicked() = viewModelScope.launch {
         val currentState = _state.value
+        if (!currentState.isResultReady) return@launch
         if (currentState.setupFlowType == InheritanceSetupFlowType.MULTI_BENEFICIARY) {
             _event.emit(
                 MagicalPhraseIntroEvent.OnContinueClicked(
@@ -164,4 +167,5 @@ data class MagicalPhraseIntroState(
     val inheritanceKeys: List<String> = emptyList(),
     val beneficiaryAllocations: List<InheritanceBeneficiaryAllocation> = emptyList(),
     val setupFlowType: InheritanceSetupFlowType = InheritanceSetupFlowType.OLD_FLOW,
+    val isResultReady: Boolean = false,
 )
