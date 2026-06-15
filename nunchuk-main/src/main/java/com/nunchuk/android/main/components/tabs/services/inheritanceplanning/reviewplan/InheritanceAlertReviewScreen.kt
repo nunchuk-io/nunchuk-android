@@ -744,17 +744,14 @@ private fun Long?.toFallbackDateDisplay(timezoneId: String): String {
 }
 
 /**
- * "Also notify them today" has no field in the plan GET response, so on the review path it is
- * derived from whether notification emails exist and re-submitted on every change. A notify-today
- * diff that is not accompanied by an email change is therefore a re-submission artifact (e.g. a
- * pure time-zone change), not a user edit, and must not be highlighted.
+ * "Also notify them today" is highlighted whenever the notify-today flag itself differs between the
+ * old and new plan. It is independent of the notification email list.
  */
 private fun notifyTodayChanged(
     newData: InheritanceDataExtended?,
     oldData: InheritanceDataExtended?,
 ): Boolean {
-    return newData?.notifyToday != oldData?.notifyToday &&
-        newData?.notificationEmails != oldData?.notificationEmails
+    return newData?.notifyToday != oldData?.notifyToday
 }
 
 private fun assetAllocationChangedEmailKeys(
