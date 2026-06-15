@@ -60,6 +60,9 @@ import com.nunchuk.android.model.inheritance.InheritancePlanBeneficiary
 import com.nunchuk.android.model.inheritance.InheritancePlanFallbackPolicy
 import com.nunchuk.android.model.inheritance.InheritancePlanStage
 import com.nunchuk.android.utils.simpleGlobalDateFormat
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.Date
 
 private val CHANGED_TEXT_COLOR = Color(0xffCF4018)
@@ -481,6 +484,11 @@ private fun androidx.compose.foundation.lazy.LazyListScope.newFlowItems(
         val fallbackTimezoneId = newData.timezone.ifEmpty {
             sharedUiState.setupOrReviewParam.selectedZoneId
         }
+        val oldFallbackTimezoneId = oldData?.timezone?.ifEmpty {
+            sharedUiState.setupOrReviewParam.selectedZoneId
+        }.orEmpty()
+        val fallbackChanged = fallbackPolicyComparisonKey(fallbackPolicy, fallbackTimezoneId) !=
+            fallbackPolicyComparisonKey(oldData?.fallbackPolicy, oldFallbackTimezoneId)
         ReviewPlanSectionHeader(
             modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 24.dp),
             title = stringResource(id = R.string.nc_fallback_settings_title),
@@ -488,7 +496,7 @@ private fun androidx.compose.foundation.lazy.LazyListScope.newFlowItems(
         NoteDisplayBox(
             modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 12.dp),
             note = getFallbackPolicySummary(fallbackPolicy, fallbackTimezoneId),
-            textColor = onTextColor(fallbackPolicy != oldData?.fallbackPolicy),
+            textColor = onTextColor(fallbackChanged),
         )
     }
 
@@ -544,7 +552,7 @@ private fun androidx.compose.foundation.lazy.LazyListScope.newFlowItems(
             isNotifyToday = newData.notifyToday,
             textColor = onTextColor(notifChanged),
             emailTextColor = onTextColor(newData.notificationEmails != oldData?.notificationEmails),
-            notifyTextColor = onTextColor(newData.notifyToday != oldData?.notifyToday),
+            notifyTextColor = onTextColor(notifyTodayChanged(newData, oldData)),
         )
     }
 
@@ -696,9 +704,7 @@ private fun androidx.compose.foundation.lazy.LazyListScope.oldFlowItems(
                     emailTextColor = onTextColor(
                         newData?.notificationEmails != oldData?.notificationEmails
                     ),
-                    notifyTextColor = onTextColor(
-                        newData?.notifyToday != oldData?.notifyToday
-                    ),
+                    notifyTextColor = onTextColor(notifyTodayChanged(newData, oldData)),
                 )
             }
         }
@@ -706,6 +712,50 @@ private fun androidx.compose.foundation.lazy.LazyListScope.oldFlowItems(
 }
 
 // ─── Change-highlight helpers ───────────────────────────────────────────────
+
+/**
+ * Builds a time-zone-tolerant identity for a fallback policy so a pure time-zone change is not
+ * mistaken for a fallback edit. A DATE_BASED fallback re-parses the same calendar date into a new
+ * instant when the time zone changes (shifting [InheritancePlanFallbackPolicy.fallbackTimeMillis]
+ * while the displayed date is unchanged), and a NONE/INACTIVITY policy may carry residual fields
+ * from the server. Comparing this rendered identity instead of the raw object keeps genuine
+ * fallback edits highlighted while ignoring those submit-pipeline artifacts.
+ */
+private fun fallbackPolicyComparisonKey(
+    policy: InheritancePlanFallbackPolicy?,
+    timezoneId: String,
+): String {
+    if (policy == null) return "NONE"
+    return when (policy.type.uppercase()) {
+        "NONE" -> "NONE"
+        "DATE_BASED" -> "DATE_BASED:${policy.fallbackTimeMillis.toFallbackDateDisplay(timezoneId)}"
+        else -> "INACTIVITY:${policy.inactivityInterval?.uppercase().orEmpty()}:${policy.inactivityIntervalCount ?: 0}"
+    }
+}
+
+private fun Long?.toFallbackDateDisplay(timezoneId: String): String {
+    if (this == null || this <= 0L) return ""
+    return runCatching {
+        val zoneId = if (timezoneId.isBlank()) ZoneId.systemDefault() else ZoneId.of(timezoneId)
+        Instant.ofEpochMilli(this)
+            .atZone(zoneId)
+            .format(DateTimeFormatter.ofPattern("MM/dd/yyyy"))
+    }.getOrDefault("")
+}
+
+/**
+ * "Also notify them today" has no field in the plan GET response, so on the review path it is
+ * derived from whether notification emails exist and re-submitted on every change. A notify-today
+ * diff that is not accompanied by an email change is therefore a re-submission artifact (e.g. a
+ * pure time-zone change), not a user edit, and must not be highlighted.
+ */
+private fun notifyTodayChanged(
+    newData: InheritanceDataExtended?,
+    oldData: InheritanceDataExtended?,
+): Boolean {
+    return newData?.notifyToday != oldData?.notifyToday &&
+        newData?.notificationEmails != oldData?.notificationEmails
+}
 
 private fun assetAllocationChangedEmailKeys(
     newData: InheritanceDataExtended,
