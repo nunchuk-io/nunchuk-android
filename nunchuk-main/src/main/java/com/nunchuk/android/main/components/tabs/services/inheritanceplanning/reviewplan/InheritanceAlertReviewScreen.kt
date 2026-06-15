@@ -55,6 +55,7 @@ import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.Inh
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.view.AllocationDonutChart
 import com.nunchuk.android.model.Period
 import com.nunchuk.android.model.byzantine.DummyTransactionType
+import com.nunchuk.android.model.inheritance.InheritanceDistributionMethod
 import com.nunchuk.android.model.inheritance.InheritanceNotificationSettings
 import com.nunchuk.android.model.inheritance.InheritancePlanBeneficiary
 import com.nunchuk.android.model.inheritance.InheritancePlanFallbackPolicy
@@ -478,8 +479,9 @@ private fun androidx.compose.foundation.lazy.LazyListScope.newFlowItems(
         }
     }
 
-    // Fallback settings
-    item(key = "fallback_settings") {
+    // Fallback settings (customized distribution only; lump sum has no fallback)
+    if (newData.distributionMethod != InheritanceDistributionMethod.LUMP_SUM) {
+        item(key = "fallback_settings") {
         val fallbackPolicy = newData.fallbackPolicy
         val fallbackTimezoneId = newData.timezone.ifEmpty {
             sharedUiState.setupOrReviewParam.selectedZoneId
@@ -498,6 +500,7 @@ private fun androidx.compose.foundation.lazy.LazyListScope.newFlowItems(
             note = getFallbackPolicySummary(fallbackPolicy, fallbackTimezoneId),
             textColor = onTextColor(fallbackChanged),
         )
+        }
     }
 
     // Note to Beneficiary
