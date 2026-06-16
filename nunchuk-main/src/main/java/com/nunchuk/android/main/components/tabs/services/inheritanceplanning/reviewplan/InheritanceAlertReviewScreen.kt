@@ -177,7 +177,10 @@ fun InheritanceAlertReviewScreenContent(
         else -> ""
     }
 
-    val isNewFlow = newData?.beneficiaryMode != null
+    // Lump sum keeps the legacy layout (timelock header + activation date); only the customized
+    // distribution flow uses the new asset-allocation/schedule layout.
+    val isNewFlow = newData?.beneficiaryMode != null &&
+            newData.distributionMethod != InheritanceDistributionMethod.LUMP_SUM
 
     var showCancelDialog by remember { mutableStateOf(false) }
 
