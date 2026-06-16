@@ -140,9 +140,38 @@ class InheritanceReviewPlanViewModel @Inject constructor(
                 changeHighlights = changeHighlights,
             )
         }
-        val shouldEnable = param.planFlow == InheritancePlanFlow.SETUP ||
-            (param.planFlow == InheritancePlanFlow.VIEW && isDataChanged)
+        val shouldEnable = (param.planFlow == InheritancePlanFlow.SETUP ||
+            (param.planFlow == InheritancePlanFlow.VIEW && isDataChanged)) &&
+            isScheduleConfigured(param)
         _isContinueButtonEnabled.value = shouldEnable
+    }
+
+    /**
+     * The plan can only be saved once every required release schedule is set up. A beneficiary whose
+     * schedule has no stages shows "Not set up yet" and would be rejected by the backend
+     * ("beneficiaries[N].stages is required"), so the continue/save button stays disabled until every
+     * required schedule has at least one stage. This typically happens after adding/editing an email,
+     * which introduces a beneficiary without a configured schedule.
+     */
+    private fun isScheduleConfigured(param: InheritancePlanningParam.SetupOrReview): Boolean {
+        return when (param.setupFlowType) {
+            InheritanceSetupFlowType.OLD_FLOW -> true
+            InheritanceSetupFlowType.SINGLE_BENEFICIARY ->
+                param.sharedScheduleConfig?.releaseScheduleUiState?.stages?.isNotEmpty() == true
+
+            InheritanceSetupFlowType.MULTI_BENEFICIARY -> when (param.releaseMethodType) {
+                InheritanceReleaseMethodType.SHARED_SCHEDULE ->
+                    param.sharedScheduleConfig?.releaseScheduleUiState?.stages?.isNotEmpty() == true
+
+                InheritanceReleaseMethodType.INDIVIDUAL_SCHEDULES ->
+                    param.beneficiaryAllocations.isNotEmpty() &&
+                        param.beneficiaryAllocations.all { allocation ->
+                            val config = param.individualScheduleConfigs[allocation.email.toEmailKey()]
+                                ?: param.individualScheduleConfigs[allocation.email]
+                            config?.releaseScheduleUiState?.stages?.isNotEmpty() == true
+                        }
+            }
+        }
     }
 
     private fun hasDataChanged(): Boolean {
