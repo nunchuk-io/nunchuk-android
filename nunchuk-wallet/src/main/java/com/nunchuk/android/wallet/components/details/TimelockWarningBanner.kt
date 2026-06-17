@@ -28,6 +28,7 @@ import com.nunchuk.android.compose.lightGray
 import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.type.MiniscriptTimelockBased
 import com.nunchuk.android.wallet.R
+import java.util.Locale
 import kotlin.math.ceil
 
 @Composable
@@ -42,14 +43,31 @@ internal fun TimelockWarningBanner(
     val (isWarning, lockInfo) = when (lockBased) {
         MiniscriptTimelockBased.TIME_LOCK -> {
             val nowSec = System.currentTimeMillis() / 1000L
-            val remainingDays = ceil((lockValue - nowSec) / 86400.0).toInt()
-            val isWarning = remainingDays < 7
-            isWarning to (
-                if (remainingDays > 0) stringResource(
-                    R.string.nc_timelock_expiring_info,
-                    pluralStringResource(R.plurals.nc_day, remainingDays, remainingDays)
-                ) else null
-            )
+            val remainingSeconds = lockValue - nowSec
+            when {
+                remainingSeconds <= 0L -> false to null
+                // Less than a day: show hours, e.g. "23 hours" or "0.5 hours"
+                remainingSeconds < 86400L -> {
+                    val remainingHours = remainingSeconds / 3600.0
+                    val duration = if (remainingHours >= 1.0) {
+                        val hours = remainingHours.toInt()
+                        pluralStringResource(R.plurals.nc_plural_hour, hours, hours)
+                    } else {
+                        val formatted = String.format(Locale.getDefault(), "%.1f", remainingHours)
+                        pluralStringResource(R.plurals.nc_plural_hour, 0, formatted)
+                    }
+                    true to stringResource(R.string.nc_timelock_expiring_info, duration)
+                }
+
+                else -> {
+                    val remainingDays = ceil(remainingSeconds / 86400.0).toInt()
+                    val isWarning = remainingDays < 7
+                    isWarning to stringResource(
+                        R.string.nc_timelock_expiring_info,
+                        pluralStringResource(R.plurals.nc_day, remainingDays, remainingDays)
+                    )
+                }
+            }
         }
 
         MiniscriptTimelockBased.HEIGHT_LOCK -> {
