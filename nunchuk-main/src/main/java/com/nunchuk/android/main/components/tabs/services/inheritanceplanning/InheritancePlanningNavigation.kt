@@ -242,8 +242,18 @@ fun InheritancePlanningGraph(
         inheritanceAssetAllocation(
             onBackClicked = { navController.popBackStack() },
             onContinueClicked = { allocations, isUpdateRequest ->
+                val scheduledKeys = allocations
+                    .filter { it.allocationPercent > 0 }
+                    .map { beneficiaryScheduleKey(it.email) }
+                    .toSet()
+                val cleanedScheduleConfigs = activityViewModel.setupOrReviewParam
+                    .individualScheduleConfigs
+                    .filterKeys { it in scheduledKeys }
                 activityViewModel.setOrUpdate(
-                    activityViewModel.setupOrReviewParam.copy(beneficiaryAllocations = allocations)
+                    activityViewModel.setupOrReviewParam.copy(
+                        beneficiaryAllocations = allocations,
+                        individualScheduleConfigs = cleanedScheduleConfigs,
+                    )
                 )
                 if (isUpdateRequest) {
                     navController.popBackStack()

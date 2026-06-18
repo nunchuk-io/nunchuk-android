@@ -91,9 +91,10 @@ internal fun InheritanceBeneficiarySchedulesScreen(
 ) {
     val isIndividualSchedulesConfigured = releaseMethod == InheritanceReleaseMethod.INDIVIDUAL_SCHEDULES &&
         beneficiaries.isNotEmpty() &&
-        beneficiaries.all {
-            individualScheduleCardDataByEmail.containsKey(it.email) ||
-                individualScheduleCardDataByEmail.containsKey(it.email.trim().lowercase())
+        beneficiaries.all { beneficiary ->
+            beneficiary.allocationPercent <= 0 ||
+                individualScheduleCardDataByEmail.containsKey(beneficiary.email) ||
+                individualScheduleCardDataByEmail.containsKey(beneficiary.email.trim().lowercase())
         }
 
     NunchukTheme {
@@ -345,7 +346,7 @@ private fun IndividualScheduleList(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        beneficiaries.forEach { beneficiary ->
+        beneficiaries.filter { it.allocationPercent > 0 }.forEach { beneficiary ->
             val beneficiaryKey = beneficiary.email.trim().lowercase()
             val scheduleCardData = individualScheduleCardDataByEmail[beneficiary.email]
                 ?: individualScheduleCardDataByEmail[beneficiaryKey]

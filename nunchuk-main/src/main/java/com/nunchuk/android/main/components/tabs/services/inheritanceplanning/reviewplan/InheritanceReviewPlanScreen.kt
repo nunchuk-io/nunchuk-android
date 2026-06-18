@@ -1078,7 +1078,7 @@ private fun IndividualScheduleReviewSummary(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(18.dp)
     ) {
-        beneficiaries.forEach { beneficiary ->
+        beneficiaries.filter { it.allocationPercent > 0 }.forEach { beneficiary ->
             val beneficiaryKey = beneficiary.email.toEmailKey()
             val scheduleCardData = individualScheduleCardDataByEmail[beneficiary.email]
                 ?: individualScheduleCardDataByEmail[beneficiaryKey]

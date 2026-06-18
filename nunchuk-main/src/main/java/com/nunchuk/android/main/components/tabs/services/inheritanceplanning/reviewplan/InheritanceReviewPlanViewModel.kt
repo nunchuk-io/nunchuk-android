@@ -165,10 +165,13 @@ class InheritanceReviewPlanViewModel @Inject constructor(
 
                 InheritanceReleaseMethodType.INDIVIDUAL_SCHEDULES ->
                     param.beneficiaryAllocations.isNotEmpty() &&
+                        // 0% beneficiaries don't need a release schedule, so they never block saving.
                         param.beneficiaryAllocations.all { allocation ->
-                            val config = param.individualScheduleConfigs[allocation.email.toEmailKey()]
-                                ?: param.individualScheduleConfigs[allocation.email]
-                            config?.releaseScheduleUiState?.stages?.isNotEmpty() == true
+                            allocation.allocationPercent <= 0 || run {
+                                val config = param.individualScheduleConfigs[allocation.email.toEmailKey()]
+                                    ?: param.individualScheduleConfigs[allocation.email]
+                                config?.releaseScheduleUiState?.stages?.isNotEmpty() == true
+                            }
                         }
             }
         }

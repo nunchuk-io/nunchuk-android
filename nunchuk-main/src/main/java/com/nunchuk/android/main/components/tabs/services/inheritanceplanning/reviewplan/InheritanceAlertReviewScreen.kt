@@ -371,7 +371,7 @@ private fun androidx.compose.foundation.lazy.LazyListScope.newFlowItems(
             )
         }
         items(
-            items = newData.beneficiaries,
+            items = newData.beneficiaries.filter { it.assetPercentage > 0 },
             key = { "beneficiary_schedule_${it.email}" }
         ) { beneficiary ->
             BeneficiaryScheduleReviewCard(
