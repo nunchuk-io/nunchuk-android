@@ -40,8 +40,7 @@ import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.ClaimInheritanceActivity
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.ClaimInheritanceViewModel
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasescheduledetail.ReleaseInstallmentConfig
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasescheduledetail.ReleaseInstallmentFrequency
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.toReleaseInstallmentConfig
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasescheduledetail.ReleaseScheduleDate
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasescheduledetail.ReleaseScheduleStage
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasescheduledetail.ReleaseScheduleUiState
@@ -228,16 +227,7 @@ private fun InheritancePlanStage.toReleaseScheduleStage(
             day = cal.get(Calendar.DAY_OF_MONTH),
             year = cal.get(Calendar.YEAR),
         ),
-        installmentConfig = ReleaseInstallmentConfig(
-            installmentPercent = amountPerReleasePercentage,
-            repeatEvery = repeatIntervalCount.coerceAtLeast(1),
-            frequency = when (repeatInterval.uppercase()) {
-                "DAILY" -> ReleaseInstallmentFrequency.DAILY
-                "WEEKLY" -> ReleaseInstallmentFrequency.WEEKLY
-                "MONTHLY" -> ReleaseInstallmentFrequency.MONTHLY
-                else -> ReleaseInstallmentFrequency.ANNUALLY
-            },
-        ),
+        installmentConfig = toReleaseInstallmentConfig(),
     )
 }
 

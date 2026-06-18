@@ -428,7 +428,7 @@ private fun List<InheritancePlanStage>.toReleaseScheduleUiState(
     )
 }
 
-private fun InheritancePlanStage.toReleaseInstallmentConfig(): ReleaseInstallmentConfig {
+internal fun InheritancePlanStage.toReleaseInstallmentConfig(): ReleaseInstallmentConfig {
     val normalizedRepeatInterval = repeatInterval.uppercase()
     val normalizedRepeatCount = repeatIntervalCount.coerceAtLeast(1)
     val frequency = when (normalizedRepeatInterval) {
