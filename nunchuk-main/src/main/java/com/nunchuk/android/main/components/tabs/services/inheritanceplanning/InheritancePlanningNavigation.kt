@@ -839,6 +839,7 @@ fun InheritancePlanningGraph(
                     onYesClick = { activity.finish() },
                 )
             },
+            onClose = { activity.finish() },
             onShareSecretClicked = {
                 val param = activityViewModel.setupOrReviewParam
                 navController.navigateToInheritanceShareSecret(

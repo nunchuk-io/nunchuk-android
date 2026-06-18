@@ -106,6 +106,7 @@ fun InheritanceReviewPlanScreen(
     onDiscardChange: () -> Unit,
     onShareSecretClicked: () -> Unit,
     onActionTopBarClick: () -> Unit,
+    onClose: () -> Unit = {},
     onViewClaimingInstruction: () -> Unit = {},
     onEditBufferPeriodClick: (bufferPeriod: Period?) -> Unit = {},
     onBackUpPasswordInfoClick: () -> Unit = {},
@@ -157,6 +158,7 @@ fun InheritanceReviewPlanScreen(
         onDiscardChange = onDiscardChange,
         onShareSecretClicked = onShareSecretClicked,
         onActionTopBarClick = onActionTopBarClick,
+        onClose = onClose,
         onViewClaimingInstruction = onViewClaimingInstruction,
         onEditBufferPeriodClick = onEditBufferPeriodClick,
         onBackUpPasswordInfoClick = onBackUpPasswordInfoClick,
@@ -188,6 +190,7 @@ fun InheritanceReviewPlanScreenContent(
     onEditNoteClick: () -> Unit = {},
     onNotifyPrefClick: () -> Unit = {},
     onActionTopBarClick: () -> Unit = {},
+    onClose: () -> Unit = {},
     onViewClaimingInstruction: () -> Unit = {},
     onEditBufferPeriodClick: (bufferPeriod: Period?) -> Unit = {},
     onBackUpPasswordInfoClick: () -> Unit = {},
@@ -222,6 +225,10 @@ fun InheritanceReviewPlanScreenContent(
                     backgroundColor = colorResource(id = R.color.nc_primary_light_color),
                     title = title,
                     isBack = planFlow != InheritancePlanFlow.VIEW,
+                    // In VIEW flow the review screen is the NavHost root and the nav icon is an
+                    // "X" close. Relying on the back dispatcher pops the only entry and leaves an
+                    // empty NavHost (black screen), so close the activity explicitly instead.
+                    onBackPress = if (planFlow == InheritancePlanFlow.VIEW) onClose else null,
                     tintColor = Color.White,
                     actions = {
                         IconButton(onClick = {

@@ -43,6 +43,7 @@ fun NavGraphBuilder.inheritanceReviewPlan(
     onNotifyPrefClick: () -> Unit,
     onDiscardChange: () -> Unit,
     onShareSecretClicked: () -> Unit,
+    onClose: () -> Unit,
     onViewClaimingInstruction: () -> Unit,
     onEditBufferPeriodClick: (Period?) -> Unit,
     onBackUpPasswordInfoClick: () -> Unit,
@@ -150,6 +151,7 @@ fun NavGraphBuilder.inheritanceReviewPlan(
             onNotifyPrefClick = { _, _ -> onNotifyPrefClick() },
             onDiscardChange = onDiscardChange,
             onShareSecretClicked = onShareSecretClicked,
+            onClose = onClose,
             onActionTopBarClick = {
                 if (activityViewModel.setupOrReviewParam.planFlow == com.nunchuk.android.core.util.InheritancePlanFlow.VIEW) {
                     showReviewActionOptions(activity)
