@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.findbackup
 
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.estimateRemainTimeTitle
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -97,10 +98,7 @@ internal fun FindBackupPasswordContent(
             topBar = {
                 NcImageAppBar(
                     backgroundRes = if (inheritanceKeyType == InheritanceKeyType.TAPSIGNER) R.drawable.nc_bg_tap_signer_explain else R.drawable.bg_backup_coldcard_illustration,
-                    title = stringResource(
-                        id = R.string.nc_estimate_remain_time,
-                        remainTime
-                    ),
+                    title = estimateRemainTimeTitle(remainTime),
                 )
             }
         ) { innerPadding ->

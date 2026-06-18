@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releaseschedule
 
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.estimateRemainTimeTitle
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -50,10 +51,7 @@ internal fun InheritanceReleaseScheduleScreen(
                 NcImageAppBar(
                     backgroundRes = R.drawable.bg_inheritance_release_intro,
                     backIconRes = com.nunchuk.android.core.R.drawable.ic_close,
-                    title = stringResource(
-                        id = R.string.nc_estimate_remain_time,
-                        remainTime
-                    ),
+                    title = estimateRemainTimeTitle(remainTime),
                 )
             },
             bottomBar = {

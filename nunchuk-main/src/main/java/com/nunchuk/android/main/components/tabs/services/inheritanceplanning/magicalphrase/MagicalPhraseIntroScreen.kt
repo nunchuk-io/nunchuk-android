@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.magicalphrase
 
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.estimateRemainTimeTitle
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -102,10 +103,7 @@ private fun MagicalPhraseIntroContent(
             topBar = {
                 NcTopAppBar(
                     backgroundColor = MaterialTheme.colorScheme.fillDenim,
-                    title = stringResource(
-                        id = R.string.nc_estimate_remain_time,
-                        remainTime
-                    ),
+                    title = estimateRemainTimeTitle(remainTime),
                     actions = {
                         Spacer(modifier = Modifier.size(LocalViewConfiguration.current.minimumTouchTargetSize))
                     }
@@ -202,10 +200,7 @@ private fun MultiBeneficiaryMagicalPhraseIntroContent(
             modifier = Modifier.navigationBarsPadding(),
             topBar = {
                 NcTopAppBar(
-                    title = stringResource(
-                        id = R.string.nc_estimate_remain_time,
-                        remainTime
-                    ),
+                    title = estimateRemainTimeTitle(remainTime),
                     actions = {
                         Spacer(modifier = Modifier.size(LocalViewConfiguration.current.minimumTouchTargetSize))
                     }

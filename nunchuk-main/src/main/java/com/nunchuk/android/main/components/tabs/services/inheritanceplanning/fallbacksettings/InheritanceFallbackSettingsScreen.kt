@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.fallbacksettings
 
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.estimateRemainTimeTitle
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -253,7 +254,7 @@ private fun InheritanceFallbackSettingsContent(
         Scaffold(
             topBar = {
                 NcTopAppBar(
-                    title = stringResource(id = R.string.nc_estimate_remain_time, remainTime),
+                    title = estimateRemainTimeTitle(remainTime),
                     onBackPress = onBackClicked,
                 )
             },

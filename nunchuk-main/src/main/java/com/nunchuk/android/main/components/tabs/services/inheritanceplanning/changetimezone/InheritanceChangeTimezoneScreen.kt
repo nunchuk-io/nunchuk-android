@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.changetimezone
 
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.estimateRemainTimeTitle
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -93,7 +94,7 @@ private fun InheritanceChangeTimezoneScreenContent(
             modifier = Modifier.navigationBarsPadding(),
             topBar = {
                 NcTopAppBar(
-                    title = stringResource(id = R.string.nc_estimate_remain_time, remainTime),
+                    title = estimateRemainTimeTitle(remainTime),
                     isBack = !isUpdateRequest,
                     onBackPress = onBackClicked,
                     actions = {

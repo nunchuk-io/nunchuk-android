@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.intro
 
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.estimateRemainTimeTitle
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -68,10 +69,7 @@ private fun InheritanceSetupIntroContent(
                 NcImageAppBar(
                     backgroundRes = R.drawable.bg_inheritance,
                     backIconRes = com.nunchuk.android.core.R.drawable.ic_close,
-                    title = stringResource(
-                        id = R.string.nc_estimate_remain_time,
-                        remainTime
-                    ),
+                    title = estimateRemainTimeTitle(remainTime),
                 )
             }
         ) { innerPadding ->

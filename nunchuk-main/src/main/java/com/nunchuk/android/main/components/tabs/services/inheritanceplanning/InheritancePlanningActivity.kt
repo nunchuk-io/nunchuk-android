@@ -25,6 +25,7 @@ import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.viewModels
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.ComposeView
 import androidx.viewbinding.ViewBinding
 import com.nunchuk.android.core.base.BaseShareSaveFileActivity
@@ -186,13 +187,15 @@ class InheritancePlanningActivity : BaseShareSaveFileActivity<ViewBinding>() {
     override fun initializeBinding(): ViewBinding = ViewBinding {
         ComposeView(this).apply {
             setContent {
-                InheritancePlanningGraph(
-                    activity = this@InheritancePlanningActivity,
-                    navigator = navigator,
-                    activityViewModel = viewModel,
-                    planFlow = planFlow,
-                    startDestination = startDestination,
-                )
+                CompositionLocalProvider(LocalInheritancePlanFlow provides planFlow) {
+                    InheritancePlanningGraph(
+                        activity = this@InheritancePlanningActivity,
+                        navigator = navigator,
+                        activityViewModel = viewModel,
+                        planFlow = planFlow,
+                        startDestination = startDestination,
+                    )
+                }
             }
         }
     }.also {

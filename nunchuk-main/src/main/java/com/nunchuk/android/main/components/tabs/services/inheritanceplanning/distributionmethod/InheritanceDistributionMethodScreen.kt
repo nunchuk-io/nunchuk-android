@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.distributionmethod
 
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.estimateRemainTimeTitle
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -91,10 +92,7 @@ private fun InheritanceDistributionMethodContent(
                 NcImageAppBar(
                     backgroundRes = R.drawable.bg_inheritance,
                     backIconRes = com.nunchuk.android.core.R.drawable.ic_close,
-                    title = stringResource(
-                        id = R.string.nc_estimate_remain_time,
-                        remainTime
-                    ),
+                    title = estimateRemainTimeTitle(remainTime),
                 )
             },
             bottomBar = {

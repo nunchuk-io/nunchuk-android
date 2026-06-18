@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releaseschedulestageedit
 
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.estimateRemainTimeTitle
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.text.KeyboardOptions
@@ -160,7 +161,7 @@ internal fun InheritanceReleaseScheduleStageEditScreen(
         Scaffold(
             topBar = {
                 NcTopAppBar(
-                    title = stringResource(id = R.string.nc_estimate_remain_time, remainTime),
+                    title = estimateRemainTimeTitle(remainTime),
                     onBackPress = onBackClicked
                 )
             },

@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.assetallocation
 
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.estimateRemainTimeTitle
 import android.util.Patterns
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -191,7 +192,7 @@ private fun InheritanceAssetAllocationContent(
             snackState = snackState,
             topBar = {
                 NcTopAppBar(
-                    title = stringResource(id = R.string.nc_estimate_remain_time, remainTime),
+                    title = estimateRemainTimeTitle(remainTime),
                     onBackPress = onBackClicked
                 )
             },
