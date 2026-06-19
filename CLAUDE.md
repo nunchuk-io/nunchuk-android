@@ -14,6 +14,11 @@ Multi-module Android app (Nunchuk wallet) using Gradle with mixed Kotlin DSL and
 ./gradlew lint                       # Lint
 ```
 
+**Firebase App Distribution**: For normal tasks, always build/distribute the **Development Debug** variant. The upload task does NOT trigger assembly, so run both:
+```bash
+./gradlew :nunchuk-app:assembleDevelopmentDebug :nunchuk-app:appDistributionUploadDevelopmentDebug
+```
+
 **Prerequisites**: Build Nunchuk Android Native SDK from its separate repo, publish to local Maven, ensure `nativeSdkVersion` in `configs/dependencies.gradle` matches.
 
 **Build config**: `configs/dependencies.gradle` (versions), `configs/submodule-config.gradle` (common module setup). Min SDK 24, Target 35, Compile 36, JVM 21, Kotlin 2.1.21.
