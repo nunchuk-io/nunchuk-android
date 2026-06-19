@@ -19,7 +19,6 @@
 
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.magicalphrase
 
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.estimateRemainTimeTitle
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -58,13 +57,14 @@ import com.nunchuk.android.compose.NcHintMessage
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.dialog.NcLoadingDialog
 import com.nunchuk.android.compose.fillDenim
 import com.nunchuk.android.compose.fillDenim2
 import com.nunchuk.android.compose.primaryT1
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceBeneficiaryAllocation
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceSetupFlowType
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.estimateRemainTimeTitle
 
 @Composable
 internal fun MagicalPhraseIntroScreen(
@@ -289,6 +289,10 @@ private fun MultiBeneficiaryMagicalPhraseIntroContent(
                     Spacer(modifier = Modifier.height(16.dp))
                 }
             }
+
+            if (!isResultReady) {
+                NcLoadingDialog()
+            }
         }
     }
 }
@@ -312,6 +316,19 @@ private fun MagicalPhraseIntroScreenMiniscriptPreview() {
         magicalPhrase = "example-magical-phrase-12345",
         isMiniscriptWallet = true,
         onContinueClicked = {}
+    )
+}
+
+@PreviewLightDark
+@Composable
+private fun MultiBeneficiaryMagicalPhraseIntroLoadingPreview() {
+    MultiBeneficiaryMagicalPhraseIntroContent(
+        remainTime = 5,
+        isResultReady = false,
+        beneficiaryAllocations = listOf(
+            InheritanceBeneficiaryAllocation(email = "wife@gmail.com", allocationPercent = 50),
+            InheritanceBeneficiaryAllocation(email = "son@gmail.com", allocationPercent = 50),
+        ),
     )
 }
 
