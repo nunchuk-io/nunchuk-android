@@ -58,7 +58,7 @@ fun ClaimNoteScreen(
         isOnChainClaim = isOnChainClaim,
         onViewWallet = onViewWallet,
         onViewReleaseSchedule = onViewReleaseSchedule,
-        isReleaseScheduleWithdraw = inheritanceAdditional.inheritance?.isCustomizeDistribution == true
+        isReleaseScheduleWithdraw = inheritanceAdditional.isCustomizeDistribution
     )
 }
 
