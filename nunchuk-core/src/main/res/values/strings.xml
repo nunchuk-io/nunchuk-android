@@ -979,7 +979,7 @@
     <string name="nc_view_less">View less</string>
     <string name="nc_miniscript_enter_miniscript">Enter miniscript</string>
     <string name="nc_miniscript_customize_miniscript">Customize miniscript</string>
-    <string name="nc_miniscript_example">Example:\nandor(\nln:older(12900),\nthresh(2,pk(A), s:pk(B), s:pk(C)),\nthresh(2,pk(A),s:pk(D),s:pk(E))\n)</string>
+    <string name="nc_miniscript_example">Example:thresh(3,pk(key_1),s:pk(key_2),s:pk(key_3),sln:older(12960))</string>
     <string name="nc_miniscript_save">Save</string>
     <string name="nc_miniscript_continue">Continue</string>
     <string name="nc_miniscript_warning">Warning</string>
