@@ -172,17 +172,17 @@ class FreeGroupWalletViewModel @Inject constructor(
                     if (isMiniscriptWallet() && _uiState.value.currentKeyToAssign.isNotEmpty()) {
                         // For Miniscript wallets, add the signer to the specific key
                         val keyName = _uiState.value.currentKeyToAssign
-                        Timber.tag("miniscript-feature")
+                        Timber.tag(TAG)
                             .d("PushEvent: Adding signer to Miniscript key: $keyName")
                         val singleSigner = it.signer
 
                         // Check if this is key_x_y pattern with master signer
                         if (isKeyPatternXY(keyName) && singleSigner.toModel().isMasterSigner) {
-                            Timber.tag("miniscript-feature")
+                            Timber.tag(TAG)
                                 .d("PushEvent: Handling key_x_y pattern for master signer")
                             addMasterSignerToRelatedKeysInGroup(singleSigner.toModel(), keyName)
                         } else {
-                            Timber.tag("miniscript-feature")
+                            Timber.tag(TAG)
                                 .d("PushEvent: Calling addSignerToGroupWithKeyName for single key")
                             addSignerToGroupWithKeyName(singleSigner, keyName)
                         }
@@ -237,7 +237,7 @@ class FreeGroupWalletViewModel @Inject constructor(
     private fun listenGroupSandbox() {
         groupUpdateJob = viewModelScope.launch {
             GroupSandboxListener.getGroupFlow().collect { groupSandbox ->
-                Timber.d("GroupSandboxListener $groupSandbox")
+                Timber.tag(TAG).d("listenGroupSandbox: received groupId=${groupSandbox.id}")
                 if (groupSandbox.id == groupId) {
                     if (groupSandbox.finalized) {
                         _uiState.update { it.copy(finalizedWalletId = groupSandbox.walletId) }
@@ -323,7 +323,7 @@ class FreeGroupWalletViewModel @Inject constructor(
 
     fun getGroupSandbox() {
         if (groupId.isNotEmpty()) {
-            Timber.d("Get group sandbox $groupId")
+            Timber.tag(TAG).d("getGroupSandbox: groupId=$groupId")
             viewModelScope.launch {
                 _uiState.update { it.copy(isRefreshing = true) }
                 getGroupSandboxUseCase(groupId).onSuccess { groupSandbox ->
@@ -343,8 +343,7 @@ class FreeGroupWalletViewModel @Inject constructor(
     }
 
     private suspend fun updateGroupSandbox(groupSandbox: GroupSandbox) {
-        Timber.tag("miniscript-feature")
-            .d("updateGroupSandbox: START - groupSandbox.namedSigners=${groupSandbox.namedSigners.map { "${it.key} -> ${it.value?.masterFingerprint}:${it.value?.derivationPath}" }}")
+        logGroupSandbox("updateGroupSandbox", groupSandbox)
         getSignerOldWallet(groupSandbox.replaceWalletId)
         val signers = mapSigners(groupSandbox.signers)
 
@@ -385,12 +384,52 @@ class FreeGroupWalletViewModel @Inject constructor(
         updateOccupiedSlots(groupSandbox)
     }
 
+    /**
+     * Dumps the raw group sandbox returned by libnunchuk so the assigned keys can be verified
+     * (e.g. to confirm whether a key added on another device is present in namedSigners).
+     */
+    private fun logGroupSandbox(stage: String, groupSandbox: GroupSandbox) {
+        Timber.tag(TAG).d(
+            "[$stage] id=${groupSandbox.id} walletType=${groupSandbox.walletType} " +
+                "m=${groupSandbox.m} n=${groupSandbox.n} replaceWalletId=${groupSandbox.replaceWalletId}"
+        )
+        Timber.tag(TAG).d(
+            "[$stage] namedSigners(${groupSandbox.namedSigners.size})=" +
+                groupSandbox.namedSigners.entries.joinToString(prefix = "[", postfix = "]") { (key, signer) ->
+                    "$key -> xfp=${signer.masterFingerprint}, path=${signer.derivationPath}, " +
+                        "name='${signer.name}', hasXpub=${signer.xpub.isNotEmpty()}"
+                }
+        )
+        Timber.tag(TAG).d(
+            "[$stage] signers(${groupSandbox.signers.size})=" +
+                groupSandbox.signers.joinToString(prefix = "[", postfix = "]") { signer ->
+                    "xfp=${signer.masterFingerprint}, path=${signer.derivationPath}"
+                }
+        )
+        Timber.tag(TAG).d(
+            "[$stage] namedOccupied=${groupSandbox.namedOccupied.keys} " +
+                "platformKeySlots=${groupSandbox.platformKeySlots}"
+        )
+    }
+
     private suspend fun loadMiniscriptScriptNode(
         miniscriptTemplate: String,
         signers: List<SignerModel?>,
         groupSandbox: GroupSandbox
     ) {
         getScriptNodeFromMiniscriptTemplateUseCase(miniscriptTemplate).onSuccess { result ->
+            // Compare the keys declared by the policy against the keys libnunchuk actually
+            // returned in the sandbox, to spot keys added on another device that did not sync.
+            val policyKeyNames = extractKeyNamesFromScriptNode(result.scriptNode)
+            val returnedKeyNames = groupSandbox.namedSigners.keys
+            Timber.tag(TAG).d("loadMiniscriptScriptNode: policy keys(${policyKeyNames.size})=$policyKeyNames")
+            Timber.tag(TAG).d("loadMiniscriptScriptNode: sandbox namedSigners keys(${returnedKeyNames.size})=$returnedKeyNames")
+            val missingFromSandbox = policyKeyNames.filterNot { returnedKeyNames.contains(it) }
+            if (missingFromSandbox.isNotEmpty()) {
+                Timber.tag(TAG)
+                    .w("loadMiniscriptScriptNode: keys in policy but MISSING from sandbox namedSigners (not returned by libnunchuk)=$missingFromSandbox")
+            }
+
             // Create scriptNodeMuSig if keyPath.size > 1
             val scriptNodeMuSig = if (result.keyPath.size > 1) {
                 ScriptNode(
@@ -408,8 +447,31 @@ class FreeGroupWalletViewModel @Inject constructor(
             val signerMap =
                 createSignerMapFromNamedSigners(signers, result.scriptNode, groupSandbox)
 
-            Timber.tag("miniscript-feature")
+            Timber.tag(TAG)
                 .d("loadMiniscriptScriptNode: Updating UI namedSigners=${signerMap.map { "${it.key} -> ${it.value?.fingerPrint}:${it.value?.derivationPath}" }}")
+            val unmappedKeys = signerMap.filterValues { it == null }.keys
+            if (unmappedKeys.isNotEmpty()) {
+                Timber.tag(TAG).w("loadMiniscriptScriptNode: keys with no signer after mapping=$unmappedKeys")
+            }
+
+            // Only in the replace flow: every policy key originally had a signer, so a key with
+            // no master fingerprint is one held by another participant whose data hasn't synced
+            // to this device yet -> render "Waiting to join" instead of an "Add" slot.
+            // (Platform-key slots are excluded.) In the create flow a blank key is an empty slot
+            // to "Add", so this stays disabled there.
+            val waitingToJoinKeys = if (replaceWalletId.isNotEmpty()) {
+                groupSandbox.namedSigners
+                    .filter { (keyName, signer) ->
+                        signer.masterFingerprint.isEmpty() &&
+                            !groupSandbox.platformKeySlots.contains(keyName)
+                    }
+                    .keys
+            } else {
+                emptySet()
+            }
+            if (waitingToJoinKeys.isNotEmpty()) {
+                Timber.tag(TAG).d("loadMiniscriptScriptNode: waiting-to-join keys=$waitingToJoinKeys")
+            }
 
             if (replaceWalletId.isNotEmpty() &&
                 replaceOriginalNamedSigners.isEmpty() &&
@@ -426,6 +488,7 @@ class FreeGroupWalletViewModel @Inject constructor(
                     keyPath = result.keyPath,
                     scriptNodeMuSig = scriptNodeMuSig,
                     namedSigners = signerMap,
+                    waitingToJoinKeys = waitingToJoinKeys,
                     replaceKeyData = if (replaceWalletId.isNotEmpty()) {
                         deriveReplaceKeyData(signerMap) + pendingTimelockReplacements
                     } else {
@@ -435,7 +498,7 @@ class FreeGroupWalletViewModel @Inject constructor(
             }
 
         }.onFailure { error ->
-            Timber.tag("miniscript-feature").e("Failed to load miniscript script node: $error")
+            Timber.tag(TAG).e("Failed to load miniscript script node: $error")
         }
     }
 
@@ -803,7 +866,7 @@ class FreeGroupWalletViewModel @Inject constructor(
                         ).onSuccess {
                             // Slot occupied successfully
                         }.onFailure {
-                            Timber.tag("miniscript-feature")
+                            Timber.tag(TAG)
                                 .e("Failed to set Miniscript slot occupied for key '$currentKey': $it")
                         }
                     }
@@ -822,7 +885,7 @@ class FreeGroupWalletViewModel @Inject constructor(
                         ).onSuccess {
                             // Slot cleared successfully
                         }.onFailure {
-                            Timber.tag("miniscript-feature")
+                            Timber.tag(TAG)
                                 .e("Failed to clear slot occupied for Miniscript key '$currentKey': $it")
                         }
                     }
@@ -1035,11 +1098,11 @@ class FreeGroupWalletViewModel @Inject constructor(
                         it.copy(isReplaceKeyWithTimelock = hasMiniscriptTimelock(result.scriptNode))
                     }
                 }.onFailure {
-                    Timber.tag("miniscript-feature")
+                    Timber.tag(TAG)
                         .e("Failed to parse original miniscript for replace: $it")
                 }
             }.onFailure {
-                Timber.tag("miniscript-feature")
+                Timber.tag(TAG)
                     .e("Failed to load original wallet for replace: $it")
             }
         }
@@ -1199,7 +1262,7 @@ class FreeGroupWalletViewModel @Inject constructor(
     private fun proceedWithAddingSignerForKey(signer: SignerModel, keyName: String) {
         val addressType = _uiState.value.group?.addressType
         if (addressType == null) {
-            Timber.tag("miniscript-feature")
+            Timber.tag(TAG)
                 .e("proceedWithAddingSignerForKey: addressType is null, returning")
             return
         }
@@ -1209,7 +1272,7 @@ class FreeGroupWalletViewModel @Inject constructor(
             if (signer.isMasterSigner) {
                 val masterSigner = masterSigners.find { it.id == signer.fingerPrint }
                 if (masterSigner == null) {
-                    Timber.tag("miniscript-feature")
+                    Timber.tag(TAG)
                         .e("proceedWithAddingSignerForKey: Master signer not found with id=${signer.fingerPrint}")
                     _uiState.update { it.copy(errorMessage = UiText.resource(R.string.nc_main_master_signer_not_found)) }
                     return@launch
@@ -1248,7 +1311,7 @@ class FreeGroupWalletViewModel @Inject constructor(
                         addSignerToGroupWithKeyName(singleSigner, keyName)
                     }
                 }.onFailure { error ->
-                    Timber.tag("miniscript-feature")
+                    Timber.tag(TAG)
                         .e("proceedWithAddingSignerForKey: Failed to get unused signer: $error")
                     _uiState.update { it.copy(errorMessage = UiText.Dynamic(error.message.orUnknownError())) }
                 }
@@ -1258,7 +1321,7 @@ class FreeGroupWalletViewModel @Inject constructor(
                             it.derivationPath == signer.derivationPath
                 }
                 if (singleSigner == null) {
-                    Timber.tag("miniscript-feature")
+                    Timber.tag(TAG)
                         .e("proceedWithAddingSignerForKey: Single signer not found with fingerPrint=${signer.fingerPrint}, derivationPath=${signer.derivationPath}")
                     _uiState.update { it.copy(errorMessage = UiText.resource(R.string.nc_main_single_signer_not_found)) }
                     return@launch
@@ -1352,7 +1415,7 @@ class FreeGroupWalletViewModel @Inject constructor(
         // Check if keyName matches the pattern key_x_y (e.g., key_0_0, key_0_1)
         if (isKeyPatternXY(keyName) && signerModel.isMasterSigner) {
             // For key_x_y pattern with master signers, we should use addMasterSignerToRelatedKeysInGroup
-            Timber.tag("miniscript-feature")
+            Timber.tag(TAG)
                 .w("assignExistingSignerToKeyPosition: key_x_y pattern should use addMasterSignerToRelatedKeys method instead")
 
             // Fallback to simple assignment for now
@@ -1418,7 +1481,7 @@ class FreeGroupWalletViewModel @Inject constructor(
             currentNamedSigners[key] == null
         }
 
-        Timber.tag("miniscript-feature")
+        Timber.tag(TAG)
             .d("addMasterSignerToRelatedKeysInGroup: relatedKeys=$relatedKeys, unassignedKeys=$unassignedKeys, requestedKey=$keyName")
 
         val keysToProcess = if (currentNamedSigners[keyName] == null) {
@@ -1427,11 +1490,11 @@ class FreeGroupWalletViewModel @Inject constructor(
             listOf(keyName)
         }
 
-        Timber.tag("miniscript-feature")
+        Timber.tag(TAG)
             .d("addMasterSignerToRelatedKeysInGroup: keysToProcess=$keysToProcess")
 
         if (keysToProcess.isEmpty()) {
-            Timber.tag("miniscript-feature")
+            Timber.tag(TAG)
                 .d("addMasterSignerToRelatedKeysInGroup: No keys to process")
             return
         }
@@ -1495,7 +1558,7 @@ class FreeGroupWalletViewModel @Inject constructor(
                             val newPath =
                                 getPath(nonConflictingIndex, _uiState.value.isTestNet, isMultisig)
 
-                            Timber.tag("miniscript-feature")
+                            Timber.tag(TAG)
                                 .d("addMasterSignerToRelatedKeysInGroup: TapSigner caching needed for key=$key at index $nonConflictingIndex, path=$newPath")
 
                             // Store the pending state for resuming after caching
@@ -1533,7 +1596,7 @@ class FreeGroupWalletViewModel @Inject constructor(
                 currentIndex = nonConflictingIndex + 1
             }
         }.onFailure { error ->
-            Timber.tag("miniscript-feature")
+            Timber.tag(TAG)
                 .e("addMasterSignerToRelatedKeysInGroup: Failed to get current index: $error")
             _uiState.update { it.copy(errorMessage = UiText.Dynamic(error.message.orUnknownError())) }
         }
@@ -1545,7 +1608,7 @@ class FreeGroupWalletViewModel @Inject constructor(
         keyName: String,
         skipConflictCheck: Boolean = false
     ) {
-        Timber.tag("miniscript-feature")
+        Timber.tag(TAG)
             .d("addSignerToGroupWithKeyName: START - keyName=$keyName, fingerprint=${signer.masterFingerprint}, derivationPath=${signer.derivationPath}, isMasterSigner=${signer.toModel().isMasterSigner}")
         _uiState.update { it.copy(isLoading = true) }
 
@@ -1562,11 +1625,11 @@ class FreeGroupWalletViewModel @Inject constructor(
                 existingSigner.masterFingerprint == signer.masterFingerprint
             }
 
-            Timber.tag("miniscript-feature")
+            Timber.tag(TAG)
                 .d("addSignerToGroupWithKeyName: keyName=$keyName, masterFingerprint=${signer.masterFingerprint}, isSignerAlreadyInNamedSigners=$isSignerAlreadyInNamedSigners")
 
             if (isSignerAlreadyInNamedSigners) {
-                Timber.tag("miniscript-feature")
+                Timber.tag(TAG)
                     .d("addSignerToGroupWithKeyName: Finding non-conflicting signer for $keyName")
 
                 // Inline the conflict resolution logic
@@ -1582,7 +1645,7 @@ class FreeGroupWalletViewModel @Inject constructor(
                 ).fold(
                     onSuccess = { startIndex ->
                         val actualStartIndex = if (startIndex == -1) 0 else startIndex
-                        Timber.tag("miniscript-feature")
+                        Timber.tag(TAG)
                             .d("addSignerToGroupWithKeyName: startIndex=$startIndex, actualStartIndex=$actualStartIndex")
 
                         // Find a non-conflicting signer index
@@ -1590,7 +1653,7 @@ class FreeGroupWalletViewModel @Inject constructor(
                         var foundNonConflictingSigner: SingleSigner? = null
 
                         while (foundNonConflictingSigner == null && nonConflictingIndex < actualStartIndex + 100) { // Limit to prevent infinite loop
-                            Timber.tag("miniscript-feature")
+                            Timber.tag(TAG)
                                 .d("addSignerToGroupWithKeyName: Checking index $nonConflictingIndex")
                             try {
                                 val candidateSigner = getSignerFromMasterSignerByIndexUseCase(
@@ -1619,21 +1682,21 @@ class FreeGroupWalletViewModel @Inject constructor(
 
                                     val hasConflict = hasConflictInUI || hasConflictInGroup
 
-                                    Timber.tag("miniscript-feature")
+                                    Timber.tag(TAG)
                                         .d("addSignerToGroupWithKeyName: index=$nonConflictingIndex, derivationPath=${candidateSignerResult.derivationPath}, hasConflictInUI=$hasConflictInUI, hasConflictInGroup=$hasConflictInGroup, hasConflict=$hasConflict")
 
                                     if (!hasConflict) {
-                                        Timber.tag("miniscript-feature")
+                                        Timber.tag(TAG)
                                             .d("addSignerToGroupWithKeyName: Found non-conflicting signer at index $nonConflictingIndex with path ${candidateSignerResult.derivationPath}")
                                         foundNonConflictingSigner = candidateSignerResult
                                     } else {
-                                        Timber.tag("miniscript-feature")
+                                        Timber.tag(TAG)
                                             .d("addSignerToGroupWithKeyName: Conflict found at index $nonConflictingIndex, trying next")
                                         nonConflictingIndex++
                                     }
                                 } ?: run {
                                     // If we can't get a signer at this index, try the next one
-                                    Timber.tag("miniscript-feature")
+                                    Timber.tag(TAG)
                                         .d("addSignerToGroupWithKeyName: No signer found at index $nonConflictingIndex, trying next")
                                     nonConflictingIndex++
                                 }
@@ -1661,7 +1724,7 @@ class FreeGroupWalletViewModel @Inject constructor(
                                     // Store the path for caching
                                     savedStateHandle[NEW_PATH] = newPath
 
-                                    Timber.tag("miniscript-feature")
+                                    Timber.tag(TAG)
                                         .d("addSignerToGroupWithKeyName: TapSigner caching needed at index $nonConflictingIndex, requesting cache for path=$newPath")
 
                                     // Update UI state to request caching
@@ -1677,18 +1740,18 @@ class FreeGroupWalletViewModel @Inject constructor(
                                     break
                                 }
 
-                                Timber.tag("miniscript-feature")
+                                Timber.tag(TAG)
                                     .e("addSignerToGroupWithKeyName: Error at index $nonConflictingIndex: $error")
                                 nonConflictingIndex++
                             }
                         }
 
-                        Timber.tag("miniscript-feature")
+                        Timber.tag(TAG)
                             .d("addSignerToGroupWithKeyName: RESULT - foundNonConflictingSigner=${foundNonConflictingSigner?.derivationPath} at index=${nonConflictingIndex - 1}")
                         foundNonConflictingSigner
                     },
                     onFailure = { error ->
-                        Timber.tag("miniscript-feature")
+                        Timber.tag(TAG)
                             .e("addSignerToGroupWithKeyName: Failed to get current index: $error")
                         null
                     }
@@ -1696,7 +1759,7 @@ class FreeGroupWalletViewModel @Inject constructor(
 
                 nonConflictingSigner
             } else {
-                Timber.tag("miniscript-feature")
+                Timber.tag(TAG)
                     .d("addSignerToGroupWithKeyName: Using original signer for $keyName")
                 signer
             }
@@ -1705,7 +1768,7 @@ class FreeGroupWalletViewModel @Inject constructor(
         }
 
         if (finalSigner == null) {
-            Timber.tag("miniscript-feature")
+            Timber.tag(TAG)
                 .d("addSignerToGroupWithKeyName: Returning early due to null finalSigner (likely caching in progress)")
             return
         }
@@ -1716,7 +1779,7 @@ class FreeGroupWalletViewModel @Inject constructor(
             keyName = keyName
         )
 
-        Timber.tag("miniscript-feature")
+        Timber.tag(TAG)
             .d("addSignerToGroupWithKeyName: FINAL - Using signer with fingerprint=${finalSigner.masterFingerprint}, derivationPath=${finalSigner.derivationPath} for keyName=$keyName")
         addSignerToGroupWithRetry(params, maxRetries = 3)
     }
@@ -1726,10 +1789,10 @@ class FreeGroupWalletViewModel @Inject constructor(
         maxRetries: Int,
         currentAttempt: Int = 1
     ) {
-        Timber.tag("miniscript-feature")
+        Timber.tag(TAG)
             .d("addSignerToGroupWithRetry: attempt=$currentAttempt, keyName=${params.keyName}, fingerprint=${params.signer.masterFingerprint}, derivationPath=${params.signer.derivationPath}")
         addSignerToGroupUseCase(params).onSuccess { groupSandbox ->
-            Timber.tag("miniscript-feature")
+            Timber.tag(TAG)
                 .d("addSignerToGroupWithRetry: SUCCESS - Signer added successfully to keyName=${params.keyName}")
             updateGroupSandbox(groupSandbox)
             _uiState.update { state ->
@@ -1782,7 +1845,7 @@ class FreeGroupWalletViewModel @Inject constructor(
             // Distinguish between related keys pattern and single key based on keyName
             if (isKeyPatternXY(pendingState.keyName)) {
                 // For key_x_y pattern with master signers, use related keys logic
-                Timber.tag("miniscript-feature")
+                Timber.tag(TAG)
                     .d("resumeAddSignerProcess: Resuming related keys process for keyName=${pendingState.keyName}")
                 addMasterSignerToRelatedKeysInGroup(
                     pendingState.signerModel,
@@ -1790,7 +1853,7 @@ class FreeGroupWalletViewModel @Inject constructor(
                 )
             } else {
                 // For single keys or non-master signers, use single key logic
-                Timber.tag("miniscript-feature")
+                Timber.tag(TAG)
                     .d("resumeAddSignerProcess: Resuming single key process for keyName=${pendingState.keyName}")
 
                 // Get the signer at the cached index and add it directly
@@ -1809,12 +1872,12 @@ class FreeGroupWalletViewModel @Inject constructor(
                             skipConflictCheck = true
                         )
                     } ?: run {
-                        Timber.tag("miniscript-feature")
+                        Timber.tag(TAG)
                             .e("resumeAddSignerProcess: No signer found at cached index ${pendingState.currentIndex}")
                         _uiState.update { it.copy(errorMessage = UiText.resource(R.string.nc_main_no_signer_found_at_cached_index)) }
                     }
                 }.onFailure { error ->
-                    Timber.tag("miniscript-feature")
+                    Timber.tag(TAG)
                         .e("resumeAddSignerProcess: Failed to get signer at cached index: $error")
                     _uiState.update { it.copy(errorMessage = UiText.Dynamic(error.message.orUnknownError())) }
                 }
@@ -1841,6 +1904,8 @@ class FreeGroupWalletViewModel @Inject constructor(
     }
 
     companion object {
+        // Single Timber tag for the whole class so the full flow can be filtered together.
+        private const val TAG = "FreeGroupWalletViewModel"
         private const val CURRENT_SIGNER_INDEX = "current_signer_index"
         private const val CURRENT_SIGNER = "current_signer"
         private const val NEW_PATH = "new_path"

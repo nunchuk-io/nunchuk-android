@@ -36,6 +36,8 @@ data class FreeGroupWalletUiState(
     val scriptNodeMuSig: ScriptNode? = null,
     val namedSigners: Map<String, SignerModel?> = emptyMap(),
     val namedOccupied: Set<String> = emptySet(),
+    // Miniscript key names another device added but whose signer data hasn't synced here yet.
+    val waitingToJoinKeys: Set<String> = emptySet(),
     val currentKeyToAssign: String = "",
     val event: FreeGroupWalletEvent? = null,
     val isTestNet: Boolean = false,

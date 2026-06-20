@@ -401,7 +401,9 @@ internal fun CreateKeyItem(
         } else {
             data.signedXfp[signer.fingerPrint] == true
         }
+    val isWaitingToJoin = data.waitingToJoinKeys.contains(key)
     val title = when {
+        isWaitingToJoin -> stringResource(R.string.nc_key_with_index, "#${index + 1}")
         isPlatformKey -> stringResource(R.string.nc_server_key)
         signer?.name.isNullOrEmpty() -> key
         !signer.isVisible -> signer.name.ifEmpty {
@@ -425,6 +427,7 @@ internal fun CreateKeyItem(
             data = data,
             avatarColor = avatarColor,
             isOccupied = !isPlatformKey && data.isSlotOccupied(key),
+            isWaitingToJoin = isWaitingToJoin,
             replaceKeyData = data.replaceKeyData[key],
             keyIconResId = if (isPlatformKey) R.drawable.ic_server_key_dark else R.drawable.ic_key,
             bottomContent = {
@@ -492,6 +495,10 @@ internal fun CreateKeyItem(
             },
             actionContent = {
                 when {
+                    isWaitingToJoin -> {
+                        // No action: the slot belongs to another device that hasn't synced yet.
+                    }
+
                     data.mode.isConfigOrChange() -> {
                         if (customActionButton != null) {
                             Column {
@@ -709,7 +716,10 @@ data class ScriptNodeData(
     val replaceKeyData: Map<String, ReplaceKeyData> = emptyMap(),
     // When true, timelock nodes show a "Change" button even outside CHANGE_KEY mode (used by
     // the collaborative group replace flow, which renders in CONFIG mode).
-    val allowTimelockChange: Boolean = false
+    val allowTimelockChange: Boolean = false,
+    // Key names that another device has added but whose signer data hasn't synced to this
+    // device yet. Rendered as a "Waiting to join" placeholder instead of an empty "Add" slot.
+    val waitingToJoinKeys: Set<String> = emptySet()
 ) {
     fun isSlotOccupied(position: String): Boolean {
         return occupiedSlots.contains(position)
@@ -1412,6 +1422,7 @@ fun KeyItem(
     showThreadCurve: Boolean = true,
     avatarColor: Color = avatarColors[0],
     isOccupied: Boolean = false,
+    isWaitingToJoin: Boolean = false,
     keyIconResId: Int = R.drawable.ic_key,
     replaceKeyData: ReplaceKeyData? = null,
     bottomContent: @Composable ColumnScope.() -> Unit = {},
@@ -1433,7 +1444,7 @@ fun KeyItem(
                 .weight(1f),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            if (data.isGroupWallet && xfp.isNotEmpty()) {
+            if (data.isGroupWallet && (xfp.isNotEmpty() || isWaitingToJoin)) {
                 NcCircleImage(
                     modifier = Modifier.padding(top = 8.dp),
                     iconSize = 16.dp,
@@ -1488,6 +1499,13 @@ fun KeyItem(
                     if (isOccupied) {
                         Text(
                             text = stringResource(id = R.string.nc_occupied),
+                            style = NunchukTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.beeswaxDark
+                        )
+                    }
+                    if (isWaitingToJoin) {
+                        Text(
+                            text = stringResource(id = R.string.nc_waiting_to_join),
                             style = NunchukTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.beeswaxDark
                         )

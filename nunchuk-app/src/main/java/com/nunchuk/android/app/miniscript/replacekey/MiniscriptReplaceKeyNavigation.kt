@@ -61,11 +61,11 @@ import com.nunchuk.android.compose.miniscript.ScriptNodeTree
 import com.nunchuk.android.compose.miniscript.TimelockData
 import com.nunchuk.android.compose.provider.ScriptNodeProvider
 import com.nunchuk.android.core.miniscript.ScriptNodeType
+import com.nunchuk.android.core.signer.SelectSignerArgs
+import com.nunchuk.android.core.signer.SelectSignerBottomSheet
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.main.R
-import com.nunchuk.android.main.membership.key.list.SelectSignerBottomSheet
-import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragmentArgs
 import com.nunchuk.android.model.ScriptNode
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.WalletExtended
@@ -344,8 +344,8 @@ fun MiniscriptReplaceKeyContent(
                     showSignerBottomSheet = false
                     // TODO: Handle add new key if needed
                 },
-                args = TapSignerListBottomSheetFragmentArgs(
-                    signers = allSigners.toTypedArray(),
+                args = SelectSignerArgs(
+                    signers = allSigners,
                     type = SignerType.UNKNOWN
                 )
             )

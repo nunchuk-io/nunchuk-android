@@ -482,6 +482,7 @@ fun FreeGroupWalletScreen(
                                     replaceKeyData = state.replaceKeyData,
                                     duplicateSignerKeys = duplicateSignerKeys,
                                     allowTimelockChange = isInReplace,
+                                    waitingToJoinKeys = state.waitingToJoinKeys,
                                 ),
                                 onChangeBip32Path = { keyPath, signer ->
                                     onSetCurrentKey(keyPath)
