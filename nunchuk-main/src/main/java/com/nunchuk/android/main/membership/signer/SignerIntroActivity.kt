@@ -66,6 +66,7 @@ import com.nunchuk.android.signer.SignerIntroEvent
 import com.nunchuk.android.signer.SignerIntroViewModel
 import com.nunchuk.android.signer.mk4.Mk4Activity
 import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
+import com.nunchuk.android.signer.trezor.TrezorActivity
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.WalletType
@@ -221,8 +222,7 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
                                     KeyType.GENERIC_AIRGAP -> openAddAirSignerIntroScreen()
                                     KeyType.LEDGER -> handleHardwareSignerSelection(SignerTag.LEDGER)
                                     KeyType.BITBOX -> handleHardwareSignerSelection(SignerTag.BITBOX)
-                                    KeyType.TREZOR -> handleHardwareSignerSelection(SignerTag.TREZOR)
-                                    else -> {}
+                                    KeyType.TREZOR -> openTrezorScreen()
                                 }
                             },
                             onMoreClicked = ::handleShowMore,
@@ -452,6 +452,15 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
                 groupId = groupId,
             )
         )
+        finish()
+    }
+
+    private fun openTrezorScreen() {
+        if (onChainAddSignerParam != null) {
+            handleHardwareSignerSelection(SignerTag.TREZOR)
+            return
+        }
+        startActivity(TrezorActivity.buildIntent(this))
         finish()
     }
 

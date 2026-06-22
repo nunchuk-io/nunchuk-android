@@ -60,12 +60,14 @@ class SingerInfoOptionBottomSheet : BaseBottomSheet<DialogSignerDetailOptionsShe
 
     private fun initViews() {
         val signerType = requireArguments().serializable<SignerType>(EXTRA_SIGNER_TYPE)!!
+        val isTrezor = requireArguments().getBoolean(EXTRA_IS_TREZOR)
         binding.btnChangeCvc.isVisible = signerType == SignerType.NFC
         binding.btnTopUpXpu.isVisible = signerType == SignerType.NFC
         binding.btnBackUpKey.isVisible = signerType == SignerType.NFC
         binding.btnCheckFirmwareVersion.isVisible = signerType == SignerType.PORTAL_NFC
         binding.btnUpdateFirmware.isVisible = signerType == SignerType.PORTAL_NFC
-        binding.btnSignMessage.isVisible = signerType == SignerType.NFC || signerType == SignerType.SOFTWARE
+        binding.btnSignMessage.isVisible =
+            signerType == SignerType.NFC || signerType == SignerType.SOFTWARE || (signerType == SignerType.HARDWARE && isTrezor)
     }
 
     override fun onClick(v: View?) {
@@ -97,10 +99,12 @@ class SingerInfoOptionBottomSheet : BaseBottomSheet<DialogSignerDetailOptionsShe
 
     companion object {
         private const val EXTRA_SIGNER_TYPE = "EXTRA_SIGNER_TYPE"
+        private const val EXTRA_IS_TREZOR = "EXTRA_IS_TREZOR"
 
-        fun newInstance(signerType: SignerType) = SingerInfoOptionBottomSheet().apply {
+        fun newInstance(signerType: SignerType, isTrezor: Boolean = false) = SingerInfoOptionBottomSheet().apply {
             arguments = Bundle().apply {
                 putSerializable(EXTRA_SIGNER_TYPE, signerType)
+                putBoolean(EXTRA_IS_TREZOR, isTrezor)
             }
         }
     }

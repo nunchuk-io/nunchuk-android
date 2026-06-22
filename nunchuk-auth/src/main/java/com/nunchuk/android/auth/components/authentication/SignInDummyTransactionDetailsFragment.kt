@@ -45,12 +45,14 @@ import com.nunchuk.android.core.sheet.BottomSheetTooltip
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.util.TrezorCallbackHolder
 import com.nunchuk.android.core.util.bindTransactionStatus
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getCurrencyAmount
 import com.nunchuk.android.core.util.hadBroadcast
 import com.nunchuk.android.core.util.hideLoading
+import com.nunchuk.android.core.util.openTrezorSuiteLink
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.core.util.showOrHideNfcLoading
 import com.nunchuk.android.core.util.showSuccess
@@ -62,9 +64,11 @@ import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.utils.NotificationUtils
 import com.nunchuk.android.utils.parcelable
+import com.nunchuk.android.widget.NCWarningDialog
 import com.nunchuk.android.widget.NCToastMessage
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -75,6 +79,9 @@ class SignInDummyTransactionDetailsFragment :
 
     @Inject
     lateinit var pushEventManager: PushEventManager
+
+    @Inject
+    lateinit var trezorCallbackHolder: TrezorCallbackHolder
 
     private val viewModel: SignInDummyTransactionDetailsViewModel by viewModels()
     private val signInAuthenticationViewModel: SignInAuthenticationViewModel by activityViewModels()
@@ -157,6 +164,9 @@ class SignInDummyTransactionDetailsFragment :
                         SignInAuthenticationEvent.ExportTransactionToColdcardSuccess -> handleExportToColdcardSuccess()
                         SignInAuthenticationEvent.CanNotSignDummyTx -> showError(getString(R.string.nc_can_not_sign_please_try_again))
                         SignInAuthenticationEvent.CanNotSignHardwareKey -> showError(getString(R.string.nc_use_desktop_app_to_sign))
+                        is SignInAuthenticationEvent.ShowOpenTrezorSuiteConfirmation -> {
+                            showOpenTrezorSuiteConfirmation(event.deeplink)
+                        }
 
                         is SignInAuthenticationEvent.SignFailed -> {}
                         is SignInAuthenticationEvent.Loading,
@@ -174,6 +184,12 @@ class SignInDummyTransactionDetailsFragment :
                         }
                     }
                 }
+        }
+
+        flowObserver(trezorCallbackHolder.callbackUri.filterNotNull()) { callbackUri ->
+            if (signInAuthenticationViewModel.handleTrezorCallback(callbackUri)) {
+                trezorCallbackHolder.clear(callbackUri)
+            }
         }
 
         flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == BaseNfcActivity.REQUEST_NFC_SIGN_TRANSACTION }) { info ->
@@ -216,6 +232,16 @@ class SignInDummyTransactionDetailsFragment :
 
     private fun shareTransactionFile(filePath: String) {
         controller.shareFile(filePath)
+    }
+
+    private fun showOpenTrezorSuiteConfirmation(deeplink: String) {
+        NCWarningDialog(requireActivity()).showDialog(
+            title = getString(com.nunchuk.android.core.R.string.nc_confirmation),
+            message = getString(com.nunchuk.android.core.R.string.nc_trezor_open_suite_continue_signing_message),
+            btnYes = getString(com.nunchuk.android.core.R.string.nc_trezor_open_suite),
+            btnNo = getString(com.nunchuk.android.core.R.string.nc_cancel),
+            onYesClick = { requireActivity().openTrezorSuiteLink(deeplink) }
+        )
     }
 
     private fun handleExportToColdcardSuccess() {

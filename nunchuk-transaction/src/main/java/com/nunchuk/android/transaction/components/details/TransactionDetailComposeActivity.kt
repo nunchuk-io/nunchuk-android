@@ -10,9 +10,13 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.dialog.NcConfirmationDialog
 import com.nunchuk.android.core.domain.data.SignTransaction
 import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.nfc.BaseComposePortalActivity
@@ -34,7 +38,9 @@ import com.nunchuk.android.core.util.isConfirmed
 import com.nunchuk.android.core.util.isPending
 import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.core.util.openExternalLink
+import com.nunchuk.android.core.util.openTrezorSuiteLink
 import com.nunchuk.android.core.util.showOrHideNfcLoading
+import com.nunchuk.android.core.util.TrezorCallbackHolder
 import com.nunchuk.android.core.wallet.InvoiceInfo
 import com.nunchuk.android.model.SigningPath
 import com.nunchuk.android.share.model.TransactionOption
@@ -84,8 +90,10 @@ import com.nunchuk.android.widget.NCInputDialog
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
@@ -93,6 +101,10 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
     BottomSheetOptionListener {
     private val viewModel: TransactionDetailsViewModel by viewModels()
     private var shouldReload: Boolean = true
+    private var openTrezorSuiteDeeplink: String? by mutableStateOf(null)
+
+    @Inject
+    lateinit var trezorCallbackHolder: TrezorCallbackHolder
 
     private val args: TransactionDetailsArgs by lazy { TransactionDetailsArgs.deserializeFrom(intent) }
 
@@ -194,7 +206,11 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
                                 startNfcFlow(REQUEST_NFC_SIGN_TRANSACTION)
                             }
                             SignerType.AIRGAP, SignerType.UNKNOWN -> showSignByAirgapOptions()
-                            SignerType.HARDWARE -> showError(getString(R.string.nc_use_desktop_app_to_sign))
+                            SignerType.HARDWARE -> if (viewModel.isTrezorSigner(signer)) {
+                                viewModel.requestSignTransactionByTrezor()
+                            } else {
+                                showError(getString(R.string.nc_use_desktop_app_to_sign))
+                            }
                             SignerType.PORTAL_NFC -> handlePortalAction(
                                 SignTransaction(
                                     signer.fingerPrint,
@@ -242,6 +258,21 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
                     onPreimageSuccess = viewModel::handlePreimageSuccess,
                     onSetPendingSignNodeId = viewModel::setPendingNodeId
                 )
+
+                if (openTrezorSuiteDeeplink != null) {
+                    NcConfirmationDialog(
+                        title = stringResource(id = com.nunchuk.android.core.R.string.nc_confirmation),
+                        message = stringResource(id = R.string.nc_open_trezor_suite_continue_signing_message),
+                        positiveButtonText = stringResource(id = R.string.nc_open_trezor_suite),
+                        negativeButtonText = stringResource(id = com.nunchuk.android.core.R.string.nc_cancel),
+                        isPositiveButtonWrapContent = true,
+                        onPositiveClick = {
+                            openTrezorSuiteDeeplink?.let(::openTrezorSuiteLink)
+                            openTrezorSuiteDeeplink = null
+                        },
+                        onDismiss = { openTrezorSuiteDeeplink = null }
+                    )
+                }
             }
         }
 
@@ -318,6 +349,11 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
 
     private fun observeEvent() {
         flowObserver(viewModel.event, collector = ::handleEvent)
+        flowObserver(trezorCallbackHolder.callbackUri.filterNotNull()) { callbackUri ->
+            if (viewModel.handleTrezorCallback(callbackUri)) {
+                trezorCallbackHolder.clear(callbackUri)
+            }
+        }
         flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == REQUEST_NFC_SIGN_TRANSACTION }) {
             viewModel.handleSignByTapSigner(IsoDep.get(it.tag), nfcViewModel.inputCvc.orEmpty())
             nfcViewModel.clearScanInfo()
@@ -380,6 +416,9 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
             }
 
             is TransactionDetailsEvent.SaveLocalFile -> showSaveFileState(event.isSuccess)
+            is TransactionDetailsEvent.ShowOpenTrezorSuiteConfirmation -> {
+                openTrezorSuiteDeeplink = event.deeplink
+            }
         }
     }
 

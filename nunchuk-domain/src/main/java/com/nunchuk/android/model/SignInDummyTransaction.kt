@@ -7,6 +7,7 @@ data class SignInDummyTransaction(
     val pendingSignature: Int,
     val requiredSignatures: Int,
     val dummyTransactionId: String,
+    val walletLocalId: String,
     val signerServers: List<SignerServer>,
     val signatures: List<DummySignature>
 )

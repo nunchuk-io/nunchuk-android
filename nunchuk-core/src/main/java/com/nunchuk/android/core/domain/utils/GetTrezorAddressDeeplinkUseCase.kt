@@ -17,24 +17,31 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.transaction.components.receive.address.unused
+package com.nunchuk.android.core.domain.utils
 
+import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.Wallet
-import com.nunchuk.android.type.WalletType
+import com.nunchuk.android.nativelib.NunchukNativeSdk
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
+import javax.inject.Inject
 
-sealed class UnusedAddressEvent {
-    data class GenerateAddressErrorEvent(val message: String) : UnusedAddressEvent()
-    data class GetAddressPathSuccessEvent(val address: String) : UnusedAddressEvent()
-    data class MarkAddressAsUsedSuccessEvent(val address: String) : UnusedAddressEvent()
-    data class ShowOpenTrezorSuiteConfirmationEvent(val deeplink: String) : UnusedAddressEvent()
-    data object VerifyAddressSuccessEvent : UnusedAddressEvent()
-    data class VerifyAddressErrorEvent(val message: String) : UnusedAddressEvent()
-}
+class GetTrezorAddressDeeplinkUseCase @Inject constructor(
+    @IoDispatcher private val dispatcher: CoroutineDispatcher,
+    private val nunchukNativeSdk: NunchukNativeSdk
+) : UseCase<GetTrezorAddressDeeplinkUseCase.Param, String>(dispatcher) {
 
-data class UnusedAddressState(
-    val addresses: List<String> = emptyList(),
-    val wallet: Wallet = Wallet(),
-    val totalUsedAddresses: Int = 0,
-) {
-    val isLiquidWallet: Boolean get() = wallet.walletType == WalletType.LIQUID
+    override suspend fun execute(parameters: Param): String {
+        return nunchukNativeSdk.trezorGetAddress(
+            wallet = parameters.wallet,
+            address = parameters.address,
+            path = parameters.path
+        )
+    }
+
+    data class Param(
+        val wallet: Wallet,
+        val address: String,
+        val path: String
+    )
 }

@@ -33,6 +33,7 @@ sealed class SignInAuthenticationEvent {
     data object ScanTapSigner : SignInAuthenticationEvent()
     data object ScanColdCard : SignInAuthenticationEvent()
     data object CanNotSignHardwareKey : SignInAuthenticationEvent()
+    data class ShowOpenTrezorSuiteConfirmation(val deeplink: String) : SignInAuthenticationEvent()
     data object ShowAirgapOption : SignInAuthenticationEvent()
     data object ExportTransactionToColdcardSuccess : SignInAuthenticationEvent()
     data object CanNotSignDummyTx : SignInAuthenticationEvent()

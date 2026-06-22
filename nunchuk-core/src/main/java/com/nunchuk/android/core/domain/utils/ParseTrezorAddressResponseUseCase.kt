@@ -17,24 +17,20 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.transaction.components.receive.address.unused
+package com.nunchuk.android.core.domain.utils
 
-import com.nunchuk.android.model.Wallet
-import com.nunchuk.android.type.WalletType
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.nativelib.NunchukNativeSdk
+import com.nunchuk.android.usecase.UseCase
+import javax.inject.Inject
+import kotlinx.coroutines.CoroutineDispatcher
 
-sealed class UnusedAddressEvent {
-    data class GenerateAddressErrorEvent(val message: String) : UnusedAddressEvent()
-    data class GetAddressPathSuccessEvent(val address: String) : UnusedAddressEvent()
-    data class MarkAddressAsUsedSuccessEvent(val address: String) : UnusedAddressEvent()
-    data class ShowOpenTrezorSuiteConfirmationEvent(val deeplink: String) : UnusedAddressEvent()
-    data object VerifyAddressSuccessEvent : UnusedAddressEvent()
-    data class VerifyAddressErrorEvent(val message: String) : UnusedAddressEvent()
-}
+class ParseTrezorAddressResponseUseCase @Inject constructor(
+    @IoDispatcher private val dispatcher: CoroutineDispatcher,
+    private val nunchukNativeSdk: NunchukNativeSdk
+) : UseCase<String, String>(dispatcher) {
 
-data class UnusedAddressState(
-    val addresses: List<String> = emptyList(),
-    val wallet: Wallet = Wallet(),
-    val totalUsedAddresses: Int = 0,
-) {
-    val isLiquidWallet: Boolean get() = wallet.walletType == WalletType.LIQUID
+    override suspend fun execute(parameters: String): String {
+        return nunchukNativeSdk.trezorParseGetAddressResponse(parameters)
+    }
 }

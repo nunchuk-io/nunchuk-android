@@ -130,7 +130,6 @@ fun SupportedSigner.toDisplayInfo(): SignerDisplayInfo? {
             SignerTag.TREZOR -> SignerDisplayInfo(
                 iconRes = R.drawable.ic_trezor_hardware,
                 titleRes = R.string.nc_trezor,
-                descriptionRes = R.string.nc_desktop_only,
                 keyType = keyType,
                 category = SignerDisplayCategory.CARD,
             )
@@ -172,7 +171,11 @@ fun SupportedSigner.isDisabledIn(
     onChainAddSignerParam: OnChainAddSignerParam? = null,
     keyFlow: Int = KeyFlow.NONE,
 ): Boolean = when (type) {
-    SignerType.HARDWARE -> onChainAddSignerParam == null
+    SignerType.HARDWARE -> if (tag == SignerTag.TREZOR) {
+        isDisableAll || (allowedSigners.isNotEmpty() && !allowedSigners.any { it.matches(this) })
+    } else {
+        onChainAddSignerParam == null
+    }
     SignerType.SOFTWARE -> {
         val explicitlyAllowed =
             allowedSigners.isNotEmpty() && allowedSigners.any { it.matches(this) }

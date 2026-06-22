@@ -28,6 +28,9 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.activityViewModels
@@ -38,6 +41,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.navArgs
 import androidx.viewbinding.ViewBinding
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.dialog.NcConfirmationDialog
 import com.nunchuk.android.core.base.BaseShareSaveFileFragment
 import com.nunchuk.android.core.domain.data.SignTransaction
 import com.nunchuk.android.core.domain.membership.TargetAction
@@ -52,8 +56,10 @@ import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
+import com.nunchuk.android.core.util.TrezorCallbackHolder
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.hideLoading
+import com.nunchuk.android.core.util.openTrezorSuiteLink
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.core.util.showOrHideNfcLoading
 import com.nunchuk.android.core.util.showSuccess
@@ -84,6 +90,7 @@ import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -94,9 +101,13 @@ class DummyTransactionDetailsFragment : BaseShareSaveFileFragment<ViewBinding>()
     @Inject
     lateinit var pushEventManager: PushEventManager
 
+    @Inject
+    lateinit var trezorCallbackHolder: TrezorCallbackHolder
+
     private val viewModel: DummyTransactionDetailsViewModel by viewModels()
     private val walletAuthenticationViewModel: WalletAuthenticationViewModel by activityViewModels()
     private val nfcViewModel: NfcViewModel by activityViewModels()
+    private var openTrezorSuiteDeeplink: String? by mutableStateOf(null)
 
     private val importFileLauncher =
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
@@ -149,6 +160,22 @@ class DummyTransactionDetailsFragment : BaseShareSaveFileFragment<ViewBinding>()
                             },
                             onShowMore = ::handleMenuMore
                         )
+
+                        if (openTrezorSuiteDeeplink != null) {
+                            NcConfirmationDialog(
+                                title = stringResource(id = com.nunchuk.android.core.R.string.nc_confirmation),
+                                message = stringResource(id = com.nunchuk.android.core.R.string.nc_trezor_open_suite_continue_signing_message),
+                                positiveButtonText = stringResource(id = com.nunchuk.android.core.R.string.nc_trezor_open_suite),
+                                negativeButtonText = stringResource(id = com.nunchuk.android.core.R.string.nc_cancel),
+                                onPositiveClick = {
+                                    openTrezorSuiteDeeplink?.let(requireActivity()::openTrezorSuiteLink)
+                                    openTrezorSuiteDeeplink = null
+                                },
+                                onDismiss = {
+                                    openTrezorSuiteDeeplink = null
+                                }
+                            )
+                        }
                     }
                 }
             }
@@ -248,6 +275,9 @@ class DummyTransactionDetailsFragment : BaseShareSaveFileFragment<ViewBinding>()
                         WalletAuthenticationEvent.ExportTransactionToColdcardSuccess -> handleExportToColdcardSuccess()
                         WalletAuthenticationEvent.CanNotSignDummyTx -> showError(getString(R.string.nc_can_not_sign_please_try_again))
                         WalletAuthenticationEvent.CanNotSignHardwareKey -> showError(getString(R.string.nc_use_desktop_app_to_sign))
+                        is WalletAuthenticationEvent.ShowOpenTrezorSuiteConfirmation -> {
+                            openTrezorSuiteDeeplink = event.deeplink
+                        }
                         is WalletAuthenticationEvent.UploadSignatureSuccess -> openGroupDashboard()
 
                         is WalletAuthenticationEvent.ForceSyncSuccess -> if (event.isSuccess) showSuccess(
@@ -300,6 +330,12 @@ class DummyTransactionDetailsFragment : BaseShareSaveFileFragment<ViewBinding>()
                         WalletAuthenticationEvent.NoSignatureDetected -> showWarning(getString(R.string.nc_no_new_signatures_detected))
                     }
                 }
+        }
+
+        flowObserver(trezorCallbackHolder.callbackUri.filterNotNull()) { callbackUri ->
+            if (walletAuthenticationViewModel.handleTrezorCallback(callbackUri)) {
+                trezorCallbackHolder.clear(callbackUri)
+            }
         }
 
         flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == BaseNfcActivity.REQUEST_NFC_SIGN_TRANSACTION }) { info ->

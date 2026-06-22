@@ -40,6 +40,8 @@ import com.nunchuk.android.core.domain.SignRoomTransactionByTapSignerUseCase
 import com.nunchuk.android.core.domain.SignTransactionByTapSignerUseCase
 import com.nunchuk.android.core.domain.membership.CancelScheduleBroadcastTransactionUseCase
 import com.nunchuk.android.core.domain.membership.RequestSignatureTransactionUseCase
+import com.nunchuk.android.core.domain.utils.GetTrezorSignTransactionDeeplinkUseCase
+import com.nunchuk.android.core.domain.utils.ParseTrezorSignTransactionResponseUseCase
 import com.nunchuk.android.core.domain.utils.ParseSignerStringUseCase
 import com.nunchuk.android.core.mapper.SingleSignerMapper
 import com.nunchuk.android.core.miniscript.ScriptNodeType
@@ -58,6 +60,8 @@ import com.nunchuk.android.core.util.isPendingConfirm
 import com.nunchuk.android.core.util.isPendingSignatures
 import com.nunchuk.android.core.util.isRejected
 import com.nunchuk.android.core.util.isTaproot
+import com.nunchuk.android.core.util.parseTrezorCallback
+import com.nunchuk.android.core.util.TrezorCallbackMethod
 import com.nunchuk.android.core.util.isValueKeySetDisable
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.readableMessage
@@ -101,6 +105,7 @@ import com.nunchuk.android.transaction.components.details.TransactionDetailsEven
 import com.nunchuk.android.transaction.usecase.GetBlockchainExplorerUrlUseCase
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.MiniscriptTimelockBased
+import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.type.WalletTemplate
@@ -206,6 +211,8 @@ internal class TransactionDetailsViewModel @Inject constructor(
     @IoDispatcher private val dispatcher: CoroutineDispatcher,
     private val application: Application,
     private val importPsbtUseCase: ImportPsbtUseCase,
+    private val getTrezorSignTransactionDeeplinkUseCase: GetTrezorSignTransactionDeeplinkUseCase,
+    private val parseTrezorSignTransactionResponseUseCase: ParseTrezorSignTransactionResponseUseCase,
     private val saveLocalFileUseCase: SaveLocalFileUseCase,
     private val getTaprootKeySetSelectionUseCase: GetTaprootKeySetSelectionUseCase,
     private val getSavedAddressListLocalUseCase: GetSavedAddressListLocalUseCase,
@@ -253,6 +260,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
     private val signedHash: MutableMap<String, Boolean> = mutableMapOf()
     private val keySetStatues: MutableMap<String, KeySetStatus> = mutableMapOf()
     private val coinIdsGroups: MutableMap<String, CoinsGroup> = mutableMapOf()
+    private var lastHandledTrezorCallback: String = ""
 
     private fun getState() = state.value
 
@@ -767,6 +775,61 @@ internal class TransactionDetailsViewModel @Inject constructor(
 
     fun setCurrentSigner(signer: SignerModel) {
         savedStateHandle[KEY_CURRENT_SIGNER] = signer
+    }
+
+    fun isTrezorSigner(signer: SignerModel): Boolean {
+        return signer.type == SignerType.HARDWARE && signer.tags.contains(SignerTag.TREZOR)
+    }
+
+    fun requestSignTransactionByTrezor() {
+        val signer = currentSigner() ?: return
+        val wallet = getState().wallet
+        val transaction = getTransaction()
+        if (!isTrezorSigner(signer) || wallet.id.isBlank() || transaction.psbt.isBlank()) return
+
+        viewModelScope.launch {
+            getTrezorSignTransactionDeeplinkUseCase(
+                GetTrezorSignTransactionDeeplinkUseCase.Param(
+                    wallet = wallet,
+                    psbt = transaction.psbt,
+                    xfp = signer.fingerPrint
+                )
+            ).onSuccess { deeplink ->
+                _event.emit(TransactionDetailsEvent.ShowOpenTrezorSuiteConfirmation(deeplink))
+            }.onFailure {
+                _event.emit(TransactionDetailsEvent.TransactionError(it.readableMessage()))
+            }
+        }
+    }
+
+    fun handleTrezorCallback(callbackUri: String?): Boolean {
+        val callback = parseTrezorCallback(callbackUri) ?: return false
+        if (callback.method != TrezorCallbackMethod.SIGN_TRANSACTION) return false
+        if (lastHandledTrezorCallback == callback.rawUri) return true
+        lastHandledTrezorCallback = callback.rawUri
+        if (callback.response.isBlank()) return true
+
+        val signer = currentSigner() ?: return true
+        val wallet = getState().wallet
+        val transaction = getTransaction()
+        if (!isTrezorSigner(signer) || wallet.id.isBlank() || transaction.psbt.isBlank()) return true
+
+        viewModelScope.launch {
+            _event.emit(LoadingEvent)
+            parseTrezorSignTransactionResponseUseCase(
+                ParseTrezorSignTransactionResponseUseCase.Param(
+                    wallet = wallet,
+                    psbt = transaction.psbt,
+                    xfp = callback.xfp.ifBlank { signer.fingerPrint },
+                    response = callback.response
+                )
+            ).onSuccess { signedPsbt ->
+                importSignedTransactionFromTrezor(signedPsbt)
+            }.onFailure {
+                _event.emit(TransactionDetailsEvent.TransactionError(it.readableMessage()))
+            }
+        }
+        return true
     }
 
     private fun loadInitEventIdIfNeed() {
@@ -1356,6 +1419,23 @@ internal class TransactionDetailsViewModel @Inject constructor(
             }.onFailure {
                 _event.emit(TransactionError(it.readableMessage()))
             }
+        }
+    }
+
+    private suspend fun importSignedTransactionFromTrezor(psbt: String) {
+        importPsbtUseCase(
+            ImportPsbtUseCase.Param(
+                psbt = psbt,
+                walletId = walletId,
+            )
+        ).onSuccess {
+            updateTransaction(transaction = it)
+            if (isMiniscriptWallet()) {
+                getSignedSigners(it)
+            }
+            _event.emit(SignTransactionSuccess())
+        }.onFailure {
+            _event.emit(TransactionError(it.readableMessage()))
         }
     }
 

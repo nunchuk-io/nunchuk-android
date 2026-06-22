@@ -51,6 +51,7 @@
     <string name="nc_cvc_has_been_changed">PIN has been changed</string>
     <string name="nc_master_private_key_init">Master private key has been initialized</string>
     <string name="nc_config_cvc_failed">Config cvc failed</string>
+    <string name="nc_info">Info</string>
     <string name="nc_set_up_chain_code">Set up chain code</string>
     <string name="nc_chain_code_desc">The chain code is a 32-byte of entropy, used for the key picking process. If you are unsure, we recommend that you leave it on automatic.</string>
     <string name="nc_automatic">Automatic</string>
@@ -172,8 +173,12 @@
     <string name="nc_i_don_t_need_a_password">I don’t need a password</string>
     <string name="nc_select_wallet_address_type">Select wallet &amp; address type</string>
     <string name="nc_select_the_type_of_wallet_you_want_to_use_portal_in">Select the type of wallet and address you want to use Portal in:</string>
+    <string name="nc_select_wallet_trezor_desc">Select the type of wallet and address you want to use Trezor in:</string>
     <string name="nc_single_sig">Single-sig</string>
+    <string name="nc_address_type">Address type</string>
     <string name="nc_default_native_segwit">Default: Native Segwit</string>
+    <string name="nc_default_value">Default: %1$s</string>
+    <string name="nc_default_number">Default: %1$d</string>
     <string name="nc_bech32m_address">Bech32m address</string>
     <string name="nc_taproot">Taproot</string>
     <string name="nc_no_fee_saving">No fee saving</string>
@@ -189,6 +194,7 @@
     <string name="nc_on_device_confirmation_desc">Certain tasks will require pressing the confirmation button on the Portal device.</string>
     <string name="nc_portal_tips">Portal NFC tips</string>
     <string name="nc_portal_default_index">(default = 0)</string>
+    <string name="nc_enter_account_index">Enter account index</string>
     <string name="nc_select_index_hint">Each key can support multiple accounts, as per [A]BIP 32[/A]. Leave it as 0 (the first account) if you are unsure.</string>
     <string name="nc_please_scan_your_portal_again">"Please scan your portal again "</string>
     <string name="nc_please_scan_correct_portal">If you have more than one Portal, please make sure that you scan the correct one.</string>
@@ -200,12 +206,25 @@
     <string name="nc_coldcard_import_encrypted_backup_desktop_desc">If you haven’t installed the Desktop app yet, please download it here.\n\nOnce the app is installed,, please follow the instructions below to import the encrypted backup file on your Desktop:</string>
     <string name="nc_jade">Jade</string>
     <string name="nc_add_jade">Add Blockstream Jade</string>
+    <string name="nc_add_trezor">Add Trezor</string>
     <string name="nc_add_seedsigner">Add SeedSigner</string>
     <string name="nc_add_foundation_passport">Add Foundation Passport</string>
     <string name="nc_add_keystone">Add Keystone</string>
     <string name="nc_desktop_only">Desktop only</string>
     <string name="nc_add_jade_via_qr">Add Blockstream Jade via QR</string>
     <string name="nc_add_jade_via_usb">Add Blockstream Jade via USB</string>
+    <string name="nc_add_trezor_via_suite">Add Trezor via Trezor Suite</string>
+    <string name="nc_bluetooth_or_cable">(Bluetooth or cable)</string>
+    <string name="nc_add_trezor_via_usb">Add Trezor via USB</string>
+    <string name="nc_add_your_trezor">Add your Trezor</string>
+    <string name="nc_ensure_to_following_trezor">Please ensure to do the following on your Trezor before proceeding.</string>
+    <string name="nc_open_trezor_suite">Open Trezor Suite</string>
+    <string name="nc_trezor_suite_mobile_link">Download and open the Trezor Suite mobile app.</string>
+    <string name="nc_open_trezor_suite_continue_message">Open the Trezor Suite app to continue adding the key.</string>
+    <string name="nc_open_trezor_suite_continue_signing_message">Open the Trezor Suite app to continue signing.</string>
+    <string name="nc_trezor_setup_desc">If your Trezor is new, set it up there. If it’s already set up, connect it there.</string>
+    <string name="nc_return_to_nunchuk">Return to Nunchuk</string>
+    <string name="nc_return_to_nunchuk_desc">Once your Trezor is ready, come back to Nunchuk and continue.</string>
     <string name="nc_ensure_to_following_jade">Please ensure to do the following on your Jade before proceeding.</string>
     <string name="nc_init_jade">Initialize Jade</string>
     <string name="nc_unlock_jade">Unlock Jade</string>

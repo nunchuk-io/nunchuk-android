@@ -32,6 +32,7 @@ fun NcConfirmationDialog(
     title: String = stringResource(id = R.string.nc_confirmation),
     positiveButtonText: String = stringResource(id = R.string.nc_text_yes),
     negativeButtonText: String = stringResource(id = R.string.nc_text_no),
+    isPositiveButtonWrapContent: Boolean = false,
     onPositiveClick: () -> Unit,
     onDismiss: () -> Unit,
 ) {
@@ -79,7 +80,11 @@ fun NcConfirmationDialog(
                     )
                 }
                 NcPrimaryDarkButton(
-                    modifier = Modifier.weight(1f),
+                    modifier = if (isPositiveButtonWrapContent) {
+                        Modifier.padding(start = 12.dp)
+                    } else {
+                        Modifier.weight(1f)
+                    },
                     onClick = onPositiveClick
                 ) {
                     Text(text = positiveButtonText)

@@ -17,24 +17,27 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.transaction.components.receive.address.unused
+package com.nunchuk.android.core.util
 
-import com.nunchuk.android.model.Wallet
-import com.nunchuk.android.type.WalletType
+import android.net.Uri
+import javax.inject.Inject
+import javax.inject.Singleton
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
-sealed class UnusedAddressEvent {
-    data class GenerateAddressErrorEvent(val message: String) : UnusedAddressEvent()
-    data class GetAddressPathSuccessEvent(val address: String) : UnusedAddressEvent()
-    data class MarkAddressAsUsedSuccessEvent(val address: String) : UnusedAddressEvent()
-    data class ShowOpenTrezorSuiteConfirmationEvent(val deeplink: String) : UnusedAddressEvent()
-    data object VerifyAddressSuccessEvent : UnusedAddressEvent()
-    data class VerifyAddressErrorEvent(val message: String) : UnusedAddressEvent()
+@Singleton
+class TrezorCallbackHolder @Inject constructor() {
+    private val _callbackUri = MutableStateFlow<String?>(null)
+    val callbackUri = _callbackUri.asStateFlow()
+
+    fun set(uri: Uri) {
+        _callbackUri.value = uri.toString()
+    }
+
+    fun clear(handledUri: String? = null) {
+        if (handledUri == null || _callbackUri.value == handledUri) {
+            _callbackUri.value = null
+        }
+    }
 }
 
-data class UnusedAddressState(
-    val addresses: List<String> = emptyList(),
-    val wallet: Wallet = Wallet(),
-    val totalUsedAddresses: Int = 0,
-) {
-    val isLiquidWallet: Boolean get() = wallet.walletType == WalletType.LIQUID
-}

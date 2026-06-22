@@ -23,11 +23,17 @@ import android.nfc.tech.IsoDep
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.domain.utils.GetTrezorSignMessagePathUseCase
+import com.nunchuk.android.core.domain.utils.GetTrezorSignMessageDeeplinkUseCase
+import com.nunchuk.android.core.domain.utils.ParseTrezorSignMessageResponseUseCase
+import com.nunchuk.android.core.util.TrezorCallbackMethod
+import com.nunchuk.android.core.util.parseTrezorCallback
 import com.nunchuk.android.core.domain.signer.SignMessageByTapSignerUseCase
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.CreateShareFileUseCase
 import com.nunchuk.android.usecase.GetMasterSignerUseCase
+import com.nunchuk.android.usecase.GetRemoteSignerUseCase
 import com.nunchuk.android.usecase.IsValidDerivationPathUseCase
 import com.nunchuk.android.usecase.SaveLocalFileUseCase
 import com.nunchuk.android.usecase.SendSignerPassphraseUseCase
@@ -51,9 +57,13 @@ class SignMessageViewModel @Inject constructor(
     private val isValidDerivationPathUseCase: IsValidDerivationPathUseCase,
     private val signMessageByTapSignerUseCase: SignMessageByTapSignerUseCase,
     private val signMessageBySoftwareKeyUseCase: SignMessageBySoftwareKeyUseCase,
+    private val getTrezorSignMessagePathUseCase: GetTrezorSignMessagePathUseCase,
+    private val getTrezorSignMessageDeeplinkUseCase: GetTrezorSignMessageDeeplinkUseCase,
+    private val parseTrezorSignMessageResponseUseCase: ParseTrezorSignMessageResponseUseCase,
     private val createShareFileUseCase: CreateShareFileUseCase,
     private val savedStateHandle: SavedStateHandle,
     private val getMasterSignerUseCase: GetMasterSignerUseCase,
+    private val getRemoteSignerUseCase: GetRemoteSignerUseCase,
     private val sendSignerPassphraseUseCase: SendSignerPassphraseUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val saveLocalFileUseCase: SaveLocalFileUseCase
@@ -65,19 +75,42 @@ class SignMessageViewModel @Inject constructor(
 
     private val _event = MutableSharedFlow<SignMessageEvent>()
     val event = _event.asSharedFlow()
+    private var lastHandledTrezorCallback: String = ""
 
     init {
-        viewModelScope.launch {
-            getHealthCheckPathUseCase(Unit).onSuccess { path ->
-                _state.update { it.copy(defaultPath = path) }
-            }
-        }
+        loadDefaultPath()
         if (args.signerType == SignerType.SOFTWARE) {
             viewModelScope.launch {
                 getMasterSignerUseCase.invoke(args.masterSignerId)
                     .onSuccess { signer ->
                         _state.update { it.copy(needPassphrase = signer.device.needPassPhraseSent) }
                     }
+            }
+        }
+    }
+
+    private fun loadDefaultPath() {
+        viewModelScope.launch {
+            if (isTrezorSigner()) {
+                getRemoteSignerUseCase(
+                    GetRemoteSignerUseCase.Data(
+                        id = args.masterFingerprint,
+                        derivationPath = args.derivationPath
+                    )
+                ).onSuccess { signer ->
+                    getTrezorSignMessagePathUseCase(
+                        GetTrezorSignMessagePathUseCase.Param(signer = signer)
+                    ).onSuccess { path ->
+                        if (path.isNotBlank()) {
+                            _state.update { it.copy(defaultPath = path) }
+                            return@launch
+                        }
+                    }
+                }
+            }
+
+            getHealthCheckPathUseCase(Unit).onSuccess { path ->
+                _state.update { it.copy(defaultPath = path) }
             }
         }
     }
@@ -97,6 +130,73 @@ class SignMessageViewModel @Inject constructor(
     fun saveMessage(message: String, path: String) {
         savedStateHandle[KEY_MESSAGE] = message.trim()
         savedStateHandle[KEY_PATH] = path.trim()
+    }
+
+    fun isTrezorSigner(): Boolean {
+        return args.signerType == SignerType.HARDWARE
+                && args.masterFingerprint.isNotBlank()
+                && args.derivationPath.isNotBlank()
+    }
+
+    fun requestSignMessageByTrezor() {
+        if (!isTrezorSigner()) return
+        val message = savedStateHandle.get<String>(KEY_MESSAGE).orEmpty()
+        if (message.isBlank()) return
+
+        viewModelScope.launch {
+            _event.emit(SignMessageEvent.Loading(true))
+            getRemoteSignerUseCase(
+                GetRemoteSignerUseCase.Data(
+                    id = args.masterFingerprint,
+                    derivationPath = args.derivationPath
+                )
+            ).onSuccess { signer ->
+                getTrezorSignMessageDeeplinkUseCase(
+                    GetTrezorSignMessageDeeplinkUseCase.Param(
+                        signer = signer,
+                        message = message
+                    )
+                ).onSuccess { deeplink ->
+                    _event.emit(SignMessageEvent.ShowOpenTrezorSuiteConfirmation(deeplink))
+                }.onFailure {
+                    _event.emit(SignMessageEvent.ShowError(it))
+                }
+            }.onFailure {
+                _event.emit(SignMessageEvent.ShowError(it))
+            }
+            _event.emit(SignMessageEvent.Loading(false))
+        }
+    }
+
+    fun handleTrezorCallback(callbackUri: String?): Boolean {
+        val callback = parseTrezorCallback(callbackUri) ?: return false
+        if (callback.method != TrezorCallbackMethod.SIGN_MESSAGE) return false
+        if (lastHandledTrezorCallback == callback.rawUri) return true
+        lastHandledTrezorCallback = callback.rawUri
+        if (callback.response.isBlank()) return true
+
+        viewModelScope.launch {
+            _event.emit(SignMessageEvent.Loading(true))
+            parseTrezorSignMessageResponseUseCase(
+                ParseTrezorSignMessageResponseUseCase.Param(
+                    response = callback.response,
+                    message = callback.message.ifBlank {
+                        savedStateHandle.get<String>(KEY_MESSAGE).orEmpty()
+                    }
+                )
+            ).onSuccess { signedMessage ->
+                _state.update { it.copy(signedMessage = signedMessage) }
+                if (signedMessage.signature.isBlank()) {
+                    _event.emit(SignMessageEvent.NoSignatureDetected)
+                } else {
+                    _event.emit(SignMessageEvent.SignSuccess)
+                }
+            }.onFailure {
+                _event.emit(SignMessageEvent.ShowError(it))
+            }
+            _event.emit(SignMessageEvent.Loading(false))
+        }
+        return true
     }
 
     fun signMessageByTapSigner(isoDep: IsoDep, cvc: String) {
@@ -214,6 +314,7 @@ sealed class SignMessageEvent {
     object InvalidPath : SignMessageEvent()
     object NoSignatureDetected : SignMessageEvent()
     object SignSuccess : SignMessageEvent()
+    data class ShowOpenTrezorSuiteConfirmation(val deeplink: String) : SignMessageEvent()
     data class ShowError(val e: Throwable) : SignMessageEvent()
     data class ShareFile(val path: String) : SignMessageEvent()
     data class Loading(val isLoading: Boolean) : SignMessageEvent()

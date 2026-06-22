@@ -457,7 +457,7 @@ val defaultSupportedSigners = listOf(
     ),
     SupportedSigner(
         type = SignerType.HARDWARE,
-        tag = SignerTag.LEDGER,
+        tag = SignerTag.TREZOR,
         walletType = WalletType.MULTI_SIG,
         addressType = AddressType.NATIVE_SEGWIT
     ),
@@ -469,7 +469,7 @@ val defaultSupportedSigners = listOf(
     ),
     SupportedSigner(
         type = SignerType.HARDWARE,
-        tag = SignerTag.TREZOR,
+        tag = SignerTag.LEDGER,
         walletType = WalletType.MULTI_SIG,
         addressType = AddressType.NATIVE_SEGWIT
     ),

@@ -40,6 +40,7 @@ sealed class WalletAuthenticationEvent {
     data object ScanTapSigner : WalletAuthenticationEvent()
     data object ScanColdCard : WalletAuthenticationEvent()
     data object CanNotSignHardwareKey : WalletAuthenticationEvent()
+    data class ShowOpenTrezorSuiteConfirmation(val deeplink: String) : WalletAuthenticationEvent()
     data object GenerateColdcardHealthMessagesSuccess : WalletAuthenticationEvent()
     data object ShowAirgapOption : WalletAuthenticationEvent()
     data class RequestSignPortal(val fingerprint: String, val psbt: String) :

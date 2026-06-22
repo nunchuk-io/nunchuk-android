@@ -78,12 +78,15 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.border
 import com.nunchuk.android.compose.greyLight
 import com.nunchuk.android.compose.whisper
+import com.nunchuk.android.compose.dialog.NcConfirmationDialog
 import com.nunchuk.android.core.base.BaseShareSaveFileFragment
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.NfcActionListener
 import com.nunchuk.android.core.nfc.NfcViewModel
+import com.nunchuk.android.core.util.TrezorCallbackHolder
 import com.nunchuk.android.core.util.copyToClipboard
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.openTrezorSuiteLink
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
@@ -94,8 +97,10 @@ import com.nunchuk.android.signer.R
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.widget.NCInputDialog
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterNotNull
 
 @OptIn(ExperimentalFoundationApi::class)
 @AndroidEntryPoint
@@ -103,6 +108,10 @@ class SignMessageFragment : BaseShareSaveFileFragment<ViewBinding>() {
     private val args: SignMessageFragmentArgs by navArgs()
     private val viewModel: SignMessageViewModel by viewModels()
     private val nfcViewModel: NfcViewModel by activityViewModels()
+    private var openTrezorSuiteDeeplink: String? by mutableStateOf(null)
+
+    @Inject
+    lateinit var trezorCallbackHolder: TrezorCallbackHolder
 
     override fun initializeBinding(inflater: LayoutInflater, container: ViewGroup?): ViewBinding {
         TODO("Not yet implemented")
@@ -134,6 +143,21 @@ class SignMessageFragment : BaseShareSaveFileFragment<ViewBinding>() {
                     },
                     onResetSignature = viewModel::resetSignature
                 )
+
+                if (openTrezorSuiteDeeplink != null) {
+                    NcConfirmationDialog(
+                        title = stringResource(id = com.nunchuk.android.core.R.string.nc_confirmation),
+                        message = stringResource(id = R.string.nc_open_trezor_suite_continue_signing_message),
+                        positiveButtonText = stringResource(id = R.string.nc_open_trezor_suite),
+                        negativeButtonText = stringResource(id = com.nunchuk.android.core.R.string.nc_cancel),
+                        isPositiveButtonWrapContent = true,
+                        onPositiveClick = {
+                            openTrezorSuiteDeeplink?.let(requireActivity()::openTrezorSuiteLink)
+                            openTrezorSuiteDeeplink = null
+                        },
+                        onDismiss = { openTrezorSuiteDeeplink = null }
+                    )
+                }
             }
         }
     }
@@ -150,7 +174,9 @@ class SignMessageFragment : BaseShareSaveFileFragment<ViewBinding>() {
 
     private fun onSignMessage(message: String, path: String) {
         viewModel.saveMessage(message, path)
-        if (args.signerType == SignerType.NFC) {
+        if (viewModel.isTrezorSigner()) {
+            viewModel.requestSignMessageByTrezor()
+        } else if (args.signerType == SignerType.NFC) {
             (requireActivity() as NfcActionListener).startNfcFlow(BaseNfcActivity.REQUEST_NFC_HEALTH_CHECK)
         } else if (viewModel.needPassphrase()) {
             NCInputDialog(requireActivity()).showDialog(
@@ -168,6 +194,9 @@ class SignMessageFragment : BaseShareSaveFileFragment<ViewBinding>() {
             when (event) {
                 SignMessageEvent.InvalidPath -> showError(getString(R.string.nc_signer_invalid_derivation_path))
                 SignMessageEvent.NoSignatureDetected -> showError(getString(R.string.nc_signer_no_signature_detected))
+                is SignMessageEvent.ShowOpenTrezorSuiteConfirmation -> {
+                    openTrezorSuiteDeeplink = event.deeplink
+                }
                 is SignMessageEvent.ShowError ->
                     if (nfcViewModel.handleNfcError(event.e).not()) {
                         showError(event.e.message.orUnknownError())
@@ -178,6 +207,11 @@ class SignMessageFragment : BaseShareSaveFileFragment<ViewBinding>() {
                 is SignMessageEvent.NfcLoading -> showOrHideNfcLoading(event.isLoading)
                 is SignMessageEvent.ShareFile -> controller.shareFile(event.path)
                 is SignMessageEvent.SaveLocalFile -> showSaveFileState(event.isSuccess)
+            }
+        }
+        flowObserver(trezorCallbackHolder.callbackUri.filterNotNull()) { callbackUri ->
+            if (viewModel.handleTrezorCallback(callbackUri)) {
+                trezorCallbackHolder.clear(callbackUri)
             }
         }
 

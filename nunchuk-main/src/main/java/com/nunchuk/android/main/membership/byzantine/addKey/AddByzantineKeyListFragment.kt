@@ -67,6 +67,7 @@ import com.nunchuk.android.share.ColdcardAction
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.share.result.GlobalResultKey
+import com.nunchuk.android.signer.trezor.TrezorActivity
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.utils.parcelable
@@ -90,6 +91,20 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
             if (result.resultCode == Activity.RESULT_OK && data != null) {
                 data.parcelable<SingleSigner>(GlobalResultKey.EXTRA_SIGNER)?.let {
                     viewModel.handleSignerNewIndex(it)
+                }
+            }
+        }
+
+    private val addTrezorLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            val data = result.data
+            if (result.resultCode == Activity.RESULT_OK && data != null) {
+                data.parcelable<SingleSigner>(GlobalResultKey.EXTRA_SIGNER)?.let {
+                    viewModel.handleSignerNewIndex(it)
+                    return@registerForActivityResult
+                }
+                if (data.getStringExtra(TrezorActivity.EXTRA_RESULT_ACTION) == TrezorActivity.RESULT_ACTION_OPEN_USB_FLOW) {
+                    openRequestAddDesktopKey(SignerTag.TREZOR)
                 }
             }
         }
@@ -154,7 +169,7 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
                     SignerType.AIRGAP -> handleSelectAddAirgapType(selectedSignerTag)
                     SignerType.COLDCARD_NFC -> showAddColdcardOptions()
                     SignerType.HARDWARE -> selectedSignerTag?.let { tag ->
-                        openRequestAddDesktopKey(tag)
+                        openTrezorOrDesktopFlow(tag)
                     }
 
                     SignerType.PORTAL_NFC -> openSetupPortal()
@@ -250,7 +265,7 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
                 handleShowKeysOrCreate(
                     viewModel.getHardwareSigners(SignerTag.TREZOR),
                     SignerType.HARDWARE
-                ) { openRequestAddDesktopKey(SignerTag.TREZOR) }
+                ) { openTrezorFlow() }
             }
 
             SheetOptionType.TYPE_ADD_COLDCARD_USB -> openRequestAddDesktopKey(SignerTag.COLDCARD)
@@ -325,6 +340,23 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
                 )
             )
         }
+    }
+
+    private fun openTrezorOrDesktopFlow(tag: SignerTag) {
+        if (tag == SignerTag.TREZOR) {
+            openTrezorFlow()
+        } else {
+            openRequestAddDesktopKey(tag)
+        }
+    }
+
+    private fun openTrezorFlow() {
+        addTrezorLauncher.launch(
+            TrezorActivity.buildIntent(
+                activityContext = requireActivity(),
+                isMembershipFlow = true
+            )
+        )
     }
 
     private fun handleSelectAddAirgapType(tag: SignerTag?) {

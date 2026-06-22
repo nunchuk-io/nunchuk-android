@@ -44,6 +44,8 @@ import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.launch
 import java.io.File
 
+private const val TREZOR_SUITE_PACKAGE_NAME = "io.trezor.suite"
+
 fun Activity.showToast(message: String) = NCToastMessage(this).show(message)
 
 fun Activity.showLoading(message: String? = null) {
@@ -130,6 +132,19 @@ fun Activity.openExternalLink(url: String) {
             CrashlyticsReporter.recordException(e)
             NCToastMessage(this).showWarning(getString(R.string.nc_transaction_no_app_to_open_link))
         }
+    }
+}
+
+fun Activity.openTrezorSuiteLink(url: String) {
+    if (url.isBlank()) return
+    val uri = Uri.parse(url)
+    val explicitIntent = Intent(Intent.ACTION_VIEW, uri).apply {
+        setPackage(TREZOR_SUITE_PACKAGE_NAME)
+    }
+    try {
+        startActivity(explicitIntent)
+    } catch (e: ActivityNotFoundException) {
+        openExternalLink(url)
     }
 }
 

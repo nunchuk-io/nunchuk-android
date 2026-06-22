@@ -48,6 +48,31 @@
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Light" />
         <activity
+            android:name=".trezor.TrezorActivity"
+            android:label="Trezor"
+            android:launchMode="singleTop"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light" />
+        <activity
+            android:name=".trezor.TrezorCallbackActivity"
+            android:excludeFromRecents="true"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:noHistory="true"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:host="trezor"
+                    android:scheme="nunchuk" />
+            </intent-filter>
+        </activity>
+        <activity
             android:name=".satscard.wallets.SelectWalletActivity"
             android:label="Select Wallet"
             android:screenOrientation="portrait"

@@ -24,6 +24,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.viewModels
@@ -31,6 +34,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.viewbinding.ViewBinding
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.dialog.NcConfirmationDialog
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.domain.data.VerifyAddress
 import com.nunchuk.android.core.nfc.BasePortalActivity
@@ -40,7 +44,9 @@ import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.util.TextUtils
+import com.nunchuk.android.core.util.TrezorCallbackHolder
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.openTrezorSuiteLink
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.receive.ReceiveTransactionActivity
 import com.nunchuk.android.transaction.components.receive.TabCountChangeListener
@@ -50,6 +56,7 @@ import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningVerticalDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.filterNotNull
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -68,6 +75,10 @@ internal class UnusedAddressFragment : BaseFragment<ViewBinding>(),
     private val viewModel: UnusedAddressViewModel by viewModels()
 
     private var currentPage = 0
+    private var openTrezorSuiteDeeplink: String? by mutableStateOf(null)
+
+    @Inject
+    lateinit var trezorCallbackHolder: TrezorCallbackHolder
 
     override fun initializeBinding(
         inflater: LayoutInflater,
@@ -91,6 +102,23 @@ internal class UnusedAddressFragment : BaseFragment<ViewBinding>(),
                         onMoreClick = ::showMoreOptions,
                         onPageChanged = { page -> currentPage = page },
                     )
+
+                    if (openTrezorSuiteDeeplink != null) {
+                        NcConfirmationDialog(
+                            title = stringResource(id = com.nunchuk.android.core.R.string.nc_confirmation),
+                            message = stringResource(id = R.string.nc_open_trezor_suite_verify_message),
+                            positiveButtonText = stringResource(id = R.string.nc_open_trezor_suite),
+                            negativeButtonText = stringResource(id = com.nunchuk.android.core.R.string.nc_cancel),
+                            isPositiveButtonWrapContent = true,
+                            onPositiveClick = {
+                                openTrezorSuiteDeeplink?.let(requireActivity()::openTrezorSuiteLink)
+                                openTrezorSuiteDeeplink = null
+                            },
+                            onDismiss = {
+                                openTrezorSuiteDeeplink = null
+                            }
+                        )
+                    }
                 }
             }
         }
@@ -117,6 +145,24 @@ internal class UnusedAddressFragment : BaseFragment<ViewBinding>(),
                 is UnusedAddressEvent.GenerateAddressErrorEvent -> {
                     activity?.let { NCToastMessage(it).showError(event.message) }
                 }
+
+                is UnusedAddressEvent.ShowOpenTrezorSuiteConfirmationEvent -> {
+                    openTrezorSuiteDeeplink = event.deeplink
+                }
+
+                is UnusedAddressEvent.VerifyAddressErrorEvent -> {
+                    activity?.let { NCToastMessage(it).showError(event.message) }
+                }
+
+                UnusedAddressEvent.VerifyAddressSuccessEvent -> {
+                    NCToastMessage(requireActivity()).showMessage(getString(R.string.nc_address_successfully_verified))
+                }
+            }
+        }
+
+        flowObserver(trezorCallbackHolder.callbackUri.filterNotNull()) { callbackUri ->
+            if (viewModel.handleTrezorCallback(callbackUri)) {
+                trezorCallbackHolder.clear(callbackUri)
             }
         }
 
@@ -164,7 +210,11 @@ internal class UnusedAddressFragment : BaseFragment<ViewBinding>(),
                 SheetOption(
                     type = SheetOptionType.TYPE_VERIFY_ADDRESS_DEVICE,
                     resId = R.drawable.ic_visibility,
-                    label = getString(R.string.nc_verify_address_via_portal),
+                    label = if (viewModel.isTrezorWallet()) {
+                        getString(R.string.nc_verify_address_via_trezor_suite)
+                    } else {
+                        getString(R.string.nc_verify_address_via_portal)
+                    },
                 )
             )
         }
@@ -187,14 +237,18 @@ internal class UnusedAddressFragment : BaseFragment<ViewBinding>(),
                 viewLifecycleOwner.lifecycleScope.launch {
                     val address = getCurrentAddress().orEmpty()
                     if (address.isNotBlank()) {
-                        val index = viewModel.getAddressIndex(address)
-                        if (index != -1) {
-                            (requireActivity() as BasePortalActivity<*>).handlePortalAction(
-                                VerifyAddress(
-                                    address = address,
-                                    index = index
+                        if (viewModel.isTrezorWallet()) {
+                            viewModel.requestVerifyAddressByTrezor(address)
+                        } else {
+                            val index = viewModel.getAddressIndex(address)
+                            if (index != -1) {
+                                (requireActivity() as BasePortalActivity<*>).handlePortalAction(
+                                    VerifyAddress(
+                                        address = address,
+                                        index = index
+                                    )
                                 )
-                            )
+                            }
                         }
                     }
                 }

@@ -3,6 +3,7 @@ package com.nunchuk.android.core.repository
 import com.google.gson.Gson
 import com.nunchuk.android.core.data.model.byzantine.DummyTransactionDto
 import com.nunchuk.android.core.data.model.membership.SigninDummyRequest
+import com.nunchuk.android.core.data.model.membership.WalletDto
 import com.nunchuk.android.core.data.model.membership.toModel
 import com.nunchuk.android.core.manager.UserWalletApiManager
 import com.nunchuk.android.core.mapper.toModel
@@ -228,15 +229,32 @@ internal class DummyTransactionRepositoryImpl @Inject constructor(
             userWalletApiManager.walletApi.signinDummy(payload = SigninDummyRequest(data))
         val dummyTransaction = response.data.dummyTransaction
             ?: throw NullPointerException("Can not load dummy transaction")
+        val walletDto = response.data.walletDto
+        ensureSignInWalletImported(walletDto)
         return SignInDummyTransaction(
             psbt = dummyTransaction.psbt.orEmpty(),
             pendingSignature = dummyTransaction.pendingSignatures,
             requiredSignatures = dummyTransaction.requiredSignatures,
             dummyTransactionId = dummyTransaction.id.orEmpty(),
-            signerServers = response.data.walletDto?.signerServerDtos?.map { it.toModel() }
-                ?: emptyList(),
+            walletLocalId = walletDto?.localId.orEmpty().ifEmpty { walletDto?.id.orEmpty() },
+            signerServers = walletDto?.signerServerDtos?.map { it.toModel() } ?: emptyList(),
             signatures = dummyTransaction.signatures.map { it.toModel() }
         )
+    }
+
+    private fun ensureSignInWalletImported(walletDto: WalletDto?) {
+        if (walletDto == null) return
+        val localId = walletDto.localId.orEmpty()
+        val descriptor = walletDto.bsms.orEmpty()
+        if (localId.isBlank() || descriptor.isBlank()) return
+        if (nunchukNativeSdk.hasWallet(localId)) return
+
+        val wallet = nunchukNativeSdk.parseWalletDescriptor(descriptor).apply {
+            name = walletDto.name.orEmpty()
+            description = walletDto.description.orEmpty()
+            createDate = walletDto.createdTimeMilis / 1000
+        }
+        nunchukNativeSdk.createWallet2(wallet)
     }
 
     override suspend fun getFreeGroupDummyTransaction(

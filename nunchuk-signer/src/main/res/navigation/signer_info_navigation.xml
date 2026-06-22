@@ -61,6 +61,14 @@
         <argument
             android:name="signer_type"
             app:argType="com.nunchuk.android.type.SignerType" />
+        <argument
+            android:name="master_fingerprint"
+            app:argType="string"
+            android:defaultValue="" />
+        <argument
+            android:name="derivation_path"
+            app:argType="string"
+            android:defaultValue="" />
     </fragment>
 
 

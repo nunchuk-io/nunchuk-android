@@ -30,12 +30,17 @@ import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.coldcard.ExportRawPsbtToMk4UseCase
 import com.nunchuk.android.core.domain.membership.CheckSignMessageTapsignerSignInUseCase
 import com.nunchuk.android.core.domain.membership.GetSignatureFromColdCardPsbt
+import com.nunchuk.android.core.domain.utils.GetTrezorSignTransactionDeeplinkUseCase
+import com.nunchuk.android.core.domain.utils.ParseTrezorSignTransactionResponseUseCase
 import com.nunchuk.android.core.nfc.NfcScanInfo
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.signer.toSingleSigner
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.core.util.parseTrezorCallback
+import com.nunchuk.android.core.util.TrezorCallbackMethod
 import com.nunchuk.android.model.Transaction
+import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.byzantine.SignInDummyTransactionUpdate
 import com.nunchuk.android.share.InitNunchukUseCase
 import com.nunchuk.android.type.SignerTag
@@ -45,6 +50,7 @@ import com.nunchuk.android.usecase.GetSignInDummyTransactionUseCase
 import com.nunchuk.android.usecase.byzantine.UpdateDummyTransactionSignInUseCase
 import com.nunchuk.android.usecase.membership.GetDummyTransactionSignatureUseCase
 import com.nunchuk.android.usecase.membership.GetSignInDummyTxFromPsbt
+import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -62,13 +68,16 @@ class SignInAuthenticationViewModel @Inject constructor(
     private val exportRawPsbtToMk4UseCase: ExportRawPsbtToMk4UseCase,
     private val getSignatureFromColdCardPsbt: GetSignatureFromColdCardPsbt,
     private val getDummyTransactionSignatureUseCase: GetDummyTransactionSignatureUseCase,
+    private val getTrezorSignTransactionDeeplinkUseCase: GetTrezorSignTransactionDeeplinkUseCase,
+    private val parseTrezorSignTransactionResponseUseCase: ParseTrezorSignTransactionResponseUseCase,
     private val getSignInDummyTransactionUseCase: GetSignInDummyTransactionUseCase,
+    private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
     private val savedStateHandle: SavedStateHandle,
     private val updateDummyTransactionSignInUseCase: UpdateDummyTransactionSignInUseCase,
     private val signInViaDigitalSignatureUseCase: SignInViaDigitalSignatureUseCase,
     private val initNunchukUseCase: InitNunchukUseCase,
     private val accountManager: AccountManager,
-    ) : ViewModel() {
+) : ViewModel() {
 
     private val args = SignInAuthenticationActivityArgs.fromSavedStateHandle(savedStateHandle)
 
@@ -80,6 +89,8 @@ class SignInAuthenticationViewModel @Inject constructor(
     val state = _state.asStateFlow()
 
     private val dataToSign = MutableStateFlow("")
+    private var currentWallet: Wallet? = null
+    private var lastHandledTrezorCallback: String = ""
 
     init {
         savedStateHandle.get<SignerModel>(EXTRA_CURRENT_INTERACT_SIGNER)?.let { signer ->
@@ -92,6 +103,7 @@ class SignInAuthenticationViewModel @Inject constructor(
                     GetSignInDummyTransactionUseCase.Param(args.signInData.orEmpty())
                 ).onSuccess { signInDummyTransaction ->
                     dataToSign.value = signInDummyTransaction.psbt
+                    loadWalletForTrezor(signInDummyTransaction.walletLocalId)
                     _state.update {
                         it.copy(
                             pendingSignature = signInDummyTransaction.pendingSignature,
@@ -129,6 +141,13 @@ class SignInAuthenticationViewModel @Inject constructor(
         }
     }
 
+    private suspend fun loadWalletForTrezor(walletLocalId: String) {
+        if (walletLocalId.isBlank()) return
+        getWalletDetail2UseCase(walletLocalId).onSuccess { wallet ->
+            currentWallet = wallet
+        }
+    }
+
     fun onSignerSelect(signerModel: SignerModel) = viewModelScope.launch {
         _state.update { it.copy(interactSignerModel = null) }
         savedStateHandle[EXTRA_CURRENT_INTERACT_SIGNER] = signerModel
@@ -141,10 +160,76 @@ class SignInAuthenticationViewModel @Inject constructor(
                 _event.emit(SignInAuthenticationEvent.ScanColdCard)
             }
 
+            isTrezorSigner(signerModel) -> requestSignTransactionByTrezor(signerModel)
             signerModel.type == SignerType.HARDWARE -> _event.emit(SignInAuthenticationEvent.CanNotSignHardwareKey)
             signerModel.type == SignerType.AIRGAP -> _event.emit(SignInAuthenticationEvent.ShowAirgapOption)
             else -> {}
         }
+    }
+
+    fun handleTrezorCallback(callbackUri: String?): Boolean {
+        val callback = parseTrezorCallback(callbackUri) ?: return false
+        if (callback.method != TrezorCallbackMethod.SIGN_TRANSACTION) return false
+        if (lastHandledTrezorCallback == callback.rawUri) return true
+        lastHandledTrezorCallback = callback.rawUri
+        if (callback.response.isBlank()) return true
+
+        val signer = getInteractSingleSigner() ?: return true
+        if (!isTrezorSigner(signer)) return true
+        val wallet = currentWallet ?: return true
+
+        viewModelScope.launch {
+            _event.emit(SignInAuthenticationEvent.Loading(true))
+            parseTrezorSignTransactionResponseUseCase(
+                ParseTrezorSignTransactionResponseUseCase.Param(
+                    wallet = wallet,
+                    psbt = dataToSign.value,
+                    xfp = callback.xfp.ifBlank { signer.fingerPrint },
+                    response = callback.response
+                )
+            ).onSuccess { signedPsbt ->
+                handleSignatureResult(
+                    result = getDummyTransactionSignatureUseCase(
+                        GetDummyTransactionSignatureUseCase.Param(
+                            signer.toSingleSigner(),
+                            signedPsbt
+                        )
+                    ),
+                    signerModel = signer
+                )
+            }.onFailure {
+                _event.emit(SignInAuthenticationEvent.ShowError(it.message.orUnknownError()))
+            }
+            _event.emit(SignInAuthenticationEvent.Loading(false))
+        }
+        return true
+    }
+
+    private suspend fun requestSignTransactionByTrezor(signerModel: SignerModel) {
+        val wallet = currentWallet ?: run {
+            _event.emit(SignInAuthenticationEvent.ShowError("Cannot load wallet for Trezor signing"))
+            return
+        }
+        if (dataToSign.value.isBlank()) {
+            _event.emit(SignInAuthenticationEvent.ShowError("Can not sign this transaction"))
+            return
+        }
+
+        getTrezorSignTransactionDeeplinkUseCase(
+            GetTrezorSignTransactionDeeplinkUseCase.Param(
+                wallet = wallet,
+                psbt = dataToSign.value,
+                xfp = signerModel.fingerPrint
+            )
+        ).onSuccess { deeplink ->
+            _event.emit(SignInAuthenticationEvent.ShowOpenTrezorSuiteConfirmation(deeplink))
+        }.onFailure {
+            _event.emit(SignInAuthenticationEvent.ShowError(it.message.orUnknownError()))
+        }
+    }
+
+    private fun isTrezorSigner(signerModel: SignerModel): Boolean {
+        return signerModel.type == SignerType.HARDWARE && signerModel.tags.contains(SignerTag.TREZOR)
     }
 
     fun handleExportTransactionToMk4(ndef: Ndef) {

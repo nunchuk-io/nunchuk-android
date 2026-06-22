@@ -58,6 +58,7 @@ import com.nunchuk.android.model.VerificationType
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.components.details.model.SingerOption
 import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
+import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.widget.NCInfoDialog
@@ -87,8 +88,14 @@ class SignerInfoFragment : BaseShareSaveFileFragment<ViewBinding>(),
                         onMoreClicked = {
                             val type = viewModel.state.value.masterSigner?.type
                                 ?: viewModel.state.value.remoteSigner?.type
+                            val isTrezorSigner =
+                                viewModel.state.value.remoteSigner?.tags.orEmpty()
+                                    .contains(SignerTag.TREZOR)
                             type?.let { signerType ->
-                                SingerInfoOptionBottomSheet.newInstance(signerType)
+                                SingerInfoOptionBottomSheet.newInstance(
+                                    signerType = signerType,
+                                    isTrezor = isTrezorSigner
+                                )
                                     .show(childFragmentManager, "SingerInfoOptionBottomSheet")
                             }
                         },
@@ -195,12 +202,17 @@ class SignerInfoFragment : BaseShareSaveFileFragment<ViewBinding>(),
             )
 
             SingerOption.REMOVE_KEY -> handleRemoveKey()
-            SingerOption.SIGN_MESSAGE -> findNavController().navigate(
-                SignerInfoFragmentDirections.actionSignerInfoFragmentToSignMessageFragment(
-                    masterSignerId = args.id,
-                    signerType = args.signerType
+            SingerOption.SIGN_MESSAGE -> {
+                val remoteSigner = viewModel.state.value.remoteSigner
+                findNavController().navigate(
+                    SignerInfoFragmentDirections.actionSignerInfoFragmentToSignMessageFragment(
+                        masterSignerId = args.id,
+                        signerType = args.signerType,
+                        masterFingerprint = remoteSigner?.masterFingerprint.orEmpty(),
+                        derivationPath = remoteSigner?.derivationPath.orEmpty()
+                    )
                 )
-            )
+            }
 
             SingerOption.CHECK_FIRMWARE -> (requireActivity() as BasePortalActivity<*>).handlePortalAction(
                 CheckFirmwareVersion

@@ -40,6 +40,7 @@ import com.nunchuk.android.nav.args.AddAirSignerArgs
 import com.nunchuk.android.nav.args.SetupMk4Args
 import com.nunchuk.android.share.ColdcardAction
 import com.nunchuk.android.share.result.GlobalResultKey
+import com.nunchuk.android.signer.trezor.TrezorActivity
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.utils.parcelable
@@ -63,6 +64,20 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
             if (result.resultCode == Activity.RESULT_OK && data != null) {
                 data.parcelable<SingleSigner>(GlobalResultKey.EXTRA_SIGNER)?.let {
                     viewModel.onReplaceKey(it)
+                }
+            }
+        }
+
+    private val addTrezorLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            val data = result.data
+            if (result.resultCode == Activity.RESULT_OK && data != null) {
+                data.parcelable<SingleSigner>(GlobalResultKey.EXTRA_SIGNER)?.let {
+                    viewModel.onReplaceKey(it)
+                    return@registerForActivityResult
+                }
+                if (data.getStringExtra(TrezorActivity.EXTRA_RESULT_ACTION) == TrezorActivity.RESULT_ACTION_OPEN_USB_FLOW) {
+                    showAddKeyByDesktopApp()
                 }
             }
         }
@@ -204,7 +219,9 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
                     SignerType.COLDCARD_NFC -> showAddColdcardOptions()
                     SignerType.PORTAL_NFC -> openSetupPortal()
                     SignerType.SOFTWARE -> openAddSoftwareKey()
-                    SignerType.HARDWARE -> showAddKeyByDesktopApp()
+                    SignerType.HARDWARE -> selectedSignerTag?.let { tag ->
+                        openTrezorOrDesktopFlow(tag)
+                    } ?: showAddKeyByDesktopApp()
                     SignerType.UNKNOWN -> openSignerIntro()
 
                     else -> throw IllegalArgumentException("Signer type invalid ${data.signers.first().type}")
@@ -322,6 +339,7 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
             }
 
             SheetOptionType.TYPE_ADD_LEDGER -> {
+                selectedSignerTag = SignerTag.LEDGER
                 handleShowKeysOrCreate(
                     viewModel.getHardwareSigners(SignerTag.LEDGER),
                     SignerType.HARDWARE
@@ -329,14 +347,16 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
             }
 
             SheetOptionType.TYPE_ADD_TREZOR -> {
+                selectedSignerTag = SignerTag.TREZOR
                 handleShowKeysOrCreate(
                     viewModel.getHardwareSigners(SignerTag.TREZOR),
                     SignerType.HARDWARE
-                ) { showAddKeyByDesktopApp() }
+                ) { openTrezorFlow() }
             }
 
             SheetOptionType.TYPE_ADD_COLDCARD_USB -> showAddKeyByDesktopApp()
             SheetOptionType.TYPE_ADD_BITBOX -> {
+                selectedSignerTag = SignerTag.BITBOX
                 handleShowKeysOrCreate(
                     viewModel.getHardwareSigners(SignerTag.BITBOX),
                     SignerType.HARDWARE
@@ -352,6 +372,23 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
 
             else -> Unit
         }
+    }
+
+    private fun openTrezorOrDesktopFlow(tag: SignerTag) {
+        if (tag == SignerTag.TREZOR) {
+            openTrezorFlow()
+        } else {
+            showAddKeyByDesktopApp()
+        }
+    }
+
+    private fun openTrezorFlow() {
+        addTrezorLauncher.launch(
+            TrezorActivity.buildIntent(
+                activityContext = requireActivity(),
+                isMembershipFlow = true
+            )
+        )
     }
 
     private fun getSignerTag(type: Int): SignerTag? {
