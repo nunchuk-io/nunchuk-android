@@ -426,6 +426,7 @@ fun AddWalletView(
                     if (miniscriptTemplate.isNotEmpty()) {
                         MiniscriptSectionFilled(
                             miniscriptContent = miniscriptTemplate.formatMiniscript(),
+                            isViewOnly = isViewConfigOnly,
                             onEdit = {
                                 onNavigateToMiniscript(
                                     MiniscriptArgs(
@@ -1116,6 +1117,7 @@ private fun MiniscriptSection(onAddMiniscript: () -> Unit = {}) {
 @Composable
 private fun MiniscriptSectionFilled(
     miniscriptContent: String,
+    isViewOnly: Boolean = false,
     onEdit: () -> Unit = {},
     onRemove: () -> Unit = {}
 ) {
@@ -1192,47 +1194,49 @@ private fun MiniscriptSectionFilled(
                     color = MaterialTheme.colorScheme.textPrimary
                 )
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+                if (!isViewOnly) {
                     Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Row(
-                            modifier = Modifier.clickable { onEdit() },
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            NcIcon(
-                                modifier = Modifier.size(16.dp),
-                                painter = painterResource(id = R.drawable.ic_edit_small),
-                                contentDescription = stringResource(R.string.nc_edit)
-                            )
-                            Text(
-                                text = stringResource(R.string.nc_edit),
-                                style = NunchukTheme.typography.titleSmall,
-                                color = MaterialTheme.colorScheme.textPrimary
-                            )
-                        }
+                            Row(
+                                modifier = Modifier.clickable { onEdit() },
+                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                NcIcon(
+                                    modifier = Modifier.size(16.dp),
+                                    painter = painterResource(id = R.drawable.ic_edit_small),
+                                    contentDescription = stringResource(R.string.nc_edit)
+                                )
+                                Text(
+                                    text = stringResource(R.string.nc_edit),
+                                    style = NunchukTheme.typography.titleSmall,
+                                    color = MaterialTheme.colorScheme.textPrimary
+                                )
+                            }
 
-                        Row(
-                            modifier = Modifier.clickable { onRemove() },
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            NcIcon(
-                                modifier = Modifier.size(16.dp),
-                                painter = painterResource(id = R.drawable.ic_delete),
-                                contentDescription = stringResource(R.string.nc_remove)
-                            )
-                            Text(
-                                text = stringResource(R.string.nc_remove),
-                                style = NunchukTheme.typography.titleSmall,
-                                color = MaterialTheme.colorScheme.textPrimary
-                            )
+                            Row(
+                                modifier = Modifier.clickable { onRemove() },
+                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                NcIcon(
+                                    modifier = Modifier.size(16.dp),
+                                    painter = painterResource(id = R.drawable.ic_delete),
+                                    contentDescription = stringResource(R.string.nc_remove)
+                                )
+                                Text(
+                                    text = stringResource(R.string.nc_remove),
+                                    style = NunchukTheme.typography.titleSmall,
+                                    color = MaterialTheme.colorScheme.textPrimary
+                                )
+                            }
                         }
                     }
                 }
