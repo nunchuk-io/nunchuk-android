@@ -8,6 +8,7 @@ data class SignInDummyTransaction(
     val requiredSignatures: Int,
     val dummyTransactionId: String,
     val walletLocalId: String,
+    val walletDescriptor: String,
     val signerServers: List<SignerServer>,
     val signatures: List<DummySignature>
 )

@@ -27,6 +27,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.auth.domain.SignInViaDigitalSignatureUseCase
 import com.nunchuk.android.core.account.AccountManager
+import com.nunchuk.android.core.domain.ParseWalletDescriptorUseCase
 import com.nunchuk.android.core.domain.coldcard.ExportRawPsbtToMk4UseCase
 import com.nunchuk.android.core.domain.membership.CheckSignMessageTapsignerSignInUseCase
 import com.nunchuk.android.core.domain.membership.GetSignatureFromColdCardPsbt
@@ -58,6 +59,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 
@@ -70,6 +72,7 @@ class SignInAuthenticationViewModel @Inject constructor(
     private val getDummyTransactionSignatureUseCase: GetDummyTransactionSignatureUseCase,
     private val getTrezorSignTransactionDeeplinkUseCase: GetTrezorSignTransactionDeeplinkUseCase,
     private val parseTrezorSignTransactionResponseUseCase: ParseTrezorSignTransactionResponseUseCase,
+    private val parseWalletDescriptorUseCase: ParseWalletDescriptorUseCase,
     private val getSignInDummyTransactionUseCase: GetSignInDummyTransactionUseCase,
     private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
     private val savedStateHandle: SavedStateHandle,
@@ -90,6 +93,8 @@ class SignInAuthenticationViewModel @Inject constructor(
 
     private val dataToSign = MutableStateFlow("")
     private var currentWallet: Wallet? = null
+    private var walletLocalId: String = ""
+    private var walletDescriptor: String = ""
     private var lastHandledTrezorCallback: String = ""
 
     init {
@@ -103,7 +108,10 @@ class SignInAuthenticationViewModel @Inject constructor(
                     GetSignInDummyTransactionUseCase.Param(args.signInData.orEmpty())
                 ).onSuccess { signInDummyTransaction ->
                     dataToSign.value = signInDummyTransaction.psbt
-                    loadWalletForTrezor(signInDummyTransaction.walletLocalId)
+                    loadWalletForTrezor(
+                        walletLocalId = signInDummyTransaction.walletLocalId,
+                        descriptor = signInDummyTransaction.walletDescriptor,
+                    )
                     _state.update {
                         it.copy(
                             pendingSignature = signInDummyTransaction.pendingSignature,
@@ -141,11 +149,39 @@ class SignInAuthenticationViewModel @Inject constructor(
         }
     }
 
-    private suspend fun loadWalletForTrezor(walletLocalId: String) {
-        if (walletLocalId.isBlank()) return
-        getWalletDetail2UseCase(walletLocalId).onSuccess { wallet ->
-            currentWallet = wallet
+    private suspend fun loadWalletForTrezor(walletLocalId: String, descriptor: String) {
+        this.walletLocalId = walletLocalId
+        this.walletDescriptor = descriptor
+        currentWallet = resolveWalletForTrezor()
+    }
+
+    /**
+     * Resolves the wallet required to build the Trezor signing deeplink.
+     *
+     * In the sign-in via digital signature flow the wallet is not guaranteed to exist in the
+     * local database yet (and the server does not return a wallet id/descriptor before sign-in is
+     * complete), so loading it by local id can fail. We fall back to parsing the wallet directly
+     * from a BSMS descriptor: first whatever the server returned, then the BSMS the user pasted on
+     * the Enter XPUB screen. Both describe the multisig config Trezor needs.
+     */
+    private suspend fun resolveWalletForTrezor(): Wallet? {
+        currentWallet?.let { return it }
+        if (walletLocalId.isNotBlank()) {
+            getWalletDetail2UseCase(walletLocalId)
+                .onFailure { Timber.tag(TAG).e(it, "Load wallet by local id failed: $walletLocalId") }
+                .getOrNull()?.let { return it }
         }
+        val descriptors = listOf(walletDescriptor, args.signInData.orEmpty())
+            .filter { it.isNotBlank() }.distinct()
+        descriptors.forEach { descriptor ->
+            parseWalletDescriptorUseCase(descriptor)
+                .onFailure { Timber.tag(TAG).e(it, "Parse wallet descriptor for Trezor failed") }
+                .getOrNull()?.let { return it }
+        }
+        Timber.tag(TAG).e(
+            "No wallet for Trezor signing (localId=$walletLocalId, hasServerDescriptor=${walletDescriptor.isNotBlank()}, hasUserData=${args.signInData.isNullOrBlank().not()})"
+        )
+        return null
     }
 
     fun onSignerSelect(signerModel: SignerModel) = viewModelScope.launch {
@@ -206,7 +242,7 @@ class SignInAuthenticationViewModel @Inject constructor(
     }
 
     private suspend fun requestSignTransactionByTrezor(signerModel: SignerModel) {
-        val wallet = currentWallet ?: run {
+        val wallet = resolveWalletForTrezor()?.also { currentWallet = it } ?: run {
             _event.emit(SignInAuthenticationEvent.ShowError("Cannot load wallet for Trezor signing"))
             return
         }
@@ -390,6 +426,7 @@ class SignInAuthenticationViewModel @Inject constructor(
     fun getDataToSign() = dataToSign.value
 
     companion object {
+        private const val TAG = "SignInAuthenticationViewModel"
         private const val EXTRA_CURRENT_INTERACT_SIGNER = "EXTRA_CURRENT_INTERACT_SIGNER"
     }
 }

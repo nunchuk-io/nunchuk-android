@@ -237,6 +237,7 @@ internal class DummyTransactionRepositoryImpl @Inject constructor(
             requiredSignatures = dummyTransaction.requiredSignatures,
             dummyTransactionId = dummyTransaction.id.orEmpty(),
             walletLocalId = walletDto?.localId.orEmpty().ifEmpty { walletDto?.id.orEmpty() },
+            walletDescriptor = walletDto?.bsms.orEmpty(),
             signerServers = walletDto?.signerServerDtos?.map { it.toModel() } ?: emptyList(),
             signatures = dummyTransaction.signatures.map { it.toModel() }
         )
