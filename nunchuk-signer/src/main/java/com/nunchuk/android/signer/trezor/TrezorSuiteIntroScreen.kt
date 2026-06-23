@@ -20,6 +20,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -36,6 +40,7 @@ import androidx.navigation.compose.composable
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.dialog.NcConfirmationDialog
 import com.nunchuk.android.signer.R
 
 const val trezorSuiteIntroRoute = "trezor_suite_intro_route"
@@ -43,11 +48,13 @@ private const val TREZOR_START_URL = "https://trezor.io/start"
 
 fun NavGraphBuilder.trezorSuiteIntro(
     onBack: () -> Unit = {},
+    confirmBeforeContinue: Boolean = false,
     onContinue: () -> Unit = {}
 ) {
     composable(trezorSuiteIntroRoute) {
         TrezorSuiteIntroScreen(
             onBack = onBack,
+            confirmBeforeContinue = confirmBeforeContinue,
             onContinue = onContinue
         )
     }
@@ -60,8 +67,11 @@ fun NavHostController.navigateToTrezorSuiteIntro() {
 @Composable
 private fun TrezorSuiteIntroScreen(
     onBack: () -> Unit = {},
+    confirmBeforeContinue: Boolean = false,
     onContinue: () -> Unit = {}
 ) {
+    var showOpenSuiteConfirmation by rememberSaveable { mutableStateOf(false) }
+
     Scaffold(
         topBar = {
             NcImageAppBar(
@@ -75,7 +85,13 @@ private fun TrezorSuiteIntroScreen(
                     .padding(horizontal = 16.dp, vertical = 12.dp)
                     .navigationBarsPadding()
                     .fillMaxWidth(),
-                onClick = onContinue
+                onClick = {
+                    if (confirmBeforeContinue) {
+                        showOpenSuiteConfirmation = true
+                    } else {
+                        onContinue()
+                    }
+                }
             ) {
                 Text(text = stringResource(id = com.nunchuk.android.core.R.string.nc_text_continue))
             }
@@ -149,6 +165,21 @@ private fun TrezorSuiteIntroScreen(
                 )
             }
         }
+    }
+
+    if (showOpenSuiteConfirmation) {
+        NcConfirmationDialog(
+            title = stringResource(id = com.nunchuk.android.core.R.string.nc_confirmation),
+            message = stringResource(id = R.string.nc_open_trezor_suite_continue_message),
+            positiveButtonText = stringResource(id = R.string.nc_open_trezor_suite),
+            negativeButtonText = stringResource(id = com.nunchuk.android.core.R.string.nc_cancel),
+            isPositiveButtonWrapContent = true,
+            onDismiss = { showOpenSuiteConfirmation = false },
+            onPositiveClick = {
+                showOpenSuiteConfirmation = false
+                onContinue()
+            }
+        )
     }
 }
 

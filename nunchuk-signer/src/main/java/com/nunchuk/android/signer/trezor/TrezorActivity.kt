@@ -19,6 +19,7 @@ import com.nunchuk.android.core.util.TrezorCallbackHolder
 import com.nunchuk.android.core.util.openTrezorSuiteLink
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.signer.R
+import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.ResultExistingKey
 import com.nunchuk.android.widget.NCToastMessage
@@ -120,7 +121,21 @@ class TrezorActivity : BaseComposeActivity() {
                     )
                     trezorSuiteIntro(
                         onBack = { navController.popBackStack() },
-                        onContinue = { navController.navigateToTrezorSelectWalletType() }
+                        // Add-key-to-assisted-wallet uses a fixed config (multisig / native segwit
+                        // / account 0), so confirm and open Trezor Suite directly. Other flows let
+                        // the user choose on the select-wallet-type screen.
+                        confirmBeforeContinue = isMembershipFlow,
+                        onContinue = {
+                            if (isMembershipFlow) {
+                                deeplinkViewModel.openTrezorSuiteDeeplink(
+                                    walletType = WalletType.MULTI_SIG,
+                                    addressType = AddressType.NATIVE_SEGWIT,
+                                    index = 0
+                                )
+                            } else {
+                                navController.navigateToTrezorSelectWalletType()
+                            }
+                        }
                     )
                     trezorSelectWalletType(
                         onBack = { navController.popBackStack() },
