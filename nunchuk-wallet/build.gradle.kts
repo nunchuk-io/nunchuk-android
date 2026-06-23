@@ -1,5 +1,6 @@
 plugins {
     id("nunchuk.android.library")
+    id("nunchuk.android.nativesdk")
     alias(libs.plugins.hilt)
     alias(libs.plugins.androidx.navigation.safeargs)
     alias(libs.plugins.kotlin.parcelize)
@@ -20,8 +21,6 @@ dependencies {
     implementation(project(":nunchuk-wallet-shared"))
     implementation(libs.androidx.compose.runtime.livedata)
 
-    debugImplementation(libs.nunchuk.nativesdk)
-    releaseImplementation("com.github.nunchuk-io:nunchuk-android-nativesdk-prebuild:1.2.11@aar")
 
     implementation(libs.bundles.androidx)
     implementation(libs.bundles.lifecycle)

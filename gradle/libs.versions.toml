@@ -52,7 +52,8 @@ playServicesBase = "18.2.0"
 playServicesAdsId = "18.1.0"
 playReview = "2.0.1"
 matrixSdk = "1.6.50"
-nativeSdk = "1.2.11-usdt"
+nativeSdk = "1.2.15"
+prebuildNativeSdk = "1.2.11"
 timber = "5.0.1"
 kotlinxSerializationJson = "1.6.3"
 moshi = "1.15.2"
@@ -128,10 +129,11 @@ okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
 okhttp-logging-interceptor = { module = "com.squareup.okhttp3:logging-interceptor", version.ref = "okhttp" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 moshi = { module = "com.squareup.moshi:moshi", version.ref = "moshi" }
-# NOTE: net.java.dev.jna:jna, com.github.Nunchuk1:LibPortal and the release
-# prebuild native SDK (com.github.nunchuk-io:nunchuk-android-nativesdk-prebuild)
-# use the `@aar` artifact suffix, which the catalog cannot express; they remain
-# inline string deps in the modules.
+# NOTE: net.java.dev.jna:jna and com.github.Nunchuk1:LibPortal use the `@aar`
+# artifact suffix, which the catalog cannot express; they remain inline string
+# deps in the modules. The release prebuild native SDK also needs `@aar`, but its
+# version is centralized here (`prebuildNativeSdk`) and the coordinate is built by
+# the `nunchuk.android.nativesdk` convention plugin.
 
 # datastore / security
 androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "dataStore" }

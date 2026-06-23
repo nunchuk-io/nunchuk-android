@@ -31,5 +31,9 @@ gradlePlugin {
             id = "nunchuk.android.application"
             implementationClass = "AndroidApplicationConventionPlugin"
         }
+        register("nativeSdk") {
+            id = "nunchuk.android.nativesdk"
+            implementationClass = "NativeSdkConventionPlugin"
+        }
     }
 }

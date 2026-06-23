@@ -5,6 +5,7 @@ import java.util.Properties
 
 plugins {
     id("nunchuk.android.application")
+    id("nunchuk.android.nativesdk")
     alias(libs.plugins.androidx.baselineprofile)
     alias(libs.plugins.hilt)
     alias(libs.plugins.google.services)
@@ -148,8 +149,6 @@ dependencies {
     implementation(libs.androidx.profileinstaller)
     baselineProfile(project(":baselineprofile"))
 
-    debugImplementation(libs.nunchuk.nativesdk)
-    releaseImplementation("com.github.nunchuk-io:nunchuk-android-nativesdk-prebuild:1.2.11@aar")
     implementation(libs.matrix.android.sdk2)
     implementation(libs.bundles.workmanager)
 
