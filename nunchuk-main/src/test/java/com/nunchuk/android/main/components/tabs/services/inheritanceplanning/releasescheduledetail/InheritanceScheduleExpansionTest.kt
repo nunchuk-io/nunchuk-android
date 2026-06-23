@@ -43,11 +43,9 @@ import java.util.TimeZone
  * (toReleaseScheduleUiState / toReleaseInstallmentConfig) and InheritanceReviewPlanViewModel
  * (toInheritancePlanStages / toEpochMillis).
  *
- * Two backend cases currently DIVERGE from the Android implementation and are asserted against the
+ * One backend case currently DIVERGES from the Android implementation and is asserted against the
  * app's actual output, with the divergence documented inline:
  *  - case 004: decimal percentages — the app models percentages as Int, so 2.5 / 5.5 are not supported.
- *  - case 009: month-end stepping — the app steps additively from the first date (origin.plusMonths(n)),
- *              while the backend steps iteratively (prev.plusMonths). They differ only at month-end.
  */
 class InheritanceScheduleExpansionTest {
 
@@ -219,11 +217,9 @@ class InheritanceScheduleExpansionTest {
     }
 
     @Test
-    fun `case 009 - month-end stepping DIVERGES from backend`() {
-        // Backend expects ITERATIVE stepping: 2026-01-31 +1mo -> 02-28, +1mo -> 03-28 (1774656000000).
-        // The app's ReleaseScheduleDate.plus steps ADDITIVELY from the first date:
-        //   order 3 = 2026-01-31.plusMonths(2) = 2026-03-31 -> 1774915200000.
-        // The first two installments match; only the month-end third one differs.
+    fun `case 009 - MONTH interval uses iterative plusMonths behavior at month end`() {
+        // 2026-01-31 +1mo -> 02-28, then +1mo -> 03-28. ReleaseScheduleDate.plus steps iteratively, so
+        // the calendar clamping compounds and matches the backend.
         val zone = zoneOf("Etc/UTC")
         val stage = stage(10, 30, "MONTH", 1, 1769817600000L, zone)
 
@@ -231,7 +227,7 @@ class InheritanceScheduleExpansionTest {
             listOf(
                 1769817600000L to 10,
                 1772236800000L to 20,
-                1774915200000L to 30, // app: 2026-03-31. Backend case 009 expects 1774656000000 (2026-03-28).
+                1774656000000L to 30, // 2026-03-28
             ),
             expand(stage, baseAllocatedPercent = 0, zone = zone),
         )

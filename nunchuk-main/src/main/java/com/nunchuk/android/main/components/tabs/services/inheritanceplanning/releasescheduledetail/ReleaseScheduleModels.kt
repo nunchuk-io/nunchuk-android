@@ -45,20 +45,24 @@ data class ReleaseScheduleDate(
         repeatEvery: Int,
         times: Int,
     ): ReleaseScheduleDate {
-        val safeRepeatEvery = repeatEvery.coerceAtLeast(1)
+        val safeRepeatEvery = repeatEvery.coerceAtLeast(1).toLong()
         val safeTimes = times.coerceAtLeast(0)
-        val amount = safeRepeatEvery.toLong() * safeTimes
-        val date = LocalDate.of(year, month, day)
-        val updated = when (frequency) {
-            ReleaseInstallmentFrequency.DAILY -> date.plusDays(amount)
-            ReleaseInstallmentFrequency.WEEKLY -> date.plusWeeks(amount)
-            ReleaseInstallmentFrequency.MONTHLY -> date.plusMonths(amount)
-            ReleaseInstallmentFrequency.ANNUALLY -> date.plusYears(amount)
+        // Step one interval at a time (iterative) instead of multiplying the interval out, so calendar
+        // clamping compounds the way the backend expects: 2026-01-31 +1mo -> 02-28, +1mo -> 03-28
+        // (not 2026-01-31 +2mo -> 03-31).
+        var date = LocalDate.of(year, month, day)
+        repeat(safeTimes) {
+            date = when (frequency) {
+                ReleaseInstallmentFrequency.DAILY -> date.plusDays(safeRepeatEvery)
+                ReleaseInstallmentFrequency.WEEKLY -> date.plusWeeks(safeRepeatEvery)
+                ReleaseInstallmentFrequency.MONTHLY -> date.plusMonths(safeRepeatEvery)
+                ReleaseInstallmentFrequency.ANNUALLY -> date.plusYears(safeRepeatEvery)
+            }
         }
         return ReleaseScheduleDate(
-            month = updated.monthValue,
-            day = updated.dayOfMonth,
-            year = updated.year
+            month = date.monthValue,
+            day = date.dayOfMonth,
+            year = date.year
         )
     }
 }
