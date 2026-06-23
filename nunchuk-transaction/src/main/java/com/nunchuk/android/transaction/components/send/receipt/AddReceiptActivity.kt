@@ -298,7 +298,13 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
                             }
                             WalletComposeBottomSheet.show(
                                 supportFragmentManager,
-                                exclusiveAssistedWalletIds = arrayListOf(args.walletId),
+                                // For relative-timelock miniscript wallets, allow sending to a new
+                                // unused address inside the same wallet to reset the timelock.
+                                exclusiveAssistedWalletIds = if (state.hasRelativeTimelock) {
+                                    arrayListOf()
+                                } else {
+                                    arrayListOf(args.walletId)
+                                },
                                 exclusiveAddresses = arrayListOf(viewModel.getAddReceiptState().address),
                                 configArgs = WalletComposeBottomSheet.ConfigArgs(
                                     flags = WalletComposeBottomSheet.fromFlags(

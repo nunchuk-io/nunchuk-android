@@ -23,6 +23,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.utils.ParseSignerStringUseCase
 import com.nunchuk.android.core.mapper.SingleSignerMapper
+import com.nunchuk.android.compose.miniscript.analyzeMiniscriptForTimelocks
 import com.nunchuk.android.core.miniscript.ScriptNodeType
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.MusigKeyPrefix
@@ -122,6 +123,9 @@ internal class AddReceiptViewModel @Inject constructor(
         _subNodeFollowParents.clear()
         getScriptNodeFromMiniscriptTemplateUseCase(wallet.miniscript).onSuccess { result ->
             val signers = parseSignersFromScriptNode(result.scriptNode)
+            val hasRelativeTimelock =
+                analyzeMiniscriptForTimelocks(result.scriptNode).hasRelativeTimelock
+            _state.update { it.copy(hasRelativeTimelock = hasRelativeTimelock) }
             if (wallet.addressType == AddressType.TAPROOT && wallet.walletTemplate != WalletTemplate.DISABLE_KEY_PATH && wallet.totalRequireSigns > 1) {
                 val muSigSignerMap =
                     wallet.signers.take(wallet.totalRequireSigns).mapIndexed { index, signer ->

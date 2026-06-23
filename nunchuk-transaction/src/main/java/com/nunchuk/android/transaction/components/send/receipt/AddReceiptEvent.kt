@@ -48,4 +48,5 @@ data class AddReceiptState(
     val scriptNode: ScriptNode? = null,
     val subNodeFollowParents: Set<List<Int>> = emptySet(),
     val wallet: Wallet = Wallet(),
+    val hasRelativeTimelock: Boolean = false,
 )
