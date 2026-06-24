@@ -42,9 +42,17 @@ import timber.log.Timber
 import javax.inject.Inject
 
 data class SignerIntroState(
+    /** The user's already-imported signers, used to offer "reuse existing" vs "set up new". */
     val allSigners: List<SignerModel> = emptyList(),
+    /** All signer types supported for the wallet type being built. */
     val supportedSigners: List<SupportedSigner> = emptyList(),
-    val dynamicSupportedSigners: List<SupportedSigner> = emptyList(),
+    /**
+     * Subset of [supportedSigners] eligible for the specific key being added: backend configs
+     * whose inheritance flag matches the current slot (isInheritanceKey == isAddInheritanceSigner).
+     * Empty unless the on-chain, config-driven flow is active; takes priority over [supportedSigners]
+     * when non-empty.
+     */
+    val eligibleSupportedSigners: List<SupportedSigner> = emptyList(),
     val signerDisplayInfos: List<SignerDisplayInfo> = emptyList(),
 )
 
@@ -109,7 +117,7 @@ class SignerIntroViewModel @Inject constructor(
             } else {
                 fetchUserWalletConfigs()
             }
-            fetchAndFilterTapSigners()
+            loadAllSigners()
         }
         updateSignerDisplayInfos()
     }
@@ -150,8 +158,8 @@ class SignerIntroViewModel @Inject constructor(
     private fun resolveSignersToDisplay(
         state: SignerIntroState,
     ): Pair<List<SupportedSigner>, List<SupportedSigner>> = when {
-        state.dynamicSupportedSigners.isNotEmpty() && onChainAddSignerParam != null -> {
-            state.dynamicSupportedSigners to state.dynamicSupportedSigners
+        state.eligibleSupportedSigners.isNotEmpty() && onChainAddSignerParam != null -> {
+            state.eligibleSupportedSigners to state.eligibleSupportedSigners
         }
         onChainAddSignerParam != null && state.supportedSigners.isNotEmpty() -> {
             state.supportedSigners to state.supportedSigners
@@ -160,14 +168,14 @@ class SignerIntroViewModel @Inject constructor(
             val allowedSigners = state.supportedSigners.filter {
                 !(it.type == SignerType.AIRGAP && it.tag == null)
             }
-            buildFullDisplayList(state.supportedSigners) to allowedSigners
+            mergeWithDefaultSigners(state.supportedSigners) to allowedSigners
         }
         else -> {
             defaultSupportedSigners to emptyList()
         }
     }
 
-    private fun buildFullDisplayList(
+    private fun mergeWithDefaultSigners(
         supportedSigners: List<SupportedSigner>,
     ): List<SupportedSigner> {
         val result = defaultSupportedSigners.toMutableList()
@@ -190,7 +198,7 @@ class SignerIntroViewModel @Inject constructor(
                     )
                     val supportedSigners = convertToSupportedSigners(relevantConfigs)
                     _state.update { it.copy(supportedSigners = supportedSigners) }
-                    updateDynamicSupportedSigners(relevantConfigs)
+                    updateEligibleSupportedSigners(relevantConfigs)
                 }
             }
         }
@@ -234,15 +242,15 @@ class SignerIntroViewModel @Inject constructor(
         }
     }
 
-    private fun updateDynamicSupportedSigners(configs: List<SupportedSignerConfig>) {
-        val dynamicSigners = configs.filter {
+    private fun updateEligibleSupportedSigners(configs: List<SupportedSignerConfig>) {
+        val eligibleConfigs = configs.filter {
             it.isInheritanceKey == isAddInheritanceSigner
         }
-        _state.update { it.copy(dynamicSupportedSigners = convertToSupportedSigners(dynamicSigners)) }
+        _state.update { it.copy(eligibleSupportedSigners = convertToSupportedSigners(eligibleConfigs)) }
         updateSignerDisplayInfos()
     }
 
-    private fun fetchAndFilterTapSigners() {
+    private fun loadAllSigners() {
         viewModelScope.launch {
             getAllSignersUseCase(true).onSuccess { (masterSigners, singleSigners) ->
                 _state.update { it.copy(allSigners = mapSigners(singleSigners, masterSigners)) }
