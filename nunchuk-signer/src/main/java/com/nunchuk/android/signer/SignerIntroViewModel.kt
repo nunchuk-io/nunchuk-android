@@ -44,12 +44,7 @@ import javax.inject.Inject
 data class SignerIntroState(
     val allSigners: List<SignerModel> = emptyList(),
     val supportedSigners: List<SupportedSigner> = emptyList(),
-    val supportedSignerConfigs: List<SupportedSignerConfig> = emptyList(),
-    val isAddInheritanceSigner: Boolean = false,
     val dynamicSupportedSigners: List<SupportedSigner> = emptyList(),
-    val showDynamicSelection: Boolean = false,
-    val isGenericAirgapEnable: Boolean = false,
-    val isSeverKeyEnable: Boolean = false,
     val signerDisplayInfos: List<SignerDisplayInfo> = emptyList(),
 )
 
@@ -74,6 +69,7 @@ class SignerIntroViewModel @Inject constructor(
     private var keyFlow: Int = KeyFlow.NONE
     private var walletType: WalletType? = null
     private var isTestNet: Boolean = false
+    private var isAddInheritanceSigner: Boolean = false
 
     private val _state = MutableStateFlow(SignerIntroState())
     val state = _state.asStateFlow()
@@ -102,35 +98,18 @@ class SignerIntroViewModel @Inject constructor(
         this.walletType = walletType
 
         if (supportedSigners.isNotEmpty()) {
-            _state.update {
-                it.copy(
-                    supportedSigners = supportedSigners,
-                    isGenericAirgapEnable = calculateIsGenericAirgapEnable(supportedSigners)
-                )
-            }
+            _state.update { it.copy(supportedSigners = supportedSigners) }
         }
 
         if (onChainAddSignerParam != null) {
-            _state.update { it.copy(isAddInheritanceSigner = onChainAddSignerParam.isAddInheritanceSigner() || onChainAddSignerParam.isVerifyBackupSeedPhrase()) }
+            isAddInheritanceSigner =
+                onChainAddSignerParam.isAddInheritanceSigner() || onChainAddSignerParam.isVerifyBackupSeedPhrase()
             if (onChainAddSignerParam.isAddInheritanceOffChainSigner()) {
-                _state.update {
-                    it.copy(
-                        supportedSigners = offChainInheritanceKeyTypes,
-                        isGenericAirgapEnable = calculateIsGenericAirgapEnable(
-                            offChainInheritanceKeyTypes
-                        )
-                    )
-                }
+                _state.update { it.copy(supportedSigners = offChainInheritanceKeyTypes) }
             } else {
                 fetchUserWalletConfigs()
             }
             fetchAndFilterTapSigners()
-        } else if (supportedSigners.isEmpty()) {
-            _state.update {
-                it.copy(
-                    isGenericAirgapEnable = calculateIsGenericAirgapEnable(emptyList())
-                )
-            }
         }
         updateSignerDisplayInfos()
     }
@@ -162,7 +141,7 @@ class SignerIntroViewModel @Inject constructor(
             titleRes = R.string.nc_generic_airgap,
             keyType = KeyType.GENERIC_AIRGAP,
             category = SignerDisplayCategory.ROW_SIMPLE,
-            isDisabled = !currentState.isGenericAirgapEnable,
+            isDisabled = !calculateIsGenericAirgapEnable(currentState.supportedSigners),
         )
 
         _state.update { it.copy(signerDisplayInfos = displayInfos) }
@@ -210,14 +189,8 @@ class SignerIntroViewModel @Inject constructor(
                         walletType = walletType,
                     )
                     val supportedSigners = convertToSupportedSigners(relevantConfigs)
-                    _state.update {
-                        it.copy(
-                            supportedSignerConfigs = relevantConfigs,
-                            supportedSigners = supportedSigners,
-                            isGenericAirgapEnable = calculateIsGenericAirgapEnable(supportedSigners),
-                        )
-                    }
-                    updateDynamicSupportedSigners()
+                    _state.update { it.copy(supportedSigners = supportedSigners) }
+                    updateDynamicSupportedSigners(relevantConfigs)
                 }
             }
         }
@@ -261,10 +234,9 @@ class SignerIntroViewModel @Inject constructor(
         }
     }
 
-    private fun updateDynamicSupportedSigners() {
-        val currentState = _state.value
-        val dynamicSigners = currentState.supportedSignerConfigs.filter {
-            it.isInheritanceKey == currentState.isAddInheritanceSigner
+    private fun updateDynamicSupportedSigners(configs: List<SupportedSignerConfig>) {
+        val dynamicSigners = configs.filter {
+            it.isInheritanceKey == isAddInheritanceSigner
         }
         _state.update { it.copy(dynamicSupportedSigners = convertToSupportedSigners(dynamicSigners)) }
         updateSignerDisplayInfos()
