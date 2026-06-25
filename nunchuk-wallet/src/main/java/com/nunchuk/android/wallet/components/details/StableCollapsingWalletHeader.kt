@@ -73,7 +73,7 @@ internal fun rememberStableWalletHeaderModel(state: WalletDetailsState): StableW
     val usdtRaw = "${wallet.usdtBalance.formatUsdt()} USDT"
     val usdtCashRaw = "(${wallet.usdtBalance.formatUsdtAsUsd()})"
     val lbtcRaw = "${wallet.lbtcBalance.formatLbtc()} LBTC"
-    val lbtcCashRaw = wallet.lbtcBalance.formatLbtcAsUsd()
+    val lbtcCashRaw = "(${wallet.lbtcBalance.formatLbtcAsUsd()})"
 
     return StableWalletHeaderUiModel(
         title = wallet.name,
