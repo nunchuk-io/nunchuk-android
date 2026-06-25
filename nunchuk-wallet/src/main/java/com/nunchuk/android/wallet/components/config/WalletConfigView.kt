@@ -66,6 +66,7 @@ import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.WalletTemplate
+import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.util.toReadableString
 
@@ -89,6 +90,7 @@ internal fun WalletConfigView(
         state.assistedWallet?.status
     )
     val isTaproot = state.walletExtended.wallet.addressType.isTaproot()
+    val isLiquid = wallet.walletType == WalletType.LIQUID
     val isValueKeySetDisabled =
         state.walletExtended.wallet.walletTemplate == WalletTemplate.DISABLE_KEY_PATH
     val totalRequireSigns = state.walletExtended.wallet.totalRequireSigns
@@ -194,7 +196,11 @@ internal fun WalletConfigView(
                         ) {
                             Text(
                                 modifier = Modifier.padding(end = 8.dp),
-                                text = if (state.walletExtended.wallet.miniscript.isEmpty()) "$requiredSignInfo$walletTypeString" else "Miniscript",
+                                text = when {
+                                    isLiquid -> stringResource(id = R.string.nc_usdt_stablecoin)
+                                    state.walletExtended.wallet.miniscript.isEmpty() -> "$requiredSignInfo$walletTypeString"
+                                    else -> "Miniscript"
+                                },
                                 style = NunchukTheme.typography.bodySmall
                                     .copy(color = colorResource(id = R.color.nc_white_color))
                             )
@@ -208,9 +214,13 @@ internal fun WalletConfigView(
 
                             Text(
                                 modifier = Modifier.padding(start = 8.dp),
-                                text = state.walletExtended.wallet.addressType.toReadableString(
-                                    LocalContext.current
-                                ),
+                                text = if (isLiquid) {
+                                    stringResource(id = R.string.nc_liquid_network)
+                                } else {
+                                    state.walletExtended.wallet.addressType.toReadableString(
+                                        LocalContext.current
+                                    )
+                                },
                                 style = NunchukTheme.typography.bodySmall.copy(
                                     color = colorResource(
                                         id = R.color.nc_white_color
