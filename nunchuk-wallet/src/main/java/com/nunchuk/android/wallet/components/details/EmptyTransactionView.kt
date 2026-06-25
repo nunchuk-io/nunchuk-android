@@ -28,6 +28,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.nunchuk.android.compose.NcHighlightText
 import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
@@ -54,6 +55,7 @@ internal fun EmptyTransactionView(
     address: String,
     onCopyAddress: (String) -> Unit,
     onShareAddress: (String) -> Unit,
+    isStableWallet: Boolean = false,
 ) {
     val qrBitmap = remember(address) {
         if (address.isNotEmpty()) address.convertToQRCode() else null
@@ -65,15 +67,18 @@ internal fun EmptyTransactionView(
             .padding(top = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Text(
+        NcHighlightText(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 30.dp, vertical = 4.dp),
-            text = stringResource(R.string.nc_transaction_empty_title),
-            style = NunchukTheme.typography.body.copy(
-                color = MaterialTheme.colorScheme.textPrimary
+            text = stringResource(
+                if (isStableWallet) R.string.nc_stable_transaction_empty_title
+                else R.string.nc_transaction_empty_title
             ),
-            textAlign = TextAlign.Center,
+            style = NunchukTheme.typography.body.copy(
+                color = MaterialTheme.colorScheme.textPrimary,
+                textAlign = TextAlign.Center,
+            ),
         )
         Spacer(Modifier.size(16.dp))
         if (qrBitmap != null) {

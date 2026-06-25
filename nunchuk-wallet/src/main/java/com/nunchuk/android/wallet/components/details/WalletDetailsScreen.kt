@@ -219,6 +219,7 @@ internal fun WalletDetailsScreen(
                             address = state.unusedAddress,
                             onCopyAddress = onCopyAddress,
                             onShareAddress = onShareAddress,
+                            isStableWallet = isStableWallet,
                         )
                     }
                 }
