@@ -39,8 +39,12 @@ import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.core.domain.data.BTC
+import com.nunchuk.android.core.domain.data.CURRENT_DISPLAY_UNIT_TYPE
+import com.nunchuk.android.core.domain.data.SAT
 import com.nunchuk.android.core.util.MAX_FRACTION_DIGITS
 import com.nunchuk.android.core.util.USD_FRACTION_DIGITS
+import com.nunchuk.android.core.util.beautifySATFormat
 import com.nunchuk.android.core.util.formatDecimal
 import com.nunchuk.android.core.util.formatDecimalWithoutZero
 import com.nunchuk.android.core.util.fromBTCToCurrency
@@ -72,7 +76,7 @@ internal fun rememberStableWalletHeaderModel(state: WalletDetailsState): StableW
 
     val usdtRaw = "${wallet.usdtBalance.formatUsdt()} USDT"
     val usdtCashRaw = "(${wallet.usdtBalance.formatUsdtAsUsd()})"
-    val lbtcRaw = "${wallet.lbtcBalance.formatLbtc()} LBTC"
+    val lbtcRaw = wallet.lbtcBalance.formatLbtc()
     val lbtcCashRaw = "(${wallet.lbtcBalance.formatLbtcAsUsd()})"
 
     return StableWalletHeaderUiModel(
@@ -93,8 +97,14 @@ internal fun rememberStableWalletHeaderModel(state: WalletDetailsState): StableW
 private fun Amount.formatUsdt(): String =
     pureBTC().formatDecimalWithoutZero(maxFractionDigits = MAX_FRACTION_DIGITS)
 
-private fun Amount.formatLbtc(): String =
-    pureBTC().formatDecimal(minFractionDigits = MAX_FRACTION_DIGITS)
+// Liquid BTC mirrors the regular BTC balance display (see Double.getBTCAmount)
+// so it honours the selected unit setting (sat / BTC / BTC with fixed precision)
+// instead of always showing a fixed 8-decimal "LBTC" value.
+private fun Amount.formatLbtc(): String = when (CURRENT_DISPLAY_UNIT_TYPE) {
+    SAT -> "${value.beautifySATFormat()} sat"
+    BTC -> "${pureBTC().formatDecimal()} LBTC"
+    else -> "${pureBTC().formatDecimal(minFractionDigits = MAX_FRACTION_DIGITS)} LBTC"
+}
 
 private fun Amount.formatUsdtAsUsd(): String =
     "${getDisplayCurrency()}${pureBTC().fromUsdtToCurrency().formatDecimal(maxFractionDigits = USD_FRACTION_DIGITS)}"
