@@ -30,6 +30,7 @@ import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.data.model.QuickWalletParam
 import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.signer.KeyFlow
+import com.nunchuk.android.core.signer.KeyFlow.isAddAndPushFlow
 import com.nunchuk.android.core.signer.KeyFlow.isAddAndReturnFlow
 import com.nunchuk.android.core.signer.KeyFlow.isAddAndReturnWithPassphraseFlow
 import com.nunchuk.android.core.signer.KeyFlow.isSignInFlow
@@ -162,6 +163,20 @@ class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
                         )
                     }
 
+                    primaryKeyFlow.isAddAndPushFlow() -> {
+                        // stablecoin (USDT) wallet: auto-name the key and skip the naming screen
+                        navigator.openSetPassphraseScreen(
+                            activityContext = this,
+                            mnemonic = event.mnemonic,
+                            signerName = viewModel.state.value?.usdtKeyName.orEmpty()
+                                .ifEmpty { DEFAULT_USDT_KEY_NAME },
+                            keyFlow = primaryKeyFlow,
+                            groupId = groupId,
+                            replacedXfp = replacedXfp,
+                            walletId = walletId,
+                        )
+                    }
+
                     assistedWalletManager.isGroupAssistedWallet(groupId) || replacedXfp.isNotEmpty() -> {
                         val signerName = if (replacedXfp.isNotEmpty()) {
                             viewModel.state.value?.replaceSignerName.orEmpty()
@@ -279,6 +294,7 @@ class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
         private const val EXTRA_REPLACED_XFP = "EXTRA_REPLACED_XFP"
         private const val EXTRA_WALLET_ID = "EXTRA_WALLET_ID"
         private const val EXTRA_QUICK_WALLET_PARAM = "EXTRA_QUICK_WALLET_PARAM"
+        private const val DEFAULT_USDT_KEY_NAME = "USDT Key"
 
         fun start(
             activityContext: Context,

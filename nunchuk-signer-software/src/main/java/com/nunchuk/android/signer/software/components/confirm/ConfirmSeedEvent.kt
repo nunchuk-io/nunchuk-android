@@ -27,4 +27,5 @@ sealed class ConfirmSeedEvent {
 data class ConfirmSeedState(
     val groups: List<PhraseWordGroup> = ArrayList(),
     val replaceSignerName: String = "",
+    val usdtKeyName: String = "",
 )

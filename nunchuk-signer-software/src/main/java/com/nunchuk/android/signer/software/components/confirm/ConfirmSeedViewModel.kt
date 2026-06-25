@@ -24,12 +24,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
+import com.nunchuk.android.core.signer.KeyFlow.isAddAndPushFlow
 import com.nunchuk.android.signer.software.components.confirm.ConfirmSeedEvent.ConfirmSeedCompletedEvent
 import com.nunchuk.android.signer.software.components.confirm.ConfirmSeedEvent.SelectedIncorrectWordEvent
 import com.nunchuk.android.signer.software.components.create.PHRASE_SEPARATOR
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.MarkHotKeyBackedUpUseCase
 import com.nunchuk.android.usecase.byzantine.GetReplaceSignerNameUseCase
+import com.nunchuk.android.usecase.signer.GetMasterSigners2UseCase
 import com.nunchuk.android.usecase.wallet.MarkHotWalletBackedUpUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -47,6 +49,7 @@ internal class ConfirmSeedViewModel @Inject constructor(
     private val coroutineScope: CoroutineScope,
     private val getReplaceSignerNameUseCase: GetReplaceSignerNameUseCase,
     private val markHotKeyBackedUpUseCase: MarkHotKeyBackedUpUseCase,
+    private val getMasterSigners2UseCase: GetMasterSigners2UseCase,
     private val pushEventManager: PushEventManager,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
@@ -71,6 +74,21 @@ internal class ConfirmSeedViewModel @Inject constructor(
                     )
                 ).onSuccess { name ->
                     _state.update { it.copy(replaceSignerName = name) }
+                }
+            }
+        }
+        if (args.primaryKeyFlow.isAddAndPushFlow()) {
+            viewModelScope.launch {
+                getMasterSigners2UseCase(Unit).onSuccess { signers ->
+                    val count = signers.count {
+                        it.type == SignerType.SOFTWARE && USDT_KEY_NAME_REGEX.matches(it.name)
+                    }
+                    val name = if (count == 0) {
+                        USDT_KEY_NAME
+                    } else {
+                        "$USDT_KEY_NAME_PREFIX ${count + 1}"
+                    }
+                    _state.update { it.copy(usdtKeyName = name) }
                 }
             }
         }
@@ -116,5 +134,11 @@ internal class ConfirmSeedViewModel @Inject constructor(
     private fun PhraseWordGroup.isCorrectSelected() = (firstWord.selected && firstWord.correct) ||
             (secondWord.selected && secondWord.correct) ||
             (thirdWord.selected && thirdWord.correct)
+
+    companion object {
+        private const val USDT_KEY_NAME = "USDT Key"
+        private const val USDT_KEY_NAME_PREFIX = "USDT key"
+        private val USDT_KEY_NAME_REGEX = Regex("USDT [Kk]ey( \\d+)?")
+    }
 
 }

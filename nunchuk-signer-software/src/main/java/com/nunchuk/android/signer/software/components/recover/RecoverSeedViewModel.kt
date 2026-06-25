@@ -37,6 +37,7 @@ import com.nunchuk.android.usecase.CheckMnemonicUseCase
 import com.nunchuk.android.usecase.GetBip39WordListUseCase
 import com.nunchuk.android.usecase.GetMasterFingerprintUseCase
 import com.nunchuk.android.usecase.byzantine.GetReplaceSignerNameUseCase
+import com.nunchuk.android.usecase.signer.GetMasterSigners2UseCase
 import com.nunchuk.android.usecase.wallet.CreateUsdtWalletFromMnemonicUseCase
 import com.nunchuk.android.usecase.wallet.RecoverHotWalletUseCase
 import com.nunchuk.android.utils.onException
@@ -56,6 +57,7 @@ internal class RecoverSeedViewModel @Inject constructor(
     private val createUsdtWalletFromMnemonicUseCase: CreateUsdtWalletFromMnemonicUseCase,
     private val getMasterFingerprintUseCase: GetMasterFingerprintUseCase,
     private val getReplaceSignerNameUseCase: GetReplaceSignerNameUseCase,
+    private val getMasterSigners2UseCase: GetMasterSigners2UseCase,
 ) : NunchukViewModel<RecoverSeedState, RecoverSeedEvent>() {
 
     private val bip39Words = mutableListOf<String>()
@@ -65,6 +67,19 @@ internal class RecoverSeedViewModel @Inject constructor(
         viewModelScope.launch {
             getBip39WordListUseCase(Unit)
                 .onSuccess { bip39Words.addAll(it) }
+        }
+        viewModelScope.launch {
+            getMasterSigners2UseCase(Unit).onSuccess { signers ->
+                val count = signers.count {
+                    it.type == SignerType.SOFTWARE && USDT_KEY_NAME_REGEX.matches(it.name)
+                }
+                val name = if (count == 0) {
+                    USDT_KEY_NAME
+                } else {
+                    "$USDT_KEY_NAME_PREFIX ${count + 1}"
+                }
+                updateState { copy(usdtKeyName = name) }
+            }
         }
     }
 
@@ -174,6 +189,9 @@ internal class RecoverSeedViewModel @Inject constructor(
     companion object {
         private const val MAX_ACCEPTED_NUM_WORDS = 24
         private const val MIN_ACCEPTED_NUM_WORDS = 12
+        private const val USDT_KEY_NAME = "USDT Key"
+        private const val USDT_KEY_NAME_PREFIX = "USDT key"
+        private val USDT_KEY_NAME_REGEX = Regex("USDT [Kk]ey( \\d+)?")
     }
 
 }

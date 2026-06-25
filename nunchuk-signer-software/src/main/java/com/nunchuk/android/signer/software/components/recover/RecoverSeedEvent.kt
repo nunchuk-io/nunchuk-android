@@ -34,4 +34,5 @@ data class RecoverSeedState(
     val mnemonic: String = "",
     val suggestions: List<String> = emptyList(),
     val replaceSignerName: String = "",
+    val usdtKeyName: String = "",
 )

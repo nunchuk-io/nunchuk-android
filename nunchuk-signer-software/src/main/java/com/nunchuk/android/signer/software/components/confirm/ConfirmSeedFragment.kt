@@ -30,6 +30,7 @@ import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.manager.NcToastManager
+import com.nunchuk.android.core.signer.KeyFlow.isAddAndPushFlow
 import com.nunchuk.android.core.signer.KeyFlow.isAddAndReturnFlow
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.manager.AssistedWalletManager
@@ -131,6 +132,17 @@ class ConfirmSeedFragment : BaseFragment<FragmentConfirmSeedBinding>() {
                     primaryKeyFlow = args.primaryKeyFlow,
                 )
             )
+        } else if (args.primaryKeyFlow.isAddAndPushFlow()) {
+            // stablecoin (USDT) wallet: auto-name the key and skip the naming screen
+            navigator.openSetPassphraseScreen(
+                activityContext = requireActivity(),
+                mnemonic = args.mnemonic,
+                signerName = viewModel.state.value.usdtKeyName.ifEmpty { DEFAULT_USDT_KEY_NAME },
+                keyFlow = args.primaryKeyFlow,
+                groupId = args.groupId,
+                replacedXfp = args.replacedXfp,
+                walletId = args.walletId
+            )
         } else if (assistedWalletManager.isGroupAssistedWallet(args.groupId) || args.replacedXfp.isNotEmpty()) {
             val signerName = if (args.replacedXfp.isNotEmpty()) {
                 viewModel.state.value.replaceSignerName
@@ -184,5 +196,6 @@ class ConfirmSeedFragment : BaseFragment<FragmentConfirmSeedBinding>() {
     companion object {
         private const val BY_PASS_PRESS_COUNT = 7
         private const val DEFAULT_KEY_NAME = "My Key"
+        private const val DEFAULT_USDT_KEY_NAME = "USDT Key"
     }
 }
