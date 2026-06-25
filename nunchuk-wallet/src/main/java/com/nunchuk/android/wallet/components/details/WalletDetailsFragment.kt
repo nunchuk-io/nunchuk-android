@@ -67,6 +67,7 @@ import com.nunchuk.android.wallet.databinding.FragmentWalletDetailBinding
 import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.model.HistoryPeriod
+import com.nunchuk.android.model.LiquidNetworkStatus
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -237,6 +238,14 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
             }
 
             is WalletDetailsEvent.ShareBSMS -> controller.shareFile(event.filePath)
+            is WalletDetailsEvent.ShowLiquidNetworkToast -> {
+                val toast = NCToastMessage(requireActivity())
+                when (event.severity) {
+                    LiquidNetworkStatus.Severity.ERROR -> toast.showError(event.message)
+                    LiquidNetworkStatus.Severity.WARNING -> toast.showWarning(event.message)
+                    else -> toast.showMessage(event.message)
+                }
+            }
         }
     }
 

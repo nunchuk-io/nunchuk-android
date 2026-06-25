@@ -36,6 +36,10 @@ sealed class WalletDetailsEvent {
     data class OpenSetupGroupWallet(val groupId: String) : WalletDetailsEvent()
     data class SaveLocalFile(val isSuccess: Boolean) : WalletDetailsEvent()
     data class ShareBSMS(val filePath: String) : WalletDetailsEvent()
+    data class ShowLiquidNetworkToast(
+        val message: String,
+        val severity: LiquidNetworkStatus.Severity,
+    ) : WalletDetailsEvent()
 }
 
 data class WalletDetailsState(

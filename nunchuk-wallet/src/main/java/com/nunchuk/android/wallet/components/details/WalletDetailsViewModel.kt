@@ -95,6 +95,7 @@ import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.Loading
 import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.SaveLocalFile
 import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.SendMoneyEvent
 import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.ShareBSMS
+import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.ShowLiquidNetworkToast
 import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.WalletDetailsError
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -547,7 +548,13 @@ internal class WalletDetailsViewModel @Inject constructor(
         if (walletType != WalletType.LIQUID) return
         viewModelScope.launch {
             getLiquidNetworkStatusUseCase(Unit)
-                .onSuccess { status -> updateState { copy(liquidNetworkStatus = status) } }
+                .onSuccess { status ->
+                    val previousToast = getState().liquidNetworkStatus.toastMessage
+                    updateState { copy(liquidNetworkStatus = status) }
+                    if (status.toastMessage.isNotBlank() && status.toastMessage != previousToast) {
+                        event(ShowLiquidNetworkToast(status.toastMessage, status.severity))
+                    }
+                }
                 .onFailure { Timber.e(it, "Failed to load liquid network status") }
         }
     }
