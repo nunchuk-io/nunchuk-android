@@ -118,6 +118,7 @@ internal class InputStablecoinAmountViewModel @Inject constructor(
                 amountToken = 0.0,
                 amountUsd = 0.0,
                 useToken = true,
+                isSendAll = false,
             )
         }
     }
@@ -144,7 +145,8 @@ internal class InputStablecoinAmountViewModel @Inject constructor(
         val current = _state.value
         val inputValue = input.toNumericValue().toDouble()
         if (input != current.inputText) {
-            _state.update { it.copy(inputText = input) }
+            // The user edited the amount manually, so it's no longer a "send all".
+            _state.update { it.copy(inputText = input, isSendAll = false) }
         }
         val tokenToFiat = when (current.selectedToken) {
             StablecoinToken.USDT -> USDT_CURRENCY_EXCHANGE_RATE
@@ -184,21 +186,36 @@ internal class InputStablecoinAmountViewModel @Inject constructor(
                 }
             }
         }
+        // setInputAmount() runs handleAmountChanged() which clears isSendAll, so flag
+        // it afterwards. The fee is paid in LBTC, so a send-all only needs the fee
+        // subtracted from the output when the sent asset is LBTC itself.
         setInputAmount(amount)
+        _state.update { it.copy(isSendAll = true) }
     }
 
     fun handleContinueEvent() {
         viewModelScope.launch {
             val current = _state.value
-            val amount = current.amountToken
+            val inputAmount = current.amountToken
             val balance = balanceForToken(current.selectedToken)
+            // Tapping "Send all" or typing an amount that reaches the balance are both
+            // send-all: the whole balance leaves the wallet, so there's no room for fee.
+            // Use >= (with a sub-satoshi tolerance) so a typed full balance still counts
+            // even if it rounds a hair above the stored balance.
+            val isSendAll = current.isSendAll || inputAmount >= balance - SEND_ALL_EPSILON
+            // Clamp a send-all to the exact balance; the lib subtracts the fee from it.
+            val amount = if (isSendAll) balance else inputAmount
             val event = when {
-                amount <= 0 -> InputStablecoinAmountEvent.InvalidAmountEvent
-                amount > balance -> InputStablecoinAmountEvent.InsufficientFundsEvent
+                inputAmount <= 0 -> InputStablecoinAmountEvent.InvalidAmountEvent
+                inputAmount > balance + SEND_ALL_EPSILON -> InputStablecoinAmountEvent.InsufficientFundsEvent
                 else -> InputStablecoinAmountEvent.AcceptAmountEvent(
                     amount = amount,
                     token = current.selectedToken,
                     tokenAssetId = assetIdFor(current.selectedToken),
+                    // Only the fee asset (LBTC) output can absorb the network fee; a
+                    // USDT send-all still pays the fee from the separate LBTC balance.
+                    subtractFeeFromAmount = isSendAll &&
+                            current.selectedToken == StablecoinToken.LBTC,
                 )
             }
             _event.emit(event)
@@ -235,5 +252,9 @@ internal class InputStablecoinAmountViewModel @Inject constructor(
         // Liquid confidential 1-in/2-out p2wpkh tx is ~1.5 kvB after rangeproof discount.
         private const val LIQUID_TX_ESTIMATED_KVB = 1.5
         private const val SAT_PER_BTC = 100_000_000.0
+
+        // Half a satoshi: tighter than the smallest representable unit (1e-8) so a typed
+        // full balance counts as send-all without false positives from rounding.
+        private const val SEND_ALL_EPSILON = 0.5 / SAT_PER_BTC
     }
 }

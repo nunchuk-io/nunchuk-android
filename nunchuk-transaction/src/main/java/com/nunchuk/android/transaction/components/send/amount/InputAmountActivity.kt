@@ -133,6 +133,7 @@ class InputAmountActivity : BaseComposeActivity(), BottomSheetOptionListener {
                     walletId = args.walletId,
                     outputAmount = event.amount,
                     availableAmount = args.availableAmount,
+                    subtractFeeFromAmount = event.subtractFeeFromAmount,
                     inputs = args.inputs,
                     tokenAssetId = event.tokenAssetId,
                 )

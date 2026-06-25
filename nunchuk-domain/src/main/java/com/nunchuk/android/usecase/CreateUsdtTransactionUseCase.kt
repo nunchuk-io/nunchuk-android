@@ -17,6 +17,7 @@ class CreateUsdtTransactionUseCase @Inject constructor(
             outputs = parameters.outputs,
             feeRate = parameters.feeRate,
             memo = parameters.memo,
+            subtractFeeFromAmount = parameters.subtractFeeFromAmount,
         )
     }
 
@@ -25,5 +26,6 @@ class CreateUsdtTransactionUseCase @Inject constructor(
         val outputs: Map<String, Map<String, Amount>>,
         val feeRate: Amount,
         val memo: String = "",
+        val subtractFeeFromAmount: Boolean = false,
     )
 }

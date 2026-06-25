@@ -730,6 +730,8 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
     private fun openTransactionConfirmForLiquid() {
         val state = viewModel.getAddReceiptState()
         val finalAmount = if (state.amount.value > 0) state.amount.pureBTC() else args.outputAmount
+        val subtractFeeFromAmount =
+            if (state.amount.value > 0) false else args.subtractFeeFromAmount
         TransactionConfirmActivity.start(
             activityContext = this,
             walletId = args.walletId,
@@ -742,7 +744,7 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
                 )
             ),
             privateNote = state.privateNote,
-            subtractFeeFromAmount = false,
+            subtractFeeFromAmount = subtractFeeFromAmount,
             manualFeeRate = 0,
             sweepType = args.sweepType,
             slots = args.slots,
@@ -757,6 +759,8 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
     private fun createLiquidTransactionDirect() {
         val state = viewModel.getAddReceiptState()
         val finalAmount = if (state.amount.value > 0) state.amount.pureBTC() else args.outputAmount
+        val subtractFeeFromAmount =
+            if (state.amount.value > 0) false else args.subtractFeeFromAmount
         transactionConfirmViewModel.init(
             walletId = args.walletId,
             txReceipts = listOf(
@@ -766,7 +770,7 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
                     tokenAssetId = args.tokenAssetId,
                 )
             ),
-            subtractFeeFromAmount = false,
+            subtractFeeFromAmount = subtractFeeFromAmount,
             privateNote = state.privateNote,
             manualFeeRate = -1,
             inputs = args.inputs,

@@ -26,6 +26,7 @@ sealed class InputStablecoinAmountEvent {
         val amount: Double,
         val token: StablecoinToken,
         val tokenAssetId: String,
+        val subtractFeeFromAmount: Boolean = false,
     ) : InputStablecoinAmountEvent()
     object InvalidAmountEvent : InputStablecoinAmountEvent()
     object InsufficientFundsEvent : InputStablecoinAmountEvent()
@@ -44,4 +45,5 @@ data class InputStablecoinAmountState(
     val lbtcBalanceUsd: Double = 0.0,
     val networkFeeLbtc: Double = 0.0,
     val networkFeeUsd: Double = 0.0,
+    val isSendAll: Boolean = false,
 )

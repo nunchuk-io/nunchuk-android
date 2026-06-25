@@ -283,6 +283,7 @@ class TransactionConfirmViewModel @Inject constructor(
                     walletId = walletId,
                     outputs = getLiquidOutputs(),
                     feeRate = manualFeeRate.toManualFeeRate(),
+                    subtractFeeFromAmount = subtractFeeFromAmount,
                 )
             ).onSuccess {
                 onDraftTransactionSuccess(it)
@@ -516,6 +517,7 @@ class TransactionConfirmViewModel @Inject constructor(
                     outputs = getLiquidOutputs(),
                     feeRate = manualFeeRate.toManualFeeRate(),
                     memo = privateNote,
+                    subtractFeeFromAmount = subtractFeeFromAmount,
                 )
             ).onSuccess { transaction ->
                 _event.emit(CreateTxSuccessEvent(transaction))
