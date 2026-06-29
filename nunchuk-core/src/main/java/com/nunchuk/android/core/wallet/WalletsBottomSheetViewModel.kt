@@ -34,6 +34,7 @@ import com.nunchuk.android.model.wallet.WalletStatus
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.GetGroupsUseCase
 import com.nunchuk.android.usecase.GetWalletsUseCase
+import com.nunchuk.android.usecase.IsLiquidAddressUseCase
 import com.nunchuk.android.usecase.free.groupwallet.GetFreeGroupWalletsUseCase
 import com.nunchuk.android.usecase.membership.GetSavedAddressListLocalUseCase
 import com.nunchuk.android.usecase.membership.GetSavedAddressListRemoteUseCase
@@ -59,6 +60,7 @@ class WalletsBottomSheetViewModel @Inject constructor(
     private val getSavedAddressListRemoteUseCase: GetSavedAddressListRemoteUseCase,
     private val getLocalMembershipPlansFlowUseCase: GetLocalMembershipPlansFlowUseCase,
     private val getFreeGroupWalletsUseCase: GetFreeGroupWalletsUseCase,
+    private val isLiquidAddressUseCase: IsLiquidAddressUseCase,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(WalletsBottomSheetState())
@@ -148,7 +150,12 @@ class WalletsBottomSheetViewModel @Inject constructor(
         viewModelScope.launch {
             getSavedAddressListLocalUseCase(Unit)
                 .collect { result ->
-                    _state.update { it.copy(savedAddresses = result.getOrNull()?.filter { it.address !in exclusiveAddresses }.orEmpty()) }
+                    val config = _state.value.config
+                    val addresses = result.getOrNull()
+                        ?.filter { it.address !in exclusiveAddresses }
+                        ?.filter { matchesAddressTypeFilter(it.address, config) }
+                        .orEmpty()
+                    _state.update { it.copy(savedAddresses = addresses) }
                 }
 
         }
@@ -160,6 +167,15 @@ class WalletsBottomSheetViewModel @Inject constructor(
     ): Boolean = when {
         config.isLiquidOnly() -> type == WalletType.LIQUID
         config.isNonLiquidOnly() -> type != WalletType.LIQUID
+        else -> true
+    }
+
+    private suspend fun matchesAddressTypeFilter(
+        address: String,
+        config: WalletComposeBottomSheet.ConfigArgs,
+    ): Boolean = when {
+        config.isLiquidOnly() -> isLiquidAddressUseCase(address).getOrDefault(false)
+        config.isNonLiquidOnly() -> isLiquidAddressUseCase(address).getOrDefault(false).not()
         else -> true
     }
 
