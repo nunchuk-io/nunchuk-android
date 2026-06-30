@@ -63,6 +63,7 @@ import com.nunchuk.android.usecase.CreateUsdtTransactionUseCase
 import com.nunchuk.android.usecase.DraftSatsCardTransactionUseCase
 import com.nunchuk.android.usecase.DraftTransactionUseCase
 import com.nunchuk.android.usecase.DraftUsdtTransactionUseCase
+import com.nunchuk.android.usecase.EstimateFeeForLiquidTransactionUseCase
 import com.nunchuk.android.usecase.EstimateFeeForSigningPathsUseCase
 import com.nunchuk.android.usecase.EstimateFeeUseCase
 import com.nunchuk.android.usecase.EstimateLiquidFeeUseCase
@@ -78,6 +79,7 @@ import com.nunchuk.android.usecase.membership.GetSavedAddressListLocalUseCase
 import com.nunchuk.android.usecase.room.transaction.InitRoomTransactionUseCase
 import com.nunchuk.android.usecase.transaction.GetTransaction2UseCase
 import com.nunchuk.android.usecase.transaction.SaveTaprootKeySetSelectionUseCase
+import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -118,7 +120,9 @@ class TransactionConfirmViewModel @Inject constructor(
     private val estimateLiquidFeeUseCase: EstimateLiquidFeeUseCase,
     private val draftUsdtTransactionUseCase: DraftUsdtTransactionUseCase,
     private val createUsdtTransactionUseCase: CreateUsdtTransactionUseCase,
+    private val estimateFeeForLiquidTransactionUseCase: EstimateFeeForLiquidTransactionUseCase,
     private val getUsdtAssetIdUseCase: GetUsdtAssetIdUseCase,
+    private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
     private val walletManager: WalletManager,
     private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
@@ -278,19 +282,63 @@ class TransactionConfirmViewModel @Inject constructor(
         viewModelScope.launch {
             _event.emit(LoadingEvent())
             fetchLiquidFeeRateIfNeeded()
+            val outputs = getLiquidOutputs()
+            val feeRate = manualFeeRate.toManualFeeRate()
+            // Estimate the LBTC fee and read the wallet balance up front so we can verify the
+            // wallet can cover the fee before attempting to draft. The fee is always paid in LBTC.
+            val (estimatedFee, lbtcBalance) = runCatching {
+                val fee = estimateFeeForLiquidTransactionUseCase(
+                    EstimateFeeForLiquidTransactionUseCase.Param(
+                        walletId = walletId,
+                        outputs = outputs,
+                        feeRate = feeRate,
+                        subtractFeeFromAmount = subtractFeeFromAmount,
+                    )
+                ).getOrThrow()
+                val balance = getWalletDetail2UseCase(walletId).getOrThrow().lbtcBalance
+                fee to balance
+            }.getOrElse {
+                _event.emit(CreateTxErrorEvent(it.message.orUnknownError()))
+                return@launch
+            }
+            if (lbtcBalance.value < estimatedFee.value) {
+                showNotEnoughLbtcForFee(estimatedFee, feeRate)
+                return@launch
+            }
             draftUsdtTransactionUseCase(
                 DraftUsdtTransactionUseCase.Param(
                     walletId = walletId,
-                    outputs = getLiquidOutputs(),
-                    feeRate = manualFeeRate.toManualFeeRate(),
+                    outputs = outputs,
+                    feeRate = feeRate,
                     subtractFeeFromAmount = subtractFeeFromAmount,
                 )
             ).onSuccess {
+                _state.update { it.copy(notEnoughLbtcForFee = false) }
                 onDraftTransactionSuccess(it)
             }.onFailure {
                 _event.emit(CreateTxErrorEvent(it.message.orUnknownError()))
             }
         }
+    }
+
+    /**
+     * The wallet cannot cover the LBTC fee. Render the confirm screen from the receipts and the
+     * estimated fee so the user sees the shortfall, with the confirm action disabled.
+     */
+    private suspend fun showNotEnoughLbtcForFee(estimatedFee: Amount, feeRate: Amount) {
+        val syntheticTransaction = _state.value.transaction.copy(
+            outputs = txReceipts.map {
+                TxOutput(
+                    first = it.address,
+                    second = it.amount.toAmount(),
+                    assetId = it.tokenAssetId,
+                )
+            },
+            fee = estimatedFee,
+            feeRate = feeRate,
+        )
+        _state.update { it.copy(notEnoughLbtcForFee = true) }
+        onDraftTransactionSuccess(syntheticTransaction)
     }
 
     private suspend fun fetchLiquidFeeRateIfNeeded() {
@@ -780,6 +828,7 @@ data class TransactionConfirmUiState(
     val feeSelectionSetting: TaprootFeeSelectionSetting = TaprootFeeSelectionSetting(),
     val isLiquid: Boolean = false,
     val usdtAssetId: String = "",
+    val notEnoughLbtcForFee: Boolean = false,
 )
 
 internal fun Int.toManualFeeRate() = if (this > 0) toAmount() else Amount(-1)

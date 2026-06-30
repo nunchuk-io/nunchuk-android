@@ -56,6 +56,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -68,6 +69,8 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.viewbinding.ViewBinding
+import com.nunchuk.android.compose.HighlightMessageType
+import com.nunchuk.android.compose.NcHintMessage
 import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
@@ -85,6 +88,7 @@ import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.SweepType
 import com.nunchuk.android.core.sheet.BottomSheetTooltip
+import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.core.util.InheritanceClaimTxDetailInfo
 import com.nunchuk.android.core.util.copyToClipboard
 import com.nunchuk.android.core.util.flowObserver
@@ -426,6 +430,8 @@ private fun TransactionConfirmScreen(
             savedAddresses = uiState.savedAddress,
             fee = fee,
             isLiquid = isLiquid,
+            isNotEnoughLbtcForFee = uiState.notEnoughLbtcForFee,
+            feeCurrency = formatLiquidFeeCurrency(fee),
             usdtAssetId = uiState.usdtAssetId,
             liquidAssetTotals = liquidAssetTotals,
             totalAmountBtc = totalAmountPrimary,
@@ -448,6 +454,9 @@ private fun TransactionConfirmScreen(
                 }
             },
             onCustomizeFeeClick = { showCustomizeFee = true },
+            onAddFunds = {
+                activity.navigator.openReceiveTransactionScreen(activity, args.walletId)
+            },
             onCopyText = { content ->
                 activity.copyToClipboard(label = "Nunchuk", text = content)
                 NCToastMessage(activity).showMessage(context.getString(R.string.nc_copied_to_clipboard))
@@ -471,6 +480,8 @@ internal fun TransactionConfirmContent(
     savedAddresses: Map<String, String> = emptyMap(),
     fee: Amount = Amount(0),
     isLiquid: Boolean = false,
+    isNotEnoughLbtcForFee: Boolean = false,
+    feeCurrency: String = "",
     usdtAssetId: String = "",
     liquidAssetTotals: Map<String, Amount> = emptyMap(),
     totalAmountBtc: String = "",
@@ -484,6 +495,7 @@ internal fun TransactionConfirmContent(
     onBackPressed: () -> Unit = {},
     onConfirmClick: () -> Unit = {},
     onCustomizeFeeClick: () -> Unit = {},
+    onAddFunds: () -> Unit = {},
     onCopyText: (String) -> Unit = {},
     onEstimatedFeeInfoClick: () -> Unit = {},
 ) {
@@ -513,6 +525,7 @@ internal fun TransactionConfirmContent(
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp)
                         .padding(top = 16.dp),
+                    enabled = !isNotEnoughLbtcForFee,
                     onClick = onConfirmClick,
                 ) {
                     Text(text = confirmButtonText)
@@ -568,6 +581,15 @@ internal fun TransactionConfirmContent(
                 }
             }
 
+            // Divider between the send-to-address section and the fee
+            if (outputs.isNotEmpty()) {
+                HorizontalDivider(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    color = MaterialTheme.colorScheme.backgroundMidGray,
+                    thickness = 1.dp,
+                )
+            }
+
             // Estimated fee
             Row(
                 modifier = Modifier
@@ -592,13 +614,46 @@ internal fun TransactionConfirmContent(
                     }
                 }
                 if (isLiquid) {
-                    Text(
-                        text = formatLiquidFee(fee),
-                        style = NunchukTheme.typography.title,
-                    )
+                    Column(horizontalAlignment = Alignment.End) {
+                        Text(
+                            text = formatLiquidFee(fee),
+                            style = NunchukTheme.typography.title,
+                            color = if (isNotEnoughLbtcForFee) {
+                                MaterialTheme.colorScheme.error
+                            } else {
+                                Color.Unspecified
+                            },
+                        )
+                        if (isNotEnoughLbtcForFee && feeCurrency.isNotEmpty()) {
+                            Text(
+                                text = feeCurrency,
+                                style = NunchukTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.padding(top = 4.dp),
+                            )
+                        }
+                    }
                 } else {
                     AmountView(fee)
                 }
+            }
+
+            // Not enough LBTC to pay the fee
+            if (isNotEnoughLbtcForFee) {
+                NcHintMessage(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .padding(top = 16.dp),
+                    type = HighlightMessageType.WARNING,
+                    messages = listOf(
+                        ClickAbleText(content = stringResource(R.string.nc_not_enough_lbtc_for_fee)),
+                        ClickAbleText(
+                            content = stringResource(R.string.nc_add_funds),
+                            onClick = onAddFunds,
+                        ),
+                    ),
+                )
             }
 
             // Total amount
@@ -721,6 +776,9 @@ private fun formatLiquidFee(fee: Amount): String {
     return "$lbtc LBTC"
 }
 
+private fun formatLiquidFeeCurrency(fee: Amount): String =
+    "${getDisplayCurrency()}${fee.pureBTC().fromBTCToCurrency().formatFiatDecimal()}"
+
 private const val LIQUID_MAX_FRACTION_DIGITS = 8
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -842,6 +900,23 @@ private fun TransactionConfirmContentPreview() {
             totalAmountCurrency = "$5,400.52",
             fee = Amount(10000),
             privateNote = "Test note",
+        )
+    }
+}
+
+@PreviewLightDark
+@Composable
+private fun TransactionConfirmContentNotEnoughLbtcPreview() {
+    NunchukTheme {
+        TransactionConfirmContent(
+            title = "Confirm transaction",
+            confirmButtonText = "Confirm and create transaction",
+            outputs = listOf(TxOutput("VTpv1d9z8h6x3k2m7q5w8y4r0s6n3", Amount(102400000000))),
+            fee = Amount(200),
+            isLiquid = true,
+            isNotEnoughLbtcForFee = true,
+            feeCurrency = "$0.15",
+            liquidAssetTotals = mapOf("" to Amount(200)),
         )
     }
 }

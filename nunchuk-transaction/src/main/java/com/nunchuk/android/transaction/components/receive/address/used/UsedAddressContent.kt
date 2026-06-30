@@ -248,7 +248,7 @@ private fun LiquidUsedAddressItem(
             Text(
                 text = stringResource(
                     R.string.nc_amount_usdt,
-                    usdtAmount.pureBTC().formatDecimalWithoutZero(maxFractionDigits = 2),
+                    usdtAmount.pureBTC().formatDecimalWithoutZero(maxFractionDigits = 8),
                 ),
                 style = NunchukTheme.typography.title,
                 color = MaterialTheme.colorScheme.textPrimary,
