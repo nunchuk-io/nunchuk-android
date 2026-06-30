@@ -63,10 +63,10 @@ import com.nunchuk.android.usecase.GetChainTipUseCase
 import com.nunchuk.android.usecase.GetGlobalGroupWalletConfigUseCase
 import com.nunchuk.android.usecase.GetGroupWalletConfigUseCase
 import com.nunchuk.android.usecase.GetGroupWalletMessageUnreadCountUseCase
-import com.nunchuk.android.usecase.GetTimelockedUntilUseCase
-import com.nunchuk.android.usecase.GetTransactionHistoryUseCase
 import com.nunchuk.android.usecase.GetLiquidAssetIdsUseCase
 import com.nunchuk.android.usecase.GetLiquidNetworkStatusUseCase
+import com.nunchuk.android.usecase.GetTimelockedUntilUseCase
+import com.nunchuk.android.usecase.GetTransactionHistoryUseCase
 import com.nunchuk.android.usecase.GetWalletSecuritySettingUseCase
 import com.nunchuk.android.usecase.GetWalletUseCase
 import com.nunchuk.android.usecase.ImportTransactionUseCase
@@ -109,6 +109,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -173,7 +174,8 @@ internal class WalletDetailsViewModel @Inject constructor(
     private val transactions = mutableListOf<Transaction>()
 
     private val _extendedTransactions = MutableStateFlow<List<ExtendedTransaction>>(emptyList())
-    val extendedTransactions: StateFlow<List<ExtendedTransaction>> = _extendedTransactions.asStateFlow()
+    val extendedTransactions: StateFlow<List<ExtendedTransaction>> =
+        _extendedTransactions.asStateFlow()
 
     override val initialState = WalletDetailsState()
 
@@ -505,6 +507,11 @@ internal class WalletDetailsViewModel @Inject constructor(
                 .onStart { if (loadingSilent.not()) event(Loading(true)) }
                 .flowOn(IO)
                 .onException { event(WalletDetailsError(it.message.orUnknownError())) }
+                .onCompletion { cause ->
+                    if (cause == null && loadingSilent.not()) {
+                        event(Loading(false))
+                    }
+                }
                 .flowOn(Main)
                 .collect {
                     val brief = assistedWalletManager.getBriefWallet(args.walletId)
@@ -792,7 +799,13 @@ internal class WalletDetailsViewModel @Inject constructor(
 
     private fun exportWalletToFile(walletId: String, filePath: String, isShareFile: Boolean) {
         viewModelScope.launch {
-            exportWalletUseCase(ExportWalletUseCase.Param(walletId, filePath, ExportFormat.BSMS)).onSuccess {
+            exportWalletUseCase(
+                ExportWalletUseCase.Param(
+                    walletId,
+                    filePath,
+                    ExportFormat.BSMS
+                )
+            ).onSuccess {
                 if (isShareFile) {
                     setEvent(ShareBSMS(filePath))
                     markGroupWalletAsBackedUp()
