@@ -253,17 +253,19 @@ fun TransactionDetailView(
                         )
                     }
 
-                    item {
-                        TransactionTotalAmount(
-                            modifier = Modifier.padding(top = 16.dp),
-                            total = transaction.totalAmount,
-                            fee = transaction.fee,
-                            outputs = outputs,
-                            hideFiatCurrency = state.hideFiatCurrency,
-                            isLiquid = state.isLiquidWallet,
-                            lbtcAssetId = state.lbtcAssetId,
-                            usdtAssetId = state.usdtAssetId,
-                        )
+                    if (!state.isLiquidWallet) {
+                        item {
+                            TransactionTotalAmount(
+                                modifier = Modifier.padding(top = 16.dp),
+                                total = transaction.totalAmount,
+                                fee = transaction.fee,
+                                outputs = outputs,
+                                hideFiatCurrency = state.hideFiatCurrency,
+                                isLiquid = state.isLiquidWallet,
+                                lbtcAssetId = state.lbtcAssetId,
+                                usdtAssetId = state.usdtAssetId,
+                            )
+                        }
                     }
                 }
 
