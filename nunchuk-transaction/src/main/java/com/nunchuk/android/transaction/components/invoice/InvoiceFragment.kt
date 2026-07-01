@@ -219,7 +219,7 @@ fun InvoiceScreenContent(
                                     .padding(horizontal = 16.dp, vertical = 12.dp)
                             )
 
-                            invoiceInfo.txOutputs.forEach { txOutput ->
+                            invoiceInfo.txOutputs.forEachIndexed { index, txOutput ->
                                 Row(
                                     modifier = Modifier.padding(
                                         start = 16.dp,
@@ -236,7 +236,8 @@ fun InvoiceScreenContent(
                                     )
 
                                     Text(
-                                        text = txOutput.second.getBTCAmount(),
+                                        text = invoiceInfo.outputAmounts.getOrNull(index)
+                                            ?: txOutput.second.getBTCAmount(),
                                         style = NunchukTheme.typography.title,
                                         modifier = Modifier
                                     )

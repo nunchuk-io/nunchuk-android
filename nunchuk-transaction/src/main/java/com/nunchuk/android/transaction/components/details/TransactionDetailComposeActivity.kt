@@ -754,10 +754,12 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
     }
 
     private fun getInvoiceInfo(): InvoiceInfo {
-        val transaction = viewModel.getTransaction()
-        return transaction.toInvoiceInfo(
+        val state = viewModel.state.value
+        return state.transaction.toInvoiceInfo(
             this,
             isInheritanceClaimingFlow = args.inheritanceClaimTxDetailInfo != null,
+            isLiquid = state.isLiquidWallet,
+            usdtAssetId = state.usdtAssetId,
         )
     }
 }
