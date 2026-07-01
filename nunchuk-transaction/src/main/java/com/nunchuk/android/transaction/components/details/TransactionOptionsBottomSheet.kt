@@ -104,7 +104,7 @@ class TransactionOptionsBottomSheet : BaseBottomSheet<DialogTransactionSignBotto
             dismiss()
         }
 
-        binding.btnCopyRawTransactionHex.isVisible = args.canBroadcast || args.isRejected
+        binding.btnCopyRawTransactionHex.isVisible = (args.canBroadcast || args.isRejected) && !args.isLiquid
         binding.btnCopyRawTransactionHex.setOnClickListener {
             listener(COPY_RAW_TRANSACTION_HEX)
             dismiss()
@@ -174,7 +174,8 @@ class TransactionOptionsBottomSheet : BaseBottomSheet<DialogTransactionSignBotto
             userRole: String,
             isReceive: Boolean,
             plan: MembershipPlan,
-            txStatus: String
+            txStatus: String,
+            isLiquid: Boolean = false
         ): TransactionOptionsBottomSheet {
             return TransactionOptionsBottomSheet().apply {
                 arguments =
@@ -189,7 +190,8 @@ class TransactionOptionsBottomSheet : BaseBottomSheet<DialogTransactionSignBotto
                         userRole = userRole,
                         isReceive = isReceive,
                         plan = plan,
-                        txStatus = txStatus
+                        txStatus = txStatus,
+                        isLiquid = isLiquid
                     ).buildBundle()
                 show(fragmentManager, TAG)
             }
@@ -209,7 +211,8 @@ data class TransactionOptionsArgs(
     val userRole: String,
     val isReceive: Boolean,
     val plan: MembershipPlan,
-    val txStatus: String
+    val txStatus: String,
+    val isLiquid: Boolean = false
 ) : FragmentArgs {
 
     override fun buildBundle() = Bundle().apply {
@@ -224,6 +227,7 @@ data class TransactionOptionsArgs(
         putBoolean(EXTRA_IS_RECEIVE, isReceive)
         putSerializable(EXTRA_PLAN, plan)
         putString(EXTRA_TX_STATUS, txStatus)
+        putBoolean(EXTRA_IS_LIQUID, isLiquid)
     }
 
     companion object {
@@ -238,6 +242,7 @@ data class TransactionOptionsArgs(
         private const val EXTRA_IS_RECEIVE = "EXTRA_IS_RECEIVE"
         private const val EXTRA_PLAN = "EXTRA_PLAN"
         private const val EXTRA_TX_STATUS = "EXTRA_TX_STATUS"
+        private const val EXTRA_IS_LIQUID = "EXTRA_IS_LIQUID"
 
         fun deserializeFrom(data: Bundle?) = TransactionOptionsArgs(
             data?.getBooleanValue(EXTRA_IS_PENDING).orFalse(),
@@ -250,7 +255,8 @@ data class TransactionOptionsArgs(
             data?.getString(EXTRA_USER_ROLE).orEmpty(),
             data?.getBooleanValue(EXTRA_IS_RECEIVE).orFalse(),
             data?.serializable<MembershipPlan>(EXTRA_PLAN) ?: MembershipPlan.NONE,
-            data?.getString(EXTRA_TX_STATUS).orEmpty()
+            data?.getString(EXTRA_TX_STATUS).orEmpty(),
+            data?.getBooleanValue(EXTRA_IS_LIQUID).orFalse()
         )
     }
 }

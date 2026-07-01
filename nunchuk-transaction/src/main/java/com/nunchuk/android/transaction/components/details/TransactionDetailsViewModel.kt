@@ -1465,6 +1465,8 @@ internal class TransactionDetailsViewModel @Inject constructor(
         return _minscriptState.value.isMiniscriptWallet
     }
 
+    fun isLiquidWallet(): Boolean = getState().isLiquidWallet
+
     fun setPendingNodeId(nodeId: String) {
         savedStateHandle[KEY_NODE_ID] = nodeId
     }

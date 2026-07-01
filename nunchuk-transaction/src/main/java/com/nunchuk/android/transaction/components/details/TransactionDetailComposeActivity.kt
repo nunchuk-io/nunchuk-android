@@ -495,7 +495,8 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
             userRole = viewModel.getUserRole().name,
             isReceive = viewModel.getTransaction().isReceive,
             plan = viewModel.getWalletPlan(),
-            txStatus = event.txStatus
+            txStatus = event.txStatus,
+            isLiquid = viewModel.isLiquidWallet()
         ).setListener {
             when (it) {
                 CANCEL -> handleCancelTransaction()
