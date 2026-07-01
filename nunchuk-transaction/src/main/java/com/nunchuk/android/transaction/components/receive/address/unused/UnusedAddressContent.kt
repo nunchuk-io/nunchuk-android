@@ -66,6 +66,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.HighlightMessageType
+import com.nunchuk.android.compose.NcHighlightText
 import com.nunchuk.android.compose.NcHintMessage
 import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
@@ -172,10 +173,11 @@ internal fun UnusedAddressContent(
                         .padding(horizontal = 16.dp),
                     type = HighlightMessageType.WARNING,
                 ) {
-                    Text(
+                    NcHighlightText(
                         text = stringResource(R.string.nc_liquid_address_warning),
-                        style = NunchukTheme.typography.bodySmall,
-                        color = colorResource(id = com.nunchuk.android.core.R.color.nc_grey_g7),
+                        style = NunchukTheme.typography.bodySmall.copy(
+                            color = colorResource(id = com.nunchuk.android.core.R.color.nc_grey_g7),
+                        ),
                     )
                 }
             }

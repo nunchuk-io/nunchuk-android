@@ -134,7 +134,7 @@
     <string name="nc_amount_usdt">%1$s USDT</string>
     <string name="nc_amount_lbtc">%1$s LBTC</string>
     <string name="nc_network_liquid">Network: Liquid Network</string>
-    <string name="nc_liquid_address_warning">Only send USDT (Liquid) or LBTC to this address. USDT on other networks must be converted to USDT (Liquid) before sending, or the funds may be permanently lost.</string>
+    <string name="nc_liquid_address_warning">Only send [B]USDT (Liquid) or LBTC[/B] to this address. USDT on other networks must be converted to USDT (Liquid) before sending, or the funds may be permanently lost.</string>
     <string name="nc_not_enough_lbtc_for_fee">You need more LBTC to pay for this transaction.</string>
     <string name="nc_add_funds">Add funds</string>
 </resources>
