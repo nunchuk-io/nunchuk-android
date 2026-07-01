@@ -89,7 +89,6 @@ class InputAmountActivity : BaseComposeActivity(), BottomSheetOptionListener {
                     state = stablecoinState,
                     onClose = { finish() },
                     onScanQrClicked = { startQRCodeScan(launcher) },
-                    onBatchTransactionClicked = { /* TODO(stablecoin): batch flow */ },
                     onTokenSelected = stablecoinViewModel::selectToken,
                     onSendAllClicked = stablecoinViewModel::sendAll,
                     onSwitchCurrencyClicked = stablecoinViewModel::switchCurrency,

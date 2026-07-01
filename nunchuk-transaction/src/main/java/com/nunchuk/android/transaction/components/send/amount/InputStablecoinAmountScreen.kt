@@ -66,7 +66,6 @@ internal fun InputStablecoinAmountScreen(
     state: InputStablecoinAmountState,
     onClose: () -> Unit,
     onScanQrClicked: () -> Unit,
-    onBatchTransactionClicked: () -> Unit,
     onTokenSelected: (StablecoinToken) -> Unit,
     onSendAllClicked: () -> Unit,
     onSwitchCurrencyClicked: () -> Unit,
@@ -90,13 +89,6 @@ internal fun InputStablecoinAmountScreen(
                     isBack = false,
                     onBackPress = onClose,
                     actions = {
-                        IconButton(onClick = onBatchTransactionClicked) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_batch_transaction),
-                                contentDescription = stringResource(R.string.nc_batch_transaction),
-                                tint = Color.Unspecified,
-                            )
-                        }
                         IconButton(onClick = onScanQrClicked) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_qr),
@@ -317,7 +309,6 @@ private fun InputStablecoinAmountScreenUsdtPreview() {
         state = InputStablecoinAmountState(selectedToken = StablecoinToken.USDT),
         onClose = {},
         onScanQrClicked = {},
-        onBatchTransactionClicked = {},
         onTokenSelected = {},
         onSendAllClicked = {},
         onSwitchCurrencyClicked = {},
@@ -333,7 +324,6 @@ private fun InputStablecoinAmountScreenLbtcPreview() {
         state = InputStablecoinAmountState(selectedToken = StablecoinToken.LBTC),
         onClose = {},
         onScanQrClicked = {},
-        onBatchTransactionClicked = {},
         onTokenSelected = {},
         onSendAllClicked = {},
         onSwitchCurrencyClicked = {},
