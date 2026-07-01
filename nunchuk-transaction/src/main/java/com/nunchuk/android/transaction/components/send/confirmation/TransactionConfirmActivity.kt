@@ -793,6 +793,7 @@ private fun CustomizeLiquidFeeBottomSheet(
             .formatDecimalWithoutZero(maxFractionDigits = LIQUID_MAX_FRACTION_DIGITS)
     }
     var text by rememberSaveable(initial) { mutableStateOf(initial) }
+    var showError by rememberSaveable(initial) { mutableStateOf(false) }
     val lbtcValue = text.replace(',', '.').toDoubleOrNull() ?: 0.0
     val usdLabel = "${getDisplayCurrency()}${lbtcValue.fromBTCToCurrency().formatFiatDecimal()}"
 
@@ -821,7 +822,11 @@ private fun CustomizeLiquidFeeBottomSheet(
                     .padding(top = 12.dp),
                 title = "",
                 value = text,
-                onValueChange = { text = sanitizeLbtcInput(it) },
+                error = if (showError) stringResource(R.string.nc_customize_fee_invalid_error) else null,
+                onValueChange = {
+                    text = sanitizeLbtcInput(it)
+                    showError = false
+                },
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Decimal,
                     imeAction = ImeAction.Done,
@@ -851,7 +856,7 @@ private fun CustomizeLiquidFeeBottomSheet(
                     modifier = Modifier.weight(1f),
                     onClick = {
                         val feeSats = round(lbtcValue.fromBTCtoSAT()).toLong()
-                        if (feeSats > 0L) onApply(feeSats)
+                        if (feeSats > 0L) onApply(feeSats) else showError = true
                     },
                 ) {
                     Text(text = stringResource(R.string.nc_apply))
