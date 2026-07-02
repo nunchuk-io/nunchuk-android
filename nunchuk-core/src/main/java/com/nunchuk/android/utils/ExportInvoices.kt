@@ -7,7 +7,6 @@ import android.graphics.pdf.PdfDocument
 import androidx.core.content.res.ResourcesCompat
 import com.nunchuk.android.core.R
 import com.nunchuk.android.core.util.MAX_FRACTION_DIGITS
-import com.nunchuk.android.core.util.formatDecimal
 import com.nunchuk.android.core.util.formatDecimalWithoutZero
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getFormatDate
@@ -455,5 +454,5 @@ fun Transaction.toInvoiceInfo(
 private fun Amount.formatLiquidAmount(isUsdt: Boolean): String = if (isUsdt) {
     "${pureBTC().formatDecimalWithoutZero(maxFractionDigits = MAX_FRACTION_DIGITS)} USDT"
 } else {
-    "${pureBTC().formatDecimal(minFractionDigits = MAX_FRACTION_DIGITS)} LBTC"
+    "${pureBTC().formatDecimalWithoutZero(maxFractionDigits = MAX_FRACTION_DIGITS)} LBTC"
 }
