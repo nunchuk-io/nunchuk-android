@@ -320,6 +320,14 @@ interface MyApi {
 }
 ```
 
+### Native SDK Errors
+
+Native calls (via `nunchuk-android-nativesdk`) throw `com.nunchuk.android.exception.NCNativeException` whose `message` is formatted `"<code>:<native message>"`. Use `Throwable.nativeErrorCode()` (`nunchuk-core/util/Util.kt`) to extract the numeric code — it returns the parsed `Int` for an `NCNativeException`, or `-1` otherwise.
+
+Known codes live in `NativeErrorCode` (`nunchuk-core/.../constants/NativeErrorCode.kt`); the full set is defined in the native SDK's `NunchukException` (e.g. `INVALID_FEE_RATE = -1005` — fee rate below the minimum, `COIN_SELECTION_ERROR = -1011` — insufficient funds, `INVALID_AMOUNT = -1002`). Add a constant to `NativeErrorCode` when you need to branch on one.
+
+**Convention**: don't surface the raw SDK message for cases with a designed message. Carry the code out of the ViewModel (e.g. an event field populated via `it.nativeErrorCode()`) and map the specific code to a `stringResource` in the UI, falling back to the raw SDK message for everything else. Example: the customize-fee sheet in `TransactionConfirmActivity` maps `INVALID_FEE_RATE` to `R.string.nc_input_fee_invalid_error` and shows `event.message` otherwise.
+
 ### Migration: Fragment → Compose
 
 The codebase is actively migrating from Fragment-based screens to Compose. New features use Compose navigation. Legacy screens (messages, some wallet screens) still use Fragments with XML navigation graphs. When adding new screens, always use Compose.
