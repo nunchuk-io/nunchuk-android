@@ -808,7 +808,6 @@ class TransactionConfirmViewModel @Inject constructor(
     }
 
     fun updateLiquidManualFee(absoluteFeeSats: Long) {
-        if (absoluteFeeSats <= 0L) return
         val tx = _state.value.transaction
         val currentFee = tx.fee.value.coerceAtLeast(1L)
         manualFeeRate = (absoluteFeeSats * tx.feeRate.value / currentFee).toInt().coerceAtLeast(1)

@@ -249,6 +249,9 @@ private fun TransactionConfirmScreen(
     var changeAddress by rememberSaveable { mutableStateOf("") }
     var changeAmount by remember { mutableStateOf(Amount(0)) }
     var outputs by remember { mutableStateOf<List<TxOutput>>(emptyList()) }
+    var showCustomizeFee by remember { mutableStateOf(false) }
+    var isApplyingFee by remember { mutableStateOf(false) }
+    var feeApplyError by remember { mutableStateOf<String?>(null) }
     val context = LocalContext.current
 
     LaunchedEffect(Unit) {
@@ -256,7 +259,12 @@ private fun TransactionConfirmScreen(
             when (event) {
                 is CreateTxErrorEvent -> {
                     isLoading = false
-                    activity.showCreateTransactionError(event.message)
+                    if (isApplyingFee) {
+                        isApplyingFee = false
+                        feeApplyError = event.message
+                    } else {
+                        activity.showCreateTransactionError(event.message)
+                    }
                 }
 
                 is CreateTxSuccessEvent -> {
@@ -345,6 +353,11 @@ private fun TransactionConfirmScreen(
                         }
                     }
                     outputs = coins
+                    if (isApplyingFee) {
+                        isApplyingFee = false
+                        feeApplyError = null
+                        showCustomizeFee = false
+                    }
                 }
 
                 is TransactionConfirmEvent.AssignTagError,
@@ -395,8 +408,6 @@ private fun TransactionConfirmScreen(
         } else base
     } else emptyMap()
 
-    var showCustomizeFee by remember { mutableStateOf(false) }
-
     NunchukTheme {
         if (isLoading) {
             NcLoadingDialog(customMessage = loadingMessage)
@@ -404,10 +415,16 @@ private fun TransactionConfirmScreen(
         if (showCustomizeFee && isLiquid) {
             CustomizeLiquidFeeBottomSheet(
                 currentFee = fee,
-                onDismiss = { showCustomizeFee = false },
-                onApply = { feeSats ->
-                    viewModel.updateLiquidManualFee(feeSats)
+                error = feeApplyError,
+                onDismiss = {
                     showCustomizeFee = false
+                    isApplyingFee = false
+                    feeApplyError = null
+                },
+                onApply = { feeSats ->
+                    feeApplyError = null
+                    isApplyingFee = true
+                    viewModel.updateLiquidManualFee(feeSats)
                 },
             )
         }
@@ -785,6 +802,7 @@ private const val LIQUID_MAX_FRACTION_DIGITS = 8
 @Composable
 private fun CustomizeLiquidFeeBottomSheet(
     currentFee: Amount,
+    error: String? = null,
     onDismiss: () -> Unit,
     onApply: (Long) -> Unit,
 ) {
@@ -793,7 +811,6 @@ private fun CustomizeLiquidFeeBottomSheet(
             .formatDecimalWithoutZero(maxFractionDigits = LIQUID_MAX_FRACTION_DIGITS)
     }
     var text by rememberSaveable(initial) { mutableStateOf(initial) }
-    var showError by rememberSaveable(initial) { mutableStateOf(false) }
     val lbtcValue = text.replace(',', '.').toDoubleOrNull() ?: 0.0
     val usdLabel = "${getDisplayCurrency()}${lbtcValue.fromBTCToCurrency().formatFiatDecimal()}"
 
@@ -822,10 +839,9 @@ private fun CustomizeLiquidFeeBottomSheet(
                     .padding(top = 12.dp),
                 title = "",
                 value = text,
-                error = if (showError) stringResource(R.string.nc_customize_fee_invalid_error) else null,
+                error = error,
                 onValueChange = {
                     text = sanitizeLbtcInput(it)
-                    showError = false
                 },
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Decimal,
@@ -833,6 +849,7 @@ private fun CustomizeLiquidFeeBottomSheet(
                 ),
                 rightContent = {
                     Text(
+                        modifier = Modifier.padding(end = 12.dp),
                         text = usdLabel,
                         style = NunchukTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.textSecondary),
                     )
@@ -856,7 +873,7 @@ private fun CustomizeLiquidFeeBottomSheet(
                     modifier = Modifier.weight(1f),
                     onClick = {
                         val feeSats = round(lbtcValue.fromBTCtoSAT()).toLong()
-                        if (feeSats > 0L) onApply(feeSats) else showError = true
+                        onApply(feeSats)
                     },
                 ) {
                     Text(text = stringResource(R.string.nc_apply))
