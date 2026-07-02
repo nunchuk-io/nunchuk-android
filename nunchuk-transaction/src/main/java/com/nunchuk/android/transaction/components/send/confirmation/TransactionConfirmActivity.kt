@@ -397,22 +397,6 @@ private fun TransactionConfirmScreen(
     } else {
         totalAmount.getCurrencyAmount()
     }
-    val liquidAssetTotals: Map<String, Amount> = if (isLiquid) {
-        val txOutputs = uiState.transaction.outputs
-        val base = if (txOutputs.isNotEmpty()) {
-            txOutputs.filter { !it.isChange }
-                .groupBy { it.assetId }
-                .mapValues { (_, outs) -> Amount(outs.sumOf { it.second.value }) }
-        } else if (outputAssetId.isNotEmpty()) {
-            mapOf(outputAssetId to (outputAmount * 1.0e8).toLong().let(::Amount))
-        } else emptyMap()
-        if (!args.subtractFeeFromAmount && fee.value > 0L) {
-            // Fee is always LBTC — merge into the non-USDT entry (or add one for USDT-only sends).
-            val lbtcKey = base.keys.firstOrNull { it != uiState.usdtAssetId } ?: ""
-            base + (lbtcKey to Amount((base[lbtcKey]?.value ?: 0L) + fee.value))
-        } else base
-    } else emptyMap()
-
     NunchukTheme {
         if (isLoading) {
             NcLoadingDialog(customMessage = loadingMessage)
@@ -455,7 +439,6 @@ private fun TransactionConfirmScreen(
             isNotEnoughLbtcForFee = uiState.notEnoughLbtcForFee,
             feeCurrency = formatLiquidFeeCurrency(fee),
             usdtAssetId = uiState.usdtAssetId,
-            liquidAssetTotals = liquidAssetTotals,
             totalAmountBtc = totalAmountPrimary,
             totalAmountCurrency = totalAmountSecondary,
             changeAddress = changeAddress,
@@ -505,7 +488,6 @@ internal fun TransactionConfirmContent(
     isNotEnoughLbtcForFee: Boolean = false,
     feeCurrency: String = "",
     usdtAssetId: String = "",
-    liquidAssetTotals: Map<String, Amount> = emptyMap(),
     totalAmountBtc: String = "",
     totalAmountCurrency: String = "",
     changeAddress: String = "",
@@ -678,33 +660,21 @@ internal fun TransactionConfirmContent(
                 )
             }
 
-            // Total amount
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 16.dp)
-                    .padding(horizontal = 16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = stringResource(R.string.nc_transaction_total_amount),
-                    style = NunchukTheme.typography.title,
-                    modifier = Modifier.weight(1f),
-                )
-                Column(horizontalAlignment = Alignment.End) {
-                    if (isLiquid && liquidAssetTotals.isNotEmpty()) {
-                        liquidAssetTotals.entries.forEachIndexed { index, (assetId, amount) ->
-                            Text(
-                                text = formatLiquidAmount(
-                                    amount = amount.pureBTC(),
-                                    assetId = assetId,
-                                    usdtAssetId = usdtAssetId,
-                                ),
-                                style = NunchukTheme.typography.title,
-                                modifier = if (index == 0) Modifier else Modifier.padding(top = 4.dp),
-                            )
-                        }
-                    } else {
+            // Total amount (not shown for Liquid transactions per design)
+            if (!isLiquid) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp)
+                        .padding(horizontal = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = stringResource(R.string.nc_transaction_total_amount),
+                        style = NunchukTheme.typography.title,
+                        modifier = Modifier.weight(1f),
+                    )
+                    Column(horizontalAlignment = Alignment.End) {
                         Text(
                             text = totalAmountBtc,
                             style = NunchukTheme.typography.title,
@@ -943,7 +913,6 @@ private fun TransactionConfirmContentNotEnoughLbtcPreview() {
             isLiquid = true,
             isNotEnoughLbtcForFee = true,
             feeCurrency = "$0.15",
-            liquidAssetTotals = mapOf("" to Amount(200)),
         )
     }
 }
