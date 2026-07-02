@@ -33,6 +33,7 @@ import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.util.fromBTCToCurrency
 import com.nunchuk.android.core.util.hasChangeIndex
+import com.nunchuk.android.core.util.nativeErrorCode
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.core.util.toAmount
@@ -298,7 +299,7 @@ class TransactionConfirmViewModel @Inject constructor(
                 val balance = getWalletDetail2UseCase(walletId).getOrThrow().lbtcBalance
                 fee to balance
             }.getOrElse {
-                _event.emit(CreateTxErrorEvent(it.message.orUnknownError()))
+                _event.emit(CreateTxErrorEvent(it.message.orUnknownError(), it.nativeErrorCode()))
                 return@launch
             }
             if (lbtcBalance.value < estimatedFee.value) {
@@ -316,7 +317,7 @@ class TransactionConfirmViewModel @Inject constructor(
                 _state.update { it.copy(notEnoughLbtcForFee = false) }
                 onDraftTransactionSuccess(it)
             }.onFailure {
-                _event.emit(CreateTxErrorEvent(it.message.orUnknownError()))
+                _event.emit(CreateTxErrorEvent(it.message.orUnknownError(), it.nativeErrorCode()))
             }
         }
     }

@@ -82,6 +82,7 @@ import com.nunchuk.android.compose.dialog.NcLoadingDialog
 import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.data.model.ClaimInheritanceTxParam
 import com.nunchuk.android.core.data.model.TxReceipt
+import com.nunchuk.android.core.constants.NativeErrorCode
 import com.nunchuk.android.core.data.model.isOffChainClaim
 import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.matrix.SessionHolder
@@ -261,7 +262,11 @@ private fun TransactionConfirmScreen(
                     isLoading = false
                     if (isApplyingFee) {
                         isApplyingFee = false
-                        feeApplyError = event.message
+                        feeApplyError = if (event.code == NativeErrorCode.INVALID_FEE_RATE) {
+                            context.getString(R.string.nc_input_fee_invalid_error)
+                        } else {
+                            event.message
+                        }
                     } else {
                         activity.showCreateTransactionError(event.message)
                     }

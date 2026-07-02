@@ -41,7 +41,7 @@ sealed class TransactionConfirmEvent {
         val tags: List<CoinTag>,
     ) : TransactionConfirmEvent()
 
-    data class CreateTxErrorEvent(val message: String) : TransactionConfirmEvent()
+    data class CreateTxErrorEvent(val message: String, val code: Int = 0) : TransactionConfirmEvent()
     data class UpdateChangeAddress(val address: String, val amount: Amount) :
         TransactionConfirmEvent()
 
