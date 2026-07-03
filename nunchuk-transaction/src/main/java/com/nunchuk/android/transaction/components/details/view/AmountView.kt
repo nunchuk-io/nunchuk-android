@@ -11,6 +11,7 @@ import com.nunchuk.android.core.util.formatDecimalWithoutZero
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getCurrencyAmount
 import com.nunchuk.android.core.util.getLbtcAmount
+import com.nunchuk.android.core.util.getLiquidCurrencyAmount
 import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.model.Amount
 
@@ -24,7 +25,12 @@ fun AmountView(
     usdtAssetId: String = "",
 ) {
     if (assetId.isNotEmpty()) {
-        AssetAmountText(amount = amount, assetId = assetId, usdtAssetId = usdtAssetId)
+        AssetAmountText(
+            amount = amount,
+            assetId = assetId,
+            usdtAssetId = usdtAssetId,
+            hideFiatCurrency = hideFiatCurrency,
+        )
         return
     }
     Column(
@@ -46,15 +52,31 @@ fun AmountView(
 }
 
 @Composable
-private fun AssetAmountText(amount: Amount, assetId: String, usdtAssetId: String) {
+private fun AssetAmountText(
+    amount: Amount,
+    assetId: String,
+    usdtAssetId: String,
+    hideFiatCurrency: Boolean,
+) {
     // USDT keeps its fixed 8-decimal display; LBTC honours the selected unit setting.
     val text = if (assetId == usdtAssetId) {
         "${amount.pureBTC().formatDecimalWithoutZero(maxFractionDigits = LIQUID_FRACTION_DIGITS)} USDT"
     } else {
         amount.getLbtcAmount()
     }
-    Text(
-        text = text,
-        style = NunchukTheme.typography.title,
-    )
+    Column(
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+        horizontalAlignment = Alignment.End,
+    ) {
+        Text(
+            text = text,
+            style = NunchukTheme.typography.title,
+        )
+        if (!hideFiatCurrency) {
+            Text(
+                text = amount.getLiquidCurrencyAmount(assetId, usdtAssetId),
+                style = NunchukTheme.typography.bodySmall,
+            )
+        }
+    }
 }

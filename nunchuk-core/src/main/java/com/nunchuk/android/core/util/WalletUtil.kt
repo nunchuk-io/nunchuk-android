@@ -55,6 +55,16 @@ fun Amount.getCurrencyAmount(): String {
     return "${getDisplayCurrency()}${fromBTCToCurrency().formatFiatDecimal()}"
 }
 
+// Fiat value for a Liquid asset amount: USDT is pegged ~1:1, LBTC uses the BTC rate.
+fun Amount.getLiquidCurrencyAmount(assetId: String, usdtAssetId: String): String {
+    val currency = if (assetId.isNotEmpty() && assetId == usdtAssetId) {
+        pureBTC().fromUsdtToCurrency()
+    } else {
+        pureBTC().fromBTCToCurrency()
+    }
+    return "${getDisplayCurrency()}${currency.formatFiatDecimal()}"
+}
+
 fun Double.fromBTCToCurrency() = this * BTC_CURRENCY_EXCHANGE_RATE
 
 fun Double.fromCurrencyToBTC() = this / BTC_CURRENCY_EXCHANGE_RATE

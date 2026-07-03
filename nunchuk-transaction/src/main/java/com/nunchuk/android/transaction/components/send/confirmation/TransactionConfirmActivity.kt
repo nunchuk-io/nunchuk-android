@@ -100,6 +100,7 @@ import com.nunchuk.android.core.util.fromBTCtoSAT
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getCurrencyAmount
 import com.nunchuk.android.core.util.getDisplayCurrency
+import com.nunchuk.android.core.util.getLiquidCurrencyAmount
 import com.nunchuk.android.core.util.hasChangeIndex
 import com.nunchuk.android.core.util.isPendingSignatures
 import com.nunchuk.android.core.util.pureBTC
@@ -632,11 +633,15 @@ internal fun TransactionConfirmContent(
                                 Color.Unspecified
                             },
                         )
-                        if (isNotEnoughLbtcForFee && feeCurrency.isNotEmpty()) {
+                        if (feeCurrency.isNotEmpty()) {
                             Text(
                                 text = feeCurrency,
                                 style = NunchukTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.error,
+                                color = if (isNotEnoughLbtcForFee) {
+                                    MaterialTheme.colorScheme.error
+                                } else {
+                                    Color.Unspecified
+                                },
                                 modifier = Modifier.padding(top = 4.dp),
                             )
                         }
@@ -776,8 +781,9 @@ private fun formatLiquidFee(fee: Amount): String {
     return "$lbtc LBTC"
 }
 
+// Liquid fees are paid in LBTC, so the fiat value uses the LBTC (empty assetId) path.
 private fun formatLiquidFeeCurrency(fee: Amount): String =
-    "${getDisplayCurrency()}${fee.pureBTC().fromBTCToCurrency().formatFiatDecimal()}"
+    fee.getLiquidCurrencyAmount(assetId = "", usdtAssetId = "")
 
 private const val LIQUID_MAX_FRACTION_DIGITS = 8
 
