@@ -66,6 +66,7 @@ import com.nunchuk.android.core.util.InheritanceClaimTxDetailInfo
 import com.nunchuk.android.core.util.canBroadCast
 import com.nunchuk.android.core.util.formatDecimalWithoutZero
 import com.nunchuk.android.core.util.getBTCAmount
+import com.nunchuk.android.core.util.getLbtcAmount
 import com.nunchuk.android.core.util.getFormatDate
 import com.nunchuk.android.core.util.getPendingSignatures
 import com.nunchuk.android.core.util.hadBroadcast
@@ -767,11 +768,14 @@ private fun TransactionHeader(
                 .groupBy { it.assetId }
                 .mapValues { (_, outs) -> Amount(outs.sumOf { o -> o.second.value }) }
             perAsset.entries.forEachIndexed { index, (assetId, amount) ->
-                val symbol = if (assetId == usdtAssetId) "USDT" else "LBTC"
-                val value =
-                    amount.pureBTC().formatDecimalWithoutZero(maxFractionDigits = 8)
+                // USDT keeps its fixed 8-decimal display; LBTC honours the selected unit setting.
+                val text = if (assetId == usdtAssetId) {
+                    "${amount.pureBTC().formatDecimalWithoutZero(maxFractionDigits = 8)} USDT"
+                } else {
+                    amount.getLbtcAmount()
+                }
                 Text(
-                    text = "$value $symbol",
+                    text = text,
                     style = NunchukTheme.typography.heading,
                     modifier = if (index == 0) Modifier.padding(top = 4.dp)
                     else Modifier.padding(top = 2.dp),

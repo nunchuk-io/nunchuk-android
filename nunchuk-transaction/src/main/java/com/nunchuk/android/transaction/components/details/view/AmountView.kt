@@ -10,6 +10,7 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.util.formatDecimalWithoutZero
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getCurrencyAmount
+import com.nunchuk.android.core.util.getLbtcAmount
 import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.model.Amount
 
@@ -46,10 +47,14 @@ fun AmountView(
 
 @Composable
 private fun AssetAmountText(amount: Amount, assetId: String, usdtAssetId: String) {
-    val symbol = if (assetId == usdtAssetId) "USDT" else "LBTC"
-    val value = amount.pureBTC().formatDecimalWithoutZero(maxFractionDigits = LIQUID_FRACTION_DIGITS)
+    // USDT keeps its fixed 8-decimal display; LBTC honours the selected unit setting.
+    val text = if (assetId == usdtAssetId) {
+        "${amount.pureBTC().formatDecimalWithoutZero(maxFractionDigits = LIQUID_FRACTION_DIGITS)} USDT"
+    } else {
+        amount.getLbtcAmount()
+    }
     Text(
-        text = "$value $symbol",
+        text = text,
         style = NunchukTheme.typography.title,
     )
 }

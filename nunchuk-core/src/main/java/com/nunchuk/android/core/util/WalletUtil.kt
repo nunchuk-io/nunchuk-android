@@ -38,6 +38,14 @@ fun Wallet.getCurrencyAmount() = balance.getCurrencyAmount()
 
 fun Amount.getBTCAmount() = pureBTC().getBTCAmount()
 
+// Liquid BTC honours the selected unit setting (sat / BTC / BTC with fixed precision)
+// while keeping the "LBTC" label, instead of the plain "BTC" used by getBTCAmount.
+fun Amount.getLbtcAmount() = when (CURRENT_DISPLAY_UNIT_TYPE) {
+    SAT -> "${value.beautifySATFormat()} sat"
+    BTC -> "${pureBTC().formatDecimal()} LBTC"
+    else -> "${pureBTC().formatDecimal(minFractionDigits = MAX_FRACTION_DIGITS)} LBTC"
+}
+
 fun Double.getBtcSat() = when (CURRENT_DISPLAY_UNIT_TYPE) {
     SAT -> this.roundToLong()
     else -> (this * BTC_SATOSHI_EXCHANGE_RATE).roundToLong()

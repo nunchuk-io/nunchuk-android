@@ -42,6 +42,7 @@ import com.nunchuk.android.core.util.formatDecimalWithoutZero
 import com.nunchuk.android.core.util.fromBTCToCurrency
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getCurrencyAmount
+import com.nunchuk.android.core.util.getLbtcAmount
 import com.nunchuk.android.core.util.getDisplayCurrency
 import com.nunchuk.android.core.util.getFormatDate
 import com.nunchuk.android.core.util.pureBTC
@@ -345,7 +346,7 @@ private fun rememberStableTxDisplay(
     val amount = Amount(value = total)
 
     val sign = if (isReceive) "" else "- "
-    val tokenRaw = if (isUsdt) "${amount.formatUsdtToken()} USDT" else "${amount.formatLbtcToken()} LBTC"
+    val tokenRaw = if (isUsdt) "${amount.formatUsdtToken()} USDT" else amount.getLbtcAmount()
     val tokenAmount = Utils.maskValue("$sign$tokenRaw", hideWalletDetail)
     val cashAmount = if (hideFiatCurrency) "" else {
         val cashRaw = if (isUsdt) amount.formatUsdtAsCash() else amount.formatLbtcAsCash()
@@ -360,9 +361,6 @@ private fun rememberStableTxDisplay(
 
 private fun Amount.formatUsdtToken(): String =
     pureBTC().formatDecimalWithoutZero(maxFractionDigits = MAX_FRACTION_DIGITS)
-
-private fun Amount.formatLbtcToken(): String =
-    pureBTC().formatDecimal(minFractionDigits = MAX_FRACTION_DIGITS)
 
 private fun Amount.formatUsdtAsCash(): String =
     "${getDisplayCurrency()}${pureBTC().formatDecimal(maxFractionDigits = USD_FRACTION_DIGITS)}"
