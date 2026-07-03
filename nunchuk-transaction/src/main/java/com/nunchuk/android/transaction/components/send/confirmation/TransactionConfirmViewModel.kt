@@ -27,6 +27,7 @@ import com.nunchuk.android.core.data.model.RollOverWalletParam
 import com.nunchuk.android.core.data.model.TxReceipt
 import com.nunchuk.android.core.data.model.isInheritanceClaimFlow
 import com.nunchuk.android.core.data.model.isOffChainClaim
+import com.nunchuk.android.core.constants.NativeErrorCode
 import com.nunchuk.android.core.domain.membership.InheritanceClaimCreateTransactionUseCase
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.push.PushEvent
@@ -343,8 +344,12 @@ class TransactionConfirmViewModel @Inject constructor(
     }
 
     private suspend fun fetchLiquidFeeRateIfNeeded() {
-        if (manualFeeRate <= 0) {
-            manualFeeRate = estimateLiquidFeeUseCase(Unit).getOrNull()?.defaultRate ?: manualFeeRate
+        if (manualFeeRate <= 0 || _state.value.minimumFeeRate == 0) {
+            val rates = estimateLiquidFeeUseCase(Unit).getOrNull() ?: return
+            if (manualFeeRate <= 0) {
+                manualFeeRate = rates.defaultRate
+            }
+            _state.update { it.copy(minimumFeeRate = rates.minimumFee) }
         }
     }
 
@@ -811,7 +816,18 @@ class TransactionConfirmViewModel @Inject constructor(
     fun updateLiquidManualFee(absoluteFeeSats: Long) {
         val tx = _state.value.transaction
         val currentFee = tx.fee.value.coerceAtLeast(1L)
-        manualFeeRate = (absoluteFeeSats * tx.feeRate.value / currentFee).toInt().coerceAtLeast(1)
+        // Convert the entered absolute fee (LBTC sats) back to the fee rate the draft expects.
+        val newFeeRate = (absoluteFeeSats * tx.feeRate.value / currentFee).toInt()
+        val minimumFeeRate = _state.value.minimumFeeRate
+        // Reject a fee whose rate falls below the minimum instead of silently coercing it up
+        // (which previously let a 0/too-low fee draft successfully).
+        if (minimumFeeRate > 0 && newFeeRate < minimumFeeRate) {
+            viewModelScope.launch {
+                _event.emit(CreateTxErrorEvent("", NativeErrorCode.INVALID_FEE_RATE))
+            }
+            return
+        }
+        manualFeeRate = newFeeRate.coerceAtLeast(1)
         draftLiquidTransaction()
     }
 
@@ -829,6 +845,7 @@ data class TransactionConfirmUiState(
     val isLiquid: Boolean = false,
     val usdtAssetId: String = "",
     val notEnoughLbtcForFee: Boolean = false,
+    val minimumFeeRate: Int = 0,
 )
 
 internal fun Int.toManualFeeRate() = if (this > 0) toAmount() else Amount(-1)
