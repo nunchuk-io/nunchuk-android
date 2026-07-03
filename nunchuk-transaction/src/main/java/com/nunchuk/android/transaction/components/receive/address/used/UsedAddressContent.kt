@@ -58,6 +58,7 @@ import com.nunchuk.android.compose.border
 import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.core.qr.convertToQRCode
+import com.nunchuk.android.core.util.MAX_FRACTION_DIGITS
 import com.nunchuk.android.core.util.formatDecimalWithoutZero
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.pureBTC
@@ -248,7 +249,7 @@ private fun LiquidUsedAddressItem(
             Text(
                 text = stringResource(
                     R.string.nc_amount_usdt,
-                    usdtAmount.pureBTC().formatDecimalWithoutZero(maxFractionDigits = 8),
+                    usdtAmount.pureBTC().formatDecimalWithoutZero(maxFractionDigits = MAX_FRACTION_DIGITS),
                 ),
                 style = NunchukTheme.typography.title,
                 color = MaterialTheme.colorScheme.textPrimary,
@@ -256,7 +257,7 @@ private fun LiquidUsedAddressItem(
             Text(
                 text = stringResource(
                     R.string.nc_amount_lbtc,
-                    lbtcAmount.pureBTC().formatDecimalWithoutZero(maxFractionDigits = 8),
+                    lbtcAmount.pureBTC().formatDecimalWithoutZero(maxFractionDigits = MAX_FRACTION_DIGITS),
                 ),
                 style = NunchukTheme.typography.title,
                 color = MaterialTheme.colorScheme.textPrimary,

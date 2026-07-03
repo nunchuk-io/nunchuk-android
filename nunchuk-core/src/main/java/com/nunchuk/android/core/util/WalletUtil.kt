@@ -65,6 +65,21 @@ fun Amount.getLiquidCurrencyAmount(assetId: String, usdtAssetId: String): String
     return "${getDisplayCurrency()}${currency.formatFiatDecimal()}"
 }
 
+// Liquid asset token display ("<amount> USDT/LBTC") using the fixed Liquid precision.
+// USDT and LBTC amounts are both shown with a fixed number of fraction digits here.
+fun Double.getLiquidTokenAmount(assetId: String, usdtAssetId: String): String {
+    val symbol = if (assetId.isNotEmpty() && assetId == usdtAssetId) "USDT" else "LBTC"
+    return "${formatDecimalWithoutZero(maxFractionDigits = MAX_FRACTION_DIGITS)} $symbol"
+}
+
+// "<amount> LBTC" using the fixed Liquid precision. Liquid fees are always paid in LBTC.
+fun Amount.getLbtcTokenAmount(): String =
+    "${pureBTC().formatDecimalWithoutZero(maxFractionDigits = MAX_FRACTION_DIGITS)} LBTC"
+
+// "<amount> USDT" using the fixed Liquid precision.
+fun Amount.getUsdtTokenAmount(): String =
+    "${pureBTC().formatDecimalWithoutZero(maxFractionDigits = MAX_FRACTION_DIGITS)} USDT"
+
 fun Double.fromBTCToCurrency() = this * BTC_CURRENCY_EXCHANGE_RATE
 
 fun Double.fromCurrencyToBTC() = this / BTC_CURRENCY_EXCHANGE_RATE

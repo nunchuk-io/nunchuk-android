@@ -7,15 +7,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.NunchukTheme
-import com.nunchuk.android.core.util.formatDecimalWithoutZero
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getCurrencyAmount
 import com.nunchuk.android.core.util.getLbtcAmount
 import com.nunchuk.android.core.util.getLiquidCurrencyAmount
-import com.nunchuk.android.core.util.pureBTC
+import com.nunchuk.android.core.util.getUsdtTokenAmount
 import com.nunchuk.android.model.Amount
-
-private const val LIQUID_FRACTION_DIGITS = 8
 
 @Composable
 fun AmountView(
@@ -60,7 +57,7 @@ private fun AssetAmountText(
 ) {
     // USDT keeps its fixed 8-decimal display; LBTC honours the selected unit setting.
     val text = if (assetId == usdtAssetId) {
-        "${amount.pureBTC().formatDecimalWithoutZero(maxFractionDigits = LIQUID_FRACTION_DIGITS)} USDT"
+        amount.getUsdtTokenAmount()
     } else {
         amount.getLbtcAmount()
     }

@@ -25,7 +25,6 @@ import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -36,17 +35,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -61,8 +56,6 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.DefaultLifecycleObserver
@@ -74,12 +67,10 @@ import com.nunchuk.android.compose.NcHintMessage
 import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
-import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.backgroundMidGray
 import com.nunchuk.android.compose.dialog.NcLoadingDialog
-import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.data.model.ClaimInheritanceTxParam
 import com.nunchuk.android.core.data.model.TxReceipt
 import com.nunchuk.android.core.constants.NativeErrorCode
@@ -93,14 +84,11 @@ import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.core.util.InheritanceClaimTxDetailInfo
 import com.nunchuk.android.core.util.copyToClipboard
 import com.nunchuk.android.core.util.flowObserver
-import com.nunchuk.android.core.util.formatDecimalWithoutZero
-import com.nunchuk.android.core.util.formatFiatDecimal
-import com.nunchuk.android.core.util.fromBTCToCurrency
-import com.nunchuk.android.core.util.fromBTCtoSAT
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getCurrencyAmount
-import com.nunchuk.android.core.util.getDisplayCurrency
+import com.nunchuk.android.core.util.getLbtcTokenAmount
 import com.nunchuk.android.core.util.getLiquidCurrencyAmount
+import com.nunchuk.android.core.util.getLiquidTokenAmount
 import com.nunchuk.android.core.util.hasChangeIndex
 import com.nunchuk.android.core.util.isPendingSignatures
 import com.nunchuk.android.core.util.pureBTC
@@ -135,7 +123,6 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
 import timber.log.Timber
 import javax.inject.Inject
-import kotlin.math.round
 
 @AndroidEntryPoint
 class TransactionConfirmActivity : BaseNfcActivity<ViewBinding>() {
@@ -403,12 +390,12 @@ private fun TransactionConfirmScreen(
         outputAmount + (if (isLiquid) 0.0 else fee.pureBTC())
     }
     val totalAmountPrimary = if (isLiquid) {
-        formatLiquidAmount(outputAmount, outputAssetId, uiState.usdtAssetId)
+        outputAmount.getLiquidTokenAmount(outputAssetId, uiState.usdtAssetId)
     } else {
         totalAmount.getBTCAmount()
     }
     val totalAmountSecondary = if (isLiquid) {
-        formatLiquidFee(fee)
+        fee.getLbtcTokenAmount()
     } else {
         totalAmount.getCurrencyAmount()
     }
@@ -453,7 +440,7 @@ private fun TransactionConfirmScreen(
             fee = fee,
             isLiquid = isLiquid,
             isNotEnoughLbtcForFee = uiState.notEnoughLbtcForFee,
-            feeCurrency = formatLiquidFeeCurrency(fee),
+            feeCurrency = fee.getLiquidCurrencyAmount(assetId = "", usdtAssetId = ""),
             usdtAssetId = uiState.usdtAssetId,
             totalAmountBtc = totalAmountPrimary,
             totalAmountCurrency = totalAmountSecondary,
@@ -640,7 +627,7 @@ internal fun TransactionConfirmContent(
                 if (isLiquid) {
                     Column(horizontalAlignment = Alignment.End) {
                         Text(
-                            text = formatLiquidFee(fee),
+                            text = fee.getLbtcTokenAmount(),
                             style = NunchukTheme.typography.title,
                             color = if (isNotEnoughLbtcForFee) {
                                 MaterialTheme.colorScheme.error
@@ -783,150 +770,6 @@ internal fun TransactionConfirmContent(
             Spacer(modifier = Modifier.padding(bottom = 16.dp))
         }
     }
-}
-
-private fun formatLiquidAmount(amount: Double, assetId: String, usdtAssetId: String): String {
-    val symbol = if (assetId.isNotEmpty() && assetId == usdtAssetId) "USDT" else "LBTC"
-    return "${amount.formatDecimalWithoutZero(maxFractionDigits = LIQUID_MAX_FRACTION_DIGITS)} $symbol"
-}
-
-private fun formatLiquidFee(fee: Amount): String {
-    val lbtc =
-        fee.pureBTC().formatDecimalWithoutZero(maxFractionDigits = LIQUID_MAX_FRACTION_DIGITS)
-    return "$lbtc LBTC"
-}
-
-// Liquid fees are paid in LBTC, so the fiat value uses the LBTC (empty assetId) path.
-private fun formatLiquidFeeCurrency(fee: Amount): String =
-    fee.getLiquidCurrencyAmount(assetId = "", usdtAssetId = "")
-
-private const val LIQUID_MAX_FRACTION_DIGITS = 8
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun CustomizeLiquidFeeBottomSheet(
-    currentFee: Amount,
-    minimumFeeSats: Long = 0L,
-    error: String? = null,
-    onDismiss: () -> Unit,
-    onApply: (Long) -> Unit,
-) {
-    val initial = remember(currentFee) {
-        currentFee.pureBTC()
-            .formatDecimalWithoutZero(maxFractionDigits = LIQUID_MAX_FRACTION_DIGITS)
-    }
-    var text by rememberSaveable(initial) { mutableStateOf(initial) }
-    // Set when the user taps Apply with a fee below the minimum; cleared as soon as they edit.
-    var belowMinimumError by remember { mutableStateOf(false) }
-    val lbtcValue = text.replace(',', '.').toDoubleOrNull() ?: 0.0
-    val feeSats = round(lbtcValue.fromBTCtoSAT()).toLong()
-    val displayError = if (belowMinimumError) {
-        stringResource(R.string.nc_input_fee_invalid_error)
-    } else {
-        error
-    }
-    val usdLabel = "${getDisplayCurrency()}${lbtcValue.fromBTCToCurrency().formatFiatDecimal()}"
-
-    ModalBottomSheet(
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-        shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp),
-        onDismissRequest = onDismiss,
-        containerColor = MaterialTheme.colorScheme.background,
-        tonalElevation = 0.dp,
-        dragHandle = { },
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .navigationBarsPadding()
-                .padding(horizontal = 16.dp)
-                .padding(top = 24.dp, bottom = 16.dp),
-        ) {
-            Text(
-                text = stringResource(R.string.nc_customize_fee_in_lbtc),
-                style = NunchukTheme.typography.title,
-            )
-            NcTextField(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 12.dp),
-                title = "",
-                value = text,
-                error = displayError,
-                onValueChange = {
-                    text = sanitizeLbtcInput(it)
-                    belowMinimumError = false
-                },
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Decimal,
-                    imeAction = ImeAction.Done,
-                ),
-                rightContent = {
-                    Text(
-                        modifier = Modifier.padding(end = 12.dp),
-                        text = usdLabel,
-                        style = NunchukTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.textSecondary),
-                    )
-                },
-            )
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 24.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                NcOutlineButton(
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(48.dp),
-                    onClick = onDismiss,
-                ) {
-                    Text(text = stringResource(R.string.nc_cancel))
-                }
-                NcPrimaryDarkButton(
-                    modifier = Modifier.weight(1f),
-                    onClick = {
-                        if (minimumFeeSats > 0 && feeSats < minimumFeeSats) {
-                            belowMinimumError = true
-                        } else {
-                            belowMinimumError = false
-                            onApply(feeSats)
-                        }
-                    },
-                ) {
-                    Text(text = stringResource(R.string.nc_apply))
-                }
-            }
-        }
-    }
-}
-
-private fun sanitizeLbtcInput(raw: String): String {
-    val normalized = raw.replace(',', '.')
-    val builder = StringBuilder()
-    var seenDot = false
-    var fractionDigits = 0
-    for (ch in normalized) {
-        when {
-            ch.isDigit() -> {
-                if (seenDot) {
-                    if (fractionDigits < LIQUID_MAX_FRACTION_DIGITS) {
-                        builder.append(ch)
-                        fractionDigits++
-                    }
-                } else {
-                    builder.append(ch)
-                }
-            }
-
-            ch == '.' && !seenDot -> {
-                if (builder.isEmpty()) builder.append('0')
-                builder.append('.')
-                seenDot = true
-            }
-        }
-    }
-    return builder.toString()
 }
 
 @PreviewLightDark

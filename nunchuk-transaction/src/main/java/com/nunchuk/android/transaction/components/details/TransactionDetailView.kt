@@ -64,9 +64,9 @@ import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.InheritanceClaimTxDetailInfo
 import com.nunchuk.android.core.util.canBroadCast
-import com.nunchuk.android.core.util.formatDecimalWithoutZero
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getLbtcAmount
+import com.nunchuk.android.core.util.getUsdtTokenAmount
 import com.nunchuk.android.core.util.getFormatDate
 import com.nunchuk.android.core.util.getPendingSignatures
 import com.nunchuk.android.core.util.hadBroadcast
@@ -75,7 +75,6 @@ import com.nunchuk.android.core.util.isPendingSignatures
 import com.nunchuk.android.core.util.isRejected
 import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.core.util.isValueKeySetDisable
-import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.core.util.signDone
 import com.nunchuk.android.core.util.truncatedAddress
 import com.nunchuk.android.model.Amount
@@ -770,7 +769,7 @@ private fun TransactionHeader(
             perAsset.entries.forEachIndexed { index, (assetId, amount) ->
                 // USDT keeps its fixed 8-decimal display; LBTC honours the selected unit setting.
                 val text = if (assetId == usdtAssetId) {
-                    "${amount.pureBTC().formatDecimalWithoutZero(maxFractionDigits = 8)} USDT"
+                    amount.getUsdtTokenAmount()
                 } else {
                     amount.getLbtcAmount()
                 }
