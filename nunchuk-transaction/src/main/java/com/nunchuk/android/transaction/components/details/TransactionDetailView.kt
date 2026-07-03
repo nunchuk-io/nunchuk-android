@@ -789,7 +789,10 @@ private fun TransactionHeader(
             )
         }
 
-        if (inheritanceClaimTxDetailInfo == null && !isDummyTx) {
+        // For Liquid transactions, hide the placeholder "--/--/--" date until the tx is
+        // confirmed (blockTime > 0); the design shows no date on pending tx details.
+        val hidePendingLiquidDate = isLiquid && transaction.blockTime <= 0
+        if (inheritanceClaimTxDetailInfo == null && !isDummyTx && !hidePendingLiquidDate) {
             Text(
                 text = transaction.getFormatDate(),
                 style = NunchukTheme.typography.body,
