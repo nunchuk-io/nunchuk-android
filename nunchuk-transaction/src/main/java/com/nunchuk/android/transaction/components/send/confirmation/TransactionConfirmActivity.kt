@@ -263,8 +263,10 @@ private fun TransactionConfirmScreen(
                     isLoading = false
                     if (isApplyingFee) {
                         isApplyingFee = false
+                        // The below-minimum case is validated inline in the fee sheet, so an
+                        // INVALID_FEE_RATE surfacing here means the fee can't cover the transaction.
                         feeApplyError = if (event.code == NativeErrorCode.INVALID_FEE_RATE) {
-                            context.getString(R.string.nc_input_fee_invalid_error)
+                            context.getString(R.string.nc_input_fee_insufficient)
                         } else {
                             event.message
                         }
@@ -380,6 +382,18 @@ private fun TransactionConfirmScreen(
     }
 
     val fee = uiState.transaction.fee
+    // The minimum absolute fee (LBTC sats) that still satisfies the minimum fee rate, derived from
+    // the current draft. Used to validate the customized fee inline before applying it. 0 means the
+    // minimum can't be derived yet (no valid draft), so no inline validation is applied.
+    val minimumFeeSats = remember(uiState.transaction, uiState.minimumFeeRate) {
+        val currentFee = uiState.transaction.fee.value
+        val currentFeeRate = uiState.transaction.feeRate.value
+        if (uiState.minimumFeeRate > 0 && currentFee > 0 && currentFeeRate > 0) {
+            uiState.minimumFeeRate.toLong() * currentFee / currentFeeRate
+        } else {
+            0L
+        }
+    }
     val outputAmount = args.txReceipts.sumOf { it.amount }
     val isLiquid = uiState.isLiquid
     val outputAssetId = args.txReceipts.firstOrNull()?.tokenAssetId.orEmpty()
@@ -405,6 +419,7 @@ private fun TransactionConfirmScreen(
         if (showCustomizeFee && isLiquid) {
             CustomizeLiquidFeeBottomSheet(
                 currentFee = fee,
+                minimumFeeSats = minimumFeeSats,
                 error = feeApplyError,
                 onDismiss = {
                     showCustomizeFee = false
@@ -791,6 +806,7 @@ private const val LIQUID_MAX_FRACTION_DIGITS = 8
 @Composable
 private fun CustomizeLiquidFeeBottomSheet(
     currentFee: Amount,
+    minimumFeeSats: Long = 0L,
     error: String? = null,
     onDismiss: () -> Unit,
     onApply: (Long) -> Unit,
@@ -800,7 +816,15 @@ private fun CustomizeLiquidFeeBottomSheet(
             .formatDecimalWithoutZero(maxFractionDigits = LIQUID_MAX_FRACTION_DIGITS)
     }
     var text by rememberSaveable(initial) { mutableStateOf(initial) }
+    // Set when the user taps Apply with a fee below the minimum; cleared as soon as they edit.
+    var belowMinimumError by remember { mutableStateOf(false) }
     val lbtcValue = text.replace(',', '.').toDoubleOrNull() ?: 0.0
+    val feeSats = round(lbtcValue.fromBTCtoSAT()).toLong()
+    val displayError = if (belowMinimumError) {
+        stringResource(R.string.nc_input_fee_invalid_error)
+    } else {
+        error
+    }
     val usdLabel = "${getDisplayCurrency()}${lbtcValue.fromBTCToCurrency().formatFiatDecimal()}"
 
     ModalBottomSheet(
@@ -828,9 +852,10 @@ private fun CustomizeLiquidFeeBottomSheet(
                     .padding(top = 12.dp),
                 title = "",
                 value = text,
-                error = error,
+                error = displayError,
                 onValueChange = {
                     text = sanitizeLbtcInput(it)
+                    belowMinimumError = false
                 },
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Decimal,
@@ -861,8 +886,12 @@ private fun CustomizeLiquidFeeBottomSheet(
                 NcPrimaryDarkButton(
                     modifier = Modifier.weight(1f),
                     onClick = {
-                        val feeSats = round(lbtcValue.fromBTCtoSAT()).toLong()
-                        onApply(feeSats)
+                        if (minimumFeeSats > 0 && feeSats < minimumFeeSats) {
+                            belowMinimumError = true
+                        } else {
+                            belowMinimumError = false
+                            onApply(feeSats)
+                        }
                     },
                 ) {
                     Text(text = stringResource(R.string.nc_apply))

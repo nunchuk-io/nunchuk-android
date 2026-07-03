@@ -27,7 +27,6 @@ import com.nunchuk.android.core.data.model.RollOverWalletParam
 import com.nunchuk.android.core.data.model.TxReceipt
 import com.nunchuk.android.core.data.model.isInheritanceClaimFlow
 import com.nunchuk.android.core.data.model.isOffChainClaim
-import com.nunchuk.android.core.constants.NativeErrorCode
 import com.nunchuk.android.core.domain.membership.InheritanceClaimCreateTransactionUseCase
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.push.PushEvent
@@ -815,19 +814,16 @@ class TransactionConfirmViewModel @Inject constructor(
 
     fun updateLiquidManualFee(absoluteFeeSats: Long) {
         val tx = _state.value.transaction
-        val currentFee = tx.fee.value.coerceAtLeast(1L)
+        val currentFee = tx.fee.value
+        val currentFeeRate = tx.feeRate.value
         // Convert the entered absolute fee (LBTC sats) back to the fee rate the draft expects.
-        val newFeeRate = (absoluteFeeSats * tx.feeRate.value / currentFee).toInt()
-        val minimumFeeRate = _state.value.minimumFeeRate
-        // Reject a fee whose rate falls below the minimum instead of silently coercing it up
-        // (which previously let a 0/too-low fee draft successfully).
-        if (minimumFeeRate > 0 && newFeeRate < minimumFeeRate) {
-            viewModelScope.launch {
-                _event.emit(CreateTxErrorEvent("", NativeErrorCode.INVALID_FEE_RATE))
-            }
-            return
+        // The below-minimum check lives in the fee bottom sheet; here we only guard against a
+        // zero current fee/rate (no valid draft yet) to avoid dividing by zero.
+        manualFeeRate = if (currentFee > 0 && currentFeeRate > 0) {
+            (absoluteFeeSats * currentFeeRate / currentFee).toInt()
+        } else {
+            0
         }
-        manualFeeRate = newFeeRate.coerceAtLeast(1)
         draftLiquidTransaction()
     }
 
