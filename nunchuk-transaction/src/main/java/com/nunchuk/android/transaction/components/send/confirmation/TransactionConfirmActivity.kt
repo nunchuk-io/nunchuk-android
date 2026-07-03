@@ -607,7 +607,11 @@ internal fun TransactionConfirmContent(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        text = stringResource(R.string.nc_transaction_estimate_fee),
+                        text = if (isLiquid) {
+                            stringResource(R.string.nc_fee)
+                        } else {
+                            stringResource(R.string.nc_transaction_estimate_fee)
+                        },
                         style = NunchukTheme.typography.title,
                     )
                     IconButton(onClick = onEstimatedFeeInfoClick) {
@@ -723,7 +727,11 @@ internal fun TransactionConfirmContent(
                         .padding(16.dp),
                 ) {
                     Text(
-                        text = stringResource(R.string.nc_transaction_note),
+                        text = if (isLiquid) {
+                            stringResource(R.string.nc_transaction_note_off_chain)
+                        } else {
+                            stringResource(R.string.nc_transaction_note)
+                        },
                         style = NunchukTheme.typography.titleSmall,
                     )
                 }
