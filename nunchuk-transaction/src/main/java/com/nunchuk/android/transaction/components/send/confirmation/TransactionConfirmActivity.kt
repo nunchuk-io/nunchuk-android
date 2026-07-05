@@ -617,11 +617,13 @@ internal fun TransactionConfirmContent(
                         },
                         style = NunchukTheme.typography.title,
                     )
-                    IconButton(onClick = onEstimatedFeeInfoClick) {
-                        NcIcon(
-                            painter = painterResource(id = R.drawable.ic_help),
-                            contentDescription = "Info",
-                        )
+                    if (!isLiquid) {
+                        IconButton(onClick = onEstimatedFeeInfoClick) {
+                            NcIcon(
+                                painter = painterResource(id = R.drawable.ic_help),
+                                contentDescription = "Info",
+                            )
+                        }
                     }
                 }
                 if (isLiquid) {
@@ -725,7 +727,7 @@ internal fun TransactionConfirmContent(
             }
 
             // Private note
-            if (privateNote.isNotEmpty()) {
+            if (privateNote.isNotEmpty() || isLiquid) {
                 Box(
                     modifier = Modifier
                         .padding(top = 24.dp)
