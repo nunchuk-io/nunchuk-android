@@ -731,30 +731,28 @@ internal fun TransactionConfirmContent(
             }
 
             // Private note
-            if (privateNote.isNotEmpty()) {
-                Box(
-                    modifier = Modifier
-                        .padding(top = 24.dp)
-                        .fillMaxWidth()
-                        .background(color = MaterialTheme.colorScheme.backgroundMidGray)
-                        .padding(16.dp),
-                ) {
-                    Text(
-                        text = if (isLiquid) {
-                            stringResource(R.string.nc_transaction_note_off_chain)
-                        } else {
-                            stringResource(R.string.nc_transaction_note)
-                        },
-                        style = NunchukTheme.typography.titleSmall,
-                    )
-                }
-
+            Box(
+                modifier = Modifier
+                    .padding(top = 24.dp)
+                    .fillMaxWidth()
+                    .background(color = MaterialTheme.colorScheme.backgroundMidGray)
+                    .padding(16.dp),
+            ) {
                 Text(
-                    text = privateNote,
-                    style = NunchukTheme.typography.body,
-                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 24.dp),
+                    text = if (isLiquid) {
+                        stringResource(R.string.nc_transaction_note_off_chain)
+                    } else {
+                        stringResource(R.string.nc_transaction_note)
+                    },
+                    style = NunchukTheme.typography.titleSmall,
                 )
             }
+
+            Text(
+                text = privateNote,
+                style = NunchukTheme.typography.body,
+                modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 24.dp),
+            )
 
             // Input coins
             if (inputs.isNotEmpty()) {
