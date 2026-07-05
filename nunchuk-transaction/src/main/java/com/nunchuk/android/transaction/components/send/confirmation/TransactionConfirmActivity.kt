@@ -727,7 +727,7 @@ internal fun TransactionConfirmContent(
             }
 
             // Private note
-            if (privateNote.isNotEmpty() || isLiquid) {
+            if (privateNote.isNotEmpty()) {
                 Box(
                     modifier = Modifier
                         .padding(top = 24.dp)
