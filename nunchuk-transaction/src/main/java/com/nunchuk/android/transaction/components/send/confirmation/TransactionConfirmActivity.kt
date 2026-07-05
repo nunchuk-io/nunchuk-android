@@ -237,6 +237,7 @@ private fun TransactionConfirmScreen(
     var loadingMessage by rememberSaveable { mutableStateOf<String?>(null) }
     var changeAddress by rememberSaveable { mutableStateOf("") }
     var changeAmount by remember { mutableStateOf(Amount(0)) }
+    var changeAssetId by rememberSaveable { mutableStateOf("") }
     var outputs by remember { mutableStateOf<List<TxOutput>>(emptyList()) }
     var showCustomizeFee by remember { mutableStateOf(false) }
     var isApplyingFee by remember { mutableStateOf(false) }
@@ -297,6 +298,7 @@ private fun TransactionConfirmScreen(
                     isLoading = false
                     changeAddress = event.address
                     changeAmount = event.amount
+                    changeAssetId = event.assetId
                 }
 
                 is LoadingEvent -> {
@@ -446,6 +448,7 @@ private fun TransactionConfirmScreen(
             totalAmountCurrency = totalAmountSecondary,
             changeAddress = changeAddress,
             changeAmount = changeAmount,
+            changeAssetId = changeAssetId,
             isOffChainClaim = viewModel.isOffChainClaimingFlow(),
             privateNote = args.privateNote,
             inputs = args.inputs,
@@ -495,6 +498,7 @@ internal fun TransactionConfirmContent(
     totalAmountCurrency: String = "",
     changeAddress: String = "",
     changeAmount: Amount = Amount(0),
+    changeAssetId: String = "",
     isOffChainClaim: Boolean = false,
     privateNote: String = "",
     inputs: List<UnspentOutput> = emptyList(),
@@ -717,7 +721,7 @@ internal fun TransactionConfirmContent(
                 }
 
                 ChangeAddressView(
-                    txOutput = TxOutput(changeAddress, changeAmount),
+                    txOutput = TxOutput(changeAddress, changeAmount, assetId = changeAssetId),
                     output = null,
                     tags = emptyMap(),
                     onCopyText = onCopyText,

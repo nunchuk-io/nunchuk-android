@@ -440,7 +440,7 @@ class TransactionConfirmViewModel @Inject constructor(
         _event.emit(DraftTransactionSuccess(data))
         val txOutput = data.outputs.firstOrNull { it.isChange }
         if (txOutput != null) {
-            _event.emit(UpdateChangeAddress(txOutput.first, txOutput.second))
+            _event.emit(UpdateChangeAddress(txOutput.first, txOutput.second, txOutput.assetId))
         } else {
             _event.emit(UpdateChangeAddress("", Amount(0)))
         }
