@@ -699,6 +699,12 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
     }
 
     private fun showExportTransactionOptions() {
+        // Liquid/USDT transactions only support exporting to a file (QR/BBQR export is
+        // not implemented and shows "Tx not found"), so skip the submenu and export directly.
+        if (viewModel.isLiquidWallet()) {
+            showSaveShareOption()
+            return
+        }
         val options = mutableListOf(
             SheetOption(
                 type = SheetOptionType.TYPE_EXPORT_QR,
