@@ -4,6 +4,8 @@ Create a new Compose screen following the project's established architecture pat
 
 ## Instructions
 
+**Reuse, don't repeat (DRY)**: before writing any composable, formatter, extension, or constant, check for an existing one — reusable Nc-prefixed components live in `nunchuk-core/.../compose/` and shared utils (amount/currency formatting, etc.) in `nunchuk-core/util/` (`WalletUtil.kt`, `NumberFormatter.kt`). Call the shared method instead of inlining or redeclaring it; if the same logic would appear in 2+ places, extract it to the nearest shared module.
+
 The user will describe the new screen they want. Your job is to generate all required files following the patterns below. Ask clarifying questions if any of these are missing:
 
 - **Screen name** (e.g., `ClaimMagicPhrase`) — derives all file names and class names
@@ -455,6 +457,7 @@ Sub-package name is the lowercase screen name stripped of the feature prefix (e.
 
 ## Checklist Before Finishing
 
+- [ ] Reused existing shared components/utils (no duplicated formatters, extensions, or constants)
 - [ ] Route object annotated with `@Serializable`
 - [ ] `NavController` navigate extension created
 - [ ] `NavGraphBuilder` extension created with proper shared ViewModel wiring

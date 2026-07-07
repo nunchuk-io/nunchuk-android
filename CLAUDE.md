@@ -326,7 +326,19 @@ Native calls (via `nunchuk-android-nativesdk`) throw `com.nunchuk.android.except
 
 Known codes live in `NativeErrorCode` (`nunchuk-core/.../constants/NativeErrorCode.kt`); the full set is defined in the native SDK's `NunchukException` (e.g. `INVALID_FEE_RATE = -1005` — fee rate below the minimum, `COIN_SELECTION_ERROR = -1011` — insufficient funds, `INVALID_AMOUNT = -1002`). Add a constant to `NativeErrorCode` when you need to branch on one.
 
-**Convention**: don't surface the raw SDK message for cases with a designed message. Carry the code out of the ViewModel (e.g. an event field populated via `it.nativeErrorCode()`) and map the specific code to a `stringResource` in the UI, falling back to the raw SDK message for everything else. Example: the customize-fee sheet in `TransactionConfirmActivity` maps `INVALID_FEE_RATE` to `R.string.nc_input_fee_invalid_error` and shows `event.message` otherwise.
+**Convention**: don't surface the raw SDK message for cases with a designed message. Carry the code out of the ViewModel (e.g. an event field populated via `it.nativeErrorCode()`) and map the specific code to a `stringResource` in the UI, falling back to the raw SDK message for everything else. Example: `CustomizeLiquidFeeBottomSheet` validates a below-minimum fee client-side (shows `R.string.nc_input_fee_invalid_error`); an `INVALID_FEE_RATE` that still surfaces from the SDK at apply time maps to `R.string.nc_input_fee_insufficient` ("Insufficient fee"), and `event.message` is shown otherwise.
+
+### Liquid / USDT wallet
+
+Liquid wallets hold LBTC plus issued assets (notably USDT); the transaction **fee is always paid in LBTC**. Detect via `uiState.isLiquid` and compare an output's `assetId` against `usdtAssetId`.
+
+**Reuse the shared amount formatters in `nunchuk-core/util/WalletUtil.kt`** — do NOT inline `pureBTC().formatDecimalWithoutZero(MAX_FRACTION_DIGITS) + " LBTC/USDT"` or redeclare a local `8`/`LIQUID_*_FRACTION_DIGITS` const (`MAX_FRACTION_DIGITS` already exists in `NumberFormatter.kt`):
+- `Amount.getLbtcAmount()` — LBTC, honours the selected unit setting (sat / BTC / fixed precision)
+- `Amount.getLbtcTokenAmount()` / `Amount.getUsdtTokenAmount()` — fixed-precision `"<amount> LBTC"` / `"<amount> USDT"`
+- `Double.getLiquidTokenAmount(assetId, usdtAssetId)` — fixed-precision `"<amount> LBTC/USDT"`, symbol chosen by asset
+- `Amount.getLiquidCurrencyAmount(assetId, usdtAssetId)` — fiat value (USDT ≈ 1:1, LBTC uses the BTC rate)
+
+Liquid use cases (`nunchuk-domain`): `EstimateLiquidFeeUseCase` (fee rates incl. `minimumFee`), `EstimateFeeForLiquidTransactionUseCase`, `DraftUsdtTransactionUseCase`, `CreateUsdtTransactionUseCase`. The customize-fee UI is `CustomizeLiquidFeeBottomSheet` (input in LBTC).
 
 ### Migration: Fragment → Compose
 
@@ -341,6 +353,7 @@ The codebase is actively migrating from Fragment-based screens to Compose. New f
 
 ## Conventions
 
+- **Reuse, don't repeat (DRY)**: before writing a formatter, extension, mapper, or constant, search for an existing one (shared utils live in `nunchuk-core/util/`, e.g. `WalletUtil.kt`, `NumberFormatter.kt`; reusable UI in `nunchuk-core/.../compose/`). If the same logic appears in 2+ places, extract it to the nearest shared module instead of copy-pasting or redeclaring local constants. Prefer calling a shared method over inlining its body.
 - Package root: `com.nunchuk.android`
 - Logging: `Timber` (never `Log.d`)
 - Error messages: `.orUnknownError()` extension for null-safe error strings

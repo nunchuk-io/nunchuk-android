@@ -25,7 +25,7 @@ Grep the codebase for strings from the screen name / dialog title / error messag
 
 ### Step 3: Decide the path
 
-Apply the fix in-place. Then judge:
+Apply the fix in-place. **Reuse, don't repeat (DRY)**: before adding a formatter, extension, mapper, string, or constant, grep for an existing one — shared utils live in `nunchuk-core/util/` (e.g. `WalletUtil.kt`, `NumberFormatter.kt`) and reusable UI in `nunchuk-core/.../compose/`. Call the shared method instead of inlining its body, and if you find the same logic in 2+ places, extract it to the nearest shared module rather than copy-pasting or redeclaring a local constant. Then judge:
 
 - **Small + confident** = single-file or tightly localized change, follows existing conventions, you understand why it works, and a manual repro would clearly resolve the bug.
 - Anything else (multi-module, behavior change beyond the reported bug, new dependencies, uncertainty about side-effects, failing build/tests, missing repro path) → stop and summarize the diff + questions for the user.
