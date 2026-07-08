@@ -74,7 +74,7 @@ internal fun InputStablecoinAmountScreen(
 ) {
     val unitLabel = if (state.useToken) state.selectedToken.label() else USD_CURRENCY
     val secondaryCurrency = if (state.useToken) {
-        "$${state.amountUsd.formatDecimalWithoutZero(maxFractionDigits = USD_FRACTION_DIGITS)} $USD_CURRENCY"
+        "$${state.amountUsd.formatDecimal(maxFractionDigits = USD_FRACTION_DIGITS)} $USD_CURRENCY"
     } else {
         "${state.amountToken.formatDecimalWithoutZero(maxFractionDigits = MAX_DECIMAL_DIGITS)} ${state.selectedToken.label()}"
     }
