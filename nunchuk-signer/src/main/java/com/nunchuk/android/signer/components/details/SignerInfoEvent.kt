@@ -55,6 +55,7 @@ sealed class SignerInfoEvent {
     data class Loading(val loading: Boolean) : SignerInfoEvent()
     class GetHealthCheckPayload(val payload: DummyTransactionPayload, val walletId: String, val groupId: String) : SignerInfoEvent()
     data class SaveLocalFile(val isSuccess: Boolean) : SignerInfoEvent()
+    data class OpenTrezorSuite(val deeplink: String) : SignerInfoEvent()
 }
 
 data class SignerInfoState(

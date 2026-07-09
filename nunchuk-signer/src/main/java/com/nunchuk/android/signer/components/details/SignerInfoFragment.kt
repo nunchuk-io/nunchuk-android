@@ -26,14 +26,19 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.stringResource
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.viewbinding.ViewBinding
+import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.dialog.NcConfirmationDialog
 import com.nunchuk.android.core.base.BaseShareSaveFileFragment
 import com.nunchuk.android.core.domain.data.CheckFirmwareVersion
 import com.nunchuk.android.core.nfc.BaseNfcActivity.Companion.REQUEST_GENERATE_HEAL_CHECK_MSG
@@ -45,8 +50,10 @@ import com.nunchuk.android.core.nfc.BasePortalActivity
 import com.nunchuk.android.core.nfc.NfcActionListener
 import com.nunchuk.android.core.nfc.NfcScanInfo
 import com.nunchuk.android.core.nfc.NfcViewModel
+import com.nunchuk.android.core.util.TrezorCallbackHolder
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.hideLoading
+import com.nunchuk.android.core.util.openTrezorSuiteLink
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
@@ -67,10 +74,17 @@ import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterNotNull
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class SignerInfoFragment : BaseShareSaveFileFragment<ViewBinding>(),
     SingerInfoOptionBottomSheet.OptionClickListener {
+
+    @Inject
+    lateinit var trezorCallbackHolder: TrezorCallbackHolder
+
+    private var openTrezorSuiteDeeplink: String? by mutableStateOf(null)
 
     override fun initializeBinding(inflater: LayoutInflater, container: ViewGroup?): ViewBinding =
         ViewBinding {
@@ -81,69 +95,86 @@ class SignerInfoFragment : BaseShareSaveFileFragment<ViewBinding>(),
                     val uiState by viewModel.state.collectAsStateWithLifecycle()
                     val isPrimaryKey =
                         uiState.masterSigner?.let { viewModel.isPrimaryKey(it.device.masterFingerprint) } == true
-                    SignerInfoContent(
-                        uiState = uiState,
-                        isPrimaryKey = isPrimaryKey,
-                        onBackClicked = ::openMainScreen,
-                        onMoreClicked = {
-                            val type = viewModel.state.value.masterSigner?.type
-                                ?: viewModel.state.value.remoteSigner?.type
-                            val isTrezorSigner =
-                                viewModel.state.value.remoteSigner?.tags.orEmpty()
-                                    .contains(SignerTag.TREZOR)
-                            type?.let { signerType ->
-                                SingerInfoOptionBottomSheet.newInstance(
-                                    signerType = signerType,
-                                    isTrezor = isTrezorSigner
-                                )
-                                    .show(childFragmentManager, "SingerInfoOptionBottomSheet")
-                            }
-                        },
-                        onEditClicked = { onEditClicked(uiState.signerName) },
-                        onHealthCheckClicked = ::handleRunHealthCheck,
-                        onHistoryItemClick = {
-                            navigator.openTransactionDetailsScreen(
-                                activityContext = requireActivity(),
-                                walletId = it.walletLocalId,
-                                txId = it.transactionId,
-                                roomId = ""
-                            )
-                        },
-                        onBackupKeyClicked = {
-                            navigator.openCreateNewSeedScreen(
-                                activityContext = requireActivity(),
-                                walletId = "",
-                                backupHotKeySignerId = args.id
-                            )
-                        },
-                        onViewSeedPhraseClicked = { passphrase ->
-                            if (uiState.seedPhraseViewTimestamp == null) {
-                                viewModel.saveSeedPhraseViewTimestamp(args.id)
-                            } else {
-                                viewModel.removeSeedPhraseViewTimestamp(args.id)
-                                if (uiState.hasXprv) {
-                                    navigator.openAddSoftwareSignerScreen(
-                                        activityContext = requireActivity(),
-                                        masterSignerId = args.id,
-                                        passphrase = passphrase.orEmpty()
+                    NunchukTheme {
+                        SignerInfoContent(
+                            uiState = uiState,
+                            isPrimaryKey = isPrimaryKey,
+                            onBackClicked = ::openMainScreen,
+                            onMoreClicked = {
+                                val type = viewModel.state.value.masterSigner?.type
+                                    ?: viewModel.state.value.remoteSigner?.type
+                                val isTrezorSigner =
+                                    viewModel.state.value.remoteSigner?.tags.orEmpty()
+                                        .contains(SignerTag.TREZOR)
+                                type?.let { signerType ->
+                                    SingerInfoOptionBottomSheet.newInstance(
+                                        signerType = signerType,
+                                        isTrezor = isTrezorSigner
                                     )
-                                } else {
-                                    navigator.openCreateNewSeedScreen(
-                                        activityContext = requireActivity(),
-                                        masterSignerId = args.id,
-                                        passphrase = passphrase.orEmpty()
-                                    )
+                                        .show(childFragmentManager, "SingerInfoOptionBottomSheet")
                                 }
-                            }
-                        },
-                        onPassphraseSubmitted = { passphrase ->
-                            viewModel.checkPassphrase(
-                                masterSignerId = args.id,
-                                passphrase = passphrase,
+                            },
+                            onEditClicked = { onEditClicked(uiState.signerName) },
+                            onHealthCheckClicked = ::handleRunHealthCheck,
+                            onHistoryItemClick = {
+                                navigator.openTransactionDetailsScreen(
+                                    activityContext = requireActivity(),
+                                    walletId = it.walletLocalId,
+                                    txId = it.transactionId,
+                                    roomId = ""
+                                )
+                            },
+                            onBackupKeyClicked = {
+                                navigator.openCreateNewSeedScreen(
+                                    activityContext = requireActivity(),
+                                    walletId = "",
+                                    backupHotKeySignerId = args.id
+                                )
+                            },
+                            onViewSeedPhraseClicked = { passphrase ->
+                                if (uiState.seedPhraseViewTimestamp == null) {
+                                    viewModel.saveSeedPhraseViewTimestamp(args.id)
+                                } else {
+                                    viewModel.removeSeedPhraseViewTimestamp(args.id)
+                                    if (uiState.hasXprv) {
+                                        navigator.openAddSoftwareSignerScreen(
+                                            activityContext = requireActivity(),
+                                            masterSignerId = args.id,
+                                            passphrase = passphrase.orEmpty()
+                                        )
+                                    } else {
+                                        navigator.openCreateNewSeedScreen(
+                                            activityContext = requireActivity(),
+                                            masterSignerId = args.id,
+                                            passphrase = passphrase.orEmpty()
+                                        )
+                                    }
+                                }
+                            },
+                            onPassphraseSubmitted = { passphrase ->
+                                viewModel.checkPassphrase(
+                                    masterSignerId = args.id,
+                                    passphrase = passphrase,
+                                )
+                            },
+                            onPassphraseConsume = viewModel::onPassphraseConsumed
+                        )
+
+                        if (openTrezorSuiteDeeplink != null) {
+                            NcConfirmationDialog(
+                                title = stringResource(id = com.nunchuk.android.core.R.string.nc_confirmation),
+                                message = stringResource(id = R.string.nc_open_trezor_suite_continue_signing_message),
+                                positiveButtonText = stringResource(id = R.string.nc_open_trezor_suite),
+                                negativeButtonText = stringResource(id = com.nunchuk.android.core.R.string.nc_cancel),
+                                isPositiveButtonWrapContent = true,
+                                onPositiveClick = {
+                                    openTrezorSuiteDeeplink?.let(requireActivity()::openTrezorSuiteLink)
+                                    openTrezorSuiteDeeplink = null
+                                },
+                                onDismiss = { openTrezorSuiteDeeplink = null }
                             )
-                        },
-                        onPassphraseConsume = viewModel::onPassphraseConsumed
-                    )
+                        }
+                    }
                 }
 
                 if (args.existingKey != null) {
@@ -186,6 +217,12 @@ class SignerInfoFragment : BaseShareSaveFileFragment<ViewBinding>(),
             val walletId = result.walletId ?: return@setFragmentResultListener
             if (walletId.isNotEmpty()) {
                 viewModel.onHealthCheck(walletId)
+            }
+        }
+
+        flowObserver(trezorCallbackHolder.callbackUri.filterNotNull()) { callbackUri ->
+            if (viewModel.handleTrezorHealthCheckCallback(callbackUri)) {
+                trezorCallbackHolder.clear(callbackUri)
             }
         }
     }
@@ -402,6 +439,9 @@ class SignerInfoFragment : BaseShareSaveFileFragment<ViewBinding>(),
 
             is SignerInfoEvent.Loading -> showOrHideLoading(event.loading)
             is SignerInfoEvent.SaveLocalFile -> showSaveFileState(event.isSuccess)
+            is SignerInfoEvent.OpenTrezorSuite -> {
+                openTrezorSuiteDeeplink = event.deeplink
+            }
         }
     }
 
@@ -490,6 +530,8 @@ class SignerInfoFragment : BaseShareSaveFileFragment<ViewBinding>(),
                 (requireActivity() as NfcActionListener).startNfcFlow(
                     REQUEST_GENERATE_HEAL_CHECK_MSG
                 )
+            } else if (viewModel.isTrezorSigner()) {
+                viewModel.requestTrezorHealthCheck()
             } else {
                 showWarning(getString(R.string.nc_health_check_is_unavailable_for_this_key))
             }

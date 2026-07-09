@@ -6,6 +6,14 @@ Pull the latest libnunchuk changes, rebuild the native SDK AAR, publish to local
 
 Execute the following steps sequentially. Stop and report if any step fails.
 
+> **Do NOT bump the native SDK version for debug rebuilds.** Keep `VERSION` in
+> `nunchuk-android-nativesdk/build.gradle` and `nativeSdk` in
+> `my-android/gradle/libs.versions.toml` unchanged — republish over the same
+> version. Bumping to a version that only exists in local Maven breaks the build
+> for anyone who pulls without rebuilding. Because a same-version republish can be
+> served stale from the Gradle cache, force a refresh in Step 4 with
+> `--refresh-dependencies` (or the app may keep using the previously cached AAR).
+
 ### Step 1: Pull latest libnunchuk
 
 ```bash
@@ -37,10 +45,12 @@ Install the Nunchuk app (`:nunchuk-app`) — NOT the native SDK's test app. Alwa
 The app has product flavors (`development`, `production`); `installDebug` alone is ambiguous. Use the `development` flavor for dev work:
 
 ```bash
-cd /Users/mega_lh/MyProject/my-android && ./gradlew :nunchuk-app:installDevelopmentDebug
+cd /Users/mega_lh/MyProject/my-android && ./gradlew :nunchuk-app:installDevelopmentDebug --refresh-dependencies
 ```
 
-Use a 10-minute timeout. Confirm the APK was installed on the device.
+Use a 10-minute timeout. Confirm the APK was installed on the device. The
+`--refresh-dependencies` flag ensures the republished (same-version) native AAR
+is picked up instead of a stale cached copy.
 
 ### Summary
 

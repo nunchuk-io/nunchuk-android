@@ -19,10 +19,10 @@
 
 package com.nunchuk.android.signer.components.details
 
-import android.os.SystemClock
 import android.nfc.NdefRecord
 import android.nfc.tech.IsoDep
 import android.nfc.tech.Ndef
+import android.os.SystemClock
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -35,11 +35,16 @@ import com.nunchuk.android.core.domain.HealthCheckTapSignerUseCase
 import com.nunchuk.android.core.domain.TopUpXpubTapSignerUseCase
 import com.nunchuk.android.core.domain.membership.UpdateExistingKeyUseCase
 import com.nunchuk.android.core.domain.membership.WalletsExistingKey
+import com.nunchuk.android.core.domain.utils.GetTrezorSignMessageDeeplinkUseCase
+import com.nunchuk.android.core.domain.utils.HealthCheckSingleSignerUseCase
+import com.nunchuk.android.core.domain.utils.ParseTrezorSignMessageResponseUseCase
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.helper.CheckAssistedSignerExistenceHelper
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.CardIdManager
+import com.nunchuk.android.core.util.TrezorCallbackMethod
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.core.util.parseTrezorCallback
 import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
@@ -56,6 +61,7 @@ import com.nunchuk.android.signer.components.details.SignerInfoEvent.TopUpXpubSu
 import com.nunchuk.android.signer.components.details.SignerInfoEvent.UpdateNameErrorEvent
 import com.nunchuk.android.signer.components.details.SignerInfoEvent.UpdateNameSuccessEvent
 import com.nunchuk.android.type.HealthStatus
+import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.DeleteMasterSignerUseCase
 import com.nunchuk.android.usecase.DeleteRemoteSignerUseCase
@@ -100,6 +106,9 @@ internal class SignerInfoViewModel @Inject constructor(
     private val updateMasterSignerUseCase: UpdateMasterSignerUseCase,
     private val updateRemoteSignerUseCase: UpdateRemoteSignerUseCase,
     private val healthCheckMasterSignerUseCase: HealthCheckMasterSignerUseCase,
+    private val getTrezorSignMessageDeeplinkUseCase: GetTrezorSignMessageDeeplinkUseCase,
+    private val parseTrezorSignMessageResponseUseCase: ParseTrezorSignMessageResponseUseCase,
+    private val healthCheckSingleSignerUseCase: HealthCheckSingleSignerUseCase,
     private val sendSignerPassphraseUseCase: SendSignerPassphraseUseCase,
     private val getTapSignerBackupUseCase: GetTapSignerBackupUseCase,
     private val healthCheckTapSignerUseCase: HealthCheckTapSignerUseCase,
@@ -128,6 +137,8 @@ internal class SignerInfoViewModel @Inject constructor(
 
     private val _event = MutableSharedFlow<SignerInfoEvent>()
     val event = _event.asSharedFlow()
+
+    private var lastHandledTrezorCallback: String = ""
 
     private fun getState() = _state.value
 
@@ -319,6 +330,73 @@ internal class SignerInfoViewModel @Inject constructor(
                     }
                 }
         }
+    }
+
+    fun isTrezorSigner(): Boolean {
+        val remoteSigner = getState().remoteSigner ?: return false
+        return args.signerType == SignerType.HARDWARE
+                && remoteSigner.tags.contains(SignerTag.TREZOR)
+    }
+
+    fun requestTrezorHealthCheck() {
+        val signer = getState().remoteSigner ?: return
+        viewModelScope.launch {
+            _event.emit(SignerInfoEvent.Loading(true))
+            getTrezorSignMessageDeeplinkUseCase(
+                GetTrezorSignMessageDeeplinkUseCase.Param(
+                    signer = signer,
+                    message = HEALTH_CHECK_MESSAGE
+                )
+            ).onSuccess { deeplink ->
+                _event.emit(SignerInfoEvent.OpenTrezorSuite(deeplink))
+            }.onFailure {
+                _event.emit(HealthCheckErrorEvent(e = it))
+            }
+            _event.emit(SignerInfoEvent.Loading(false))
+        }
+    }
+
+    fun handleTrezorHealthCheckCallback(callbackUri: String?): Boolean {
+        val callback = parseTrezorCallback(callbackUri) ?: return false
+        if (callback.method != TrezorCallbackMethod.SIGN_MESSAGE) return false
+        if (lastHandledTrezorCallback == callback.rawUri) return true
+        lastHandledTrezorCallback = callback.rawUri
+        if (callback.response.isBlank()) return true
+        val signer = getState().remoteSigner ?: return true
+
+        viewModelScope.launch {
+            _event.emit(SignerInfoEvent.Loading(true))
+            parseTrezorSignMessageResponseUseCase(
+                ParseTrezorSignMessageResponseUseCase.Param(
+                    response = callback.response,
+                    message = HEALTH_CHECK_MESSAGE
+                )
+            ).onSuccess { signedMessage ->
+                if (signedMessage.signature.isBlank()) {
+                    _event.emit(HealthCheckErrorEvent())
+                } else {
+                    healthCheckSingleSignerUseCase(
+                        HealthCheckSingleSignerUseCase.Param(
+                            signer = signer,
+                            message = HEALTH_CHECK_MESSAGE,
+                            signature = signedMessage.signature
+                        )
+                    ).onSuccess { status ->
+                        if (status == HealthStatus.SUCCESS) {
+                            _event.emit(HealthCheckSuccessEvent)
+                        } else {
+                            _event.emit(HealthCheckErrorEvent())
+                        }
+                    }.onFailure {
+                        _event.emit(HealthCheckErrorEvent(e = it))
+                    }
+                }
+            }.onFailure {
+                _event.emit(HealthCheckErrorEvent(e = it))
+            }
+            _event.emit(SignerInfoEvent.Loading(false))
+        }
+        return true
     }
 
     fun healthCheckTapSigner(isoDep: IsoDep, cvc: String, masterSigner: MasterSigner) {
@@ -531,5 +609,9 @@ internal class SignerInfoViewModel @Inject constructor(
 
     fun onPassphraseConsumed() {
         _state.update { it.copy(passphrase = null) }
+    }
+
+    companion object {
+        private const val HEALTH_CHECK_MESSAGE = "Run health check"
     }
 }

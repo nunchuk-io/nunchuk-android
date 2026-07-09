@@ -133,374 +133,372 @@ fun SignerInfoContent(
         }
     }
 
-    NunchukTheme {
-        Scaffold(
-            modifier = Modifier.Companion.navigationBarsPadding(),
-            topBar = {
-                Column(
-                    modifier = Modifier.Companion
-                        .background(
-                            brush = Brush.Companion.linearGradient(
-                                colors = listOf(
-                                    colorResource(id = R.color.nc_primary_light_color),
-                                    colorResource(id = R.color.nc_primary_dark_color)
-                                ),
-                                start = Offset(0f, 1000f),
-                                end = Offset(0f, 0f)
+    Scaffold(
+        modifier = Modifier.navigationBarsPadding(),
+        topBar = {
+            Column(
+                modifier = Modifier
+                    .background(
+                        brush = Brush.linearGradient(
+                            colors = listOf(
+                                colorResource(id = R.color.nc_primary_light_color),
+                                colorResource(id = R.color.nc_primary_dark_color)
                             ),
-                            shape = RectangleShape
+                            start = Offset(0f, 1000f),
+                            end = Offset(0f, 0f)
                         ),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.Companion.CenterHorizontally
-                ) {
-                    NcTopAppBar(
-                        textStyle = NunchukTheme.typography.titleLarge.copy(color = Color.Companion.White),
-                        backgroundColor = Color.Companion.Transparent,
-                        title = stringResource(id = R.string.nc_text_signer_info),
-                        tintColor = Color.Companion.White,
-                        onBackPress = onBackClicked,
-                        actions = {
-                            IconButton(onClick = onMoreClicked) {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.ic_more_horizontal),
-                                    contentDescription = "More",
-                                    tint = Color.Companion.White
+                        shape = RectangleShape
+                    ),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                NcTopAppBar(
+                    textStyle = NunchukTheme.typography.titleLarge.copy(color = Color.White),
+                    backgroundColor = Color.Transparent,
+                    title = stringResource(id = R.string.nc_text_signer_info),
+                    tintColor = Color.White,
+                    onBackPress = onBackClicked,
+                    actions = {
+                        IconButton(onClick = onMoreClicked) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_more_horizontal),
+                                contentDescription = "More",
+                                tint = Color.White
+                            )
+                        }
+                    }
+                )
+
+                if (isHotKey) {
+                    NcHintMessage(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp)
+                            .clickable {
+                                onBackupKeyClicked()
+                            },
+                        type = HighlightMessageType.WARNING,
+                        content = {
+                            val annotatedText = buildAnnotatedString {
+                                append(stringResource(R.string.nc_please_back_up_your_key))
+                                append(" ")
+                                pushStringAnnotation(
+                                    tag = "DO_IT_NOW",
+                                    annotation = "do_it_now"
                                 )
+                                withStyle(
+                                    style = SpanStyle(
+                                        textDecoration = TextDecoration.Underline
+                                    )
+                                ) {
+                                    append(stringResource(R.string.nc_do_it_now))
+                                }
+                                pop()
                             }
+                            Text(
+                                text = annotatedText,
+                                style = NunchukTheme.typography.titleSmall.copy(
+                                    color = colorResource(
+                                        R.color.nc_primary_dark_color
+                                    )
+                                )
+                            )
                         }
                     )
+                }
 
-                    if (isHotKey) {
-                        NcHintMessage(
-                            modifier = Modifier.Companion
-                                .fillMaxWidth()
-                                .padding(horizontal = 20.dp)
-                                .clickable {
-                                    onBackupKeyClicked()
-                                },
-                            type = HighlightMessageType.WARNING,
-                            content = {
-                                val annotatedText = buildAnnotatedString {
-                                    append(stringResource(R.string.nc_please_back_up_your_key))
-                                    append(" ")
-                                    pushStringAnnotation(
-                                        tag = "DO_IT_NOW",
-                                        annotation = "do_it_now"
-                                    )
-                                    withStyle(
-                                        style = SpanStyle(
-                                            textDecoration = TextDecoration.Companion.Underline
-                                        )
-                                    ) {
-                                        append(stringResource(R.string.nc_do_it_now))
-                                    }
-                                    pop()
-                                }
-                                Text(
-                                    text = annotatedText,
-                                    style = NunchukTheme.typography.titleSmall.copy(
-                                        color = colorResource(
-                                            R.color.nc_primary_dark_color
-                                        )
-                                    )
-                                )
-                            }
-                        )
-                    }
+                val resId = if (uiState.masterSigner != null) {
+                    uiState.masterSigner.toReadableDrawableResId(isPrimaryKey = isPrimaryKey)
+                } else uiState.remoteSigner?.toReadableDrawableResId()
+                resId?.let {
+                    NcCircleImage(
+                        modifier = Modifier.padding(top = 12.dp),
+                        resId = resId,
+                        size = 96.dp,
+                        iconSize = 60.dp,
+                        iconTintColor = colorResource(id = R.color.nc_grey_g7),
+                        color = if (uiState.assistedWalletIds.isEmpty()) Color.White else color
+                    )
+                }
 
-                    val resId = if (uiState.masterSigner != null) {
-                        uiState.masterSigner.toReadableDrawableResId(isPrimaryKey = isPrimaryKey)
-                    } else uiState.remoteSigner?.toReadableDrawableResId()
-                    resId?.let {
-                        NcCircleImage(
-                            modifier = Modifier.Companion.padding(top = 12.dp),
-                            resId = resId,
-                            size = 96.dp,
-                            iconSize = 60.dp,
-                            iconTintColor = colorResource(id = R.color.nc_grey_g7),
-                            color = if (uiState.assistedWalletIds.isEmpty()) Color.Companion.White else color
-                        )
-                    }
+                Row(
+                    modifier = Modifier
+                        .clickable { onEditClicked() }
+                        .padding(top = 16.dp, start = 16.dp, end = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = uiState.signerName,
+                        style = NunchukTheme.typography.heading.copy(color = Color.White)
+                    )
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_edit),
+                        contentDescription = "",
+                        tint = Color.White,
+                        modifier = Modifier
+                            .padding(start = 8.dp)
+                            .size(18.dp)
+                    )
+                }
 
-                    Row(
-                        modifier = Modifier.Companion
-                            .clickable { onEditClicked() }
-                            .padding(top = 16.dp, start = 16.dp, end = 16.dp),
-                        verticalAlignment = Alignment.Companion.CenterVertically,
-                    ) {
+                Row(modifier = Modifier.padding(top = 8.dp)) {
+                    if (isPrimaryKey) {
                         Text(
-                            text = uiState.signerName,
-                            style = NunchukTheme.typography.heading.copy(color = Color.Companion.White)
-                        )
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_edit),
-                            contentDescription = "",
-                            tint = Color.Companion.White,
-                            modifier = Modifier.Companion
-                                .padding(start = 8.dp)
-                                .size(18.dp)
-                        )
-                    }
-
-                    Row(modifier = Modifier.Companion.padding(top = 8.dp)) {
-                        if (isPrimaryKey) {
-                            Text(
-                                modifier = Modifier.Companion
-                                    .background(
-                                        color = colorResource(id = R.color.nc_fill_beewax),
-                                        shape = RoundedCornerShape(20.dp)
-                                    )
-                                    .padding(horizontal = 8.dp),
-                                text = stringResource(id = R.string.nc_signer_type_primary_key),
-                                style = TextStyle(
-                                    color = MaterialTheme.colorScheme.textPrimary,
-                                    fontSize = 12.sp,
-                                    fontWeight = FontWeight.Companion.W500,
-                                    fontFamily = latoBold
-                                )
-                            )
-                        }
-                        val signerType =
-                            uiState.masterSigner?.type?.toReadableString(
-                                LocalContext.current,
-                                false
-                            )
-                                ?: uiState.remoteSigner?.type?.toReadableString(
-                                    LocalContext.current,
-                                    isPrimaryKey
-                                )
-                                ?: ""
-                        Text(
-                            modifier = Modifier.Companion
-                                .padding(start = 8.dp)
+                            modifier = Modifier
                                 .background(
-                                    color = colorResource(id = R.color.nc_grey_g2),
-                                    shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp)
+                                    color = colorResource(id = R.color.nc_fill_beewax),
+                                    shape = RoundedCornerShape(20.dp)
                                 )
-                                .padding(horizontal = 10.dp, vertical = 4.dp),
-                            text = signerType,
+                                .padding(horizontal = 8.dp),
+                            text = stringResource(id = R.string.nc_signer_type_primary_key),
                             style = TextStyle(
-                                color = colorResource(R.color.nc_grey_g7),
+                                color = MaterialTheme.colorScheme.textPrimary,
                                 fontSize = 12.sp,
-                                fontWeight = FontWeight.Companion.W500,
+                                fontWeight = FontWeight.W500,
                                 fontFamily = latoBold
                             )
                         )
                     }
-
-                    Spacer(modifier = Modifier.Companion.height(24.dp))
-                }
-            },
-            bottomBar = {
-                Column(
-                    modifier = Modifier.Companion.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                ) {
-                    if (isMyKey) {
-                        NcPrimaryDarkButton(
-                            modifier = Modifier.Companion
-                                .fillMaxWidth(),
-                            onClick = onHealthCheckClicked
-                        ) {
-                            Text(
-                                text = if (isHotKey) stringResource(id = R.string.nc_txt_health_check) else stringResource(
-                                    id = R.string.nc_txt_run_health_check
-                                )
+                    val signerType =
+                        uiState.masterSigner?.type?.toReadableString(
+                            LocalContext.current,
+                            false
+                        )
+                            ?: uiState.remoteSigner?.type?.toReadableString(
+                                LocalContext.current,
+                                isPrimaryKey
                             )
-                        }
-                    }
-                    if (isSoftwareSigner) {
-                        val viewText = if (uiState.hasXprv) {
-                            stringResource(id = R.string.nc_view_xprv)
-                        } else {
-                            stringResource(id = R.string.nc_view_seed_phrase)
-                        }
-
-                        val buttonText = if (remainingTimeMs > 0) {
-                            val timeString = remainingTimeMs.formatDurationHoursMinutes()
-                            "$viewText in $timeString"
-                        } else {
-                            viewText
-                        }
-
-                        if (uiState.seedPhraseViewTimestamp != null && remainingTimeMs <= 0) {
-                            NcOutlineButton(
-                                modifier = Modifier.Companion.fillMaxWidth(),
-                                onClick = {
-                                    if (needPassphrase) {
-                                        showPassphraseDialog = true
-                                    } else {
-                                        onViewSeedPhraseClicked(null)
-                                    }
-                                }
-                            ) {
-                                Text(text = buttonText)
-                            }
-                        } else {
-                            val isEnabled = remainingTimeMs <= 0
-                            TextButton(
-                                modifier = Modifier.Companion.fillMaxWidth(),
-                                enabled = isEnabled,
-                                onClick = {
-                                    if (needPassphrase) {
-                                        showPassphraseDialog = true
-                                    } else {
-                                        showSecurityTimeoutDialog = true
-                                    }
-                                }
-                            ) {
-                                Text(
-                                    text = buttonText,
-                                    style = NunchukTheme.typography.title.copy(
-                                        color = if (isEnabled) {
-                                            MaterialTheme.colorScheme.textPrimary
-                                        } else {
-                                            MaterialTheme.colorScheme.textSecondary
-                                        }
-                                    )
-                                )
-                            }
-                        }
-                    }
+                            ?: ""
+                    Text(
+                        modifier = Modifier
+                            .padding(start = 8.dp)
+                            .background(
+                                color = colorResource(id = R.color.nc_grey_g2),
+                                shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp)
+                            )
+                            .padding(horizontal = 10.dp, vertical = 4.dp),
+                        text = signerType,
+                        style = TextStyle(
+                            color = colorResource(R.color.nc_grey_g7),
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.W500,
+                            fontFamily = latoBold
+                        )
+                    )
                 }
-            },
-        ) { innerPadding ->
-            LazyColumn(
-                modifier = Modifier.Companion
-                    .padding(innerPadding)
-                    .fillMaxSize()
-                    .padding(horizontal = 16.dp)
+
+                Spacer(modifier = Modifier.height(24.dp))
+            }
+        },
+        bottomBar = {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 if (isMyKey) {
-                    uiState.nfcCardId?.let {
-                        item {
-                            Spacer(modifier = Modifier.Companion.height(16.dp))
-                            Text(
-                                text = stringResource(R.string.nc_card_id),
-                                style = NunchukTheme.typography.titleSmall
+                    NcPrimaryDarkButton(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        onClick = onHealthCheckClicked
+                    ) {
+                        Text(
+                            text = if (isHotKey) stringResource(id = R.string.nc_txt_health_check) else stringResource(
+                                id = R.string.nc_txt_run_health_check
                             )
+                        )
+                    }
+                }
+                if (isSoftwareSigner) {
+                    val viewText = if (uiState.hasXprv) {
+                        stringResource(id = R.string.nc_view_xprv)
+                    } else {
+                        stringResource(id = R.string.nc_view_seed_phrase)
+                    }
+
+                    val buttonText = if (remainingTimeMs > 0) {
+                        val timeString = remainingTimeMs.formatDurationHoursMinutes()
+                        "$viewText in $timeString"
+                    } else {
+                        viewText
+                    }
+
+                    if (uiState.seedPhraseViewTimestamp != null && remainingTimeMs <= 0) {
+                        NcOutlineButton(
+                            modifier = Modifier.fillMaxWidth(),
+                            onClick = {
+                                if (needPassphrase) {
+                                    showPassphraseDialog = true
+                                } else {
+                                    onViewSeedPhraseClicked(null)
+                                }
+                            }
+                        ) {
+                            Text(text = buttonText)
+                        }
+                    } else {
+                        val isEnabled = remainingTimeMs <= 0
+                        TextButton(
+                            modifier = Modifier.fillMaxWidth(),
+                            enabled = isEnabled,
+                            onClick = {
+                                if (needPassphrase) {
+                                    showPassphraseDialog = true
+                                } else {
+                                    showSecurityTimeoutDialog = true
+                                }
+                            }
+                        ) {
                             Text(
-                                modifier = Modifier.Companion.padding(top = 4.dp),
-                                text = uiState.nfcCardId,
-                                style = NunchukTheme.typography.body
+                                text = buttonText,
+                                style = NunchukTheme.typography.title.copy(
+                                    color = if (isEnabled) {
+                                        MaterialTheme.colorScheme.textPrimary
+                                    } else {
+                                        MaterialTheme.colorScheme.textSecondary
+                                    }
+                                )
                             )
                         }
                     }
+                }
+            }
+        },
+    ) { innerPadding ->
+        LazyColumn(
+            modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxSize()
+                .padding(horizontal = 16.dp)
+        ) {
+            if (isMyKey) {
+                uiState.nfcCardId?.let {
                     item {
-                        Spacer(modifier = Modifier.Companion.height(24.dp))
+                        Spacer(modifier = Modifier.height(16.dp))
                         Text(
-                            text = stringResource(R.string.nc_text_signer_spec),
+                            text = stringResource(R.string.nc_card_id),
                             style = NunchukTheme.typography.titleSmall
                         )
-                        val keySpec = if (uiState.masterSigner != null) {
-                            uiState.masterSigner.device.masterFingerprint
-                        } else if (uiState.remoteSigner != null) {
-                            uiState.remoteSigner.descriptor
-                        } else {
-                            ""
-                        }
                         Text(
-                            modifier = Modifier.Companion.padding(top = 4.dp),
-                            text = keySpec,
+                            modifier = Modifier.padding(top = 4.dp),
+                            text = uiState.nfcCardId,
                             style = NunchukTheme.typography.body
                         )
                     }
                 }
-                if (uiState.assistedWalletIds.isNotEmpty()) {
-                    if (isMyKey) {
-                        item {
-                            Spacer(modifier = Modifier.Companion.height(24.dp))
-                            HorizontalDivider()
-                        }
+                item {
+                    Spacer(modifier = Modifier.height(24.dp))
+                    Text(
+                        text = stringResource(R.string.nc_text_signer_spec),
+                        style = NunchukTheme.typography.titleSmall
+                    )
+                    val keySpec = if (uiState.masterSigner != null) {
+                        uiState.masterSigner.device.masterFingerprint
+                    } else if (uiState.remoteSigner != null) {
+                        uiState.remoteSigner.descriptor
+                    } else {
+                        ""
                     }
-
+                    Text(
+                        modifier = Modifier.padding(top = 4.dp),
+                        text = keySpec,
+                        style = NunchukTheme.typography.body
+                    )
+                }
+            }
+            if (uiState.assistedWalletIds.isNotEmpty()) {
+                if (isMyKey) {
                     item {
-                        Spacer(modifier = Modifier.Companion.height(24.dp))
-                        Column {
-                            Row(
-                                modifier = Modifier.Companion
-                                    .background(
-                                        color = color,
-                                        shape = RoundedCornerShape(size = 20.dp)
-                                    )
-                                    .padding(horizontal = 8.dp, vertical = 4.dp),
-                                horizontalArrangement = Arrangement.spacedBy(
-                                    4.dp,
-                                    Alignment.Companion.Start
-                                ),
-                                verticalAlignment = Alignment.Companion.CenterVertically,
-                            ) {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.ic_health_check_dark),
-                                    contentDescription = "",
-                                    tint = colorResource(R.color.nc_grey_g7)
-                                )
-                                Text(
-                                    text = label,
-                                    style = NunchukTheme.typography.bodySmall.copy(
-                                        color = colorResource(
-                                            R.color.nc_grey_g7
-                                        )
-                                    )
-                                )
-                            }
+                        Spacer(modifier = Modifier.height(24.dp))
+                        HorizontalDivider()
+                    }
+                }
 
-                            Text(
-                                modifier = Modifier.Companion.padding(top = 16.dp),
-                                text = stringResource(R.string.nc_health_check_history),
-                                style = NunchukTheme.typography.title
-                            )
-                            if (uiState.healthCheckHistories.isNullOrEmpty()) {
-                                Text(
-                                    modifier = Modifier.Companion.padding(top = 16.dp),
-                                    text = stringResource(R.string.nc_no_history),
-                                    style = NunchukTheme.typography.body
+                item {
+                    Spacer(modifier = Modifier.height(24.dp))
+                    Column {
+                        Row(
+                            modifier = Modifier
+                                .background(
+                                    color = color,
+                                    shape = RoundedCornerShape(size = 20.dp)
                                 )
-                            }
+                                .padding(horizontal = 8.dp, vertical = 4.dp),
+                            horizontalArrangement = Arrangement.spacedBy(
+                                4.dp,
+                                Alignment.Start
+                            ),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_health_check_dark),
+                                contentDescription = "",
+                                tint = colorResource(R.color.nc_grey_g7)
+                            )
+                            Text(
+                                text = label,
+                                style = NunchukTheme.typography.bodySmall.copy(
+                                    color = colorResource(
+                                        R.color.nc_grey_g7
+                                    )
+                                )
+                            )
                         }
 
+                        Text(
+                            modifier = Modifier.padding(top = 16.dp),
+                            text = stringResource(R.string.nc_health_check_history),
+                            style = NunchukTheme.typography.title
+                        )
+                        if (uiState.healthCheckHistories.isNullOrEmpty()) {
+                            Text(
+                                modifier = Modifier.padding(top = 16.dp),
+                                text = stringResource(R.string.nc_no_history),
+                                style = NunchukTheme.typography.body
+                            )
+                        }
                     }
 
-                    items(uiState.healthCheckHistories.orEmpty()) {
-                        HealthCheckHistoryItem(it, onHistoryItemClick = { onHistoryItemClick(it) })
-                    }
+                }
+
+                items(uiState.healthCheckHistories.orEmpty()) {
+                    HealthCheckHistoryItem(it, onHistoryItemClick = { onHistoryItemClick(it) })
                 }
             }
         }
+    }
 
-        if (showPassphraseDialog) {
-            NcInputDialog(
-                title = stringResource(id = R.string.nc_transaction_enter_passphrase),
-                inputType = NcInputType.PASSWORD,
-                confirmText = stringResource(R.string.nc_ok),
-                isMaskedInput = true,
-                placeholder = stringResource(R.string.nc_signer_passphrase),
-                onConfirmed = { passphrase ->
-                    showPassphraseDialog = false
-                    onPassphraseSubmitted(passphrase)
-                },
-                onCanceled = {
-                    showPassphraseDialog = false
-                },
-                onDismiss = {
-                    showPassphraseDialog = false
-                }
-            )
-        }
+    if (showPassphraseDialog) {
+        NcInputDialog(
+            title = stringResource(id = R.string.nc_transaction_enter_passphrase),
+            inputType = NcInputType.PASSWORD,
+            confirmText = stringResource(R.string.nc_ok),
+            isMaskedInput = true,
+            placeholder = stringResource(R.string.nc_signer_passphrase),
+            onConfirmed = { passphrase ->
+                showPassphraseDialog = false
+                onPassphraseSubmitted(passphrase)
+            },
+            onCanceled = {
+                showPassphraseDialog = false
+            },
+            onDismiss = {
+                showPassphraseDialog = false
+            }
+        )
+    }
 
-        if (showSecurityTimeoutDialog) {
-            SecurityTimeoutDialog(
-                isXprv = uiState.hasXprv,
-                onDismiss = {
-                    showSecurityTimeoutDialog = false
-                },
-                onConfirm = {
-                    onViewSeedPhraseClicked(uiState.passphrase)
-                    onPassphraseConsume()
-                    showSecurityTimeoutDialog = false
-                },
-            )
-        }
+    if (showSecurityTimeoutDialog) {
+        SecurityTimeoutDialog(
+            isXprv = uiState.hasXprv,
+            onDismiss = {
+                showSecurityTimeoutDialog = false
+            },
+            onConfirm = {
+                onViewSeedPhraseClicked(uiState.passphrase)
+                onPassphraseConsume()
+                showSecurityTimeoutDialog = false
+            },
+        )
     }
 }
 
@@ -564,26 +562,30 @@ fun HealthCheckHistoryItem(history: HealthCheckHistory, onHistoryItemClick: () -
 @PreviewLightDark
 @Composable
 private fun SignerInfoScreenPreview() {
-    SignerInfoContent(
-        uiState = SignerInfoState(
-            signerName = "Key",
-            masterSigner = MasterSigner(
-                type = SignerType.NFC
-            ),
+    NunchukTheme {
+        SignerInfoContent(
+            uiState = SignerInfoState(
+                signerName = "Key",
+                masterSigner = MasterSigner(
+                    type = SignerType.NFC
+                ),
+            )
         )
-    )
+    }
 }
 
 @PreviewLightDark
 @Composable
 private fun SignerInfoAssistedScreenPreview() {
-    SignerInfoContent(
-        uiState = SignerInfoState(
-            signerName = "Key",
-            masterSigner = MasterSigner(
-                type = SignerType.SOFTWARE
-            ),
-            assistedWalletIds = listOf("abc")
+    NunchukTheme {
+        SignerInfoContent(
+            uiState = SignerInfoState(
+                signerName = "Key",
+                masterSigner = MasterSigner(
+                    type = SignerType.SOFTWARE
+                ),
+                assistedWalletIds = listOf("abc")
+            )
         )
-    )
+    }
 }
