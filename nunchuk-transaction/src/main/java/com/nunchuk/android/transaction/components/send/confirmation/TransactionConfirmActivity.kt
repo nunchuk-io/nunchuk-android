@@ -43,6 +43,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -61,6 +62,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import androidx.viewbinding.ViewBinding
 import com.nunchuk.android.compose.HighlightMessageType
 import com.nunchuk.android.compose.NcHintMessage
@@ -79,6 +83,7 @@ import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.SweepType
+import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.sheet.BottomSheetTooltip
 import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.core.util.InheritanceClaimTxDetailInfo
@@ -121,6 +126,7 @@ import com.nunchuk.android.transaction.components.utils.toTitle
 import com.nunchuk.android.widget.NCToastMessage
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
+import kotlinx.serialization.Serializable
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -143,12 +149,54 @@ class TransactionConfirmActivity : BaseNfcActivity<ViewBinding>() {
     override fun initializeBinding(): ViewBinding = ViewBinding {
         ComposeView(this).apply {
             setContent {
-                TransactionConfirmScreen(
-                    activity = this@TransactionConfirmActivity,
-                    args = args,
-                    viewModel = viewModel,
-                    sessionHolder = sessionHolder,
-                )
+                NunchukTheme {
+                    val navController = rememberNavController()
+                    NavHost(
+                        navController = navController,
+                        startDestination = ConfirmRoute,
+                    ) {
+                        composable<ConfirmRoute> {
+                            TransactionConfirmScreen(
+                                activity = this@TransactionConfirmActivity,
+                                args = args,
+                                viewModel = viewModel,
+                                sessionHolder = sessionHolder,
+                                onAddFunds = {
+                                    viewModel.loadTopUpAddress()
+                                    navController.navigate(TopUpLbtcRoute)
+                                },
+                            )
+                        }
+                        composable<TopUpLbtcRoute> {
+                            val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+                            LaunchedEffect(Unit) { viewModel.startWatchingLbtcTopUp() }
+                            DisposableEffect(Unit) {
+                                onDispose { viewModel.stopWatchingLbtcTopUp() }
+                            }
+                            TopUpLbtcScreen(
+                                fee = uiState.transaction.fee,
+                                address = uiState.topUpAddress,
+                                onBack = { navController.popBackStack() },
+                                onShareAddress = { address ->
+                                    IntentSharingController.from(this@TransactionConfirmActivity)
+                                        .shareText(address)
+                                },
+                                onCopyAddress = { content ->
+                                    this@TransactionConfirmActivity.copyToClipboard(
+                                        label = "Nunchuk",
+                                        text = content,
+                                    )
+                                    NCToastMessage(this@TransactionConfirmActivity)
+                                        .showMessage(
+                                            this@TransactionConfirmActivity.getString(
+                                                R.string.nc_copied_to_clipboard
+                                            )
+                                        )
+                                },
+                            )
+                        }
+                    }
+                }
             }
         }
     }.also {
@@ -225,12 +273,19 @@ class TransactionConfirmActivity : BaseNfcActivity<ViewBinding>() {
     }
 }
 
+@Serializable
+private data object ConfirmRoute
+
+@Serializable
+private data object TopUpLbtcRoute
+
 @Composable
 private fun TransactionConfirmScreen(
     activity: TransactionConfirmActivity,
     args: TransactionConfirmArgs,
     viewModel: TransactionConfirmViewModel,
     sessionHolder: SessionHolder,
+    onAddFunds: () -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var isLoading by rememberSaveable { mutableStateOf(false) }
@@ -357,6 +412,15 @@ private fun TransactionConfirmScreen(
                     }
                 }
 
+                is TransactionConfirmEvent.LbtcTopUpReceived -> {
+                    NCToastMessage(activity).showMessage(
+                        context.getString(
+                            R.string.nc_lbtc_received,
+                            event.amount.getLbtcTokenAmount(),
+                        )
+                    )
+                }
+
                 is TransactionConfirmEvent.AssignTagError,
                 is TransactionConfirmEvent.AssignTagSuccess,
                 is TransactionConfirmEvent.DraftTaprootTransactionSuccess,
@@ -465,9 +529,7 @@ private fun TransactionConfirmScreen(
                 }
             },
             onCustomizeFeeClick = { showCustomizeFee = true },
-            onAddFunds = {
-                activity.navigator.openReceiveTransactionScreen(activity, args.walletId)
-            },
+            onAddFunds = onAddFunds,
             onCopyText = { content ->
                 activity.copyToClipboard(label = "Nunchuk", text = content)
                 NCToastMessage(activity).showMessage(context.getString(R.string.nc_copied_to_clipboard))

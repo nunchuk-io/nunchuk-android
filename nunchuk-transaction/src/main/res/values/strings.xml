@@ -138,4 +138,7 @@
     <string name="nc_liquid_address_warning">Only send [B]USDT (Liquid) or LBTC[/B] to this address. USDT on other networks must be converted to USDT (Liquid) before sending, or the funds may be permanently lost.</string>
     <string name="nc_not_enough_lbtc_for_fee">You need more LBTC to pay for this transaction.</string>
     <string name="nc_add_funds">Add funds</string>
+    <string name="nc_top_up_lbtc">Top up LBTC</string>
+    <string name="nc_top_up_lbtc_desc">Deposit at least [B]%1$s[/B] to the address below to continue your transaction.</string>
+    <string name="nc_lbtc_received">%1$s received.</string>
 </resources>

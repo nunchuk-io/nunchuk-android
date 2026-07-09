@@ -76,15 +76,19 @@ import com.nunchuk.android.usecase.coin.AddToCoinTagUseCase
 import com.nunchuk.android.usecase.coin.GetAllTagsUseCase
 import com.nunchuk.android.usecase.coin.GetCoinsFromTxInputsUseCase
 import com.nunchuk.android.usecase.coin.IsMyCoinUseCase
+import com.nunchuk.android.usecase.membership.ForceRefreshWalletUseCase
 import com.nunchuk.android.usecase.membership.GetSavedAddressListLocalUseCase
 import com.nunchuk.android.usecase.room.transaction.InitRoomTransactionUseCase
 import com.nunchuk.android.usecase.transaction.GetTransaction2UseCase
 import com.nunchuk.android.usecase.transaction.SaveTaprootKeySetSelectionUseCase
+import com.nunchuk.android.usecase.wallet.GetUnusedWalletAddressUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -124,6 +128,8 @@ class TransactionConfirmViewModel @Inject constructor(
     private val estimateFeeForLiquidTransactionUseCase: EstimateFeeForLiquidTransactionUseCase,
     private val getUsdtAssetIdUseCase: GetUsdtAssetIdUseCase,
     private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
+    private val getUnusedWalletAddressUseCase: GetUnusedWalletAddressUseCase,
+    private val forceRefreshWalletUseCase: ForceRefreshWalletUseCase,
     private val walletManager: WalletManager,
     private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
@@ -142,6 +148,7 @@ class TransactionConfirmViewModel @Inject constructor(
     private lateinit var privateNote: String
     private var claimInheritanceTxParam: ClaimInheritanceTxParam? = null
     private var antiFeeSniping: Boolean = false
+    private var topUpWatchJob: Job? = null
 
     init {
         viewModelScope.launch {
@@ -340,6 +347,52 @@ class TransactionConfirmViewModel @Inject constructor(
         )
         _state.update { it.copy(notEnoughLbtcForFee = true) }
         onDraftTransactionSuccess(syntheticTransaction)
+    }
+
+    /**
+     * Loads an unused receive address for the "Top up LBTC" screen so the user can deposit the
+     * LBTC needed to cover the fee. Cached in state once resolved.
+     */
+    fun loadTopUpAddress() {
+        if (_state.value.topUpAddress.isNotEmpty()) return
+        viewModelScope.launch {
+            getUnusedWalletAddressUseCase(walletId)
+                .onSuccess { addresses ->
+                    addresses.firstOrNull()?.let { address ->
+                        _state.update { it.copy(topUpAddress = address) }
+                    }
+                }
+        }
+    }
+
+    /**
+     * Polls the LBTC balance while the "Top up LBTC" screen is visible and emits
+     * [TransactionConfirmEvent.LbtcTopUpReceived] whenever the balance increases, so the UI can
+     * show a "payment received" toast.
+     */
+    fun startWatchingLbtcTopUp() {
+        if (topUpWatchJob?.isActive == true) return
+        topUpWatchJob = viewModelScope.launch {
+            var baseline = runCatching {
+                getWalletDetail2UseCase(walletId).getOrThrow().lbtcBalance.value
+            }.getOrDefault(0L)
+            while (isActive) {
+                delay(TOP_UP_POLL_INTERVAL_MS)
+                forceRefreshWalletUseCase(walletId)
+                val current = runCatching {
+                    getWalletDetail2UseCase(walletId).getOrThrow().lbtcBalance.value
+                }.getOrNull() ?: continue
+                if (current > baseline) {
+                    _event.emit(TransactionConfirmEvent.LbtcTopUpReceived(Amount(value = current - baseline)))
+                    baseline = current
+                }
+            }
+        }
+    }
+
+    fun stopWatchingLbtcTopUp() {
+        topUpWatchJob?.cancel()
+        topUpWatchJob = null
     }
 
     private suspend fun fetchLiquidFeeRateIfNeeded() {
@@ -830,6 +883,7 @@ class TransactionConfirmViewModel @Inject constructor(
     companion object {
         private const val WAITING_FOR_CONSUME_EVENT_SECONDS = 5L
         private const val CUSTOMIZE_TRANSACTION_KEY = "customize_transaction"
+        private const val TOP_UP_POLL_INTERVAL_MS = 15_000L
     }
 }
 
@@ -842,6 +896,7 @@ data class TransactionConfirmUiState(
     val usdtAssetId: String = "",
     val notEnoughLbtcForFee: Boolean = false,
     val minimumFeeRate: Int = 0,
+    val topUpAddress: String = "",
 )
 
 internal fun Int.toManualFeeRate() = if (this > 0) toAmount() else Amount(-1)

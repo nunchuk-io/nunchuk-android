@@ -62,4 +62,5 @@ sealed class TransactionConfirmEvent {
     data class AutoSelectSigningPath(
         val signingPath: SigningPath
     ) : TransactionConfirmEvent()
+    data class LbtcTopUpReceived(val amount: Amount) : TransactionConfirmEvent()
 }
