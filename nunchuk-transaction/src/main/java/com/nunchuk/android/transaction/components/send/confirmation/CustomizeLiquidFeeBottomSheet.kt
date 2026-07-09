@@ -163,6 +163,7 @@ private fun sanitizeLbtcInput(raw: String): String {
     val normalized = raw.replace(',', '.')
     val builder = StringBuilder()
     var seenDot = false
+    var integerDigits = 0
     var fractionDigits = 0
     for (ch in normalized) {
         when {
@@ -172,8 +173,9 @@ private fun sanitizeLbtcInput(raw: String): String {
                         builder.append(ch)
                         fractionDigits++
                     }
-                } else {
+                } else if (integerDigits < MAX_INTEGER_DIGITS) {
                     builder.append(ch)
+                    integerDigits++
                 }
             }
 
@@ -186,3 +188,7 @@ private fun sanitizeLbtcInput(raw: String): String {
     }
     return builder.toString()
 }
+
+// LBTC has the same 21,000,000 supply cap as BTC (8 integer digits), so no valid fee can exceed
+// this. Capping the integer part keeps the input bounded and avoids nonsensical amounts.
+private const val MAX_INTEGER_DIGITS = 8
