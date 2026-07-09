@@ -29,6 +29,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
@@ -94,6 +95,7 @@ internal fun TopUpLbtcScreen(
     }
 
     Scaffold(
+        modifier = Modifier.navigationBarsPadding(),
         topBar = {
             NcTopAppBar(
                 title = stringResource(R.string.nc_top_up_lbtc),
