@@ -42,8 +42,6 @@ sealed class TransactionConfirmEvent {
     ) : TransactionConfirmEvent()
 
     data class CreateTxErrorEvent(val message: String, val code: Int = 0) : TransactionConfirmEvent()
-    data class UpdateChangeAddress(val address: String, val amount: Amount, val assetId: String = "") :
-        TransactionConfirmEvent()
 
     data class DraftTransactionSuccess(val transaction: Transaction) : TransactionConfirmEvent()
 

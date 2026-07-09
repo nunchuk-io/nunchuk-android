@@ -654,7 +654,6 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
 
             is TransactionConfirmEvent.InitRoomTransactionError -> showCreateTransactionError(event.message)
             is TransactionConfirmEvent.InitRoomTransactionSuccess -> returnActiveRoom(event.roomId)
-            is TransactionConfirmEvent.UpdateChangeAddress -> {}
             is TransactionConfirmEvent.AssignTagEvent -> {}
             is TransactionConfirmEvent.AssignTagError -> {
                 hideLoading()

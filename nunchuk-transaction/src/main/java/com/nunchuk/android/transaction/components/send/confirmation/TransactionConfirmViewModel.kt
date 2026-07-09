@@ -56,7 +56,6 @@ import com.nunchuk.android.transaction.components.send.confirmation.TransactionC
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.InitRoomTransactionError
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.InitRoomTransactionSuccess
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.LoadingEvent
-import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.UpdateChangeAddress
 import com.nunchuk.android.transaction.components.send.receipt.TimelockCoin
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.CreateTransactionUseCase
@@ -487,16 +486,26 @@ class TransactionConfirmViewModel @Inject constructor(
         )
 
     private suspend fun onDraftTransactionSuccess(data: Transaction) {
+        // Derive the display outputs and change address here (rather than in one-shot events) so
+        // they live in uiState and survive navigating away to the "Top up LBTC" screen and back.
+        val outputs = if (data.outputs.size == 1) {
+            data.outputs
+        } else if (isInheritanceClaimingFlow() && data.hasChangeIndex()) {
+            data.outputs.filter { !it.isChange }
+        } else {
+            data.outputs.filter { isMyCoin(it) == data.isReceive }
+        }
+        val changeOutput = data.outputs.firstOrNull { it.isChange }
         _state.update { state ->
-            state.copy(transaction = data)
+            state.copy(
+                transaction = data,
+                outputs = outputs,
+                changeAddress = changeOutput?.first.orEmpty(),
+                changeAmount = changeOutput?.second ?: Amount(0),
+                changeAssetId = changeOutput?.assetId.orEmpty(),
+            )
         }
         _event.emit(DraftTransactionSuccess(data))
-        val txOutput = data.outputs.firstOrNull { it.isChange }
-        if (txOutput != null) {
-            _event.emit(UpdateChangeAddress(txOutput.first, txOutput.second, txOutput.assetId))
-        } else {
-            _event.emit(UpdateChangeAddress("", Amount(0)))
-        }
     }
 
     fun draftMiniscriptTransaction(signingPath: SigningPath? = null) {
@@ -897,6 +906,10 @@ data class TransactionConfirmUiState(
     val notEnoughLbtcForFee: Boolean = false,
     val minimumFeeRate: Int = 0,
     val topUpAddress: String = "",
+    val outputs: List<TxOutput> = emptyList(),
+    val changeAddress: String = "",
+    val changeAmount: Amount = Amount(0),
+    val changeAssetId: String = "",
 )
 
 internal fun Int.toManualFeeRate() = if (this > 0) toAmount() else Amount(-1)

@@ -75,9 +75,9 @@ import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.backgroundMidGray
 import com.nunchuk.android.compose.dialog.NcLoadingDialog
+import com.nunchuk.android.core.constants.NativeErrorCode
 import com.nunchuk.android.core.data.model.ClaimInheritanceTxParam
 import com.nunchuk.android.core.data.model.TxReceipt
-import com.nunchuk.android.core.constants.NativeErrorCode
 import com.nunchuk.android.core.data.model.isOffChainClaim
 import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.matrix.SessionHolder
@@ -94,7 +94,6 @@ import com.nunchuk.android.core.util.getCurrencyAmount
 import com.nunchuk.android.core.util.getLbtcTokenAmount
 import com.nunchuk.android.core.util.getLiquidCurrencyAmount
 import com.nunchuk.android.core.util.getLiquidTokenAmount
-import com.nunchuk.android.core.util.hasChangeIndex
 import com.nunchuk.android.core.util.isPendingSignatures
 import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.model.Amount
@@ -118,7 +117,6 @@ import com.nunchuk.android.transaction.components.send.confirmation.TransactionC
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.InitRoomTransactionError
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.InitRoomTransactionSuccess
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.LoadingEvent
-import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.UpdateChangeAddress
 import com.nunchuk.android.transaction.components.send.confirmation.tag.AssignTagFragment
 import com.nunchuk.android.transaction.components.utils.openTransactionDetailScreen
 import com.nunchuk.android.transaction.components.utils.showCreateTransactionError
@@ -290,10 +288,6 @@ private fun TransactionConfirmScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var isLoading by rememberSaveable { mutableStateOf(false) }
     var loadingMessage by rememberSaveable { mutableStateOf<String?>(null) }
-    var changeAddress by rememberSaveable { mutableStateOf("") }
-    var changeAmount by remember { mutableStateOf(Amount(0)) }
-    var changeAssetId by rememberSaveable { mutableStateOf("") }
-    var outputs by remember { mutableStateOf<List<TxOutput>>(emptyList()) }
     var showCustomizeFee by remember { mutableStateOf(false) }
     var isApplyingFee by remember { mutableStateOf(false) }
     var feeApplyError by remember { mutableStateOf<String?>(null) }
@@ -349,13 +343,6 @@ private fun TransactionConfirmScreen(
                     }
                 }
 
-                is UpdateChangeAddress -> {
-                    isLoading = false
-                    changeAddress = event.address
-                    changeAmount = event.amount
-                    changeAssetId = event.assetId
-                }
-
                 is LoadingEvent -> {
                     isLoading = true
                     loadingMessage =
@@ -395,16 +382,8 @@ private fun TransactionConfirmScreen(
                 }
 
                 is TransactionConfirmEvent.DraftTransactionSuccess -> {
-                    val coins = if (event.transaction.outputs.size == 1) {
-                        event.transaction.outputs
-                    } else {
-                        if (viewModel.isInheritanceClaimingFlow() && event.transaction.hasChangeIndex()) {
-                            event.transaction.outputs.filter { !it.isChange }
-                        } else {
-                            event.transaction.outputs.filter { viewModel.isMyCoin(it) == event.transaction.isReceive }
-                        }
-                    }
-                    outputs = coins
+                    // Outputs/change now live in uiState (see onDraftTransactionSuccess); this event
+                    // only needs to close the customize-fee sheet once a re-draft completes.
                     if (isApplyingFee) {
                         isApplyingFee = false
                         feeApplyError = null
@@ -501,7 +480,7 @@ private fun TransactionConfirmScreen(
                     stringResource(R.string.nc_confirm_and_sweep)
                 }
             },
-            outputs = outputs,
+            outputs = uiState.outputs,
             savedAddresses = uiState.savedAddress,
             fee = fee,
             isLiquid = isLiquid,
@@ -510,9 +489,9 @@ private fun TransactionConfirmScreen(
             usdtAssetId = uiState.usdtAssetId,
             totalAmountBtc = totalAmountPrimary,
             totalAmountCurrency = totalAmountSecondary,
-            changeAddress = changeAddress,
-            changeAmount = changeAmount,
-            changeAssetId = changeAssetId,
+            changeAddress = uiState.changeAddress,
+            changeAmount = uiState.changeAmount,
+            changeAssetId = uiState.changeAssetId,
             isOffChainClaim = viewModel.isOffChainClaimingFlow(),
             privateNote = args.privateNote,
             inputs = args.inputs,
