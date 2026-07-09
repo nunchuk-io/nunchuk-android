@@ -154,7 +154,7 @@ internal fun TopUpLbtcScreen(
                     .fillMaxWidth()
                     .padding(top = 16.dp),
                 text = stringResource(R.string.nc_top_up_lbtc_desc, fee.getLbtcTokenAmount()),
-                style = NunchukTheme.typography.body,
+                style = NunchukTheme.typography.body.copy(textAlign = TextAlign.Center),
             )
 
             if (address.isNotEmpty()) {
