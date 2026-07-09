@@ -302,18 +302,7 @@ class TransactionConfirmViewModel @Inject constructor(
                 _event.emit(CreateTxErrorEvent(it.message.orUnknownError(), it.nativeErrorCode()))
                 return@launch
             }
-            // The LBTC balance must cover any LBTC being sent plus the fee (also paid in LBTC).
-            // USDT sends have no LBTC outflow, so this reduces to the fee-only check.
-            val usdtAssetId = _state.value.usdtAssetId
-            val lbtcOutflow = txReceipts
-                .filter { it.tokenAssetId != usdtAssetId }
-                .sumOf { it.amount.toAmount().value }
-            val requiredLbtc = if (subtractFeeFromAmount) {
-                lbtcOutflow
-            } else {
-                lbtcOutflow + estimatedFee.value
-            }
-            if (lbtcBalance.value < requiredLbtc) {
+            if (lbtcBalance.value < estimatedFee.value) {
                 showNotEnoughLbtcForFee(estimatedFee, feeRate)
                 return@launch
             }
