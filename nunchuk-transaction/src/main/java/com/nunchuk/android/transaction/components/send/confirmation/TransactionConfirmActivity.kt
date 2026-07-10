@@ -91,6 +91,7 @@ import com.nunchuk.android.core.util.copyToClipboard
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getCurrencyAmount
+import com.nunchuk.android.core.util.getLbtcAmount
 import com.nunchuk.android.core.util.getLbtcTokenAmount
 import com.nunchuk.android.core.util.getLiquidCurrencyAmount
 import com.nunchuk.android.core.util.getLiquidTokenAmount
@@ -674,7 +675,7 @@ internal fun TransactionConfirmContent(
                 if (isLiquid) {
                     Column(horizontalAlignment = Alignment.End) {
                         Text(
-                            text = fee.getLbtcTokenAmount(),
+                            text = fee.getLbtcAmount(),
                             style = NunchukTheme.typography.title,
                             color = if (isNotEnoughLbtcForFee) {
                                 MaterialTheme.colorScheme.error
