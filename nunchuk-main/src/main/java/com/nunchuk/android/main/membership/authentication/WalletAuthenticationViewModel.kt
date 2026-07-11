@@ -429,16 +429,21 @@ class WalletAuthenticationViewModel @Inject constructor(
         val callback = parseTrezorCallback(callbackUri) ?: return false
         if (callback.method != TrezorCallbackMethod.SIGN_TRANSACTION) return false
         if (lastHandledTrezorCallback == callback.rawUri) return true
-        lastHandledTrezorCallback = callback.rawUri
         if (callback.response.isBlank()) return true
 
         val signer = getInteractSingleSigner() ?: return true
         if (!isTrezorSigner(signer)) return true
 
-        val wallet = currentWallet ?: return true
+        lastHandledTrezorCallback = callback.rawUri
 
         viewModelScope.launch {
             _event.emit(WalletAuthenticationEvent.Loading(true))
+            val wallet = resolveWalletForTrezor()
+            if (wallet == null) {
+                _event.emit(WalletAuthenticationEvent.CanNotSignDummyTx)
+                _event.emit(WalletAuthenticationEvent.Loading(false))
+                return@launch
+            }
             parseTrezorSignTransactionResponseUseCase(
                 ParseTrezorSignTransactionResponseUseCase.Param(
                     wallet = wallet,
