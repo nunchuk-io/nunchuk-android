@@ -167,6 +167,7 @@ class DummyTransactionDetailsFragment : BaseShareSaveFileFragment<ViewBinding>()
                                 message = stringResource(id = com.nunchuk.android.core.R.string.nc_trezor_open_suite_continue_signing_message),
                                 positiveButtonText = stringResource(id = com.nunchuk.android.core.R.string.nc_trezor_open_suite),
                                 negativeButtonText = stringResource(id = com.nunchuk.android.core.R.string.nc_cancel),
+                                isPositiveButtonWrapContent = true,
                                 onPositiveClick = {
                                     openTrezorSuiteDeeplink?.let(requireActivity()::openTrezorSuiteLink)
                                     openTrezorSuiteDeeplink = null
