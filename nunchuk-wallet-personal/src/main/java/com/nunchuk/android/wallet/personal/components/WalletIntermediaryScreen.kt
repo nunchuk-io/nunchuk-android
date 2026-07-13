@@ -46,6 +46,7 @@ import com.nunchuk.android.compose.border
 import com.nunchuk.android.compose.greyLight
 import com.nunchuk.android.compose.lightGray
 import com.nunchuk.android.compose.textSecondary
+import com.nunchuk.android.core.util.FeatureFlags
 import com.nunchuk.android.core.util.openExternalLink
 import com.nunchuk.android.wallet.personal.R
 
@@ -400,16 +401,18 @@ fun FreeUserWalletTypeContent(
             resId = if (NunchukTheme.isDark) R.drawable.ic_wallet_type_decoy_wallet_dark else R.drawable.ic_wallet_type_decoy_wallet
         )
 
-        WalletTypeItem(
-            modifier = Modifier
-                .padding(start = 16.dp, end = 16.dp, top = 24.dp)
-                .clickable {
-                    onWalletTypeSelected(WalletType.STABLECOIN)
-                },
-            title = stringResource(id = R.string.nc_stablecoin_wallet),
-            desc = stringResource(R.string.nc_stablecoin_wallet_desc),
-            resId = R.drawable.ic_wallet_type_stablecoin_wallet
-        )
+        if (FeatureFlags.STABLECOIN_WALLET) {
+            WalletTypeItem(
+                modifier = Modifier
+                    .padding(start = 16.dp, end = 16.dp, top = 24.dp)
+                    .clickable {
+                        onWalletTypeSelected(WalletType.STABLECOIN)
+                    },
+                title = stringResource(id = R.string.nc_stablecoin_wallet),
+                desc = stringResource(R.string.nc_stablecoin_wallet_desc),
+                resId = R.drawable.ic_wallet_type_stablecoin_wallet
+            )
+        }
     }
 }
 

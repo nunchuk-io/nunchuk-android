@@ -23,8 +23,10 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.fragment.app.FragmentManager
 import com.nunchuk.android.core.base.BaseBottomSheet
+import com.nunchuk.android.core.util.FeatureFlags
 import com.nunchuk.android.wallet.personal.databinding.BottomSheetWalletRecoveryActionBinding
 
 internal class RecoverWalletActionBottomSheet :
@@ -52,6 +54,7 @@ internal class RecoverWalletActionBottomSheet :
         binding.btnRecoverHotWallet.setOnClickListener { onActionClicked(RecoverWalletOption.HotWallet) }
         binding.btnRecoverPortalWallet.setOnClickListener { onActionClicked(RecoverWalletOption.PortalWallet) }
         binding.btnRecoverGroupWallet.setOnClickListener { onActionClicked(RecoverWalletOption.GroupWallet) }
+        binding.btnRecoverLiquidWallet.isVisible = FeatureFlags.STABLECOIN_WALLET
         binding.btnRecoverLiquidWallet.setOnClickListener { onActionClicked(RecoverWalletOption.LiquidWallet) }
     }
 

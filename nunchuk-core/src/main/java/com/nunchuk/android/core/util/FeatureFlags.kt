@@ -1,0 +1,34 @@
+/**************************************************************************
+ * This file is part of the Nunchuk software (https://nunchuk.io/)        *
+ * Copyright (C) 2022, 2023 Nunchuk                                       *
+ *                                                                        *
+ * This program is free software; you can redistribute it and/or          *
+ * modify it under the terms of the GNU General Public License            *
+ * as published by the Free Software Foundation; either version 3         *
+ * of the License, or (at your option) any later version.                 *
+ *                                                                        *
+ * This program is distributed in the hope that it will be useful,        *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of         *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the          *
+ * GNU General Public License for more details.                           *
+ *                                                                        *
+ * You should have received a copy of the GNU General Public License      *
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.  *
+ *                                                                        *
+ **************************************************************************/
+
+package com.nunchuk.android.core.util
+
+/**
+ * Compile-time feature flags used to ship code that is not yet ready to be
+ * exposed to users. Flip a flag to `true` (and remove the guard once fully
+ * launched) to enable the corresponding feature.
+ */
+object FeatureFlags {
+
+    /**
+     * Gates the create / recover stablecoin (USDT / Liquid) wallet flows.
+     * Hidden in all builds until the feature is ready for release.
+     */
+    const val STABLECOIN_WALLET = false
+}
