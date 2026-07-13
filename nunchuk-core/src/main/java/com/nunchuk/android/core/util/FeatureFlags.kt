@@ -19,16 +19,19 @@
 
 package com.nunchuk.android.core.util
 
+import com.nunchuk.android.core.BuildConfig
+
 /**
  * Compile-time feature flags used to ship code that is not yet ready to be
- * exposed to users. Flip a flag to `true` (and remove the guard once fully
- * launched) to enable the corresponding feature.
+ * exposed to users in production. Enable a flag (or widen its condition, and
+ * remove the guard once fully launched) to expose the corresponding feature.
  */
 object FeatureFlags {
 
     /**
      * Gates the create / recover stablecoin (USDT / Liquid) wallet flows.
-     * Hidden in all builds until the feature is ready for release.
+     * Enabled on debug builds so QA can test it, hidden on release builds until
+     * the feature is ready to launch to users.
      */
-    const val STABLECOIN_WALLET = false
+    val STABLECOIN_WALLET = BuildConfig.DEBUG
 }
