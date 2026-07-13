@@ -19,14 +19,16 @@
 
 package com.nunchuk.android.core.constants
 
+import com.nunchuk.android.type.Chain
+
 object Constants {
     const val MAIN_NET_HOST = "mainnet.nunchuk.io:51001"
     const val TEST_NET_HOST = "testnet.nunchuk.io:50001"
     const val OLD_SIG_NET_HOST = "signet.nunchuk.io:50002"
     const val SIG_NET_HOST = "ssl://mempool.space:60602"
 
-    const val LIQUID_MAIN_NET_HOST = "ssl://blockstream.info:995"
-    const val LIQUID_TEST_NET_HOST = "13.214.164.4:40001"
+    const val LIQUID_MAIN_NET_HOST = "18.139.101.225:40000"
+    const val LIQUID_TEST_NET_HOST = "18.139.101.225:40001"
 
     const val TESTNET_URL_TEMPLATE = "https://mempool.space/testnet4/tx/"
     const val MAINNET_URL_TEMPLATE = "https://mempool.space/tx/"
@@ -37,6 +39,16 @@ object Constants {
 
     const val CLAIM_URL = "https://www.nunchuk.io/claim"
 
+}
+
+/**
+ * The Liquid (USDT) Electrum server is derived from the active [Chain] rather than being
+ * user-editable. Liquid/USDT is not supported on signet, so no server is configured there.
+ */
+fun defaultLiquidServers(chain: Chain): List<String> = when (chain) {
+    Chain.TESTNET -> listOf(Constants.LIQUID_TEST_NET_HOST)
+    Chain.SIGNET -> emptyList()
+    else -> listOf(Constants.LIQUID_MAIN_NET_HOST)
 }
 
 enum class RoomAction {

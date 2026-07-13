@@ -21,11 +21,10 @@ package com.nunchuk.android.settings.network
 
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
-import com.nunchuk.android.core.constants.Constants.LIQUID_MAIN_NET_HOST
-import com.nunchuk.android.core.constants.Constants.LIQUID_TEST_NET_HOST
 import com.nunchuk.android.core.constants.Constants.MAIN_NET_HOST
 import com.nunchuk.android.core.constants.Constants.SIG_NET_HOST
 import com.nunchuk.android.core.constants.Constants.TEST_NET_HOST
+import com.nunchuk.android.core.constants.defaultLiquidServers
 import com.nunchuk.android.core.domain.ClearInfoSessionUseCase
 import com.nunchuk.android.core.domain.GetAppSettingUseCase
 import com.nunchuk.android.core.domain.GetRemoteElectrumServersCacheUseCase
@@ -135,16 +134,12 @@ internal class NetworkSettingViewModel @Inject constructor(
             Chain.SIGNET -> current.signetServer
             else -> current.appSetting.electrumServers.firstOrNull().orEmpty()
         }
-        val newLiquidHost = when (chain) {
-            Chain.TESTNET, Chain.SIGNET -> LIQUID_TEST_NET_HOST
-            else -> LIQUID_MAIN_NET_HOST
-        }
         updateState {
             copy(
                 appSetting = appSetting.copy(
                     chain = chain,
                     electrumServers = listOf(newHost),
-                    liquidServers = listOf(newLiquidHost),
+                    liquidServers = defaultLiquidServers(chain),
                 )
             )
         }

@@ -20,11 +20,10 @@
 package com.nunchuk.android.core.domain
 
 import com.google.gson.Gson
-import com.nunchuk.android.core.constants.Constants.LIQUID_MAIN_NET_HOST
-import com.nunchuk.android.core.constants.Constants.LIQUID_TEST_NET_HOST
 import com.nunchuk.android.core.constants.Constants.MAIN_NET_HOST
 import com.nunchuk.android.core.constants.Constants.SIG_NET_HOST
 import com.nunchuk.android.core.constants.Constants.TEST_NET_HOST
+import com.nunchuk.android.core.constants.defaultLiquidServers
 import com.nunchuk.android.core.persistence.NCSharePreferences
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.AppSettings
@@ -55,14 +54,14 @@ class GetAppSettingUseCase @Inject constructor(
             val migrated = loaded.copy(
                 electrumServers = listOf(recoveredHost),
                 liquidServers = loaded.liquidServers.ifEmpty {
-                    listOf(defaultLiquidHost(loaded.chain))
+                    defaultLiquidServers(loaded.chain)
                 },
             )
             return updateAppSettingUseCase(migrated).getOrThrow()
         }
-        val expectedLiquidHost = defaultLiquidHost(loaded.chain)
-        if (loaded.liquidServers.firstOrNull() != expectedLiquidHost) {
-            val corrected = loaded.copy(liquidServers = listOf(expectedLiquidHost))
+        val expectedLiquidServers = defaultLiquidServers(loaded.chain)
+        if (loaded.liquidServers != expectedLiquidServers) {
+            val corrected = loaded.copy(liquidServers = expectedLiquidServers)
             return updateAppSettingUseCase(corrected).getOrThrow()
         }
         return loaded
@@ -82,11 +81,6 @@ class GetAppSettingUseCase @Inject constructor(
         Chain.TESTNET -> TEST_NET_HOST
         Chain.SIGNET -> SIG_NET_HOST
         else -> MAIN_NET_HOST
-    }
-
-    private fun defaultLiquidHost(chain: Chain): String = when (chain) {
-        Chain.TESTNET, Chain.SIGNET -> LIQUID_TEST_NET_HOST
-        else -> LIQUID_MAIN_NET_HOST
     }
 
     // Mirror of the pre-USDT AppSettings schema used to recover the user's
