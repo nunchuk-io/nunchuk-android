@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -53,6 +54,7 @@ import com.nunchuk.android.core.util.getDisplayCurrency
 import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.wallet.WalletStatus
+import com.nunchuk.android.type.ConnectionStatus
 import com.nunchuk.android.utils.Utils
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.widget.R as WidgetR
@@ -67,6 +69,7 @@ internal data class StableWalletHeaderUiModel(
     val secondaryAssetCashAmount: String,
     val hideWalletDetail: Boolean,
     val isSendEnabled: Boolean,
+    val isSyncing: Boolean,
 )
 
 @Composable
@@ -89,6 +92,7 @@ internal fun rememberStableWalletHeaderModel(state: WalletDetailsState): StableW
         secondaryAssetCashAmount = Utils.maskValue(lbtcCashRaw, hide),
         hideWalletDetail = hide,
         isSendEnabled = state.walletStatus != WalletStatus.LOCKED.name,
+        isSyncing = state.liquidConnectionStatus == ConnectionStatus.SYNCING,
     )
 }
 
@@ -180,6 +184,7 @@ internal fun StableCollapsingWalletHeader(
                 StableExpandedBody(
                     model = model,
                     alpha = (1f - fraction * 2f).coerceIn(0f, 1f),
+                    isSyncing = model.isSyncing,
                     onToggleMask = onToggleMask,
                     onSend = onSend,
                     onReceive = onReceive,
@@ -247,9 +252,34 @@ private fun StableHeaderToolbar(
 }
 
 @Composable
+private fun StableSyncingBadge(modifier: Modifier = Modifier) {
+    Row(
+        modifier = modifier
+            .background(
+                color = Color.White.copy(alpha = 0.16f),
+                shape = RoundedCornerShape(20.dp),
+            )
+            .padding(horizontal = 10.dp, vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        CircularProgressIndicator(
+            modifier = Modifier.size(12.dp),
+            color = Color.White,
+            strokeWidth = 1.5.dp,
+        )
+        Text(
+            modifier = Modifier.padding(start = 6.dp),
+            text = stringResource(R.string.nc_text_connection_status_syncing),
+            style = NunchukTheme.typography.caption.copy(color = Color.White),
+        )
+    }
+}
+
+@Composable
 private fun StableExpandedBody(
     model: StableWalletHeaderUiModel,
     alpha: Float,
+    isSyncing: Boolean,
     onToggleMask: () -> Unit,
     onSend: () -> Unit,
     onReceive: () -> Unit,
@@ -276,6 +306,7 @@ private fun StableExpandedBody(
                 amount = model.primaryAssetAmount,
                 cashAmount = model.primaryAssetCashAmount,
                 hideWalletDetail = model.hideWalletDetail,
+                isSyncing = isSyncing,
                 onToggleMask = onToggleMask,
             )
         }
@@ -313,6 +344,7 @@ private fun PrimaryAssetBlock(
     amount: String,
     cashAmount: String,
     hideWalletDetail: Boolean,
+    isSyncing: Boolean,
     onToggleMask: () -> Unit,
 ) {
     Column(
@@ -348,10 +380,18 @@ private fun PrimaryAssetBlock(
             )
             StableMaskToggleIcon(hide = hideWalletDetail, onClick = onToggleMask)
         }
-        Text(
-            text = cashAmount,
-            style = NunchukTheme.typography.bodySmall.copy(color = Color(0xFFEAEAEA)),
-        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Text(
+                text = cashAmount,
+                style = NunchukTheme.typography.bodySmall.copy(color = Color(0xFFEAEAEA)),
+            )
+            if (isSyncing) {
+                StableSyncingBadge()
+            }
+        }
     }
 }
 
@@ -534,6 +574,7 @@ private fun StableCollapsingWalletHeaderPreview() {
                 secondaryAssetCashAmount = "($29.80)",
                 hideWalletDetail = false,
                 isSendEnabled = true,
+                isSyncing = true,
             ),
             headerState = headerState,
             showSearch = true,

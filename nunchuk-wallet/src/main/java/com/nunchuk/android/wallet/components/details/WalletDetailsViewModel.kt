@@ -39,6 +39,7 @@ import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.readableMessage
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.listener.BalancesListener
+import com.nunchuk.android.model.ConnectionStatusHelper
 import com.nunchuk.android.listener.GroupMessageListener
 import com.nunchuk.android.listener.GroupReplaceListener
 import com.nunchuk.android.listener.TransactionListener
@@ -55,6 +56,7 @@ import com.nunchuk.android.model.transaction.ServerTransaction
 import com.nunchuk.android.model.wallet.WalletStatus
 import com.nunchuk.android.type.ExportFormat
 import com.nunchuk.android.type.MiniscriptTimelockBased
+import com.nunchuk.android.type.ConnectionStatus
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.CreateShareFileUseCase
 import com.nunchuk.android.usecase.ExportWalletUseCase
@@ -202,6 +204,14 @@ internal class WalletDetailsViewModel @Inject constructor(
                     // wallet.usdtBalance / wallet.lbtcBalance reflect the new state, and
                     // reload tx history in case new transactions arrived together.
                     syncData(loadingSilent = true)
+                }
+        }
+        viewModelScope.launch {
+            // Liquid synchronizer status (separate from the bitcoin synchronizer).
+            // Drives the syncing badge in the liquid wallet header.
+            ConnectionStatusHelper.liquidBlockChainStatus
+                .collect { syncStatus ->
+                    updateState { copy(liquidConnectionStatus = syncStatus?.status) }
                 }
         }
         viewModelScope.launch {

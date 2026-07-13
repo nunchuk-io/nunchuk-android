@@ -26,6 +26,7 @@ import com.nunchuk.android.model.HistoryPeriod
 import com.nunchuk.android.model.LiquidNetworkStatus
 import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
+import com.nunchuk.android.type.ConnectionStatus
 import com.nunchuk.android.type.MiniscriptTimelockBased
 
 sealed class WalletDetailsEvent {
@@ -73,4 +74,5 @@ data class WalletDetailsState(
     val usdtAssetId: String = "",
     val lbtcAssetId: String = "",
     val liquidNetworkStatus: LiquidNetworkStatus = LiquidNetworkStatus(),
+    val liquidConnectionStatus: ConnectionStatus? = null,
 )
