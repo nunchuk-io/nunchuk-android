@@ -16,13 +16,18 @@
 #
 # Requirements: openssl, curl, jq, gpg  (no gcloud / python google libs needed)
 #
-# Usage:
-#   VERSION=2.7.0 VERSION_CODE=333 TAG=android.2.7.0 \
-#   GITHUB_TOKEN=ghp_xxx \
+# Usage (zero-arg from the app repo root — everything is auto-derived):
 #   ./scripts/publish-github-release.sh
+#     - VERSION / VERSION_CODE  <- nunchuk-app/build.gradle.kts
+#     - TAG                     <- android.<VERSION>
+#     - GITHUB_TOKEN (githubToken) + GPG_PASSPHRASE (GPGpass) <- local.properties
+#       (searches ./local.properties then ../nunchuk-android-nativesdk/local.properties)
+#     - SA_JSON                 <- ./nunchuk-service-account.json (or play-service-account.json)
+#   Any of these can still be overridden via env, e.g. VERSION=2.7.1 ./scripts/...
 #
 # Optional env overrides:
-#   SA_JSON      path to Play service-account json  (default: ./play-service-account.json)
+#   CREDS_PROPS  extra local.properties to read githubToken/GPGpass from (searched first)
+#   SA_JSON      path to Play service-account json
 #   APK_PATH     use this already-downloaded signed universal APK and SKIP the
 #                Play download (SA_JSON not needed). Use when you grabbed the
 #                "Signed, universal APK" from Play Console > App bundle explorer.
@@ -35,15 +40,45 @@
 set -euo pipefail
 
 # ---- config ---------------------------------------------------------------
-VERSION="${VERSION:?set VERSION, e.g. 2.7.0}"
-VERSION_CODE="${VERSION_CODE:?set VERSION_CODE, e.g. 333}"
-TAG="${TAG:-android.${VERSION}}"
-SA_JSON="${SA_JSON:-play-service-account.json}"
 PACKAGE="${PACKAGE:-io.nunchuk.android}"
 REPO="${REPO:-nunchuk-io/nunchuk-android}"
 GPG_KEY="${GPG_KEY:-tatattai@gmail.com}"
 WORKDIR="${WORKDIR:-build/github-release}"
 SKIP_GITHUB="${SKIP_GITHUB:-0}"
+APP_GRADLE="${APP_GRADLE:-nunchuk-app/build.gradle.kts}"
+
+# Auto-derive version from the app module unless overridden -> zero-arg run.
+if [ -z "${VERSION:-}" ] && [ -f "$APP_GRADLE" ]; then
+  VERSION=$(grep -oE 'versionName = "[^"]+"' "$APP_GRADLE" | head -1 | sed -E 's/.*"([^"]+)".*/\1/')
+fi
+if [ -z "${VERSION_CODE:-}" ] && [ -f "$APP_GRADLE" ]; then
+  VERSION_CODE=$(grep -oE 'versionCode = [0-9]+' "$APP_GRADLE" | head -1 | grep -oE '[0-9]+')
+fi
+VERSION="${VERSION:?set VERSION or run from repo root so $APP_GRADLE is readable}"
+VERSION_CODE="${VERSION_CODE:?set VERSION_CODE or run from repo root so $APP_GRADLE is readable}"
+TAG="${TAG:-android.${VERSION}}"
+
+# Service-account json: honour SA_JSON, else the first known filename present.
+if [ -z "${SA_JSON:-}" ]; then
+  for c in nunchuk-service-account.json play-service-account.json; do
+    [ -f "$c" ] && { SA_JSON="$c"; break; }
+  done
+  SA_JSON="${SA_JSON:-nunchuk-service-account.json}"
+fi
+
+# Creds: env first, else read from a gitignored local.properties. Searches the
+# app repo then the sibling nativesdk repo (matches the documented layout).
+CREDS_FILES=("${CREDS_PROPS:-}" "local.properties" "../nunchuk-android-nativesdk/local.properties")
+prop() {
+  local key="$1" f v
+  for f in "${CREDS_FILES[@]}"; do
+    [ -n "$f" ] && [ -f "$f" ] || continue
+    v=$(grep -iE "^${key}=" "$f" | head -1 | cut -d= -f2- | tr -d '\r')
+    [ -n "$v" ] && { printf '%s' "$v"; return; }
+  done
+}
+: "${GITHUB_TOKEN:=$(prop githubToken | tr -d '[:space:]')}"
+: "${GPG_PASSPHRASE:=$(prop GPGpass)}"
 
 API="https://androidpublisher.googleapis.com/androidpublisher/v3"
 
