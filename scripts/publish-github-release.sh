@@ -173,17 +173,27 @@ fi
 [ -n "${GITHUB_TOKEN:-}" ] || die "GITHUB_TOKEN not set (needs a token with 'repo' write to $REPO)"
 gh_api() { curl -sS -H "Authorization: Bearer $GITHUB_TOKEN" -H "Accept: application/vnd.github+json" "$@"; }
 
+# Release body = the Play "what's new" notes (source of truth: the Slack
+# release-notes thread -> distribution/whatsnew/whatsnew-en-US). Override with
+# RELEASE_BODY or RELEASE_BODY_FILE.
+BODY_FILE="${RELEASE_BODY_FILE:-distribution/whatsnew/whatsnew-en-US}"
+if [ -n "${RELEASE_BODY:-}" ]; then BODY="$RELEASE_BODY"
+elif [ -f "$BODY_FILE" ]; then BODY="$(cat "$BODY_FILE")"
+else BODY=""; fi
+
 log "Ensuring GitHub release for tag $TAG..."
 rel=$(gh_api "https://api.github.com/repos/$REPO/releases/tags/$TAG")
 rel_id=$(echo "$rel" | jq -r '.id // empty')
 if [ -z "$rel_id" ]; then
   rel=$(gh_api -X POST "https://api.github.com/repos/$REPO/releases" \
-    -d "$(jq -n --arg t "$TAG" --arg n "$VERSION" '{tag_name:$t,name:$n,draft:false,prerelease:false}')")
+    -d "$(jq -n --arg t "$TAG" --arg n "$VERSION" --arg b "$BODY" '{tag_name:$t,name:$n,body:$b,draft:false,prerelease:false}')")
   rel_id=$(echo "$rel" | jq -r '.id // empty')
   [ -n "$rel_id" ] || die "failed to create release: $rel"
   log "created release $TAG (id=$rel_id)"
 else
-  log "release already exists (id=$rel_id) -- will (re)upload assets"
+  log "release already exists (id=$rel_id) -- updating notes + (re)uploading assets"
+  gh_api -X PATCH "https://api.github.com/repos/$REPO/releases/$rel_id" \
+    -d "$(jq -n --arg n "$VERSION" --arg b "$BODY" '{name:$n,body:$b}')" >/dev/null
 fi
 
 upload_asset() {
