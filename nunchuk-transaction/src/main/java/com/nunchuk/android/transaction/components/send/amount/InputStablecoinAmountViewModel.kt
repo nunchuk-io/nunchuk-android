@@ -33,6 +33,7 @@ import com.nunchuk.android.usecase.EstimateLiquidFeeUseCase
 import com.nunchuk.android.usecase.GetLbtcAssetIdUseCase
 import com.nunchuk.android.usecase.GetUsdtAssetIdUseCase
 import com.nunchuk.android.usecase.GetWalletUseCase
+import com.nunchuk.android.usecase.IsLiquidAddressUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -54,6 +55,7 @@ internal class InputStablecoinAmountViewModel @Inject constructor(
     private val estimateLiquidFeeUseCase: EstimateLiquidFeeUseCase,
     private val getUsdtAssetIdUseCase: GetUsdtAssetIdUseCase,
     private val getLbtcAssetIdUseCase: GetLbtcAssetIdUseCase,
+    private val isLiquidAddressUseCase: IsLiquidAddressUseCase,
 ) : ViewModel() {
 
     private val args = InputAmountArgs.fromSavedStateHandle(savedStateHandle)
@@ -120,6 +122,19 @@ internal class InputStablecoinAmountViewModel @Inject constructor(
                 useToken = true,
                 isSendAll = false,
             )
+        }
+    }
+
+    fun parseLiquidAddress(content: String) {
+        viewModelScope.launch {
+            val address = content.trim()
+            val isValid = isLiquidAddressUseCase(address).getOrDefault(false)
+            if (isValid) {
+                _state.update { it.copy(address = address) }
+                _event.emit(InputStablecoinAmountEvent.AddressScanned(address))
+            } else {
+                _event.emit(InputStablecoinAmountEvent.InvalidAddressEvent)
+            }
         }
     }
 
@@ -216,6 +231,8 @@ internal class InputStablecoinAmountViewModel @Inject constructor(
                     // USDT send-all still pays the fee from the separate LBTC balance.
                     subtractFeeFromAmount = isSendAll &&
                             current.selectedToken == StablecoinToken.LBTC,
+                    // Carry a scanned Liquid address (if any) to prefill the recipient screen.
+                    address = current.address,
                 )
             }
             _event.emit(event)

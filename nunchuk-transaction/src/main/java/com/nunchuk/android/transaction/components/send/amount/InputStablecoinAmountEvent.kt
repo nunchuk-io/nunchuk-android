@@ -27,7 +27,10 @@ sealed class InputStablecoinAmountEvent {
         val token: StablecoinToken,
         val tokenAssetId: String,
         val subtractFeeFromAmount: Boolean = false,
+        val address: String = "",
     ) : InputStablecoinAmountEvent()
+    data class AddressScanned(val address: String) : InputStablecoinAmountEvent()
+    object InvalidAddressEvent : InputStablecoinAmountEvent()
     object InvalidAmountEvent : InputStablecoinAmountEvent()
     object InsufficientFundsEvent : InputStablecoinAmountEvent()
     data class ShowError(val message: String) : InputStablecoinAmountEvent()
@@ -46,4 +49,5 @@ data class InputStablecoinAmountState(
     val networkFeeLbtc: Double = 0.0,
     val networkFeeUsd: Double = 0.0,
     val isSendAll: Boolean = false,
+    val address: String = "",
 )

@@ -69,7 +69,11 @@ class InputAmountActivity : BaseComposeActivity(), BottomSheetOptionListener {
 
     private val launcher = registerForActivityResult(ScanContract()) { result ->
         result.contents?.let { content ->
-            viewModel.parseBtcUri(content)
+            if (args.isStablecoin) {
+                stablecoinViewModel.parseLiquidAddress(content)
+            } else {
+                viewModel.parseBtcUri(content)
+            }
         }
     }
 
@@ -135,8 +139,20 @@ class InputAmountActivity : BaseComposeActivity(), BottomSheetOptionListener {
                     subtractFeeFromAmount = event.subtractFeeFromAmount,
                     inputs = args.inputs,
                     tokenAssetId = event.tokenAssetId,
+                    address = event.address,
                 )
             }
+
+            is InputStablecoinAmountEvent.AddressScanned -> {
+                if (stablecoinViewModel.getAmountToken() > 0.0) {
+                    stablecoinViewModel.handleContinueEvent()
+                } else {
+                    NCToastMessage(this).show(getString(R.string.nc_address_detected_please_enter_amount))
+                }
+            }
+
+            InputStablecoinAmountEvent.InvalidAddressEvent ->
+                NCToastMessage(this).showError(getString(R.string.nc_transaction_invalid_address))
 
             InputStablecoinAmountEvent.InsufficientFundsEvent ->
                 NCToastMessage(this).showError(getString(R.string.nc_transaction_insufficient_funds))
