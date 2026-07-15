@@ -385,6 +385,7 @@ private fun TransactionConfirmScreen(
                 is TransactionConfirmEvent.DraftTransactionSuccess -> {
                     // Outputs/change now live in uiState (see onDraftTransactionSuccess); this event
                     // only needs to close the customize-fee sheet once a re-draft completes.
+                    isLoading = false
                     if (isApplyingFee) {
                         isApplyingFee = false
                         feeApplyError = null
