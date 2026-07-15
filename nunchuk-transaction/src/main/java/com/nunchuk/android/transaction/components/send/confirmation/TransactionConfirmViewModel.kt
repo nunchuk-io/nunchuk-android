@@ -638,7 +638,12 @@ class TransactionConfirmViewModel @Inject constructor(
                 _event.emit(CreateTxSuccessEvent(transaction))
                 pushEventManager.push(PushEvent.TransactionCreatedEvent)
             }.onFailure { exception ->
-                _event.emit(CreateTxErrorEvent(exception.message.orUnknownError()))
+                _event.emit(
+                    CreateTxErrorEvent(
+                        exception.message.orUnknownError(),
+                        exception.nativeErrorCode()
+                    )
+                )
             }
         }
     }

@@ -43,6 +43,7 @@ import com.nunchuk.android.core.data.model.RollOverWalletParam
 import com.nunchuk.android.core.data.model.TxReceipt
 import com.nunchuk.android.core.data.model.isInheritanceClaimFlow
 import com.nunchuk.android.core.data.model.isOffChainClaim
+import com.nunchuk.android.core.constants.NativeErrorCode
 import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.nfc.BaseComposeNfcActivity
@@ -601,7 +602,17 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
 
     private fun handleCreateTransactionEvent(event: TransactionConfirmEvent) {
         when (event) {
-            is TransactionConfirmEvent.CreateTxErrorEvent -> showCreateTransactionError(event.message)
+            is TransactionConfirmEvent.CreateTxErrorEvent -> {
+                val isLiquid =
+                    viewModel.getAddReceiptState().wallet.walletType == WalletType.LIQUID
+                // Liquid: not enough LBTC for fee -> open confirm screen with its banner instead of a toast.
+                if (isLiquid && event.code == NativeErrorCode.COIN_SELECTION_ERROR) {
+                    hideLoading()
+                    openTransactionConfirmForLiquid()
+                } else {
+                    showCreateTransactionError(event.message)
+                }
+            }
             is TransactionConfirmEvent.CreateTxSuccessEvent -> {
                 hideLoading()
                 if (transactionConfirmViewModel.isInheritanceClaimingFlow()) {
