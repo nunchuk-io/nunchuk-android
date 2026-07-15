@@ -8,3 +8,7 @@ keystore.properties
 nunchuk-keystore.jks
 .kotlin
 /.mcp.json
+
+# Google Play service-account key (secret credential — never commit)
+play-service-account.json
+*service-account*.json
