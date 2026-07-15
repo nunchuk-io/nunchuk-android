@@ -59,3 +59,28 @@ jobs:
         with:
           name: nativesdk-${{ github.sha }}
           path: nunchuk-app/build/outputs/bundle/productionRelease
+
+      # Publish the signed AAB to Google Play as a PRODUCTION DRAFT (no rollout
+      # to users; you press publish in the Play Console). Requires the
+      # PLAY_SERVICE_ACCOUNT_JSON secret (a Google Play service-account key with
+      # release permission). The step self-skips when the secret is absent, so
+      # CI stays green until it's configured.
+      - name: Check Play secret present
+        id: play_secret
+        env:
+          SA: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+        run: |
+          if [ -n "$SA" ]; then echo "present=true" >> "$GITHUB_OUTPUT"; else echo "present=false" >> "$GITHUB_OUTPUT"; fi
+
+      - name: Publish to Google Play (production, draft)
+        if: >-
+          steps.play_secret.outputs.present == 'true' &&
+          (github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch')
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: io.nunchuk.android
+          releaseFiles: nunchuk-app/build/outputs/bundle/productionRelease/*.aab
+          track: production
+          status: draft
+          whatsNewDirectory: distribution/whatsnew
