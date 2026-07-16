@@ -148,9 +148,15 @@ log "APK size: $(du -h "$APK" | cut -f1)"
 # (re)sign if a valid SHA256SUMS.asc isn't already present -- this makes the
 # script re-runnable after signing SHA256SUMS by hand in a real terminal (needed
 # when no GUI pinentry is available and gpg can't prompt from a non-TTY shell).
+# CRITICAL: WORKDIR persists across releases, so a *stale* SHA256SUMS.asc from the
+# previous version is left behind. `gpg --verify` alone passes on it (it only
+# checks the signature is valid, NOT that it covers the CURRENT SHA256SUMS) -> we
+# would ship a signature for the old apk's hash. So also require that the signed
+# payload equals the freshly regenerated SHA256SUMS before skipping.
 ( cd "$WORKDIR" && $SHA "${VERSION}.apk" > SHA256SUMS && cat SHA256SUMS )
-if ( cd "$WORKDIR" && [ -f SHA256SUMS.asc ] && gpg --verify SHA256SUMS.asc 2>/dev/null ); then
-  log "existing SHA256SUMS.asc verified [ok] -- skipping signing"
+if ( cd "$WORKDIR" && [ -f SHA256SUMS.asc ] && gpg --verify SHA256SUMS.asc 2>/dev/null \
+     && diff -q <(gpg -d --batch SHA256SUMS.asc 2>/dev/null) SHA256SUMS >/dev/null 2>&1 ); then
+  log "existing SHA256SUMS.asc verified + matches current SHA256SUMS [ok] -- skipping signing"
 else
   log "Clearsigning SHA256SUMS..."
   if [ -n "${GPG_PASSPHRASE:-}" ]; then
