@@ -110,6 +110,14 @@ fun MasterSigner.toReadableDrawableResId(isPrimaryKey: Boolean = false): Int {
 val SignerTag.isAirgapTag: Boolean
     get() = this == SignerTag.JADE || this == SignerTag.SEEDSIGNER || this == SignerTag.PASSPORT || this == SignerTag.KEYSTONE
 
+/**
+ * Hardware signers that have an in-app add-key flow (Trezor via companion app, Ledger
+ * via BLE/USB) rather than being desktop-only (e.g. BitBox). Used to enable/route these
+ * tags in the standalone add-key flow.
+ */
+val SignerTag?.isInAppHardwareTag: Boolean
+    get() = this == SignerTag.TREZOR || this == SignerTag.LEDGER
+
 val SignerTag?.formattedName: String
     get() = when (this) {
         SignerTag.TREZOR -> "Trezor"

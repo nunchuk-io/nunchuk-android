@@ -64,6 +64,7 @@ import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.signer.KeyType
 import com.nunchuk.android.signer.SignerIntroEvent
 import com.nunchuk.android.signer.SignerIntroViewModel
+import com.nunchuk.android.signer.ledger.LedgerActivity
 import com.nunchuk.android.signer.mk4.Mk4Activity
 import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
 import com.nunchuk.android.signer.trezor.TrezorActivity
@@ -220,7 +221,7 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
                                     KeyType.SOFTWARE -> showSoftwareSigners()
                                     KeyType.PLATFORM_KEY -> returnPlatformKeyResult()
                                     KeyType.GENERIC_AIRGAP -> openAddAirSignerIntroScreen()
-                                    KeyType.LEDGER -> handleHardwareSignerSelection(SignerTag.LEDGER)
+                                    KeyType.LEDGER -> openLedgerScreen()
                                     KeyType.BITBOX -> handleHardwareSignerSelection(SignerTag.BITBOX)
                                     KeyType.TREZOR -> openTrezorScreen()
                                 }
@@ -461,6 +462,15 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
             return
         }
         startActivity(TrezorActivity.buildIntent(this))
+        finish()
+    }
+
+    private fun openLedgerScreen() {
+        if (onChainAddSignerParam != null) {
+            handleHardwareSignerSelection(SignerTag.LEDGER)
+            return
+        }
+        startActivity(LedgerActivity.buildIntent(this))
         finish()
     }
 

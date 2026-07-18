@@ -5,6 +5,7 @@ import androidx.annotation.StringRes
 import com.nunchuk.android.core.signer.KeyFlow
 import com.nunchuk.android.core.signer.KeyFlow.isPrimaryKeyFlow
 import com.nunchuk.android.core.signer.OnChainAddSignerParam
+import com.nunchuk.android.core.util.isInAppHardwareTag
 import com.nunchuk.android.model.signer.SupportedSigner
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
@@ -122,7 +123,6 @@ fun SupportedSigner.toDisplayInfo(): SignerDisplayInfo? {
             SignerTag.LEDGER -> SignerDisplayInfo(
                 iconRes = R.drawable.ic_ledger_hardware,
                 titleRes = R.string.nc_ledger,
-                descriptionRes = R.string.nc_desktop_only,
                 keyType = keyType,
                 category = SignerDisplayCategory.CARD,
             )
@@ -171,7 +171,7 @@ fun SupportedSigner.isDisabledIn(
     onChainAddSignerParam: OnChainAddSignerParam? = null,
     keyFlow: Int = KeyFlow.NONE,
 ): Boolean = when (type) {
-    SignerType.HARDWARE -> if (tag == SignerTag.TREZOR) {
+    SignerType.HARDWARE -> if (tag.isInAppHardwareTag) {
         isDisableAll || (allowedSigners.isNotEmpty() && !allowedSigners.any { it.matches(this) })
     } else {
         onChainAddSignerParam == null

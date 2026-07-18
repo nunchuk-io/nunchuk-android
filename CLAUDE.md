@@ -195,7 +195,14 @@ private fun MyContentPreview() { MyContent() }
 
 ### Compose Navigation
 
-**Route definition**:
+**RULE — type-safe routes only**: every Compose destination MUST be a `@Serializable`
+route object/class used with `composable<Route>` / `navigate(Route)`. Never use raw
+string routes (`const val fooRoute = "foo"`, `composable("foo")`, `navigate("foo")`).
+String-based routes are not type-safe, can't carry typed args, and are disallowed —
+convert any you encounter. (`nunchuk.android.library`/`application` already apply the
+`kotlin.plugin.serialization` plugin, so `@Serializable` is available in every module.)
+
+**Route definition** (mark `internal` unless another module navigates to it):
 ```kotlin
 @Serializable data object MyScreenRoute                          // no args
 @Serializable data class MyScreenRoute(val id: String = "")      // with args (primitives only)
