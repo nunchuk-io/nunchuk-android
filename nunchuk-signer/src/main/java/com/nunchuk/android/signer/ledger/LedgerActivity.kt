@@ -18,7 +18,7 @@ import com.nunchuk.android.core.base.BaseComposeActivity
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.signer.R
-import com.nunchuk.android.type.AddressType
+import com.nunchuk.android.signer.ledger.LedgerActivity.Companion.EXTRA_RESULT_SUCCESS
 import com.nunchuk.android.type.LedgerUserInteraction
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.widget.NCToastMessage
@@ -43,6 +43,19 @@ class LedgerActivity : BaseComposeActivity() {
         LedgerBleController(this, nativeSdk, bleListener)
     }
     private var masterFingerprint: String = ""
+
+    /** Which Confluence flow this activity is driving: add-key ("Get XPUB") or health check ("Sign message"). */
+    private val action: String by lazy {
+        intent.getStringExtra(EXTRA_ACTION) ?: ACTION_ADD_KEY
+    }
+
+    // Health-check target: fingerprint + derivation path of the key to verify (health check only).
+    private val signerFingerprint: String by lazy {
+        intent.getStringExtra(EXTRA_SIGNER_FINGERPRINT).orEmpty()
+    }
+    private val signerDerivationPath: String by lazy {
+        intent.getStringExtra(EXTRA_SIGNER_DERIVATION_PATH).orEmpty()
+    }
 
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -86,19 +99,28 @@ class LedgerActivity : BaseComposeActivity() {
             when (request) {
                 LedgerRequest.MASTER_FINGERPRINT -> {
                     masterFingerprint = result
-                    controller.getExtendedPublicKey(DEFAULT_WALLET_TYPE, DEFAULT_ADDRESS_TYPE, DEFAULT_INDEX)
+                    val config = viewModel.state.value
+                    controller.getExtendedPublicKey(config.walletType, config.addressType, config.accountIndex)
                 }
 
                 LedgerRequest.XPUB -> {
+                    val config = viewModel.state.value
                     viewModel.createSigner(
                         name = getString(R.string.nc_ledger),
                         masterFingerprint = masterFingerprint,
                         xpub = result,
-                        walletType = DEFAULT_WALLET_TYPE,
-                        addressType = DEFAULT_ADDRESS_TYPE,
-                        index = DEFAULT_INDEX,
+                        walletType = config.walletType,
+                        addressType = config.addressType,
+                        index = config.accountIndex,
                     )
                 }
+
+                LedgerRequest.SIGN_MESSAGE -> viewModel.healthCheck(
+                    masterFingerprint = signerFingerprint,
+                    derivationPath = signerDerivationPath,
+                    message = HEALTH_CHECK_MESSAGE,
+                    signature = result,
+                )
             }
         }
 
@@ -138,6 +160,11 @@ class LedgerActivity : BaseComposeActivity() {
                     finish()
                 }
 
+                is LedgerScanEvent.HealthCheckSuccess -> finishWithHealthCheckResult(success = true)
+
+                is LedgerScanEvent.HealthCheckFailed ->
+                    finishWithHealthCheckResult(success = false, errorMessage = event.message)
+
                 is LedgerScanEvent.Error -> NCToastMessage(this).showError(event.message)
             }
         }
@@ -149,17 +176,37 @@ class LedgerActivity : BaseComposeActivity() {
 
                 NavHost(
                     navController = navController,
-                    startDestination = LedgerIntroRoute
+                    // Health check targets an already-added key, so skip the "Add Ledger"
+                    // intro and go straight to the device picker (it lists BLE + USB).
+                    startDestination = if (action == ACTION_HEALTH_CHECK) {
+                        LedgerDeviceScanRoute
+                    } else {
+                        LedgerIntroRoute
+                    }
                 ) {
                     ledgerIntro(
                         onBack = { finish() },
-                        onAddViaBluetooth = { navController.navigateToLedgerInstruction() },
-                        onAddViaUsb = {
-                            // USB needs no Bluetooth permission — just list attached devices.
-                            navController.navigateToLedgerDeviceScan()
-                            controller.refreshUsb()
-                        },
+                        // Pick the wallet/address type first, then continue to the transport-specific step.
+                        onAddViaBluetooth = { navController.navigateToLedgerSelectWalletType(isUsb = false) },
+                        onAddViaUsb = { navController.navigateToLedgerSelectWalletType(isUsb = true) },
                         isAddViaUsbEnabled = true
+                    )
+                    ledgerSelectWalletType(
+                        onBack = { navController.popBackStack() },
+                        onContinue = { isUsb, isSingleSig, addressType, accountIndex ->
+                            viewModel.setWalletConfig(
+                                walletType = if (isSingleSig) WalletType.SINGLE_SIG else WalletType.MULTI_SIG,
+                                addressType = addressType,
+                                index = accountIndex,
+                            )
+                            if (isUsb) {
+                                // USB needs no Bluetooth permission — just list attached devices.
+                                navController.navigateToLedgerDeviceScan()
+                                controller.refreshUsb()
+                            } else {
+                                navController.navigateToLedgerInstruction()
+                            }
+                        },
                     )
                     ledgerInstruction(
                         onBack = { navController.popBackStack() },
@@ -171,7 +218,9 @@ class LedgerActivity : BaseComposeActivity() {
                     ledgerDeviceScan(
                         onBack = {
                             controller.close()
-                            navController.popBackStack()
+                            // When the scan screen is the start destination (health check),
+                            // there's nothing to pop back to — close the flow instead.
+                            if (!navController.popBackStack()) finish()
                         },
                         isScanning = { state.isScanning },
                         devices = { state.devices },
@@ -183,7 +232,7 @@ class LedgerActivity : BaseComposeActivity() {
                         onConnect = {
                             val device = state.selectedDevice ?: return@ledgerDeviceScan
                             controller.connect(device)
-                            controller.whenReady { controller.getMasterFingerprint() }
+                            controller.whenReady { startCommandForAction() }
                         },
                     )
                 }
@@ -193,6 +242,33 @@ class LedgerActivity : BaseComposeActivity() {
                 }
             }
         }
+
+        // Health check opens straight onto the device picker; kick off the scan once.
+        if (savedInstanceState == null && action == ACTION_HEALTH_CHECK) {
+            ensurePermissionThenScan()
+        }
+    }
+
+    /** Kicks off the first native command once the transport is ready, per [action]. */
+    private fun startCommandForAction() {
+        when (action) {
+            ACTION_HEALTH_CHECK -> controller.signMessage(signerDerivationPath, HEALTH_CHECK_MESSAGE)
+            else -> controller.getMasterFingerprint()
+        }
+    }
+
+    /**
+     * Health check only: the signing + verification ran on this activity; hand the
+     * success/failed outcome back to the caller (SignerInfo) to display, then close.
+     */
+    private fun finishWithHealthCheckResult(success: Boolean, errorMessage: String? = null) {
+        setResult(
+            RESULT_OK,
+            Intent()
+                .putExtra(EXTRA_RESULT_SUCCESS, success)
+                .putExtra(EXTRA_RESULT_ERROR, errorMessage)
+        )
+        finish()
     }
 
     private fun ensurePermissionThenScan() {
@@ -225,12 +301,41 @@ class LedgerActivity : BaseComposeActivity() {
     }
 
     companion object {
-        private val DEFAULT_WALLET_TYPE = WalletType.SINGLE_SIG
-        private val DEFAULT_ADDRESS_TYPE = AddressType.NATIVE_SEGWIT
-        private const val DEFAULT_INDEX = 0
+        // Confluence "Sign message" health-check message. Signed on the device and verified
+        // here with HealthCheckSingleSigner (same constant Trezor's health check uses).
+        private const val HEALTH_CHECK_MESSAGE = "Run health check"
 
+        private const val EXTRA_ACTION = "action"
+        private const val EXTRA_SIGNER_FINGERPRINT = "signer_fingerprint"
+        private const val EXTRA_SIGNER_DERIVATION_PATH = "signer_derivation_path"
+
+        const val ACTION_ADD_KEY = "add_key"
+        const val ACTION_HEALTH_CHECK = "health_check"
+
+        // Health-check result extras (RESULT_OK): the outcome and an optional error message.
+        const val EXTRA_RESULT_SUCCESS = "result_success"
+        const val EXTRA_RESULT_ERROR = "result_error"
+
+        /** Standalone "Add key" flow (Get XPUB). */
         fun buildIntent(activityContext: Context): Intent {
             return Intent(activityContext, LedgerActivity::class.java)
+                .putExtra(EXTRA_ACTION, ACTION_ADD_KEY)
+        }
+
+        /**
+         * Health-check flow: signs a health-check message with the key at [derivationPath],
+         * verifies it against the signer [masterFingerprint], and returns the success/failed
+         * result (see [EXTRA_RESULT_SUCCESS]) for the caller to display.
+         */
+        fun buildHealthCheckIntent(
+            activityContext: Context,
+            masterFingerprint: String,
+            derivationPath: String,
+        ): Intent {
+            return Intent(activityContext, LedgerActivity::class.java)
+                .putExtra(EXTRA_ACTION, ACTION_HEALTH_CHECK)
+                .putExtra(EXTRA_SIGNER_FINGERPRINT, masterFingerprint)
+                .putExtra(EXTRA_SIGNER_DERIVATION_PATH, derivationPath)
         }
     }
 }

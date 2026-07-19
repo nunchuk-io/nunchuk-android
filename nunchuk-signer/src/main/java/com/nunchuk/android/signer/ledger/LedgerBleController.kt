@@ -50,6 +50,7 @@ enum class LedgerTransportKind {
 enum class LedgerRequest {
     MASTER_FINGERPRINT,
     XPUB,
+    SIGN_MESSAGE,
 }
 
 data class LedgerDevice(
@@ -548,6 +549,16 @@ class LedgerBleController(
     fun getExtendedPublicKey(walletType: WalletType, addressType: AddressType, index: Int) =
         startCommand(LedgerRequest.XPUB) { id, transport ->
             nativeSdk.ledgerGetExtendedPublicKey(id, transport, walletType, addressType, index)
+        }
+
+    /**
+     * Confluence "Sign message" — signs [message] with the key at [derivationPath].
+     * Used for the standalone health check: the resulting signature is delivered via
+     * [Listener.onCommandComplete] and verified with `HealthCheckSingleSigner`.
+     */
+    fun signMessage(derivationPath: String, message: String) =
+        startCommand(LedgerRequest.SIGN_MESSAGE) { id, transport ->
+            nativeSdk.ledgerSignMessage(id, transport, derivationPath, message)
         }
 
     private fun startCommand(request: LedgerRequest, block: (String, LedgerTransport) -> LedgerStep) {

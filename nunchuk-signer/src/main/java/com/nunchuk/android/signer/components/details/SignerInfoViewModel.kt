@@ -346,6 +346,12 @@ internal class SignerInfoViewModel @Inject constructor(
                 && remoteSigner.tags.contains(SignerTag.TREZOR)
     }
 
+    fun isLedgerSigner(): Boolean {
+        val remoteSigner = getState().remoteSigner ?: return false
+        return args.signerType == SignerType.HARDWARE
+                && remoteSigner.tags.contains(SignerTag.LEDGER)
+    }
+
     fun requestTrezorHealthCheck() {
         val signer = getState().remoteSigner ?: return
         viewModelScope.launch {
@@ -405,6 +411,20 @@ internal class SignerInfoViewModel @Inject constructor(
             _event.emit(SignerInfoEvent.Loading(false))
         }
         return true
+    }
+
+    /**
+     * The Ledger flow signs + verifies the health check on its own activity and delegates
+     * the outcome here so the result shows on this screen (like [handleTrezorHealthCheckCallback]).
+     */
+    fun onLedgerHealthCheckResult(isSuccess: Boolean, errorMessage: String?) {
+        viewModelScope.launch {
+            if (isSuccess) {
+                _event.emit(HealthCheckSuccessEvent)
+            } else {
+                _event.emit(HealthCheckErrorEvent(e = errorMessage?.takeIf { it.isNotBlank() }?.let(::Throwable)))
+            }
+        }
     }
 
     fun healthCheckTapSigner(isoDep: IsoDep, cvc: String, masterSigner: MasterSigner) {

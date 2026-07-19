@@ -204,4 +204,17 @@ interface SignerNavigator {
         type: Int,
         claimInheritanceTxParam: ClaimInheritanceTxParam? = null,
     )
+
+    /**
+     * Standalone health check for a Ledger signer: connects over BLE/USB, signs a
+     * health-check message with the key at [derivationPath] and verifies it against
+     * [masterFingerprint]. The success/failed outcome is returned via [launcher] for the
+     * caller to display.
+     */
+    fun openLedgerHealthCheck(
+        launcher: ActivityResultLauncher<Intent>,
+        activityContext: Context,
+        masterFingerprint: String,
+        derivationPath: String,
+    )
 }

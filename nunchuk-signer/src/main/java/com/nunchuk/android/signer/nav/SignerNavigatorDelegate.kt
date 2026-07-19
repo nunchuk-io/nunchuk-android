@@ -34,6 +34,7 @@ import com.nunchuk.android.nav.args.AddAirSignerArgs
 import com.nunchuk.android.signer.components.add.AddAirgapSignerActivity
 import com.nunchuk.android.signer.components.add.ScanDynamicQRActivity
 import com.nunchuk.android.signer.components.details.SignerInfoActivity
+import com.nunchuk.android.signer.ledger.LedgerActivity
 import com.nunchuk.android.signer.satscard.wallets.SelectWalletActivity
 import com.nunchuk.android.signer.software.SoftwareSignerIntroActivity
 import com.nunchuk.android.signer.software.components.confirm.ConfirmSeedActivity
@@ -356,6 +357,21 @@ interface SignerNavigatorDelegate : SignerNavigator {
             slots = slots,
             type = type,
             claimInheritanceTxParam = claimInheritanceTxParam
+        )
+    }
+
+    override fun openLedgerHealthCheck(
+        launcher: ActivityResultLauncher<Intent>,
+        activityContext: Context,
+        masterFingerprint: String,
+        derivationPath: String,
+    ) {
+        launcher.launch(
+            LedgerActivity.buildHealthCheckIntent(
+                activityContext = activityContext,
+                masterFingerprint = masterFingerprint,
+                derivationPath = derivationPath,
+            )
         )
     }
 }

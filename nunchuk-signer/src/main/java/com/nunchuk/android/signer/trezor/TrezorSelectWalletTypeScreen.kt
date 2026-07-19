@@ -71,6 +71,14 @@ import com.nunchuk.android.type.WalletType
 
 const val trezorSelectWalletTypeRoute = "trezor_select_wallet_type_route"
 
+/** Optional confirmation shown when tapping Continue (e.g. Trezor's "Open Trezor Suite" prompt). */
+data class ContinueConfirmation(
+    val title: String,
+    val message: String,
+    val positiveButtonText: String,
+    val negativeButtonText: String,
+)
+
 private data class AddressTypeOption(
     val type: AddressType,
     val titleRes: Int,
@@ -106,9 +114,16 @@ fun NavGraphBuilder.trezorSelectWalletType(
     onContinue: (Boolean, AddressType, Int) -> Unit = { _, _, _ -> }
 ) {
     composable(trezorSelectWalletTypeRoute) {
-        TrezorSelectWalletTypeScreen(
+        SelectWalletTypeScreen(
+            subtitle = stringResource(id = R.string.nc_select_wallet_trezor_desc),
             onBack = onBack,
             taprootSupportState = taprootSupportState,
+            continueConfirmation = ContinueConfirmation(
+                title = stringResource(id = com.nunchuk.android.core.R.string.nc_confirmation),
+                message = stringResource(id = R.string.nc_open_trezor_suite_continue_message),
+                positiveButtonText = stringResource(id = R.string.nc_open_trezor_suite),
+                negativeButtonText = stringResource(id = com.nunchuk.android.core.R.string.nc_cancel),
+            ),
             onContinue = onContinue
         )
     }
@@ -118,10 +133,18 @@ fun NavHostController.navigateToTrezorSelectWalletType() {
     navigate(trezorSelectWalletTypeRoute)
 }
 
+/**
+ * Shared "Select wallet & address type" screen: pick single-sig/multisig, address type and
+ * account index, then hand them back via [onContinue]. Reused by hardware-wallet flows
+ * (Trezor, Ledger, ...) — pass a device-specific [subtitle] and, if the flow needs a prompt
+ * before continuing, a [continueConfirmation] (otherwise Continue proceeds directly).
+ */
 @Composable
-private fun TrezorSelectWalletTypeScreen(
+fun SelectWalletTypeScreen(
+    subtitle: String,
     onBack: () -> Unit = {},
     taprootSupportState: TrezorTaprootSupportState = TrezorTaprootSupportState(),
+    continueConfirmation: ContinueConfirmation? = null,
     onContinue: (Boolean, AddressType, Int) -> Unit = { _, _, _ -> }
 ) {
     var isSingleSig by rememberSaveable { mutableStateOf(true) }
@@ -129,7 +152,7 @@ private fun TrezorSelectWalletTypeScreen(
     var accountIndex by rememberSaveable { mutableIntStateOf(0) }
     var showAddressTypeSheet by rememberSaveable { mutableStateOf(false) }
     var showAccountIndexSheet by rememberSaveable { mutableStateOf(false) }
-    var showOpenSuiteConfirmation by rememberSaveable { mutableStateOf(false) }
+    var showContinueConfirmation by rememberSaveable { mutableStateOf(false) }
 
     val addressType = addressTypeName.toAddressTypeOrDefault()
     val selectedWalletType = if (isSingleSig) WalletType.SINGLE_SIG else WalletType.MULTI_SIG
@@ -156,7 +179,13 @@ private fun TrezorSelectWalletTypeScreen(
                     .padding(horizontal = 16.dp, vertical = 12.dp)
                     .navigationBarsPadding()
                     .fillMaxWidth(),
-                onClick = { showOpenSuiteConfirmation = true }
+                onClick = {
+                    if (continueConfirmation != null) {
+                        showContinueConfirmation = true
+                    } else {
+                        onContinue(isSingleSig, addressType, accountIndex)
+                    }
+                }
             ) {
                 Text(text = stringResource(id = com.nunchuk.android.core.R.string.nc_text_continue))
             }
@@ -176,7 +205,7 @@ private fun TrezorSelectWalletTypeScreen(
             )
 
             Text(
-                text = stringResource(id = R.string.nc_select_wallet_trezor_desc),
+                text = subtitle,
                 style = NunchukTheme.typography.body
             )
 
@@ -247,16 +276,16 @@ private fun TrezorSelectWalletTypeScreen(
         )
     }
 
-    if (showOpenSuiteConfirmation) {
+    if (showContinueConfirmation && continueConfirmation != null) {
         NcConfirmationDialog(
-            title = stringResource(id = com.nunchuk.android.core.R.string.nc_confirmation),
-            message = stringResource(id = R.string.nc_open_trezor_suite_continue_message),
-            positiveButtonText = stringResource(id = R.string.nc_open_trezor_suite),
-            negativeButtonText = stringResource(id = com.nunchuk.android.core.R.string.nc_cancel),
+            title = continueConfirmation.title,
+            message = continueConfirmation.message,
+            positiveButtonText = continueConfirmation.positiveButtonText,
+            negativeButtonText = continueConfirmation.negativeButtonText,
             isPositiveButtonWrapContent = true,
-            onDismiss = { showOpenSuiteConfirmation = false },
+            onDismiss = { showContinueConfirmation = false },
             onPositiveClick = {
-                showOpenSuiteConfirmation = false
+                showContinueConfirmation = false
                 onContinue(isSingleSig, addressType, accountIndex)
             }
         )
@@ -536,8 +565,10 @@ private fun String.toAddressTypeOrDefault(): AddressType {
 
 @PreviewLightDark
 @Composable
-private fun TrezorSelectWalletTypeScreenPreview() {
+private fun SelectWalletTypeScreenPreview() {
     NunchukTheme {
-        TrezorSelectWalletTypeScreen()
+        SelectWalletTypeScreen(
+            subtitle = stringResource(id = R.string.nc_select_wallet_trezor_desc)
+        )
     }
 }

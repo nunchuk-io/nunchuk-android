@@ -19,9 +19,11 @@
 
 package com.nunchuk.android.signer.components.details
 
+import android.app.Activity
 import android.nfc.tech.IsoDep
 import android.nfc.tech.Ndef
 import android.os.Bundle
+import androidx.activity.result.contract.ActivityResultContracts
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -64,6 +66,7 @@ import com.nunchuk.android.core.wallet.WalletComposeBottomSheet
 import com.nunchuk.android.model.VerificationType
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.components.details.model.SingerOption
+import com.nunchuk.android.signer.ledger.LedgerActivity
 import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
@@ -202,6 +205,20 @@ class SignerInfoFragment : BaseShareSaveFileFragment<ViewBinding>(),
     private val nfcViewModel: NfcViewModel by activityViewModels()
 
     private val args: SignerInfoFragmentArgs by navArgs()
+
+    // Ledger runs the health check (sign + verify) over BLE/USB in its own activity and
+    // returns the outcome; show the result on this screen.
+    private val ledgerHealthCheckLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val data = result.data ?: return@registerForActivityResult
+            viewModel.onLedgerHealthCheckResult(
+                isSuccess = data.getBooleanExtra(LedgerActivity.EXTRA_RESULT_SUCCESS, false),
+                errorMessage = data.getStringExtra(LedgerActivity.EXTRA_RESULT_ERROR),
+            )
+        }
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -532,6 +549,13 @@ class SignerInfoFragment : BaseShareSaveFileFragment<ViewBinding>(),
                 )
             } else if (viewModel.isTrezorSigner()) {
                 viewModel.requestTrezorHealthCheck()
+            } else if (viewModel.isLedgerSigner()) {
+                navigator.openLedgerHealthCheck(
+                    launcher = ledgerHealthCheckLauncher,
+                    activityContext = requireActivity(),
+                    masterFingerprint = remoteSigner.masterFingerprint,
+                    derivationPath = remoteSigner.derivationPath,
+                )
             } else {
                 showWarning(getString(R.string.nc_health_check_is_unavailable_for_this_key))
             }
