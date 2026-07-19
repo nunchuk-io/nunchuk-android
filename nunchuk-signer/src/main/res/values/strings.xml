@@ -232,12 +232,11 @@
     <string name="nc_add_ledger_via_usb">Add Ledger via USB</string>
     <string name="nc_add_your_ledger">Add your Ledger</string>
     <string name="nc_ensure_to_following_ledger">Please ensure to do the following on your Ledger before proceeding.</string>
-    <string name="nc_open_ledger_wallet">Open Ledger Wallet</string>
-    <string name="nc_ledger_wallet_mobile_link">Download and open the Ledger Wallet mobile app.</string>
-    <string name="nc_ledger_setup_desc">If your Ledger is new, set it up there.</string>
-    <string name="nc_enable_bluetooth">Enable Bluetooth</string>
-    <string name="nc_ledger_enable_bluetooth_desc"><![CDATA[Turn on Bluetooth on your phone: Settings → Bluetooth → turn Bluetooth on.\n\nThen enable Bluetooth on your Ledger:\n• Nano X: Hold both buttons for Control Center → Bluetooth → Enabled\n• Stax / Flex / Nano Gen5: Settings → Bluetooth → turn Bluetooth on]]></string>
-    <string name="nc_return_to_nunchuk_ledger_desc">Once your Ledger is ready, come back to Nunchuk and continue.</string>
+    <string name="nc_ledger_step_setup_title">Set up your Ledger</string>
+    <string name="nc_ledger_step_setup_desc">If your Ledger is new, set it up using the Ledger Wallet app. Install the Bitcoin app on your Ledger if it isn\'t already installed.</string>
+    <string name="nc_ledger_step_connect_title">Connect your Ledger</string>
+    <string name="nc_ledger_step_connect_desc">Unlock your Ledger, then turn on Bluetooth or connect it with a USB cable.</string>
+    <string name="nc_ledger_step_return_title">Return to Nunchuk and continue</string>
     <string name="nc_ledger_scanning">Looking for Ledger devices…</string>
     <string name="nc_ledger_connect_a_device">Connect a device</string>
     <string name="nc_ledger_connect_a_device_desc">Select a Bluetooth device to connect. Make sure the device is unlocked.</string>

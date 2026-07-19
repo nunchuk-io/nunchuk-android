@@ -94,42 +94,32 @@ private fun LedgerInstructionScreen(
 
             LedgerStep(index = 1) {
                 Text(
-                    text = stringResource(id = R.string.nc_open_ledger_wallet),
+                    text = stringResource(id = R.string.nc_ledger_step_setup_title),
                     style = NunchukTheme.typography.title
                 )
                 Text(
                     modifier = Modifier.padding(top = 8.dp),
-                    text = stringResource(id = R.string.nc_ledger_wallet_mobile_link),
-                    style = NunchukTheme.typography.body
-                )
-                Text(
-                    modifier = Modifier.padding(top = 8.dp),
-                    text = stringResource(id = R.string.nc_ledger_setup_desc),
+                    text = stringResource(id = R.string.nc_ledger_step_setup_desc),
                     style = NunchukTheme.typography.body
                 )
             }
 
             LedgerStep(index = 2) {
                 Text(
-                    text = stringResource(id = R.string.nc_enable_bluetooth),
+                    text = stringResource(id = R.string.nc_ledger_step_connect_title),
                     style = NunchukTheme.typography.title
                 )
                 Text(
                     modifier = Modifier.padding(top = 8.dp),
-                    text = stringResource(id = R.string.nc_ledger_enable_bluetooth_desc),
+                    text = stringResource(id = R.string.nc_ledger_step_connect_desc),
                     style = NunchukTheme.typography.body
                 )
             }
 
             LedgerStep(index = 3) {
                 Text(
-                    text = stringResource(id = R.string.nc_return_to_nunchuk),
+                    text = stringResource(id = R.string.nc_ledger_step_return_title),
                     style = NunchukTheme.typography.title
-                )
-                Text(
-                    modifier = Modifier.padding(top = 8.dp),
-                    text = stringResource(id = R.string.nc_return_to_nunchuk_ledger_desc),
-                    style = NunchukTheme.typography.body
                 )
             }
         }
