@@ -20,6 +20,7 @@ class SyncKeyUseCase @Inject constructor(
             parameters.step,
             parameters.signer,
             parameters.walletType,
+            parameters.keySlot,
         )
     }
 
@@ -28,5 +29,6 @@ class SyncKeyUseCase @Inject constructor(
         val step: MembershipStep,
         val signer: SingleSigner,
         val walletType: WalletType,
+        val keySlot: String? = null,
     )
 }

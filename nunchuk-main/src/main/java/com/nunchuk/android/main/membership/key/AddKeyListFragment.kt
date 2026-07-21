@@ -116,6 +116,7 @@ import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.signer.trezor.TrezorActivity
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.utils.parcelable
 import dagger.hilt.android.AndroidEntryPoint
 import java.util.Collections.emptyList
@@ -147,6 +148,18 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
                 }
                 if (data.getStringExtra(TrezorActivity.EXTRA_RESULT_ACTION) == TrezorActivity.RESULT_ACTION_OPEN_USB_FLOW) {
                     openRequestAddDesktopKey(SignerTag.TREZOR)
+                }
+            }
+        }
+
+    // Add-key flow reused from the free group wallet for customized (custom Miniscript / n-m)
+    // assisted drafts. The returned key is saved against the step set by onAddKeyClicked.
+    private val signerIntroLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            val data = result.data
+            if (result.resultCode == Activity.RESULT_OK && data != null) {
+                data.parcelable<SignerModel>(GlobalResultKey.EXTRA_SIGNER)?.let { signer ->
+                    viewModel.onSelectedExistingHardwareSigner(signer.toSingleSigner())
                 }
             }
         }
@@ -410,8 +423,16 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
                 AddKeyListEvent.OnAddAllKey -> onAddAllKey()
                 is AddKeyListEvent.ShowError -> showError(event.message)
                 AddKeyListEvent.SelectAirgapType -> showAirgapOptions()
+                // Draft switched to an on-chain (Miniscript) wallet: this screen can't host it,
+                // so close and let the user reopen the pending wallet on the correct screen.
+                AddKeyListEvent.RequireReopenWallet -> requireActivity().finish()
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        viewModel.refresh()
     }
 
     private fun onAddAllKey() {
@@ -443,10 +464,23 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
             MembershipStep.IRON_ADD_HARDWARE_KEY_2,
             MembershipStep.HONEY_ADD_HARDWARE_KEY_1,
             MembershipStep.HONEY_ADD_HARDWARE_KEY_2,
-                -> openSelectHardwareOption()
+                -> if (viewModel.state.value.isCustomized) {
+                openSignerIntro()
+            } else {
+                openSelectHardwareOption()
+            }
 
             else -> Unit
         }
+    }
+
+    private fun openSignerIntro() {
+        navigator.openSignerIntroScreen(
+            launcher = signerIntroLauncher,
+            activityContext = requireActivity(),
+            groupId = "",
+            walletType = WalletType.MULTI_SIG,
+        )
     }
 
     private fun openSelectHardwareOption() {

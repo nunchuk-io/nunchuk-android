@@ -215,5 +215,37 @@ internal data class InitWalletConfigRequest(
     @SerializedName("wallet_config")
     val walletConfig: WalletConfigDto? = null,
     @SerializedName("wallet_type")
-    val walletType: String? = null
+    val walletType: String? = null,
+    // Custom Miniscript template.
+    @SerializedName("miniscript_template")
+    val miniscriptTemplate: String? = null,
+    // Optional. Current allowed value is NATIVE_SEGWIT.
+    @SerializedName("address_type")
+    val addressType: String? = null,
+    // Optional. Current allowed value is DEFAULT.
+    @SerializedName("wallet_template")
+    val walletTemplate: String? = null,
+)
+
+/**
+ * Body for PUT /v1.1/(user|group)-wallets/.../draft-wallets/current.
+ * Updates the current draft wallet, used by custom Miniscript setup.
+ */
+internal data class UpdateDraftWalletPayload(
+    @SerializedName("wallet_config")
+    val walletConfig: WalletConfigDto? = null,
+    @SerializedName("wallet_type")
+    val walletType: String? = null,
+    // Custom Miniscript template.
+    @SerializedName("miniscript_template")
+    val miniscriptTemplate: String? = null,
+    // List of platform/server-key slots. API shape is a list, but only one slot is allowed now.
+    @SerializedName("platform_key_slots")
+    val platformKeySlots: List<String>? = null,
+    // Optional. Current allowed value is NATIVE_SEGWIT.
+    @SerializedName("address_type")
+    val addressType: String? = null,
+    // Optional. Current allowed value is DEFAULT.
+    @SerializedName("wallet_template")
+    val walletTemplate: String? = null,
 )

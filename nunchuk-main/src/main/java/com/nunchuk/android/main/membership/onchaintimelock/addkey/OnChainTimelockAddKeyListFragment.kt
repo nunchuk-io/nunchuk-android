@@ -409,6 +409,8 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
 
                 }
 
+                AddKeyListEvent.RequireReopenWallet -> requireActivity().finish()
+
                 is AddKeyListEvent.HandleSignerTypeLogic -> {
                     handleSignerTypeLogic(event.type, event.tag)
                 }
@@ -470,6 +472,24 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
         val nextStep = data.getNextStepToAdd() ?: data.type
         val allSigners = data.getAllSigners()
         val groupId = args.groupId ?: (activity as MembershipActivity).groupId
+
+        if (viewModel.state.value.isCustomized && !nextStep.isAddInheritanceKey) {
+            navigator.openSignerIntroScreen(
+                launcher = signerIntroLauncher,
+                activityContext = requireActivity(),
+                walletId = (activity as MembershipActivity).walletId,
+                groupId = groupId,
+                supportedSigners = null,
+                onChainAddSignerParam = OnChainAddSignerParam(
+                    flags = OnChainAddSignerParam.FLAG_ADD_SIGNER,
+                    keyIndex = allSigners.size,
+                    currentSigner = allSigners.firstOrNull(),
+                    existingSigners = getAllExistingSigners()
+                ),
+                walletType = WalletType.MINISCRIPT
+            )
+            return
+        }
 
         if (allSigners.isEmpty()) {
             // No signers exist, check if this is inheritance key or hardware key

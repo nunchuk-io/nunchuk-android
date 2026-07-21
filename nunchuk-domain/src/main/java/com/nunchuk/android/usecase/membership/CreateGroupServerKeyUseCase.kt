@@ -17,10 +17,11 @@ class CreateGroupServerKeyUseCase @Inject constructor(
             groupId = parameters.groupId,
             name = parameters.name,
             groupKeyPolicy = parameters.groupKeyPolicy,
+            keySlot = parameters.keySlot,
         )
     }
 
     data class Param(
-        val groupId: String, val name: String, val groupKeyPolicy: GroupKeyPolicy,
+        val groupId: String, val name: String, val groupKeyPolicy: GroupKeyPolicy, val keySlot: String? = null,
     )
 }

@@ -12,6 +12,7 @@ import com.nunchuk.android.messages.util.getWalletId
 import com.nunchuk.android.messages.util.getXfp
 import com.nunchuk.android.messages.util.isAddKeyCompleted
 import com.nunchuk.android.messages.util.isCoinControlUpdated
+import com.nunchuk.android.messages.util.isDraftWalletCustomizationChangedEvent
 import com.nunchuk.android.messages.util.isDraftWalletResetEvent
 import com.nunchuk.android.messages.util.isDraftWalletTimelockSetEvent
 import com.nunchuk.android.messages.util.isGroupEmergencyLockdownStarted
@@ -135,6 +136,18 @@ class HandlePushMessageUseCase @Inject constructor(
                     saveHandledEventUseCase.invoke(parameters.eventId)
                     pushEventManager.push(
                         PushEvent.DraftWalletTimelockSet(
+                            parameters.getGroupId().orEmpty()
+                        )
+                    )
+                }
+            }
+
+            parameters.isDraftWalletCustomizationChangedEvent() -> {
+                val result = isHandledEventUseCase.invoke(parameters.eventId)
+                if (result.getOrDefault(false).not()) {
+                    saveHandledEventUseCase.invoke(parameters.eventId)
+                    pushEventManager.push(
+                        PushEvent.DraftWalletCustomizationChanged(
                             parameters.getGroupId().orEmpty()
                         )
                     )

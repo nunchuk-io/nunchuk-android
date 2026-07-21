@@ -40,4 +40,5 @@ data class SignerServer(
     val pubkey: String? = null,
     val tags: List<String> = emptyList(),
     val userBackUpFileName: String? = null,
+    val keySlot: String? = null,
 ) : Parcelable

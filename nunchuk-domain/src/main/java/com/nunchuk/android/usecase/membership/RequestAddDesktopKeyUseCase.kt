@@ -34,8 +34,8 @@ class RequestAddDesktopKeyUseCase @Inject constructor(
 ) : UseCase<RequestAddDesktopKeyUseCase.Param, String>(ioDispatcher) {
 
     override suspend fun execute(parameters: Param): String {
-        return repository.requestAddKey(parameters.groupId, parameters.step, parameters.tags, parameters.walletType)
+        return repository.requestAddKey(parameters.groupId, parameters.step, parameters.tags, parameters.walletType, parameters.keySlot)
     }
 
-    data class Param(val step: MembershipStep, val groupId: String, val tags: List<SignerTag>, val walletType: WalletType)
+    data class Param(val step: MembershipStep, val groupId: String, val tags: List<SignerTag>, val walletType: WalletType, val keySlot: String? = null)
 }

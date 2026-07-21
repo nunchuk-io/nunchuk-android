@@ -42,6 +42,7 @@ import com.nunchuk.android.core.data.model.InheritanceClaimCreateTransactionRequ
 import com.nunchuk.android.core.data.model.InheritanceClaimDownloadBackupRequest
 import com.nunchuk.android.core.data.model.InheritanceClaimStatusRequest
 import com.nunchuk.android.core.data.model.InitWalletConfigRequest
+import com.nunchuk.android.core.data.model.UpdateDraftWalletPayload
 import com.nunchuk.android.core.data.model.LockdownUpdateRequest
 import com.nunchuk.android.core.data.model.MarkRecoverStatusRequest
 import com.nunchuk.android.core.data.model.QuestionsAndAnswerRequest
@@ -61,6 +62,7 @@ import com.nunchuk.android.core.data.model.byzantine.SavedAddressRequest
 import com.nunchuk.android.core.data.model.byzantine.WalletConfigDto
 import com.nunchuk.android.core.data.model.byzantine.WalletConfigRequest
 import com.nunchuk.android.core.data.model.byzantine.toDomainModel
+import com.nunchuk.android.core.data.model.byzantine.toDraftWalletModel
 import com.nunchuk.android.core.data.model.byzantine.toDraftWalletTimelock
 import com.nunchuk.android.core.data.model.byzantine.toModel
 import com.nunchuk.android.core.data.model.byzantine.toSavedAddress
@@ -295,7 +297,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override suspend fun createServerKeys(
-        name: String, keyPolicy: KeyPolicy, plan: MembershipPlan,
+        name: String, keyPolicy: KeyPolicy, plan: MembershipPlan, keySlot: String?,
     ): KeyPolicy {
         val data = userWalletApiManager.walletApi.createServerKey(
             CreateServerKeysPayload(
@@ -304,7 +306,10 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         ).data
         val serverKeyId = data.key?.id ?: throw NullPointerException("Can not generate server key")
         val setServerKeyResponse = userWalletApiManager.walletApi.setServerKey(
-            mapOf("server_key_id" to serverKeyId)
+            buildMap {
+                put("server_key_id", serverKeyId)
+                if (!keySlot.isNullOrEmpty()) put("key_slot", keySlot)
+            }
         )
         val key = data.key
         membershipRepository.saveStepInfo(
@@ -1877,7 +1882,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override suspend fun createGroupServerKey(
-        groupId: String, name: String, groupKeyPolicy: GroupKeyPolicy,
+        groupId: String, name: String, groupKeyPolicy: GroupKeyPolicy, keySlot: String?,
     ) {
         val response = userWalletApiManager.groupWalletApi.createGroupServerKey(
             groupId,
@@ -1886,7 +1891,11 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         val serverKeyId =
             response.data.key?.id ?: throw NullPointerException("Can not generate server key")
         val setServerKeyResponse = userWalletApiManager.groupWalletApi.setGroupServerKey(
-            groupId, mapOf("server_key_id" to serverKeyId)
+            groupId,
+            buildMap {
+                put("server_key_id", serverKeyId)
+                if (!keySlot.isNullOrEmpty()) put("key_slot", keySlot)
+            }
         )
         val key = response.data.key ?: throw NullPointerException("Response from server empty")
         membershipRepository.saveStepInfo(
@@ -1922,7 +1931,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override suspend fun syncKey(
-        groupId: String, step: MembershipStep, signer: SingleSigner, walletType: WalletType,
+        groupId: String, step: MembershipStep, signer: SingleSigner, walletType: WalletType, keySlot: String?,
     ) {
         val allowInheritance = if (walletType == WalletType.MINISCRIPT) {
             getAllowInheritanceFromDraftWallet(groupId)
@@ -1932,7 +1941,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         val index = step.toIndex(walletType, allowInheritance)
         val signerDto = serverSignerMapper(
             signer, step.isAddInheritanceKey
-        ).copy(index = index)
+        ).copy(index = index, keySlot = keySlot)
         val response = if (groupId.isNotEmpty())
             userWalletApiManager.groupWalletApi.addKeyToServer(groupId, signerDto)
         else
@@ -1948,10 +1957,11 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         step: MembershipStep,
         tags: List<SignerTag>,
         walletType: WalletType,
+        keySlot: String?,
     ): String {
         val chatId = accountManager.getAccount().chatId
         var localRequest =
-            requestAddKeyDao.getRequest(chatId, chain.value, step, tags.joinToString(), groupId)
+            requestAddKeyDao.getRequest(chatId, chain.value, step, tags.joinToString(), groupId, keySlot.orEmpty())
         if (localRequest != null) {
             val response =
                 if (groupId.isNotEmpty()) userWalletApiManager.groupWalletApi.getRequestAddKeyStatus(
@@ -1973,12 +1983,14 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 DesktopKeyRequest(
                     tags = tags.map { it.name },
                     keyIndex = step.toIndex(walletType, allowInheritance),
-                    keyIndices = step.toPairIndex(walletType, allowInheritance)
+                    keyIndices = step.toPairIndex(walletType, allowInheritance),
+                    keySlot = keySlot
                 )
             } else {
                 DesktopKeyRequest(
                     tags = tags.map { it.name },
-                    keyIndex = step.toIndex(walletType)
+                    keyIndex = step.toIndex(walletType),
+                    keySlot = keySlot
                 )
             }
             val response =
@@ -1994,7 +2006,9 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                     chain = chain.value,
                     chatId = chatId,
                     step = step,
-                    tag = tags.joinToString()
+                    tag = tags.joinToString(),
+                    groupId = groupId,
+                    keySlot = keySlot.orEmpty()
                 )
             )
             requestId
@@ -3130,7 +3144,10 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
 
     override suspend fun initWallet(
         walletConfig: WalletConfig,
-        walletType: WalletType?
+        walletType: WalletType?,
+        miniscriptTemplate: String?,
+        addressType: String?,
+        walletTemplate: String?,
     ) {
         val response = userWalletApiManager.walletApi.initDraftWallet(
             InitWalletConfigRequest(
@@ -3140,12 +3157,50 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                     requiredServerKey = walletConfig.requiredServerKey,
                     allowInheritance = walletConfig.allowInheritance
                 ),
-                walletType = walletType?.name
+                walletType = walletType?.name,
+                miniscriptTemplate = miniscriptTemplate,
+                addressType = addressType,
+                walletTemplate = walletTemplate,
             )
         )
         if (response.isSuccess.not()) {
             throw response.error
         }
+    }
+
+    override suspend fun updateDraftWallet(
+        groupId: String?,
+        walletConfig: WalletConfig,
+        walletType: WalletType?,
+        miniscriptTemplate: String?,
+        platformKeySlots: List<String>,
+        addressType: String?,
+        walletTemplate: String?,
+    ): DraftWallet {
+        val payload = UpdateDraftWalletPayload(
+            walletConfig = WalletConfigDto(
+                m = walletConfig.m,
+                n = walletConfig.n,
+                requiredServerKey = walletConfig.requiredServerKey,
+                allowInheritance = walletConfig.allowInheritance
+            ),
+            walletType = walletType?.name,
+            miniscriptTemplate = miniscriptTemplate,
+            platformKeySlots = platformKeySlots.takeIf { it.isNotEmpty() },
+            addressType = addressType,
+            walletTemplate = walletTemplate,
+        )
+        val response = if (groupId.isNullOrEmpty()) {
+            userWalletApiManager.walletApi.updateDraftWallet(payload)
+        } else {
+            userWalletApiManager.groupWalletApi.updateDraftWallet(groupId, payload)
+        }
+        if (response.isSuccess.not()) {
+            throw response.error
+        }
+        val draftWallet =
+            response.data.draftWallet ?: throw NullPointerException("draftWallet null")
+        return draftWallet.toDraftWalletModel()
     }
 
     override suspend fun removeKeyReplacement(groupId: String?, walletId: String, xfp: String) {
@@ -3192,15 +3247,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         }
         val draftWallet =
             response.data.draftWallet ?: throw NullPointerException("draftWallet null")
-        return DraftWallet(
-            groupId = draftWallet.groupId,
-            config = draftWallet.walletConfig.toModel(),
-            isMasterSecurityQuestionSet = draftWallet.isMasterSecurityQuestionSet,
-            signers = draftWallet.signers.map { it.toModel() },
-            walletType = draftWallet.walletType.toWalletType(),
-            timelock = draftWallet.timelock.toDraftWalletTimelock(),
-            replaceWallet = draftWallet.replaceWallet.toModel()
-        )
+        return draftWallet.toDraftWalletModel()
     }
 
     override suspend fun replaceTimelock(

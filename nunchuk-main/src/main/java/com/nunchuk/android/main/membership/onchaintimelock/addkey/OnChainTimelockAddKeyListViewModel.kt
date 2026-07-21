@@ -241,6 +241,12 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
                         }
                     }
 
+                    is PushEvent.DraftWalletCustomizationChanged -> {
+                        if (!isGroupWallet || event.groupId == groupId) {
+                            refresh()
+                        }
+                    }
+
                     else -> {}
                 }
             }
@@ -253,13 +259,18 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
         loadJob = viewModelScope.launch {
             _state.update { it.copy(isRefresh = true) }
             syncDraftWalletUseCase(groupId).onSuccess { draft ->
-                initializeKeysFromConfig(draft.config)
-                loadSigners()
+                if (draft.walletType == WalletType.MULTI_SIG) {
+                    _event.emit(AddKeyListEvent.RequireReopenWallet)
+                } else {
+                    _state.update { it.copy(isCustomized = draft.isCustomized) }
+                    initializeKeysFromConfig(draft.config)
+                    loadSigners()
+                }
             }
             _state.update { it.copy(isRefresh = false) }
         }
     }
-    
+
     private fun initializeKeysFromConfig(config: com.nunchuk.android.model.WalletConfig) {
         _state.update {
             it.copy(
@@ -833,6 +844,7 @@ sealed class AddKeyListEvent {
 
     data object OnAddAllKey : AddKeyListEvent()
     data object SelectAirgapType : AddKeyListEvent()
+    data object RequireReopenWallet : AddKeyListEvent()
     data class HandleSignerTypeLogic(val type: SignerType, val tag: SignerTag?) : AddKeyListEvent()
     data class ShowError(val message: String) : AddKeyListEvent()
     data class UpdateSignerTag(val signer: SignerModel) : AddKeyListEvent()
@@ -843,6 +855,7 @@ data class AddKeyListState(
     val isRefresh: Boolean = false,
     val signers: List<SignerModel> = emptyList(),
     val walletType: WalletType? = null,
+    val isCustomized: Boolean = false,
     val groupWalletType: GroupWalletType? = null,
     val requestCacheTapSignerXpubEvent: Boolean = false,
     val missingBackupKeys: List<AddKeyOnChainData> = emptyList(),

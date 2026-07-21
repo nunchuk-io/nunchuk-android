@@ -4,12 +4,10 @@ import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.data.model.byzantine.DraftWalletDto
 import com.nunchuk.android.core.data.model.byzantine.HealthCheckRequest
 import com.nunchuk.android.core.data.model.byzantine.toDomainModel
-import com.nunchuk.android.core.data.model.byzantine.toDraftWalletTimelock
-import com.nunchuk.android.core.data.model.byzantine.toModel
+import com.nunchuk.android.core.data.model.byzantine.toDraftWalletModel
 import com.nunchuk.android.core.data.model.byzantine.toWalletType
 import com.nunchuk.android.core.data.model.membership.SignerServerDto
 import com.nunchuk.android.core.data.model.membership.WalletAliasRequest
-import com.nunchuk.android.core.data.model.membership.toModel
 import com.nunchuk.android.core.gateway.SignerGateway
 import com.nunchuk.android.core.manager.UserWalletApiManager
 import com.nunchuk.android.core.mapper.toKeyHealthStatus
@@ -191,15 +189,7 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
             )
         }
         handleUpdateServerSigners(draftWallet.signers, newSigner)
-        return DraftWallet(
-            groupId = draftWallet.groupId,
-            config = draftWallet.walletConfig.toModel(),
-            isMasterSecurityQuestionSet = draftWallet.isMasterSecurityQuestionSet,
-            signers = draftWallet.signers.map { it.toModel() },
-            walletType = draftWallet.walletType.toWalletType(),
-            timelock = draftWallet.timelock.toDraftWalletTimelock(),
-            replaceWallet = draftWallet.replaceWallet.toModel()
-        )
+        return draftWallet.toDraftWalletModel()
     }
 
     private suspend fun handleDraftWallet(
@@ -332,15 +322,7 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
             )
         }
         handleUpdateServerSigners(draftWallet.signers, newSigner)
-        return DraftWallet(
-            groupId = draftWallet.groupId,
-            config = draftWallet.walletConfig.toModel(),
-            isMasterSecurityQuestionSet = draftWallet.isMasterSecurityQuestionSet,
-            signers = draftWallet.signers.map { it.toModel() },
-            walletType = draftWallet.walletType.toWalletType(),
-            timelock = draftWallet.timelock.toDraftWalletTimelock(),
-            replaceWallet = draftWallet.replaceWallet.toModel()
-        )
+        return draftWallet.toDraftWalletModel()
     }
 
     private fun handleUpdateServerSigners(

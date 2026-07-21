@@ -41,6 +41,7 @@ import com.nunchuk.android.core.data.model.InheritanceClaimCreateTransactionRequ
 import com.nunchuk.android.core.data.model.InheritanceClaimDownloadBackupRequest
 import com.nunchuk.android.core.data.model.InheritanceClaimStatusRequest
 import com.nunchuk.android.core.data.model.InitWalletConfigRequest
+import com.nunchuk.android.core.data.model.UpdateDraftWalletPayload
 import com.nunchuk.android.core.data.model.LiquidNetworkStatusResponse
 import com.nunchuk.android.core.data.model.LockdownUpdateRequest
 import com.nunchuk.android.core.data.model.MarkRecoverStatusRequest
@@ -459,6 +460,11 @@ internal interface UserWalletsApi {
 
     @GET("/v1.1/user-wallets/draft-wallets/current")
     suspend fun getDraftWallet(): Data<DraftWalletResponse>
+
+    @PUT("/v1.1/user-wallets/draft-wallets/current")
+    suspend fun updateDraftWallet(
+        @Body payload: UpdateDraftWalletPayload
+    ): Data<DraftWalletResponse>
 
     @DELETE("/v1.1/user-wallets/draft-wallets/current")
     suspend fun deleteDraftWallet(): Data<Unit>

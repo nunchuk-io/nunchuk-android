@@ -26,6 +26,8 @@ import com.google.gson.Gson
 import com.nunchuk.android.core.domain.utils.NfcFileManager
 import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.persistence.NcDataStore
+import com.nunchuk.android.core.push.PushEvent
+import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.isRecommendedMultiSigPath
@@ -81,7 +83,8 @@ class AddKeyListViewModel @Inject constructor(
     private val ncDataStore: NcDataStore,
     private val syncKeyUseCase: SyncKeyUseCase,
     private val syncDraftWalletUseCase: SyncDraftWalletUseCase,
-    private val getIndexFromPathUseCase: GetIndexFromPathUseCase
+    private val getIndexFromPathUseCase: GetIndexFromPathUseCase,
+    private val pushEventManager: PushEventManager,
 ) : ViewModel() {
     private val _state = MutableStateFlow(AddKeyListState())
     val state = _state.asStateFlow()
@@ -160,6 +163,17 @@ class AddKeyListViewModel @Inject constructor(
                 )
             )
         }
+        viewModelScope.launch {
+            pushEventManager.event.collect { event ->
+                // A customization change from the AI agent (personal draft, groupId empty)
+                // means the draft config may have changed; re-sync to reflect it.
+                if (event is PushEvent.DraftWalletCustomizationChanged
+                    && event.groupId.isEmpty()
+                ) {
+                    refresh()
+                }
+            }
+        }
         refresh()
     }
 
@@ -168,12 +182,16 @@ class AddKeyListViewModel @Inject constructor(
         loadJob = viewModelScope.launch {
             _state.update { it.copy(isRefresh = true) }
             syncDraftWalletUseCase("").onSuccess { draft ->
-                loadSigners()
-                _state.update { it.copy(walletType = draft.walletType) }
-                draft.config.toGroupWalletType()?.let { type ->
-                    if (_keys.value.isEmpty()) {
-                        _keys.value = type.toSteps(isPersonalWallet = true)
-                            .map { step -> AddKeyData(type = step) }
+                if (draft.walletType == WalletType.MINISCRIPT) {
+                    _event.emit(AddKeyListEvent.RequireReopenWallet)
+                } else {
+                    loadSigners()
+                    _state.update { it.copy(walletType = draft.walletType, isCustomized = draft.isCustomized) }
+                    draft.config.toGroupWalletType()?.let { type ->
+                        val steps = type.toSteps(isPersonalWallet = true)
+                        if (_keys.value.map { it.type } != steps) {
+                            _keys.value = steps.map { step -> AddKeyData(type = step) }
+                        }
                     }
                 }
             }
@@ -347,6 +365,7 @@ sealed class AddKeyListEvent {
 
     data object OnAddAllKey : AddKeyListEvent()
     data object SelectAirgapType : AddKeyListEvent()
+    data object RequireReopenWallet : AddKeyListEvent()
     data class ShowError(val message: String) : AddKeyListEvent()
 }
 
@@ -355,5 +374,6 @@ data class AddKeyListState(
     val isRefresh: Boolean = false,
     val signers: List<SignerModel> = emptyList(),
     val walletType: WalletType? = null,
+    val isCustomized: Boolean = false,
     val missingBackupKeys: List<AddKeyData> = emptyList()
 )

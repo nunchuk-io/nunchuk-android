@@ -10,7 +10,11 @@ internal data class DesktopKeyRequest(
     @SerializedName("key_indices")
     val keyIndices: List<Int>? = null,
     @SerializedName("magic")
-    val magic: String? = null
+    val magic: String? = null,
+    // Miniscript slot name to fill (e.g. "user_1"). Used by custom Miniscript flows
+    // instead of key_index / key_indices.
+    @SerializedName("key_slot")
+    val keySlot: String? = null
 )
 
 internal data class RequestDesktopKeyResponse(

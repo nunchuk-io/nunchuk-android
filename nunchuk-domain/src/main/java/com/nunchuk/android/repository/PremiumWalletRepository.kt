@@ -75,7 +75,7 @@ interface PremiumWalletRepository {
     suspend fun verifySecurityQuestions(questions: List<QuestionsAndAnswer>): String
     suspend fun configSecurityQuestions(questions: List<QuestionsAndAnswer>)
     suspend fun createServerKeys(
-        name: String, keyPolicy: KeyPolicy, plan: MembershipPlan
+        name: String, keyPolicy: KeyPolicy, plan: MembershipPlan, keySlot: String? = null
     ): KeyPolicy
 
     suspend fun getServerKey(xfp: String, derivationPath: String): KeyPolicy
@@ -383,7 +383,7 @@ interface PremiumWalletRepository {
 
     suspend fun syncDeletedTransaction(groupId: String?, walletId: String)
 
-    suspend fun requestAddKey(groupId: String, step: MembershipStep, tags: List<SignerTag>, walletType: WalletType): String
+    suspend fun requestAddKey(groupId: String, step: MembershipStep, tags: List<SignerTag>, walletType: WalletType, keySlot: String? = null): String
 
     suspend fun checkKeyAdded(plan: MembershipPlan, groupId: String, requestId: String?): Boolean
     suspend fun deleteDraftWallet()
@@ -397,8 +397,8 @@ interface PremiumWalletRepository {
     )
     suspend fun cancelRequestIdIfNeed(groupId: String, step: MembershipStep)
     suspend fun getPermissionGroupWallet(type: GroupWalletType): DefaultPermissions
-    suspend fun createGroupServerKey(groupId: String, name: String, groupKeyPolicy: GroupKeyPolicy)
-    suspend fun syncKey(groupId: String, step: MembershipStep, signer: SingleSigner, walletType: WalletType)
+    suspend fun createGroupServerKey(groupId: String, name: String, groupKeyPolicy: GroupKeyPolicy, keySlot: String? = null)
+    suspend fun syncKey(groupId: String, step: MembershipStep, signer: SingleSigner, walletType: WalletType, keySlot: String? = null)
     suspend fun createGroup(
         m: Int,
         n: Int,
@@ -562,8 +562,25 @@ interface PremiumWalletRepository {
 
     suspend fun initWallet(
         walletConfig: WalletConfig,
-        walletType: WalletType? = null
+        walletType: WalletType? = null,
+        miniscriptTemplate: String? = null,
+        addressType: String? = null,
+        walletTemplate: String? = null,
     )
+
+    /**
+     * Updates the current draft wallet (PUT /draft-wallets/current).
+     * Used by custom Miniscript setup. [platformKeySlots] currently allows a single slot.
+     */
+    suspend fun updateDraftWallet(
+        groupId: String? = null,
+        walletConfig: WalletConfig,
+        walletType: WalletType? = null,
+        miniscriptTemplate: String? = null,
+        platformKeySlots: List<String> = emptyList(),
+        addressType: String? = null,
+        walletTemplate: String? = null,
+    ): com.nunchuk.android.model.byzantine.DraftWallet
 
     suspend fun removeKeyReplacement(groupId: String?, walletId: String, xfp: String)
     

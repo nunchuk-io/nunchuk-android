@@ -41,4 +41,7 @@ data class RequestAddKeyEntity(
     val tag: String = "",
     @ColumnInfo(name = "group_id", defaultValue = "")
     val groupId: String = "",
+    // Miniscript slot (e.g. "user_1"); empty for legacy flows. Part of the cache key.
+    @ColumnInfo(name = "key_slot", defaultValue = "")
+    val keySlot: String = "",
 )

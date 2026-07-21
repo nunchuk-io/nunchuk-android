@@ -2,8 +2,10 @@ package com.nunchuk.android.core.data.model.byzantine
 
 import com.google.gson.annotations.SerializedName
 import com.nunchuk.android.core.data.model.membership.SignerServerDto
+import com.nunchuk.android.core.data.model.membership.toModel
 import com.nunchuk.android.model.TimelockBased
 import com.nunchuk.android.model.WalletConfig
+import com.nunchuk.android.model.byzantine.DraftWallet
 import com.nunchuk.android.model.byzantine.DraftWalletTimelock
 import com.nunchuk.android.type.WalletType
 
@@ -20,7 +22,12 @@ internal data class DraftWalletDto(
     @SerializedName("signers") val signers: ArrayList<SignerServerDto> = arrayListOf(),
     @SerializedName("wallet_type") val walletType: String? = null,
     @SerializedName("timelock") val timelock: TimelockDto? = null,
-    @SerializedName("replace_wallet") val replaceWallet: ReplaceWalletDto? = null
+    @SerializedName("replace_wallet") val replaceWallet: ReplaceWalletDto? = null,
+    @SerializedName("miniscript_template") val miniscriptTemplate: String? = null,
+    @SerializedName("platform_key_slots") val platformKeySlots: List<String>? = null,
+    @SerializedName("address_type") val addressType: String? = null,
+    @SerializedName("wallet_template") val walletTemplate: String? = null,
+    @SerializedName("is_customized") val isCustomized: Boolean? = null,
 )
 
 internal data class WalletConfigDto(
@@ -76,3 +83,18 @@ internal fun TimelockDto?.toDraftWalletTimelock(): DraftWalletTimelock {
         blockHeight = this?.blockHeight
     )
 }
+
+internal fun DraftWalletDto.toDraftWalletModel(): DraftWallet = DraftWallet(
+    groupId = groupId,
+    config = walletConfig.toModel(),
+    isMasterSecurityQuestionSet = isMasterSecurityQuestionSet,
+    signers = signers.map { it.toModel() },
+    walletType = walletType.toWalletType(),
+    timelock = timelock.toDraftWalletTimelock(),
+    replaceWallet = replaceWallet.toModel(),
+    miniscriptTemplate = miniscriptTemplate,
+    platformKeySlots = platformKeySlots.orEmpty(),
+    addressType = addressType,
+    walletTemplate = walletTemplate,
+    isCustomized = isCustomized == true,
+)

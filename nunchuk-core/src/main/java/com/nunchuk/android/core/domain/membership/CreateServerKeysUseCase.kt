@@ -33,7 +33,7 @@ class CreateServerKeysUseCase @Inject constructor(
 ) : UseCase<CreateServerKeysUseCase.Param, KeyPolicy>(dispatcher) {
     override suspend fun execute(parameters: Param): KeyPolicy {
         return userWalletsRepository.createServerKeys(
-            parameters.name, parameters.keyPolicy, parameters.plan
+            parameters.name, parameters.keyPolicy, parameters.plan, parameters.keySlot
         )
     }
 
@@ -41,5 +41,6 @@ class CreateServerKeysUseCase @Inject constructor(
         val name: String,
         val keyPolicy: KeyPolicy,
         val plan: MembershipPlan,
+        val keySlot: String? = null,
     )
 }

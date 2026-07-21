@@ -12,7 +12,12 @@ data class DraftWallet(
     val signers: List<SignerServer>,
     val walletType: WalletType?,
     val timelock: DraftWalletTimelock = DraftWalletTimelock(),
-    val replaceWallet: ReplaceWallet? = null
+    val replaceWallet: ReplaceWallet? = null,
+    val miniscriptTemplate: String? = null,
+    val platformKeySlots: List<String> = emptyList(),
+    val addressType: String? = null,
+    val walletTemplate: String? = null,
+    val isCustomized: Boolean = false,
 )
 
 data class DraftWalletTimelock(

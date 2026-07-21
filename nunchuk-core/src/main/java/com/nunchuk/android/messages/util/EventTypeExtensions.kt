@@ -56,6 +56,7 @@ const val GROUP_MEMBERSHIP_REQUEST_ACCEPTED = "io.nunchuk.custom.group_membershi
 const val GROUP_MEMBERSHIP_REQUEST_DENIED = "io.nunchuk.custom.group_membership_request_denied"
 const val DRAFT_WALLET_RESET = "io.nunchuk.custom.draft_wallet_reset"
 const val DRAFT_WALLET_TIMELOCK_SET = "io.nunchuk.custom.draft_wallet_timelock_set"
+const val DRAFT_WALLET_CUSTOMIZATION_CHANGED = "io.nunchuk.custom.draft_wallet_customization_changed"
 const val GROUP_WALLET_CREATED = "io.nunchuk.custom.group_wallet_created"
 const val GROUP_EMERGENCY_LOCKDOWN_STARTED = "io.nunchuk.custom.group_emergency_lockdown_started"
 const val SHARED_WALLET_GROUP_INVITATION = "io.nunchuk.custom.shared_wallet_group_invitation"
@@ -181,6 +182,9 @@ fun TimelineEvent.isDraftWalletResetEvent() =
 
 fun TimelineEvent.isDraftWalletTimelockSetEvent() =
     getMsgType() == DRAFT_WALLET_TIMELOCK_SET
+
+fun TimelineEvent.isDraftWalletCustomizationChangedEvent() =
+    getMsgType() == DRAFT_WALLET_CUSTOMIZATION_CHANGED
 
 fun TimelineEvent.isGroupMembershipRequestCreatedEvent() =
     getMsgType() == GROUP_MEMBERSHIP_REQUEST_CREATED

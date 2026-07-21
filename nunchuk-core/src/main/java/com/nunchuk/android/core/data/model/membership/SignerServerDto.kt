@@ -41,6 +41,9 @@ data class SignerServerDto(
     @SerializedName("key_index") val index: Int = 0,
     @SerializedName("is_visible") val isVisible: Boolean = true,
     @SerializedName("verification_type") val verificationType: String? = null,
+    // Miniscript slot name for this key (e.g. "user_1", "platform"). Used by custom
+    // Miniscript flows instead of key_index.
+    @SerializedName("key_slot") val keySlot: String? = null,
 )
 
 internal fun SignerServerDto.toModel(): SignerServer {
@@ -58,7 +61,8 @@ internal fun SignerServerDto.toModel(): SignerServer {
         xpub = xpub,
         pubkey = pubkey,
         tags = tags ?: emptyList(),
-        userBackUpFileName = userKey?.fileName
+        userBackUpFileName = userKey?.fileName,
+        keySlot = keySlot
     )
 }
 
