@@ -12,24 +12,25 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.asFlow
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nunchuk.android.compose.HighlightMessageType
 import com.nunchuk.android.compose.NcHintMessage
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.dialog.NcInputDialog
+import com.nunchuk.android.compose.dialog.NcInputType
 import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.model.BannerState
 import com.nunchuk.android.model.LiquidNetworkStatus
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.type.WalletType
+import com.nunchuk.android.core.R as CoreR
 
 @Composable
 internal fun WalletDetailsScreen(
@@ -246,6 +247,17 @@ internal fun WalletDetailsScreen(
                     )
                 }
             }
+        }
+
+        if (state.requirePassphraseSignerId != null) {
+            NcInputDialog(
+                title = stringResource(CoreR.string.nc_transaction_enter_passphrase),
+                inputType = NcInputType.PASSWORD,
+                errorMessage = state.passphraseError,
+                onConfirmed = { passphrase -> viewModel.sendLiquidPassphrase(passphrase) },
+                onCanceled = viewModel::cancelLiquidPassphrase,
+                onDismiss = viewModel::cancelLiquidPassphrase,
+            )
         }
     }
 }

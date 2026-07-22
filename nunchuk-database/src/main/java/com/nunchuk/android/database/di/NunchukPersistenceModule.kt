@@ -37,8 +37,8 @@ import com.nunchuk.android.persistence.dao.RequestAddKeyDao
 import com.nunchuk.android.persistence.dao.SavedAddressDao
 import com.nunchuk.android.persistence.dao.SyncEventDao
 import com.nunchuk.android.persistence.dao.SyncFileDao
-import com.nunchuk.android.persistence.dao.WalletOrderDao
 import com.nunchuk.android.persistence.dao.TaprootTransactionDao
+import com.nunchuk.android.persistence.dao.WalletOrderDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -53,6 +53,7 @@ internal object NunchukPersistenceModule {
     @Provides
     fun provideDatabase(context: Context) =
         Room.databaseBuilder(context, NunchukDatabase::class.java, DATABASE_NAME)
+            .fallbackToDestructiveMigrationOnDowngrade(true)
             .addMigrations(DBMigrations.MIGRATION_1_2)
             .addMigrations(DBMigrations.MIGRATION_2_3)
             .addMigrations(DBMigrations.MIGRATION_3_4)

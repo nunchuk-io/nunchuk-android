@@ -35,6 +35,7 @@ import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.GetUserWalletConfigsSetupUseCase
+import com.nunchuk.android.usecase.SendSignerPassphraseUseCase
 import com.nunchuk.android.usecase.signer.GetMasterSigners2UseCase
 import com.nunchuk.android.usecase.signer.GetUnusedSignerFromMasterSignerV2UseCase
 import com.nunchuk.android.usecase.wallet.CreateUsdtWalletFromSignerUseCase
@@ -55,6 +56,7 @@ class StablecoinWalletViewModel @Inject constructor(
     private val getUnusedSignerFromMasterSignerV2UseCase: GetUnusedSignerFromMasterSignerV2UseCase,
     private val createUsdtWalletFromSignerUseCase: CreateUsdtWalletFromSignerUseCase,
     private val getUserWalletConfigsSetupUseCase: GetUserWalletConfigsSetupUseCase,
+    private val sendSignerPassphraseUseCase: SendSignerPassphraseUseCase,
     pushEventManager: PushEventManager,
 ) : ViewModel() {
 
@@ -99,13 +101,42 @@ class StablecoinWalletViewModel @Inject constructor(
     }
 
     fun createWalletFromExistingSigner(signerModel: SignerModel) {
+        val masterSigner = masterSigners.find { it.id == signerModel.fingerPrint } ?: return
+        if (masterSigner.device.needPassPhraseSent) {
+            _state.update { it.copy(passphraseSigner = signerModel, passphraseError = null) }
+        } else {
+            createWalletFromMasterSigner(masterSigner)
+        }
+    }
+
+    fun verifyPassphrase(passphrase: String) {
+        val signerModel = _state.value.passphraseSigner ?: return
+        val masterSigner = masterSigners.find { it.id == signerModel.fingerPrint } ?: return
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
-            val masterSigner = masterSigners.find { it.id == signerModel.fingerPrint }
-            if (masterSigner == null) {
-                _state.update { it.copy(isLoading = false) }
-                return@launch
+            sendSignerPassphraseUseCase(
+                SendSignerPassphraseUseCase.Param(
+                    signerId = masterSigner.id,
+                    passphrase = passphrase,
+                )
+            ).onSuccess {
+                _state.update { it.copy(passphraseSigner = null, passphraseError = null) }
+                createWalletFromMasterSigner(masterSigner, passphrase)
+            }.onFailure { error ->
+                _state.update {
+                    it.copy(isLoading = false, passphraseError = error.message.orUnknownError())
+                }
             }
+        }
+    }
+
+    fun cancelVerifyPassphrase() {
+        _state.update { it.copy(passphraseSigner = null, passphraseError = null) }
+    }
+
+    private fun createWalletFromMasterSigner(masterSigner: MasterSigner, passphrase: String = "") {
+        viewModelScope.launch {
+            _state.update { it.copy(isLoading = true) }
             getUnusedSignerFromMasterSignerV2UseCase(
                 GetUnusedSignerFromMasterSignerV2UseCase.Params(
                     masterSigner,
@@ -113,6 +144,14 @@ class StablecoinWalletViewModel @Inject constructor(
                     AddressType.NATIVE_SEGWIT,
                 )
             ).onSuccess { singleSigner ->
+                if (passphrase.isNotEmpty()) {
+                    sendSignerPassphraseUseCase(
+                        SendSignerPassphraseUseCase.Param(
+                            signerId = masterSigner.id,
+                            passphrase = passphrase,
+                        )
+                    )
+                }
                 createUsdtWallet(singleSigner)
             }.onFailure {
                 _state.update { it.copy(isLoading = false) }
@@ -140,6 +179,8 @@ data class StablecoinWalletState(
     val softwareSigners: List<SignerModel> = emptyList(),
     val liquidSupportedSigners: List<SupportedSigner> = emptyList(),
     val isLoading: Boolean = false,
+    val passphraseSigner: SignerModel? = null,
+    val passphraseError: String? = null,
 )
 
 sealed class StablecoinWalletEvent {

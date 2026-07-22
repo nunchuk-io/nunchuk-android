@@ -75,4 +75,6 @@ data class WalletDetailsState(
     val lbtcAssetId: String = "",
     val liquidNetworkStatus: LiquidNetworkStatus = LiquidNetworkStatus(),
     val liquidConnectionStatus: ConnectionStatus? = null,
+    val requirePassphraseSignerId: String? = null,
+    val passphraseError: String? = null,
 )

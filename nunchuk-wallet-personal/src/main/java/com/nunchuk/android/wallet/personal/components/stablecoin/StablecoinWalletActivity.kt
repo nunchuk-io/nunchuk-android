@@ -33,10 +33,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.dialog.NcInputDialog
+import com.nunchuk.android.compose.dialog.NcInputType
+import com.nunchuk.android.core.R as CoreR
 import com.nunchuk.android.core.base.BaseComposeActivity
 import com.nunchuk.android.core.signer.KeyFlow
 import com.nunchuk.android.core.signer.SelectSignerArgs
@@ -116,6 +120,17 @@ class StablecoinWalletActivity : BaseComposeActivity() {
                             showSelectSignerSheet = false
                             openSignerIntro(state.liquidSupportedSigners)
                         },
+                    )
+                }
+
+                if (state.passphraseSigner != null) {
+                    NcInputDialog(
+                        title = stringResource(CoreR.string.nc_transaction_enter_passphrase),
+                        inputType = NcInputType.PASSWORD,
+                        errorMessage = state.passphraseError,
+                        onConfirmed = { passphrase -> viewModel.verifyPassphrase(passphrase) },
+                        onCanceled = { viewModel.cancelVerifyPassphrase() },
+                        onDismiss = { viewModel.cancelVerifyPassphrase() },
                     )
                 }
             }
