@@ -34,7 +34,9 @@ import com.nunchuk.android.nav.args.AddAirSignerArgs
 import com.nunchuk.android.signer.components.add.AddAirgapSignerActivity
 import com.nunchuk.android.signer.components.add.ScanDynamicQRActivity
 import com.nunchuk.android.signer.components.details.SignerInfoActivity
+import androidx.fragment.app.FragmentManager
 import com.nunchuk.android.signer.ledger.LedgerActivity
+import com.nunchuk.android.signer.ledger.LedgerSignTransactionBottomSheet
 import com.nunchuk.android.signer.satscard.wallets.SelectWalletActivity
 import com.nunchuk.android.signer.software.SoftwareSignerIntroActivity
 import com.nunchuk.android.signer.software.components.confirm.ConfirmSeedActivity
@@ -372,6 +374,20 @@ interface SignerNavigatorDelegate : SignerNavigator {
                 masterFingerprint = masterFingerprint,
                 derivationPath = derivationPath,
             )
+        )
+    }
+
+    override fun openLedgerSignTransaction(
+        fragmentManager: FragmentManager,
+        walletId: String,
+        txId: String,
+        masterFingerprint: String,
+    ) {
+        LedgerSignTransactionBottomSheet.show(
+            fragmentManager = fragmentManager,
+            walletId = walletId,
+            txId = txId,
+            masterFingerprint = masterFingerprint,
         )
     }
 }

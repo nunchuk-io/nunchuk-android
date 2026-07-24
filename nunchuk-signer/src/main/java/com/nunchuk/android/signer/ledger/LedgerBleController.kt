@@ -30,6 +30,7 @@ import android.os.Handler
 import android.os.Looper
 import androidx.core.content.ContextCompat
 import com.nunchuk.android.model.LedgerStep
+import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.LedgerStepType
@@ -51,6 +52,8 @@ enum class LedgerRequest {
     MASTER_FINGERPRINT,
     XPUB,
     SIGN_MESSAGE,
+    REGISTER_WALLET,
+    SIGN_PSBT,
 }
 
 data class LedgerDevice(
@@ -83,6 +86,12 @@ class LedgerBleController(
         fun onConnecting(device: LedgerDevice)
         fun onInteraction(interaction: LedgerUserInteraction)
         fun onCommandComplete(request: LedgerRequest, result: String)
+
+        /**
+         * A command reached FAILED. [statusWord] is the device status word (0 if unknown);
+         * e.g. 0xB008 (SW_INVALID_SIGNATURE_OR_HMAC) signals a stale wallet registration.
+         */
+        fun onCommandFailed(request: LedgerRequest, statusWord: Int, message: String)
         fun onError(message: String)
 
         /** Bluetooth is off — the host should prompt the user to enable it. */
@@ -248,6 +257,7 @@ class LedgerBleController(
 
     // region connect (transport dispatch)
     fun connect(device: LedgerDevice) {
+        Timber.tag(TAG).d("connect ${device.name} id=${device.id} transport=${device.transport}")
         stopScan()
         // Tear down a prior connection to a different device (avoid leaking its runtime).
         connection?.takeIf { it.id != device.id }?.let {
@@ -263,7 +273,9 @@ class LedgerBleController(
     /** Runs [action] once the transport is ready, or immediately if it already is. */
     fun whenReady(action: () -> Unit) {
         val conn = connection
-        if (conn != null && conn.isReady()) action() else pendingReadyAction = action
+        val ready = conn != null && conn.isReady()
+        Timber.tag(TAG).d("whenReady ready=$ready")
+        if (ready) action() else pendingReadyAction = action
     }
     // endregion
 
@@ -561,8 +573,31 @@ class LedgerBleController(
             nativeSdk.ledgerSignMessage(id, transport, derivationPath, message)
         }
 
+    /**
+     * Confluence "Sign transaction" — registers [wallet] on the device. The completion
+     * result (via [Listener.onCommandComplete]) is the wallet HMAC to cache and reuse.
+     */
+    fun registerWallet(wallet: Wallet) =
+        startCommand(LedgerRequest.REGISTER_WALLET) { id, transport ->
+            nativeSdk.ledgerRegisterWallet(id, transport, wallet)
+        }
+
+    /**
+     * Confluence "Sign transaction" — signs [psbt] with the registered [wallet]. Requires the
+     * wallet [hmac] from a prior registration. The completion result is the signed PSBT.
+     */
+    fun signPsbt(wallet: Wallet, hmac: String, psbt: String) =
+        startCommand(LedgerRequest.SIGN_PSBT) { id, transport ->
+            nativeSdk.ledgerSignPsbt(id, transport, wallet, hmac, psbt)
+        }
+
     private fun startCommand(request: LedgerRequest, block: (String, LedgerTransport) -> LedgerStep) {
-        val conn = connection ?: run { listener.onError("Ledger not connected"); return }
+        val conn = connection ?: run {
+            Timber.tag(TAG).e("startCommand($request): no connection")
+            listener.onError("Ledger not connected")
+            return
+        }
+        Timber.tag(TAG).d("startCommand($request) session=${conn.id} transport=${conn.transport}")
         conn.activeRequest = request
         conn.commandActive = true
         runLedger { handleStep(block(conn.id, conn.transport.toNative())) }
@@ -570,6 +605,7 @@ class LedgerBleController(
 
     private fun onTransportReady() {
         val conn = connection ?: return
+        Timber.tag(TAG).d("onTransportReady resumePending=${conn.resumePending} pendingReadyAction=${pendingReadyAction != null}")
         if (conn.resumePending) {
             runLedger { handleStep(nativeSdk.ledgerResume(conn.id)) }
         } else {
@@ -582,10 +618,12 @@ class LedgerBleController(
 
     private fun onData(data: ByteArray) {
         val conn = connection ?: return
+        Timber.tag(TAG).d("onData ${data.size} bytes: ${data.toHexPreview()}")
         runLedger { handleStep(nativeSdk.ledgerOnData(conn.id, data)) }
     }
 
     private fun handleStep(step: LedgerStep) {
+        Timber.tag(TAG).d("handleStep type=${step.stepType} interaction=${step.userInteraction} writes=${step.writes.size} request=${connection?.activeRequest}")
         listener.onInteraction(step.userInteraction)
         val conn = connection ?: return
         when (step.stepType) {
@@ -599,14 +637,29 @@ class LedgerBleController(
             LedgerStepType.COMPLETE -> {
                 val request = conn.activeRequest
                 val result = runCatching { nativeSdk.ledgerResultString(conn.id) }.getOrDefault("")
+                Timber.tag(TAG).d("COMPLETE request=$request resultLength=${result.length}")
                 conn.finishCommand()
                 if (request != null) listener.onCommandComplete(request, result)
             }
             LedgerStepType.FAILED -> {
+                val request = conn.activeRequest
+                val statusWord = step.error?.statusWord ?: 0
+                val message = step.error?.message?.takeIf { it.isNotBlank() } ?: "Ledger error"
+                Timber.tag(TAG).e(
+                    "FAILED request=$request statusWord=0x%04X code=%d message=%s",
+                    statusWord, step.error?.code ?: 0, message,
+                )
                 conn.finishCommand()
-                listener.onError(step.error?.message?.takeIf { it.isNotBlank() } ?: "Ledger error")
+                if (request != null) {
+                    listener.onCommandFailed(request, statusWord, message)
+                } else {
+                    listener.onError(message)
+                }
             }
-            LedgerStepType.APP_SWITCH -> handleAppSwitch()
+            LedgerStepType.APP_SWITCH -> {
+                Timber.tag(TAG).d("APP_SWITCH")
+                handleAppSwitch()
+            }
         }
     }
 
@@ -629,6 +682,7 @@ class LedgerBleController(
     }
 
     private fun writeFrames(frames: List<ByteArray>) {
+        Timber.tag(TAG).d("writeFrames ${frames.size} frame(s) via ${connection?.transport}")
         when (connection?.transport) {
             LedgerTransportKind.BLE -> writeBleFrames(frames)
             LedgerTransportKind.USB -> writeUsbFrames(frames)
@@ -647,6 +701,7 @@ class LedgerBleController(
     }
 
     private fun fail(message: String) {
+        Timber.tag(TAG).e("fail: $message (activeRequest=${connection?.activeRequest})")
         connection?.finishCommand()
         listener.onError(message)
     }
@@ -683,7 +738,14 @@ class LedgerBleController(
         LedgerTransportKind.USB -> LedgerTransport.USB_HID
     }
 
+    /** First bytes of a frame as hex, for logging (APDU/response headers are the useful part). */
+    private fun ByteArray.toHexPreview(max: Int = 24): String {
+        val shown = take(max).joinToString(" ") { "%02X".format(it) }
+        return if (size > max) "$shown … (${size}B)" else shown
+    }
+
     companion object {
+        private const val TAG = "LedgerBle"
         private const val BLE_SCAN_TIMEOUT_MS = 12_000L
         private const val LEDGER_BLE_GATT_MTU = 156
         private const val BLE_WRITE_RETRY_ATTEMPTS = 8

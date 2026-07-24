@@ -4,6 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.utils.GetBip32PathUseCase
 import com.nunchuk.android.core.domain.utils.HealthCheckSingleSignerUseCase
+import com.nunchuk.android.core.domain.utils.LedgerCommandExecutor
+import com.nunchuk.android.core.domain.utils.LedgerTransactionSigner
+import com.nunchuk.android.core.domain.utils.LedgerWrongDeviceException
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.util.orUnknownError
@@ -34,6 +37,8 @@ data class LedgerScanUiState(
     val walletType: WalletType = WalletType.SINGLE_SIG,
     val addressType: AddressType = AddressType.NATIVE_SEGWIT,
     val accountIndex: Int = 0,
+    // True once the sign-transaction flow has begun (verify -> register -> sign); guards re-connecting.
+    val isSigning: Boolean = false,
 ) {
     val selectedDevice: LedgerDevice?
         get() = devices.firstOrNull { it.id == selectedAddress }
@@ -46,6 +51,12 @@ sealed class LedgerScanEvent {
     data object HealthCheckSuccess : LedgerScanEvent()
     data class HealthCheckFailed(val message: String? = null) : LedgerScanEvent()
 
+    /** Sign transaction finished: the signed PSBT was imported into the wallet. */
+    data object SignTransactionSuccess : LedgerScanEvent()
+
+    /** Connected Ledger isn't the signer we're signing for — ask for the right device. */
+    data object SignTransactionWrongDevice : LedgerScanEvent()
+
     data class Error(val message: String) : LedgerScanEvent()
 }
 
@@ -55,6 +66,7 @@ class LedgerViewModel @Inject constructor(
     private val getBip32PathUseCase: GetBip32PathUseCase,
     private val getRemoteSignerUseCase: GetRemoteSignerUseCase,
     private val healthCheckSingleSignerUseCase: HealthCheckSingleSignerUseCase,
+    private val ledgerTransactionSigner: LedgerTransactionSigner,
     private val pushEventManager: PushEventManager,
 ) : ViewModel() {
 
@@ -164,6 +176,39 @@ class LedgerViewModel @Inject constructor(
         }.onFailure { e ->
             _state.update { it.copy(isProcessing = false) }
             _event.emit(LedgerScanEvent.HealthCheckFailed(e.message))
+        }
+    }
+
+    /**
+     * Confluence "Sign transaction": drives the reusable [LedgerTransactionSigner] with a
+     * connected [executor]. The coordinator verifies the connected device is [expectedXfp],
+     * registers the wallet if needed, signs the PSBT and imports it. Progress is shown via the
+     * device-interaction status text (no blocking dialog), so [isProcessing] stays untouched.
+     */
+    fun signTransaction(
+        executor: LedgerCommandExecutor,
+        walletId: String,
+        txId: String,
+        expectedXfp: String,
+    ) = viewModelScope.launch {
+        if (_state.value.isSigning) return@launch
+        _state.update { it.copy(isSigning = true) }
+        runCatching {
+            ledgerTransactionSigner.sign(
+                executor = executor,
+                walletId = walletId,
+                txId = txId,
+                expectedXfp = expectedXfp,
+            )
+        }.onSuccess {
+            _event.emit(LedgerScanEvent.SignTransactionSuccess)
+        }.onFailure { e ->
+            // Allow a retry (e.g. after connecting the correct device).
+            _state.update { it.copy(isSigning = false) }
+            when (e) {
+                is LedgerWrongDeviceException -> _event.emit(LedgerScanEvent.SignTransactionWrongDevice)
+                else -> _event.emit(LedgerScanEvent.Error(e.message.orUnknownError()))
+            }
         }
     }
 }

@@ -43,6 +43,7 @@ import com.nunchuk.android.core.util.showOrHideNfcLoading
 import com.nunchuk.android.core.util.TrezorCallbackHolder
 import com.nunchuk.android.core.wallet.InvoiceInfo
 import com.nunchuk.android.model.SigningPath
+import com.nunchuk.android.nav.SignerNavigator
 import com.nunchuk.android.share.model.TransactionOption
 import com.nunchuk.android.share.model.TransactionOption.CANCEL
 import com.nunchuk.android.share.model.TransactionOption.COPY_RAW_TRANSACTION_HEX
@@ -206,10 +207,16 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
                                 startNfcFlow(REQUEST_NFC_SIGN_TRANSACTION)
                             }
                             SignerType.AIRGAP, SignerType.UNKNOWN -> showSignByAirgapOptions()
-                            SignerType.HARDWARE -> if (viewModel.isTrezorSigner(signer)) {
-                                viewModel.requestSignTransactionByTrezor()
-                            } else {
-                                showError(getString(R.string.nc_use_desktop_app_to_sign))
+                            SignerType.HARDWARE -> when {
+                                viewModel.isTrezorSigner(signer) -> viewModel.requestSignTransactionByTrezor()
+                                viewModel.isLedgerSigner(signer) -> navigator.openLedgerSignTransaction(
+                                    fragmentManager = supportFragmentManager,
+                                    walletId = args.walletId,
+                                    txId = args.txId,
+                                    masterFingerprint = signer.fingerPrint,
+                                )
+
+                                else -> showError(getString(R.string.nc_use_desktop_app_to_sign))
                             }
                             SignerType.PORTAL_NFC -> handlePortalAction(
                                 SignTransaction(
@@ -293,6 +300,16 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
             if (requestKey == RequestSignatureMemberFragment.REQUEST_KEY) {
                 val memberId = result.getString(EXTRA_MEMBER_ID)
                 viewModel.requestSignatureTransaction(memberId.orEmpty())
+            }
+        }
+        // Ledger sign bottom sheet signs + imports the PSBT itself; on success just refresh.
+        supportFragmentManager.setFragmentResultListener(
+            SignerNavigator.LEDGER_SIGN_TX_REQUEST_KEY,
+            this
+        ) { _, result ->
+            if (result.getBoolean(SignerNavigator.LEDGER_SIGN_TX_SUCCESS)) {
+                viewModel.getTransactionInfo()
+                NCToastMessage(this).show(getString(R.string.nc_transaction_signed_successful))
             }
         }
     }

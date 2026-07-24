@@ -239,7 +239,7 @@
     <string name="nc_ledger_step_return_title">Return to Nunchuk and continue</string>
     <string name="nc_ledger_scanning">Looking for Ledger devices…</string>
     <string name="nc_ledger_connect_a_device">Connect a device</string>
-    <string name="nc_ledger_connect_a_device_desc">Select a Bluetooth device to connect. Make sure the device is unlocked.</string>
+    <string name="nc_ledger_connect_a_device_desc">Select a device to connect over Bluetooth or USB. Make sure the device is unlocked.</string>
     <string name="nc_ledger_bluetooth_devices">Bluetooth devices</string>
     <string name="nc_ledger_usb_devices">USB devices</string>
     <string name="nc_ledger_usb_empty">Plug in your Ledger with a USB cable to connect.</string>
@@ -256,6 +256,8 @@
     <string name="nc_ledger_register_wallet">Approve the wallet on your Ledger</string>
     <string name="nc_ledger_confirm_sign_message">Confirm signing on your Ledger</string>
     <string name="nc_ledger_confirm_sign_transaction">Confirm the transaction on your Ledger</string>
+    <string name="nc_ledger_wrong_device">This Ledger doesn\'t match the selected key. Please connect the correct device.</string>
+    <string name="nc_ledger_sign_transaction">Sign transaction</string>
     <string name="nc_ensure_to_following_jade">Please ensure to do the following on your Jade before proceeding.</string>
     <string name="nc_init_jade">Initialize Jade</string>
     <string name="nc_unlock_jade">Unlock Jade</string>

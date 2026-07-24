@@ -30,6 +30,9 @@ import javax.inject.Inject
  * device in-app over BLE. This activity owns the BLE transport ([LedgerBleController],
  * which needs an Android Context) and orchestrates the Confluence "Get XPUB" step:
  * connect -> getMasterFingerprint -> getExtendedPublicKey -> create the signer.
+ *
+ * (Sign transaction is hosted separately as [LedgerSignTransactionBottomSheet], shown
+ * inline in the transaction detail screen.)
  */
 @AndroidEntryPoint
 class LedgerActivity : BaseComposeActivity() {
@@ -121,7 +124,16 @@ class LedgerActivity : BaseComposeActivity() {
                     message = HEALTH_CHECK_MESSAGE,
                     signature = result,
                 )
+
+                // Register/sign are only used by the sign-transaction flow (bottom sheet).
+                LedgerRequest.REGISTER_WALLET, LedgerRequest.SIGN_PSBT -> Unit
             }
+        }
+
+        override fun onCommandFailed(request: LedgerRequest, statusWord: Int, message: String) {
+            // Add-key / health-check don't branch on the status word; surface as a plain error.
+            viewModel.setScanning(false)
+            viewModel.onError(message)
         }
 
         override fun onError(message: String) {
@@ -166,6 +178,10 @@ class LedgerActivity : BaseComposeActivity() {
                     finishWithHealthCheckResult(success = false, errorMessage = event.message)
 
                 is LedgerScanEvent.Error -> NCToastMessage(this).showError(event.message)
+
+                // Sign events are handled by LedgerSignTransactionBottomSheet, not this activity.
+                is LedgerScanEvent.SignTransactionSuccess,
+                is LedgerScanEvent.SignTransactionWrongDevice -> Unit
             }
         }
 

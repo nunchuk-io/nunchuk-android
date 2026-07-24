@@ -781,6 +781,10 @@ internal class TransactionDetailsViewModel @Inject constructor(
         return signer.type == SignerType.HARDWARE && signer.tags.contains(SignerTag.TREZOR)
     }
 
+    fun isLedgerSigner(signer: SignerModel): Boolean {
+        return signer.type == SignerType.HARDWARE && signer.tags.contains(SignerTag.LEDGER)
+    }
+
     fun requestSignTransactionByTrezor() {
         val signer = currentSigner() ?: return
         val wallet = getState().wallet
