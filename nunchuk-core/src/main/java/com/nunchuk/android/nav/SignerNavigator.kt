@@ -22,7 +22,6 @@ package com.nunchuk.android.nav
 import android.content.Context
 import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
-import androidx.fragment.app.FragmentManager
 import com.nunchuk.android.core.data.model.ClaimInheritanceTxParam
 import com.nunchuk.android.core.data.model.QuickWalletParam
 import com.nunchuk.android.core.domain.membership.WalletsExistingKey
@@ -206,38 +205,4 @@ interface SignerNavigator {
         claimInheritanceTxParam: ClaimInheritanceTxParam? = null,
     )
 
-    /**
-     * Standalone health check for a Ledger signer: connects over BLE/USB, signs a
-     * health-check message with the key at [derivationPath] and verifies it against
-     * [masterFingerprint]. The success/failed outcome is returned via [launcher] for the
-     * caller to display.
-     */
-    fun openLedgerHealthCheck(
-        launcher: ActivityResultLauncher<Intent>,
-        activityContext: Context,
-        masterFingerprint: String,
-        derivationPath: String,
-    )
-
-    /**
-     * Shows the Ledger sign-transaction bottom sheet in [fragmentManager]: connects over
-     * BLE/USB in-app, verifies the device is [masterFingerprint], then registers-if-needed +
-     * signs [txId] in [walletId] and imports the signed PSBT. On success it publishes a
-     * fragment result under [LEDGER_SIGN_TX_REQUEST_KEY] ([LEDGER_SIGN_TX_SUCCESS] = true) for
-     * the caller to refresh; the caller registers a listener on the same key.
-     */
-    fun openLedgerSignTransaction(
-        fragmentManager: FragmentManager,
-        walletId: String,
-        txId: String,
-        masterFingerprint: String,
-    )
-
-    companion object {
-        /** Fragment-result key the Ledger sign bottom sheet publishes its outcome under. */
-        const val LEDGER_SIGN_TX_REQUEST_KEY = "ledger_sign_tx_request"
-
-        /** Boolean result extra: true when the transaction was signed + imported. */
-        const val LEDGER_SIGN_TX_SUCCESS = "ledger_sign_tx_success"
-    }
 }

@@ -1,4 +1,4 @@
-package com.nunchuk.android.signer.ledger
+package com.nunchuk.android.core.ledger
 
 import android.Manifest
 import android.annotation.SuppressLint

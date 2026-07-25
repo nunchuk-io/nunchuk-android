@@ -3,21 +3,16 @@ package com.nunchuk.android.signer.ledger
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.utils.GetBip32PathUseCase
-import com.nunchuk.android.core.domain.utils.HealthCheckSingleSignerUseCase
-import com.nunchuk.android.core.domain.utils.LedgerCommandExecutor
-import com.nunchuk.android.core.domain.utils.LedgerTransactionSigner
-import com.nunchuk.android.core.domain.utils.LedgerWrongDeviceException
+import com.nunchuk.android.core.ledger.LedgerDevice
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.type.AddressType
-import com.nunchuk.android.type.HealthStatus
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.CreateSignerUseCase
-import com.nunchuk.android.usecase.GetRemoteSignerUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -37,8 +32,6 @@ data class LedgerScanUiState(
     val walletType: WalletType = WalletType.SINGLE_SIG,
     val addressType: AddressType = AddressType.NATIVE_SEGWIT,
     val accountIndex: Int = 0,
-    // True once the sign-transaction flow has begun (verify -> register -> sign); guards re-connecting.
-    val isSigning: Boolean = false,
 ) {
     val selectedDevice: LedgerDevice?
         get() = devices.firstOrNull { it.id == selectedAddress }
@@ -47,16 +40,6 @@ data class LedgerScanUiState(
 sealed class LedgerScanEvent {
     data class OpenSignerInfo(val signer: SingleSigner) : LedgerScanEvent()
 
-    /** Health check finished on-device; the outcome is delegated to SignerInfo to display. */
-    data object HealthCheckSuccess : LedgerScanEvent()
-    data class HealthCheckFailed(val message: String? = null) : LedgerScanEvent()
-
-    /** Sign transaction finished: the signed PSBT was imported into the wallet. */
-    data object SignTransactionSuccess : LedgerScanEvent()
-
-    /** Connected Ledger isn't the signer we're signing for — ask for the right device. */
-    data object SignTransactionWrongDevice : LedgerScanEvent()
-
     data class Error(val message: String) : LedgerScanEvent()
 }
 
@@ -64,9 +47,6 @@ sealed class LedgerScanEvent {
 class LedgerViewModel @Inject constructor(
     private val createSignerUseCase: CreateSignerUseCase,
     private val getBip32PathUseCase: GetBip32PathUseCase,
-    private val getRemoteSignerUseCase: GetRemoteSignerUseCase,
-    private val healthCheckSingleSignerUseCase: HealthCheckSingleSignerUseCase,
-    private val ledgerTransactionSigner: LedgerTransactionSigner,
     private val pushEventManager: PushEventManager,
 ) : ViewModel() {
 
@@ -135,80 +115,6 @@ class LedgerViewModel @Inject constructor(
         }.onFailure { e ->
             _state.update { it.copy(isProcessing = false) }
             _event.emit(LedgerScanEvent.Error(e.message.orUnknownError()))
-        }
-    }
-
-    /**
-     * Confluence "Sign message" / health check: verifies the signature the Ledger just
-     * produced over [message] against the stored remote signer (matched by xfp + path),
-     * then emits a success/failed event for SignerInfo to display.
-     */
-    fun healthCheck(
-        masterFingerprint: String,
-        derivationPath: String,
-        message: String,
-        signature: String,
-    ) = viewModelScope.launch {
-        _state.update { it.copy(isProcessing = true) }
-        getRemoteSignerUseCase(
-            GetRemoteSignerUseCase.Data(
-                id = masterFingerprint,
-                derivationPath = derivationPath,
-            )
-        ).onSuccess { signer ->
-            healthCheckSingleSignerUseCase(
-                HealthCheckSingleSignerUseCase.Param(
-                    signer = signer,
-                    message = message,
-                    signature = signature,
-                )
-            ).onSuccess { status ->
-                _state.update { it.copy(isProcessing = false) }
-                if (status == HealthStatus.SUCCESS) {
-                    _event.emit(LedgerScanEvent.HealthCheckSuccess)
-                } else {
-                    _event.emit(LedgerScanEvent.HealthCheckFailed())
-                }
-            }.onFailure { e ->
-                _state.update { it.copy(isProcessing = false) }
-                _event.emit(LedgerScanEvent.HealthCheckFailed(e.message))
-            }
-        }.onFailure { e ->
-            _state.update { it.copy(isProcessing = false) }
-            _event.emit(LedgerScanEvent.HealthCheckFailed(e.message))
-        }
-    }
-
-    /**
-     * Confluence "Sign transaction": drives the reusable [LedgerTransactionSigner] with a
-     * connected [executor]. The coordinator verifies the connected device is [expectedXfp],
-     * registers the wallet if needed, signs the PSBT and imports it. Progress is shown via the
-     * device-interaction status text (no blocking dialog), so [isProcessing] stays untouched.
-     */
-    fun signTransaction(
-        executor: LedgerCommandExecutor,
-        walletId: String,
-        txId: String,
-        expectedXfp: String,
-    ) = viewModelScope.launch {
-        if (_state.value.isSigning) return@launch
-        _state.update { it.copy(isSigning = true) }
-        runCatching {
-            ledgerTransactionSigner.sign(
-                executor = executor,
-                walletId = walletId,
-                txId = txId,
-                expectedXfp = expectedXfp,
-            )
-        }.onSuccess {
-            _event.emit(LedgerScanEvent.SignTransactionSuccess)
-        }.onFailure { e ->
-            // Allow a retry (e.g. after connecting the correct device).
-            _state.update { it.copy(isSigning = false) }
-            when (e) {
-                is LedgerWrongDeviceException -> _event.emit(LedgerScanEvent.SignTransactionWrongDevice)
-                else -> _event.emit(LedgerScanEvent.Error(e.message.orUnknownError()))
-            }
         }
     }
 }

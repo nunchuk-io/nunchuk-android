@@ -9,15 +9,20 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.dialog.NcConfirmationDialog
+import com.nunchuk.android.compose.showNunchukSnackbar
 import com.nunchuk.android.core.domain.data.SignTransaction
+import com.nunchuk.android.core.ledger.LedgerSignTransactionSheet
 import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.nfc.BaseComposePortalActivity
 import com.nunchuk.android.core.nfc.BaseNfcActivity.Companion.REQUEST_MK4_EXPORT_TRANSACTION
@@ -43,7 +48,6 @@ import com.nunchuk.android.core.util.showOrHideNfcLoading
 import com.nunchuk.android.core.util.TrezorCallbackHolder
 import com.nunchuk.android.core.wallet.InvoiceInfo
 import com.nunchuk.android.model.SigningPath
-import com.nunchuk.android.nav.SignerNavigator
 import com.nunchuk.android.share.model.TransactionOption
 import com.nunchuk.android.share.model.TransactionOption.CANCEL
 import com.nunchuk.android.share.model.TransactionOption.COPY_RAW_TRANSACTION_HEX
@@ -103,6 +107,9 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
     private val viewModel: TransactionDetailsViewModel by viewModels()
     private var shouldReload: Boolean = true
     private var openTrezorSuiteDeeplink: String? by mutableStateOf(null)
+
+    /** Fingerprint of the Ledger the user tapped "Sign" for; non-null shows the sign sheet. */
+    private var ledgerSignFingerprint: String? by mutableStateOf(null)
 
     @Inject
     lateinit var trezorCallbackHolder: TrezorCallbackHolder
@@ -191,6 +198,8 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
         setContent {
             val state by viewModel.state.collectAsStateWithLifecycle()
             val miniscriptUiState by viewModel.miniscriptState.collectAsStateWithLifecycle()
+            val snackbarHostState = remember { SnackbarHostState() }
+            val scope = rememberCoroutineScope()
             NunchukTheme {
                 TransactionDetailView(
                     inheritanceClaimTxDetailInfo = args.inheritanceClaimTxDetailInfo,
@@ -198,6 +207,7 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
                     txId = args.txId,
                     state = state,
                     miniscriptUiState = miniscriptUiState,
+                    snackbarHostState = snackbarHostState,
                     onShowMore = { handleMenuMore() },
                     onSignClick = { signer ->
                         viewModel.setCurrentSigner(signer)
@@ -209,12 +219,8 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
                             SignerType.AIRGAP, SignerType.UNKNOWN -> showSignByAirgapOptions()
                             SignerType.HARDWARE -> when {
                                 viewModel.isTrezorSigner(signer) -> viewModel.requestSignTransactionByTrezor()
-                                viewModel.isLedgerSigner(signer) -> navigator.openLedgerSignTransaction(
-                                    fragmentManager = supportFragmentManager,
-                                    walletId = args.walletId,
-                                    txId = args.txId,
-                                    masterFingerprint = signer.fingerPrint,
-                                )
+                                viewModel.isLedgerSigner(signer) ->
+                                    ledgerSignFingerprint = signer.fingerPrint
 
                                 else -> showError(getString(R.string.nc_use_desktop_app_to_sign))
                             }
@@ -280,6 +286,24 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
                         onDismiss = { openTrezorSuiteDeeplink = null }
                     )
                 }
+
+                // The Ledger sheet signs + imports the PSBT itself; on success just refresh.
+                ledgerSignFingerprint?.let { fingerprint ->
+                    LedgerSignTransactionSheet(
+                        walletId = args.walletId,
+                        txId = args.txId,
+                        masterFingerprint = fingerprint,
+                        onDismiss = { ledgerSignFingerprint = null },
+                        onSignSuccess = {
+                            viewModel.getTransactionInfo()
+                            scope.launch {
+                                snackbarHostState.showNunchukSnackbar(
+                                    message = getString(R.string.nc_transaction_signed_successful),
+                                )
+                            }
+                        },
+                    )
+                }
             }
         }
 
@@ -300,16 +324,6 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
             if (requestKey == RequestSignatureMemberFragment.REQUEST_KEY) {
                 val memberId = result.getString(EXTRA_MEMBER_ID)
                 viewModel.requestSignatureTransaction(memberId.orEmpty())
-            }
-        }
-        // Ledger sign bottom sheet signs + imports the PSBT itself; on success just refresh.
-        supportFragmentManager.setFragmentResultListener(
-            SignerNavigator.LEDGER_SIGN_TX_REQUEST_KEY,
-            this
-        ) { _, result ->
-            if (result.getBoolean(SignerNavigator.LEDGER_SIGN_TX_SUCCESS)) {
-                viewModel.getTransactionInfo()
-                NCToastMessage(this).show(getString(R.string.nc_transaction_signed_successful))
             }
         }
     }

@@ -1,4 +1,4 @@
-package com.nunchuk.android.signer.ledger
+package com.nunchuk.android.core.ledger
 
 import com.nunchuk.android.core.domain.utils.LedgerCommandException
 import com.nunchuk.android.core.domain.utils.LedgerCommandExecutor
