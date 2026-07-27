@@ -48,6 +48,7 @@ import com.nunchuk.android.model.HistoryPeriod
 import com.nunchuk.android.model.RoomWallet
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Transaction
+import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.model.membership.isActiveWallet
@@ -89,7 +90,6 @@ import com.nunchuk.android.usecase.membership.IsClaimWalletUseCase
 import com.nunchuk.android.usecase.membership.SyncClaimWalletTransactionUseCase
 import com.nunchuk.android.usecase.membership.SyncTransactionUseCase
 import com.nunchuk.android.usecase.miniscript.GetSpendableNowAmountUseCase
-import com.nunchuk.android.usecase.signer.GetMasterSigners2UseCase
 import com.nunchuk.android.utils.ByzantineGroupUtils
 import com.nunchuk.android.utils.GroupChatManager
 import com.nunchuk.android.utils.onException
@@ -170,7 +170,6 @@ internal class WalletDetailsViewModel @Inject constructor(
     private val getWalletBsmsUseCase: GetWalletBsmsUseCase,
     private val getLiquidAssetIdsUseCase: GetLiquidAssetIdsUseCase,
     private val getLiquidNetworkStatusUseCase: GetLiquidNetworkStatusUseCase,
-    private val getMasterSigners2UseCase: GetMasterSigners2UseCase,
     private val sendSignerPassphraseUseCase: SendSignerPassphraseUseCase,
 ) : NunchukViewModel<WalletDetailsState, WalletDetailsEvent>() {
     private val args: WalletDetailsFragmentArgs =
@@ -537,6 +536,11 @@ internal class WalletDetailsViewModel @Inject constructor(
                             currentBlock = currentBlock
                         )
                     }
+                    ensureLiquidPassphrase(it.wallet)
+                    if (it.wallet.needsPassphrase) {
+                        event(Loading(false))
+                        return@collect
+                    }
                     if (shouldRefreshTransaction) {
                         checkUserInRoom(it.roomWallet)
                         getTransactionHistory()
@@ -548,33 +552,19 @@ internal class WalletDetailsViewModel @Inject constructor(
                     checkClaimWallet()
                     refreshAssetBalancesIfStable(it.wallet.walletType)
                     refreshLiquidNetworkStatusIfStable(it.wallet.walletType)
-                    ensureLiquidPassphrase(it.wallet)
                 }
         }
     }
 
-    private var liquidPassphraseResolved = false
-
-    /**
-     * A passphrase-protected software signer backing a Liquid/USDT wallet must have its
-     * passphrase sent to the native layer before wallet data (balances, addresses,
-     * transactions, drafting) can be read correctly — the native side re-derives the
-     * Liquid "wally signer" from the in-memory passphrase on every wallet-DB load. If the
-     * signer still reports [Device.needPassPhraseSent], surface a prompt.
-     */
-    private fun ensureLiquidPassphrase(wallet: com.nunchuk.android.model.Wallet) {
-        if (wallet.walletType != WalletType.LIQUID || liquidPassphraseResolved) return
-        val fingerprint = wallet.signers.firstOrNull()?.masterFingerprint ?: return
-        viewModelScope.launch {
-            getMasterSigners2UseCase(Unit).onSuccess { masters ->
-                val master = masters.find { it.device.masterFingerprint == fingerprint }
-                if (master != null && master.device.needPassPhraseSent) {
-                    updateState { copy(requirePassphraseSignerId = master.id) }
-                } else {
-                    liquidPassphraseResolved = true
-                    updateState { copy(requirePassphraseSignerId = null, passphraseError = null) }
-                }
+    // Prompt for the signer passphrase when the native layer flags the Liquid wallet as
+    // needing it; requirePassphraseSignerId holds the master fingerprint to send it to.
+    private fun ensureLiquidPassphrase(wallet: Wallet) {
+        if (wallet.needsPassphrase) {
+            updateState {
+                copy(requirePassphraseSignerId = wallet.signers.firstOrNull()?.masterFingerprint)
             }
+        } else {
+            updateState { copy(requirePassphraseSignerId = null, passphraseError = null) }
         }
     }
 
@@ -585,9 +575,7 @@ internal class WalletDetailsViewModel @Inject constructor(
             sendSignerPassphraseUseCase(
                 SendSignerPassphraseUseCase.Param(signerId = signerId, passphrase = passphrase)
             ).onSuccess {
-                liquidPassphraseResolved = true
                 updateState { copy(requirePassphraseSignerId = null, passphraseError = null) }
-                // Reload now that the passphrase is resident so balances/addresses are correct.
                 getWalletDetails()
             }.onFailure { error ->
                 event(Loading(false))
