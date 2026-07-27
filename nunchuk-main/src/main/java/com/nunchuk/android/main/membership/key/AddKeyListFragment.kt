@@ -113,6 +113,7 @@ import com.nunchuk.android.share.ColdcardAction
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.share.result.GlobalResultKey
+import com.nunchuk.android.signer.ledger.LedgerActivity
 import com.nunchuk.android.signer.trezor.TrezorActivity
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
@@ -148,6 +149,20 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
                 }
                 if (data.getStringExtra(TrezorActivity.EXTRA_RESULT_ACTION) == TrezorActivity.RESULT_ACTION_OPEN_USB_FLOW) {
                     openRequestAddDesktopKey(SignerTag.TREZOR)
+                }
+            }
+        }
+
+    private val addLedgerLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            val data = result.data
+            if (result.resultCode == Activity.RESULT_OK && data != null) {
+                data.parcelable<SingleSigner>(GlobalResultKey.EXTRA_SIGNER)?.let {
+                    viewModel.onSelectedExistingHardwareSigner(it)
+                    return@registerForActivityResult
+                }
+                if (data.getStringExtra(LedgerActivity.EXTRA_RESULT_ACTION) == LedgerActivity.RESULT_ACTION_OPEN_DESKTOP_FLOW) {
+                    openRequestAddDesktopKey(SignerTag.LEDGER)
                 }
             }
         }
@@ -214,7 +229,7 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
                     SignerType.PORTAL_NFC -> openSetupPortal()
                     SignerType.AIRGAP -> handleSelectAddAirgapType(selectedSignerTag)
                     SignerType.COLDCARD_NFC -> showAddColdcardOptions()
-                    SignerType.HARDWARE -> selectedSignerTag?.let { openTrezorOrDesktopFlow(it) }
+                    SignerType.HARDWARE -> selectedSignerTag?.let { openInAppHardwareOrDesktopFlow(it) }
                     else -> throw IllegalArgumentException("Signer type invalid ${data.signers.first().type}")
                 }
             }
@@ -282,7 +297,7 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
                 handleShowKeysOrCreate(
                     viewModel.getHardwareSigners(SignerTag.LEDGER),
                     SignerType.HARDWARE
-                ) { openRequestAddDesktopKey(SignerTag.LEDGER) }
+                ) { openLedgerFlow() }
             }
 
             SheetOptionType.TYPE_ADD_TREZOR -> {
@@ -315,17 +330,27 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
         }
     }
 
-    private fun openTrezorOrDesktopFlow(tag: SignerTag) {
-        if (tag == SignerTag.TREZOR) {
-            openTrezorFlow()
-        } else {
-            openRequestAddDesktopKey(tag)
+    /** Trezor and Ledger have in-app add-key flows; every other hardware key is desktop-only. */
+    private fun openInAppHardwareOrDesktopFlow(tag: SignerTag) {
+        when (tag) {
+            SignerTag.TREZOR -> openTrezorFlow()
+            SignerTag.LEDGER -> openLedgerFlow()
+            else -> openRequestAddDesktopKey(tag)
         }
     }
 
     private fun openTrezorFlow() {
         addTrezorLauncher.launch(
             TrezorActivity.buildIntent(
+                activityContext = requireActivity(),
+                isMembershipFlow = true
+            )
+        )
+    }
+
+    private fun openLedgerFlow() {
+        addLedgerLauncher.launch(
+            LedgerActivity.buildIntent(
                 activityContext = requireActivity(),
                 isMembershipFlow = true
             )

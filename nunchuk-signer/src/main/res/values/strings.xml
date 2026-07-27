@@ -230,6 +230,7 @@
     <string name="nc_add_ledger">Add Ledger</string>
     <string name="nc_add_ledger_via_bluetooth">Add Ledger via Bluetooth</string>
     <string name="nc_add_ledger_via_usb">Add Ledger via USB</string>
+    <string name="nc_add_ledger_via_desktop">Add Ledger via desktop app</string>
     <string name="nc_add_your_ledger">Add your Ledger</string>
     <string name="nc_ensure_to_following_ledger">Please ensure to do the following on your Ledger before proceeding.</string>
     <string name="nc_ledger_step_setup_title">Set up your Ledger</string>

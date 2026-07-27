@@ -9,10 +9,12 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.dialog.NcConfirmationDialog
 import com.nunchuk.android.compose.dialog.NcLoadingDialog
 import com.nunchuk.android.core.base.BaseComposeActivity
 import com.nunchuk.android.core.ledger.LedgerBleController
@@ -20,18 +22,33 @@ import com.nunchuk.android.core.ledger.LedgerDevice
 import com.nunchuk.android.core.ledger.LedgerRequest
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.nativelib.NunchukNativeSdk
+import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.signer.R
+import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.LedgerUserInteraction
 import com.nunchuk.android.type.WalletType
+import com.nunchuk.android.usecase.ResultExistingKey
 import com.nunchuk.android.widget.NCToastMessage
 import dagger.hilt.android.AndroidEntryPoint
+import java.util.Locale
 import javax.inject.Inject
 
 /**
- * Standalone "Add key" flow for Ledger (not add-key-to-wallet). Ledger talks to the
- * device in-app over BLE. This activity owns the BLE transport ([LedgerBleController],
- * which needs an Android Context) and orchestrates the Confluence "Get XPUB" step:
- * connect -> getMasterFingerprint -> getExtendedPublicKey -> create the signer.
+ * "Add key" flow for Ledger. Ledger talks to the device in-app over BLE/USB. This activity
+ * owns the transport ([LedgerBleController], which needs an Android Context) and orchestrates
+ * the Confluence "Get XPUB" step: connect -> getMasterFingerprint -> getExtendedPublicKey ->
+ * create the signer.
+ *
+ * Two modes, same as [com.nunchuk.android.signer.trezor.TrezorActivity]:
+ * - standalone (`isMembershipFlow = false`): the user picks wallet type / address type / account
+ *   index, and the created signer opens its signer-info screen. This is also what the **free group
+ *   wallet** uses (via SignerIntroActivity), since its wallet config is user-chosen — the key lands
+ *   in the group slot through `PushEvent.LocalUserSignerAdded`.
+ * - assisted-wallet / group-wallet membership flows (`isMembershipFlow = true`): those wallets only
+ *   accept multisig keys (`isValidPathForAssistedWallet`), so the config is fixed to multisig /
+ *   native segwit / account 0 and the select-wallet-type step is skipped. The created signer is
+ *   returned to the caller via [GlobalResultKey.EXTRA_SIGNER], and the intro adds a desktop-app
+ *   hand-off returned as [RESULT_ACTION_OPEN_DESKTOP_FLOW].
  *
  * (Sign transaction and health check are hosted inline on their own screens as
  * [com.nunchuk.android.core.ledger.LedgerSignTransactionSheet] /
@@ -44,6 +61,10 @@ class LedgerActivity : BaseComposeActivity() {
     lateinit var nativeSdk: NunchukNativeSdk
 
     private val viewModel: LedgerViewModel by viewModels()
+
+    private val isMembershipFlow: Boolean by lazy {
+        intent.getBooleanExtra(EXTRA_IS_MEMBERSHIP_FLOW, false)
+    }
 
     private val controller: LedgerBleController by lazy {
         LedgerBleController(this, nativeSdk, bleListener)
@@ -97,14 +118,10 @@ class LedgerActivity : BaseComposeActivity() {
                 }
 
                 LedgerRequest.XPUB -> {
-                    val config = viewModel.state.value
-                    viewModel.createSigner(
+                    viewModel.onXpubReceived(
                         name = getString(R.string.nc_ledger),
                         masterFingerprint = masterFingerprint,
                         xpub = result,
-                        walletType = config.walletType,
-                        addressType = config.addressType,
-                        index = config.accountIndex,
                     )
                 }
 
@@ -140,20 +157,39 @@ class LedgerActivity : BaseComposeActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
+        if (isMembershipFlow) {
+            // Assisted/group membership wallets take multisig keys only, so the config is fixed here
+            // instead of on the (skipped) select-wallet-type step. Free group wallet is not this mode.
+            viewModel.setWalletConfig(
+                walletType = WalletType.MULTI_SIG,
+                addressType = AddressType.NATIVE_SEGWIT,
+                index = 0,
+            )
+        }
+
         flowObserver(viewModel.event) { event ->
             when (event) {
                 is LedgerScanEvent.OpenSignerInfo -> {
                     val signer = event.signer
-                    navigator.openSignerInfoScreen(
-                        activityContext = this,
-                        isMasterSigner = signer.hasMasterSigner,
-                        id = signer.masterFingerprint,
-                        masterFingerprint = signer.masterFingerprint,
-                        name = signer.name,
-                        type = signer.type,
-                        derivationPath = signer.derivationPath,
-                        justAdded = true,
-                    )
+                    if (isMembershipFlow) {
+                        setResult(
+                            RESULT_OK,
+                            Intent().apply {
+                                putExtra(GlobalResultKey.EXTRA_SIGNER, signer)
+                            }
+                        )
+                    } else {
+                        navigator.openSignerInfoScreen(
+                            activityContext = this,
+                            isMasterSigner = signer.hasMasterSigner,
+                            id = signer.masterFingerprint,
+                            masterFingerprint = signer.masterFingerprint,
+                            name = signer.name,
+                            type = signer.type,
+                            derivationPath = signer.derivationPath,
+                            justAdded = true,
+                        )
+                    }
                     finish()
                 }
 
@@ -172,10 +208,35 @@ class LedgerActivity : BaseComposeActivity() {
                 ) {
                     ledgerIntro(
                         onBack = { finish() },
-                        // Pick the wallet/address type first, then continue to the transport-specific step.
-                        onAddViaBluetooth = { navController.navigateToLedgerSelectWalletType(isUsb = false) },
-                        onAddViaUsb = { navController.navigateToLedgerSelectWalletType(isUsb = true) },
-                        isAddViaUsbEnabled = true
+                        // Standalone picks the wallet/address type first, then continues to the
+                        // transport-specific step; add-key-to-wallet has it fixed and skips ahead.
+                        onAddViaBluetooth = {
+                            if (isMembershipFlow) {
+                                navController.navigateToLedgerInstruction()
+                            } else {
+                                navController.navigateToLedgerSelectWalletType(isUsb = false)
+                            }
+                        },
+                        onAddViaUsb = {
+                            if (isMembershipFlow) {
+                                // USB needs no Bluetooth permission — just list attached devices.
+                                navController.navigateToLedgerDeviceScan()
+                                controller.refreshUsb()
+                            } else {
+                                navController.navigateToLedgerSelectWalletType(isUsb = true)
+                            }
+                        },
+                        onAddViaDesktop = {
+                            setResult(
+                                RESULT_OK,
+                                Intent().apply {
+                                    putExtra(EXTRA_RESULT_ACTION, RESULT_ACTION_OPEN_DESKTOP_FLOW)
+                                }
+                            )
+                            finish()
+                        },
+                        isAddViaUsbEnabled = true,
+                        isAddViaDesktopEnabled = isMembershipFlow,
                     )
                     ledgerSelectWalletType(
                         onBack = { navController.popBackStack() },
@@ -221,6 +282,24 @@ class LedgerActivity : BaseComposeActivity() {
                     )
                 }
 
+                val pendingSigner = state.pendingSigner
+                if (state.existingKeyType != null && pendingSigner != null) {
+                    val fingerprint = pendingSigner.masterFingerprint.uppercase(Locale.getDefault())
+                    val messageRes = if (state.existingKeyType == ResultExistingKey.Software) {
+                        com.nunchuk.android.core.R.string.nc_existing_key_is_software_key_delete_key
+                    } else {
+                        com.nunchuk.android.core.R.string.nc_existing_key_change_key_type
+                    }
+                    NcConfirmationDialog(
+                        title = stringResource(id = R.string.nc_info),
+                        message = stringResource(id = messageRes, fingerprint),
+                        positiveButtonText = stringResource(id = com.nunchuk.android.core.R.string.nc_text_yes),
+                        negativeButtonText = stringResource(id = com.nunchuk.android.core.R.string.nc_text_no),
+                        onPositiveClick = { viewModel.confirmExistingKeyDialog() },
+                        onDismiss = { viewModel.dismissExistingKeyDialog() },
+                    )
+                }
+
                 if (state.isProcessing) {
                     NcLoadingDialog(onDismiss = {})
                 }
@@ -258,8 +337,18 @@ class LedgerActivity : BaseComposeActivity() {
     }
 
     companion object {
-        /** Standalone "Add key" flow (Get XPUB). */
-        fun buildIntent(activityContext: Context): Intent =
-            Intent(activityContext, LedgerActivity::class.java)
+        const val EXTRA_IS_MEMBERSHIP_FLOW = "extra_is_membership_flow"
+        const val EXTRA_RESULT_ACTION = "extra_result_action"
+
+        /** The user chose to claim the key from the desktop app instead of pairing here. */
+        const val RESULT_ACTION_OPEN_DESKTOP_FLOW = "result_action_open_desktop_flow"
+
+        /** "Add key" flow (Get XPUB). */
+        fun buildIntent(
+            activityContext: Context,
+            isMembershipFlow: Boolean = false,
+        ): Intent = Intent(activityContext, LedgerActivity::class.java).apply {
+            putExtra(EXTRA_IS_MEMBERSHIP_FLOW, isMembershipFlow)
+        }
     }
 }

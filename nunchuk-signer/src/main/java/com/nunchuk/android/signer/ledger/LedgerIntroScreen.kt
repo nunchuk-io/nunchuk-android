@@ -38,14 +38,18 @@ fun NavGraphBuilder.ledgerIntro(
     onBack: () -> Unit = {},
     onAddViaBluetooth: () -> Unit = {},
     onAddViaUsb: () -> Unit = {},
-    isAddViaUsbEnabled: Boolean = false
+    onAddViaDesktop: () -> Unit = {},
+    isAddViaUsbEnabled: Boolean = false,
+    isAddViaDesktopEnabled: Boolean = false,
 ) {
     composable<LedgerIntroRoute> {
         LedgerIntroScreen(
             onBack = onBack,
             onAddViaBluetooth = onAddViaBluetooth,
             onAddViaUsb = onAddViaUsb,
-            isAddViaUsbEnabled = isAddViaUsbEnabled
+            onAddViaDesktop = onAddViaDesktop,
+            isAddViaUsbEnabled = isAddViaUsbEnabled,
+            isAddViaDesktopEnabled = isAddViaDesktopEnabled,
         )
     }
 }
@@ -55,7 +59,9 @@ fun LedgerIntroScreen(
     onBack: () -> Unit = {},
     onAddViaBluetooth: () -> Unit = {},
     onAddViaUsb: () -> Unit = {},
-    isAddViaUsbEnabled: Boolean = false
+    onAddViaDesktop: () -> Unit = {},
+    isAddViaUsbEnabled: Boolean = false,
+    isAddViaDesktopEnabled: Boolean = false,
 ) {
     Scaffold(
         topBar = {
@@ -99,6 +105,23 @@ fun LedgerIntroScreen(
                 isEnabled = isAddViaUsbEnabled,
                 onClick = onAddViaUsb
             )
+
+            // Assisted/group membership flows keep the desktop app as an escape hatch, so a user
+            // whose device won't pair over BLE/USB can still claim the key from desktop.
+            if (isAddViaDesktopEnabled) {
+                HorizontalDivider(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    thickness = 0.5.dp
+                )
+
+                LedgerActionItem(
+                    iconRes = R.drawable.ic_desktop,
+                    title = stringResource(id = R.string.nc_add_ledger_via_desktop),
+                    subtitle = null,
+                    isEnabled = true,
+                    onClick = onAddViaDesktop
+                )
+            }
         }
     }
 }
@@ -158,5 +181,16 @@ private fun LedgerActionItem(
 private fun LedgerIntroScreenPreview() {
     NunchukTheme {
         LedgerIntroScreen()
+    }
+}
+
+@PreviewLightDark
+@Composable
+private fun LedgerIntroScreenAddKeyToWalletPreview() {
+    NunchukTheme {
+        LedgerIntroScreen(
+            isAddViaUsbEnabled = true,
+            isAddViaDesktopEnabled = true,
+        )
     }
 }

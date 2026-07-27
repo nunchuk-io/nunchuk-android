@@ -12,7 +12,9 @@ import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.WalletType
+import com.nunchuk.android.usecase.CheckExistingKeyUseCase
 import com.nunchuk.android.usecase.CreateSignerUseCase
+import com.nunchuk.android.usecase.ResultExistingKey
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,6 +34,10 @@ data class LedgerScanUiState(
     val walletType: WalletType = WalletType.SINGLE_SIG,
     val addressType: AddressType = AddressType.NATIVE_SEGWIT,
     val accountIndex: Int = 0,
+    // Set when the fetched xpub matches a key already in the app: the signer waits on the
+    // replace-key confirmation before being persisted.
+    val pendingSigner: SingleSigner? = null,
+    val existingKeyType: ResultExistingKey? = null,
 ) {
     val selectedDevice: LedgerDevice?
         get() = devices.firstOrNull { it.id == selectedAddress }
@@ -47,6 +53,7 @@ sealed class LedgerScanEvent {
 class LedgerViewModel @Inject constructor(
     private val createSignerUseCase: CreateSignerUseCase,
     private val getBip32PathUseCase: GetBip32PathUseCase,
+    private val checkExistingKeyUseCase: CheckExistingKeyUseCase,
     private val pushEventManager: PushEventManager,
 ) : ViewModel() {
 
@@ -81,37 +88,74 @@ class LedgerViewModel @Inject constructor(
 
     /**
      * Confluence "Get XPUB": builds the SingleSigner from the device master fingerprint
-     * + extended public key, tagged as a Ledger hardware signer, and persists it.
+     * + extended public key, tagged as a Ledger hardware signer. Persists it straight away
+     * unless the key already exists in the app, in which case the UI asks to replace it first.
      */
-    fun createSigner(
+    fun onXpubReceived(
         name: String,
         masterFingerprint: String,
         xpub: String,
-        walletType: WalletType,
-        addressType: AddressType,
-        index: Int,
     ) = viewModelScope.launch {
+        val config = _state.value
         _state.update { it.copy(isProcessing = true) }
         getBip32PathUseCase(
-            GetBip32PathUseCase.Param(index = index, walletType = walletType, addressType = addressType)
+            GetBip32PathUseCase.Param(
+                index = config.accountIndex,
+                walletType = config.walletType,
+                addressType = config.addressType,
+            )
         ).onSuccess { path ->
-            createSignerUseCase(
-                CreateSignerUseCase.Params(
-                    name = name,
-                    xpub = xpub,
-                    type = SignerType.HARDWARE,
-                    derivationPath = path,
-                    masterFingerprint = masterFingerprint.lowercase(),
-                    tags = listOf(SignerTag.LEDGER),
-                )
-            ).onSuccess { signer ->
-                pushEventManager.push(PushEvent.LocalUserSignerAdded(signer))
-                _state.update { it.copy(isProcessing = false) }
-                _event.emit(LedgerScanEvent.OpenSignerInfo(signer))
-            }.onFailure { e ->
-                _state.update { it.copy(isProcessing = false) }
-                _event.emit(LedgerScanEvent.Error(e.message.orUnknownError()))
-            }
+            val signer = SingleSigner(
+                name = name,
+                xpub = xpub,
+                derivationPath = path,
+                masterFingerprint = masterFingerprint.lowercase(),
+                type = SignerType.HARDWARE,
+                tags = listOf(SignerTag.LEDGER),
+            )
+            checkExistingKeyUseCase(CheckExistingKeyUseCase.Params(singleSigner = signer))
+                .onSuccess { existingKeyType ->
+                    if (existingKeyType == ResultExistingKey.None) {
+                        createSigner(signer, replace = false)
+                    } else {
+                        _state.update {
+                            it.copy(
+                                isProcessing = false,
+                                pendingSigner = signer,
+                                existingKeyType = existingKeyType,
+                            )
+                        }
+                    }
+                }.onFailure { e -> onError(e.message.orUnknownError()) }
+        }.onFailure { e -> onError(e.message.orUnknownError()) }
+    }
+
+    fun confirmExistingKeyDialog() {
+        val signer = _state.value.pendingSigner ?: return
+        _state.update { it.copy(pendingSigner = null, existingKeyType = null) }
+        viewModelScope.launch { createSigner(signer, replace = true) }
+    }
+
+    fun dismissExistingKeyDialog() = _state.update {
+        it.copy(pendingSigner = null, existingKeyType = null)
+    }
+
+    private suspend fun createSigner(signer: SingleSigner, replace: Boolean) {
+        _state.update { it.copy(isProcessing = true) }
+        createSignerUseCase(
+            CreateSignerUseCase.Params(
+                name = signer.name,
+                xpub = signer.xpub,
+                type = signer.type,
+                derivationPath = signer.derivationPath,
+                masterFingerprint = signer.masterFingerprint,
+                tags = signer.tags,
+                replace = replace,
+            )
+        ).onSuccess { createdSigner ->
+            pushEventManager.push(PushEvent.LocalUserSignerAdded(createdSigner))
+            _state.update { it.copy(isProcessing = false) }
+            _event.emit(LedgerScanEvent.OpenSignerInfo(createdSigner))
         }.onFailure { e ->
             _state.update { it.copy(isProcessing = false) }
             _event.emit(LedgerScanEvent.Error(e.message.orUnknownError()))
