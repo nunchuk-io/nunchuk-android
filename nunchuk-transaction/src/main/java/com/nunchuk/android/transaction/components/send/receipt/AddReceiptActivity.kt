@@ -88,6 +88,7 @@ import com.nunchuk.android.transaction.components.utils.showCreateTransactionErr
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.widget.NCInfoDialog
+import com.nunchuk.android.widget.NCInputDialog
 import com.nunchuk.android.widget.NCToastMessage
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
@@ -523,6 +524,18 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
                 is AddReceiptEvent.ParseBtcUriEvent -> {
                     selectAddressType.value = SelectAddressType.NONE.ordinal
                     selectAddressName.value = ""
+                }
+                is AddReceiptEvent.RequirePassphrase -> {
+                    NCInputDialog(this).showDialog(
+                        title = getString(R.string.nc_transaction_enter_passphrase),
+                        errorMessage = event.errorMessage,
+                        onConfirmed = { passphrase -> viewModel.sendPassphrase(passphrase) },
+                        onCanceled = {
+                            viewModel.updateAddress("")
+                            selectAddressType.value = SelectAddressType.NONE.ordinal
+                            selectAddressName.value = ""
+                        },
+                    )
                 }
                 else -> Unit
             }

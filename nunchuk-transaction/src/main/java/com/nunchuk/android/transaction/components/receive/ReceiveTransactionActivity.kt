@@ -22,6 +22,7 @@ package com.nunchuk.android.transaction.components.receive
 import android.content.Context
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import com.nunchuk.android.core.domain.data.PortalAction
 import com.nunchuk.android.core.domain.data.VerifyAddress
 import com.nunchuk.android.core.nfc.BasePortalActivity
@@ -34,6 +35,7 @@ import com.nunchuk.android.transaction.components.receive.address.AddressTab
 import com.nunchuk.android.transaction.components.receive.address.AddressTab.UNUSED
 import com.nunchuk.android.transaction.components.receive.address.AddressTab.USED
 import com.nunchuk.android.transaction.databinding.ActivityTransactionReceiveBinding
+import com.nunchuk.android.widget.NCInputDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.map
 
@@ -43,8 +45,11 @@ class ReceiveTransactionActivity : BasePortalActivity<ActivityTransactionReceive
 
     private lateinit var pagerAdapter: AddressPagerAdapter
     private var currentAddress: String = ""
+    private var isViewSetup = false
 
     private val args: ReceiveTransactionArgs by lazy { ReceiveTransactionArgs.deserializeFrom(intent) }
+
+    private val viewModel: ReceiveTransactionViewModel by viewModels()
 
     override fun initializeBinding() = ActivityTransactionReceiveBinding.inflate(layoutInflater).also {
         enableEdgeToEdge()
@@ -53,7 +58,28 @@ class ReceiveTransactionActivity : BasePortalActivity<ActivityTransactionReceive
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        flowObserver(viewModel.event) { event ->
+            when (event) {
+                ReceiveTransactionEvent.Ready -> setupViewsOnce()
+                is ReceiveTransactionEvent.RequirePassphrase -> showPassphraseDialog(event.errorMessage)
+            }
+        }
+        viewModel.checkPassphrase(args.walletId)
+    }
+
+    private fun setupViewsOnce() {
+        if (isViewSetup) return
+        isViewSetup = true
         setupViews()
+    }
+
+    private fun showPassphraseDialog(errorMessage: String?) {
+        NCInputDialog(this).showDialog(
+            title = getString(R.string.nc_transaction_enter_passphrase),
+            errorMessage = errorMessage,
+            onConfirmed = { passphrase -> viewModel.sendPassphrase(passphrase) },
+            onCanceled = { finish() },
+        )
     }
 
     override fun handleLoading() {

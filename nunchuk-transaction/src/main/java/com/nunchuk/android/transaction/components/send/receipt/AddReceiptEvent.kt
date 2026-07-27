@@ -35,6 +35,7 @@ sealed class AddReceiptEvent {
     ) : AddReceiptEvent()
     data object ParseBtcUriEvent : AddReceiptEvent()
     data class Loading(val isLoading: Boolean) : AddReceiptEvent()
+    data class RequirePassphrase(val errorMessage: String? = null) : AddReceiptEvent()
 }
 
 data class AddReceiptState(

@@ -46,6 +46,7 @@ import com.nunchuk.android.usecase.GetDefaultAntiFeeSnipingUseCase
 import com.nunchuk.android.usecase.GetScriptNodeFromMiniscriptTemplateUseCase
 import com.nunchuk.android.usecase.IsLiquidAddressUseCase
 import com.nunchuk.android.usecase.ParseBtcUriUseCase
+import com.nunchuk.android.usecase.SendSignerPassphraseUseCase
 import com.nunchuk.android.usecase.wallet.GetUnusedWalletAddressUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -68,6 +69,7 @@ internal class AddReceiptViewModel @Inject constructor(
     private val getDefaultAntiFeeSnipingUseCase: GetDefaultAntiFeeSnipingUseCase,
     private val getScriptNodeFromMiniscriptTemplateUseCase: GetScriptNodeFromMiniscriptTemplateUseCase,
     private val parseSignerStringUseCase: ParseSignerStringUseCase,
+    private val sendSignerPassphraseUseCase: SendSignerPassphraseUseCase,
 ) : ViewModel() {
     private val _subNodeFollowParents: MutableSet<List<Int>> = mutableSetOf()
 
@@ -76,6 +78,9 @@ internal class AddReceiptViewModel @Inject constructor(
 
     private val _event = MutableSharedFlow<AddReceiptEvent>()
     val event = _event.asSharedFlow()
+
+    private var pendingPassphraseWalletId = ""
+    private var pendingPassphraseSignerId = ""
 
     fun init(args: AddReceiptArgs) {
         _state.update { AddReceiptState(address = args.address, privateNote = args.privateNote) }
@@ -230,10 +235,34 @@ internal class AddReceiptViewModel @Inject constructor(
 
     fun getFirstUnusedAddress(walletId: String) {
         viewModelScope.launch {
+            // A locked USDT/Liquid wallet can't derive its receive address until the signer
+            // passphrase is resident; prompt for it, then retry.
+            val wallet = getWalletDetail2UseCase(walletId).getOrNull()
+            if (wallet?.needsPassphrase == true) {
+                pendingPassphraseWalletId = walletId
+                pendingPassphraseSignerId = wallet.signers.firstOrNull()?.masterFingerprint.orEmpty()
+                _event.emit(AddReceiptEvent.RequirePassphrase())
+                return@launch
+            }
             getUnusedWalletAddressUseCase(walletId).onSuccess { addresses ->
                 _state.update { it.copy(address = addresses.first()) }
             }.onFailure {
                 _event.emit(ShowError(it.message.orUnknownError()))
+            }
+        }
+    }
+
+    fun sendPassphrase(passphrase: String) {
+        val signerId = pendingPassphraseSignerId
+        val walletId = pendingPassphraseWalletId
+        if (signerId.isEmpty() || walletId.isEmpty()) return
+        viewModelScope.launch {
+            sendSignerPassphraseUseCase(
+                SendSignerPassphraseUseCase.Param(signerId = signerId, passphrase = passphrase)
+            ).onSuccess {
+                getFirstUnusedAddress(walletId)
+            }.onFailure { error ->
+                _event.emit(AddReceiptEvent.RequirePassphrase(error.message.orUnknownError()))
             }
         }
     }
