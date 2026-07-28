@@ -109,10 +109,11 @@ fun NcRadioOptionWithInput(
         label()
         if (isSelected) {
             Spacer(modifier = Modifier.height(12.dp))
+            // Error state is conveyed by the outer card border only; keep the inner
+            // field's border neutral so the two don't highlight at once.
             NcTextField(
                 title = "",
                 value = inputValue,
-                hasError = hasError,
                 placeholder = inputPlaceholder,
                 keyboardOptions = inputKeyboardOptions,
                 maxLines = inputMaxLines,
