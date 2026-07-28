@@ -109,13 +109,20 @@ fun SignerInfoContent(
     var showSecurityTimeoutDialog by remember { mutableStateOf(false) }
     var showPassphraseDialog by remember { mutableStateOf(false) }
     var remainingTimeMs by remember { mutableLongStateOf(0L) }
+    var verifiedPassphrase by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(uiState.passphrase) {
-        if (!uiState.passphrase.isNullOrEmpty()) {
-            if (uiState.seedPhraseViewTimestamp == null) {
-                showSecurityTimeoutDialog = true
-            }
+        val passphrase = uiState.passphrase ?: return@LaunchedEffect
+        if (uiState.seedPhraseViewTimestamp == null) {
+            // Waiting period has not started: confirm the timeout before starting it.
+            verifiedPassphrase = passphrase
+            showSecurityTimeoutDialog = true
+        } else {
+            // Waiting period already elapsed: reveal the seed phrase right away.
+            onViewSeedPhraseClicked(passphrase)
         }
+        // Consume the signal so re-entering the same passphrase triggers this again.
+        onPassphraseConsume()
     }
 
     val timeoutDurationMs = uiState.activeDelayHours.hours.inWholeMilliseconds
@@ -494,11 +501,12 @@ fun SignerInfoContent(
             isXprv = uiState.hasXprv,
             delayHours = uiState.activeDelayHours,
             onDismiss = {
+                verifiedPassphrase = null
                 showSecurityTimeoutDialog = false
             },
             onConfirm = {
-                onViewSeedPhraseClicked(uiState.passphrase)
-                onPassphraseConsume()
+                onViewSeedPhraseClicked(verifiedPassphrase)
+                verifiedPassphrase = null
                 showSecurityTimeoutDialog = false
             },
         )
