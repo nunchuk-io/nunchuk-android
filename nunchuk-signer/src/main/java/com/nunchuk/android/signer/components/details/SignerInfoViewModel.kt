@@ -76,6 +76,7 @@ import com.nunchuk.android.usecase.byzantine.KeyHealthCheckUseCase
 import com.nunchuk.android.usecase.membership.GetAssistedKeysUseCase
 import com.nunchuk.android.usecase.membership.UpdateServerKeyNameUseCase
 import com.nunchuk.android.model.DEFAULT_SEED_PHRASE_DELAY_HOURS
+import com.nunchuk.android.usecase.signer.ClearSignerPassphraseUseCase
 import com.nunchuk.android.usecase.signer.GetEffectiveSeedPhraseDelayUseCase
 import com.nunchuk.android.usecase.signer.GetSeedPhraseViewTimestampUseCase
 import com.nunchuk.android.usecase.signer.HasSignerMasterXprvUseCase
@@ -129,6 +130,7 @@ internal class SignerInfoViewModel @Inject constructor(
     private val getSeedPhraseViewTimestampUseCase: GetSeedPhraseViewTimestampUseCase,
     private val hasSignerMnemonicUseCase: HasSignerMnemonicUseCase,
     private val hasSignerMasterXprvUseCase: HasSignerMasterXprvUseCase,
+    private val clearSignerPassphraseUseCase: ClearSignerPassphraseUseCase,
     private val getEffectiveSeedPhraseDelayUseCase: GetEffectiveSeedPhraseDelayUseCase,
     savedStateHandle: SavedStateHandle,
     getAssistedKeysUseCase: GetAssistedKeysUseCase,
@@ -617,6 +619,25 @@ internal class SignerInfoViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Called when the user asks to view the seed phrase. Re-reads the signer first:
+     * [MasterSigner.device].needPassPhraseSent tracks whether the passphrase still has to be
+     * sent to the SDK, so the snapshot taken in [init] can be stale by the time the waiting
+     * period is over. Both updates are applied together so the UI never sees the bumped
+     * counter alongside a stale signer.
+     */
+    fun onViewSeedPhraseRequested() {
+        viewModelScope.launch {
+            val signer = getMasterSignerUseCase(args.id).getOrNull()
+            _state.update {
+                it.copy(
+                    masterSigner = signer ?: it.masterSigner,
+                    seedPhraseRequest = it.seedPhraseRequest + 1,
+                )
+            }
+        }
+    }
+
     fun checkPassphrase(
         masterSignerId: String,
         passphrase: String,
@@ -628,8 +649,7 @@ internal class SignerInfoViewModel @Inject constructor(
                     passphrase = passphrase
                 )
             ).onSuccess {
-                // Keep the signer unlocked: the seed phrase screen reads the mnemonic right
-                // after this. The user is prompted on every view, so it is re-sent each time.
+                clearSignerPassphraseUseCase(masterSignerId)
                 _state.update {
                     it.copy(
                         passphrase = passphrase

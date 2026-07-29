@@ -73,4 +73,7 @@ data class SignerInfoState(
     val hasXprv: Boolean = false,
     val passphrase: String? = null,
     val activeDelayHours: Int = DEFAULT_SEED_PHRASE_DELAY_HOURS,
+    // Incremented on every "view seed phrase" tap. A counter rather than a flag so repeated
+    // taps are never conflated away by StateFlow.
+    val seedPhraseRequest: Int = 0,
 )

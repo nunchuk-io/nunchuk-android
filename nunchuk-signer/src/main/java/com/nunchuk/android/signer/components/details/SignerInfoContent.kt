@@ -92,6 +92,7 @@ fun SignerInfoContent(
     onBackupKeyClicked: () -> Unit = {},
     onHistoryItemClick: (HealthCheckHistory) -> Unit = {},
     onViewSeedPhraseClicked: (String?) -> Unit = {},
+    onViewSeedPhraseRequested: () -> Unit = {},
     onPassphraseSubmitted: (String) -> Unit = {},
     onPassphraseConsume: () -> Unit = {},
 ) {
@@ -110,6 +111,17 @@ fun SignerInfoContent(
     var showPassphraseDialog by remember { mutableStateOf(false) }
     var remainingTimeMs by remember { mutableLongStateOf(0L) }
     var verifiedPassphrase by remember { mutableStateOf<String?>(null) }
+
+    // Decides what a "view seed phrase" tap does, using the signer state just refreshed by
+    // onViewSeedPhraseRequested(). A passphrase-protected signer must always be unlocked first.
+    LaunchedEffect(uiState.seedPhraseRequest) {
+        if (uiState.seedPhraseRequest == 0) return@LaunchedEffect
+        when {
+            needPassphrase -> showPassphraseDialog = true
+            uiState.seedPhraseViewTimestamp == null -> showSecurityTimeoutDialog = true
+            else -> onViewSeedPhraseClicked(null)
+        }
+    }
 
     LaunchedEffect(uiState.passphrase) {
         val passphrase = uiState.passphrase ?: return@LaunchedEffect
@@ -334,13 +346,7 @@ fun SignerInfoContent(
                     if (uiState.seedPhraseViewTimestamp != null && remainingTimeMs <= 0) {
                         NcOutlineButton(
                             modifier = Modifier.fillMaxWidth(),
-                            onClick = {
-                                if (needPassphrase) {
-                                    showPassphraseDialog = true
-                                } else {
-                                    onViewSeedPhraseClicked(null)
-                                }
-                            }
+                            onClick = onViewSeedPhraseRequested
                         ) {
                             Text(text = buttonText)
                         }
@@ -349,13 +355,7 @@ fun SignerInfoContent(
                         TextButton(
                             modifier = Modifier.fillMaxWidth(),
                             enabled = isEnabled,
-                            onClick = {
-                                if (needPassphrase) {
-                                    showPassphraseDialog = true
-                                } else {
-                                    showSecurityTimeoutDialog = true
-                                }
-                            }
+                            onClick = onViewSeedPhraseRequested
                         ) {
                             Text(
                                 text = buttonText,

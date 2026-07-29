@@ -156,6 +156,7 @@ class SignerInfoFragment : BaseShareSaveFileFragment<ViewBinding>(),
                                     }
                                 }
                             },
+                            onViewSeedPhraseRequested = viewModel::onViewSeedPhraseRequested,
                             onPassphraseSubmitted = { passphrase ->
                                 viewModel.checkPassphrase(
                                     masterSignerId = args.id,
