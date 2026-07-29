@@ -76,7 +76,6 @@ import com.nunchuk.android.usecase.byzantine.KeyHealthCheckUseCase
 import com.nunchuk.android.usecase.membership.GetAssistedKeysUseCase
 import com.nunchuk.android.usecase.membership.UpdateServerKeyNameUseCase
 import com.nunchuk.android.model.DEFAULT_SEED_PHRASE_DELAY_HOURS
-import com.nunchuk.android.usecase.signer.ClearSignerPassphraseUseCase
 import com.nunchuk.android.usecase.signer.GetEffectiveSeedPhraseDelayUseCase
 import com.nunchuk.android.usecase.signer.GetSeedPhraseViewTimestampUseCase
 import com.nunchuk.android.usecase.signer.HasSignerMasterXprvUseCase
@@ -130,7 +129,6 @@ internal class SignerInfoViewModel @Inject constructor(
     private val getSeedPhraseViewTimestampUseCase: GetSeedPhraseViewTimestampUseCase,
     private val hasSignerMnemonicUseCase: HasSignerMnemonicUseCase,
     private val hasSignerMasterXprvUseCase: HasSignerMasterXprvUseCase,
-    private val clearSignerPassphraseUseCase: ClearSignerPassphraseUseCase,
     private val getEffectiveSeedPhraseDelayUseCase: GetEffectiveSeedPhraseDelayUseCase,
     savedStateHandle: SavedStateHandle,
     getAssistedKeysUseCase: GetAssistedKeysUseCase,
@@ -630,7 +628,8 @@ internal class SignerInfoViewModel @Inject constructor(
                     passphrase = passphrase
                 )
             ).onSuccess {
-                clearSignerPassphraseUseCase(masterSignerId)
+                // Keep the signer unlocked: the seed phrase screen reads the mnemonic right
+                // after this. The user is prompted on every view, so it is re-sent each time.
                 _state.update {
                     it.copy(
                         passphrase = passphrase

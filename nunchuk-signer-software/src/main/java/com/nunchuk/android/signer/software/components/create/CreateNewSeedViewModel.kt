@@ -72,6 +72,8 @@ internal class CreateNewSeedViewModel @Inject constructor(
                             mnemonic = mnemonic
                         )
                     }
+                }.onFailure {
+                    _event.emit(GenerateMnemonicCodeErrorEvent(it.message.orUnknownError()))
                 }
             }
         } else if (args.backupHotKeySignerId.isNotEmpty()) {
