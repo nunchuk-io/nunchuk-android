@@ -60,6 +60,7 @@ import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.util.TrezorCallbackHolder
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.hideLoading
+import com.nunchuk.android.core.util.isColdCard
 import com.nunchuk.android.core.util.openTrezorSuiteLink
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.core.util.showOrHideNfcLoading
@@ -216,9 +217,15 @@ class DummyTransactionDetailsFragment : BaseShareSaveFileFragment<ViewBinding>()
             SheetOptionType.TYPE_EXPORT_QR -> openExportTransactionScreen(false)
             SheetOptionType.TYPE_EXPORT_BBQR -> openExportTransactionScreen(true)
             SheetOptionType.TYPE_EXPORT_FILE -> showSaveShareOption()
+            SheetOptionType.EXPORT_TX_TO_Mk4 -> (requireActivity() as NfcActionListener).startNfcFlow(
+                BaseNfcActivity.REQUEST_MK4_EXPORT_TRANSACTION
+            )
 
             SheetOptionType.TYPE_IMPORT_QR -> openImportTransactionScreen()
             SheetOptionType.TYPE_IMPORT_FILE -> importFileLauncher.launch("*/*")
+            SheetOptionType.IMPORT_TX_FROM_Mk4 -> (requireActivity() as NfcActionListener).startNfcFlow(
+                BaseNfcActivity.REQUEST_MK4_IMPORT_SIGNATURE
+            )
             SheetOptionType.TYPE_FORCE_SYNC_DUMMY_TX -> walletAuthenticationViewModel.uploadSignaturesFromLocalIfNeeded(
                 true
             )
@@ -503,43 +510,66 @@ class DummyTransactionDetailsFragment : BaseShareSaveFileFragment<ViewBinding>()
     }
 
     private fun showExportTransactionOptions() {
-        BottomSheetOption.newInstance(
-            listOf(
+        val options = mutableListOf(
+            SheetOption(
+                type = SheetOptionType.TYPE_EXPORT_QR,
+                resId = com.nunchuk.android.transaction.R.drawable.ic_qr,
+                label = getString(com.nunchuk.android.transaction.R.string.nc_export_via_qr),
+            ),
+            SheetOption(
+                type = SheetOptionType.TYPE_EXPORT_BBQR,
+                resId = com.nunchuk.android.transaction.R.drawable.ic_qr,
+                label = getString(com.nunchuk.android.transaction.R.string.nc_export_via_bbqr),
+            ),
+            SheetOption(
+                type = SheetOptionType.TYPE_EXPORT_FILE,
+                resId = com.nunchuk.android.transaction.R.drawable.ic_export,
+                label = getString(com.nunchuk.android.transaction.R.string.nc_export_via_file),
+            ),
+        )
+        if (isColdCardSignerSelected()) {
+            options.add(
                 SheetOption(
-                    type = SheetOptionType.TYPE_EXPORT_QR,
-                    resId = com.nunchuk.android.transaction.R.drawable.ic_qr,
-                    label = getString(com.nunchuk.android.transaction.R.string.nc_export_via_qr),
-                ),
-                SheetOption(
-                    type = SheetOptionType.TYPE_EXPORT_BBQR,
-                    resId = com.nunchuk.android.transaction.R.drawable.ic_qr,
-                    label = getString(com.nunchuk.android.transaction.R.string.nc_export_via_bbqr),
-                ),
-                SheetOption(
-                    type = SheetOptionType.TYPE_EXPORT_FILE,
-                    resId = com.nunchuk.android.transaction.R.drawable.ic_export,
-                    label = getString(com.nunchuk.android.transaction.R.string.nc_export_via_file),
-                ),
+                    type = SheetOptionType.EXPORT_TX_TO_Mk4,
+                    resId = com.nunchuk.android.core.R.drawable.ic_nfc_card,
+                    label = getString(com.nunchuk.android.core.R.string.nc_export_via_nfc),
+                )
             )
-        ).show(childFragmentManager, "BottomSheetOption")
+        }
+        BottomSheetOption.newInstance(options).show(childFragmentManager, "BottomSheetOption")
     }
 
     private fun showImportTransactionOptions() {
-        BottomSheetOption.newInstance(
-            listOf(
+        val options = mutableListOf(
+            SheetOption(
+                type = SheetOptionType.TYPE_IMPORT_QR,
+                resId = com.nunchuk.android.transaction.R.drawable.ic_qr,
+                label = getString(com.nunchuk.android.transaction.R.string.nc_import_via_qr),
+            ),
+            SheetOption(
+                type = SheetOptionType.TYPE_IMPORT_FILE,
+                resId = com.nunchuk.android.transaction.R.drawable.ic_import,
+                label = getString(com.nunchuk.android.transaction.R.string.nc_import_via_file),
+            ),
+        )
+        if (isColdCardSignerSelected()) {
+            options.add(
                 SheetOption(
-                    type = SheetOptionType.TYPE_IMPORT_QR,
-                    resId = com.nunchuk.android.transaction.R.drawable.ic_qr,
-                    label = getString(com.nunchuk.android.transaction.R.string.nc_import_via_qr),
-                ),
-                SheetOption(
-                    type = SheetOptionType.TYPE_IMPORT_FILE,
-                    resId = com.nunchuk.android.transaction.R.drawable.ic_import,
-                    label = getString(com.nunchuk.android.transaction.R.string.nc_import_via_file),
-                ),
+                    type = SheetOptionType.IMPORT_TX_FROM_Mk4,
+                    resId = com.nunchuk.android.core.R.drawable.ic_nfc_card,
+                    label = getString(com.nunchuk.android.core.R.string.nc_import_via_nfc),
+                )
             )
-        ).show(childFragmentManager, "BottomSheetOption")
+        }
+        BottomSheetOption.newInstance(options).show(childFragmentManager, "BottomSheetOption")
     }
+
+    /**
+     * An airgapped COLDCARD lands on the airgap export/import menu, so the NFC method has to be
+     * offered alongside QR and file once the user has picked that key to sign with.
+     */
+    private fun isColdCardSignerSelected() =
+        walletAuthenticationViewModel.getInteractSingleSigner()?.isColdCard == true
 
     private fun showError(message: String) {
         hideLoading()
