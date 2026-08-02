@@ -81,8 +81,12 @@ internal fun WalletDetailsScreen(
     val isFacilitatorAdmin = state.role == AssistedWalletRole.FACILITATOR_ADMIN
     val isWalletNamed = state.walletExtended.wallet.name.isNotEmpty()
     val showSearch = isWalletNamed && !state.isFreeGroupWallet
-    val showMenu = (state.walletStatus != com.nunchuk.android.model.wallet.WalletStatus.LOCKED.name &&
-            !isFacilitatorAdmin) || state.isFreeGroupWallet
+    // Locked wallets and facilitator admins still need the overflow menu: since
+    // "View wallet config" moved out of the header into it, that menu is now the
+    // only way to reach the wallet config screen (and from there, Export wallet
+    // configuration). WalletDetailsFragment.onMoreClicked() drops the entries that
+    // don't apply to them.
+    val showMenu = isWalletNamed || state.isFreeGroupWallet
     val showChat = state.isFreeGroupWallet && !state.hideWalletDetailLocal
 
     // Drive chat bar auto-collapse from list scroll direction.

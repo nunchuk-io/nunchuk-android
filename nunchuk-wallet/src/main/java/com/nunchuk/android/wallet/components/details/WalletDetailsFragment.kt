@@ -358,30 +358,35 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
 
     private fun onMoreClicked() {
         val options = mutableListOf<SheetOption>()
-        options.add(
-            SheetOption(
-                SheetOptionType.TYPE_IMPORT_TX,
-                R.drawable.ic_import,
-                R.string.nc_import_transaction,
-            )
-        )
-        if (viewModel.isAssistedWallet || viewModel.isFreeGroupWallet()) {
+        // A locked wallet or a facilitator admin can't act on transactions, but must
+        // still be able to open the wallet config screen to export the configuration.
+        val isReadOnly = viewModel.isLockedAssistedWallet || viewModel.isFacilitatorAdmin()
+        if (!isReadOnly) {
             options.add(
                 SheetOption(
-                    SheetOptionType.TYPE_SEARCH_TX,
-                    R.drawable.ic_search_dark,
-                    R.string.nc_search_transactions,
+                    SheetOptionType.TYPE_IMPORT_TX,
+                    R.drawable.ic_import,
+                    R.string.nc_import_transaction,
                 )
             )
-        }
-        if (viewModel.isFreeGroupWallet()) {
-            options.add(
-                SheetOption(
-                    SheetOptionType.TYPE_GROUP_CHAT_HISTORY,
-                    R.drawable.ic_clock,
-                    R.string.nc_manage_group_chat_history,
+            if (viewModel.isAssistedWallet || viewModel.isFreeGroupWallet()) {
+                options.add(
+                    SheetOption(
+                        SheetOptionType.TYPE_SEARCH_TX,
+                        R.drawable.ic_search_dark,
+                        R.string.nc_search_transactions,
+                    )
                 )
-            )
+            }
+            if (viewModel.isFreeGroupWallet()) {
+                options.add(
+                    SheetOption(
+                        SheetOptionType.TYPE_GROUP_CHAT_HISTORY,
+                        R.drawable.ic_clock,
+                        R.string.nc_manage_group_chat_history,
+                    )
+                )
+            }
         }
         options.add(
             SheetOption(
