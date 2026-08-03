@@ -115,6 +115,11 @@ class DummyTransactionDetailsFragment : BaseShareSaveFileFragment<ViewBinding>()
     private var ledgerSignRequest: WalletAuthenticationEvent.RequestSignLedger? by mutableStateOf(
         null
     )
+    /**
+     * The airgap sign flow and the more menu open the same export/import bottom sheet, so remember
+     * which one did: the more menu never offers the NFC method because it has no target key.
+     */
+    private var isAirgapSignFlowMenu = false
 
     private val importFileLauncher =
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
@@ -165,7 +170,7 @@ class DummyTransactionDetailsFragment : BaseShareSaveFileFragment<ViewBinding>()
                             onSignClick = {
                                 walletAuthenticationViewModel.onSignerSelect(it)
                             },
-                            onShowMore = ::handleMenuMore
+                            onShowMore = { handleMenuMore() }
                         )
 
                         if (openTrezorSuiteDeeplink != null) {
@@ -212,8 +217,13 @@ class DummyTransactionDetailsFragment : BaseShareSaveFileFragment<ViewBinding>()
     override fun onOptionClicked(option: SheetOption) {
         super.onOptionClicked(option)
         when (option.type) {
-            TransactionOption.EXPORT_TRANSACTION.ordinal -> showExportTransactionOptions()
-            TransactionOption.IMPORT_TRANSACTION.ordinal -> showImportTransactionOptions()
+            TransactionOption.EXPORT_TRANSACTION.ordinal -> showExportTransactionOptions(
+                allowNfc = isAirgapSignFlowMenu && isColdCardSignerSelected()
+            )
+
+            TransactionOption.IMPORT_TRANSACTION.ordinal -> showImportTransactionOptions(
+                allowNfc = isAirgapSignFlowMenu && isColdCardSignerSelected()
+            )
             SheetOptionType.TYPE_EXPORT_QR -> openExportTransactionScreen(false)
             SheetOptionType.TYPE_EXPORT_BBQR -> openExportTransactionScreen(true)
             SheetOptionType.TYPE_EXPORT_FILE -> showSaveShareOption()
@@ -299,7 +309,9 @@ class DummyTransactionDetailsFragment : BaseShareSaveFileFragment<ViewBinding>()
                             event.isColdCard
                         )
 
-                        WalletAuthenticationEvent.ShowAirgapOption -> handleMenuMore()
+                        WalletAuthenticationEvent.ShowAirgapOption -> handleMenuMore(
+                            isAirgapSignFlow = true
+                        )
                         WalletAuthenticationEvent.ExportTransactionToColdcardSuccess -> handleExportToColdcardSuccess()
                         WalletAuthenticationEvent.CanNotSignDummyTx -> showError(getString(R.string.nc_can_not_sign_please_try_again))
                         WalletAuthenticationEvent.CanNotSignHardwareKey -> showError(getString(R.string.nc_use_desktop_app_to_sign))
@@ -463,7 +475,8 @@ class DummyTransactionDetailsFragment : BaseShareSaveFileFragment<ViewBinding>()
         showSuccess(getString(com.nunchuk.android.transaction.R.string.nc_transaction_exported))
     }
 
-    private fun handleMenuMore() {
+    private fun handleMenuMore(isAirgapSignFlow: Boolean = false) {
+        isAirgapSignFlowMenu = isAirgapSignFlow
         val args by requireActivity().navArgs<WalletAuthenticationActivityArgs>()
         val options = mutableListOf(
             SheetOption(
@@ -509,7 +522,7 @@ class DummyTransactionDetailsFragment : BaseShareSaveFileFragment<ViewBinding>()
         )
     }
 
-    private fun showExportTransactionOptions() {
+    private fun showExportTransactionOptions(allowNfc: Boolean) {
         val options = mutableListOf(
             SheetOption(
                 type = SheetOptionType.TYPE_EXPORT_QR,
@@ -527,7 +540,7 @@ class DummyTransactionDetailsFragment : BaseShareSaveFileFragment<ViewBinding>()
                 label = getString(com.nunchuk.android.transaction.R.string.nc_export_via_file),
             ),
         )
-        if (isColdCardSignerSelected()) {
+        if (allowNfc) {
             options.add(
                 SheetOption(
                     type = SheetOptionType.EXPORT_TX_TO_Mk4,
@@ -539,7 +552,7 @@ class DummyTransactionDetailsFragment : BaseShareSaveFileFragment<ViewBinding>()
         BottomSheetOption.newInstance(options).show(childFragmentManager, "BottomSheetOption")
     }
 
-    private fun showImportTransactionOptions() {
+    private fun showImportTransactionOptions(allowNfc: Boolean) {
         val options = mutableListOf(
             SheetOption(
                 type = SheetOptionType.TYPE_IMPORT_QR,
@@ -552,7 +565,7 @@ class DummyTransactionDetailsFragment : BaseShareSaveFileFragment<ViewBinding>()
                 label = getString(com.nunchuk.android.transaction.R.string.nc_import_via_file),
             ),
         )
-        if (isColdCardSignerSelected()) {
+        if (allowNfc) {
             options.add(
                 SheetOption(
                     type = SheetOptionType.IMPORT_TX_FROM_Mk4,

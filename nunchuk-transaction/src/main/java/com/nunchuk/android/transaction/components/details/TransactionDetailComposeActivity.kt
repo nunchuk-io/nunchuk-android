@@ -37,6 +37,7 @@ import com.nunchuk.android.core.sheet.input.InputBottomSheet
 import com.nunchuk.android.core.sheet.input.InputBottomSheetListener
 import com.nunchuk.android.core.util.copyToClipboard
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.isColdCard
 import com.nunchuk.android.core.util.isConfirmed
 import com.nunchuk.android.core.util.isPending
 import com.nunchuk.android.core.util.isTaproot
@@ -81,7 +82,6 @@ import com.nunchuk.android.transaction.components.details.fee.ReplaceFeeArgs
 import com.nunchuk.android.transaction.components.export.ExportTransactionActivity
 import com.nunchuk.android.transaction.components.invoice.InvoiceActivity
 import com.nunchuk.android.transaction.components.schedule.ScheduleBroadcastTransactionActivity
-import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.type.TransactionStatus.PENDING_CONFIRMATION
@@ -213,6 +213,7 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
                             SignerType.NFC -> {
                                 startNfcFlow(REQUEST_NFC_SIGN_TRANSACTION)
                             }
+
                             SignerType.AIRGAP, SignerType.UNKNOWN -> showSignByAirgapOptions()
                             SignerType.HARDWARE -> when {
                                 viewModel.isTrezorSigner(signer) -> viewModel.requestSignTransactionByTrezor()
@@ -221,12 +222,14 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
 
                                 else -> showError(getString(R.string.nc_use_desktop_app_to_sign))
                             }
+
                             SignerType.PORTAL_NFC -> handlePortalAction(
                                 SignTransaction(
                                     signer.fingerPrint,
                                     viewModel.getTransaction().psbt
                                 )
                             )
+
                             else -> viewModel.handleSignSoftwareKey(signer)
                         }
                     },
@@ -360,8 +363,8 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
         when (option.type) {
             SheetOptionType.EXPORT_TX_TO_Mk4 -> startNfcFlow(REQUEST_MK4_EXPORT_TRANSACTION)
             SheetOptionType.IMPORT_TX_FROM_Mk4 -> startNfcFlow(REQUEST_MK4_IMPORT_SIGNATURE)
-            IMPORT_TRANSACTION.ordinal -> showImportTransactionOptions()
-            EXPORT_TRANSACTION.ordinal -> showExportTransactionOptions()
+            IMPORT_TRANSACTION.ordinal -> showImportTransactionOptions(allowNfc = isColdCardSignerSelected())
+            EXPORT_TRANSACTION.ordinal -> showExportTransactionOptions(allowNfc = isColdCardSignerSelected())
             SheetOptionType.TYPE_EXPORT_QR -> openExportTransactionScreen(false)
             SheetOptionType.TYPE_EXPORT_BBQR -> openExportTransactionScreen(true)
             SheetOptionType.TYPE_EXPORT_FILE -> showSaveShareOption()
@@ -523,8 +526,8 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
         ).setListener {
             when (it) {
                 CANCEL -> handleCancelTransaction()
-                EXPORT_TRANSACTION -> showExportTransactionOptions()
-                IMPORT_TRANSACTION -> showImportTransactionOptions()
+                EXPORT_TRANSACTION -> showExportTransactionOptions(allowNfc = false)
+                IMPORT_TRANSACTION -> showImportTransactionOptions(allowNfc = false)
                 REPLACE_BY_FEE -> handleOpenEditFee()
                 COPY_TRANSACTION_ID -> handleCopyContent(args.txId)
                 SHOW_INVOICE -> InvoiceActivity.navigate(this, getInvoiceInfo())
@@ -721,7 +724,7 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
         ).show(supportFragmentManager, "BottomSheetOption")
     }
 
-    private fun showExportTransactionOptions() {
+    private fun showExportTransactionOptions(allowNfc: Boolean) {
         // Liquid/USDT transactions only support exporting to a file (QR/BBQR export is
         // not implemented and shows "Tx not found"), so skip the submenu and export directly.
         if (viewModel.isLiquidWallet()) {
@@ -745,7 +748,7 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
                 label = getString(R.string.nc_export_via_file),
             ),
         )
-        if (viewModel.currentSigner()?.tags?.contains(SignerTag.COLDCARD) == true) {
+        if (allowNfc) {
             options.add(
                 SheetOption(
                     type = SheetOptionType.EXPORT_TX_TO_Mk4,
@@ -757,7 +760,7 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
         BottomSheetOption.newInstance(options).show(supportFragmentManager, "BottomSheetOption")
     }
 
-    private fun showImportTransactionOptions() {
+    private fun showImportTransactionOptions(allowNfc: Boolean) {
         val options = mutableListOf(
             SheetOption(
                 type = SheetOptionType.TYPE_IMPORT_QR,
@@ -770,7 +773,7 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
                 label = getString(R.string.nc_import_via_file),
             ),
         )
-        if (viewModel.currentSigner()?.tags?.contains(SignerTag.COLDCARD) == true) {
+        if (allowNfc) {
             options.add(
                 SheetOption(
                     type = SheetOptionType.IMPORT_TX_FROM_Mk4,
@@ -781,6 +784,8 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
         }
         BottomSheetOption.newInstance(options).show(supportFragmentManager, "BottomSheetOption")
     }
+
+    private fun isColdCardSignerSelected() = viewModel.currentSigner()?.isColdCard == true
 
     private fun getInvoiceInfo(): InvoiceInfo {
         val state = viewModel.state.value

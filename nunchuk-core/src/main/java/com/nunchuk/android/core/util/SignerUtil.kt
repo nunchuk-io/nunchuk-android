@@ -40,6 +40,9 @@ import com.nunchuk.android.type.SignerType.UNKNOWN
 val SingleSigner.isColdCard: Boolean
     get() = type == COLDCARD_NFC || tags.contains(SignerTag.COLDCARD)
 
+val SignerModel.isColdCard: Boolean
+    get() = type == COLDCARD_NFC || tags.contains(SignerTag.COLDCARD)
+
 val SignerType.isPlatformKey: Boolean
     get() = this == SERVER || this == SignerType.PLATFORM
 
