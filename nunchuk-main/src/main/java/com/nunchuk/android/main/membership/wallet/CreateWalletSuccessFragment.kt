@@ -66,6 +66,8 @@ import com.nunchuk.android.core.util.navigateToSelectWallet
 import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.MembershipActivity
+import com.nunchuk.android.model.Amount
+import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.widget.NCInfoDialog
 import dagger.hilt.android.AndroidEntryPoint
@@ -246,12 +248,17 @@ fun CreateWalletSuccessScreenContent(
                     )
                     Text(
                         modifier = Modifier.padding(16.dp),
-                        text = stringResource(
-                            R.string.nc_replace_wallet_success_desc,
-                            uiState.newWallet.name,
-                        ),
+                        text = stringResource(R.string.nc_replace_wallet_success_desc),
                         style = NunchukTheme.typography.body
                     )
+                    // Only assisted wallets get locked, and only while the old wallet still holds funds
+                    if (uiState.isAssistedWallet && uiState.replacedWallet.balance.pureBTC() > 0) {
+                        Text(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            text = stringResource(R.string.nc_replace_wallet_success_locked_desc),
+                            style = NunchukTheme.typography.body
+                        )
+                    }
                 } else {
                     Text(
                         modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
@@ -301,5 +308,17 @@ private fun CreateWalletSuccessScreenPreview() {
 private fun ReplaceWalletSuccessScreenPreview() {
     CreateWalletSuccessScreenContent(
         uiState = CreateWalletSuccessUiState(isReplaceWallet = true)
+    )
+}
+
+@PreviewLightDark
+@Composable
+private fun ReplaceAssistedWalletSuccessScreenPreview() {
+    CreateWalletSuccessScreenContent(
+        uiState = CreateWalletSuccessUiState(
+            isReplaceWallet = true,
+            isAssistedWallet = true,
+            replacedWallet = Wallet(balance = Amount(10_000)),
+        )
     )
 }
