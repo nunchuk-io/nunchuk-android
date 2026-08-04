@@ -108,9 +108,9 @@ import com.nunchuk.android.usecase.membership.GetInheritanceUseCase
 import com.nunchuk.android.usecase.membership.GetPendingWalletNotifyCountUseCase
 import com.nunchuk.android.usecase.membership.GetPersonalMembershipStepUseCase
 import com.nunchuk.android.usecase.membership.GetUserSubscriptionUseCase
+import com.nunchuk.android.usecase.membership.SyncDraftWalletUseCase
 import com.nunchuk.android.usecase.sharedwallet.DenySharedWalletInvitationUseCase
 import com.nunchuk.android.usecase.sharedwallet.GetSharedWalletInvitationsUseCase
-import com.nunchuk.android.usecase.membership.SyncDraftWalletUseCase
 import com.nunchuk.android.usecase.user.IsHideUpsellBannerUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletOrderListUseCase
 import com.nunchuk.android.usecase.wallet.InsertWalletOrderListUseCase
@@ -244,6 +244,7 @@ internal class WalletsViewModel @Inject constructor(
                 }
         }
         checkMemberMembership()
+        getBanner()
         viewModelScope.launch {
             membershipStepManager.remainingTime.collect { remainingTime ->
                 _state.update { it.copy(remainingTime = remainingTime) }
@@ -555,6 +556,14 @@ internal class WalletsViewModel @Inject constructor(
         }
     }
 
+    private fun getBanner() {
+        viewModelScope.launch {
+            getBannerUseCase(Unit).onSuccess { banner ->
+                _state.update { it.copy(banner = banner) }
+            }
+        }
+    }
+
     private fun checkMemberMembership() {
         viewModelScope.launch {
             val result = getUserSubscriptionUseCase(Unit)
@@ -572,12 +581,6 @@ internal class WalletsViewModel @Inject constructor(
                 }
             } else {
                 _state.update { it.copy(plans = emptyList()) }
-            }
-            if (result.getOrNull()?.plans.isNullOrEmpty()) {
-                val bannerResult = getBannerUseCase(Unit)
-                _state.update {
-                    it.copy(banner = bannerResult.getOrNull())
-                }
             }
         }
     }

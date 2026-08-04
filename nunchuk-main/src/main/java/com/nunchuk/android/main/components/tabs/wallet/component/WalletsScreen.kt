@@ -216,13 +216,11 @@ internal fun WalletsScreen(
                             }
                         )
                     }
-                    // Show banner if there is at least one claim wallets
-                    if (banner != null && state.plans?.isEmpty() == true) {
-                        NonSubscriberBanner(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 12.dp),
-                            banner = banner, onClick = onBannerClick
+                    if (banner != null) {
+                        Banner(
+                            modifier = Modifier.fillMaxWidth(),
+                            banner = banner,
+                            onClick = onBannerClick
                         )
                     }
 
