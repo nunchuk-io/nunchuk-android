@@ -33,4 +33,15 @@ interface AssistedWalletManager {
     fun getGroup(groupId: String): ByzantineGroup?
     fun isGroupAssistedWallet(groupId: String?): Boolean
     fun isSyncableWallet(walletId: String): Boolean
+
+    /**
+     * True for ACTIVE and LOCKED wallets. Both keep their transactions in sync with the server —
+     * a LOCKED wallet is read-only, but its transactions must still be pulled so the UI doesn't
+     * get stuck on stale local state. REPLACED is excluded: its keys may already have been
+     * removed locally (see PremiumWalletRepositoryImpl.saveWalletToLib).
+     *
+     * Claim wallets are not covered — they sync through the claim-wallet API, so callers that
+     * support them must check [isSyncableWallet] as well.
+     */
+    fun isActiveOrLockedWallet(walletId: String): Boolean
 }

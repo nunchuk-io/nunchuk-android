@@ -41,6 +41,9 @@ data class AssistedWalletBrief(
 val AssistedWalletBrief.isActiveWallet: Boolean
     get() = status == WalletStatus.ACTIVE.name
 
+val AssistedWalletBrief.isLockedWallet: Boolean
+    get() = status == WalletStatus.LOCKED.name
+
 val AssistedWalletBrief.isMiniscriptWallet: Boolean
     get() = walletType == WalletType.MINISCRIPT.name
 

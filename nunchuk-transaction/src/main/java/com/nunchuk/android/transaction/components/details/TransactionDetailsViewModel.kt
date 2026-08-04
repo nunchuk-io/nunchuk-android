@@ -907,7 +907,10 @@ internal class TransactionDetailsViewModel @Inject constructor(
                     groupId = assistedWalletManager.getGroupId(walletId),
                     walletId = walletId,
                     txId = txId,
+                    // isSyncableWallet covers ACTIVE + claim wallets; isActiveOrLockedWallet adds
+                    // LOCKED, read-only but still kept in sync with the server.
                     isAssistedWallet = assistedWalletManager.isSyncableWallet(walletId)
+                            || assistedWalletManager.isActiveOrLockedWallet(walletId)
                 )
             ).onException {
                 if (it is NCNativeException && it.message.contains("-2003")) {

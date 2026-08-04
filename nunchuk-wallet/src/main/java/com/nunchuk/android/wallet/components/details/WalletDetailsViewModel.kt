@@ -488,7 +488,7 @@ internal class WalletDetailsViewModel @Inject constructor(
 
     fun syncServerTransaction(shouldReload: Boolean = false) {
         viewModelScope.launch {
-            if (assistedWalletManager.isActiveAssistedWallet(args.walletId)) {
+            if (assistedWalletManager.isActiveOrLockedWallet(args.walletId)) {
                 syncTransactionFromServer(false)
             } else {
                 val isClaimWallet = isClaimWalletUseCase(args.walletId).getOrDefault(false)

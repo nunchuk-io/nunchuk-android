@@ -25,6 +25,8 @@ import com.nunchuk.android.core.domain.membership.GetInactiveAssistedWalletIdsFl
 import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.membership.AssistedWalletBrief
+import com.nunchuk.android.model.membership.isActiveWallet
+import com.nunchuk.android.model.membership.isLockedWallet
 import com.nunchuk.android.model.wallet.WalletStatus
 import com.nunchuk.android.usecase.GetGroupsUseCase
 import kotlinx.coroutines.CoroutineScope
@@ -97,5 +99,10 @@ internal class AssistedWalletManagerImpl @Inject constructor(
         return _assistedWalletBrief.value[walletId]?.status == WalletStatus.ACTIVE.name || _claimableWallets.value.contains(
             walletId
         )
+    }
+
+    override fun isActiveOrLockedWallet(walletId: String): Boolean {
+        val brief = _assistedWalletBrief.value[walletId] ?: return false
+        return brief.isActiveWallet || brief.isLockedWallet
     }
 }
