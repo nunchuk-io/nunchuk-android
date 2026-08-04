@@ -20,9 +20,9 @@
 package com.nunchuk.android.core.nfc
 
 import android.app.Dialog
-import android.app.PendingIntent
 import android.content.Intent
-import android.nfc.NfcAdapter
+import android.nfc.NdefRecord
+import android.nfc.Tag
 import android.os.Bundle
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
@@ -33,7 +33,6 @@ import androidx.viewbinding.ViewBinding
 import com.nunchuk.android.core.R
 import com.nunchuk.android.core.base.BaseShareSaveFileActivity
 import com.nunchuk.android.core.util.isValidCvc
-import com.nunchuk.android.utils.PendingIntentUtils
 import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCInputDialog
 import com.nunchuk.android.widget.NUMBER_TYPE
@@ -44,8 +43,8 @@ abstract class BaseNfcActivity<Binding : ViewBinding> : BaseShareSaveFileActivit
     private var requestCode: Int = 0
     private var description: String = ""
 
-    private val nfcAdapter: NfcAdapter? by lazy(LazyThreadSafetyMode.NONE) {
-        NfcAdapter.getDefaultAdapter(this)
+    private val nfcDiscovery: NfcDiscoveryDelegate by lazy(LazyThreadSafetyMode.NONE) {
+        NfcDiscoveryDelegate(this, ::onNfcTagDiscovered)
     }
 
     private val nfcUnsupportedDialog: Dialog by lazy(LazyThreadSafetyMode.NONE) {
@@ -57,7 +56,7 @@ abstract class BaseNfcActivity<Binding : ViewBinding> : BaseShareSaveFileActivit
 
     private val requestEnableNfc =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            if (nfcAdapter?.isEnabled == true) {
+            if (nfcDiscovery.isEnabled) {
                 if (shouldShowInputCvcFirst(requestCode)) {
                     showInputCvcDialog(descMessage = description)
                 } else {
@@ -68,26 +67,8 @@ abstract class BaseNfcActivity<Binding : ViewBinding> : BaseShareSaveFileActivit
 
     private val askScanNfcDialog: NfcScanDialog by lazy(LazyThreadSafetyMode.NONE) {
         NfcScanDialog(this).apply {
-            setOnShowListener {
-                if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
-                    runCatching {
-                        nfcAdapter?.enableForegroundDispatch(
-                            this@BaseNfcActivity,
-                            getNfcPendingIntent(requestCode),
-                            null,
-                            null
-                        )
-                    }
-                }
-            }
-
-            setOnDismissListener {
-                if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
-                    runCatching {
-                        nfcAdapter?.enableForegroundDispatch(this@BaseNfcActivity, getNfcPendingIntent(0), null, null)
-                    }
-                }
-            }
+            // Re-arming here would drop the tag this dismissal was triggered by.
+            setOnDismissListener { nfcDiscovery.updateRequestCode(0) }
         }
     }
 
@@ -146,38 +127,36 @@ abstract class BaseNfcActivity<Binding : ViewBinding> : BaseShareSaveFileActivit
 
     override fun onResume() {
         super.onResume()
-        val requestCode = if (askScanNfcDialog.isShowing) requestCode else 0
-        runCatching {
-            nfcAdapter?.enableForegroundDispatch(this, getNfcPendingIntent(requestCode), null, null)
-        }
+        // Armed with 0 when idle, so tags are not dispatched to other apps.
+        nfcDiscovery.arm(if (askScanNfcDialog.isShowing) requestCode else 0)
     }
 
     override fun onPause() {
-        runCatching {
-            nfcAdapter?.disableForegroundDispatch(this)
-        }
+        nfcDiscovery.disarm()
         super.onPause()
     }
 
     override fun startNfcFlow(requestCode: Int, description: String) {
         this.requestCode = requestCode
         this.description = description
-        nfcAdapter?.let {
-            if (it.isEnabled) {
-                if (shouldShowInputCvcFirst(requestCode)) {
-                    showInputCvcDialog(descMessage = description)
-                } else {
-                    askToScan()
-                }
-            } else {
-                navigateTurnOnNfc()
-            }
-        } ?: run {
+        if (!nfcDiscovery.isSupported) {
             nfcUnsupportedDialog.show()
+            return
+        }
+        if (nfcDiscovery.isEnabled) {
+            if (shouldShowInputCvcFirst(requestCode)) {
+                showInputCvcDialog(descMessage = description)
+            } else {
+                askToScan()
+            }
+        } else {
+            navigateTurnOnNfc()
         }
     }
 
     private fun askToScan() {
+        // Not in an onShow listener: that would not fire when the dialog is already visible.
+        nfcDiscovery.arm(requestCode)
         if (isMk4Request(requestCode)) {
             val hint = mk4HintOverride ?: getMk4Hint(this, requestCode)
             askScanNfcDialog.update(
@@ -194,20 +173,9 @@ abstract class BaseNfcActivity<Binding : ViewBinding> : BaseShareSaveFileActivit
         requestEnableNfc.launch(Intent(this, TurnOnNfcActivity::class.java))
     }
 
-    private fun getNfcPendingIntent(requestCode: Int) = PendingIntent.getActivity(
-        this,
-        0,
-        Intent(this, this.javaClass).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP).apply {
-            putExtra(EXTRA_REQUEST_NFC_CODE, requestCode)
-        },
-        PendingIntentUtils.getFlagCompat()
-    )
-
-    private fun processNfcIntent(intent: Intent) {
-        if (isNfcIntent(intent)) {
-            askScanNfcDialog.dismiss()
-            nfcViewModel.updateNfcScanInfo(intent)
-        }
+    private fun onNfcTagDiscovered(requestCode: Int, tag: Tag, records: List<NdefRecord>) {
+        askScanNfcDialog.dismiss()
+        nfcViewModel.updateNfcScanInfo(requestCode, tag, records)
     }
 
     private fun showInputCvcDialog(errorMessage: String? = null, descMessage: String? = null) {
@@ -229,7 +197,7 @@ abstract class BaseNfcActivity<Binding : ViewBinding> : BaseShareSaveFileActivit
             ).show()
     }
 
-    protected fun isNfcIntent(intent: Intent) = NfcAdapter.ACTION_NDEF_DISCOVERED == intent.action || NfcAdapter.ACTION_TAG_DISCOVERED == intent.action
+    protected fun isNfcIntent(intent: Intent) = isNfcTagIntent(intent)
 
     fun setMk4HintOverride(hint: String?) {
         mk4HintOverride = hint
@@ -237,7 +205,7 @@ abstract class BaseNfcActivity<Binding : ViewBinding> : BaseShareSaveFileActivit
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        processNfcIntent(intent ?: return)
+        nfcDiscovery.handleIntent(intent)
     }
 
     companion object {

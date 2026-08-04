@@ -19,13 +19,9 @@
 
 package com.nunchuk.android.core.nfc
 
-import android.content.Intent
-import android.nfc.NdefMessage
-import android.nfc.NfcAdapter
+import android.nfc.NdefRecord
 import android.nfc.Tag
 import android.nfc.tech.IsoDep
-import android.os.Build
-import android.os.Parcelable
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -33,12 +29,10 @@ import com.nunchuk.android.exception.NCNativeException
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.TapProtocolException
 import com.nunchuk.android.usecase.GetMasterSignerUseCase
-import com.nunchuk.android.utils.parcelable
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -81,24 +75,8 @@ class NfcViewModel @Inject constructor(
         }
     }
 
-    fun updateNfcScanInfo(intent: Intent) {
-        val tag: Tag = intent.parcelable(NfcAdapter.EXTRA_TAG) as? Tag ?: return
-        val requestCode = intent.getIntExtra(BaseNfcActivity.EXTRA_REQUEST_NFC_CODE, 0)
-        Timber.d("requestCode: $requestCode")
+    fun updateNfcScanInfo(requestCode: Int, tag: Tag, records: List<NdefRecord> = emptyList()) {
         if (requestCode == 0) return
-        val records =
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                intent.getParcelableArrayExtra(
-                    NfcAdapter.EXTRA_NDEF_MESSAGES,
-                    Parcelable::class.java
-                )
-            } else {
-                @Suppress("DEPRECATION")
-                intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES)
-            }.orEmpty()
-                .filterIsInstance<NdefMessage>().map { rawMessage ->
-                    rawMessage.records.toList()
-                }.flatten()
         _nfcScanInfo.value = NfcScanInfo(requestCode, tag, records)
     }
 

@@ -20,6 +20,8 @@
 package com.nunchuk.android.core.nfc
 
 import android.content.Context
+import android.content.Intent
+import android.nfc.NfcAdapter
 import com.nunchuk.android.core.R
 import com.nunchuk.android.core.nfc.BaseNfcActivity.Companion.REQUEST_AUTO_CARD_STATUS
 import com.nunchuk.android.core.nfc.BaseNfcActivity.Companion.REQUEST_EXPORT_WALLET_TO_MK4
@@ -29,9 +31,16 @@ import com.nunchuk.android.core.nfc.BaseNfcActivity.Companion.REQUEST_IMPORT_SIN
 import com.nunchuk.android.core.nfc.BaseNfcActivity.Companion.REQUEST_MK4_ADD_KEY
 import com.nunchuk.android.core.nfc.BaseNfcActivity.Companion.REQUEST_MK4_EXPORT_TRANSACTION
 import com.nunchuk.android.core.nfc.BaseNfcActivity.Companion.REQUEST_MK4_IMPORT_SIGNATURE
+import com.nunchuk.android.core.nfc.BaseNfcActivity.Companion.REQUEST_NFC_ADD_KEY
 import com.nunchuk.android.core.nfc.BaseNfcActivity.Companion.REQUEST_NFC_CHANGE_CVC
+import com.nunchuk.android.core.nfc.BaseNfcActivity.Companion.REQUEST_NFC_HEALTH_CHECK
+import com.nunchuk.android.core.nfc.BaseNfcActivity.Companion.REQUEST_NFC_SIGN_TRANSACTION
 import com.nunchuk.android.core.nfc.BaseNfcActivity.Companion.REQUEST_NFC_STATUS
+import com.nunchuk.android.core.nfc.BaseNfcActivity.Companion.REQUEST_NFC_TOPUP_XPUBS
+import com.nunchuk.android.core.nfc.BaseNfcActivity.Companion.REQUEST_NFC_VIEW_BACKUP_KEY
 import com.nunchuk.android.core.nfc.BaseNfcActivity.Companion.REQUEST_PORTAL
+import com.nunchuk.android.core.nfc.BaseNfcActivity.Companion.REQUEST_SATSCARD_SETUP
+import com.nunchuk.android.core.nfc.BaseNfcActivity.Companion.REQUEST_SATSCARD_SWEEP_SLOT
 
 fun shouldShowInputCvcFirst(requestCode: Int) = requestCode != REQUEST_NFC_STATUS
         && requestCode != REQUEST_NFC_CHANGE_CVC
@@ -52,6 +61,21 @@ fun isMk4Request(requestCode: Int) = requestCode == REQUEST_MK4_ADD_KEY
         || requestCode == REQUEST_IMPORT_MULTI_WALLET_FROM_MK4
         || requestCode == REQUEST_IMPORT_SINGLE_WALLET_FROM_MK4
         || requestCode == REQUEST_GENERATE_HEAL_CHECK_MSG
+
+/** CKTAP requests. See [NfcDiscoveryDelegate] for why only these may use reader mode. */
+fun usesReaderMode(requestCode: Int) = requestCode == REQUEST_NFC_STATUS
+        || requestCode == REQUEST_NFC_CHANGE_CVC
+        || requestCode == REQUEST_NFC_ADD_KEY
+        || requestCode == REQUEST_NFC_SIGN_TRANSACTION
+        || requestCode == REQUEST_NFC_VIEW_BACKUP_KEY
+        || requestCode == REQUEST_NFC_TOPUP_XPUBS
+        || requestCode == REQUEST_NFC_HEALTH_CHECK
+        || requestCode == REQUEST_AUTO_CARD_STATUS
+        || requestCode == REQUEST_SATSCARD_SWEEP_SLOT
+        || requestCode == REQUEST_SATSCARD_SETUP
+
+fun isNfcTagIntent(intent: Intent) = NfcAdapter.ACTION_NDEF_DISCOVERED == intent.action
+        || NfcAdapter.ACTION_TAG_DISCOVERED == intent.action
 
 fun getMk4Hint(context: Context, requestCode: Int) = when (requestCode) {
     REQUEST_MK4_ADD_KEY -> context.getString(R.string.nc_hint_add_mk4)
