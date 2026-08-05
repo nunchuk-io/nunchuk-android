@@ -22,7 +22,6 @@ package com.nunchuk.android.main.membership.wallet
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.nunchuk.android.core.domain.GetAssistedWalletsFlowUseCase
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.usecase.byzantine.GetGroupRemoteUseCase
@@ -32,7 +31,6 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -41,7 +39,6 @@ import javax.inject.Inject
 class CreateWalletSuccessViewModel @Inject constructor(
     private val getGroupRemoteUseCase: GetGroupRemoteUseCase,
     private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
-    private val getAssistedWalletsFlowUseCase: GetAssistedWalletsFlowUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val _event = MutableSharedFlow<CreateWalletSuccessEvent>()
@@ -60,16 +57,6 @@ class CreateWalletSuccessViewModel @Inject constructor(
                         _state.update { state ->
                             state.copy(replacedWallet = it)
                         }
-                    }
-            }
-            viewModelScope.launch {
-                getAssistedWalletsFlowUseCase(Unit)
-                    .map { it.getOrElse { emptyList() } }
-                    .collect { wallets ->
-                        val isAssistedWallet = wallets.any {
-                            it.localId == args.walletId || it.localId == args.replacedWalletId
-                        }
-                        _state.update { state -> state.copy(isAssistedWallet = isAssistedWallet) }
                     }
             }
         }
@@ -110,7 +97,6 @@ data class CreateWalletSuccessUiState(
     val replacedWallet: Wallet = Wallet(),
     val newWallet: Wallet = Wallet(),
     val isReplaceWallet: Boolean = false,
-    val isAssistedWallet: Boolean = false,
 )
 
 sealed class CreateWalletSuccessEvent {
