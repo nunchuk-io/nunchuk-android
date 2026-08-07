@@ -1099,6 +1099,6 @@
     <string name="nc_recover_key_via_seed">Recover key via seed</string>
     <string name="nc_export_message">Export message</string>
     <string name="nc_retry">Retry</string>
-    <string name="nc_coldcard_seed_entropy_warning">Security warning: ColdCard Mk3 (firmware 4.0.1-5.0.3) and pre-fix Mk4/Q generated seeds with reduced entropy. If your seed was generated on-device without extra dice rolls, update firmware, generate a new seed and move your funds.</string>
+    <string name="nc_coldcard_seed_entropy_warning">Security warning: ColdCard Mk2/Mk3 (firmware 4.0.1-4.1.9) and Mk4/Mk5/Q before their fixed firmware generated seeds with reduced entropy. If your seed was generated on-device with fewer than 50 independent dice rolls, update firmware, generate a new seed and move your funds.</string>
     <string name="nc_coldcard_seed_entropy_warning_link">Read Coinkite\'s advisory</string>
 </resources>
