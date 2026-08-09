@@ -95,16 +95,8 @@ class WalletSecurityCreatePinViewModel @Inject constructor(
         viewModelScope.launch {
             val inputValue = _state.value.inputValue
             if (_state.value.createPinFlow) {
-                val newPinIndex = 0
-                val newPin = inputValue[newPinIndex]!!.value
-                if (checkWalletPinUseCase(newPin).getOrDefault(false)) {
-                    // never let a decoy PIN shadow the main PIN, it would hide the real wallets for good
-                    updateInputValue(
-                        newPinIndex,
-                        newPin,
-                        errorMsg = context.getString(R.string.nc_decoy_pin_same_as_wallet_pin)
-                    )
-                } else if (decoyPinExistUseCase(newPin).getOrDefault(false)) {
+                val newPin = inputValue[0]!!.value
+                if (isPinTaken(newPin)) {
                     createDecoyPinSuccess()
                 } else if (inputValue[0]?.value == inputValue[1]?.value) {
                     createDecoyPin(inputValue)
@@ -116,8 +108,7 @@ class WalletSecurityCreatePinViewModel @Inject constructor(
                     )
                 }
             } else {
-                val newPinIndex = 1
-                val newPin = inputValue[newPinIndex]!!.value
+                val newPin = inputValue[1]!!.value
                 val matchPin = inputValue[0]!!.value == decoyPin
                 if (matchPin.not()) {
                     updateInputValue(
@@ -126,14 +117,7 @@ class WalletSecurityCreatePinViewModel @Inject constructor(
                         errorMsg = context.getString(R.string.nc_incorrect_current_pin)
                     )
                     _state.update { it.copy(attemptCount = it.attemptCount.inc()) }
-                } else if (checkWalletPinUseCase(newPin).getOrDefault(false)) {
-                    // never let a decoy PIN shadow the main PIN, it would hide the real wallets for good
-                    updateInputValue(
-                        newPinIndex,
-                        newPin,
-                        errorMsg = context.getString(R.string.nc_decoy_pin_same_as_wallet_pin)
-                    )
-                } else if (decoyPinExistUseCase(newPin).getOrDefault(false)) {
+                } else if (isPinTaken(newPin)) {
                     createDecoyPinSuccess()
                 } else if (inputValue[1] != inputValue[2]) {
                     updateInputValue(
@@ -147,6 +131,15 @@ class WalletSecurityCreatePinViewModel @Inject constructor(
             }
         }
     }
+
+    /**
+     * A PIN already owned by the main space or by another decoy space can never become a decoy PIN:
+     * the decoy space is unlocked first, so it would shadow that space and hide its wallets for good.
+     * Callers silently report success instead of showing an error, otherwise the decoy space would
+     * disclose the existence of the main space (or of another decoy space) to whoever is holding it.
+     */
+    private suspend fun isPinTaken(pin: String): Boolean =
+        checkWalletPinUseCase(pin).getOrDefault(false) || decoyPinExistUseCase(pin).getOrDefault(false)
 
     private suspend fun createDecoyPin(inputValue: MutableMap<Int, InputValue>) {
         val newDecoyPin = inputValue[1]!!.value
