@@ -94,10 +94,17 @@ class WalletSecurityCreatePinViewModel @Inject constructor(
     private fun createDecoyPin() {
         viewModelScope.launch {
             val inputValue = _state.value.inputValue
-            val isMainPin = checkWalletPinUseCase(inputValue[0]!!.value).getOrDefault(false)
-            val decoyPinExist = decoyPinExistUseCase(inputValue[1]!!.value).getOrDefault(false)
             if (_state.value.createPinFlow) {
-                if (decoyPinExist || isMainPin) {
+                val newPinIndex = 0
+                val newPin = inputValue[newPinIndex]!!.value
+                if (checkWalletPinUseCase(newPin).getOrDefault(false)) {
+                    // never let a decoy PIN shadow the main PIN, it would hide the real wallets for good
+                    updateInputValue(
+                        newPinIndex,
+                        newPin,
+                        errorMsg = context.getString(R.string.nc_decoy_pin_same_as_wallet_pin)
+                    )
+                } else if (decoyPinExistUseCase(newPin).getOrDefault(false)) {
                     createDecoyPinSuccess()
                 } else if (inputValue[0]?.value == inputValue[1]?.value) {
                     createDecoyPin(inputValue)
@@ -109,16 +116,25 @@ class WalletSecurityCreatePinViewModel @Inject constructor(
                     )
                 }
             } else {
+                val newPinIndex = 1
+                val newPin = inputValue[newPinIndex]!!.value
                 val matchPin = inputValue[0]!!.value == decoyPin
-                if (decoyPinExist || isMainPin) {
-                    createDecoyPinSuccess()
-                } else if (matchPin.not()) {
+                if (matchPin.not()) {
                     updateInputValue(
                         0,
                         inputValue[0]?.value!!,
                         errorMsg = context.getString(R.string.nc_incorrect_current_pin)
                     )
                     _state.update { it.copy(attemptCount = it.attemptCount.inc()) }
+                } else if (checkWalletPinUseCase(newPin).getOrDefault(false)) {
+                    // never let a decoy PIN shadow the main PIN, it would hide the real wallets for good
+                    updateInputValue(
+                        newPinIndex,
+                        newPin,
+                        errorMsg = context.getString(R.string.nc_decoy_pin_same_as_wallet_pin)
+                    )
+                } else if (decoyPinExistUseCase(newPin).getOrDefault(false)) {
+                    createDecoyPinSuccess()
                 } else if (inputValue[1] != inputValue[2]) {
                     updateInputValue(
                         2,
@@ -157,30 +173,40 @@ class WalletSecurityCreatePinViewModel @Inject constructor(
         viewModelScope.launch {
             val inputValue = _state.value.inputValue
             if (_state.value.createPinFlow) {
-                var errorMsg = ""
-                if (inputValue[0]?.value == inputValue[1]?.value) {
-                    createOrUpdateWalletPinUseCase(inputValue[0]!!.value)
-                    _event.emit(WalletSecurityCreatePinEvent.CreateOrUpdateSuccess)
-                } else {
-                    errorMsg = context.getString(R.string.nc_confirm_pin_does_not_match)
-                }
-                updateInputValue(1, inputValue[1]?.value!!, errorMsg = errorMsg)
-            } else {
-                val matchPin = checkWalletPinUseCase(inputValue[0]!!.value)
-                val decoyPinExist = decoyPinExistUseCase(inputValue[1]!!.value)
-                if (decoyPinExist.getOrDefault(false)) {
+                val newPin = inputValue[0]!!.value
+                if (decoyPinExistUseCase(newPin).getOrDefault(false)) {
+                    // the main PIN must not collide with a decoy PIN, the decoy space would take it over
                     updateInputValue(
                         0,
-                        inputValue[0]?.value!!,
+                        newPin,
                         errorMsg = context.getString(R.string.nc_pin_exist)
                     )
-                } else if (matchPin.getOrDefault(false).not()) {
+                } else {
+                    var errorMsg = ""
+                    if (newPin == inputValue[1]?.value) {
+                        createOrUpdateWalletPinUseCase(newPin)
+                        _event.emit(WalletSecurityCreatePinEvent.CreateOrUpdateSuccess)
+                    } else {
+                        errorMsg = context.getString(R.string.nc_confirm_pin_does_not_match)
+                    }
+                    updateInputValue(1, inputValue[1]?.value!!, errorMsg = errorMsg)
+                }
+            } else {
+                val matchPin = checkWalletPinUseCase(inputValue[0]!!.value)
+                if (matchPin.getOrDefault(false).not()) {
                     updateInputValue(
                         0,
                         inputValue[0]?.value!!,
                         errorMsg = context.getString(R.string.nc_incorrect_current_pin)
                     )
                     _state.update { it.copy(attemptCount = it.attemptCount.inc()) }
+                } else if (decoyPinExistUseCase(inputValue[1]!!.value).getOrDefault(false)) {
+                    // the main PIN must not collide with a decoy PIN, the decoy space would take it over
+                    updateInputValue(
+                        1,
+                        inputValue[1]?.value!!,
+                        errorMsg = context.getString(R.string.nc_pin_exist)
+                    )
                 } else if (inputValue[1] != inputValue[2]) {
                     updateInputValue(
                         2,
