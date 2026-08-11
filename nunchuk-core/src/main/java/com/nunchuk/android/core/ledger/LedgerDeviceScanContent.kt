@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -106,16 +108,6 @@ fun LedgerDeviceScanBody(
             )
         }
 
-        // Bluetooth status / hint (e.g. "Turn on Bluetooth…", connection progress).
-        if (statusText.isNotEmpty()) {
-            Text(
-                modifier = Modifier.padding(top = 12.dp),
-                text = statusText,
-                style = NunchukTheme.typography.bodySmall
-                    .copy(color = MaterialTheme.colorScheme.textSecondary),
-            )
-        }
-
         // USB section (Android supports USB-HID; list attached Ledgers).
         Row(
             modifier = Modifier
@@ -166,22 +158,49 @@ fun LedgerDeviceScanBody(
                 )
             }
         }
+
+        // Status / hint for whichever transport is in play ("Turn on Bluetooth…", "Connecting
+        // to…", "Confirm on your Ledger…"), so it sits below both sections rather than reading
+        // as a Bluetooth-only message.
+        if (statusText.isNotEmpty()) {
+            Text(
+                modifier = Modifier.padding(top = 24.dp),
+                text = statusText,
+                style = NunchukTheme.typography.bodySmall
+                    .copy(color = MaterialTheme.colorScheme.textSecondary),
+            )
+        }
     }
 }
 
-/** Primary action of the device picker ("Connect" / "Sign transaction"). */
+/**
+ * Primary action of the device picker ("Connect" / "Sign transaction"). While [isBusy] the
+ * device conversation is in flight — the button spins and stops accepting taps, so the user
+ * isn't left wondering whether the tap registered (the status line only starts updating once
+ * the transport reports progress).
+ */
 @Composable
 fun LedgerConnectButton(
     modifier: Modifier = Modifier,
     enabled: Boolean,
     @StringRes connectButtonText: Int,
+    isBusy: Boolean = false,
     onConnect: () -> Unit,
 ) {
     NcPrimaryDarkButton(
         modifier = modifier,
-        enabled = enabled,
+        enabled = enabled && !isBusy,
         onClick = onConnect,
     ) {
+        if (isBusy) {
+            CircularProgressIndicator(
+                modifier = Modifier
+                    .padding(end = 8.dp)
+                    .size(16.dp),
+                strokeWidth = 2.dp,
+                color = LocalContentColor.current,
+            )
+        }
         Text(text = stringResource(id = connectButtonText))
     }
 }

@@ -214,6 +214,7 @@ private fun LedgerSheet(
     ) {
         LedgerSheetContent(
             isScanning = state.isScanning,
+            isBusy = state.isBusy,
             devices = state.devices,
             selectedAddress = state.selectedDeviceId,
             statusText = state.statusText,
@@ -233,6 +234,7 @@ private fun LedgerSheet(
 @Composable
 private fun LedgerSheetContent(
     isScanning: Boolean = false,
+    isBusy: Boolean = false,
     devices: List<LedgerDevice> = emptyList(),
     selectedAddress: String? = null,
     statusText: String = "",
@@ -268,6 +270,7 @@ private fun LedgerSheetContent(
                 .fillMaxWidth(),
             enabled = selectedAddress != null,
             connectButtonText = connectButtonText,
+            isBusy = isBusy,
             onConnect = onConnect,
         )
     }

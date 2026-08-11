@@ -217,6 +217,9 @@ class LedgerSheetViewModel @Inject constructor(
     fun connect(action: LedgerSheetAction) {
         if (_state.value.isBusy) return
         val device = _state.value.selectedDevice ?: return
+        // Busy from the tap, not from the first device command: connecting — and over USB the
+        // permission prompt — happens first, and until then nothing on screen would move.
+        _state.update { it.copy(isBusy = true) }
         controller.connect(device)
         controller.whenReady { start(action) }
     }
@@ -226,8 +229,6 @@ class LedgerSheetViewModel @Inject constructor(
             is LedgerSheetAction.SignTransaction -> signTransaction(action)
             is LedgerSheetAction.SignPsbt -> signPsbt(action)
             is LedgerSheetAction.HealthCheck -> {
-                if (_state.value.isBusy) return
-                _state.update { it.copy(isBusy = true) }
                 pendingHealthCheck = action
                 controller.signMessage(action.derivationPath, HEALTH_CHECK_MESSAGE)
             }
@@ -235,8 +236,6 @@ class LedgerSheetViewModel @Inject constructor(
     }
 
     private fun signTransaction(action: LedgerSheetAction.SignTransaction) = viewModelScope.launch {
-        if (_state.value.isBusy) return@launch
-        _state.update { it.copy(isBusy = true) }
         runCatching {
             ledgerTransactionSigner.sign(
                 executor = executor,
@@ -252,8 +251,6 @@ class LedgerSheetViewModel @Inject constructor(
     }
 
     private fun signPsbt(action: LedgerSheetAction.SignPsbt) = viewModelScope.launch {
-        if (_state.value.isBusy) return@launch
-        _state.update { it.copy(isBusy = true) }
         runCatching {
             ledgerTransactionSigner.signPsbt(
                 executor = executor,
@@ -339,6 +336,9 @@ class LedgerSheetViewModel @Inject constructor(
     private fun setStatus(text: String) = _state.update { it.copy(statusText = text) }
 
     private fun emit(event: LedgerSheetEvent) = viewModelScope.launch {
+        // Everything routed through here ends the attempt (denied permission, Bluetooth off,
+        // transport error), so release the button for a retry.
+        _state.update { it.copy(isBusy = false) }
         _event.emit(event)
     }
 
