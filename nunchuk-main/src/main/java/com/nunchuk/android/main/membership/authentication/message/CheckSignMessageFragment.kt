@@ -40,6 +40,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
@@ -62,6 +64,7 @@ import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.provider.SignersModelProvider
 import com.nunchuk.android.core.domain.data.SignTransaction
+import com.nunchuk.android.core.ledger.LedgerSignPsbtSheet
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.BasePortalActivity
 import com.nunchuk.android.core.nfc.NfcActionListener
@@ -90,6 +93,11 @@ class CheckSignMessageFragment : Fragment() {
     private val walletAuthenticationViewModel: WalletAuthenticationViewModel by activityViewModels()
     private val nfcViewModel: NfcViewModel by activityViewModels()
 
+    /** Ledger key + dummy tx PSBT the user tapped "Sign" for; non-null shows the Ledger sheet. */
+    private var ledgerSignRequest: WalletAuthenticationEvent.RequestSignLedger? by mutableStateOf(
+        null
+    )
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
     ): View {
@@ -98,6 +106,22 @@ class CheckSignMessageFragment : Fragment() {
 
             setContent {
                 CheckSignMessageScreen(walletAuthenticationViewModel)
+
+                // The Ledger signs the dummy tx PSBT in-app; the signature is extracted from
+                // the PSBT it hands back.
+                ledgerSignRequest?.let { request ->
+                    NunchukTheme {
+                        LedgerSignPsbtSheet(
+                            walletId = walletAuthenticationViewModel.getWalletId(),
+                            psbt = request.psbt,
+                            masterFingerprint = request.fingerprint,
+                            onDismiss = { ledgerSignRequest = null },
+                            onSignSuccess = { signedPsbt ->
+                                walletAuthenticationViewModel.handleSignLedgerKey(signedPsbt)
+                            },
+                        )
+                    }
+                }
             }
         }
     }
@@ -153,6 +177,9 @@ class CheckSignMessageFragment : Fragment() {
                                    psbt = event.psbt
                                 )
                             )
+                        }
+                        is WalletAuthenticationEvent.RequestSignLedger -> {
+                            ledgerSignRequest = event
                         }
                         is WalletAuthenticationEvent.ForceSyncSuccess,
                         is WalletAuthenticationEvent.Loading,

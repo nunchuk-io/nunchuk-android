@@ -46,6 +46,10 @@ sealed class WalletAuthenticationEvent {
     data class RequestSignPortal(val fingerprint: String, val psbt: String) :
         WalletAuthenticationEvent()
 
+    /** Show the Ledger sign sheet for [fingerprint] so it can sign the dummy transaction [psbt]. */
+    data class RequestSignLedger(val fingerprint: String, val psbt: String) :
+        WalletAuthenticationEvent()
+
     data object ExportTransactionToColdcardSuccess : WalletAuthenticationEvent()
     data object CanNotSignDummyTx : WalletAuthenticationEvent()
     data class FinalizeDummyTxSuccess(val isGoBack: Boolean) : WalletAuthenticationEvent()

@@ -65,6 +65,35 @@ class LedgerTransactionSigner @Inject constructor(
         expectedXfp: String,
     ): Transaction = withContext(ioDispatcher) {
         Timber.tag(TAG).d("sign start walletId=$walletId txId=$txId expectedXfp=$expectedXfp")
+        val psbt = nativeSdk.getTransaction(walletId = walletId, txId = txId).psbt
+        val signedPsbt = signPsbt(
+            executor = executor,
+            walletId = walletId,
+            psbt = psbt,
+            expectedXfp = expectedXfp,
+        )
+
+        Timber.tag(TAG).d("signed psbt length=${signedPsbt.length}; importing")
+        importPsbtUseCase(ImportPsbtUseCase.Param(psbt = signedPsbt, walletId = walletId)).getOrThrow()
+            .also { Timber.tag(TAG).d("import done; tx status=${it.status} signers=${it.signers}") }
+    }
+
+    /**
+     * Steps 1-3 of the flow above for a PSBT that isn't a wallet transaction — a dummy
+     * transaction, whose signed PSBT is turned into a signature by the caller instead of being
+     * imported into [walletId].
+     *
+     * @param psbt the PSBT to hand the device.
+     * @return the signed PSBT.
+     * @throws LedgerWrongDeviceException if the connected device is not [expectedXfp].
+     */
+    suspend fun signPsbt(
+        executor: LedgerCommandExecutor,
+        walletId: String,
+        psbt: String,
+        expectedXfp: String,
+    ): String = withContext(ioDispatcher) {
+        Timber.tag(TAG).d("signPsbt start walletId=$walletId expectedXfp=$expectedXfp")
         val deviceFingerprint = executor.getMasterFingerprint()
         Timber.tag(TAG).d("device fingerprint=$deviceFingerprint")
         if (!deviceFingerprint.equals(expectedXfp, ignoreCase = true)) {
@@ -72,7 +101,6 @@ class LedgerTransactionSigner @Inject constructor(
         }
 
         val wallet = nativeSdk.getWallet(walletId)
-        val psbt = nativeSdk.getTransaction(walletId = walletId, txId = txId).psbt
         Timber.tag(TAG).d(
             "wallet loaded id=${wallet.id} addressType=${wallet.addressType} totalRequireSigns=${wallet.totalRequireSigns} signers=${wallet.signers.size} psbtLength=${psbt.length}",
         )
@@ -86,7 +114,7 @@ class LedgerTransactionSigner @Inject constructor(
             setLedgerWalletHmacUseCase(SetLedgerWalletHmacUseCase.Param(walletId, hmac)).getOrThrow()
         }
 
-        val signedPsbt = try {
+        try {
             Timber.tag(TAG).d("signPsbt (hmacLen=${hmac.length})")
             executor.signPsbt(wallet, hmac, psbt)
         } catch (e: LedgerCommandException) {
@@ -99,10 +127,6 @@ class LedgerTransactionSigner @Inject constructor(
             setLedgerWalletHmacUseCase(SetLedgerWalletHmacUseCase.Param(walletId, hmac)).getOrThrow()
             executor.signPsbt(wallet, hmac, psbt)
         }
-
-        Timber.tag(TAG).d("signed psbt length=${signedPsbt.length}; importing")
-        importPsbtUseCase(ImportPsbtUseCase.Param(psbt = signedPsbt, walletId = walletId)).getOrThrow()
-            .also { Timber.tag(TAG).d("import done; tx status=${it.status} signers=${it.signers}") }
     }
 
     private companion object {

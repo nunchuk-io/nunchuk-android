@@ -39,6 +39,19 @@ sealed interface LedgerSheetAction {
     }
 
     /**
+     * Same device conversation as [SignTransaction] for a PSBT that isn't a wallet transaction
+     * (a dummy transaction): sign [psbt] with the wallet registered as [walletId] and hand the
+     * signed PSBT back instead of importing it.
+     */
+    data class SignPsbt(
+        val walletId: String,
+        val psbt: String,
+        val masterFingerprint: String,
+    ) : LedgerSheetAction {
+        override val connectButtonText: Int get() = R.string.nc_ledger_sign_transaction
+    }
+
+    /**
      * Confluence "Sign message" health check: sign a fixed message with the key at
      * [derivationPath] and verify the signature against the stored [masterFingerprint] signer.
      */
@@ -65,6 +78,9 @@ data class LedgerSheetUiState(
 sealed class LedgerSheetEvent {
     /** The signed PSBT was imported into the wallet; the host should refresh and dismiss. */
     data object SignTransactionSuccess : LedgerSheetEvent()
+
+    /** A dummy transaction was signed; the host turns [signedPsbt] into a signature. */
+    data class SignPsbtSuccess(val signedPsbt: String) : LedgerSheetEvent()
 
     /** Health check finished; the outcome is handed to the host (SignerInfo) to display. */
     data class HealthCheckResult(
@@ -208,6 +224,7 @@ class LedgerSheetViewModel @Inject constructor(
     private fun start(action: LedgerSheetAction) {
         when (action) {
             is LedgerSheetAction.SignTransaction -> signTransaction(action)
+            is LedgerSheetAction.SignPsbt -> signPsbt(action)
             is LedgerSheetAction.HealthCheck -> {
                 if (_state.value.isBusy) return
                 _state.update { it.copy(isBusy = true) }
@@ -230,12 +247,33 @@ class LedgerSheetViewModel @Inject constructor(
         }.onSuccess {
             _event.emit(LedgerSheetEvent.SignTransactionSuccess)
         }.onFailure { e ->
-            // Allow a retry (e.g. after connecting the correct device).
-            _state.update { it.copy(isBusy = false) }
-            when (e) {
-                is LedgerWrongDeviceException -> _event.emit(LedgerSheetEvent.WrongDevice)
-                else -> _event.emit(LedgerSheetEvent.Error(e.message.orUnknownError()))
-            }
+            emitSignFailure(e)
+        }
+    }
+
+    private fun signPsbt(action: LedgerSheetAction.SignPsbt) = viewModelScope.launch {
+        if (_state.value.isBusy) return@launch
+        _state.update { it.copy(isBusy = true) }
+        runCatching {
+            ledgerTransactionSigner.signPsbt(
+                executor = executor,
+                walletId = action.walletId,
+                psbt = action.psbt,
+                expectedXfp = action.masterFingerprint,
+            )
+        }.onSuccess { signedPsbt ->
+            _event.emit(LedgerSheetEvent.SignPsbtSuccess(signedPsbt))
+        }.onFailure { e ->
+            emitSignFailure(e)
+        }
+    }
+
+    /** Reports a failed sign and leaves the sheet retryable (e.g. after connecting the right device). */
+    private suspend fun emitSignFailure(e: Throwable) {
+        _state.update { it.copy(isBusy = false) }
+        when (e) {
+            is LedgerWrongDeviceException -> _event.emit(LedgerSheetEvent.WrongDevice)
+            else -> _event.emit(LedgerSheetEvent.Error(e.message.orUnknownError()))
         }
     }
 

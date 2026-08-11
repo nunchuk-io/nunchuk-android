@@ -412,6 +412,7 @@ class WalletAuthenticationViewModel @Inject constructor(
 
             signerModel.type == SignerType.SOFTWARE -> checkSoftwarePassPhrase(singleSigner)
             isTrezorSigner(signerModel) -> requestSignTransactionByTrezor(signerModel)
+            isLedgerSigner(signerModel) -> requestSignTransactionByLedger(signerModel)
             signerModel.type == SignerType.HARDWARE -> _event.emit(WalletAuthenticationEvent.CanNotSignHardwareKey)
             signerModel.type == SignerType.AIRGAP -> _event.emit(WalletAuthenticationEvent.ShowAirgapOption)
             signerModel.type == SignerType.PORTAL_NFC -> _event.emit(
@@ -495,8 +496,47 @@ class WalletAuthenticationViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Unlike Trezor (a deeplink out to Trezor Suite), the Ledger signs in-app over BLE/USB: the
+     * screen shows the Ledger sheet, which hands the signed PSBT back to [handleSignLedgerKey].
+     */
+    private suspend fun requestSignTransactionByLedger(signerModel: SignerModel) {
+        // Signing needs the wallet registered on the device, so a dummy transaction without a
+        // local wallet (e.g. sign-in) still has to go through the desktop app.
+        if (args.walletId.isBlank()) {
+            _event.emit(WalletAuthenticationEvent.CanNotSignHardwareKey)
+            return
+        }
+        if (dataToSign.value.isBlank()) {
+            _event.emit(WalletAuthenticationEvent.CanNotSignDummyTx)
+            return
+        }
+        _event.emit(
+            WalletAuthenticationEvent.RequestSignLedger(
+                fingerprint = signerModel.fingerPrint,
+                psbt = dataToSign.value
+            )
+        )
+    }
+
+    fun handleSignLedgerKey(signedPsbt: String) {
+        viewModelScope.launch {
+            val signer = getInteractSingleSigner() ?: return@launch
+            handleSignatureResult(
+                result = getDummyTransactionSignatureUseCase(
+                    GetDummyTransactionSignatureUseCase.Param(signer, signedPsbt)
+                ),
+                singleSigner = signer
+            )
+        }
+    }
+
     private fun isTrezorSigner(signerModel: SignerModel): Boolean {
         return signerModel.type == SignerType.HARDWARE && signerModel.tags.contains(SignerTag.TREZOR)
+    }
+
+    private fun isLedgerSigner(signerModel: SignerModel): Boolean {
+        return signerModel.type == SignerType.HARDWARE && signerModel.tags.contains(SignerTag.LEDGER)
     }
 
     private fun isTrezorSigner(singleSigner: SingleSigner): Boolean {

@@ -66,6 +66,40 @@ fun LedgerSignTransactionSheet(
 }
 
 /**
+ * Ledger "Sign transaction" bottom sheet for a dummy transaction, shown inline by the host
+ * screen (dummy transaction details). Same device conversation as [LedgerSignTransactionSheet]
+ * — verify the device is [masterFingerprint], register the wallet if needed, sign [psbt] — but
+ * the signed PSBT is handed to [onSignSuccess] instead of being imported into [walletId], so the
+ * host can extract the dummy transaction signature from it.
+ */
+@Composable
+fun LedgerSignPsbtSheet(
+    walletId: String,
+    psbt: String,
+    masterFingerprint: String,
+    onDismiss: () -> Unit,
+    onSignSuccess: (signedPsbt: String) -> Unit,
+) {
+    val action = remember(walletId, psbt, masterFingerprint) {
+        LedgerSheetAction.SignPsbt(
+            walletId = walletId,
+            psbt = psbt,
+            masterFingerprint = masterFingerprint,
+        )
+    }
+    LedgerSheet(
+        action = action,
+        onDismiss = onDismiss,
+        onEvent = { event ->
+            if (event is LedgerSheetEvent.SignPsbtSuccess) {
+                onSignSuccess(event.signedPsbt)
+                onDismiss()
+            }
+        },
+    )
+}
+
+/**
  * Ledger health-check bottom sheet, shown inline by the host screen (signer info). Connects
  * over BLE/USB in-app and asks the device to sign the health-check message with the key at
  * [derivationPath], then verifies that signature against the stored [masterFingerprint] signer.

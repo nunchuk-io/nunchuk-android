@@ -45,6 +45,7 @@ import com.nunchuk.android.compose.dialog.NcConfirmationDialog
 import com.nunchuk.android.core.base.BaseShareSaveFileFragment
 import com.nunchuk.android.core.domain.data.SignTransaction
 import com.nunchuk.android.core.domain.membership.TargetAction
+import com.nunchuk.android.core.ledger.LedgerSignPsbtSheet
 import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.BasePortalActivity
@@ -108,6 +109,11 @@ class DummyTransactionDetailsFragment : BaseShareSaveFileFragment<ViewBinding>()
     private val walletAuthenticationViewModel: WalletAuthenticationViewModel by activityViewModels()
     private val nfcViewModel: NfcViewModel by activityViewModels()
     private var openTrezorSuiteDeeplink: String? by mutableStateOf(null)
+
+    /** Ledger key + dummy tx PSBT the user tapped "Sign" for; non-null shows the Ledger sheet. */
+    private var ledgerSignRequest: WalletAuthenticationEvent.RequestSignLedger? by mutableStateOf(
+        null
+    )
 
     private val importFileLauncher =
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
@@ -175,6 +181,20 @@ class DummyTransactionDetailsFragment : BaseShareSaveFileFragment<ViewBinding>()
                                 onDismiss = {
                                     openTrezorSuiteDeeplink = null
                                 }
+                            )
+                        }
+
+                        // The Ledger signs the dummy tx PSBT in-app; the signature is extracted
+                        // from the PSBT it hands back.
+                        ledgerSignRequest?.let { request ->
+                            LedgerSignPsbtSheet(
+                                walletId = walletAuthenticationViewModel.getWalletId(),
+                                psbt = request.psbt,
+                                masterFingerprint = request.fingerprint,
+                                onDismiss = { ledgerSignRequest = null },
+                                onSignSuccess = { signedPsbt ->
+                                    walletAuthenticationViewModel.handleSignLedgerKey(signedPsbt)
+                                },
                             )
                         }
                     }
@@ -297,6 +317,10 @@ class DummyTransactionDetailsFragment : BaseShareSaveFileFragment<ViewBinding>()
                             (requireActivity() as BasePortalActivity<*>).handlePortalAction(
                                 SignTransaction(fingerPrint = event.fingerprint, psbt = event.psbt)
                             )
+                        }
+
+                        is WalletAuthenticationEvent.RequestSignLedger -> {
+                            ledgerSignRequest = event
                         }
 
                         is WalletAuthenticationEvent.NoInternetConnectionToSign -> showWarning(
