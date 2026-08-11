@@ -107,6 +107,27 @@
                 android:resource="@xml/shortcuts" />
 
         </activity>
+        <!--
+            Makes Nunchuk an option in the system chooser when a Ledger is plugged in, so the
+            user can set it as the default for the device and stop being asked. The activity
+            finishes immediately on purpose — see LedgerUsbAttachActivity.
+        -->
+        <activity
+            android:name=".app.ledger.LedgerUsbAttachActivity"
+            android:excludeFromRecents="true"
+            android:exported="true"
+            android:noHistory="true"
+            android:taskAffinity=""
+            android:theme="@android:style/Theme.NoDisplay">
+            <intent-filter>
+                <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
+                android:resource="@xml/ledger_usb_device_filter" />
+        </activity>
+
         <activity android:name="com.nunchuk.android.app.wallet.QuickWalletActivity"
             android:label="@string/nc_wallet_add_wallet_title"
             android:screenOrientation="portrait"
