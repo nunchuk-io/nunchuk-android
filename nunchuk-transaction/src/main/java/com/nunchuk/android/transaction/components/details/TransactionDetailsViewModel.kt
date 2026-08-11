@@ -1429,6 +1429,18 @@ internal class TransactionDetailsViewModel @Inject constructor(
         }
     }
 
+    /**
+     * The Ledger sheet signs and imports the PSBT itself, so there is nothing left to import here
+     * — reload the transaction and report success through the same event as the other signer
+     * flows, so the success messaging stays in one place (the host screen).
+     */
+    fun handleSignLedgerSuccess() {
+        getTransactionInfo()
+        viewModelScope.launch {
+            _event.emit(SignTransactionSuccess())
+        }
+    }
+
     private suspend fun importSignedTransactionFromTrezor(psbt: String) {
         importPsbtUseCase(
             ImportPsbtUseCase.Param(

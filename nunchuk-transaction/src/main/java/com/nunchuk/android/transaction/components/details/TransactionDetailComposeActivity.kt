@@ -13,14 +13,12 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.dialog.NcConfirmationDialog
-import com.nunchuk.android.compose.showNunchukSnackbar
 import com.nunchuk.android.core.domain.data.SignTransaction
 import com.nunchuk.android.core.ledger.LedgerSignTransactionSheet
 import com.nunchuk.android.core.manager.NcToastManager
@@ -199,7 +197,6 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
             val state by viewModel.state.collectAsStateWithLifecycle()
             val miniscriptUiState by viewModel.miniscriptState.collectAsStateWithLifecycle()
             val snackbarHostState = remember { SnackbarHostState() }
-            val scope = rememberCoroutineScope()
             NunchukTheme {
                 TransactionDetailView(
                     inheritanceClaimTxDetailInfo = args.inheritanceClaimTxDetailInfo,
@@ -287,21 +284,16 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
                     )
                 }
 
-                // The Ledger sheet signs + imports the PSBT itself; on success just refresh.
+                // The Ledger sheet signs + imports the PSBT itself; on success just let the
+                // ViewModel refresh and report it like any other signer, so the success message
+                // is decided in one place (showSignTransactionSuccess) instead of twice.
                 ledgerSignFingerprint?.let { fingerprint ->
                     LedgerSignTransactionSheet(
                         walletId = args.walletId,
                         txId = args.txId,
                         masterFingerprint = fingerprint,
                         onDismiss = { ledgerSignFingerprint = null },
-                        onSignSuccess = {
-                            viewModel.getTransactionInfo()
-                            scope.launch {
-                                snackbarHostState.showNunchukSnackbar(
-                                    message = getString(R.string.nc_transaction_signed_successful),
-                                )
-                            }
-                        },
+                        onSignSuccess = viewModel::handleSignLedgerSuccess,
                     )
                 }
             }
