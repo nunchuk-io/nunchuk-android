@@ -868,6 +868,9 @@ class LedgerBleController(
         // How long to wait for the Ledger to re-enumerate after a USB app switch before
         // assuming it kept its USB configuration and resuming on the handle we already have.
         private const val USB_APP_SWITCH_GRACE_MS = 2_500L
+        // Every Ledger model shares this vendor id, so matching on it alone covers them all.
+        // Mirrored in decimal by nunchuk-app's res/xml/ledger_usb_device_filter.xml, which
+        // decides whether Nunchuk is offered when one is plugged in — change both together.
         private const val LEDGER_USB_VENDOR_ID = 0x2c97
         private const val ACTION_USB_PERMISSION = "com.nunchuk.android.signer.ledger.USB_PERMISSION"
         private val CCCD_UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")

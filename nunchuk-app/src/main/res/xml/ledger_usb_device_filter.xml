@@ -1,7 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
     Devices that make Nunchuk an option when a USB device is attached. Ledger's USB vendor id
-    is 0x2c97; this file takes decimal, so 11415. No product-id, so every Ledger model matches.
+    is 0x2c97; this file takes decimal, so 11415. No product-id, so every Ledger model matches
+    (Nano S / S Plus / X / Stax / Flex differ only by product id) and a device still matches
+    after it re-enumerates on an app switch.
+
+    Keep in sync with LedgerBleController.LEDGER_USB_VENDOR_ID, which decides what reaches the
+    device picker: a vendor listed in only one of the two shows up in the picker but isn't
+    offered on plug-in, or the reverse. Only add a vendor the app can actually drive — over USB
+    it speaks the Ledger protocol alone, so anything else would connect and then fail.
 -->
 <resources>
     <usb-device vendor-id="11415" />
