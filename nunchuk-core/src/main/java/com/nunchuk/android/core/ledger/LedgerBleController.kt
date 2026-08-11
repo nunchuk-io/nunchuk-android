@@ -71,7 +71,9 @@ data class LedgerDevice(
  * - Stable session_id per device: BLE address / USB deviceName.
  * - BLE write queue: one frame in flight, next only after onCharacteristicWrite.
  * - Commands run only after the transport is fully ready.
- * - APP_SWITCH resumes once ready again (reconnect if the transport dropped).
+ * - APP_SWITCH resumes once ready again (reconnect if the transport dropped). resume() is
+ *   only valid while that app switch is pending, so a drop during any other command is
+ *   reported as an error rather than resumed.
  */
 @SuppressLint("MissingPermission")
 @Suppress("DEPRECATION")
@@ -112,15 +114,24 @@ class LedgerBleController(
     private var pendingReadyAction: (() -> Unit)? = null
 
     private var usbReceiverRegistered = false
+
+    /** Pending "the Ledger never re-enumerated" fallback for a USB app switch. */
+    private var usbAppSwitchGrace: Runnable? = null
+
     private val usbReceiver = object : BroadcastReceiver() {
         override fun onReceive(ctx: Context, intent: Intent) {
-            if (intent.action != ACTION_USB_PERMISSION) return
             val device = intent.usbDeviceExtra() ?: return
-            val granted = intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)
-            if (granted) {
-                openUsbDevice(device)
-            } else {
-                listener.onError("USB permission denied")
+            when (intent.action) {
+                ACTION_USB_PERMISSION -> {
+                    if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
+                        openUsbDevice(device)
+                    } else {
+                        listener.onError("USB permission denied")
+                    }
+                }
+
+                UsbManager.ACTION_USB_DEVICE_ATTACHED -> onUsbAttached(device)
+                UsbManager.ACTION_USB_DEVICE_DETACHED -> onUsbDetached(device)
             }
         }
     }
@@ -348,14 +359,17 @@ class LedgerBleController(
                 runCatching { gatt.close() }
                 return
             }
-            if (conn.commandActive) {
-                runCatching { gatt.close() }
-                conn.clearBleRuntime()
-                conn.resumePending = true
-                connectBle(gatt.device, conn)
-            } else {
-                runCatching { gatt.close() }
-                conn.clearBleRuntime()
+            runCatching { gatt.close() }
+            conn.clearBleRuntime()
+            when {
+                // Dropped while the device opens the Bitcoin app: reconnect, and
+                // onTransportReady() resumes the queued command once we're back.
+                conn.resumePending -> connectBle(gatt.device, conn)
+                // Any other mid-command drop cannot be resumed: LedgerSession only accepts
+                // resume() while an app switch is pending (once the command itself has been
+                // written, resume() answers "no command to resume after app switch"). Fail
+                // the command instead so the user can reconnect and retry.
+                conn.commandActive -> fail("Ledger disconnected. Reconnect and try again.")
             }
         }
     }
@@ -506,26 +520,107 @@ class LedgerBleController(
         conn.usbInEndpoint = inEndpoint
         conn.usbOutEndpoint = outEndpoint
         startUsbReader(conn)
+        // The handle is live again, so the "never re-enumerated" fallback must not fire and
+        // resume a second time.
+        cancelUsbAppSwitchGrace()
         onTransportReady()
     }
 
+    /**
+     * The Ledger re-enumerates while it opens the Bitcoin app: the handle we hold dies and the
+     * device comes back as a different [UsbDevice]. Rebind to it — keeping [LedgerConnection.id]
+     * so the native session (and the command queued behind the app switch) stays the same — and
+     * let [onTransportReady] resume once the HID endpoints are open again.
+     */
+    private fun onUsbAttached(device: UsbDevice) {
+        if (device.vendorId != LEDGER_USB_VENDOR_ID) return
+        foundDevices[device.deviceName] = LedgerDevice(
+            id = device.deviceName,
+            name = device.productName ?: "Ledger (USB)",
+            transport = LedgerTransportKind.USB,
+        )
+        listener.onScanResults(foundDevices.values.toList())
+
+        val conn = connection?.takeIf {
+            it.transport == LedgerTransportKind.USB && it.resumePending && it.usbConnection == null
+        } ?: return
+        Timber.tag(TAG).d("USB re-attached as ${device.deviceName}; rebinding session ${conn.id}")
+        cancelUsbAppSwitchGrace()
+        conn.usbDevice = device
+        listener.onConnecting(
+            LedgerDevice(conn.id, device.productName ?: conn.id, LedgerTransportKind.USB)
+        )
+        if (usbManager?.hasPermission(device) == true) {
+            openUsbDevice(device)
+        } else {
+            requestUsbPermission(device)
+        }
+    }
+
+    private fun onUsbDetached(device: UsbDevice) {
+        foundDevices.remove(device.deviceName)
+        listener.onScanResults(foundDevices.values.toList())
+
+        val conn = connection?.takeIf { it.transport == LedgerTransportKind.USB } ?: return
+        if (conn.usbDevice?.deviceName != device.deviceName) return
+        Timber.tag(TAG).d("USB detached ${device.deviceName} resumePending=${conn.resumePending}")
+        conn.clearUsbRuntime()
+        when {
+            // Detached because of the app switch — onUsbAttached() picks it back up.
+            conn.resumePending -> Unit
+            conn.commandActive -> fail("Ledger disconnected. Reconnect and try again.")
+        }
+    }
+
+    /**
+     * Fallback for a USB app switch on a device that keeps its USB configuration: if nothing
+     * detached within the grace period, resume on the handle we already have.
+     */
+    private fun scheduleUsbAppSwitchResume(conn: LedgerConnection) {
+        cancelUsbAppSwitchGrace()
+        val grace = Runnable {
+            usbAppSwitchGrace = null
+            if (connection !== conn || !conn.resumePending || !conn.isReady()) return@Runnable
+            Timber.tag(TAG).d("USB app switch: no re-enumeration, resuming on the open handle")
+            onTransportReady()
+        }
+        usbAppSwitchGrace = grace
+        mainHandler.postDelayed(grace, USB_APP_SWITCH_GRACE_MS)
+    }
+
+    private fun cancelUsbAppSwitchGrace() {
+        usbAppSwitchGrace?.let { mainHandler.removeCallbacks(it) }
+        usbAppSwitchGrace = null
+    }
+
     private fun writeUsbFrames(frames: List<ByteArray>) {
-        val conn = connection ?: return
-        val usbConnection = conn.usbConnection ?: return
-        val endpoint = conn.usbOutEndpoint ?: return
+        val conn = connection
+        val usbConnection = conn?.usbConnection
+        val endpoint = conn?.usbOutEndpoint
+        if (usbConnection == null || endpoint == null) {
+            // Writing with no open handle used to return silently, leaving the command hanging
+            // with nothing on screen.
+            fail("Ledger USB connection is not open")
+            return
+        }
         frames.forEach { frame ->
             val wrote = usbConnection.bulkTransfer(endpoint, frame, frame.size, USB_TIMEOUT_MS)
-            if (wrote < 0) fail("USB write failed")
+            if (wrote < 0) {
+                fail("USB write failed")
+                return
+            }
         }
     }
 
     private fun startUsbReader(conn: LedgerConnection) {
+        val usbConnection = conn.usbConnection ?: return
+        val endpoint = conn.usbInEndpoint ?: return
         conn.usbReaderRunning = true
         thread(name = "ledger-usb-reader-${conn.id}") {
-            val endpoint = conn.usbInEndpoint ?: return@thread
             val buffer = ByteArray(endpoint.maxPacketSize.coerceAtLeast(1))
-            while (conn.usbReaderRunning) {
-                val usbConnection = conn.usbConnection ?: break
+            // Also stop once this handle is replaced — after a re-enumeration the old reader
+            // would otherwise keep pulling frames off the new connection alongside its reader.
+            while (conn.usbReaderRunning && conn.usbConnection === usbConnection) {
                 val read = usbConnection.bulkTransfer(endpoint, buffer, buffer.size, USB_TIMEOUT_MS)
                 if (read > 0) {
                     val frame = buffer.copyOf(read)
@@ -537,7 +632,13 @@ class LedgerBleController(
 
     private fun registerUsbReceiver() {
         if (usbReceiverRegistered) return
-        val filter = IntentFilter(ACTION_USB_PERMISSION)
+        // ATTACHED/DETACHED keep the picker in sync and drive the re-enumeration that follows
+        // an app switch; both are protected system broadcasts, so NOT_EXPORTED still receives
+        // them while keeping our own permission action app-private.
+        val filter = IntentFilter(ACTION_USB_PERMISSION).apply {
+            addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED)
+            addAction(UsbManager.ACTION_USB_DEVICE_DETACHED)
+        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             context.registerReceiver(usbReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
         } else {
@@ -667,18 +768,30 @@ class LedgerBleController(
         val conn = connection ?: return
         conn.commandActive = true
         conn.resumePending = true
-        if (conn.isReady()) {
-            onTransportReady()
-        } else when (conn.transport) {
-            LedgerTransportKind.BLE -> {
+        when (conn.transport) {
+            // BLE: resume straight away if the link survived, otherwise on reconnect.
+            LedgerTransportKind.BLE -> if (conn.isReady()) {
+                onTransportReady()
+            } else {
                 val device = conn.bleDevice ?: conn.gatt?.device
                 if (device == null) fail("Ledger BLE device is unavailable") else connectBle(device, conn)
             }
-            LedgerTransportKind.USB -> {
-                val device = conn.usbDevice
-                if (device == null) fail("Ledger USB device is unavailable") else openUsbDevice(device)
-            }
+
+            LedgerTransportKind.USB -> handleUsbAppSwitch(conn)
         }
+    }
+
+    /**
+     * APP_SWITCH over USB: the handle we hold is about to die because the Ledger re-enumerates
+     * while it opens the Bitcoin app, so never resume on it straight away — wait for the
+     * detach/attach pair ([onUsbAttached] resumes), with [scheduleUsbAppSwitchResume] covering
+     * a device that stays enumerated.
+     */
+    private fun handleUsbAppSwitch(conn: LedgerConnection) {
+        listener.onConnecting(
+            LedgerDevice(conn.id, conn.usbDevice?.productName ?: conn.id, LedgerTransportKind.USB)
+        )
+        scheduleUsbAppSwitchResume(conn)
     }
 
     private fun writeFrames(frames: List<ByteArray>) {
@@ -717,6 +830,7 @@ class LedgerBleController(
 
     fun close() {
         stopScan()
+        cancelUsbAppSwitchGrace()
         unregisterUsbReceiver()
         // Drop pending scan-timeout / write-retry callbacks so they can't keep this
         // controller (and the Activity it references) alive after teardown.
@@ -751,6 +865,9 @@ class LedgerBleController(
         private const val BLE_WRITE_RETRY_ATTEMPTS = 8
         private const val BLE_WRITE_RETRY_DELAY_MS = 120L
         private const val USB_TIMEOUT_MS = 5_000
+        // How long to wait for the Ledger to re-enumerate after a USB app switch before
+        // assuming it kept its USB configuration and resuming on the handle we already have.
+        private const val USB_APP_SWITCH_GRACE_MS = 2_500L
         private const val LEDGER_USB_VENDOR_ID = 0x2c97
         private const val ACTION_USB_PERMISSION = "com.nunchuk.android.signer.ledger.USB_PERMISSION"
         private val CCCD_UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")

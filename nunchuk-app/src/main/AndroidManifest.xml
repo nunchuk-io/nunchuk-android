@@ -30,6 +30,11 @@
         android:name="android.hardware.camera.autofocus"
         android:required="false" />
 
+    <!-- USB host (OTG) is how a Ledger connects over cable; optional, BLE also works. -->
+    <uses-feature
+        android:name="android.hardware.usb.host"
+        android:required="false" />
+
     <application
         android:name="com.nunchuk.android.app.NunchukApplication"
         android:allowBackup="false"
