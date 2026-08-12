@@ -7,6 +7,7 @@ import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -16,6 +17,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -23,11 +25,14 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.strokePrimary
+import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.R
 import com.nunchuk.android.widget.NCToastMessage
 
@@ -133,6 +138,36 @@ fun LedgerHealthCheckSheet(
 }
 
 /**
+ * Ledger "Show address on device" bottom sheet, shown inline by the host screen (receive
+ * addresses). Connects over BLE/USB in-app, registers [walletId] on the device if it isn't
+ * already, then asks the device to display [address] and compares what it derived.
+ *
+ * [onResult] reports whether the device showed the same address; the sheet dismisses either
+ * way, leaving the host to display success/failure.
+ */
+@Composable
+fun LedgerVerifyAddressSheet(
+    walletId: String,
+    address: String,
+    onDismiss: () -> Unit,
+    onResult: (isMatch: Boolean) -> Unit,
+) {
+    val action = remember(walletId, address) {
+        LedgerSheetAction.VerifyAddress(walletId = walletId, address = address)
+    }
+    LedgerSheet(
+        action = action,
+        onDismiss = onDismiss,
+        onEvent = { event ->
+            if (event is LedgerSheetEvent.VerifyAddressResult) {
+                onResult(event.isMatch)
+                onDismiss()
+            }
+        },
+    )
+}
+
+/**
  * Shared body of every Ledger sheet: the device picker plus the transport plumbing that only
  * the UI layer can do (runtime permissions, the "turn on Bluetooth" prompt, error toasts).
  * The session itself lives in [LedgerSheetViewModel]; [onEvent] handles whatever is specific
@@ -206,7 +241,9 @@ private fun LedgerSheet(
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
-        sheetState = rememberModalBottomSheetState(),
+        // Open fully rather than half-height: the picker is a short, self-contained flow, and
+        // a partially expanded sheet can cut off the action button until the user drags it up.
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp),
         containerColor = MaterialTheme.colorScheme.background,
         tonalElevation = 0.dp,
@@ -218,6 +255,8 @@ private fun LedgerSheet(
             devices = state.devices,
             selectedAddress = state.selectedDeviceId,
             statusText = state.statusText,
+            // Shown so the user has something to compare the device screen against.
+            verifyAddress = (action as? LedgerSheetAction.VerifyAddress)?.address,
             connectButtonText = action.connectButtonText,
             onRescan = ensurePermissionThenScan,
             onRefreshUsb = { viewModel.refreshUsb() },
@@ -229,7 +268,8 @@ private fun LedgerSheet(
 
 /**
  * Sheet body: the shared device picker wrapping its content height so the sheet only takes
- * the space it needs, plus the action button.
+ * the space it needs, plus the action button. [verifyAddress] is the address the device is
+ * asked to display, shown only by the verify-address sheet.
  */
 @Composable
 private fun LedgerSheetContent(
@@ -238,6 +278,7 @@ private fun LedgerSheetContent(
     devices: List<LedgerDevice> = emptyList(),
     selectedAddress: String? = null,
     statusText: String = "",
+    verifyAddress: String? = null,
     @StringRes connectButtonText: Int = R.string.nc_ledger_connect,
     onRescan: () -> Unit = {},
     onRefreshUsb: () -> Unit = {},
@@ -264,6 +305,14 @@ private fun LedgerSheetContent(
             onRefreshUsb = onRefreshUsb,
             onSelectDevice = onSelectDevice,
         )
+        if (verifyAddress != null) {
+            LedgerVerifyAddressBox(
+                modifier = Modifier
+                    .padding(top = 24.dp)
+                    .fillMaxWidth(),
+                address = verifyAddress,
+            )
+        }
         LedgerConnectButton(
             modifier = Modifier
                 .padding(top = 24.dp)
@@ -272,6 +321,37 @@ private fun LedgerSheetContent(
             connectButtonText = connectButtonText,
             isBusy = isBusy,
             onConnect = onConnect,
+        )
+    }
+}
+
+/**
+ * The address the Ledger is asked to display, so the user can compare it with the device
+ * screen without leaving the sheet.
+ */
+@Composable
+private fun LedgerVerifyAddressBox(
+    modifier: Modifier = Modifier,
+    address: String,
+) {
+    Column(
+        modifier = modifier
+            .border(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.strokePrimary,
+                shape = RoundedCornerShape(8.dp),
+            )
+            .padding(12.dp),
+    ) {
+        Text(
+            text = stringResource(id = R.string.nc_ledger_check_this_address),
+            style = NunchukTheme.typography.bodySmall
+                .copy(color = MaterialTheme.colorScheme.textSecondary),
+        )
+        Text(
+            modifier = Modifier.padding(top = 4.dp),
+            text = address,
+            style = NunchukTheme.typography.body,
         )
     }
 }
@@ -296,6 +376,19 @@ private fun LedgerHealthCheckSheetContentPreview() {
             devices = listOf(LedgerDevice("DE:F1:60:10:BA:AB", "Nano X E4F4", LedgerTransportKind.BLE)),
             selectedAddress = "DE:F1:60:10:BA:AB",
             connectButtonText = R.string.nc_ledger_sign_message,
+        )
+    }
+}
+
+@PreviewLightDark
+@Composable
+private fun LedgerVerifyAddressSheetContentPreview() {
+    NunchukTheme {
+        LedgerSheetContent(
+            devices = listOf(LedgerDevice("DE:F1:60:10:BA:AB", "Nano X E4F4", LedgerTransportKind.BLE)),
+            selectedAddress = "DE:F1:60:10:BA:AB",
+            verifyAddress = "bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq",
+            connectButtonText = R.string.nc_verify_address_on_device,
         )
     }
 }

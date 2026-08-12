@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.R
 import com.nunchuk.android.core.domain.utils.HealthCheckSingleSignerUseCase
+import com.nunchuk.android.core.domain.utils.LedgerAddressVerifier
 import com.nunchuk.android.core.domain.utils.LedgerTransactionSigner
 import com.nunchuk.android.core.domain.utils.LedgerWrongDeviceException
 import com.nunchuk.android.core.util.orUnknownError
@@ -61,6 +62,17 @@ sealed interface LedgerSheetAction {
     ) : LedgerSheetAction {
         override val connectButtonText: Int get() = R.string.nc_ledger_sign_message
     }
+
+    /**
+     * Confluence "4. Show address on device": register the wallet if needed, show [address] on
+     * the device and check the address it derived matches.
+     */
+    data class VerifyAddress(
+        val walletId: String,
+        val address: String,
+    ) : LedgerSheetAction {
+        override val connectButtonText: Int get() = R.string.nc_verify_address_on_device
+    }
 }
 
 data class LedgerSheetUiState(
@@ -88,6 +100,9 @@ sealed class LedgerSheetEvent {
         val errorMessage: String? = null,
     ) : LedgerSheetEvent()
 
+    /** The device showed the address; [isMatch] is whether it derived the one we display. */
+    data class VerifyAddressResult(val isMatch: Boolean) : LedgerSheetEvent()
+
     /** Connected Ledger isn't the signer we're signing for — ask for the right device. */
     data object WrongDevice : LedgerSheetEvent()
 
@@ -111,6 +126,7 @@ class LedgerSheetViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
     nativeSdk: NunchukNativeSdk,
     private val ledgerTransactionSigner: LedgerTransactionSigner,
+    private val ledgerAddressVerifier: LedgerAddressVerifier,
     private val getRemoteSignerUseCase: GetRemoteSignerUseCase,
     private val healthCheckSingleSignerUseCase: HealthCheckSingleSignerUseCase,
 ) : ViewModel() {
@@ -232,6 +248,8 @@ class LedgerSheetViewModel @Inject constructor(
                 pendingHealthCheck = action
                 controller.signMessage(action.derivationPath, HEALTH_CHECK_MESSAGE)
             }
+
+            is LedgerSheetAction.VerifyAddress -> verifyAddress(action)
         }
     }
 
@@ -265,7 +283,22 @@ class LedgerSheetViewModel @Inject constructor(
         }
     }
 
-    /** Reports a failed sign and leaves the sheet retryable (e.g. after connecting the right device). */
+    private fun verifyAddress(action: LedgerSheetAction.VerifyAddress) = viewModelScope.launch {
+        runCatching {
+            ledgerAddressVerifier.verify(
+                executor = executor,
+                walletId = action.walletId,
+                address = action.address,
+            )
+        }.onSuccess { isMatch ->
+            _state.update { it.copy(isBusy = false) }
+            _event.emit(LedgerSheetEvent.VerifyAddressResult(isMatch))
+        }.onFailure { e ->
+            emitSignFailure(e)
+        }
+    }
+
+    /** Reports a failed command and leaves the sheet retryable (e.g. after connecting the right device). */
     private suspend fun emitSignFailure(e: Throwable) {
         _state.update { it.copy(isBusy = false) }
         when (e) {

@@ -110,6 +110,12 @@ internal class UnusedAddressViewModel @Inject constructor(
         }
     }
 
+    fun isLedgerWallet(): Boolean {
+        return _state.value.wallet.signers.any { signer ->
+            signer.tags.contains(SignerTag.LEDGER)
+        }
+    }
+
     fun requestVerifyAddressByTrezor(address: String) {
         val wallet = _state.value.wallet
         if (wallet.id.isBlank() || address.isBlank()) return

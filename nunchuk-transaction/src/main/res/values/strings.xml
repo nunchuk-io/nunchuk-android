@@ -97,6 +97,8 @@
     <string name="nc_saved_address_warning_desc">For privacy and security reasons, reusing addresses is generally not recommended in Bitcoin. Only save and reuse an address if you must.</string>
     <string name="nc_verify_address_via_portal">Verify address via PORTAL</string>
     <string name="nc_verify_address_via_trezor_suite">Verify address via Trezor Suite</string>
+    <string name="nc_verify_address_via_ledger">Verify address via Ledger</string>
+    <string name="nc_ledger_address_verification_failed">The address on your Ledger doesn\'t match this address</string>
     <string name="nc_open_trezor_suite">Open Trezor Suite</string>
     <string name="nc_open_trezor_suite_continue_signing_message">Open the Trezor Suite app to continue signing.</string>
     <string name="nc_open_trezor_suite_verify_message">Open the Trezor Suite app to verify.</string>

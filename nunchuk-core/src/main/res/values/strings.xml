@@ -843,6 +843,7 @@
     <string name="nc_ledger_wrong_device">This Ledger doesn\'t match the selected key. Please connect the correct device.</string>
     <string name="nc_ledger_sign_transaction">Sign transaction</string>
     <string name="nc_ledger_sign_message">Sign message</string>
+    <string name="nc_ledger_check_this_address">Please check this address on your Ledger</string>
     <string name="nc_trezor">Trezor</string>
     <string name="nc_software">Software</string>
     <string name="nc_seedsigner">SeedSigner</string>

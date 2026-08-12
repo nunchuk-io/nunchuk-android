@@ -53,4 +53,11 @@ class LedgerControllerExecutor(
 
     override suspend fun signPsbt(wallet: Wallet, hmac: String, psbt: String): String =
         await { controller.signPsbt(wallet, hmac, psbt) }
+
+    override suspend fun getWalletAddress(
+        wallet: Wallet,
+        hmac: String,
+        addressIndex: Int,
+        change: Boolean,
+    ): String = await { controller.getWalletAddress(wallet, hmac, addressIndex, change) }
 }

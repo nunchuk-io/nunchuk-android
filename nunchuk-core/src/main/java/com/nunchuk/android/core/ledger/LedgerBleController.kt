@@ -54,6 +54,7 @@ enum class LedgerRequest {
     SIGN_MESSAGE,
     REGISTER_WALLET,
     SIGN_PSBT,
+    GET_WALLET_ADDRESS,
 }
 
 data class LedgerDevice(
@@ -690,6 +691,16 @@ class LedgerBleController(
     fun signPsbt(wallet: Wallet, hmac: String, psbt: String) =
         startCommand(LedgerRequest.SIGN_PSBT) { id, transport ->
             nativeSdk.ledgerSignPsbt(id, transport, wallet, hmac, psbt)
+        }
+
+    /**
+     * Confluence "Show address on device" — shows the registered [wallet]'s address at
+     * [addressIndex] on the device screen. Requires the wallet [hmac] from a prior
+     * registration. The completion result is the address the device derived.
+     */
+    fun getWalletAddress(wallet: Wallet, hmac: String, addressIndex: Int, change: Boolean) =
+        startCommand(LedgerRequest.GET_WALLET_ADDRESS) { id, transport ->
+            nativeSdk.ledgerGetWalletAddress(id, transport, wallet, hmac, addressIndex, change)
         }
 
     private fun startCommand(request: LedgerRequest, block: (String, LedgerTransport) -> LedgerStep) {

@@ -37,6 +37,7 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.dialog.NcConfirmationDialog
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.domain.data.VerifyAddress
+import com.nunchuk.android.core.ledger.LedgerVerifyAddressSheet
 import com.nunchuk.android.core.nfc.BasePortalActivity
 import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.sheet.BottomSheetOption
@@ -76,6 +77,9 @@ internal class UnusedAddressFragment : BaseFragment<ViewBinding>(),
 
     private var currentPage = 0
     private var openTrezorSuiteDeeplink: String? by mutableStateOf(null)
+
+    /** Address being shown on a Ledger; non-null while the verify sheet is up. */
+    private var ledgerVerifyAddress: String? by mutableStateOf(null)
 
     @Inject
     lateinit var trezorCallbackHolder: TrezorCallbackHolder
@@ -117,6 +121,15 @@ internal class UnusedAddressFragment : BaseFragment<ViewBinding>(),
                             onDismiss = {
                                 openTrezorSuiteDeeplink = null
                             }
+                        )
+                    }
+
+                    ledgerVerifyAddress?.let { address ->
+                        LedgerVerifyAddressSheet(
+                            walletId = args.walletId,
+                            address = address,
+                            onDismiss = { ledgerVerifyAddress = null },
+                            onResult = ::showAddressVerificationResult,
                         )
                     }
                 }
@@ -184,6 +197,15 @@ internal class UnusedAddressFragment : BaseFragment<ViewBinding>(),
         NCToastMessage(requireActivity()).showMessage(getString(R.string.nc_address_copy_to_clipboard))
     }
 
+    private fun showAddressVerificationResult(isMatch: Boolean) {
+        val activity = activity ?: return
+        if (isMatch) {
+            NCToastMessage(activity).showMessage(getString(R.string.nc_address_successfully_verified))
+        } else {
+            NCToastMessage(activity).showError(getString(R.string.nc_ledger_address_verification_failed))
+        }
+    }
+
     private fun copyDerivationPath(address: String) {
         textUtils.copyText(text = address)
         NCToastMessage(requireActivity()).showMessage(getString(R.string.nc_address_derivation_path_have_been_copied))
@@ -210,10 +232,10 @@ internal class UnusedAddressFragment : BaseFragment<ViewBinding>(),
                 SheetOption(
                     type = SheetOptionType.TYPE_VERIFY_ADDRESS_DEVICE,
                     resId = R.drawable.ic_visibility,
-                    label = if (viewModel.isTrezorWallet()) {
-                        getString(R.string.nc_verify_address_via_trezor_suite)
-                    } else {
-                        getString(R.string.nc_verify_address_via_portal)
+                    label = when {
+                        viewModel.isTrezorWallet() -> getString(R.string.nc_verify_address_via_trezor_suite)
+                        viewModel.isLedgerWallet() -> getString(R.string.nc_verify_address_via_ledger)
+                        else -> getString(R.string.nc_verify_address_via_portal)
                     },
                 )
             )
@@ -237,17 +259,20 @@ internal class UnusedAddressFragment : BaseFragment<ViewBinding>(),
                 viewLifecycleOwner.lifecycleScope.launch {
                     val address = getCurrentAddress().orEmpty()
                     if (address.isNotBlank()) {
-                        if (viewModel.isTrezorWallet()) {
-                            viewModel.requestVerifyAddressByTrezor(address)
-                        } else {
-                            val index = viewModel.getAddressIndex(address)
-                            if (index != -1) {
-                                (requireActivity() as BasePortalActivity<*>).handlePortalAction(
-                                    VerifyAddress(
-                                        address = address,
-                                        index = index
+                        when {
+                            viewModel.isTrezorWallet() -> viewModel.requestVerifyAddressByTrezor(address)
+                            // The sheet resolves the address index itself, on the device session.
+                            viewModel.isLedgerWallet() -> ledgerVerifyAddress = address
+                            else -> {
+                                val index = viewModel.getAddressIndex(address)
+                                if (index != -1) {
+                                    (requireActivity() as BasePortalActivity<*>).handlePortalAction(
+                                        VerifyAddress(
+                                            address = address,
+                                            index = index
+                                        )
                                     )
-                                )
+                                }
                             }
                         }
                     }

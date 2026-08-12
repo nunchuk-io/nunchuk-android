@@ -125,10 +125,11 @@ class LedgerActivity : BaseComposeActivity() {
                     )
                 }
 
-                // Only the inline sheets drive sign-message / register / sign-psbt.
+                // Only the inline sheets drive sign-message / register / sign-psbt / show-address.
                 LedgerRequest.SIGN_MESSAGE,
                 LedgerRequest.REGISTER_WALLET,
-                LedgerRequest.SIGN_PSBT -> Unit
+                LedgerRequest.SIGN_PSBT,
+                LedgerRequest.GET_WALLET_ADDRESS -> Unit
             }
         }
 

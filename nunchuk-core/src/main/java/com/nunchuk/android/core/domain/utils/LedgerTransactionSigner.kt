@@ -19,7 +19,6 @@
 
 package com.nunchuk.android.core.domain.utils
 
-import com.nunchuk.android.core.domain.utils.LedgerCommandException.Companion.SW_INVALID_SIGNATURE_OR_HMAC
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.nativelib.NunchukNativeSdk
@@ -38,17 +37,14 @@ import javax.inject.Inject
  *  1. Read the connected device's master fingerprint and confirm it is the key we intend
  *     to sign with ([expectedXfp]) — unlike add-key, signing must target a specific signer,
  *     not whatever device happens to be connected.
- *  2. Reuse the cached wallet-registration HMAC ([GetLedgerWalletHmacUseCase]); register the
- *     wallet on the device if there isn't one yet and persist the returned HMAC.
- *  3. Sign the PSBT. If the device rejects the HMAC ([SW_INVALID_SIGNATURE_OR_HMAC]) the
- *     stored registration is stale — clear it, re-register and retry once (Confluence §6).
+ *  2. Register the wallet on the device if it isn't already ([LedgerWalletRegistrar]).
+ *  3. Sign the PSBT.
  *  4. Import the signed PSBT back into the wallet and return the updated [Transaction].
  */
 class LedgerTransactionSigner @Inject constructor(
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val nativeSdk: NunchukNativeSdk,
-    private val getLedgerWalletHmacUseCase: GetLedgerWalletHmacUseCase,
-    private val setLedgerWalletHmacUseCase: SetLedgerWalletHmacUseCase,
+    private val walletRegistrar: LedgerWalletRegistrar,
     private val importPsbtUseCase: ImportPsbtUseCase,
 ) {
     /**
@@ -106,25 +102,8 @@ class LedgerTransactionSigner @Inject constructor(
         )
         require(psbt.isNotBlank()) { "Transaction has no PSBT to sign" }
 
-        var hmac = getLedgerWalletHmacUseCase(walletId).getOrThrow()
-        Timber.tag(TAG).d("cached hmac ${if (hmac.isBlank()) "empty -> registering wallet" else "present (len=${hmac.length})"}")
-        if (hmac.isBlank()) {
-            hmac = executor.registerWallet(wallet)
-            Timber.tag(TAG).d("registerWallet done hmacLen=${hmac.length}")
-            setLedgerWalletHmacUseCase(SetLedgerWalletHmacUseCase.Param(walletId, hmac)).getOrThrow()
-        }
-
-        try {
+        walletRegistrar.withRegisteredWallet(executor, wallet) { hmac ->
             Timber.tag(TAG).d("signPsbt (hmacLen=${hmac.length})")
-            executor.signPsbt(wallet, hmac, psbt)
-        } catch (e: LedgerCommandException) {
-            Timber.tag(TAG).e("signPsbt failed statusWord=0x%04X msg=%s", e.statusWord, e.message)
-            if (e.statusWord != SW_INVALID_SIGNATURE_OR_HMAC) throw e
-            // Stored HMAC is stale (another device / changed policy): re-register and retry.
-            Timber.tag(TAG).d("stale hmac -> clearing + re-registering")
-            setLedgerWalletHmacUseCase(SetLedgerWalletHmacUseCase.Param(walletId, "")).getOrThrow()
-            hmac = executor.registerWallet(wallet)
-            setLedgerWalletHmacUseCase(SetLedgerWalletHmacUseCase.Param(walletId, hmac)).getOrThrow()
             executor.signPsbt(wallet, hmac, psbt)
         }
     }

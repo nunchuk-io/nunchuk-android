@@ -42,6 +42,17 @@ interface LedgerCommandExecutor {
 
     /** Confluence "Sign transaction" — signs [psbt] with the registered [wallet]; returns the signed PSBT. */
     suspend fun signPsbt(wallet: Wallet, hmac: String, psbt: String): String
+
+    /**
+     * Confluence "Show address on device" — shows the registered [wallet]'s address at
+     * [addressIndex] on the device screen; returns the address the device derived.
+     */
+    suspend fun getWalletAddress(
+        wallet: Wallet,
+        hmac: String,
+        addressIndex: Int,
+        change: Boolean,
+    ): String
 }
 
 /**
