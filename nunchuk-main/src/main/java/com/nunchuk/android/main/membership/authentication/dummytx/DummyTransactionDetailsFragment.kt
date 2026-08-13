@@ -191,17 +191,31 @@ class DummyTransactionDetailsFragment : BaseShareSaveFileFragment<ViewBinding>()
                         }
 
                         // The Ledger signs the dummy tx PSBT in-app; the signature is extracted
-                        // from the PSBT it hands back.
+                        // from the PSBT it hands back. Signing in via digital signature has no
+                        // local wallet to look the policy up by id, so the event carries the
+                        // wallet parsed from the BSMS instead.
                         ledgerSignRequest?.let { request ->
-                            LedgerSignPsbtSheet(
-                                walletId = walletAuthenticationViewModel.getWalletId(),
-                                psbt = request.psbt,
-                                masterFingerprint = request.fingerprint,
-                                onDismiss = { ledgerSignRequest = null },
-                                onSignSuccess = { signedPsbt ->
-                                    walletAuthenticationViewModel.handleSignLedgerKey(signedPsbt)
-                                },
-                            )
+                            val onDismiss = { ledgerSignRequest = null }
+                            val onSignSuccess = { signedPsbt: String ->
+                                walletAuthenticationViewModel.handleSignLedgerKey(signedPsbt)
+                            }
+                            if (request.wallet != null) {
+                                LedgerSignPsbtSheet(
+                                    wallet = request.wallet,
+                                    psbt = request.psbt,
+                                    masterFingerprint = request.fingerprint,
+                                    onDismiss = onDismiss,
+                                    onSignSuccess = onSignSuccess,
+                                )
+                            } else {
+                                LedgerSignPsbtSheet(
+                                    walletId = walletAuthenticationViewModel.getWalletId(),
+                                    psbt = request.psbt,
+                                    masterFingerprint = request.fingerprint,
+                                    onDismiss = onDismiss,
+                                    onSignSuccess = onSignSuccess,
+                                )
+                            }
                         }
                     }
                 }

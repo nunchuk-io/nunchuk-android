@@ -22,6 +22,7 @@ package com.nunchuk.android.main.membership.authentication
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Transaction
+import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.byzantine.DummyTransactionType
 import com.nunchuk.android.type.TransactionStatus
 
@@ -46,9 +47,19 @@ sealed class WalletAuthenticationEvent {
     data class RequestSignPortal(val fingerprint: String, val psbt: String) :
         WalletAuthenticationEvent()
 
-    /** Show the Ledger sign sheet for [fingerprint] so it can sign the dummy transaction [psbt]. */
-    data class RequestSignLedger(val fingerprint: String, val psbt: String) :
-        WalletAuthenticationEvent()
+    /**
+     * Show the Ledger sign sheet for [fingerprint] so it can sign the dummy transaction [psbt].
+     *
+     * Signing registers the wallet policy on the device. [wallet] is null in the usual case, where
+     * the sheet loads it by the flow's local wallet id; it carries the wallet parsed from the BSMS
+     * when there is no local one to load — signing in via digital signature, before the wallet has
+     * ever been stored.
+     */
+    data class RequestSignLedger(
+        val fingerprint: String,
+        val psbt: String,
+        val wallet: Wallet? = null,
+    ) : WalletAuthenticationEvent()
 
     data object ExportTransactionToColdcardSuccess : WalletAuthenticationEvent()
     data object CanNotSignDummyTx : WalletAuthenticationEvent()

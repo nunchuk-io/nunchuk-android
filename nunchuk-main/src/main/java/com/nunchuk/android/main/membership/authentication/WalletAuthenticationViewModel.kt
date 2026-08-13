@@ -180,7 +180,7 @@ class WalletAuthenticationViewModel @Inject constructor(
             GetSignInDummyTransactionUseCase.Param(args.userData)
         ).onSuccess { signInDummyTransaction ->
             dataToSign.value = signInDummyTransaction.psbt
-            loadWalletForTrezor(
+            loadWallet(
                 walletLocalId = signInDummyTransaction.walletLocalId,
                 descriptor = signInDummyTransaction.walletDescriptor,
             )
@@ -360,22 +360,23 @@ class WalletAuthenticationViewModel @Inject constructor(
         }
     }
 
-    private suspend fun loadWalletForTrezor(walletLocalId: String, descriptor: String) {
+    private suspend fun loadWallet(walletLocalId: String, descriptor: String) {
         this.walletLocalId = walletLocalId
         this.walletDescriptor = descriptor
-        currentWallet = resolveWalletForTrezor()
+        currentWallet = resolveWallet()
     }
 
     /**
-     * Resolves the wallet required to build the Trezor signing deeplink.
+     * Resolves the wallet the desktop-style signers need: Trezor to build its signing deeplink,
+     * Ledger to register the wallet policy on the device.
      *
      * In the sign-in via digital signature flow the wallet is not guaranteed to exist in the
      * local database yet (and the server does not return a wallet id/descriptor before sign-in is
      * complete), so loading it by local id can fail. We fall back to parsing the wallet directly
      * from a BSMS descriptor: first whatever the server returned, then the BSMS the user pasted on
-     * the Enter XPUB screen. Both describe the multisig config Trezor needs.
+     * the Enter XPUB screen. Both describe the multisig config those devices need.
      */
-    private suspend fun resolveWalletForTrezor(): Wallet? {
+    private suspend fun resolveWallet(): Wallet? {
         currentWallet?.let { return it }
         val candidateIds = listOf(walletLocalId, args.walletId).filter { it.isNotBlank() }.distinct()
         candidateIds.forEach { id ->
@@ -386,11 +387,11 @@ class WalletAuthenticationViewModel @Inject constructor(
         val descriptors = listOf(walletDescriptor, args.userData).filter { it.isNotBlank() }.distinct()
         descriptors.forEach { descriptor ->
             parseWalletDescriptorUseCase(descriptor)
-                .onFailure { Timber.tag(TAG).e(it, "Parse wallet descriptor for Trezor failed") }
+                .onFailure { Timber.tag(TAG).e(it, "Parse wallet descriptor failed") }
                 .getOrNull()?.let { return it }
         }
         Timber.tag(TAG).e(
-            "No wallet for Trezor signing (localId=$walletLocalId, walletId=${args.walletId}, hasServerDescriptor=${walletDescriptor.isNotBlank()}, hasUserData=${args.userData.isNotBlank()})"
+            "No wallet for desktop key signing (localId=$walletLocalId, walletId=${args.walletId}, hasServerDescriptor=${walletDescriptor.isNotBlank()}, hasUserData=${args.userData.isNotBlank()})"
         )
         return null
     }
@@ -439,7 +440,7 @@ class WalletAuthenticationViewModel @Inject constructor(
 
         viewModelScope.launch {
             _event.emit(WalletAuthenticationEvent.Loading(true))
-            val wallet = resolveWalletForTrezor()
+            val wallet = resolveWallet()
             if (wallet == null) {
                 _event.emit(WalletAuthenticationEvent.CanNotSignDummyTx)
                 _event.emit(WalletAuthenticationEvent.Loading(false))
@@ -472,7 +473,7 @@ class WalletAuthenticationViewModel @Inject constructor(
     }
 
     private suspend fun requestSignTransactionByTrezor(signerModel: SignerModel) {
-        val wallet = resolveWalletForTrezor()?.also { currentWallet = it }
+        val wallet = resolveWallet()?.also { currentWallet = it }
             ?: run {
                 _event.emit(WalletAuthenticationEvent.ShowError("Cannot load wallet for Trezor signing"))
                 return
@@ -501,13 +502,19 @@ class WalletAuthenticationViewModel @Inject constructor(
      * screen shows the Ledger sheet, which hands the signed PSBT back to [handleSignLedgerKey].
      */
     private suspend fun requestSignTransactionByLedger(signerModel: SignerModel) {
-        // Signing needs the wallet registered on the device, so a dummy transaction without a
-        // local wallet still has to go through the desktop app. (Sign-in has no local wallet
-        // either, but it runs on SignInAuthenticationViewModel, which registers the wallet it
-        // parses from the BSMS.)
-        if (args.walletId.isBlank()) {
-            _event.emit(WalletAuthenticationEvent.CanNotSignHardwareKey)
-            return
+        // Signing registers the wallet policy on the device. The sheet normally loads that wallet
+        // by the flow's local wallet id; signing in via digital signature has no local wallet (and
+        // no id), so there it is resolved from the BSMS and handed to the sheet directly. The other
+        // wallet-less flows (change email, key recovery, invite members) describe no wallet at all,
+        // so they keep going through the desktop app.
+        val bsmsWallet = if (args.walletId.isBlank()) {
+            val wallet = if (isSignInSignatureFlow) resolveWallet()?.also { currentWallet = it } else null
+            wallet ?: run {
+                _event.emit(WalletAuthenticationEvent.CanNotSignHardwareKey)
+                return
+            }
+        } else {
+            null
         }
         if (dataToSign.value.isBlank()) {
             _event.emit(WalletAuthenticationEvent.CanNotSignDummyTx)
@@ -516,7 +523,8 @@ class WalletAuthenticationViewModel @Inject constructor(
         _event.emit(
             WalletAuthenticationEvent.RequestSignLedger(
                 fingerprint = signerModel.fingerPrint,
-                psbt = dataToSign.value
+                psbt = dataToSign.value,
+                wallet = bsmsWallet,
             )
         )
     }

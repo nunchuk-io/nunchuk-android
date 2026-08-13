@@ -404,26 +404,30 @@ The on-chain timelock variants (`OnChainTimelockAddKeyListFragment`, `OnChainRep
 
 ### Signing
 
-Three separate dispatchers, one per host, each a `when` over the type/tag pair. They are **not** shared code, so a new key type needs all three:
+Two dispatchers, one per host, each a `when` over the type/tag pair. They are **not** shared code, so a new key type needs both:
 
-| Key | Normal tx (`TransactionDetailComposeActivity.onSignClick` + `TransactionDetailsViewModel`) | Dummy tx (`WalletAuthenticationViewModel.onSignerSelect`) | Sign-in dummy tx (`SignInAuthenticationViewModel.onSignerSelect`) |
-|-----|------------------|-----------------|--------------------|
-| TAPSIGNER | NFC scan | NFC scan | NFC scan |
-| COLDCARD | NFC / QR / file export + import signature | same | same |
-| Portal | `handlePortalAction(SignTransaction)` | `RequestSignPortal` | **not handled** |
-| Ledger | `LedgerSignTransactionSheet` (signs + imports PSBT) | `LedgerSignPsbtSheet(walletId)` → signature | `LedgerSignPsbtSheet(wallet)` — wallet parsed from BSMS |
-| Trezor | deeplink to Trezor Suite + callback | same | same |
-| BitBox / other `HARDWARE` | "use the desktop app" | same | same |
-| Air-gapped | export/import PSBT via QR/file | same | same |
-| Software | `handleSignSoftwareKey` (passphrase prompt if needed) | `checkSoftwarePassPhrase` | disabled in the signer list |
-| Server | no Sign action — the server co-signs | n/a | n/a |
+| Key | Normal tx (`TransactionDetailComposeActivity.onSignClick` + `TransactionDetailsViewModel`) | Dummy tx, incl. sign-in (`WalletAuthenticationViewModel.onSignerSelect`) |
+|-----|------------------|-----------------|
+| TAPSIGNER | NFC scan | NFC scan |
+| COLDCARD | NFC / QR / file export + import signature | same |
+| Portal | `handlePortalAction(SignTransaction)` | `RequestSignPortal` |
+| Ledger | `LedgerSignTransactionSheet` (signs + imports PSBT) | `LedgerSignPsbtSheet(walletId)`, or `LedgerSignPsbtSheet(wallet)` at sign-in |
+| Trezor | deeplink to Trezor Suite + callback | same |
+| BitBox / other `HARDWARE` | "use the desktop app" | same |
+| Air-gapped | export/import PSBT via QR/file | same |
+| Software | `handleSignSoftwareKey` (passphrase prompt if needed) | `checkSoftwarePassPhrase` |
+| Server | no Sign action — the server co-signs | n/a |
+
+**Sign-in via digital signature runs on the dummy-tx dispatcher**, not on a host of its own: `EnterXPUBActivity` → `openWalletAuthentication(walletId = "", type = SIGN_DUMMY_TX, signatureFlowType = SIGN_IN)` → `WalletAuthenticationActivity` → `DummyTransactionIntroFragment` → `DummyTransactionDetailsFragment`. `isSignInSignatureFlow` is what varies inside that one view model: the dummy tx comes from `GetSignInDummyTransactionUseCase`, no wallet is loaded from the local DB (`args.walletId` is blank), TAPSIGNER goes through `CheckSignMessageTapsignerSignInUseCase`, and signatures upload via `uploadSignatureForSignIn`. Anything keyed off `args.walletId` being present therefore breaks sign-in — that is how Ledger keys ended up on "use the desktop app".
+
+The `SignInAuthentication*` / `SignInDummyTransaction*` screens in `nunchuk-auth` look like that host but are **dead code**: `SignInAuthenticationActivity.start()` has no callers, and its nav graph is inflated only by itself. Don't fix sign-in bugs there.
 
 Shared details:
 
 - **Dummy transactions** (membership dummy tx, sign-in dummy tx, and `CheckSignMessageFragment`) converge on `handleSignatureResult` → upload. PSBT-based signers (Ledger, Trezor, COLDCARD, air-gapped) get there via `GetDummyTransactionSignatureUseCase` — signed PSBT in, signature out; TAPSIGNER signs the message directly (`CheckSignMessageTapsignerUseCase`, `CheckSignMessageTapsignerSignInUseCase` at login). A new PSBT-producing signer should reuse `GetDummyTransactionSignatureUseCase` rather than inventing a second path.
 - **Trezor** signs out-of-app: `GetTrezorSignTransactionDeeplinkUseCase` → Trezor Suite → `TrezorCallbackHolder` → `ParseTrezorSignTransactionResponseUseCase`. It needs a `Wallet`, which at sign-in is parsed from the BSMS (`resolveWallet`).
 - **Ledger** signs in-app over BLE/USB through `LedgerSheet.kt` (`nunchuk-core/ledger/`) → `LedgerSheetViewModel` → `LedgerTransactionSigner`. Signing always registers the wallet policy on the device first (`LedgerWalletRegistrar`); the registration HMAC is cached per local wallet, so a wallet that has no local storage (sign-in) passes `cacheRegistration = false` and re-registers every time.
-- The fall-through `signerModel.type == SignerType.HARDWARE -> CanNotSignHardwareKey` ("Please use the desktop app to sign with this key") sits **after** the tag checks in every dispatcher. A new hardware tag added without its own branch lands there silently.
+- The fall-through `signerModel.type == SignerType.HARDWARE -> CanNotSignHardwareKey` ("Please use the desktop app to sign with this key") sits **after** the tag checks in both dispatchers. A new hardware tag added without its own branch lands there silently.
 
 ## Conventions
 
