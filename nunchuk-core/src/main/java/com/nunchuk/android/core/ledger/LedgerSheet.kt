@@ -138,6 +138,39 @@ fun LedgerSignPsbtSheet(
 }
 
 /**
+ * Ledger "Sign message" bottom sheet, shown inline by the host screen (sign message). Connects
+ * over BLE/USB in-app, verifies the device is [masterFingerprint], then signs [message] with the
+ * key at [derivationPath] and hands the signature to [onSignature] — the host pairs it with the
+ * signer's address to produce the signed-message export.
+ */
+@Composable
+fun LedgerSignMessageSheet(
+    masterFingerprint: String,
+    derivationPath: String,
+    message: String,
+    onDismiss: () -> Unit,
+    onSignature: (signature: String) -> Unit,
+) {
+    val action = remember(masterFingerprint, derivationPath, message) {
+        LedgerSheetAction.SignMessage(
+            masterFingerprint = masterFingerprint,
+            derivationPath = derivationPath,
+            message = message,
+        )
+    }
+    LedgerSheet(
+        action = action,
+        onDismiss = onDismiss,
+        onEvent = { event ->
+            if (event is LedgerSheetEvent.SignMessageSuccess) {
+                onSignature(event.signature)
+                onDismiss()
+            }
+        },
+    )
+}
+
+/**
  * Ledger health-check bottom sheet, shown inline by the host screen (signer info). Connects
  * over BLE/USB in-app and asks the device to sign the health-check message with the key at
  * [derivationPath], then verifies that signature against the stored [masterFingerprint] signer.

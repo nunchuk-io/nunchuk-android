@@ -17,28 +17,37 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.signer.components.details.message
+package com.nunchuk.android.core.domain.utils
 
+import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.SignedMessage
 import com.nunchuk.android.model.SingleSigner
-import com.nunchuk.android.type.SignerTag
+import com.nunchuk.android.nativelib.NunchukNativeSdk
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
+import javax.inject.Inject
 
-data class SignMessageUiState(
-    val defaultPath: String = "",
-    val signedMessage: SignedMessage? = null,
-    val needPassphrase: Boolean = false,
-    /** The hardware signer being signed with, loaded for HARDWARE keys (Trezor / Ledger). */
-    val remoteSigner: SingleSigner? = null,
-) {
-    val isTrezor: Boolean get() = hasTag(SignerTag.TREZOR)
+/**
+ * Turns a signature produced outside the SDK — a Ledger signing over BLE/USB — into the same
+ * [SignedMessage] the in-app signers return: [signer]'s address plus the RFC2440 block that is
+ * copied/exported for proof of address.
+ */
+class GetSignedMessageUseCase @Inject constructor(
+    @IoDispatcher private val dispatcher: CoroutineDispatcher,
+    private val nunchukNativeSdk: NunchukNativeSdk
+) : UseCase<GetSignedMessageUseCase.Param, SignedMessage>(dispatcher) {
 
-    val isLedger: Boolean get() = hasTag(SignerTag.LEDGER)
+    override suspend fun execute(parameters: Param): SignedMessage {
+        return nunchukNativeSdk.getSignedMessage(
+            signer = parameters.signer,
+            message = parameters.message,
+            signature = parameters.signature
+        )
+    }
 
-    /**
-     * A Ledger signs with the key at its own derivation path — the address shown next to the
-     * signature is derived from that key — so the path isn't the user's to change.
-     */
-    val isPathEditable: Boolean get() = !isLedger
-
-    private fun hasTag(tag: SignerTag) = remoteSigner?.tags?.contains(tag) == true
+    data class Param(
+        val signer: SingleSigner,
+        val message: String,
+        val signature: String
+    )
 }

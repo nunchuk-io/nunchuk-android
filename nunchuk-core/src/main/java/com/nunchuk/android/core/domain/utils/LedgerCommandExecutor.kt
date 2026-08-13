@@ -40,6 +40,12 @@ interface LedgerCommandExecutor {
     /** Confluence "Sign transaction" — registers [wallet] on the device; returns the wallet HMAC. */
     suspend fun registerWallet(wallet: Wallet): String
 
+    /**
+     * Confluence "Sign message" — signs [message] with the key at [derivationPath]; returns the
+     * base64 signature.
+     */
+    suspend fun signMessage(derivationPath: String, message: String): String
+
     /** Confluence "Sign transaction" — signs [psbt] with the registered [wallet]; returns the signed PSBT. */
     suspend fun signPsbt(wallet: Wallet, hmac: String, psbt: String): String
 

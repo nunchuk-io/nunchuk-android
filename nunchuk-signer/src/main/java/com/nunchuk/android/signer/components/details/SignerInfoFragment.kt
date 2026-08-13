@@ -67,7 +67,6 @@ import com.nunchuk.android.model.VerificationType
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.components.details.model.SingerOption
 import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
-import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.widget.NCInfoDialog
@@ -108,13 +107,10 @@ class SignerInfoFragment : BaseShareSaveFileFragment<ViewBinding>(),
                             onMoreClicked = {
                                 val type = viewModel.state.value.masterSigner?.type
                                     ?: viewModel.state.value.remoteSigner?.type
-                                val isTrezorSigner =
-                                    viewModel.state.value.remoteSigner?.tags.orEmpty()
-                                        .contains(SignerTag.TREZOR)
                                 type?.let { signerType ->
                                     SingerInfoOptionBottomSheet.newInstance(
                                         signerType = signerType,
-                                        isTrezor = isTrezorSigner
+                                        canSignMessage = canSignMessage(signerType)
                                     )
                                         .show(childFragmentManager, "SingerInfoOptionBottomSheet")
                                 }
@@ -275,6 +271,14 @@ class SignerInfoFragment : BaseShareSaveFileFragment<ViewBinding>(),
             SingerOption.UPDATE_FIRMWARE -> (requireActivity() as BasePortalActivity<*>).selectFirmwareFile()
         }
     }
+
+    /**
+     * TapSigner and software keys sign a message in-app; among hardware keys only the ones with
+     * an in-app flow (Trezor, Ledger) can, so the rest don't offer the option.
+     */
+    private fun canSignMessage(signerType: SignerType) = signerType == SignerType.NFC ||
+            signerType == SignerType.SOFTWARE ||
+            viewModel.isInAppHardwareSigner()
 
     private fun onChangeCvcOptionClicked() {
         viewModel.state.value.masterSigner?.id?.let { masterSignerId ->

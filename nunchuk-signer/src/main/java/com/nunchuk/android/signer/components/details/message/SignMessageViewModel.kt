@@ -23,6 +23,7 @@ import android.nfc.tech.IsoDep
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.domain.utils.GetSignedMessageUseCase
 import com.nunchuk.android.core.domain.utils.GetTrezorSignMessagePathUseCase
 import com.nunchuk.android.core.domain.utils.GetTrezorSignMessageDeeplinkUseCase
 import com.nunchuk.android.core.domain.utils.ParseTrezorSignMessageResponseUseCase
@@ -59,6 +60,7 @@ class SignMessageViewModel @Inject constructor(
     private val signMessageBySoftwareKeyUseCase: SignMessageBySoftwareKeyUseCase,
     private val getTrezorSignMessagePathUseCase: GetTrezorSignMessagePathUseCase,
     private val getTrezorSignMessageDeeplinkUseCase: GetTrezorSignMessageDeeplinkUseCase,
+    private val getSignedMessageUseCase: GetSignedMessageUseCase,
     private val parseTrezorSignMessageResponseUseCase: ParseTrezorSignMessageResponseUseCase,
     private val createShareFileUseCase: CreateShareFileUseCase,
     private val savedStateHandle: SavedStateHandle,
@@ -78,7 +80,7 @@ class SignMessageViewModel @Inject constructor(
     private var lastHandledTrezorCallback: String = ""
 
     init {
-        loadDefaultPath()
+        loadSigner()
         if (args.signerType == SignerType.SOFTWARE) {
             viewModelScope.launch {
                 getMasterSignerUseCase.invoke(args.masterSignerId)
@@ -89,15 +91,26 @@ class SignMessageViewModel @Inject constructor(
         }
     }
 
-    private fun loadDefaultPath() {
+    /**
+     * Loads the hardware signer (its tags decide how signing happens: Trezor Suite deeplink or
+     * Ledger over BLE/USB) and the derivation path to sign with.
+     */
+    private fun loadSigner() {
         viewModelScope.launch {
-            if (isTrezorSigner()) {
+            if (isHardwareSigner()) {
                 getRemoteSignerUseCase(
                     GetRemoteSignerUseCase.Data(
                         id = args.masterFingerprint,
                         derivationPath = args.derivationPath
                     )
                 ).onSuccess { signer ->
+                    _state.update { it.copy(remoteSigner = signer) }
+                    // A Ledger signs with the key at the signer's own path (Confluence "3. Sign
+                    // message"), which is also the path its address is derived from.
+                    if (isLedgerSigner()) {
+                        _state.update { it.copy(defaultPath = signer.derivationPath) }
+                        return@launch
+                    }
                     getTrezorSignMessagePathUseCase(
                         GetTrezorSignMessagePathUseCase.Param(signer = signer)
                     ).onSuccess { path ->
@@ -132,34 +145,58 @@ class SignMessageViewModel @Inject constructor(
         savedStateHandle[KEY_PATH] = path.trim()
     }
 
-    fun isTrezorSigner(): Boolean {
+    private fun isHardwareSigner(): Boolean {
         return args.signerType == SignerType.HARDWARE
                 && args.masterFingerprint.isNotBlank()
                 && args.derivationPath.isNotBlank()
     }
 
+    fun isTrezorSigner(): Boolean = isHardwareSigner() && _state.value.isTrezor
+
+    fun isLedgerSigner(): Boolean = isHardwareSigner() && _state.value.isLedger
+
     fun requestSignMessageByTrezor() {
         if (!isTrezorSigner()) return
         val message = savedStateHandle.get<String>(KEY_MESSAGE).orEmpty()
         if (message.isBlank()) return
+        val signer = _state.value.remoteSigner ?: return
 
         viewModelScope.launch {
             _event.emit(SignMessageEvent.Loading(true))
-            getRemoteSignerUseCase(
-                GetRemoteSignerUseCase.Data(
-                    id = args.masterFingerprint,
-                    derivationPath = args.derivationPath
+            getTrezorSignMessageDeeplinkUseCase(
+                GetTrezorSignMessageDeeplinkUseCase.Param(
+                    signer = signer,
+                    message = message
                 )
-            ).onSuccess { signer ->
-                getTrezorSignMessageDeeplinkUseCase(
-                    GetTrezorSignMessageDeeplinkUseCase.Param(
-                        signer = signer,
-                        message = message
-                    )
-                ).onSuccess { deeplink ->
-                    _event.emit(SignMessageEvent.ShowOpenTrezorSuiteConfirmation(deeplink))
-                }.onFailure {
-                    _event.emit(SignMessageEvent.ShowError(it))
+            ).onSuccess { deeplink ->
+                _event.emit(SignMessageEvent.ShowOpenTrezorSuiteConfirmation(deeplink))
+            }.onFailure {
+                _event.emit(SignMessageEvent.ShowError(it))
+            }
+            _event.emit(SignMessageEvent.Loading(false))
+        }
+    }
+
+    /**
+     * The Ledger signed the message over BLE/USB; pair its signature with the signer's address
+     * to get the same signed-message export the in-app signers produce.
+     */
+    fun onLedgerMessageSigned(signature: String) {
+        val signer = _state.value.remoteSigner ?: return
+        viewModelScope.launch {
+            _event.emit(SignMessageEvent.Loading(true))
+            getSignedMessageUseCase(
+                GetSignedMessageUseCase.Param(
+                    signer = signer,
+                    message = savedStateHandle.get<String>(KEY_MESSAGE).orEmpty(),
+                    signature = signature
+                )
+            ).onSuccess { signedMessage ->
+                _state.update { it.copy(signedMessage = signedMessage) }
+                if (signedMessage.signature.isBlank()) {
+                    _event.emit(SignMessageEvent.NoSignatureDetected)
+                } else {
+                    _event.emit(SignMessageEvent.SignSuccess)
                 }
             }.onFailure {
                 _event.emit(SignMessageEvent.ShowError(it))

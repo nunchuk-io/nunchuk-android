@@ -51,6 +51,9 @@ class LedgerControllerExecutor(
     override suspend fun registerWallet(wallet: Wallet): String =
         await { controller.registerWallet(wallet) }
 
+    override suspend fun signMessage(derivationPath: String, message: String): String =
+        await { controller.signMessage(derivationPath, message) }
+
     override suspend fun signPsbt(wallet: Wallet, hmac: String, psbt: String): String =
         await { controller.signPsbt(wallet, hmac, psbt) }
 

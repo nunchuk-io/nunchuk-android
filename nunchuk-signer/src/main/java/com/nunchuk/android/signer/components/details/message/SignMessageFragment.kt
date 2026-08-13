@@ -80,6 +80,7 @@ import com.nunchuk.android.compose.greyLight
 import com.nunchuk.android.compose.whisper
 import com.nunchuk.android.compose.dialog.NcConfirmationDialog
 import com.nunchuk.android.core.base.BaseShareSaveFileFragment
+import com.nunchuk.android.core.ledger.LedgerSignMessageSheet
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.NfcActionListener
 import com.nunchuk.android.core.nfc.NfcViewModel
@@ -110,6 +111,9 @@ class SignMessageFragment : BaseShareSaveFileFragment<ViewBinding>() {
     private val nfcViewModel: NfcViewModel by activityViewModels()
     private var openTrezorSuiteDeeplink: String? by mutableStateOf(null)
 
+    /** Message to sign on a Ledger; non-null shows the connect-and-sign sheet. */
+    private var ledgerSignMessage: String? by mutableStateOf(null)
+
     @Inject
     lateinit var trezorCallbackHolder: TrezorCallbackHolder
 
@@ -127,6 +131,7 @@ class SignMessageFragment : BaseShareSaveFileFragment<ViewBinding>() {
                 val state by viewModel.state.collectAsStateWithLifecycle()
                 SignMessageContent(
                     defaultPath = state.defaultPath,
+                    isPathEditable = state.isPathEditable,
                     signedMessage = state.signedMessage,
                     onValidatePath = viewModel::validatePath,
                     onSignMessage = { message, path ->
@@ -158,6 +163,16 @@ class SignMessageFragment : BaseShareSaveFileFragment<ViewBinding>() {
                         onDismiss = { openTrezorSuiteDeeplink = null }
                     )
                 }
+
+                ledgerSignMessage?.let { message ->
+                    LedgerSignMessageSheet(
+                        masterFingerprint = args.masterFingerprint,
+                        derivationPath = args.derivationPath,
+                        message = message,
+                        onDismiss = { ledgerSignMessage = null },
+                        onSignature = viewModel::onLedgerMessageSigned,
+                    )
+                }
             }
         }
     }
@@ -174,7 +189,10 @@ class SignMessageFragment : BaseShareSaveFileFragment<ViewBinding>() {
 
     private fun onSignMessage(message: String, path: String) {
         viewModel.saveMessage(message, path)
-        if (viewModel.isTrezorSigner()) {
+        if (viewModel.isLedgerSigner()) {
+            // The Ledger signs in-app over BLE/USB, shown inline as a bottom sheet.
+            ledgerSignMessage = message.trim()
+        } else if (viewModel.isTrezorSigner()) {
             viewModel.requestSignMessageByTrezor()
         } else if (args.signerType == SignerType.NFC) {
             (requireActivity() as NfcActionListener).startNfcFlow(BaseNfcActivity.REQUEST_NFC_HEALTH_CHECK)
@@ -227,6 +245,7 @@ class SignMessageFragment : BaseShareSaveFileFragment<ViewBinding>() {
 @Composable
 private fun SignMessageContent(
     defaultPath: String = "",
+    isPathEditable: Boolean = true,
     signedMessage: SignedMessage? = null,
     onValidatePath: (path: String) -> Unit = {},
     onSignMessage: (message: String, path: String) -> Unit = { _, _ -> },
@@ -301,6 +320,7 @@ private fun SignMessageContent(
                         },
                     title = stringResource(R.string.nc_signer_derivation_path),
                     value = path,
+                    enabled = isPathEditable,
                     onValueChange = { value ->
                         path = value
                         onResetSignature()

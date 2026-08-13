@@ -43,6 +43,7 @@ import com.nunchuk.android.core.helper.CheckAssistedSignerExistenceHelper
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.CardIdManager
 import com.nunchuk.android.core.util.TrezorCallbackMethod
+import com.nunchuk.android.core.util.isInAppHardwareTag
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.parseTrezorCallback
 import com.nunchuk.android.manager.AssistedWalletManager
@@ -350,6 +351,16 @@ internal class SignerInfoViewModel @Inject constructor(
         val remoteSigner = getState().remoteSigner ?: return false
         return args.signerType == SignerType.HARDWARE
                 && remoteSigner.tags.contains(SignerTag.LEDGER)
+    }
+
+    /**
+     * Hardware key with an in-app flow (Trezor via Trezor Suite, Ledger over BLE/USB) rather than
+     * a desktop-only one, so it can sign a message from the app.
+     */
+    fun isInAppHardwareSigner(): Boolean {
+        val remoteSigner = getState().remoteSigner ?: return false
+        return args.signerType == SignerType.HARDWARE
+                && remoteSigner.tags.any { it.isInAppHardwareTag }
     }
 
     fun requestTrezorHealthCheck() {

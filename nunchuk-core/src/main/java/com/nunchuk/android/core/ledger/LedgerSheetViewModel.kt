@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.R
 import com.nunchuk.android.core.domain.utils.HealthCheckSingleSignerUseCase
 import com.nunchuk.android.core.domain.utils.LedgerAddressVerifier
+import com.nunchuk.android.core.domain.utils.LedgerMessageSigner
 import com.nunchuk.android.core.domain.utils.LedgerTransactionSigner
 import com.nunchuk.android.core.domain.utils.LedgerWrongDeviceException
 import com.nunchuk.android.core.util.orUnknownError
@@ -66,6 +67,18 @@ sealed interface LedgerSheetAction {
     }
 
     /**
+     * Confluence "3. Sign message": verify the device is [masterFingerprint], then sign
+     * [message] with the key at [derivationPath] and hand the signature back.
+     */
+    data class SignMessage(
+        val masterFingerprint: String,
+        val derivationPath: String,
+        val message: String,
+    ) : LedgerSheetAction {
+        override val connectButtonText: Int get() = R.string.nc_ledger_sign_message
+    }
+
+    /**
      * Confluence "Sign message" health check: sign a fixed message with the key at
      * [derivationPath] and verify the signature against the stored [masterFingerprint] signer.
      */
@@ -107,6 +120,9 @@ sealed class LedgerSheetEvent {
     /** A dummy transaction was signed; the host turns [signedPsbt] into a signature. */
     data class SignPsbtSuccess(val signedPsbt: String) : LedgerSheetEvent()
 
+    /** A message was signed; the host turns [signature] into a signed-message export. */
+    data class SignMessageSuccess(val signature: String) : LedgerSheetEvent()
+
     /** Health check finished; the outcome is handed to the host (SignerInfo) to display. */
     data class HealthCheckResult(
         val isSuccess: Boolean,
@@ -139,6 +155,7 @@ class LedgerSheetViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
     nativeSdk: NunchukNativeSdk,
     private val ledgerTransactionSigner: LedgerTransactionSigner,
+    private val ledgerMessageSigner: LedgerMessageSigner,
     private val ledgerAddressVerifier: LedgerAddressVerifier,
     private val getRemoteSignerUseCase: GetRemoteSignerUseCase,
     private val healthCheckSingleSignerUseCase: HealthCheckSingleSignerUseCase,
@@ -174,10 +191,11 @@ class LedgerSheetViewModel @Inject constructor(
             setStatus(interactionText(interaction))
         }
 
-        override fun onCommandComplete(request: LedgerRequest, result: String) = when (request) {
+        override fun onCommandComplete(request: LedgerRequest, result: String) = when {
             // Health check drives a single command directly; verify the signature it returned.
-            LedgerRequest.SIGN_MESSAGE -> verifyHealthCheck(signature = result)
-            // Sign transaction runs through the coordinator; hand results to the executor.
+            request == LedgerRequest.SIGN_MESSAGE && !executor.isAwaiting ->
+                verifyHealthCheck(signature = result)
+            // Everything else runs through a coordinator; hand results to the executor.
             else -> executor.deliverComplete(result)
         }
 
@@ -258,6 +276,7 @@ class LedgerSheetViewModel @Inject constructor(
             is LedgerSheetAction.SignTransaction -> signTransaction(action)
             is LedgerSheetAction.SignPsbt -> signPsbt(action)
             is LedgerSheetAction.SignPsbtWithWallet -> signPsbt(action)
+            is LedgerSheetAction.SignMessage -> signMessage(action)
             is LedgerSheetAction.HealthCheck -> {
                 pendingHealthCheck = action
                 controller.signMessage(action.derivationPath, HEALTH_CHECK_MESSAGE)
@@ -306,6 +325,22 @@ class LedgerSheetViewModel @Inject constructor(
         runCatching { sign() }
             .onSuccess { signedPsbt -> _event.emit(LedgerSheetEvent.SignPsbtSuccess(signedPsbt)) }
             .onFailure { e -> emitSignFailure(e) }
+    }
+
+    private fun signMessage(action: LedgerSheetAction.SignMessage) = viewModelScope.launch {
+        runCatching {
+            ledgerMessageSigner.sign(
+                executor = executor,
+                expectedXfp = action.masterFingerprint,
+                derivationPath = action.derivationPath,
+                message = action.message,
+            )
+        }.onSuccess { signature ->
+            _state.update { it.copy(isBusy = false) }
+            _event.emit(LedgerSheetEvent.SignMessageSuccess(signature))
+        }.onFailure { e ->
+            emitSignFailure(e)
+        }
     }
 
     private fun verifyAddress(action: LedgerSheetAction.VerifyAddress) = viewModelScope.launch {
