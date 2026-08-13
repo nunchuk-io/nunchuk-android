@@ -34,6 +34,7 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.R
+import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.widget.NCToastMessage
 
 /**
@@ -88,6 +89,38 @@ fun LedgerSignPsbtSheet(
     val action = remember(walletId, psbt, masterFingerprint) {
         LedgerSheetAction.SignPsbt(
             walletId = walletId,
+            psbt = psbt,
+            masterFingerprint = masterFingerprint,
+        )
+    }
+    LedgerSheet(
+        action = action,
+        onDismiss = onDismiss,
+        onEvent = { event ->
+            if (event is LedgerSheetEvent.SignPsbtSuccess) {
+                onSignSuccess(event.signedPsbt)
+                onDismiss()
+            }
+        },
+    )
+}
+
+/**
+ * [LedgerSignPsbtSheet] for a [wallet] that isn't stored locally, so it can't be looked up by id:
+ * the sign-in dummy transaction, whose wallet is parsed from the BSMS the user pasted. The device
+ * registers the wallet policy on every sign, since there is nowhere to cache the registration.
+ */
+@Composable
+fun LedgerSignPsbtSheet(
+    wallet: Wallet,
+    psbt: String,
+    masterFingerprint: String,
+    onDismiss: () -> Unit,
+    onSignSuccess: (signedPsbt: String) -> Unit,
+) {
+    val action = remember(wallet, psbt, masterFingerprint) {
+        LedgerSheetAction.SignPsbtWithWallet(
+            wallet = wallet,
             psbt = psbt,
             masterFingerprint = masterFingerprint,
         )

@@ -340,4 +340,17 @@
         </androidx.constraintlayout.widget.ConstraintLayout>
     </ScrollView>
 
+    <!--
+        Host for the Ledger sign sheet. It stays 0-height: ModalBottomSheet subcomposes into its
+        own dialog window and emits nothing here, so this view never covers or blocks the screen
+        below it.
+    -->
+    <androidx.compose.ui.platform.ComposeView
+        android:id="@+id/ledgerSheetView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

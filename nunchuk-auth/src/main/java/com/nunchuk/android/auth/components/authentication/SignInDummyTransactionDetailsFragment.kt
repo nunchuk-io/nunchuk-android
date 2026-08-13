@@ -26,6 +26,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
@@ -34,7 +38,9 @@ import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import com.nunchuk.android.auth.R
 import com.nunchuk.android.auth.databinding.FragmentSignInDummyTransactionDetailsBinding
+import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.base.BaseShareSaveFileFragment
+import com.nunchuk.android.core.ledger.LedgerSignPsbtSheet
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.NfcActionListener
 import com.nunchuk.android.core.nfc.NfcViewModel
@@ -86,6 +92,11 @@ class SignInDummyTransactionDetailsFragment :
     private val viewModel: SignInDummyTransactionDetailsViewModel by viewModels()
     private val signInAuthenticationViewModel: SignInAuthenticationViewModel by activityViewModels()
     private val nfcViewModel: NfcViewModel by activityViewModels()
+
+    /** Ledger key + dummy tx PSBT the user tapped "Sign" for; non-null shows the Ledger sheet. */
+    private var ledgerSignRequest: SignInAuthenticationEvent.RequestSignLedger? by mutableStateOf(
+        null
+    )
 
     private val importFileLauncher =
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
@@ -166,6 +177,10 @@ class SignInDummyTransactionDetailsFragment :
                         SignInAuthenticationEvent.CanNotSignHardwareKey -> showError(getString(R.string.nc_use_desktop_app_to_sign))
                         is SignInAuthenticationEvent.ShowOpenTrezorSuiteConfirmation -> {
                             showOpenTrezorSuiteConfirmation(event.deeplink)
+                        }
+
+                        is SignInAuthenticationEvent.RequestSignLedger -> {
+                            ledgerSignRequest = event
                         }
 
                         is SignInAuthenticationEvent.SignFailed -> {}
@@ -250,6 +265,26 @@ class SignInDummyTransactionDetailsFragment :
     }
 
     private fun setupViews() {
+        binding.ledgerSheetView.setViewCompositionStrategy(
+            ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed
+        )
+        binding.ledgerSheetView.setContent {
+            // The Ledger signs the dummy tx PSBT in-app; the signature is extracted from the PSBT
+            // it hands back. The wallet comes from the BSMS, as there is no local one to look up.
+            ledgerSignRequest?.let { request ->
+                NunchukTheme {
+                    LedgerSignPsbtSheet(
+                        wallet = request.wallet,
+                        psbt = request.psbt,
+                        masterFingerprint = request.fingerprint,
+                        onDismiss = { ledgerSignRequest = null },
+                        onSignSuccess = { signedPsbt ->
+                            signInAuthenticationViewModel.handleSignLedgerKey(signedPsbt)
+                        },
+                    )
+                }
+            }
+        }
         binding.viewMore.setOnClickListener {
             viewModel.handleViewMoreEvent()
         }

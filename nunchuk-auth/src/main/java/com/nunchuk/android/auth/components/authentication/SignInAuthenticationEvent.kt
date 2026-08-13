@@ -22,6 +22,7 @@ package com.nunchuk.android.auth.components.authentication
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Transaction
+import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.byzantine.DummyTransactionType
 import com.nunchuk.android.type.TransactionStatus
 
@@ -34,6 +35,18 @@ sealed class SignInAuthenticationEvent {
     data object ScanColdCard : SignInAuthenticationEvent()
     data object CanNotSignHardwareKey : SignInAuthenticationEvent()
     data class ShowOpenTrezorSuiteConfirmation(val deeplink: String) : SignInAuthenticationEvent()
+
+    /**
+     * The Ledger signs in-app over BLE/USB, so the screen shows the Ledger sheet. [wallet] is the
+     * wallet parsed from the BSMS — it isn't in local storage yet at sign-in, and the device needs
+     * it to register the policy before signing [psbt].
+     */
+    data class RequestSignLedger(
+        val fingerprint: String,
+        val psbt: String,
+        val wallet: Wallet,
+    ) : SignInAuthenticationEvent()
+
     data object ShowAirgapOption : SignInAuthenticationEvent()
     data object ExportTransactionToColdcardSuccess : SignInAuthenticationEvent()
     data object CanNotSignDummyTx : SignInAuthenticationEvent()

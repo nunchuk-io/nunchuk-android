@@ -41,18 +41,22 @@ class LedgerWalletRegistrar @Inject constructor(
      * Runs [block] with a registration HMAC valid for [wallet] on the connected device.
      *
      * @param executor a connected Ledger session for the device the user picked.
+     * @param cacheRegistration whether the HMAC can be read from / written to the wallet's local
+     * storage. False for a wallet that isn't stored locally (the sign-in dummy transaction, whose
+     * wallet is parsed from a BSMS): there is no wallet row to cache in, so it registers every time.
      * @param block the device command to run; may be invoked twice (once per registration).
      */
     suspend fun <T> withRegisteredWallet(
         executor: LedgerCommandExecutor,
         wallet: Wallet,
+        cacheRegistration: Boolean = true,
         block: suspend (hmac: String) -> T,
     ): T {
-        var hmac = getLedgerWalletHmacUseCase(wallet.id).getOrThrow()
+        var hmac = if (cacheRegistration) getLedgerWalletHmacUseCase(wallet.id).getOrThrow() else ""
         Timber.tag(TAG).d(
             "cached hmac ${if (hmac.isBlank()) "empty -> registering wallet" else "present (len=${hmac.length})"}",
         )
-        if (hmac.isBlank()) hmac = register(executor, wallet)
+        if (hmac.isBlank()) hmac = register(executor, wallet, cacheRegistration)
 
         return try {
             block(hmac)
@@ -61,15 +65,24 @@ class LedgerWalletRegistrar @Inject constructor(
             if (e.statusWord != SW_INVALID_SIGNATURE_OR_HMAC) throw e
             // Stored HMAC is stale (another device / changed policy): re-register and retry.
             Timber.tag(TAG).d("stale hmac -> clearing + re-registering")
-            setLedgerWalletHmacUseCase(SetLedgerWalletHmacUseCase.Param(wallet.id, "")).getOrThrow()
-            block(register(executor, wallet))
+            if (cacheRegistration) {
+                setLedgerWalletHmacUseCase(SetLedgerWalletHmacUseCase.Param(wallet.id, ""))
+                    .getOrThrow()
+            }
+            block(register(executor, wallet, cacheRegistration))
         }
     }
 
-    private suspend fun register(executor: LedgerCommandExecutor, wallet: Wallet): String {
+    private suspend fun register(
+        executor: LedgerCommandExecutor,
+        wallet: Wallet,
+        cacheRegistration: Boolean,
+    ): String {
         val hmac = executor.registerWallet(wallet)
         Timber.tag(TAG).d("registerWallet done hmacLen=${hmac.length}")
-        setLedgerWalletHmacUseCase(SetLedgerWalletHmacUseCase.Param(wallet.id, hmac)).getOrThrow()
+        if (cacheRegistration) {
+            setLedgerWalletHmacUseCase(SetLedgerWalletHmacUseCase.Param(wallet.id, hmac)).getOrThrow()
+        }
         return hmac
     }
 

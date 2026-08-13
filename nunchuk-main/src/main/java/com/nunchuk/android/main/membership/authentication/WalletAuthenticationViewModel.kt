@@ -502,7 +502,9 @@ class WalletAuthenticationViewModel @Inject constructor(
      */
     private suspend fun requestSignTransactionByLedger(signerModel: SignerModel) {
         // Signing needs the wallet registered on the device, so a dummy transaction without a
-        // local wallet (e.g. sign-in) still has to go through the desktop app.
+        // local wallet still has to go through the desktop app. (Sign-in has no local wallet
+        // either, but it runs on SignInAuthenticationViewModel, which registers the wallet it
+        // parses from the BSMS.)
         if (args.walletId.isBlank()) {
             _event.emit(WalletAuthenticationEvent.CanNotSignHardwareKey)
             return

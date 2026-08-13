@@ -21,6 +21,7 @@ package com.nunchuk.android.core.domain.utils
 
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.Transaction
+import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.usecase.transaction.ImportPsbtUseCase
 import kotlinx.coroutines.CoroutineDispatcher
@@ -90,26 +91,59 @@ class LedgerTransactionSigner @Inject constructor(
         expectedXfp: String,
     ): String = withContext(ioDispatcher) {
         Timber.tag(TAG).d("signPsbt start walletId=$walletId expectedXfp=$expectedXfp")
+        signPsbt(
+            executor = executor,
+            wallet = nativeSdk.getWallet(walletId),
+            psbt = psbt,
+            expectedXfp = expectedXfp,
+        )
+    }
+
+    /**
+     * Same as above for a [wallet] that is not in local storage — the sign-in dummy transaction,
+     * whose wallet is parsed from the BSMS the user pasted rather than loaded by id. Registration
+     * can't be cached (the HMAC lives in the wallet's local storage), so the device registers the
+     * policy on every sign.
+     *
+     * @throws LedgerWrongDeviceException if the connected device is not [expectedXfp].
+     */
+    suspend fun signPsbt(
+        executor: LedgerCommandExecutor,
+        wallet: Wallet,
+        psbt: String,
+        expectedXfp: String,
+        cacheRegistration: Boolean = true,
+    ): String = withContext(ioDispatcher) {
         val deviceFingerprint = executor.getMasterFingerprint()
         Timber.tag(TAG).d("device fingerprint=$deviceFingerprint")
         if (!deviceFingerprint.equals(expectedXfp, ignoreCase = true)) {
             throw LedgerWrongDeviceException(expected = expectedXfp, actual = deviceFingerprint)
         }
 
-        val wallet = nativeSdk.getWallet(walletId)
         Timber.tag(TAG).d(
-            "wallet loaded id=${wallet.id} addressType=${wallet.addressType} totalRequireSigns=${wallet.totalRequireSigns} signers=${wallet.signers.size} psbtLength=${psbt.length}",
+            "wallet id=${wallet.id} addressType=${wallet.addressType} totalRequireSigns=${wallet.totalRequireSigns} signers=${wallet.signers.size} psbtLength=${psbt.length}",
         )
         require(psbt.isNotBlank()) { "Transaction has no PSBT to sign" }
 
-        walletRegistrar.withRegisteredWallet(executor, wallet) { hmac ->
+        // The policy name is shown on the device and has to be there: a wallet parsed from a BSMS
+        // has no name, since the format doesn't carry one.
+        val policyWallet = if (wallet.name.isBlank()) {
+            wallet.copy(name = DEFAULT_POLICY_NAME)
+        } else {
+            wallet
+        }
+
+        walletRegistrar.withRegisteredWallet(executor, policyWallet, cacheRegistration) { hmac ->
             Timber.tag(TAG).d("signPsbt (hmacLen=${hmac.length})")
-            executor.signPsbt(wallet, hmac, psbt)
+            executor.signPsbt(policyWallet, hmac, psbt)
         }
     }
 
     private companion object {
         private const val TAG = "LedgerSign"
+
+        /** Wallet policy name registered on the device when the wallet itself has none. */
+        private const val DEFAULT_POLICY_NAME = "Nunchuk"
     }
 }
 

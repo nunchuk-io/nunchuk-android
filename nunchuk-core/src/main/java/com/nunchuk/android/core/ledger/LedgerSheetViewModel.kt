@@ -10,6 +10,7 @@ import com.nunchuk.android.core.domain.utils.LedgerAddressVerifier
 import com.nunchuk.android.core.domain.utils.LedgerTransactionSigner
 import com.nunchuk.android.core.domain.utils.LedgerWrongDeviceException
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.type.HealthStatus
 import com.nunchuk.android.type.LedgerUserInteraction
@@ -46,6 +47,18 @@ sealed interface LedgerSheetAction {
      */
     data class SignPsbt(
         val walletId: String,
+        val psbt: String,
+        val masterFingerprint: String,
+    ) : LedgerSheetAction {
+        override val connectButtonText: Int get() = R.string.nc_ledger_sign_transaction
+    }
+
+    /**
+     * [SignPsbt] for a [wallet] that isn't stored locally, so it can't be looked up by id: the
+     * sign-in dummy transaction, whose wallet is parsed from the BSMS the user pasted.
+     */
+    data class SignPsbtWithWallet(
+        val wallet: Wallet,
         val psbt: String,
         val masterFingerprint: String,
     ) : LedgerSheetAction {
@@ -244,6 +257,7 @@ class LedgerSheetViewModel @Inject constructor(
         when (action) {
             is LedgerSheetAction.SignTransaction -> signTransaction(action)
             is LedgerSheetAction.SignPsbt -> signPsbt(action)
+            is LedgerSheetAction.SignPsbtWithWallet -> signPsbt(action)
             is LedgerSheetAction.HealthCheck -> {
                 pendingHealthCheck = action
                 controller.signMessage(action.derivationPath, HEALTH_CHECK_MESSAGE)
@@ -268,19 +282,30 @@ class LedgerSheetViewModel @Inject constructor(
         }
     }
 
-    private fun signPsbt(action: LedgerSheetAction.SignPsbt) = viewModelScope.launch {
-        runCatching {
-            ledgerTransactionSigner.signPsbt(
-                executor = executor,
-                walletId = action.walletId,
-                psbt = action.psbt,
-                expectedXfp = action.masterFingerprint,
-            )
-        }.onSuccess { signedPsbt ->
-            _event.emit(LedgerSheetEvent.SignPsbtSuccess(signedPsbt))
-        }.onFailure { e ->
-            emitSignFailure(e)
-        }
+    private fun signPsbt(action: LedgerSheetAction.SignPsbt) = signPsbt {
+        ledgerTransactionSigner.signPsbt(
+            executor = executor,
+            walletId = action.walletId,
+            psbt = action.psbt,
+            expectedXfp = action.masterFingerprint,
+        )
+    }
+
+    private fun signPsbt(action: LedgerSheetAction.SignPsbtWithWallet) = signPsbt {
+        ledgerTransactionSigner.signPsbt(
+            executor = executor,
+            wallet = action.wallet,
+            psbt = action.psbt,
+            expectedXfp = action.masterFingerprint,
+            // Nothing to cache the registration in: the wallet has no local storage.
+            cacheRegistration = false,
+        )
+    }
+
+    private fun signPsbt(sign: suspend () -> String) = viewModelScope.launch {
+        runCatching { sign() }
+            .onSuccess { signedPsbt -> _event.emit(LedgerSheetEvent.SignPsbtSuccess(signedPsbt)) }
+            .onFailure { e -> emitSignFailure(e) }
     }
 
     private fun verifyAddress(action: LedgerSheetAction.VerifyAddress) = viewModelScope.launch {
