@@ -116,7 +116,6 @@ android {
             dimension = "env"
             // Tag development builds on the Ledger branch so Firebase distributions are
             // identifiable, e.g. 2.7.0-ledger.DEV (flavor suffix + debug ".DEV").
-            versionNameSuffix = "-ledger"
             resValue("string", "app_name", "Development")
             configure<AppDistributionExtension> {
                 appId = "1:712097058578:android:3a7fe0dc4e6b89b713edcb"
