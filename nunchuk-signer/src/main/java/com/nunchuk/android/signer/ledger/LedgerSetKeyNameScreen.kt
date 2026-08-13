@@ -1,26 +1,26 @@
-package com.nunchuk.android.signer.trezor
+package com.nunchuk.android.signer.ledger
 
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import com.nunchuk.android.signer.components.name.SetKeyNameScreen
 
-const val trezorSetKeyNameRoute = "trezor_set_key_name_route"
+const val ledgerSetKeyNameRoute = "ledger_set_key_name_route"
 
-fun NavGraphBuilder.trezorSetKeyName(
-    defaultName: String = "Trezor",
+fun NavGraphBuilder.ledgerSetKeyName(
+    defaultName: () -> String = { "" },
     onBack: () -> Unit = {},
     onContinue: (String) -> Unit = {}
 ) {
-    composable(trezorSetKeyNameRoute) {
+    composable(ledgerSetKeyNameRoute) {
         SetKeyNameScreen(
-            defaultName = defaultName,
+            defaultName = defaultName(),
             onBack = onBack,
             onContinue = onContinue
         )
     }
 }
 
-fun NavHostController.navigateToTrezorSetKeyName() {
-    navigate(trezorSetKeyNameRoute)
+fun NavHostController.navigateToLedgerSetKeyName() {
+    navigate(ledgerSetKeyNameRoute)
 }

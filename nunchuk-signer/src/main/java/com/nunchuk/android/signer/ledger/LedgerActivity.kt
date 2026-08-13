@@ -8,6 +8,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -20,7 +21,6 @@ import com.nunchuk.android.core.base.BaseComposeActivity
 import com.nunchuk.android.core.ledger.LedgerBleController
 import com.nunchuk.android.core.ledger.LedgerDevice
 import com.nunchuk.android.core.ledger.LedgerRequest
-import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.signer.R
@@ -119,7 +119,6 @@ class LedgerActivity : BaseComposeActivity() {
 
                 LedgerRequest.XPUB -> {
                     viewModel.onXpubReceived(
-                        name = getString(R.string.nc_ledger),
                         masterFingerprint = masterFingerprint,
                         xpub = result,
                     )
@@ -158,6 +157,7 @@ class LedgerActivity : BaseComposeActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
+        viewModel.setMembershipFlow(isMembershipFlow)
         if (isMembershipFlow) {
             // Assisted/group membership wallets take multisig keys only, so the config is fixed here
             // instead of on the (skipped) select-wallet-type step. Free group wallet is not this mode.
@@ -168,40 +168,49 @@ class LedgerActivity : BaseComposeActivity() {
             )
         }
 
-        flowObserver(viewModel.event) { event ->
-            when (event) {
-                is LedgerScanEvent.OpenSignerInfo -> {
-                    val signer = event.signer
-                    if (isMembershipFlow) {
-                        setResult(
-                            RESULT_OK,
-                            Intent().apply {
-                                putExtra(GlobalResultKey.EXTRA_SIGNER, signer)
-                            }
-                        )
-                    } else {
-                        navigator.openSignerInfoScreen(
-                            activityContext = this,
-                            isMasterSigner = signer.hasMasterSigner,
-                            id = signer.masterFingerprint,
-                            masterFingerprint = signer.masterFingerprint,
-                            name = signer.name,
-                            type = signer.type,
-                            derivationPath = signer.derivationPath,
-                            justAdded = true,
-                        )
-                    }
-                    finish()
-                }
-
-                is LedgerScanEvent.Error -> NCToastMessage(this).showError(event.message)
-            }
-        }
-
         setContent {
             NunchukTheme {
                 val navController = rememberNavController()
                 val state by viewModel.state.collectAsStateWithLifecycle()
+
+                LaunchedEffect(Unit) {
+                    viewModel.event.collect { event ->
+                        when (event) {
+                            LedgerScanEvent.NavigateToSetKeyName -> {
+                                if (navController.currentDestination?.route != ledgerSetKeyNameRoute) {
+                                    navController.navigateToLedgerSetKeyName()
+                                }
+                            }
+
+                            is LedgerScanEvent.OpenSignerInfo -> {
+                                val signer = event.signer
+                                if (isMembershipFlow) {
+                                    setResult(
+                                        RESULT_OK,
+                                        Intent().apply {
+                                            putExtra(GlobalResultKey.EXTRA_SIGNER, signer)
+                                        }
+                                    )
+                                } else {
+                                    navigator.openSignerInfoScreen(
+                                        activityContext = this@LedgerActivity,
+                                        isMasterSigner = signer.hasMasterSigner,
+                                        id = signer.masterFingerprint,
+                                        masterFingerprint = signer.masterFingerprint,
+                                        name = signer.name,
+                                        type = signer.type,
+                                        derivationPath = signer.derivationPath,
+                                        justAdded = true,
+                                    )
+                                }
+                                finish()
+                            }
+
+                            is LedgerScanEvent.Error ->
+                                NCToastMessage(this@LedgerActivity).showError(event.message)
+                        }
+                    }
+                }
 
                 NavHost(
                     navController = navController,
@@ -280,6 +289,13 @@ class LedgerActivity : BaseComposeActivity() {
                             controller.connect(device)
                             controller.whenReady { controller.getMasterFingerprint() }
                         },
+                    )
+                    // Standalone add-key only: membership flows auto-name the key and never
+                    // reach this step.
+                    ledgerSetKeyName(
+                        defaultName = { state.defaultSignerName },
+                        onBack = { navController.popBackStack() },
+                        onContinue = { name -> viewModel.createLedgerSigner(name) },
                     )
                 }
 
