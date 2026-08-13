@@ -58,6 +58,7 @@ import com.nunchuk.android.usecase.UpdateRemoteSignerUseCase
 import com.nunchuk.android.usecase.membership.CheckRequestAddDesktopKeyStatusUseCase
 import com.nunchuk.android.usecase.membership.GetMembershipStepUseCase
 import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
+import com.nunchuk.android.usecase.membership.SetKeyVerifiedUseCase
 import com.nunchuk.android.usecase.membership.SyncDraftWalletUseCase
 import com.nunchuk.android.usecase.membership.SyncKeyUseCase
 import com.nunchuk.android.usecase.signer.GetAllSignersUseCase
@@ -102,6 +103,7 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
     private val singleSignerMapper: SingleSignerMapper,
     private val pushEventManager: com.nunchuk.android.core.push.PushEventManager,
     private val getChainSettingFlowUseCase: GetChainSettingFlowUseCase,
+    private val setKeyVerifiedUseCase: SetKeyVerifiedUseCase,
 ) : ViewModel() {
     private val _state = MutableStateFlow(AddKeyListState())
     val state = _state.asStateFlow()
@@ -393,6 +395,27 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
                             _event.emit(AddKeyListEvent.ShowError(it.message.orUnknownError()))
                         }
                 }
+        }
+    }
+
+    /**
+     * The device restored from the seed-phrase backup reported [masterSignerId]; if that is the key
+     * on the card, the backup is good. Same contract as the Coldcard and air-gap verify steps.
+     */
+    fun setKeyVerified(masterSignerId: String) {
+        viewModelScope.launch {
+            setKeyVerifiedUseCase(
+                SetKeyVerifiedUseCase.Param(
+                    groupId = groupId,
+                    masterSignerId = masterSignerId,
+                    verifyType = VerifyType.APP_VERIFIED
+                )
+            ).onSuccess {
+                refresh()
+                _event.emit(AddKeyListEvent.OnKeyVerified)
+            }.onFailure {
+                _event.emit(AddKeyListEvent.ShowError(it.message.orUnknownError()))
+            }
         }
     }
 
@@ -843,6 +866,7 @@ sealed class AddKeyListEvent {
     ) : AddKeyListEvent()
 
     data object OnAddAllKey : AddKeyListEvent()
+    data object OnKeyVerified : AddKeyListEvent()
     data object SelectAirgapType : AddKeyListEvent()
     data object RequireReopenWallet : AddKeyListEvent()
     data class HandleSignerTypeLogic(val type: SignerType, val tag: SignerTag?) : AddKeyListEvent()

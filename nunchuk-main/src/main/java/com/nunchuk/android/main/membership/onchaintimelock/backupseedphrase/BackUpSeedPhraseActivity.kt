@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.ui.platform.ComposeView
 import androidx.navigation.compose.NavHost
@@ -36,6 +37,18 @@ class BackUpSeedPhraseActivity : BaseComposeActivity(), BottomSheetOptionListene
 
     private val args: BackUpSeedPhraseArgs by lazy {
         BackUpSeedPhraseArgs.deserializeFrom(intent)
+    }
+
+    /**
+     * The last step is re-adding the key from the restored device, which happens over in the
+     * key-type screen. Whatever it reports back belongs to whoever started this flow, so pass it
+     * straight up instead of acting on it here.
+     */
+    private val signerIntroLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        setResult(result.resultCode, result.data)
+        finish()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -82,6 +95,7 @@ class BackUpSeedPhraseActivity : BaseComposeActivity(), BottomSheetOptionListene
                         backUpSeedPhraseVerifyDestination(
                             onContinue = {
                                 navigator.openSignerIntroScreen(
+                                    launcher = signerIntroLauncher,
                                     activityContext = this@BackUpSeedPhraseActivity,
                                     walletId = args.walletId,
                                     groupId = args.groupId,
@@ -94,7 +108,8 @@ class BackUpSeedPhraseActivity : BaseComposeActivity(), BottomSheetOptionListene
                                         )
                                     )
                                 )
-                                finish()
+                                // Stay alive: the key-type screen reports back through
+                                // signerIntroLauncher.
                             },
                             onMoreClicked = ::handleShowMore
                         )
@@ -169,10 +184,13 @@ class BackUpSeedPhraseActivity : BaseComposeActivity(), BottomSheetOptionListene
     }
 
     companion object {
-        fun start(context: Context, args: BackUpSeedPhraseArgs) {
-            context.startActivity(Intent(context, BackUpSeedPhraseActivity::class.java).apply {
+        fun buildIntent(context: Context, args: BackUpSeedPhraseArgs): Intent =
+            Intent(context, BackUpSeedPhraseActivity::class.java).apply {
                 putExtras(args.buildBundle())
-            })
+            }
+
+        fun start(context: Context, args: BackUpSeedPhraseArgs) {
+            context.startActivity(buildIntent(context, args))
         }
     }
 }

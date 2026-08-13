@@ -181,6 +181,19 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
             }
         }
 
+    /**
+     * Tail end of "verify your inheritance key seed phrase": the user restored the seed onto the
+     * device and re-added it, and the flow hands back the fingerprint it saw. Matching it against
+     * the key on the card is what the verification is, so mark the step verified from here.
+     */
+    private val verifyBackUpSeedPhraseLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            val verifiedXfp = result.data?.getStringExtra(LedgerActivity.EXTRA_VERIFIED_XFP)
+            if (result.resultCode == Activity.RESULT_OK && !verifiedXfp.isNullOrEmpty()) {
+                viewModel.setKeyVerified(verifiedXfp)
+            }
+        }
+
     private val addLedgerLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             val data = result.data
@@ -443,6 +456,8 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
 
                 AddKeyListEvent.OnAddAllKey -> onAddAllKey()
 
+                AddKeyListEvent.OnKeyVerified -> openVerifyBackUpSuccess()
+
                 is AddKeyListEvent.ShowError -> showError(event.message)
                 AddKeyListEvent.SelectAirgapType -> {
 
@@ -680,6 +695,21 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
             BackUpSeedPhraseArgs(
                 type = BackUpSeedPhraseType.INTRO,
                 signer = event.signer,
+                groupId = (activity as MembershipActivity).groupId,
+                walletId = (activity as MembershipActivity).walletId
+            ),
+            // Keys that re-add themselves in-app (Ledger) report the restored device back here;
+            // Coldcard and air-gap finish verification on their own screens and return nothing.
+            launcher = verifyBackUpSeedPhraseLauncher,
+        )
+    }
+
+    private fun openVerifyBackUpSuccess() {
+        navigator.openBackUpSeedPhraseActivity(
+            requireActivity(),
+            BackUpSeedPhraseArgs(
+                type = BackUpSeedPhraseType.SUCCESS,
+                signer = null,
                 groupId = (activity as MembershipActivity).groupId,
                 walletId = (activity as MembershipActivity).walletId
             )

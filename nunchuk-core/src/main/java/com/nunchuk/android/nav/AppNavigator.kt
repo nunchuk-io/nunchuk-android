@@ -197,9 +197,14 @@ interface AppNavigator {
         args: MiniscriptArgs
     )
 
+    /**
+     * Pass a [launcher] when the caller has to hear how the backup went — the on-chain key list
+     * marks the key verified itself once the flow hands back the device fingerprint.
+     */
     fun openBackUpSeedPhraseActivity(
         activityContext: Context,
-        args: BackUpSeedPhraseArgs
+        args: BackUpSeedPhraseArgs,
+        launcher: ActivityResultLauncher<Intent>? = null,
     )
 
     fun openSignerIntroScreen(

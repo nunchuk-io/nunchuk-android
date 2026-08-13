@@ -240,6 +240,7 @@
     <string name="nc_ledger_step_return_title">Return to Nunchuk and continue</string>
     <string name="nc_ledger_scanning">Looking for Ledger devices…</string>
     <string name="nc_added_key_xfp_mismatch">The added key has an XFP mismatch. Please use the same device for both keys.</string>
+    <string name="nc_verify_key_xfp_not_match">The key you just added (XFP:%1$s) doesn\'t match the original inheritance key (XFP:%2$s). Please try again.</string>
     <string name="nc_ensure_to_following_jade">Please ensure to do the following on your Jade before proceeding.</string>
     <string name="nc_init_jade">Initialize Jade</string>
     <string name="nc_unlock_jade">Unlock Jade</string>

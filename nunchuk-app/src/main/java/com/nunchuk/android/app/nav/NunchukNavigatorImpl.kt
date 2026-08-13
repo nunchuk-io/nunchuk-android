@@ -508,9 +508,15 @@ interface AppNavigatorDelegate : AppNavigator {
 
     override fun openBackUpSeedPhraseActivity(
         activityContext: Context,
-        args: BackUpSeedPhraseArgs
+        args: BackUpSeedPhraseArgs,
+        launcher: ActivityResultLauncher<Intent>?
     ) {
-        BackUpSeedPhraseActivity.start(activityContext, args)
+        val intent = BackUpSeedPhraseActivity.buildIntent(activityContext, args)
+        if (launcher != null) {
+            launcher.launch(intent)
+        } else {
+            activityContext.startActivity(intent)
+        }
     }
 
     override fun openSignerIntroScreen(

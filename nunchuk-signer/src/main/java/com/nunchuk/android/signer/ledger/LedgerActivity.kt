@@ -73,9 +73,19 @@ class LedgerActivity : BaseComposeActivity() {
         intent.getIntExtra(EXTRA_ACCOUNT_INDEX, 0)
     }
 
-    /** Set when the key has to come off a specific device — the second account of an on-chain pair. */
+    /** Set when the key has to come off a specific device — the other account of an on-chain pair,
+     *  or, when verifying a seed-phrase backup, the key that backup belongs to. */
     private val expectedXfp: String by lazy {
         intent.getStringExtra(EXTRA_EXPECTED_XFP).orEmpty()
+    }
+
+    /**
+     * Verifying a seed-phrase backup: the key already exists and the user restored its seed onto
+     * this device, so connecting is the whole check. Read the fingerprint, hand it back and let
+     * the caller mark the key verified — no xpub, no key created.
+     */
+    private val isVerifyXfpOnly: Boolean by lazy {
+        intent.getBooleanExtra(EXTRA_VERIFY_XFP_ONLY, false)
     }
 
     private val controller: LedgerBleController by lazy {
@@ -125,9 +135,20 @@ class LedgerActivity : BaseComposeActivity() {
             when (request) {
                 LedgerRequest.MASTER_FINGERPRINT -> {
                     // Both accounts of an on-chain key slot have to come off one device, otherwise
-                    // the wallet is built from a key the user never meant to add.
+                    // the wallet is built from a key the user never meant to add. In verify mode
+                    // the same check is what proves the restored seed is the inheritance key.
                     if (expectedXfp.isNotEmpty() && !result.equals(expectedXfp, ignoreCase = true)) {
-                        viewModel.onError(getString(R.string.nc_added_key_xfp_mismatch))
+                        viewModel.onError(xfpMismatchMessage(result))
+                        return
+                    }
+                    if (isVerifyXfpOnly) {
+                        setResult(
+                            RESULT_OK,
+                            Intent().apply {
+                                putExtra(EXTRA_VERIFIED_XFP, result.lowercase(Locale.getDefault()))
+                            }
+                        )
+                        finish()
                         return
                     }
                     masterFingerprint = result
@@ -264,7 +285,9 @@ class LedgerActivity : BaseComposeActivity() {
                             finish()
                         },
                         isAddViaUsbEnabled = true,
-                        isAddViaDesktopEnabled = isMembershipFlow,
+                        // Verifying a backup means reading this device; the desktop app can't
+                        // stand in for it.
+                        isAddViaDesktopEnabled = isMembershipFlow && !isVerifyXfpOnly,
                     )
                     ledgerSelectWalletType(
                         onBack = { navController.popBackStack() },
@@ -342,6 +365,16 @@ class LedgerActivity : BaseComposeActivity() {
         }
     }
 
+    private fun xfpMismatchMessage(actualXfp: String): String = if (isVerifyXfpOnly) {
+        getString(
+            R.string.nc_verify_key_xfp_not_match,
+            actualXfp.uppercase(Locale.getDefault()),
+            expectedXfp.uppercase(Locale.getDefault()),
+        )
+    } else {
+        getString(R.string.nc_added_key_xfp_mismatch)
+    }
+
     private fun ensurePermissionThenScan() {
         if (controller.hasBlePermissions()) {
             startScan()
@@ -375,7 +408,11 @@ class LedgerActivity : BaseComposeActivity() {
         const val EXTRA_IS_MEMBERSHIP_FLOW = "extra_is_membership_flow"
         const val EXTRA_ACCOUNT_INDEX = "extra_account_index"
         const val EXTRA_EXPECTED_XFP = "extra_expected_xfp"
+        const val EXTRA_VERIFY_XFP_ONLY = "extra_verify_xfp_only"
         const val EXTRA_RESULT_ACTION = "extra_result_action"
+
+        /** Lowercased fingerprint of the connected device, returned by [verifyXfpOnly]. */
+        const val EXTRA_VERIFIED_XFP = "extra_verified_xfp"
 
         /** The user chose to claim the key from the desktop app instead of pairing here. */
         const val RESULT_ACTION_OPEN_DESKTOP_FLOW = "result_action_open_desktop_flow"
@@ -383,16 +420,23 @@ class LedgerActivity : BaseComposeActivity() {
         /**
          * "Add key" flow (Get XPUB). [accountIndex] and [expectedXfp] only apply to
          * [isMembershipFlow], which skips the screen where the user would pick the account.
+         *
+         * [verifyXfpOnly] turns this into a "which device is this?" round trip used by the
+         * seed-phrase-backup verification: no key is created and [EXTRA_VERIFIED_XFP] comes back on
+         * RESULT_OK. Pass [expectedXfp] with it — a device reporting anything else is turned away
+         * here rather than by the caller.
          */
         fun buildIntent(
             activityContext: Context,
             isMembershipFlow: Boolean = false,
             accountIndex: Int = 0,
             expectedXfp: String = "",
+            verifyXfpOnly: Boolean = false,
         ): Intent = Intent(activityContext, LedgerActivity::class.java).apply {
             putExtra(EXTRA_IS_MEMBERSHIP_FLOW, isMembershipFlow)
             putExtra(EXTRA_ACCOUNT_INDEX, accountIndex)
             putExtra(EXTRA_EXPECTED_XFP, expectedXfp)
+            putExtra(EXTRA_VERIFY_XFP_ONLY, verifyXfpOnly)
         }
     }
 }

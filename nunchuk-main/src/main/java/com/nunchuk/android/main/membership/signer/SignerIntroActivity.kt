@@ -111,6 +111,21 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
         }
     }
 
+    /**
+     * Seed-phrase-backup verification for a Ledger: the device only has to prove which key it
+     * holds. Hand the fingerprint back to whoever started this flow — the key list marks the key
+     * verified, the same way it owns every other step of that card.
+     */
+    private val verifyLedgerBackupLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        // Backing out of the Ledger screen leaves the user here to pick a key type, the same as
+        // backing out of the Coldcard or air-gap screens does.
+        if (result.resultCode != RESULT_OK) return@registerForActivityResult
+        setResult(RESULT_OK, result.data)
+        finish()
+    }
+
     private val recoverSeedLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
@@ -466,6 +481,22 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
     }
 
     private fun openLedgerScreen() {
+        val onChainAddSignerParam = onChainAddSignerParam
+        val verifyingKeyXfp = onChainAddSignerParam?.currentSigner?.fingerPrint.orEmpty()
+        // Without a key to check the device against there is nothing to verify, so fall through
+        // rather than accept whatever device is connected.
+        if (onChainAddSignerParam?.isVerifyBackupSeedPhrase() == true && verifyingKeyXfp.isNotEmpty()) {
+            // Re-read the restored device instead of adding a second copy of the key.
+            verifyLedgerBackupLauncher.launch(
+                LedgerActivity.buildIntent(
+                    activityContext = this,
+                    isMembershipFlow = true,
+                    expectedXfp = verifyingKeyXfp,
+                    verifyXfpOnly = true,
+                )
+            )
+            return
+        }
         if (onChainAddSignerParam != null) {
             handleHardwareSignerSelection(SignerTag.LEDGER)
             return
