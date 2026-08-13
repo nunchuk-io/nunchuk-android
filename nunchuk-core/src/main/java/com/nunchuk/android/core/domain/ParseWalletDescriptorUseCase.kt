@@ -30,7 +30,17 @@ class ParseWalletDescriptorUseCase @Inject constructor(
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : UseCase<String, Wallet>(ioDispatcher) {
 
+    /**
+     * The input is trimmed before it reaches the native parser. Descriptors here come from
+     * user-pasted text, scanned QRs and imported files, and a leading newline crashes the SDK:
+     * `ParseOutputDescriptors` does `split(descs, '\n')[0]` then `split(desc, '#')[0]`, and the
+     * second split of an empty first line yields an empty vector, so `[0]` dereferences null
+     * (SIGSEGV) instead of throwing. Trimming also lets a BSMS with surrounding blank lines parse:
+     * `ParseBSMSRecord` requires the first line to be exactly "BSMS 1.0".
+     */
     override suspend fun execute(parameters: String): Wallet {
-        return nunchukNativeSdk.parseWalletDescriptor(parameters)
+        val descriptor = parameters.trim()
+        require(descriptor.isNotEmpty()) { "Invalid descriptor" }
+        return nunchukNativeSdk.parseWalletDescriptor(descriptor)
     }
 }
