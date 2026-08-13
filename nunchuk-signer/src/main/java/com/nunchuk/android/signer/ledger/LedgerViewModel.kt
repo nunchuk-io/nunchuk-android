@@ -7,15 +7,16 @@ import com.nunchuk.android.core.ledger.LedgerDevice
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.util.formattedName
+import com.nunchuk.android.core.util.generateUniqueSignerName
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.SingleSigner
-import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.CheckExistingKeyUseCase
 import com.nunchuk.android.usecase.CreateSignerUseCase
+import com.nunchuk.android.usecase.GetCompoundSignersUseCase
 import com.nunchuk.android.usecase.ResultExistingKey
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -61,18 +62,29 @@ class LedgerViewModel @Inject constructor(
     private val createSignerUseCase: CreateSignerUseCase,
     private val getBip32PathUseCase: GetBip32PathUseCase,
     private val checkExistingKeyUseCase: CheckExistingKeyUseCase,
-    private val membershipStepManager: MembershipStepManager,
+    private val getCompoundSignersUseCase: GetCompoundSignersUseCase,
     private val pushEventManager: PushEventManager,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(LedgerScanUiState())
     val state = _state.asStateFlow()
 
+    /** Key names already taken in the app, so a generated name never collides with one. */
+    private var existingSignerNames: List<String> = emptyList()
+
     private val _event = MutableSharedFlow<LedgerScanEvent>()
     val event = _event.asSharedFlow()
 
     /** Assisted/group membership flows auto-name the key; standalone lets the user name it. */
     private var isMembershipFlow: Boolean = false
+
+    init {
+        viewModelScope.launch {
+            getCompoundSignersUseCase.execute().collect { (masterSigners, remoteSigners) ->
+                existingSignerNames = masterSigners.map { it.name } + remoteSigners.map { it.name }
+            }
+        }
+    }
 
     fun setMembershipFlow(value: Boolean) {
         isMembershipFlow = value
@@ -138,8 +150,10 @@ class LedgerViewModel @Inject constructor(
                             existingKeyType = existingKeyType.takeIf { type -> type != ResultExistingKey.None },
                             replaceExistingKey = false,
                             // Spec names the key after the connected bluetooth/usb device.
-                            defaultSignerName = config.selectedDevice?.name
-                                ?.takeIf(String::isNotBlank) ?: SignerTag.LEDGER.formattedName,
+                            defaultSignerName = uniqueName(
+                                config.selectedDevice?.name?.takeIf(String::isNotBlank)
+                                    ?: SignerTag.LEDGER.formattedName
+                            ),
                         )
                     }
                     if (existingKeyType == ResultExistingKey.None) {
@@ -160,20 +174,20 @@ class LedgerViewModel @Inject constructor(
     }
 
     /**
-     * Membership keys are auto-named the same way the other hardware keys are — base name plus
-     * the next free suffix, so a second one lands on "Ledger #2". Standalone add-key stops on
-     * the "Name your key" step instead and lets the user name it.
+     * Membership flows auto-name the key "Ledger", stepping up to "Ledger 2", "Ledger 3"… when
+     * that name is taken. Standalone add-key stops on the "Name your key" step instead and lets
+     * the user name it.
      */
     private suspend fun continueToNaming() {
         if (isMembershipFlow) {
-            createSigner(autoKeyName())
+            createSigner(uniqueName(SignerTag.LEDGER.formattedName))
         } else {
             _event.emit(LedgerScanEvent.NavigateToSetKeyName)
         }
     }
 
-    private fun autoKeyName(): String = SignerTag.LEDGER.formattedName +
-            membershipStepManager.getNextKeySuffixByType(SignerType.HARDWARE)
+    private fun uniqueName(baseName: String) =
+        generateUniqueSignerName(baseName, existingSignerNames)
 
     fun createLedgerSigner(name: String) {
         val signerName = name.trim()

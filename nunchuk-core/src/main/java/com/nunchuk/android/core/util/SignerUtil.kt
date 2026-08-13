@@ -134,6 +134,24 @@ val SignerTag?.formattedName: String
         else -> "Hardware Key"
     }
 
+/**
+ * Next free key name for [baseName] against the names already in the app: "Ledger", then
+ * "Ledger 2", "Ledger 3"… Matching is case-insensitive.
+ *
+ * Name-based rather than counting signers by [SignerType]: the in-app hardware keys (Ledger,
+ * Trezor, BitBox) all share [SignerType.HARDWARE], so counting by type would push a first
+ * Ledger to "Ledger 2" just because a Trezor is already there.
+ */
+fun generateUniqueSignerName(baseName: String, existingNames: Collection<String>): String {
+    val base = baseName.trim()
+    if (base.isEmpty()) return base
+    val taken = existingNames.mapTo(mutableSetOf()) { it.trim().lowercase() }
+    if (base.lowercase() !in taken) return base
+    var index = 2
+    while ("$base $index".lowercase() in taken) index++
+    return "$base $index"
+}
+
 val SignerType.canSign: Boolean
     get() = !this.isPlatformKey && this != UNKNOWN
 
