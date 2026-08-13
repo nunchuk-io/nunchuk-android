@@ -396,7 +396,11 @@ Entry point `SignerIntroActivity` (`nunchuk-main/membership/signer/`) with `Sign
 
 Hardware keys split by tag (`openInAppHardwareOrDesktopFlow`): **Trezor and Ledger have in-app flows; every other hardware key (BitBox, COLDCARD via USB) goes to `AddDesktopKeyFragment`**, which asks the user to finish in the desktop app and waits for the key to arrive from the server (`RequestAddKeySuccessFragment`). `AddDesktopKeyFragment` renders copy for the `COLDCARD` / `TREZOR` / `LEDGER` / `BITBOX` / `JADE` tags.
 
-The on-chain timelock variants (`OnChainTimelockAddKeyListFragment`, `OnChainReplaceKeysFragment`) deliberately route **all** hardware tags — Ledger and Trezor included — to `openRequestAddDesktopKey`.
+### Add key (on-chain timelock)
+
+`OnChainTimelockAddKeyListFragment` (`nunchuk-main/membership/onchaintimelock/addkey/`) serves both the personal and the group on-chain wallet. Each hardware-key card is **two membership steps — two accounts of the same device** (Acct X = account 0, Acct Y = account 1), so every slot is filled twice: the first "Add" runs `SignerIntroActivity` (which, for hardware, just hands the `SignerTag` back), the second goes through `handleSignerIndexCheck` — reuse the local signer at account 1 if there is one, otherwise re-run the add flow with `keyIndex = 1`.
+
+Hardware tags land in `openInAppHardwareOrDesktopFlow`: **Ledger pairs in-app (`LedgerActivity` with `accountIndex` = signers already in the slot, and `expectedXfp` = the slot's first key, so the second account has to come off the same device); Trezor, BitBox, COLDCARD-over-USB and Jade go to `openRequestAddDesktopKey`** — as does Ledger when the user picks "Add via desktop app" on the Ledger intro. `OnChainReplaceKeysFragment` mirrors this dispatcher but has no desktop path at all: `openRequestAddDesktopKey` there is a "not supported" info dialog, so on-chain replace is still air-gap/NFC only.
 
 ### Replace key
 

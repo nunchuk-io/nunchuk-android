@@ -109,6 +109,7 @@ import com.nunchuk.android.main.membership.model.resId
 import com.nunchuk.android.main.membership.onchaintimelock.importantpassphrase.ImportantNoticePassphraseFragment
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.MembershipStep
+import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.TimelockBased
 import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
@@ -121,6 +122,7 @@ import com.nunchuk.android.nav.args.SetupMk4Args
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.share.result.GlobalResultKey
+import com.nunchuk.android.signer.ledger.LedgerActivity
 import com.nunchuk.android.signer.mk4.inheritance.ColdCardIntroFragment
 import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
 import com.nunchuk.android.type.SignerTag
@@ -179,6 +181,19 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
             }
         }
 
+    private val addLedgerLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            val data = result.data
+            if (result.resultCode == Activity.RESULT_OK && data != null) {
+                data.parcelable<SingleSigner>(GlobalResultKey.EXTRA_SIGNER)?.let { signer ->
+                    viewModel.onSelectedExistingHardwareSigner(signer, currentKeyData)
+                    return@registerForActivityResult
+                }
+                if (data.getStringExtra(LedgerActivity.EXTRA_RESULT_ACTION) == LedgerActivity.RESULT_ACTION_OPEN_DESKTOP_FLOW) {
+                    openRequestAddDesktopKey(SignerTag.LEDGER)
+                }
+            }
+        }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
@@ -350,12 +365,36 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                 )
             )
         } else {
-            openRequestAddDesktopKey(tag)
+            openInAppHardwareOrDesktopFlow(tag)
         }
     }
 
     private fun getAllExistingSigners(): List<SignerModel> {
         return viewModel.key.value.flatMap { it.getAllSigners() }
+    }
+
+    /** Ledger pairs with the app over BLE/USB; every other hardware key is desktop-only. */
+    private fun openInAppHardwareOrDesktopFlow(tag: SignerTag) {
+        when (tag) {
+            SignerTag.LEDGER -> openLedgerFlow()
+            else -> openRequestAddDesktopKey(tag)
+        }
+    }
+
+    /**
+     * A key slot here holds two accounts of the same device, so the account to read is however
+     * many signers the slot already has, and the second one has to come off the first one's device.
+     */
+    private fun openLedgerFlow() {
+        val signers = currentKeyData?.getAllSigners().orEmpty()
+        addLedgerLauncher.launch(
+            LedgerActivity.buildIntent(
+                activityContext = requireActivity(),
+                isMembershipFlow = true,
+                accountIndex = signers.size,
+                expectedXfp = signers.firstOrNull()?.fingerPrint.orEmpty(),
+            )
+        )
     }
 
     private fun openRequestAddDesktopKey(tag: SignerTag) {
@@ -559,11 +598,13 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
             SignerType.HARDWARE -> {
                 selectedSignerTag = tag
                 when (tag) {
-                    SignerTag.LEDGER -> openRequestAddDesktopKey(SignerTag.LEDGER)
-                    SignerTag.TREZOR -> openRequestAddDesktopKey(SignerTag.TREZOR)
-                    SignerTag.BITBOX -> openRequestAddDesktopKey(SignerTag.BITBOX)
-                    SignerTag.COLDCARD -> openRequestAddDesktopKey(SignerTag.COLDCARD)
-                    SignerTag.JADE -> openRequestAddDesktopKey(SignerTag.JADE)
+                    SignerTag.LEDGER,
+                    SignerTag.TREZOR,
+                    SignerTag.BITBOX,
+                    SignerTag.COLDCARD,
+                    SignerTag.JADE,
+                        -> openInAppHardwareOrDesktopFlow(tag)
+
                     else -> {}
                 }
             }

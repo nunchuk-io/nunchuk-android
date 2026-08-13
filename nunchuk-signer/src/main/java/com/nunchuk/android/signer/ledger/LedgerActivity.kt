@@ -46,9 +46,11 @@ import javax.inject.Inject
  *   in the group slot through `PushEvent.LocalUserSignerAdded`.
  * - assisted-wallet / group-wallet membership flows (`isMembershipFlow = true`): those wallets only
  *   accept multisig keys (`isValidPathForAssistedWallet`), so the config is fixed to multisig /
- *   native segwit / account 0 and the select-wallet-type step is skipped. The created signer is
- *   returned to the caller via [GlobalResultKey.EXTRA_SIGNER], and the intro adds a desktop-app
- *   hand-off returned as [RESULT_ACTION_OPEN_DESKTOP_FLOW].
+ *   native segwit / [EXTRA_ACCOUNT_INDEX] and the select-wallet-type step is skipped. The created
+ *   signer is returned to the caller via [GlobalResultKey.EXTRA_SIGNER], and the intro adds a
+ *   desktop-app hand-off returned as [RESULT_ACTION_OPEN_DESKTOP_FLOW]. The on-chain timelock
+ *   wallets hold two accounts of the same device per key slot, so they add the key twice — account
+ *   0, then account 1 with [EXTRA_EXPECTED_XFP] set to the first key's fingerprint.
  *
  * (Sign transaction and health check are hosted inline on their own screens as
  * [com.nunchuk.android.core.ledger.LedgerSignTransactionSheet] /
@@ -64,6 +66,16 @@ class LedgerActivity : BaseComposeActivity() {
 
     private val isMembershipFlow: Boolean by lazy {
         intent.getBooleanExtra(EXTRA_IS_MEMBERSHIP_FLOW, false)
+    }
+
+    /** Account to read the xpub from; only the membership flows set it (they skip the config step). */
+    private val accountIndex: Int by lazy {
+        intent.getIntExtra(EXTRA_ACCOUNT_INDEX, 0)
+    }
+
+    /** Set when the key has to come off a specific device — the second account of an on-chain pair. */
+    private val expectedXfp: String by lazy {
+        intent.getStringExtra(EXTRA_EXPECTED_XFP).orEmpty()
     }
 
     private val controller: LedgerBleController by lazy {
@@ -112,6 +124,12 @@ class LedgerActivity : BaseComposeActivity() {
         override fun onCommandComplete(request: LedgerRequest, result: String) {
             when (request) {
                 LedgerRequest.MASTER_FINGERPRINT -> {
+                    // Both accounts of an on-chain key slot have to come off one device, otherwise
+                    // the wallet is built from a key the user never meant to add.
+                    if (expectedXfp.isNotEmpty() && !result.equals(expectedXfp, ignoreCase = true)) {
+                        viewModel.onError(getString(R.string.nc_added_key_xfp_mismatch))
+                        return
+                    }
                     masterFingerprint = result
                     val config = viewModel.state.value
                     controller.getExtendedPublicKey(config.walletType, config.addressType, config.accountIndex)
@@ -164,7 +182,7 @@ class LedgerActivity : BaseComposeActivity() {
             viewModel.setWalletConfig(
                 walletType = WalletType.MULTI_SIG,
                 addressType = AddressType.NATIVE_SEGWIT,
-                index = 0,
+                index = accountIndex,
             )
         }
 
@@ -355,17 +373,26 @@ class LedgerActivity : BaseComposeActivity() {
 
     companion object {
         const val EXTRA_IS_MEMBERSHIP_FLOW = "extra_is_membership_flow"
+        const val EXTRA_ACCOUNT_INDEX = "extra_account_index"
+        const val EXTRA_EXPECTED_XFP = "extra_expected_xfp"
         const val EXTRA_RESULT_ACTION = "extra_result_action"
 
         /** The user chose to claim the key from the desktop app instead of pairing here. */
         const val RESULT_ACTION_OPEN_DESKTOP_FLOW = "result_action_open_desktop_flow"
 
-        /** "Add key" flow (Get XPUB). */
+        /**
+         * "Add key" flow (Get XPUB). [accountIndex] and [expectedXfp] only apply to
+         * [isMembershipFlow], which skips the screen where the user would pick the account.
+         */
         fun buildIntent(
             activityContext: Context,
             isMembershipFlow: Boolean = false,
+            accountIndex: Int = 0,
+            expectedXfp: String = "",
         ): Intent = Intent(activityContext, LedgerActivity::class.java).apply {
             putExtra(EXTRA_IS_MEMBERSHIP_FLOW, isMembershipFlow)
+            putExtra(EXTRA_ACCOUNT_INDEX, accountIndex)
+            putExtra(EXTRA_EXPECTED_XFP, expectedXfp)
         }
     }
 }
