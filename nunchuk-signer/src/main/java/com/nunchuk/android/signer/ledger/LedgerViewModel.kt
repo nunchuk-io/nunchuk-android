@@ -6,8 +6,10 @@ import com.nunchuk.android.core.domain.utils.GetBip32PathUseCase
 import com.nunchuk.android.core.ledger.LedgerDevice
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
+import com.nunchuk.android.core.util.formattedName
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
@@ -34,16 +36,21 @@ data class LedgerScanUiState(
     val walletType: WalletType = WalletType.SINGLE_SIG,
     val addressType: AddressType = AddressType.NATIVE_SEGWIT,
     val accountIndex: Int = 0,
-    // Set when the fetched xpub matches a key already in the app: the signer waits on the
-    // replace-key confirmation before being persisted.
+    // Set once the xpub is fetched: the signer waits on the name step (standalone flow) and/or
+    // the replace-key confirmation before being persisted.
     val pendingSigner: SingleSigner? = null,
     val existingKeyType: ResultExistingKey? = null,
+    val replaceExistingKey: Boolean = false,
+    // Prefilled into the "Name your key" field; the connected device name when we have one.
+    val defaultSignerName: String = "",
 ) {
     val selectedDevice: LedgerDevice?
         get() = devices.firstOrNull { it.id == selectedAddress }
 }
 
 sealed class LedgerScanEvent {
+    data object NavigateToSetKeyName : LedgerScanEvent()
+
     data class OpenSignerInfo(val signer: SingleSigner) : LedgerScanEvent()
 
     data class Error(val message: String) : LedgerScanEvent()
@@ -54,6 +61,7 @@ class LedgerViewModel @Inject constructor(
     private val createSignerUseCase: CreateSignerUseCase,
     private val getBip32PathUseCase: GetBip32PathUseCase,
     private val checkExistingKeyUseCase: CheckExistingKeyUseCase,
+    private val membershipStepManager: MembershipStepManager,
     private val pushEventManager: PushEventManager,
 ) : ViewModel() {
 
@@ -62,6 +70,13 @@ class LedgerViewModel @Inject constructor(
 
     private val _event = MutableSharedFlow<LedgerScanEvent>()
     val event = _event.asSharedFlow()
+
+    /** Assisted/group membership flows auto-name the key; standalone lets the user name it. */
+    private var isMembershipFlow: Boolean = false
+
+    fun setMembershipFlow(value: Boolean) {
+        isMembershipFlow = value
+    }
 
     fun setScanning(isScanning: Boolean) = _state.update { it.copy(isScanning = isScanning) }
 
@@ -88,11 +103,12 @@ class LedgerViewModel @Inject constructor(
 
     /**
      * Confluence "Get XPUB": builds the SingleSigner from the device master fingerprint
-     * + extended public key, tagged as a Ledger hardware signer. Persists it straight away
-     * unless the key already exists in the app, in which case the UI asks to replace it first.
+     * + extended public key, tagged as a Ledger hardware signer. Membership flows persist it
+     * straight away under the auto-generated name; standalone add-key sends the user to the
+     * "Name your key" step first. Either way, a key already in the app has to clear the replace
+     * confirmation.
      */
     fun onXpubReceived(
-        name: String,
         masterFingerprint: String,
         xpub: String,
     ) = viewModelScope.launch {
@@ -106,7 +122,7 @@ class LedgerViewModel @Inject constructor(
             )
         ).onSuccess { path ->
             val signer = SingleSigner(
-                name = name,
+                name = SignerTag.LEDGER.formattedName,
                 xpub = xpub,
                 derivationPath = path,
                 masterFingerprint = masterFingerprint.lowercase(),
@@ -115,36 +131,63 @@ class LedgerViewModel @Inject constructor(
             )
             checkExistingKeyUseCase(CheckExistingKeyUseCase.Params(singleSigner = signer))
                 .onSuccess { existingKeyType ->
+                    _state.update {
+                        it.copy(
+                            isProcessing = false,
+                            pendingSigner = signer,
+                            existingKeyType = existingKeyType.takeIf { type -> type != ResultExistingKey.None },
+                            replaceExistingKey = false,
+                            // Spec names the key after the connected bluetooth/usb device.
+                            defaultSignerName = config.selectedDevice?.name
+                                ?.takeIf(String::isNotBlank) ?: SignerTag.LEDGER.formattedName,
+                        )
+                    }
                     if (existingKeyType == ResultExistingKey.None) {
-                        createSigner(signer, replace = false)
-                    } else {
-                        _state.update {
-                            it.copy(
-                                isProcessing = false,
-                                pendingSigner = signer,
-                                existingKeyType = existingKeyType,
-                            )
-                        }
+                        continueToNaming()
                     }
                 }.onFailure { e -> onError(e.message.orUnknownError()) }
         }.onFailure { e -> onError(e.message.orUnknownError()) }
     }
 
     fun confirmExistingKeyDialog() {
-        val signer = _state.value.pendingSigner ?: return
-        _state.update { it.copy(pendingSigner = null, existingKeyType = null) }
-        viewModelScope.launch { createSigner(signer, replace = true) }
+        if (_state.value.pendingSigner == null) return
+        _state.update { it.copy(existingKeyType = null, replaceExistingKey = true) }
+        viewModelScope.launch { continueToNaming() }
     }
 
     fun dismissExistingKeyDialog() = _state.update {
-        it.copy(pendingSigner = null, existingKeyType = null)
+        it.copy(pendingSigner = null, existingKeyType = null, replaceExistingKey = false)
     }
 
-    private suspend fun createSigner(signer: SingleSigner, replace: Boolean) {
+    /**
+     * Membership keys are auto-named the same way the other hardware keys are — base name plus
+     * the next free suffix, so a second one lands on "Ledger #2". Standalone add-key stops on
+     * the "Name your key" step instead and lets the user name it.
+     */
+    private suspend fun continueToNaming() {
+        if (isMembershipFlow) {
+            createSigner(autoKeyName())
+        } else {
+            _event.emit(LedgerScanEvent.NavigateToSetKeyName)
+        }
+    }
+
+    private fun autoKeyName(): String = SignerTag.LEDGER.formattedName +
+            membershipStepManager.getNextKeySuffixByType(SignerType.HARDWARE)
+
+    fun createLedgerSigner(name: String) {
+        val signerName = name.trim()
+        if (signerName.isEmpty()) return
+        viewModelScope.launch { createSigner(signerName) }
+    }
+
+    private suspend fun createSigner(name: String) {
+        val signer = _state.value.pendingSigner ?: return
+        val replace = _state.value.replaceExistingKey
         _state.update { it.copy(isProcessing = true) }
         createSignerUseCase(
             CreateSignerUseCase.Params(
-                name = signer.name,
+                name = name,
                 xpub = signer.xpub,
                 type = signer.type,
                 derivationPath = signer.derivationPath,
@@ -154,7 +197,14 @@ class LedgerViewModel @Inject constructor(
             )
         ).onSuccess { createdSigner ->
             pushEventManager.push(PushEvent.LocalUserSignerAdded(createdSigner))
-            _state.update { it.copy(isProcessing = false) }
+            _state.update {
+                it.copy(
+                    isProcessing = false,
+                    pendingSigner = null,
+                    existingKeyType = null,
+                    replaceExistingKey = false,
+                )
+            }
             _event.emit(LedgerScanEvent.OpenSignerInfo(createdSigner))
         }.onFailure { e ->
             _state.update { it.copy(isProcessing = false) }
