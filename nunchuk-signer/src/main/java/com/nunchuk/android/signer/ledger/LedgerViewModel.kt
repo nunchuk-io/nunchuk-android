@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -77,14 +78,6 @@ class LedgerViewModel @Inject constructor(
 
     /** Assisted/group membership flows auto-name the key; standalone lets the user name it. */
     private var isMembershipFlow: Boolean = false
-
-    init {
-        viewModelScope.launch {
-            getCompoundSignersUseCase.execute().collect { (masterSigners, remoteSigners) ->
-                existingSignerNames = masterSigners.map { it.name } + remoteSigners.map { it.name }
-            }
-        }
-    }
 
     fun setMembershipFlow(value: Boolean) {
         isMembershipFlow = value
@@ -143,6 +136,9 @@ class LedgerViewModel @Inject constructor(
             )
             checkExistingKeyUseCase(CheckExistingKeyUseCase.Params(singleSigner = signer))
                 .onSuccess { existingKeyType ->
+                    // Read the names before either naming path needs them, so a slow signer
+                    // load can't hand out a name that is already taken.
+                    refreshExistingSignerNames()
                     _state.update {
                         it.copy(
                             isProcessing = false,
@@ -188,6 +184,13 @@ class LedgerViewModel @Inject constructor(
 
     private fun uniqueName(baseName: String) =
         generateUniqueSignerName(baseName, existingSignerNames)
+
+    private suspend fun refreshExistingSignerNames() {
+        runCatching { getCompoundSignersUseCase.execute().first() }
+            .onSuccess { (masterSigners, remoteSigners) ->
+                existingSignerNames = masterSigners.map { it.name } + remoteSigners.map { it.name }
+            }
+    }
 
     fun createLedgerSigner(name: String) {
         val signerName = name.trim()
