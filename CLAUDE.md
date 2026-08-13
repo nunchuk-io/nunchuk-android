@@ -358,6 +358,73 @@ The codebase is actively migrating from Fragment-based screens to Compose. New f
 - `BaseNfcActivity<Binding>` — adds NFC adapter, CVC input, scan dialogs
 - `BaseComposeNfcActivity` — NFC support without ViewBinding (pure Compose)
 
+## Signer Types & Key Flows
+
+A key is identified by `SignerType` **plus** `SignerTag` — neither alone is enough. `SignerType.HARDWARE` covers Ledger, Trezor, BitBox and USB COLDCARD; the tag says which. Every flow below branches on that pair, so **any new key type has to be added to each dispatcher listed here** — a missed branch silently falls through to "use the desktop app" or does nothing at all.
+
+| Key | `SignerType` | `SignerTag` |
+|-----|--------------|-------------|
+| TAPSIGNER | `NFC` | — |
+| COLDCARD (NFC/QR/file) | `COLDCARD_NFC` | `COLDCARD` |
+| COLDCARD (USB) | `HARDWARE` | `COLDCARD` |
+| Portal | `PORTAL_NFC` | — |
+| Ledger | `HARDWARE` | `LEDGER` |
+| Trezor | `HARDWARE` | `TREZOR` |
+| BitBox | `HARDWARE` | `BITBOX` |
+| Jade / SeedSigner / Keystone / Foundation | `AIRGAP` | `JADE` / `SEEDSIGNER` / `KEYSTONE` / `PASSPORT` |
+| Generic air-gapped | `AIRGAP` | none |
+| Software (hot) key | `SOFTWARE`, `FOREIGN_SOFTWARE` | — |
+| Server (platform) key | `SERVER` | — |
+
+`SignerDisplayInfo.kt` (`nunchuk-signer`) is the single mapping between this pair and the UI-facing `KeyType` (`toKeyType()` / `toSignerTypeAndTag()` / `toDisplayInfo()`) — extend it there rather than re-deriving the pair per screen. `SignerUtil.kt` (`nunchuk-core/util/`) holds the shared helpers: `SignerTag?.isInAppHardwareTag` (true for Trezor + Ledger, i.e. the hardware keys that are not desktop-only), `SignerTag?.formattedName`, and the icon lookups.
+
+### Add key (free / personal wallet)
+
+Entry point `SignerIntroActivity` (`nunchuk-main/membership/signer/`) with `SignerIntroViewModel` (`nunchuk-signer`). The screen lists whatever the server reports as supported; tapping a card dispatches on `KeyType`:
+
+- TAPSIGNER / COLDCARD / Portal → NFC setup (`navigateToSetupTapSigner`, `openSetupMk4`, `openPortalScreen`)
+- Ledger / Trezor → in-app add-key activity (`LedgerActivity`, `TrezorActivity`) — BLE/USB, reads the xpub off the device
+- BitBox → `handleHardwareSignerSelection` — desktop only
+- Air-gapped tags → `handleSelectAddAirgapType` (QR/file import)
+- Software → create/recover a hot key; Platform key → returned as a result
+
+`LedgerViewModel.onXpubReceived` shows the naming convention for in-app hardware adds: membership flows auto-name (`Ledger`, `Ledger 2`, …), standalone add-key stops on "Name your key".
+
+### Add key (assisted / membership)
+
+`AddKeyListFragment` (personal) and `AddByzantineKeyListFragment` (group), both in `nunchuk-main/membership/`. Options come from a `BottomSheetOption`, and every branch funnels through `handleShowKeysOrCreate(existingSigners, type) { createNew() }` — if the app already holds matching keys it opens `TapSignerListBottomSheetFragment` to reuse one, otherwise it runs the create lambda.
+
+Hardware keys split by tag (`openInAppHardwareOrDesktopFlow`): **Trezor and Ledger have in-app flows; every other hardware key (BitBox, COLDCARD via USB) goes to `AddDesktopKeyFragment`**, which asks the user to finish in the desktop app and waits for the key to arrive from the server (`RequestAddKeySuccessFragment`). `AddDesktopKeyFragment` renders copy for the `COLDCARD` / `TREZOR` / `LEDGER` / `BITBOX` / `JADE` tags.
+
+The on-chain timelock variants (`OnChainTimelockAddKeyListFragment`, `OnChainReplaceKeysFragment`) deliberately route **all** hardware tags — Ledger and Trezor included — to `openRequestAddDesktopKey`.
+
+### Replace key
+
+`ReplaceKeysFragment` (`nunchuk-main/membership/replacekey/`) mirrors the assisted add-key option sheet one-for-one; the difference is that every intent carries `replacedXfp` plus `walletId`/`groupId`, and the desktop path is `showAddKeyByDesktopApp()`. Keep the two in sync — a key type added to assisted add-key but not here is un-replaceable.
+
+### Signing
+
+Three separate dispatchers, one per host, each a `when` over the type/tag pair. They are **not** shared code, so a new key type needs all three:
+
+| Key | Normal tx (`TransactionDetailComposeActivity.onSignClick` + `TransactionDetailsViewModel`) | Dummy tx (`WalletAuthenticationViewModel.onSignerSelect`) | Sign-in dummy tx (`SignInAuthenticationViewModel.onSignerSelect`) |
+|-----|------------------|-----------------|--------------------|
+| TAPSIGNER | NFC scan | NFC scan | NFC scan |
+| COLDCARD | NFC / QR / file export + import signature | same | same |
+| Portal | `handlePortalAction(SignTransaction)` | `RequestSignPortal` | **not handled** |
+| Ledger | `LedgerSignTransactionSheet` (signs + imports PSBT) | `LedgerSignPsbtSheet(walletId)` → signature | `LedgerSignPsbtSheet(wallet)` — wallet parsed from BSMS |
+| Trezor | deeplink to Trezor Suite + callback | same | same |
+| BitBox / other `HARDWARE` | "use the desktop app" | same | same |
+| Air-gapped | export/import PSBT via QR/file | same | same |
+| Software | `handleSignSoftwareKey` (passphrase prompt if needed) | `checkSoftwarePassPhrase` | disabled in the signer list |
+| Server | no Sign action — the server co-signs | n/a | n/a |
+
+Shared details:
+
+- **Dummy transactions** (membership dummy tx, sign-in dummy tx, and `CheckSignMessageFragment`) converge on `handleSignatureResult` → upload. PSBT-based signers (Ledger, Trezor, COLDCARD, air-gapped) get there via `GetDummyTransactionSignatureUseCase` — signed PSBT in, signature out; TAPSIGNER signs the message directly (`CheckSignMessageTapsignerUseCase`, `CheckSignMessageTapsignerSignInUseCase` at login). A new PSBT-producing signer should reuse `GetDummyTransactionSignatureUseCase` rather than inventing a second path.
+- **Trezor** signs out-of-app: `GetTrezorSignTransactionDeeplinkUseCase` → Trezor Suite → `TrezorCallbackHolder` → `ParseTrezorSignTransactionResponseUseCase`. It needs a `Wallet`, which at sign-in is parsed from the BSMS (`resolveWallet`).
+- **Ledger** signs in-app over BLE/USB through `LedgerSheet.kt` (`nunchuk-core/ledger/`) → `LedgerSheetViewModel` → `LedgerTransactionSigner`. Signing always registers the wallet policy on the device first (`LedgerWalletRegistrar`); the registration HMAC is cached per local wallet, so a wallet that has no local storage (sign-in) passes `cacheRegistration = false` and re-registers every time.
+- The fall-through `signerModel.type == SignerType.HARDWARE -> CanNotSignHardwareKey` ("Please use the desktop app to sign with this key") sits **after** the tag checks in every dispatcher. A new hardware tag added without its own branch lands there silently.
+
 ## Conventions
 
 - **Reuse, don't repeat (DRY)**: before writing a formatter, extension, mapper, or constant, search for an existing one (shared utils live in `nunchuk-core/util/`, e.g. `WalletUtil.kt`, `NumberFormatter.kt`; reusable UI in `nunchuk-core/.../compose/`). If the same logic appears in 2+ places, extract it to the nearest shared module instead of copy-pasting or redeclaring local constants. Prefer calling a shared method over inlining its body.
