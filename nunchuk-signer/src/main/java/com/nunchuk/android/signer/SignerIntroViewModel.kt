@@ -400,8 +400,8 @@ val defaultSupportedSigners = listOf(
         addressType = AddressType.NATIVE_SEGWIT
     ),
     SupportedSigner(
-        type = SignerType.COLDCARD_NFC,
-        tag = null,
+        type = SignerType.HARDWARE,
+        tag = SignerTag.TREZOR,
         walletType = WalletType.MULTI_SIG,
         addressType = AddressType.NATIVE_SEGWIT
     ),
@@ -436,8 +436,8 @@ val defaultSupportedSigners = listOf(
         addressType = AddressType.NATIVE_SEGWIT
     ),
     SupportedSigner(
-        type = SignerType.HARDWARE,
-        tag = SignerTag.TREZOR,
+        type = SignerType.COLDCARD_NFC,
+        tag = null,
         walletType = WalletType.MULTI_SIG,
         addressType = AddressType.NATIVE_SEGWIT
     ),
