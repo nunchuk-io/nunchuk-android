@@ -129,49 +129,51 @@ class SignMessageFragment : BaseShareSaveFileFragment<ViewBinding>() {
 
             setContent {
                 val state by viewModel.state.collectAsStateWithLifecycle()
-                SignMessageContent(
-                    defaultPath = state.defaultPath,
-                    isPathEditable = state.isPathEditable,
-                    signedMessage = state.signedMessage,
-                    onValidatePath = viewModel::validatePath,
-                    onSignMessage = { message, path ->
-                        onSignMessage(message, path)
-                    },
-                    onCopyAddress = {
-                        showSuccess(getString(R.string.nc_signer_address_copied_to_clipboard))
-                    },
-                    onCopySignature = {
-                        showSuccess(getString(R.string.nc_signer_signature_copied_to_clipboard))
-                    },
-                    onExportSignature = {
-                        showSaveShareOption()
-                    },
-                    onResetSignature = viewModel::resetSignature
-                )
-
-                if (openTrezorSuiteDeeplink != null) {
-                    NcConfirmationDialog(
-                        title = stringResource(id = com.nunchuk.android.core.R.string.nc_confirmation),
-                        message = stringResource(id = R.string.nc_open_trezor_suite_continue_signing_message),
-                        positiveButtonText = stringResource(id = R.string.nc_open_trezor_suite),
-                        negativeButtonText = stringResource(id = com.nunchuk.android.core.R.string.nc_cancel),
-                        isPositiveButtonWrapContent = true,
-                        onPositiveClick = {
-                            openTrezorSuiteDeeplink?.let(requireActivity()::openTrezorSuiteLink)
-                            openTrezorSuiteDeeplink = null
+                NunchukTheme {
+                    SignMessageContent(
+                        defaultPath = state.defaultPath,
+                        isPathEditable = state.isPathEditable,
+                        signedMessage = state.signedMessage,
+                        onValidatePath = viewModel::validatePath,
+                        onSignMessage = { message, path ->
+                            onSignMessage(message, path)
                         },
-                        onDismiss = { openTrezorSuiteDeeplink = null }
+                        onCopyAddress = {
+                            showSuccess(getString(R.string.nc_signer_address_copied_to_clipboard))
+                        },
+                        onCopySignature = {
+                            showSuccess(getString(R.string.nc_signer_signature_copied_to_clipboard))
+                        },
+                        onExportSignature = {
+                            showSaveShareOption()
+                        },
+                        onResetSignature = viewModel::resetSignature
                     )
-                }
 
-                ledgerSignMessage?.let { message ->
-                    LedgerSignMessageSheet(
-                        masterFingerprint = args.masterFingerprint,
-                        derivationPath = args.derivationPath,
-                        message = message,
-                        onDismiss = { ledgerSignMessage = null },
-                        onSignature = viewModel::onLedgerMessageSigned,
-                    )
+                    if (openTrezorSuiteDeeplink != null) {
+                        NcConfirmationDialog(
+                            title = stringResource(id = com.nunchuk.android.core.R.string.nc_confirmation),
+                            message = stringResource(id = R.string.nc_open_trezor_suite_continue_signing_message),
+                            positiveButtonText = stringResource(id = R.string.nc_open_trezor_suite),
+                            negativeButtonText = stringResource(id = com.nunchuk.android.core.R.string.nc_cancel),
+                            isPositiveButtonWrapContent = true,
+                            onPositiveClick = {
+                                openTrezorSuiteDeeplink?.let(requireActivity()::openTrezorSuiteLink)
+                                openTrezorSuiteDeeplink = null
+                            },
+                            onDismiss = { openTrezorSuiteDeeplink = null }
+                        )
+                    }
+
+                    ledgerSignMessage?.let { message ->
+                        LedgerSignMessageSheet(
+                            masterFingerprint = args.masterFingerprint,
+                            derivationPath = args.derivationPath,
+                            message = message,
+                            onDismiss = { ledgerSignMessage = null },
+                            onSignature = viewModel::onLedgerMessageSigned,
+                        )
+                    }
                 }
             }
         }
@@ -215,6 +217,7 @@ class SignMessageFragment : BaseShareSaveFileFragment<ViewBinding>() {
                 is SignMessageEvent.ShowOpenTrezorSuiteConfirmation -> {
                     openTrezorSuiteDeeplink = event.deeplink
                 }
+
                 is SignMessageEvent.ShowError ->
                     if (nfcViewModel.handleNfcError(event.e).not()) {
                         showError(event.e.message.orUnknownError())
@@ -269,178 +272,177 @@ private fun SignMessageContent(
         focusRequester.requestFocus()
     }
 
-    NunchukTheme {
-        Scaffold(
-            modifier = Modifier
-                .statusBarsPadding()
-                .navigationBarsPadding()
-                .imePadding(),
-            topBar = {
-                NcTopAppBar(
-                    title = stringResource(id = R.string.nc_signer_sign_message),
-                    textStyle = NunchukTheme.typography.titleLarge,
-                    isBack = false,
-                )
-            },
-            bottomBar = {
-                NcPrimaryDarkButton(modifier = Modifier
+    Scaffold(
+        modifier = Modifier
+            .statusBarsPadding()
+            .navigationBarsPadding()
+            .imePadding(),
+        topBar = {
+            NcTopAppBar(
+                title = stringResource(id = R.string.nc_signer_sign_message),
+                textStyle = NunchukTheme.typography.titleLarge,
+                isBack = false,
+            )
+        },
+        bottomBar = {
+            NcPrimaryDarkButton(
+                modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
-                    enabled = message.isNotEmpty() && path.isNotEmpty(),
-                    onClick = { onSignMessage(message, path) }) {
-                    Text(text = stringResource(id = R.string.nc_transaction_sign))
-                }
-            },
-        ) { innerPadding ->
-            Column(
+                enabled = message.isNotEmpty() && path.isNotEmpty(),
+                onClick = { onSignMessage(message, path) }) {
+                Text(text = stringResource(id = R.string.nc_transaction_sign))
+            }
+        },
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .padding(innerPadding)
+                .padding(horizontal = 16.dp)
+                .verticalScroll(rememberScrollState())
+        ) {
+            NcTextField(
+                modifier = Modifier.focusRequester(focusRequester),
+                title = stringResource(R.string.nc_signer_message_to_sign),
+                value = message,
+                minLines = 3,
+                onValueChange = { value ->
+                    message = value
+                    onResetSignature()
+                },
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+            )
+
+            NcTextField(
                 modifier = Modifier
-                    .padding(innerPadding)
-                    .padding(horizontal = 16.dp)
-                    .verticalScroll(rememberScrollState())
-            ) {
-                NcTextField(
-                    modifier = Modifier.focusRequester(focusRequester),
-                    title = stringResource(R.string.nc_signer_message_to_sign),
-                    value = message,
-                    minLines = 3,
-                    onValueChange = { value ->
-                        message = value
-                        onResetSignature()
+                    .padding(top = 16.dp)
+                    .onFocusChanged {
+                        if (it.isFocused.not()) {
+                            onValidatePath(path)
+                        }
                     },
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                )
+                title = stringResource(R.string.nc_signer_derivation_path),
+                value = path,
+                enabled = isPathEditable,
+                onValueChange = { value ->
+                    path = value
+                    onResetSignature()
+                },
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+            )
 
-                NcTextField(
+            if (signedMessage != null) {
+                Spacer(
                     modifier = Modifier
-                        .padding(top = 16.dp)
-                        .onFocusChanged {
-                            if (it.isFocused.not()) {
-                                onValidatePath(path)
-                            }
-                        },
-                    title = stringResource(R.string.nc_signer_derivation_path),
-                    value = path,
-                    enabled = isPathEditable,
-                    onValueChange = { value ->
-                        path = value
-                        onResetSignature()
-                    },
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                        .padding(vertical = 16.dp)
+                        .height(1.dp)
+                        .fillMaxWidth()
+                        .background(color = MaterialTheme.colorScheme.whisper)
                 )
 
-                if (signedMessage != null) {
-                    Spacer(
-                        modifier = Modifier
-                            .padding(vertical = 16.dp)
-                            .height(1.dp)
-                            .fillMaxWidth()
-                            .background(color = MaterialTheme.colorScheme.whisper)
-                    )
+                Text(
+                    text = stringResource(R.string.nc_signer_address),
+                    style = NunchukTheme.typography.titleSmall
+                )
 
-                    Text(
-                        text = stringResource(R.string.nc_signer_address),
-                        style = NunchukTheme.typography.titleSmall
-                    )
+                Text(
+                    modifier = Modifier
+                        .padding(top = 4.dp)
+                        .background(
+                            color = MaterialTheme.colorScheme.greyLight,
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                        .border(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.border,
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                        .combinedClickable(
+                            onClick = {
 
-                    Text(
-                        modifier = Modifier
-                            .padding(top = 4.dp)
-                            .background(
-                                color = MaterialTheme.colorScheme.greyLight,
-                                shape = RoundedCornerShape(8.dp)
-                            )
-                            .border(
-                                width = 1.dp,
-                                color = MaterialTheme.colorScheme.border,
-                                shape = RoundedCornerShape(8.dp)
-                            )
-                            .combinedClickable(
-                                onClick = {
+                            },
+                            onLongClick = {
+                                context.copyToClipboard(
+                                    label = "Nunchuk",
+                                    text = signedMessage.address
+                                )
+                                onCopyAddress()
+                            })
+                        .fillMaxWidth()
+                        .padding(12.dp),
+                    text = signedMessage.address,
+                    style = NunchukTheme.typography.body,
+                )
 
-                                },
-                                onLongClick = {
-                                    context.copyToClipboard(
-                                        label = "Nunchuk",
-                                        text = signedMessage.address
-                                    )
-                                    onCopyAddress()
-                                })
-                            .fillMaxWidth()
-                            .padding(12.dp),
-                        text = signedMessage.address,
-                        style = NunchukTheme.typography.body,
-                    )
+                Text(
+                    modifier = Modifier.padding(top = 16.dp),
+                    text = stringResource(R.string.nc_signer_signature),
+                    style = NunchukTheme.typography.titleSmall
+                )
 
-                    Text(
-                        modifier = Modifier.padding(top = 16.dp),
-                        text = stringResource(R.string.nc_signer_signature),
-                        style = NunchukTheme.typography.titleSmall
-                    )
+                Text(
+                    modifier = Modifier
+                        .padding(top = 4.dp)
+                        .background(
+                            color = MaterialTheme.colorScheme.greyLight,
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                        .border(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.border,
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                        .fillMaxWidth()
+                        .combinedClickable(
+                            onClick = {
 
-                    Text(
-                        modifier = Modifier
-                            .padding(top = 4.dp)
-                            .background(
-                                color = MaterialTheme.colorScheme.greyLight,
-                                shape = RoundedCornerShape(8.dp)
-                            )
-                            .border(
-                                width = 1.dp,
-                                color = MaterialTheme.colorScheme.border,
-                                shape = RoundedCornerShape(8.dp)
-                            )
-                            .fillMaxWidth()
-                            .combinedClickable(
-                                onClick = {
+                            },
+                            onLongClick = {
+                                context.copyToClipboard(
+                                    label = "Nunchuk",
+                                    text = signedMessage.signature
+                                )
+                                onCopySignature()
+                            })
+                        .padding(12.dp),
+                    text = signedMessage.signature,
+                    style = NunchukTheme.typography.body,
+                )
 
-                                },
-                                onLongClick = {
-                                    context.copyToClipboard(
-                                        label = "Nunchuk",
-                                        text = signedMessage.signature
-                                    )
-                                    onCopySignature()
-                                })
-                            .padding(12.dp),
-                        text = signedMessage.signature,
-                        style = NunchukTheme.typography.body,
-                    )
-
-                    Row(modifier = Modifier.padding(top = 16.dp)) {
-                        NcOutlineButton(modifier = Modifier.weight(1f), onClick = {
-                            context.copyToClipboard(
-                                label = "Nunchuk",
-                                text = signedMessage.signature
-                            )
-                            onCopySignature()
-                        }) {
-                            Icon(
-                                modifier = Modifier.size(18.dp),
-                                painter = painterResource(id = R.drawable.ic_copy),
-                                contentDescription = ""
-                            )
-                            Text(
-                                modifier = Modifier.padding(start = 6.dp),
-                                text = stringResource(R.string.nc_signer_copy_signature),
-                                style = NunchukTheme.typography.titleSmall
-                            )
-                        }
-                        Spacer(modifier = Modifier.width(16.dp))
-                        NcOutlineButton(
-                            modifier = Modifier.weight(1f),
-                            onClick = onExportSignature
-                        ) {
-                            Icon(
-                                modifier = Modifier.size(18.dp),
-                                painter = painterResource(id = R.drawable.ic_export),
-                                contentDescription = ""
-                            )
-                            Text(
-                                modifier = Modifier.padding(start = 6.dp),
-                                text = stringResource(R.string.nc_signer_export_signature),
-                                style = NunchukTheme.typography.titleSmall
-                            )
-                        }
+                Row(modifier = Modifier.padding(top = 16.dp)) {
+                    NcOutlineButton(modifier = Modifier.weight(1f), onClick = {
+                        context.copyToClipboard(
+                            label = "Nunchuk",
+                            text = signedMessage.signature
+                        )
+                        onCopySignature()
+                    }) {
+                        Icon(
+                            modifier = Modifier.size(18.dp),
+                            painter = painterResource(id = R.drawable.ic_copy),
+                            contentDescription = ""
+                        )
+                        Text(
+                            modifier = Modifier.padding(start = 6.dp),
+                            text = stringResource(R.string.nc_signer_copy_signature),
+                            style = NunchukTheme.typography.titleSmall
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(16.dp))
+                    NcOutlineButton(
+                        modifier = Modifier.weight(1f),
+                        onClick = onExportSignature
+                    ) {
+                        Icon(
+                            modifier = Modifier.size(18.dp),
+                            painter = painterResource(id = R.drawable.ic_export),
+                            contentDescription = ""
+                        )
+                        Text(
+                            modifier = Modifier.padding(start = 6.dp),
+                            text = stringResource(R.string.nc_signer_export_signature),
+                            style = NunchukTheme.typography.titleSmall
+                        )
                     }
                 }
             }
