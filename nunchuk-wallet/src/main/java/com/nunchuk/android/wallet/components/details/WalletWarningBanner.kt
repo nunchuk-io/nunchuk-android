@@ -98,6 +98,7 @@ internal fun WalletWarningBanner(
             tint = BannerTint.Whisper,
             text = stringResource(R.string.nc_assisted_wallet_downgrade_hint),
             actionLabel = stringResource(R.string.nc_renew_subscription),
+            isActionInline = true,
             onClick = { onOpenExternalLink(RENEW_ACCOUNT_LINK) },
         )
     }
@@ -109,6 +110,7 @@ private fun BannerBase(
     tint: BannerTint,
     text: String,
     actionLabel: String,
+    isActionInline: Boolean = false,
     onClick: () -> Unit,
 ) {
     val bgColor = when (tint) {
@@ -131,14 +133,17 @@ private fun BannerBase(
             tint = MaterialTheme.colorScheme.textPrimary,
             modifier = Modifier.size(20.dp),
         )
+        val underline = SpanStyle(textDecoration = TextDecoration.Underline)
+        val actionIndex = if (isActionInline) text.indexOf(actionLabel) else -1
         val annotated = buildAnnotatedString {
-            val cleaned = text.trim().removeSuffix(actionLabel).trim()
-            if (cleaned.isNotEmpty()) {
-                append(cleaned)
+            if (actionIndex >= 0) {
+                append(text.substring(0, actionIndex))
+                withStyle(underline) { append(actionLabel) }
+                append(text.substring(actionIndex + actionLabel.length))
+            } else {
+                append(text)
                 append(' ')
-            }
-            withStyle(SpanStyle(textDecoration = TextDecoration.Underline)) {
-                append(actionLabel)
+                withStyle(underline) { append(actionLabel) }
             }
         }
         Text(
