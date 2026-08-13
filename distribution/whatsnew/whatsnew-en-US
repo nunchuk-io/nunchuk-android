@@ -1,1 +1,4 @@
-- Bug fixes and improvements
+- Ledger support (BLE & USB)
+- Seed phrase settings
+- Fix using passphrase key for stablecoin wallet
+- Improved NFC for Motorola devices

@@ -27,8 +27,8 @@ android {
 
     defaultConfig {
         applicationId = "io.nunchuk.android"
-        versionCode = 338
-        versionName = "2.7.5"
+        versionCode = 339
+        versionName = "2.8.0"
         multiDexEnabled = true
         vectorDrawables.useSupportLibrary = true
         resourceConfigurations += "en"
