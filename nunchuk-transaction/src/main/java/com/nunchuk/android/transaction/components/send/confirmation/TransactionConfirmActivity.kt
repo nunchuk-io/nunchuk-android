@@ -491,9 +491,7 @@ private fun TransactionConfirmScreen(
             usdtAssetId = uiState.usdtAssetId,
             totalAmountBtc = totalAmountPrimary,
             totalAmountCurrency = totalAmountSecondary,
-            changeAddress = uiState.changeAddress,
-            changeAmount = uiState.changeAmount,
-            changeAssetId = uiState.changeAssetId,
+            changeOutputs = uiState.changeOutputs,
             isOffChainClaim = viewModel.isOffChainClaimingFlow(),
             privateNote = args.privateNote,
             inputs = args.inputs,
@@ -539,9 +537,7 @@ internal fun TransactionConfirmContent(
     usdtAssetId: String = "",
     totalAmountBtc: String = "",
     totalAmountCurrency: String = "",
-    changeAddress: String = "",
-    changeAmount: Amount = Amount(0),
-    changeAssetId: String = "",
+    changeOutputs: List<TxOutput> = emptyList(),
     isOffChainClaim: Boolean = false,
     privateNote: String = "",
     inputs: List<UnspentOutput> = emptyList(),
@@ -749,7 +745,7 @@ internal fun TransactionConfirmContent(
             }
 
             // Change address
-            if (!isOffChainClaim && changeAddress.isNotBlank()) {
+            if (!isOffChainClaim && changeOutputs.isNotEmpty()) {
                 Box(
                     modifier = Modifier
                         .padding(top = 24.dp)
@@ -763,14 +759,16 @@ internal fun TransactionConfirmContent(
                     )
                 }
 
-                ChangeAddressView(
-                    txOutput = TxOutput(changeAddress, changeAmount, assetId = changeAssetId),
-                    output = null,
-                    tags = emptyMap(),
-                    onCopyText = onCopyText,
-                    onInspectAddress = { inspectAddress = it },
-                    usdtAssetId = usdtAssetId,
-                )
+                changeOutputs.forEach { changeOutput ->
+                    ChangeAddressView(
+                        txOutput = changeOutput,
+                        output = null,
+                        tags = emptyMap(),
+                        onCopyText = onCopyText,
+                        onInspectAddress = { inspectAddress = it },
+                        usdtAssetId = usdtAssetId,
+                    )
+                }
             }
 
             // Private note

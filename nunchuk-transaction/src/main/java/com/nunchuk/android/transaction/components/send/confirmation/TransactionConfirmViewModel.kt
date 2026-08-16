@@ -495,14 +495,12 @@ class TransactionConfirmViewModel @Inject constructor(
         } else {
             data.outputs.filter { isMyCoin(it) == data.isReceive }
         }
-        val changeOutput = data.outputs.firstOrNull { it.isChange }
+        val changeOutputs = data.outputs.filter { it.isChange }
         _state.update { state ->
             state.copy(
                 transaction = data,
                 outputs = outputs,
-                changeAddress = changeOutput?.first.orEmpty(),
-                changeAmount = changeOutput?.second ?: Amount(0),
-                changeAssetId = changeOutput?.assetId.orEmpty(),
+                changeOutputs = changeOutputs,
             )
         }
         _event.emit(DraftTransactionSuccess(data))
@@ -912,9 +910,7 @@ data class TransactionConfirmUiState(
     val minimumFeeRate: Int = 0,
     val topUpAddress: String = "",
     val outputs: List<TxOutput> = emptyList(),
-    val changeAddress: String = "",
-    val changeAmount: Amount = Amount(0),
-    val changeAssetId: String = "",
+    val changeOutputs: List<TxOutput> = emptyList(),
 )
 
 internal fun Int.toManualFeeRate() = if (this > 0) toAmount() else Amount(-1)

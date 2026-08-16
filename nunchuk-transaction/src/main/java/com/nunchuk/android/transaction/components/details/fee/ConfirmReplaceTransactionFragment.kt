@@ -167,8 +167,7 @@ private fun ConfirmReplaceTransactionScreen(
 
     val transaction = uiState.transaction ?: return
     val outputs = transaction.outputs.filter { !it.isChange }
-    val txOutput = transaction.outputs.firstOrNull { it.isChange }
-    val changeAddress = txOutput?.first.orEmpty()
+    val changeOutputs = transaction.outputs.filter { it.isChange }
 
     NunchukTheme {
         if (isLoading) {
@@ -182,8 +181,7 @@ private fun ConfirmReplaceTransactionScreen(
             fee = transaction.fee,
             totalAmountBtc = transaction.totalAmount.pureBTC().getBTCAmount(),
             totalAmountCurrency = transaction.totalAmount.pureBTC().getCurrencyAmount(),
-            changeAddress = changeAddress,
-            changeAmount = txOutput?.second ?: com.nunchuk.android.model.Amount(0),
+            changeOutputs = changeOutputs,
             privateNote = transaction.memo,
             inputs = uiState.inputCoins,
             allTags = uiState.allTags,

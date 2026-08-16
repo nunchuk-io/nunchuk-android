@@ -1,5 +1,6 @@
 package com.nunchuk.android.transaction.components.details.view
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -24,10 +25,12 @@ fun ChangeAddressView(
     onInspectAddress: (String) -> Unit,
     hideFiatCurrency: Boolean = false,
     usdtAssetId: String = "",
+    onClick: (() -> Unit)? = null,
 ) {
     Column(
         modifier = modifier
             .fillMaxWidth()
+            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
             .padding(top = 16.dp)
             .padding(horizontal = 16.dp),
     ) {

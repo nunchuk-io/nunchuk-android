@@ -70,7 +70,6 @@ import com.nunchuk.android.core.util.getUsdtTokenAmount
 import com.nunchuk.android.core.util.getFormatDate
 import com.nunchuk.android.core.util.getPendingSignatures
 import com.nunchuk.android.core.util.hadBroadcast
-import com.nunchuk.android.core.util.hasChangeIndex
 import com.nunchuk.android.core.util.isPendingSignatures
 import com.nunchuk.android.core.util.isRejected
 import com.nunchuk.android.core.util.isTaproot
@@ -132,16 +131,30 @@ fun TransactionDetailView(
     val preimageBottomSheetState = rememberModalBottomSheetState()
     val transaction =
         if (inheritanceClaimTxDetailInfo != null) state.transaction.copy(changeIndex = inheritanceClaimTxDetailInfo.changePos) else state.transaction
-    val outputs = if (transaction.isReceive) {
+    val outputs = when {
+        transaction.isReceive -> transaction.receiveOutputs
+        // Inheritance-claim transactions carry no per-output change flag, only a change position.
+        inheritanceClaimTxDetailInfo != null ->
+            transaction.outputs.filterIndexed { index, _ -> index != transaction.changeIndex }
+
+        else -> transaction.outputs.filter { !it.isChange }
+    }
+    // Only outputs leaving the wallet count toward the amount shown in the header.
+    val amountOutputs = if (transaction.isReceive) {
         transaction.receiveOutputs
     } else transaction.outputs.filter { !it.isReceive }
+    // The index in outputs is the vout.
+    val changeOutputs = remember(transaction) {
+        transaction.outputs.mapIndexedNotNull { vout, output ->
+            if (output.isChange) vout to output else null
+        }
+    }
     val signerMap by remember(state.signers) {
         derivedStateOf {
             state.signers.associateBy { it.fingerPrint }
         }
     }
-    val hasChange: Boolean = transaction.hasChangeIndex()
-    val changeCoin = state.coins.find { it.vout == transaction.changeIndex }
+    val hasChange: Boolean = changeOutputs.isNotEmpty()
     val keySetMap = remember(state.transaction, state.defaultKeySetIndex) {
         transaction.keySetStatus.withIndex().associate { it.index to it.value }
     }
@@ -199,6 +212,7 @@ fun TransactionDetailView(
                     serverTransaction = state.serverTransaction,
                     allTxCoins = state.coins,
                     outputs = outputs,
+                    amountOutputs = amountOutputs,
                     userRole = state.userRole,
                     showDetail = showDetail,
                     onShowDetails = { showDetail = !showDetail },
@@ -282,29 +296,20 @@ fun TransactionDetailView(
                                 text = stringResource(R.string.nc_transaction_change_address),
                                 style = NunchukTheme.typography.titleSmall,
                             )
-
-                            if (changeCoin != null) {
-                                Text(
-                                    text = stringResource(R.string.nc_edit),
-                                    style = NunchukTheme.typography.bodySmall.copy(
-                                        textDecoration = TextDecoration.Underline
-                                    ),
-                                    modifier = Modifier
-                                        .align(Alignment.CenterEnd)
-                                        .clickable(onClick = { onEditChangeCoin(changeCoin) }),
-                                )
-                            }
                         }
                     }
 
-                    item {
+                    items(changeOutputs, key = { (vout, _) -> "change-$vout" }) { (vout, txOutput) ->
+                        val coin = state.coins.find { it.vout == vout }
                         ChangeAddressView(
-                            txOutput = transaction.outputs.first { it.isChange },
-                            output = changeCoin,
+                            txOutput = txOutput,
+                            output = coin,
                             tags = state.tags,
                             onCopyText = onCopyText,
                             onInspectAddress = { inspectAddress = it },
-                            hideFiatCurrency = state.hideFiatCurrency
+                            hideFiatCurrency = state.hideFiatCurrency,
+                            usdtAssetId = state.usdtAssetId,
+                            onClick = coin?.let { changeCoin -> { onEditChangeCoin(changeCoin) } },
                         )
                     }
                 }
@@ -641,6 +646,7 @@ private fun TransactionHeader(
     serverTransaction: ServerTransaction?,
     allTxCoins: List<UnspentOutput>,
     outputs: List<TxOutput>,
+    amountOutputs: List<TxOutput> = outputs,
     userRole: AssistedWalletRole,
     showDetail: Boolean,
     onShowDetails: () -> Unit,
@@ -763,7 +769,7 @@ private fun TransactionHeader(
         }
 
         if (isLiquid) {
-            val perAsset = outputs
+            val perAsset = amountOutputs
                 .groupBy { it.assetId }
                 .mapValues { (_, outs) -> Amount(outs.sumOf { o -> o.second.value }) }
             perAsset.entries.forEachIndexed { index, (assetId, amount) ->
