@@ -63,6 +63,7 @@ import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.lightGray
+import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.base.BaseCameraFragment
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
@@ -526,6 +527,14 @@ private fun AddAirgapSignerContent(
                     title = stringResource(id = R.string.nc_text_signer_spec),
                     value = uiState.keySpec,
                     inputBoxHeight = 180.dp,
+                    placeholder = {
+                        Text(
+                            text = stringResource(id = R.string.nc_text_signer_spec_placeholder),
+                            style = NunchukTheme.typography.body.copy(
+                                color = MaterialTheme.colorScheme.textSecondary
+                            )
+                        )
+                    },
                     onValueChange = {
                         onKeySpecChange(it)
                     }

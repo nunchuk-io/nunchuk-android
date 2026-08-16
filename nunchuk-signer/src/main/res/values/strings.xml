@@ -22,6 +22,7 @@
     <string name="nc_scan_dynamic_qr">Scan dynamic QR</string>
     <string name="nc_text_signer_name">Key name</string>
     <string name="nc_text_signer_spec">Key spec</string>
+    <string name="nc_text_signer_spec_placeholder" translatable="false">[deadbeef/84h/0h/0h]xpub</string>
     <string name="nc_text_add_signer">Add key</string>
 
     <string name="nc_signer_bad_ratio_not_recommend">It is not recommended for the software keys to have complete control of the wallet. Software keys are not as safe as hardware keys. Are you sure you want to proceed?</string>
