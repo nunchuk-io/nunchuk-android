@@ -105,12 +105,23 @@ class NfcDiscoveryDelegate(
         enableForegroundDispatch(adapter, requestCode)
     }
 
+    /**
+     * Disables only what is actually enabled. [NfcAdapter.disableReaderMode] must not be called
+     * speculatively: this runs before `super.onPause()`, while the platform still counts the
+     * activity as resumed, so the call reaches `NfcService.setReaderMode(0)` and restarts routing,
+     * disconnecting whatever tag is in the field. Foreground dispatch delivers a tag through
+     * `onPause -> onNewIntent -> onResume`, so disabling reader mode unconditionally here kills the
+     * very tag that pause was caused by, milliseconds before it is handed to us -- every Mk4 scan
+     * then fails with an IOException out of `Ndef.connect()`.
+     */
     fun disarm() {
         readerModeRequestCode = 0
         val adapter = nfcAdapter ?: return
-        runCatching { adapter.disableReaderMode(activity) }
+        if (isReaderModeActive) {
+            runCatching { adapter.disableReaderMode(activity) }
+            isReaderModeActive = false
+        }
         runCatching { adapter.disableForegroundDispatch(activity) }
-        isReaderModeActive = false
     }
 
     fun handleIntent(intent: Intent) {
