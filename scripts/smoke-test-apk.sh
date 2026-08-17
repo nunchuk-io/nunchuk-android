@@ -187,8 +187,20 @@ PY
 }
 # is a node with resource-id ending /<id> currently on screen?
 has_id() { ui_dump; grep -q "/$1\"" "$UI_TMP"; }
-# still sitting on the sign-in screen? (i.e. the login never went through)
-on_signin_screen() { "$ADB" shell dumpsys window 2>/dev/null | grep -q 'mCurrentFocus.*SignInActivity'; }
+# the authenticated home. Assert THIS, not "we left the sign-in screen": the 2FA
+# step runs in its own VerifyNewDeviceActivity, so "not on SignInActivity" is
+# also true while sitting on a rejected 2FA screen.
+HOME_ACTIVITY="com.nunchuk.android.main.MainActivity"
+on_home() { "$ADB" shell dumpsys window 2>/dev/null | grep -q "mCurrentFocus.*$HOME_ACTIVITY"; }
+# wait up to $1 seconds for the home activity to come to the foreground
+wait_for_home() {
+  local deadline=$(( $(date +%s) + ${1:-45} ))
+  while [ "$(date +%s)" -lt "$deadline" ]; do on_home && return 0; sleep 3; done
+  return 1
+}
+# tick the "keep me logged in" checkbox when it is on screen - without it the
+# session is not persisted, so the app returns to sign-in on next launch
+tick_stay_signed_in() { has_id staySignIn && { tap_id staySignIn || true; ok "ticked 'keep me logged in'"; }; }
 # `input text` needs spaces as %s; email/password/code chars (@ + . _ -) are fine
 type_text() { "$ADB" shell input text "$(printf '%s' "$1" | sed 's/ /%s/g')"; }
 esc_kbd()   { "$ADB" shell input keyevent 111 >/dev/null 2>&1 || true; }
@@ -209,6 +221,7 @@ else
   sleep 4
   tap_edit_matching password || fail "password field not found on screen 2"
   sleep 1; type_text "$PASSWORD"; esc_kbd; ok "entered password"
+  tick_stay_signed_in
   tap_id signIn || fail "Sign in button (signIn) not found"
   assert_no_crash "after sign-in submit" "$WATCH_SECS"
 
@@ -232,13 +245,9 @@ else
   # Post-login: dismiss the notifications prompt if it appears -> confirms we
   # reached the authenticated home screen.
   REACHED_HOME=0
-  if has_id btnNotNow; then
-    tap_id btnNotNow || true; sleep 2
-    REACHED_HOME=1; ok "reached authenticated home (notifications prompt dismissed)"
-  elif ! on_signin_screen; then
-    # the prompt only appears once per install, so leaving the sign-in screen at
-    # all is also proof the credentials were accepted
-    REACHED_HOME=1; ok "reached authenticated home (left the sign-in screen)"
+  if has_id btnNotNow; then tap_id btnNotNow || true; sleep 2; fi
+  if wait_for_home 60; then
+    REACHED_HOME=1; ok "reached authenticated home ($HOME_ACTIVITY)"
   fi
   assert_no_crash "post-login" "$WATCH_SECS"
 
@@ -247,7 +256,8 @@ else
   # that never got past the sign-in screen is INCONCLUSIVE - and this script's
   # exit status gates an automatic 100% production rollout.
   if [ "$REACHED_HOME" != "1" ]; then
-    printf '\033[1;31m[FAIL]\033[0m %s\n' "sign-in did not complete - still on the sign-in screen." >&2
+    printf '\033[1;31m[FAIL]\033[0m %s\n' "sign-in did not complete - never reached $HOME_ACTIVITY." >&2
+    printf '       %s\n' "last activity: $("$ADB" shell dumpsys window 2>/dev/null | grep -oE 'mCurrentFocus=Window\{[^}]*\}' | head -1)" >&2
     printf '       %s\n' "Launch + sign-in-UI crash gate PASSED; the logged-in phase was NOT exercised." >&2
     printf '       %s\n' "Check SmokeTestEmail / SmokeTestPassword / SmokeTestConfirmCode in local.properties." >&2
     exit 1
