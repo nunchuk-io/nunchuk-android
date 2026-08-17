@@ -26,6 +26,11 @@
 #   WATCH_SECS crash-watch window after each phase (default: 25)
 #   KEEP_EMU   1 to leave the emulator running on exit
 #   HEADLESS   0 to show the emulator window (default: 1 = -no-window)
+#
+# Exit status (it gates the automatic production rollout, so it must be honest):
+#   0  passed - launched, signed in (unless SKIP_LOGIN=1), no crash
+#   1  failed - a crash signature, or sign-in never left the sign-in screen
+#   2  partial - 2FA screen reached but no CONFIRM_CODE; logged-in phase not exercised
 set -euo pipefail
 
 PKG="io.nunchuk.android"
@@ -182,6 +187,8 @@ PY
 }
 # is a node with resource-id ending /<id> currently on screen?
 has_id() { ui_dump; grep -q "/$1\"" "$UI_TMP"; }
+# still sitting on the sign-in screen? (i.e. the login never went through)
+on_signin_screen() { "$ADB" shell dumpsys window 2>/dev/null | grep -q 'mCurrentFocus.*SignInActivity'; }
 # `input text` needs spaces as %s; email/password/code chars (@ + . _ -) are fine
 type_text() { "$ADB" shell input text "$(printf '%s' "$1" | sed 's/ /%s/g')"; }
 esc_kbd()   { "$ADB" shell input keyevent 111 >/dev/null 2>&1 || true; }
@@ -215,14 +222,36 @@ else
       assert_no_crash "after 2FA submit" "$WATCH_SECS"
     else
       log "2FA screen detected but CONFIRM_CODE unset - re-run with CONFIRM_CODE=<code> to finish."
-      log "launch + sign-in UI already passed the crash gate; skipping the logged-in phase."
+      assert_no_crash "at 2FA screen" "$WATCH_SECS"
+      printf '\033[1;33m[PARTIAL]\033[0m %s\n' \
+        "launch + sign-in UI passed the crash gate; the logged-in phase was NOT exercised (no 2FA code)." >&2
+      exit 2
     fi
   fi
 
   # Post-login: dismiss the notifications prompt if it appears -> confirms we
   # reached the authenticated home screen.
-  if has_id btnNotNow; then tap_id btnNotNow || true; sleep 2; ok "reached authenticated home (notifications prompt dismissed)"; fi
+  REACHED_HOME=0
+  if has_id btnNotNow; then
+    tap_id btnNotNow || true; sleep 2
+    REACHED_HOME=1; ok "reached authenticated home (notifications prompt dismissed)"
+  elif ! on_signin_screen; then
+    # the prompt only appears once per install, so leaving the sign-in screen at
+    # all is also proof the credentials were accepted
+    REACHED_HOME=1; ok "reached authenticated home (left the sign-in screen)"
+  fi
   assert_no_crash "post-login" "$WATCH_SECS"
+
+  # A silent sign-in failure must NOT be reported as a pass. The logged-in phase
+  # is where the native SDK does its real work (wallet sync / electrum), so a run
+  # that never got past the sign-in screen is INCONCLUSIVE - and this script's
+  # exit status gates an automatic 100% production rollout.
+  if [ "$REACHED_HOME" != "1" ]; then
+    printf '\033[1;31m[FAIL]\033[0m %s\n' "sign-in did not complete - still on the sign-in screen." >&2
+    printf '       %s\n' "Launch + sign-in-UI crash gate PASSED; the logged-in phase was NOT exercised." >&2
+    printf '       %s\n' "Check SmokeTestEmail / SmokeTestPassword / SmokeTestConfirmCode in local.properties." >&2
+    exit 1
+  fi
 fi
 
 # ---- light exercise: monkey a few UI events, still must not crash -----------
@@ -235,4 +264,8 @@ assert_no_crash "post-monkey" "$WATCH_SECS"
 SHOT="/tmp/nunchuk-smoke-${PKG}.png"
 "$ADB" exec-out screencap -p > "$SHOT" 2>/dev/null && log "screenshot: $SHOT" || true
 
-ok "SMOKE TEST PASSED - $PKG launched, signed in, and did not crash"
+if [ "$SKIP_LOGIN" = "1" ]; then
+  ok "SMOKE TEST PASSED - $PKG launched and did not crash (SKIP_LOGIN=1: sign-in not exercised)"
+else
+  ok "SMOKE TEST PASSED - $PKG launched, signed in, and did not crash"
+fi
