@@ -526,8 +526,10 @@ class RoomDetailViewModel @Inject constructor(
 
     fun markMessageRead(eventId: String) {
         viewModelScope.launch(ioDispatcher) {
-            room.readService()
-                .setReadReceipt(eventId = eventId, threadId = ReadService.THREAD_ID_MAIN)
+            runCatching {
+                room.readService()
+                    .setReadReceipt(eventId = eventId, threadId = ReadService.THREAD_ID_MAIN)
+            }.onFailure { Timber.e(it, "Failed to send read receipt for $eventId") }
         }
     }
 
