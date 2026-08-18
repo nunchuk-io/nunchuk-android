@@ -72,6 +72,7 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.dialog.NcConfirmationDialog
+import com.nunchuk.android.compose.rememberTextFieldValueHolder
 import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.textSecondary
@@ -292,15 +293,16 @@ fun InheritanceNotifyPrefScreenContent(
                     }
 
                     // Email input field - no border
+                    val inputValue = rememberTextFieldValueHolder(text = inputText) { newText ->
+                        onInputTextChange(newText)
+                        // Auto-add email on comma or space
+                        if (newText.isNotEmpty() && (newText.last() == ',' || newText.last() == ' ')) {
+                            onAddEmail(newText.dropLast(1))
+                        }
+                    }
                     BasicTextField(
-                        value = inputText,
-                        onValueChange = { newText ->
-                            onInputTextChange(newText)
-                            // Auto-add email on comma or space
-                            if (newText.isNotEmpty() && (newText.last() == ',' || newText.last() == ' ')) {
-                                onAddEmail(newText.dropLast(1))
-                            }
-                        },
+                        value = inputValue.value,
+                        onValueChange = inputValue.onValueChange,
                         cursorBrush = SolidColor(MaterialTheme.colorScheme.textPrimary),
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Email,

@@ -87,6 +87,7 @@ fun NcPasswordTextField(
 ) {
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
     val interactionSource: MutableInteractionSource = remember { MutableInteractionSource() }
+    val textFieldValue = rememberTextFieldValueHolder(text = value, onTextChange = onValueChange)
     Column(modifier = modifier) {
         if (title.isNotEmpty()) {
             Text(
@@ -108,13 +109,13 @@ fun NcPasswordTextField(
                     )
                     .clickable(onClick = onClick)
                     .fillMaxWidth(),
-                value = value,
+                value = textFieldValue.value,
                 textStyle = NunchukTheme.typography.body,
                 keyboardOptions = keyboardOptions,
                 keyboardActions = keyboardActions,
                 maxLines = maxLines,
                 enabled = enabled,
-                onValueChange = onValueChange,
+                onValueChange = textFieldValue.onValueChange,
                 visualTransformation = if (!passwordVisible) PasswordVisualTransformation() else VisualTransformation.None,
                 cursorBrush = SolidColor(MaterialTheme.colorScheme.textPrimary),
                 decorationBox = @Composable { innerTextField ->

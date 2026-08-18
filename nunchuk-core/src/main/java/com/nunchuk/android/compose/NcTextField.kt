@@ -103,6 +103,7 @@ fun NcTextField(
 ) {
     val interactionSource: MutableInteractionSource = remember { MutableInteractionSource() }
     val isFocused by interactionSource.collectIsFocusedAsState()
+    val textFieldValue = rememberTextFieldValueHolder(text = value, onTextChange = onValueChange)
 
     LaunchedEffect(isFocused) {
         onFocusEvent(isFocused)
@@ -155,7 +156,7 @@ fun NcTextField(
                 .clickable(onClick = onClick)
                 .height(inputBoxHeight)
                 .fillMaxWidth(),
-            value = value,
+            value = textFieldValue.value,
             textStyle = textStyle,
             keyboardOptions = keyboardOptions,
             keyboardActions = keyboardActions,
@@ -163,7 +164,7 @@ fun NcTextField(
             enabled = enabled,
             readOnly = readOnly,
             minLines = minLines,
-            onValueChange = onValueChange,
+            onValueChange = textFieldValue.onValueChange,
             interactionSource = interactionSource,
             visualTransformation = visualTransformation,
             cursorBrush = SolidColor(MaterialTheme.colorScheme.textPrimary),

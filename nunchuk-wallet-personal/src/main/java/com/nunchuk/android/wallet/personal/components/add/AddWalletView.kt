@@ -80,6 +80,7 @@ import com.nunchuk.android.compose.border
 import com.nunchuk.android.compose.controlTextPrimary
 import com.nunchuk.android.compose.dialog.NcLoadingDialog
 import com.nunchuk.android.compose.fillDenim2
+import com.nunchuk.android.compose.rememberTextFieldValueHolder
 import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.compose.whisper
@@ -787,16 +788,17 @@ private fun InviteEmailsBottomSheet(
                         }
                     }
 
+                    val inputValue = rememberTextFieldValueHolder(text = inputText) { newText ->
+                        inputText = newText
+                        val lastChar = newText.lastOrNull()
+                        if (lastChar == ',' || lastChar == ' ') {
+                            addEmails(newText.dropLast(1))
+                            inputText = ""
+                        }
+                    }
                     BasicTextField(
-                        value = inputText,
-                        onValueChange = { newText ->
-                            inputText = newText
-                            val lastChar = newText.lastOrNull()
-                            if (lastChar == ',' || lastChar == ' ') {
-                                addEmails(newText.dropLast(1))
-                                inputText = ""
-                            }
-                        },
+                        value = inputValue.value,
+                        onValueChange = inputValue.onValueChange,
                         modifier = Modifier
                             .fillMaxWidth()
                             .focusRequester(focusRequester)

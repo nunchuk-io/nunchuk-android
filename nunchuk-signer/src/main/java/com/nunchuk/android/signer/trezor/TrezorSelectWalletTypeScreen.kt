@@ -61,6 +61,7 @@ import com.nunchuk.android.compose.NcSpannedClickableText
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.SpanIndicator
 import com.nunchuk.android.compose.dialog.NcConfirmationDialog
+import com.nunchuk.android.compose.rememberTextFieldValueHolder
 import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.textSecondary
@@ -503,13 +504,14 @@ private fun TrezorAccountIndexBottomSheet(
                 )
             }
 
+            val accountIndexValue = rememberTextFieldValueHolder(text = accountIndexInput) { input ->
+                if (input.isEmpty() || input.all { it.isDigit() }) {
+                    accountIndexInput = input
+                }
+            }
             BasicTextField(
-                value = accountIndexInput,
-                onValueChange = { input ->
-                    if (input.isEmpty() || input.all { it.isDigit() }) {
-                        accountIndexInput = input
-                    }
-                },
+                value = accountIndexValue.value,
+                onValueChange = accountIndexValue.onValueChange,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 20.dp),
