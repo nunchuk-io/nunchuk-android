@@ -22,8 +22,7 @@ package com.nunchuk.android.core.qr
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Color
-import android.net.Uri
-import androidx.core.content.FileProvider
+import androidx.core.graphics.createBitmap
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.EncodeHintType
 import com.google.zxing.EncodeHintType.ERROR_CORRECTION
@@ -58,7 +57,7 @@ fun String.convertToQRCode(width: Int = WIDTH, height: Int = WIDTH, margin: Int 
             pixels[offset + x] = if (matrix[x, y]) Color.BLACK else Color.WHITE
         }
     }
-    return Bitmap.createBitmap(matrixWidth, matrixHeight, Bitmap.Config.RGB_565).apply {
+    return createBitmap(matrixWidth, matrixHeight, Bitmap.Config.RGB_565).apply {
         setPixels(pixels, 0, matrixWidth, 0, 0, matrixWidth, matrixHeight)
     }
 }
