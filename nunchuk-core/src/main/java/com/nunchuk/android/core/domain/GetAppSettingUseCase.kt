@@ -59,10 +59,12 @@ class GetAppSettingUseCase @Inject constructor(
             )
             return updateAppSettingUseCase(migrated).getOrThrow()
         }
-        val expectedLiquidServers = defaultLiquidServers(loaded.chain)
-        if (loaded.liquidServers != expectedLiquidServers) {
-            val corrected = loaded.copy(liquidServers = expectedLiquidServers)
-            return updateAppSettingUseCase(corrected).getOrThrow()
+        if (loaded.liquidServers.isEmpty()) {
+            val liquidServers = defaultLiquidServers(loaded.chain)
+            if (liquidServers.isNotEmpty()) {
+                val migrated = loaded.copy(liquidServers = liquidServers)
+                return updateAppSettingUseCase(migrated).getOrThrow()
+            }
         }
         return loaded
     }

@@ -61,6 +61,14 @@ class NCSharePreferences @Inject constructor(context: Context) {
         get() = prefs.getString(SP_KEY_CUSTOM_SIGNET_SERVER, "").orEmpty()
         set(value) = prefs.edit().putString(SP_KEY_CUSTOM_SIGNET_SERVER, value).apply()
 
+    var customLiquidMainnetServer: String
+        get() = prefs.getString(SP_KEY_CUSTOM_LIQUID_MAINNET_SERVER, "").orEmpty()
+        set(value) = prefs.edit().putString(SP_KEY_CUSTOM_LIQUID_MAINNET_SERVER, value).apply()
+
+    var customLiquidTestnetServer: String
+        get() = prefs.getString(SP_KEY_CUSTOM_LIQUID_TESTNET_SERVER, "").orEmpty()
+        set(value) = prefs.edit().putString(SP_KEY_CUSTOM_LIQUID_TESTNET_SERVER, value).apply()
+
     companion object {
         private const val PACKAGE_PREFIX = "com.nunchuk.android"
         private const val APP_SHARE_PREFERENCE_NAME = "${PACKAGE_PREFIX}.pref"
@@ -73,5 +81,9 @@ class NCSharePreferences @Inject constructor(context: Context) {
         private const val SP_KEY_CUSTOM_MAINNET_SERVER = "${PACKAGE_PREFIX}.key.custom.server.mainnet"
         private const val SP_KEY_CUSTOM_TESTNET_SERVER = "${PACKAGE_PREFIX}.key.custom.server.testnet"
         private const val SP_KEY_CUSTOM_SIGNET_SERVER = "${PACKAGE_PREFIX}.key.custom.server.signet"
+        private const val SP_KEY_CUSTOM_LIQUID_MAINNET_SERVER =
+            "${PACKAGE_PREFIX}.key.custom.server.liquid.mainnet"
+        private const val SP_KEY_CUSTOM_LIQUID_TESTNET_SERVER =
+            "${PACKAGE_PREFIX}.key.custom.server.liquid.testnet"
     }
 }

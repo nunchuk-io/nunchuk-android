@@ -21,6 +21,8 @@ package com.nunchuk.android.settings.network
 
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
+import com.nunchuk.android.core.constants.Constants.LIQUID_MAIN_NET_HOST
+import com.nunchuk.android.core.constants.Constants.LIQUID_TEST_NET_HOST
 import com.nunchuk.android.core.constants.Constants.MAIN_NET_HOST
 import com.nunchuk.android.core.constants.Constants.SIG_NET_HOST
 import com.nunchuk.android.core.constants.Constants.TEST_NET_HOST
@@ -67,6 +69,8 @@ internal class NetworkSettingViewModel @Inject constructor(
     private var initMainnetServer: String = ""
     private var initTestnetServer: String = ""
     private var initSignetServer: String = ""
+    private var initLiquidMainnetServer: String = ""
+    private var initLiquidTestnetServer: String = ""
 
     init {
         viewModelScope.launch {
@@ -74,24 +78,58 @@ internal class NetworkSettingViewModel @Inject constructor(
                 val mainnet = ncSharePreferences.customMainnetServer.ifBlank { MAIN_NET_HOST }
                 val testnet = ncSharePreferences.customTestnetServer.ifBlank { TEST_NET_HOST }
                 val signet = ncSharePreferences.customSignetServer.ifBlank { SIG_NET_HOST }
+                val liquidMainnet = getLiquidServer(
+                    appSettings = appSettings,
+                    chain = Chain.MAIN,
+                    savedServer = ncSharePreferences.customLiquidMainnetServer,
+                    defaultServer = LIQUID_MAIN_NET_HOST,
+                )
+                val liquidTestnet = getLiquidServer(
+                    appSettings = appSettings,
+                    chain = Chain.TESTNET,
+                    savedServer = ncSharePreferences.customLiquidTestnetServer,
+                    defaultServer = LIQUID_TEST_NET_HOST,
+                )
                 initAppSettings = appSettings
                 initMainnetServer = mainnet
                 initTestnetServer = testnet
                 initSignetServer = signet
+                initLiquidMainnetServer = liquidMainnet
+                initLiquidTestnetServer = liquidTestnet
                 updateState {
                     copy(
                         appSetting = appSettings,
                         mainnetServer = mainnet,
                         testnetServer = testnet,
                         signetServer = signet,
+                        liquidMainnetServer = liquidMainnet,
+                        liquidTestnetServer = liquidTestnet,
                     )
                 }
                 loadCustomMainnetServer(mainnet)
                 setEvent(
-                    NetworkSettingEvent.ResetTextHostServerEvent(mainnet, testnet, signet)
+                    NetworkSettingEvent.ResetTextHostServerEvent(
+                        mainnet,
+                        testnet,
+                        signet,
+                        liquidMainnet,
+                        liquidTestnet,
+                    )
                 )
             }
         }
+    }
+
+    private fun getLiquidServer(
+        appSettings: AppSettings,
+        chain: Chain,
+        savedServer: String,
+        defaultServer: String,
+    ): String {
+        if (savedServer.isNotBlank()) return savedServer
+        return appSettings.liquidServers.firstOrNull()
+            ?.takeIf { appSettings.chain == chain && it.isNotBlank() }
+            ?: defaultServer
     }
 
     private suspend fun loadCustomMainnetServer(url: String?) {
@@ -126,6 +164,21 @@ internal class NetworkSettingViewModel @Inject constructor(
         updateState { withAppSetting }
     }
 
+    fun onLiquidHostChanged(chain: Chain, host: String) {
+        val current = state.value ?: return
+        val withHost = when (chain) {
+            Chain.MAIN -> current.copy(liquidMainnetServer = host)
+            Chain.TESTNET -> current.copy(liquidTestnetServer = host)
+            else -> current
+        }
+        val withAppSetting = if (current.appSetting.chain == chain) {
+            withHost.copy(appSetting = withHost.appSetting.copy(liquidServers = listOf(host)))
+        } else {
+            withHost
+        }
+        updateState { withAppSetting }
+    }
+
     fun onChainChanged(chain: Chain) {
         val current = state.value ?: return
         val newHost = when (chain) {
@@ -134,12 +187,18 @@ internal class NetworkSettingViewModel @Inject constructor(
             Chain.SIGNET -> current.signetServer
             else -> current.appSetting.electrumServers.firstOrNull().orEmpty()
         }
+        val newLiquidServers = when (chain) {
+            Chain.MAIN -> listOf(current.liquidMainnetServer)
+            Chain.TESTNET -> listOf(current.liquidTestnetServer)
+            Chain.SIGNET -> emptyList()
+            else -> defaultLiquidServers(chain)
+        }
         updateState {
             copy(
                 appSetting = appSetting.copy(
                     chain = chain,
                     electrumServers = listOf(newHost),
-                    liquidServers = defaultLiquidServers(chain),
+                    liquidServers = newLiquidServers,
                 )
             )
         }
@@ -151,6 +210,8 @@ internal class NetworkSettingViewModel @Inject constructor(
                 || current.mainnetServer != initMainnetServer
                 || current.testnetServer != initTestnetServer
                 || current.signetServer != initSignetServer
+                || current.liquidMainnetServer != initLiquidMainnetServer
+                || current.liquidTestnetServer != initLiquidTestnetServer
     }
 
     fun saveCurrentSettings() {
@@ -158,6 +219,8 @@ internal class NetworkSettingViewModel @Inject constructor(
         ncSharePreferences.customMainnetServer = current.mainnetServer
         ncSharePreferences.customTestnetServer = current.testnetServer
         ncSharePreferences.customSignetServer = current.signetServer
+        ncSharePreferences.customLiquidMainnetServer = current.liquidMainnetServer
+        ncSharePreferences.customLiquidTestnetServer = current.liquidTestnetServer
         updateAppSettings(current.appSetting)
     }
 
@@ -170,6 +233,8 @@ internal class NetworkSettingViewModel @Inject constructor(
                 initMainnetServer = state.value?.mainnetServer.orEmpty()
                 initTestnetServer = state.value?.testnetServer.orEmpty()
                 initSignetServer = state.value?.signetServer.orEmpty()
+                initLiquidMainnetServer = state.value?.liquidMainnetServer.orEmpty()
+                initLiquidTestnetServer = state.value?.liquidTestnetServer.orEmpty()
                 updateState {
                     copy(appSetting = saved)
                 }
@@ -183,18 +248,24 @@ internal class NetworkSettingViewModel @Inject constructor(
             ncSharePreferences.customMainnetServer = MAIN_NET_HOST
             ncSharePreferences.customTestnetServer = TEST_NET_HOST
             ncSharePreferences.customSignetServer = SIG_NET_HOST
+            ncSharePreferences.customLiquidMainnetServer = LIQUID_MAIN_NET_HOST
+            ncSharePreferences.customLiquidTestnetServer = LIQUID_TEST_NET_HOST
             val result = initAppSettingsUseCase(Unit)
             result.getOrNull()?.let {
                 initAppSettings = it
                 initMainnetServer = MAIN_NET_HOST
                 initTestnetServer = TEST_NET_HOST
                 initSignetServer = SIG_NET_HOST
+                initLiquidMainnetServer = LIQUID_MAIN_NET_HOST
+                initLiquidTestnetServer = LIQUID_TEST_NET_HOST
                 updateState {
                     copy(
                         appSetting = it,
                         mainnetServer = MAIN_NET_HOST,
                         testnetServer = TEST_NET_HOST,
                         signetServer = SIG_NET_HOST,
+                        liquidMainnetServer = LIQUID_MAIN_NET_HOST,
+                        liquidTestnetServer = LIQUID_TEST_NET_HOST,
                     )
                 }
                 setEvent(
@@ -202,6 +273,8 @@ internal class NetworkSettingViewModel @Inject constructor(
                         MAIN_NET_HOST,
                         TEST_NET_HOST,
                         SIG_NET_HOST,
+                        LIQUID_MAIN_NET_HOST,
+                        LIQUID_TEST_NET_HOST,
                     )
                 )
                 setEvent(NetworkSettingEvent.UpdateSettingSuccessEvent(it))

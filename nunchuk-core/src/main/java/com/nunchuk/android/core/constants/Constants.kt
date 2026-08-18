@@ -42,8 +42,8 @@ object Constants {
 }
 
 /**
- * The Liquid (USDT) Electrum server is derived from the active [Chain] rather than being
- * user-editable. Liquid/USDT is not supported on signet, so no server is configured there.
+ * Returns the default Liquid (USDT) Electrum server for [chain]. Liquid/USDT is not supported
+ * on signet, so no server is configured there.
  */
 fun defaultLiquidServers(chain: Chain): List<String> = when (chain) {
     Chain.TESTNET -> listOf(Constants.LIQUID_TEST_NET_HOST)

@@ -27,6 +27,8 @@ data class NetworkSettingState(
     val mainnetServer: String = "",
     val testnetServer: String = "",
     val signetServer: String = "",
+    val liquidMainnetServer: String = "",
+    val liquidTestnetServer: String = "",
 )
 
 sealed class NetworkSettingEvent {
@@ -35,6 +37,8 @@ sealed class NetworkSettingEvent {
         val mainnetServer: String,
         val testnetServer: String,
         val signetServer: String,
+        val liquidMainnetServer: String,
+        val liquidTestnetServer: String,
     ) : NetworkSettingEvent()
     object SignOutSuccessEvent : NetworkSettingEvent()
     data class LoadingEvent(val loading: Boolean) : NetworkSettingEvent()

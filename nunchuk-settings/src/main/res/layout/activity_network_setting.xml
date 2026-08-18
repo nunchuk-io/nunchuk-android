@@ -74,6 +74,33 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
+                <com.nunchuk.android.widget.NCFontEditText
+                    android:id="@+id/tvMainNetLiquidHost"
+                    style="@style/NCText.Body"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_marginHorizontal="@dimen/nc_padding_16"
+                    android:background="@drawable/nc_edit_text_bg"
+                    android:gravity="start|center_vertical"
+                    android:padding="@dimen/nc_padding_12"
+                    android:textSize="@dimen/nc_text_size_16"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toStartOf="@+id/rbMainNet"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/tvMainNetLiquidServerTitle"
+                    tools:text="liquid.mainnet:50002" />
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/tvMainNetLiquidServerTitle"
+                    style="@style/NCText.EditText.Title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="@dimen/nc_text_size_16"
+                    android:layout_marginTop="@dimen/nc_padding_16"
+                    android:text="@string/nc_text_liquid_server"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/tvMainNetHost" />
+
             </androidx.constraintlayout.widget.ConstraintLayout>
 
             <androidx.constraintlayout.widget.ConstraintLayout
@@ -118,6 +145,33 @@
                     android:text="@string/nc_text_testnet_server"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
+
+                <com.nunchuk.android.widget.NCFontEditText
+                    android:id="@+id/tvTestNetLiquidHost"
+                    style="@style/NCText.Body"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_marginHorizontal="@dimen/nc_padding_16"
+                    android:background="@drawable/nc_edit_text_bg"
+                    android:gravity="start|center_vertical"
+                    android:padding="@dimen/nc_padding_12"
+                    android:textSize="@dimen/nc_text_size_16"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toStartOf="@+id/rbTestNet"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/tvTestNetLiquidServerTitle"
+                    tools:text="liquid.testnet:50002" />
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/tvTestNetLiquidServerTitle"
+                    style="@style/NCText.EditText.Title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="@dimen/nc_text_size_16"
+                    android:layout_marginTop="@dimen/nc_padding_16"
+                    android:text="@string/nc_text_liquid_server"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/tvTestNetHost" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 

@@ -126,6 +126,14 @@ class NetworkSettingFragment : BaseFragment<ActivityNetworkSettingBinding>(){
             currentChain = Chain.SIGNET,
             selectedChain = state.appSetting.chain
         )
+        binding.tvMainNetLiquidHost.setupNetworkViewInfo(
+            currentChain = Chain.MAIN,
+            selectedChain = state.appSetting.chain
+        )
+        binding.tvTestNetLiquidHost.setupNetworkViewInfo(
+            currentChain = Chain.TESTNET,
+            selectedChain = state.appSetting.chain
+        )
 
         setupViewsWhenAppSettingChanged()
     }
@@ -171,6 +179,8 @@ class NetworkSettingFragment : BaseFragment<ActivityNetworkSettingBinding>(){
                 binding.tvMainNetHost.text = viewModel.customMainnetServerName ?: event.mainnetServer
                 binding.tvTestNetHost.setText(event.testnetServer)
                 binding.tvSigNetHost.setText(event.signetServer)
+                binding.tvMainNetLiquidHost.setText(event.liquidMainnetServer)
+                binding.tvTestNetLiquidHost.setText(event.liquidTestnetServer)
             }
 
             is NetworkSettingEvent.LoadingEvent -> showLoading()
@@ -204,6 +214,8 @@ class NetworkSettingFragment : BaseFragment<ActivityNetworkSettingBinding>(){
         binding.electrumServerSwitch.isEnabled = false
         binding.tvTestNetHost.inputType = InputType.TYPE_CLASS_TEXT
         binding.tvSigNetHost.inputType = InputType.TYPE_CLASS_TEXT
+        binding.tvMainNetLiquidHost.inputType = InputType.TYPE_CLASS_TEXT
+        binding.tvTestNetLiquidHost.inputType = InputType.TYPE_CLASS_TEXT
 
         binding.rbMainNet.setOnCheckedChangeListener { view, checked ->
             if (checked) {
@@ -236,6 +248,12 @@ class NetworkSettingFragment : BaseFragment<ActivityNetworkSettingBinding>(){
         }
         binding.tvSigNetHost.addTextChangedCallback {
             handleNetworkHostTextCallBack(it, Chain.SIGNET)
+        }
+        binding.tvMainNetLiquidHost.addTextChangedCallback {
+            viewModel.onLiquidHostChanged(Chain.MAIN, it)
+        }
+        binding.tvTestNetLiquidHost.addTextChangedCallback {
+            viewModel.onLiquidHostChanged(Chain.TESTNET, it)
         }
         val openSelectElectrumServer : () -> Unit = {
             selectServerLauncher.launch(
@@ -335,6 +353,14 @@ class NetworkSettingFragment : BaseFragment<ActivityNetworkSettingBinding>(){
         viewModel.onHostChanged(
             Chain.SIGNET,
             binding.tvSigNetHost.text.toString()
+        )
+        viewModel.onLiquidHostChanged(
+            Chain.MAIN,
+            binding.tvMainNetLiquidHost.text.toString()
+        )
+        viewModel.onLiquidHostChanged(
+            Chain.TESTNET,
+            binding.tvTestNetLiquidHost.text.toString()
         )
         viewModel.onChainChanged(chain)
     }
