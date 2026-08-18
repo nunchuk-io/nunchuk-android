@@ -28,6 +28,7 @@ import androidx.activity.viewModels
 import androidx.core.view.isVisible
 import com.nunchuk.android.core.base.BaseCameraActivity
 import com.nunchuk.android.core.base.ScannerViewComposer
+import com.nunchuk.android.core.constants.NativeErrorCode
 import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.share.model.SignFlowType
@@ -97,14 +98,21 @@ class ImportTransactionActivity : BaseCameraActivity<ActivityImportTransactionBi
 
     private fun onImportTransactionError(event: ImportTransactionError) {
         hideLoading()
+        // A locked Jade did not fail to import - it needs unlocking first, so it gets its own
+        // copy instead of the "Import failed" prefix over a raw SDK message.
+        val message = if (event.errorCode == NativeErrorCode.JADE_QR_PIN_UNLOCK) {
+            getString(com.nunchuk.android.core.R.string.nc_jade_locked_qr_error)
+        } else {
+            getString(R.string.nc_transaction_imported_failed) + event.message
+        }
         if (args.isFinishWhenError) {
             NcToastManager.scheduleShowMessage(
-                message = getString(R.string.nc_transaction_imported_failed) + event.message,
+                message = message,
                 type = NcToastManager.MessageType.WARING
             )
             finish()
         } else {
-            NCToastMessage(this).showError(getString(R.string.nc_transaction_imported_failed) + event.message)
+            NCToastMessage(this).showError(message)
         }
     }
 

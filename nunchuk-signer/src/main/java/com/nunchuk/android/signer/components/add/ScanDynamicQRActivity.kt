@@ -28,6 +28,7 @@ import androidx.activity.viewModels
 import androidx.core.view.isVisible
 import com.nunchuk.android.core.base.BaseCameraActivity
 import com.nunchuk.android.core.base.ScannerViewComposer
+import com.nunchuk.android.core.constants.NativeErrorCode
 import com.nunchuk.android.core.data.model.QuickWalletParam
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.signer.R
@@ -70,11 +71,25 @@ class ScanDynamicQRActivity : BaseCameraActivity<ActivityScanDynamicQrBinding>()
 
     private fun observer() {
         viewModel.event.observe(this) {
-            if (it is AddAirgapSignerEvent.ParseKeystoneAirgapSignerSuccess) {
-                setResult(Activity.RESULT_OK, Intent().apply {
-                    putParcelableArrayListExtra(PASSPORT_EXTRA_KEYS, ArrayList(it.signers))
-                })
-                finish()
+            when (it) {
+                is AddAirgapSignerEvent.ParseKeystoneAirgapSignerSuccess -> {
+                    setResult(Activity.RESULT_OK, Intent().apply {
+                        putParcelableArrayListExtra(PASSPORT_EXTRA_KEYS, ArrayList(it.signers))
+                    })
+                    finish()
+                }
+
+                is AddAirgapSignerEvent.AddAirgapSignerErrorEvent -> {
+                    NCToastMessage(this).showError(
+                        if (it.errorCode == NativeErrorCode.JADE_QR_PIN_UNLOCK) {
+                            getString(com.nunchuk.android.core.R.string.nc_jade_locked_qr_error)
+                        } else {
+                            it.message
+                        }
+                    )
+                }
+
+                else -> Unit
             }
         }
         flowObserver(viewModel.uiState) {

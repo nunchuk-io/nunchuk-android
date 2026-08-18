@@ -87,8 +87,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onCompletion
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -423,29 +421,51 @@ internal class AddAirgapSignerViewModel @Inject constructor(
     fun handAddPassportSigners(qrData: String) {
         qrDataList.add(qrData)
         if (!isProcessing) {
-            analyzeQr()
+            // Claim the slot before suspending, otherwise the scanner firing again while
+            // analyzeQr is in flight starts a second parse of the same fragments.
+            isProcessing = true
             viewModelScope.launch {
-                Timber.tag(TAG).d("qrDataList::${qrDataList.size}")
-                createPassportSignersUseCase.execute(qrData = qrDataList.toList())
-                    .onStart { isProcessing = true }
-                    .flowOn(IO)
-                    .onException { }
-                    .flowOn(Main)
-                    .onCompletion { isProcessing = false }
-                    .collect {
-                        Timber.tag(TAG).d("add passport signer successful::$it")
-                        event(ParseKeystoneAirgapSignerSuccess(it))
-                    }
+                try {
+                    // Await the progress update so onException below can tell an
+                    // incomplete fragment set apart from a QR we will never parse.
+                    analyzeQr()
+                    Timber.tag(TAG).d("qrDataList::${qrDataList.size}")
+                    createPassportSignersUseCase.execute(qrData = qrDataList.toList())
+                        .flowOn(IO)
+                        .onException { onParseQrFailed(it) }
+                        .flowOn(Main)
+                        .collect {
+                            Timber.tag(TAG).d("add passport signer successful::$it")
+                            event(ParseKeystoneAirgapSignerSuccess(it))
+                        }
+                } finally {
+                    isProcessing = false
+                }
             }
         }
     }
 
-    private fun analyzeQr() {
-        viewModelScope.launch {
-            analyzeQrUseCase(qrDataList.toList()).onSuccess { data ->
-                Timber.d("analyzeQrUseCase: $data")
-                _state.update { it.copy(progress = data.times(100.0)) }
-            }
+    /**
+     * A multi-part QR throws on every fragment until the set is complete, so only report a
+     * failure once there is nothing left to scan: either the fragments are all in (progress
+     * 100) or the native SDK decoded a complete payload and rejected what it found - which is
+     * how a locked Jade reports itself ([NativeErrorCode.JADE_QR_PIN_UNLOCK]).
+     */
+    private fun onParseQrFailed(throwable: Throwable) {
+        val errorCode = throwable.nativeErrorCode()
+        val isDefinitive = errorCode in JADE_ERROR_CODES
+        if (!isDefinitive && _state.value.progress < 100) return
+
+        // Drop what was scanned so the next attempt is not merged with this payload.
+        qrDataList.clear()
+        _state.update { it.copy(progress = 0.0) }
+        setEvent(AddAirgapSignerErrorEvent(throwable.message.orUnknownError(), errorCode))
+    }
+
+    private suspend fun analyzeQr() {
+        analyzeQrUseCase(qrDataList.toList()).onSuccess { data ->
+            Timber.d("analyzeQrUseCase: $data")
+            _state.update { it.copy(progress = data.times(100.0)) }
         }
     }
 
@@ -553,6 +573,13 @@ internal class AddAirgapSignerViewModel @Inject constructor(
 
     companion object {
         private const val TAG = "AddSignerViewModel"
+
+        /** Raised only after the native SDK decodes a complete payload, so never a partial scan. */
+        private val JADE_ERROR_CODES = setOf(
+            NativeErrorCode.JADE_QR_PIN_UNLOCK,
+            NativeErrorCode.JADE_INVALID_PARAMETER,
+            NativeErrorCode.JADE_SERVER_REQUEST_ERROR,
+        )
     }
 }
 

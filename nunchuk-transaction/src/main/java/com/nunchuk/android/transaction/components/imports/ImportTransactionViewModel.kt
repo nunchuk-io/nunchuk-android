@@ -22,7 +22,9 @@ package com.nunchuk.android.transaction.components.imports
 import android.net.Uri
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
+import com.nunchuk.android.core.constants.NativeErrorCode
 import com.nunchuk.android.core.domain.ParseQRCodeFromPhotoUseCase
+import com.nunchuk.android.core.util.nativeErrorCode
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.share.model.SignFlowType
@@ -119,7 +121,10 @@ internal class ImportTransactionViewModel @Inject constructor(
                 }
             }
         }.onFailure { e ->
-            if (_state.value.progress >= 100) {
+            val errorCode = e.nativeErrorCode()
+            if (errorCode == NativeErrorCode.JADE_QR_PIN_UNLOCK) {
+                setEvent(ImportTransactionEvent.ImportTransactionError(e.message.orUnknownError(), errorCode))
+            } else if (_state.value.progress >= 100) {
                 setEvent(ImportTransactionEvent.ImportTransactionError("Invalid or unreadable QR code. Please try again."))
             }
         }
@@ -160,8 +165,11 @@ internal class ImportTransactionViewModel @Inject constructor(
         )
             .flowOn(IO)
             .onException {
-                if (_state.value.progress >= 100) {
-                    setEvent(ImportTransactionEvent.ImportTransactionError(it.message.orUnknownError()))
+                // A locked Jade is only reported once a full payload decodes, so it does not
+                // have to wait for the progress gate the partial-fragment failures need.
+                val errorCode = it.nativeErrorCode()
+                if (errorCode == NativeErrorCode.JADE_QR_PIN_UNLOCK || _state.value.progress >= 100) {
+                    setEvent(ImportTransactionEvent.ImportTransactionError(it.message.orUnknownError(), errorCode))
                 }
             }
             .flowOn(Main)

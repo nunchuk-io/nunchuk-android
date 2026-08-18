@@ -23,5 +23,8 @@ import com.nunchuk.android.model.Transaction
 
 sealed class ImportTransactionEvent {
     data class ImportTransactionSuccess(val transaction: Transaction? = null, val signature: String? = null) : ImportTransactionEvent()
-    data class ImportTransactionError(val message: String) : ImportTransactionEvent()
+    data class ImportTransactionError(
+        val message: String,
+        val errorCode: Int = -1,
+    ) : ImportTransactionEvent()
 }

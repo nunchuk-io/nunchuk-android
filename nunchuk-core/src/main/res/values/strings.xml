@@ -1123,4 +1123,5 @@
     <string name="nc_recover_key_via_seed">Recover key via seed</string>
     <string name="nc_export_message">Export message</string>
     <string name="nc_retry">Retry</string>
+    <string name="nc_jade_locked_qr_error">Jade is locked. Please unlock it first via Key info &gt; More &gt; QR Unlock.</string>
 </resources>
