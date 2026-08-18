@@ -257,4 +257,9 @@
     <string name="nc_security_timeout_message">For your security, there\'s a %d-hour waiting period before you can view your seed phrase.</string>
     <string name="nc_security_timeout_message_xprv">For your security, there\'s a %d-hour waiting period before you can view your XPRV.</string>
     <string name="nc_confirm">Confirm</string>
+    <string name="nc_jade_qr_unlock">QR Unlock</string>
+    <string name="nc_jade_qr_unlock_scan_desc">Scan the QR code shown on your Jade to unlock it.</string>
+    <string name="nc_jade_qr_unlock_show_desc">Scan this QR code with your Jade to continue unlocking.</string>
+    <string name="nc_jade_qr_unlock_scan_next">Scan next QR from Jade</string>
+    <string name="nc_jade_qr_unlock_wrong_qr">That QR code is not a Jade unlock request. On Jade, choose to unlock via QR.</string>
 </resources>

@@ -363,6 +363,16 @@ internal class SignerInfoViewModel @Inject constructor(
                 && remoteSigner.tags.any { it.isInAppHardwareTag }
     }
 
+    /**
+     * Jade is the only device that can be unlocked by relaying its PIN-server QR, so the option is
+     * offered for an air-gapped key tagged JADE.
+     */
+    fun isJadeSigner(): Boolean {
+        val remoteSigner = getState().remoteSigner ?: return false
+        return args.signerType == SignerType.AIRGAP
+                && remoteSigner.tags.contains(SignerTag.JADE)
+    }
+
     fun requestTrezorHealthCheck() {
         val signer = getState().remoteSigner ?: return
         viewModelScope.launch {

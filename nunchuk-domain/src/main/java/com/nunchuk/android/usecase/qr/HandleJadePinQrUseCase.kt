@@ -16,9 +16,25 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.  *
  *                                                                        *
  **************************************************************************/
+package com.nunchuk.android.usecase.qr
 
-package com.nunchuk.android.signer.components.details.model
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.nativelib.NunchukNativeSdk
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
+import javax.inject.Inject
 
-enum class SingerOption {
-    TOP_UP, CHANGE_CVC, BACKUP_KEY, REMOVE_KEY, SIGN_MESSAGE, CHECK_FIRMWARE, UPDATE_FIRMWARE, QR_UNLOCK
+/**
+ * Resolves a Jade PIN-unlock QR: the scanned BC-UR payload carries the PIN-server request, which
+ * the native SDK forwards to Blockstream over HTTP. The reply is handed back to Jade by
+ * [ExportJadePinQrUseCase].
+ */
+class HandleJadePinQrUseCase @Inject constructor(
+    private val nativeSdk: NunchukNativeSdk,
+    @IoDispatcher ioDispatcher: CoroutineDispatcher,
+) : UseCase<List<String>, String>(ioDispatcher) {
+
+    override suspend fun execute(parameters: List<String>): String {
+        return nativeSdk.handleJadePinQR(parameters)
+    }
 }

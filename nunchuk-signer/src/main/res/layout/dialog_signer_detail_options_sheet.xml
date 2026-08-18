@@ -12,6 +12,17 @@
     app:behavior_peekHeight="90dp">
 
     <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/btn_qr_unlock"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:background="?attr/selectableItemBackground"
+        android:paddingVertical="@dimen/nc_padding_16"
+        android:text="@string/nc_jade_qr_unlock"
+        android:textColor="@color/nc_text_primary"
+        android:textSize="@dimen/nc_text_size_16" />
+
+    <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/btn_sign_message"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

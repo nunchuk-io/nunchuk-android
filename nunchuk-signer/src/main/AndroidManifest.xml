@@ -24,6 +24,12 @@
             android:theme="@style/NunchukNoActionBar.Light" />
 
         <activity
+            android:name=".components.jade.JadeQrUnlockActivity"
+            android:label="Jade QR unlock"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light" />
+
+        <activity
             android:name=".tapsigner.NfcSetupActivity"
             android:label="Nfc set up"
             android:screenOrientation="portrait"

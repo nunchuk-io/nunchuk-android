@@ -66,6 +66,7 @@ import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.VerificationType
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.components.details.model.SingerOption
+import com.nunchuk.android.signer.components.jade.JadeQrUnlockActivity
 import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.utils.parcelable
@@ -110,7 +111,8 @@ class SignerInfoFragment : BaseShareSaveFileFragment<ViewBinding>(),
                                 type?.let { signerType ->
                                     SingerInfoOptionBottomSheet.newInstance(
                                         signerType = signerType,
-                                        canSignMessage = canSignMessage(signerType)
+                                        canSignMessage = canSignMessage(signerType),
+                                        canQrUnlock = viewModel.isJadeSigner()
                                     )
                                         .show(childFragmentManager, "SingerInfoOptionBottomSheet")
                                 }
@@ -252,6 +254,9 @@ class SignerInfoFragment : BaseShareSaveFileFragment<ViewBinding>(),
             )
 
             SingerOption.REMOVE_KEY -> handleRemoveKey()
+            SingerOption.QR_UNLOCK -> startActivity(
+                JadeQrUnlockActivity.buildIntent(requireActivity())
+            )
             SingerOption.SIGN_MESSAGE -> {
                 val remoteSigner = viewModel.state.value.remoteSigner
                 findNavController().navigate(

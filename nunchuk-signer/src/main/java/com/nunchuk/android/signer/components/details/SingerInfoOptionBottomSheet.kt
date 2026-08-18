@@ -68,6 +68,9 @@ class SingerInfoOptionBottomSheet : BaseBottomSheet<DialogSignerDetailOptionsShe
         // Which keys can sign a message depends on the hardware brand (its tags), which only the
         // host knows, so the caller decides.
         binding.btnSignMessage.isVisible = requireArguments().getBoolean(EXTRA_CAN_SIGN_MESSAGE)
+        // Only Jade can be unlocked over QR, and that depends on the signer tag, which the host
+        // resolves - same reasoning as sign-message above.
+        binding.btnQrUnlock.isVisible = requireArguments().getBoolean(EXTRA_CAN_QR_UNLOCK)
     }
 
     override fun onClick(v: View?) {
@@ -79,6 +82,7 @@ class SingerInfoOptionBottomSheet : BaseBottomSheet<DialogSignerDetailOptionsShe
             binding.btnSignMessage.id -> listener.onOptionClickListener(SingerOption.SIGN_MESSAGE)
             binding.btnUpdateFirmware.id -> listener.onOptionClickListener(SingerOption.UPDATE_FIRMWARE)
             binding.btnCheckFirmwareVersion.id -> listener.onOptionClickListener(SingerOption.CHECK_FIRMWARE)
+            binding.btnQrUnlock.id -> listener.onOptionClickListener(SingerOption.QR_UNLOCK)
         }
         dismiss()
     }
@@ -91,6 +95,7 @@ class SingerInfoOptionBottomSheet : BaseBottomSheet<DialogSignerDetailOptionsShe
         binding.btnSignMessage.setOnClickListener(this)
         binding.btnUpdateFirmware.setOnClickListener(this)
         binding.btnCheckFirmwareVersion.setOnClickListener(this)
+        binding.btnQrUnlock.setOnClickListener(this)
     }
 
     interface OptionClickListener {
@@ -100,11 +105,17 @@ class SingerInfoOptionBottomSheet : BaseBottomSheet<DialogSignerDetailOptionsShe
     companion object {
         private const val EXTRA_SIGNER_TYPE = "EXTRA_SIGNER_TYPE"
         private const val EXTRA_CAN_SIGN_MESSAGE = "EXTRA_CAN_SIGN_MESSAGE"
+        private const val EXTRA_CAN_QR_UNLOCK = "EXTRA_CAN_QR_UNLOCK"
 
-        fun newInstance(signerType: SignerType, canSignMessage: Boolean = false) = SingerInfoOptionBottomSheet().apply {
+        fun newInstance(
+            signerType: SignerType,
+            canSignMessage: Boolean = false,
+            canQrUnlock: Boolean = false,
+        ) = SingerInfoOptionBottomSheet().apply {
             arguments = Bundle().apply {
                 putSerializable(EXTRA_SIGNER_TYPE, signerType)
                 putBoolean(EXTRA_CAN_SIGN_MESSAGE, canSignMessage)
+                putBoolean(EXTRA_CAN_QR_UNLOCK, canQrUnlock)
             }
         }
     }

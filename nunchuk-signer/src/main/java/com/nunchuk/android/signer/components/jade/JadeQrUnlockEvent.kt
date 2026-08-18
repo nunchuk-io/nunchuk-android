@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.  *
  *                                                                        *
  **************************************************************************/
+package com.nunchuk.android.signer.components.jade
 
-package com.nunchuk.android.signer.components.details.model
-
-enum class SingerOption {
-    TOP_UP, CHANGE_CVC, BACKUP_KEY, REMOVE_KEY, SIGN_MESSAGE, CHECK_FIRMWARE, UPDATE_FIRMWARE, QR_UNLOCK
+sealed class JadeQrUnlockEvent {
+    data class Loading(val isLoading: Boolean) : JadeQrUnlockEvent()
+    data class Error(val message: String, val errorCode: Int = -1) : JadeQrUnlockEvent()
 }
