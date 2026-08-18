@@ -76,6 +76,13 @@ internal class InputAmountViewModel @Inject constructor(
     private val _event = MutableSharedFlow<InputAmountEvent>()
     val event = _event.asSharedFlow()
 
+    private val rawDecimalFormat = DecimalFormat(
+        "0.########",
+        DecimalFormatSymbols(Locale.US),
+    ).apply {
+        isGroupingUsed = false
+    }
+
     init {
         if (!isFromSelectedCoin) {
             checkLockedCoin(args.walletId)
@@ -210,13 +217,6 @@ internal class InputAmountViewModel @Inject constructor(
         } else {
             rawDecimalFormat.format(amount)
         }
-    }
-
-    private val rawDecimalFormat = DecimalFormat(
-        "0.########",
-        DecimalFormatSymbols(Locale.US),
-    ).apply {
-        isGroupingUsed = false
     }
 
     fun getUseBTC() = _state.value.useBtc
