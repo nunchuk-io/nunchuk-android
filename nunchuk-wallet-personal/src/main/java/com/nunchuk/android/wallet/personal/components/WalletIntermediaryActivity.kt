@@ -31,6 +31,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.withResumed
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.base.BaseComposeCameraActivity
 import com.nunchuk.android.core.data.model.QuickWalletParam
@@ -66,6 +68,7 @@ import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -266,7 +269,11 @@ class WalletIntermediaryActivity : BaseComposeCameraActivity(), BottomSheetOptio
 
     private fun checkRunOutGroupWallet(action: () -> Unit) {
         viewModel.checkRemainingGroupWalletLimit { runOut ->
-            if (runOut) showRunOutFreeGroupWallet() else action()
+            lifecycleScope.launch {
+                lifecycle.withResumed {
+                    if (runOut) showRunOutFreeGroupWallet() else action()
+                }
+            }
         }
     }
 

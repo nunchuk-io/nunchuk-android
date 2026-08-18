@@ -92,7 +92,9 @@ class CommonInputBottomSheet : BaseBottomSheet<CommonInputBottomSheetBinding>() 
             arguments = bundleOf(
                 ARGS to args
             )
-            show(fragmentManager, TAG)
+            if (!fragmentManager.isStateSaved && !fragmentManager.isDestroyed) {
+                show(fragmentManager, TAG)
+            }
         }
     }
 
