@@ -25,8 +25,10 @@ import android.content.ContentResolver
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.view.View
 import android.view.inputmethod.InputMethodManager
+import androidx.annotation.AnimRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -42,6 +44,7 @@ import com.nunchuk.android.widget.NCToastMessage
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import java.io.File
 
 private const val TREZOR_SUITE_PACKAGE_NAME = "io.trezor.suite"
@@ -201,6 +204,28 @@ fun <T> AppCompatActivity.flowObserver(
     lifecycleScope.launch {
         flow.flowWithLifecycle(lifecycle, state).collect(collector)
     }
+}
+
+/**
+ * [Activity.overrideActivityTransition] only exists from API 34. Checking [Build.VERSION.SDK_INT]
+ * is not enough on its own: some devices report an SDK level their framework does not actually
+ * back, and the call then fails with [NoSuchMethodError]. Fall back to the legacy API in both cases.
+ */
+fun Activity.overrideActivityTransitionCompat(
+    overrideType: Int = Activity.OVERRIDE_TRANSITION_OPEN,
+    @AnimRes enterAnim: Int,
+    @AnimRes exitAnim: Int,
+) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+        try {
+            overrideActivityTransition(overrideType, enterAnim, exitAnim)
+            return
+        } catch (e: NoSuchMethodError) {
+            Timber.e(e, "overrideActivityTransition is missing on API ${Build.VERSION.SDK_INT}")
+        }
+    }
+    @Suppress("DEPRECATION")
+    overridePendingTransition(enterAnim, exitAnim)
 }
 
 const val CHOOSE_FILE_REQUEST_CODE = 1248

@@ -22,7 +22,6 @@ package com.nunchuk.android.app.nav
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import androidx.activity.result.ActivityResultLauncher
 import com.nunchuk.android.app.miniscript.MiniscriptActivity
 import com.nunchuk.android.app.onboard.OnboardActivity
@@ -39,6 +38,7 @@ import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.InheritanceSourceFlow
 import com.nunchuk.android.core.util.PrimaryOwnerFlow
 import com.nunchuk.android.core.util.RollOverWalletFlow
+import com.nunchuk.android.core.util.overrideActivityTransitionCompat
 import com.nunchuk.android.main.MainActivity
 import com.nunchuk.android.main.MainComposeActivity
 import com.nunchuk.android.main.components.tabs.services.emergencylockdown.EmergencyLockdownActivity
@@ -123,11 +123,11 @@ internal class NunchukNavigatorImpl @Inject constructor() : NunchukNavigator,
                 addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
             },
         )
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            activity.overrideActivityTransition(Activity.OVERRIDE_TRANSITION_OPEN, 0, 0)
-        } else {
-            activity.overridePendingTransition(0, 0)
-        }
+        activity.overrideActivityTransitionCompat(
+            overrideType = Activity.OVERRIDE_TRANSITION_OPEN,
+            enterAnim = 0,
+            exitAnim = 0,
+        )
     }
 
     override fun openQuickWalletScreen(

@@ -28,6 +28,7 @@ import com.nunchuk.android.core.util.DeeplinkHolder
 import com.nunchuk.android.core.util.ShortcutAction
 import com.nunchuk.android.core.util.UnlockPinSourceFlow
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.overrideActivityTransitionCompat
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.settings.walletsecurity.unlock.UnlockPinActivity
 import com.nunchuk.android.utils.NotificationUtils
@@ -145,12 +146,11 @@ internal class SplashActivity : AppCompatActivity() {
                 navigator.openUnlockPinScreen(this, UnlockPinSourceFlow.SIGN_IN_UNKNOWN_MODE)
             }
         }
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            overrideActivityTransition(android.app.Activity.OVERRIDE_TRANSITION_CLOSE, 0, 0)
-        } else {
-            @Suppress("DEPRECATION")
-            overridePendingTransition(0, 0)
-        }
+        overrideActivityTransitionCompat(
+            overrideType = android.app.Activity.OVERRIDE_TRANSITION_CLOSE,
+            enterAnim = 0,
+            exitAnim = 0,
+        )
         finish()
     }
 
