@@ -74,8 +74,16 @@ class ProxySettingViewModel @Inject constructor(
         }
     }
 
+    // Seed the Orbot defaults as real values, not just a placeholder: a greyed-out
+    // hint reads as "already filled in", so Save would reject what the user sees.
     fun onEnableProxyChanged(enable: Boolean) = _uiState.update {
-        it.copy(enableProxy = enable, hostError = null, portError = null)
+        it.copy(
+            enableProxy = enable,
+            host = if (enable) it.host.ifBlank { DEFAULT_PROXY_HOST } else it.host,
+            port = if (enable) it.port.ifBlank { DEFAULT_PROXY_PORT } else it.port,
+            hostError = null,
+            portError = null,
+        )
     }
 
     fun onHostChanged(host: String) = _uiState.update { it.copy(host = host, hostError = null) }
@@ -151,6 +159,10 @@ class ProxySettingViewModel @Inject constructor(
         private const val MAX_PORT_LENGTH = 5
     }
 }
+
+// Orbot's local SOCKS5 endpoint, the case this screen exists for.
+internal const val DEFAULT_PROXY_HOST = "127.0.0.1"
+internal const val DEFAULT_PROXY_PORT = "9050"
 
 enum class ProxyInputError { HOST_REQUIRED, PORT_INVALID }
 

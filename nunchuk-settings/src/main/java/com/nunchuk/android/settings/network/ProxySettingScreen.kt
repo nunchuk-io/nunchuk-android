@@ -174,7 +174,7 @@ private fun ProxySettingContent(
                     enabled = uiState.enableProxy,
                     singleLine = true,
                     error = uiState.hostError?.let { stringResource(R.string.nc_proxy_host_required) },
-                    placeholder = { Text(text = PROXY_HOST_PLACEHOLDER, style = NunchukTheme.typography.body) },
+                    placeholder = { Text(text = DEFAULT_PROXY_HOST, style = NunchukTheme.typography.body) },
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Uri,
                         imeAction = ImeAction.Next,
@@ -188,7 +188,7 @@ private fun ProxySettingContent(
                     enabled = uiState.enableProxy,
                     singleLine = true,
                     error = uiState.portError?.let { stringResource(R.string.nc_proxy_port_invalid) },
-                    placeholder = { Text(text = PROXY_PORT_PLACEHOLDER, style = NunchukTheme.typography.body) },
+                    placeholder = { Text(text = DEFAULT_PROXY_PORT, style = NunchukTheme.typography.body) },
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Number,
                         imeAction = ImeAction.Next,
@@ -229,10 +229,6 @@ private fun ProxySettingContent(
         }
     }
 }
-
-// Orbot's local SOCKS5 endpoint, the case this screen exists for.
-private const val PROXY_HOST_PLACEHOLDER = "127.0.0.1"
-private const val PROXY_PORT_PLACEHOLDER = "9050"
 
 @PreviewLightDark
 @Composable
