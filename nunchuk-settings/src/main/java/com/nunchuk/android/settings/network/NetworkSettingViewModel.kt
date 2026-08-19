@@ -25,8 +25,6 @@ import com.nunchuk.android.core.constants.Constants.MAIN_NET_HOST
 import com.nunchuk.android.core.constants.Constants.SIG_NET_HOST
 import com.nunchuk.android.core.constants.Constants.TEST_NET_HOST
 import com.nunchuk.android.core.constants.defaultLiquidServers
-import com.nunchuk.android.core.account.AccountManager
-import com.nunchuk.android.core.account.activeAccountId
 import com.nunchuk.android.core.domain.ClearInfoSessionUseCase
 import com.nunchuk.android.core.domain.GetAppSettingUseCase
 import com.nunchuk.android.core.domain.GetRemoteElectrumServersCacheUseCase
@@ -36,7 +34,6 @@ import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.persistence.NCSharePreferences
 import com.nunchuk.android.core.profile.SendSignOutUseCase
 import com.nunchuk.android.model.AppSettings
-import com.nunchuk.android.share.InitNunchukUseCase
 import com.nunchuk.android.type.Chain
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -56,8 +53,6 @@ internal class NetworkSettingViewModel @Inject constructor(
     private val getRemoteElectrumServersCacheUseCase: GetRemoteElectrumServersCacheUseCase,
     private val signInModeHolder: SignInModeHolder,
     private val ncSharePreferences: NCSharePreferences,
-    private val initNunchukUseCase: InitNunchukUseCase,
-    private val accountManager: AccountManager,
 ) : NunchukViewModel<NetworkSettingState, NetworkSettingEvent>() {
 
     override val initialState = NetworkSettingState()
@@ -214,16 +209,12 @@ internal class NetworkSettingViewModel @Inject constructor(
         ncSharePreferences.customMainnetServer = current.mainnetServer
         ncSharePreferences.customTestnetServer = current.testnetServer
         ncSharePreferences.customSignetServer = current.signetServer
-        // A proxy-only change does not need the app restarted, so it is applied by
-        // rebuilding the SDK instead of dragging the user through a sign-out.
-        val proxyOnly = isProxyOnlyChange(current)
         viewModelScope.launch {
             // Re-read the persisted settings so fields owned by other screens (the
-            // proxy credentials) aren't clobbered by this screen's older snapshot.
+            // proxy settings) aren't clobbered by this screen's older snapshot.
             val persisted = getAppSettingUseCase(Unit).getOrNull() ?: current.appSetting
             updateAppSettings(
-                proxyOnly = proxyOnly,
-                appSettings = persisted.copy(
+                persisted.copy(
                     chain = current.appSetting.chain,
                     electrumServers = current.appSetting.electrumServers,
                     liquidServers = current.appSetting.liquidServers,
@@ -237,17 +228,7 @@ internal class NetworkSettingViewModel @Inject constructor(
         }
     }
 
-    private fun isProxyOnlyChange(current: NetworkSettingState): Boolean {
-        val initial = initAppSettings ?: return false
-        val serversUntouched = current.mainnetServer == initMainnetServer
-                && current.testnetServer == initTestnetServer
-                && current.signetServer == initSignetServer
-        return serversUntouched
-                && current.appSetting.withProxyOf(initial) == initial
-                && !current.appSetting.hasSameProxyAs(initial)
-    }
-
-    private fun updateAppSettings(appSettings: AppSettings, proxyOnly: Boolean = false) {
+    private fun updateAppSettings(appSettings: AppSettings) {
         viewModelScope.launch {
             val result = updateAppSettingUseCase(appSettings)
             if (result.isSuccess) {
@@ -259,14 +240,7 @@ internal class NetworkSettingViewModel @Inject constructor(
                 updateState {
                     copy(appSetting = saved)
                 }
-                if (proxyOnly) {
-                    initNunchukUseCase(
-                        InitNunchukUseCase.Param(accountId = accountManager.activeAccountId())
-                    )
-                    setEvent(NetworkSettingEvent.ProxySettingUpdatedEvent)
-                } else {
-                    setEvent(NetworkSettingEvent.UpdateSettingSuccessEvent(saved))
-                }
+                setEvent(NetworkSettingEvent.UpdateSettingSuccessEvent(saved))
             }
         }
     }

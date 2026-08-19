@@ -36,7 +36,6 @@ sealed class NetworkSettingEvent {
         val testnetServer: String,
         val signetServer: String,
     ) : NetworkSettingEvent()
-    data object ProxySettingUpdatedEvent : NetworkSettingEvent()
     object SignOutSuccessEvent : NetworkSettingEvent()
     data class LoadingEvent(val loading: Boolean) : NetworkSettingEvent()
 }
