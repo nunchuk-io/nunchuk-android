@@ -36,4 +36,7 @@ sealed class AddAirgapSignerEvent {
     data object XfpNotMatchException : AddAirgapSignerEvent()
     data class CheckExisting(val type: ResultExistingKey, val singleSigner: SingleSigner) : AddAirgapSignerEvent()
     data object KeyVerifiedSuccess : AddAirgapSignerEvent()
+
+    /** Scanned QR was a locked Jade's PIN request; show the reply for the device to scan back. */
+    data class ShowJadePinReply(val pin: String) : AddAirgapSignerEvent()
 }

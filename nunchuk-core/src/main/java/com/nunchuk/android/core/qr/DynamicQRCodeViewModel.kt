@@ -27,6 +27,7 @@ import com.nunchuk.android.core.domain.settings.GetQrDensitySettingUseCase
 import com.nunchuk.android.core.domain.settings.UpdateQrDensitySettingUseCase
 import com.nunchuk.android.core.util.ExportWalletQRCodeType
 import com.nunchuk.android.core.util.HIGH_DENSITY
+import com.nunchuk.android.core.util.MEDIUM_DENSITY
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.toBBQRDensity
 import com.nunchuk.android.usecase.CreateShareFileUseCase
@@ -36,6 +37,7 @@ import com.nunchuk.android.usecase.GetWalletUseCase
 import com.nunchuk.android.usecase.SaveLocalFileUseCase
 import com.nunchuk.android.usecase.membership.SaveBitmapToPDFUseCase
 import com.nunchuk.android.usecase.qr.ExportBBQRWalletUseCase
+import com.nunchuk.android.usecase.qr.ExportJadePinQrUseCase
 import com.nunchuk.android.usecase.qr.ExportDescriptorQRWalletUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -60,6 +62,7 @@ class DynamicQRCodeViewModel @Inject constructor(
     private val updateQrDensitySettingUseCase: UpdateQrDensitySettingUseCase,
     private val exportBBQRWalletUseCase: ExportBBQRWalletUseCase,
     private val exportDescriptorQRWalletUseCase: ExportDescriptorQRWalletUseCase,
+    private val exportJadePinQrUseCase: ExportJadePinQrUseCase,
     private val savedStateHandle: SavedStateHandle,
     private val createShareFileUseCase: CreateShareFileUseCase,
     private val saveBitmapToPDFUseCase: SaveBitmapToPDFUseCase,
@@ -68,6 +71,7 @@ class DynamicQRCodeViewModel @Inject constructor(
     val walletId = savedStateHandle.get<String>(DynamicQRCodeArgs.EXTRA_WALLET_ID).orEmpty()
     val type = savedStateHandle.get<Int>(DynamicQRCodeArgs.EXTRA_QR_CODE_TYPE)
         ?: ExportWalletQRCodeType.BC_UR2_LEGACY
+    private val jadePin = savedStateHandle.get<String>(DynamicQRCodeArgs.EXTRA_JADE_PIN).orEmpty()
 
     private val _state = MutableStateFlow(DynamicQRCodeState())
     val state = _state.asStateFlow()
@@ -76,22 +80,37 @@ class DynamicQRCodeViewModel @Inject constructor(
     val event = _event.asSharedFlow()
 
     init {
-        viewModelScope.launch {
-            getQrDensitySettingUseCase(Unit).map { it.getOrThrow() }
-                .distinctUntilChanged()
-                .collect { density ->
-                _state.update { it.copy(density = density) }
-                handleExportWalletQR(density)
+        if (type == ExportWalletQRCodeType.JADE_PIN) {
+            // Jade's decoder chokes on the denser fragments the wallet export defaults to, and
+            // this is a one-off challenge rather than a wallet the user exports repeatedly, so it
+            // starts at a density Jade can read and keeps out of the shared setting entirely.
+            _state.update { it.copy(density = MEDIUM_DENSITY) }
+            handleExportWalletQR(MEDIUM_DENSITY)
+        } else {
+            viewModelScope.launch {
+                getQrDensitySettingUseCase(Unit).map { it.getOrThrow() }
+                    .distinctUntilChanged()
+                    .collect { density ->
+                        _state.update { it.copy(density = density) }
+                        handleExportWalletQR(density)
+                    }
             }
         }
-        viewModelScope.launch {
-            getWalletUseCase.execute(walletId).map { it.wallet.name }.collect { name ->
-                _state.update { it.copy(name = name) }
+        if (type != ExportWalletQRCodeType.JADE_PIN) {
+            viewModelScope.launch {
+                getWalletUseCase.execute(walletId).map { it.wallet.name }.collect { name ->
+                    _state.update { it.copy(name = name) }
+                }
             }
         }
     }
 
     fun setQrDensity(density: Int) {
+        if (type == ExportWalletQRCodeType.JADE_PIN) {
+            _state.update { it.copy(density = density) }
+            handleExportWalletQR(density)
+            return
+        }
         viewModelScope.launch {
             updateQrDensitySettingUseCase(density)
         }
@@ -132,6 +151,19 @@ class DynamicQRCodeViewModel @Inject constructor(
                         .map { list -> list.mapNotNull { it.convertToQRCode() } }
                         .onSuccess { bitmaps ->
                             _state.update { it.copy(bitmaps = bitmaps) }
+                        }
+                }
+            }
+            ExportWalletQRCodeType.JADE_PIN -> {
+                viewModelScope.launch {
+                    // The density slider is the fragment length the spec asks the user for.
+                    exportJadePinQrUseCase(ExportJadePinQrUseCase.Param(jadePin, density))
+                        .map { list -> list.distinct().mapNotNull { it.convertToQRCode() } }
+                        .onSuccess { bitmaps ->
+                            _state.update { it.copy(bitmaps = bitmaps) }
+                        }
+                        .onFailure {
+                            _event.emit(DynamicQRCodeEvent.Error(it.message.orUnknownError()))
                         }
                 }
             }

@@ -1124,4 +1124,6 @@
     <string name="nc_export_message">Export message</string>
     <string name="nc_retry">Retry</string>
     <string name="nc_jade_locked_qr_error">Jade is locked. Please unlock it first via Key info &gt; More &gt; QR Unlock.</string>
+    <string name="nc_jade_qr_unlock_title">Scan to unlock Jade</string>
+    <string name="nc_jade_qr_unlock_show_hint">Scan the QR code above with your Jade device to complete the PIN unlock, then tap Done scanning to continue.</string>
 </resources>

@@ -266,6 +266,8 @@ class AddAirgapSignerFragment : BaseCameraFragment<ViewBinding>(),
             when (it) {
                 is AddAirgapSignerSuccessEvent -> handleSignerSuccess(it.singleSigner)
                 is AddAirgapSignerErrorEvent -> onAddAirSignerError(it.message)
+                // Only raised while scanning, which this screen delegates to ScanDynamicQRActivity.
+                is AddAirgapSignerEvent.ShowJadePinReply -> Unit
                 is LoadingEventAirgap -> showOrHideLoading(it.isLoading)
                 is ParseKeystoneAirgapSignerSuccess -> handleResult(it.signers)
                 AddSameKey -> showError(getString(R.string.nc_error_add_same_key))

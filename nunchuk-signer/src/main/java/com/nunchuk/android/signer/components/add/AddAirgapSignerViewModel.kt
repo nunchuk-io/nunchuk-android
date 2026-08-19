@@ -73,6 +73,7 @@ import com.nunchuk.android.usecase.membership.SetKeyVerifiedUseCase
 import com.nunchuk.android.usecase.membership.SetReplaceKeyVerifiedUseCase
 import com.nunchuk.android.usecase.membership.SyncKeyUseCase
 import com.nunchuk.android.usecase.qr.AnalyzeQrUseCase
+import com.nunchuk.android.usecase.qr.HandleJadePinQrUseCase
 import com.nunchuk.android.usecase.replace.ReplaceKeyUseCase
 import com.nunchuk.android.usecase.signer.GetRemoteOrMasterSignerUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
@@ -105,6 +106,7 @@ internal class AddAirgapSignerViewModel @Inject constructor(
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val getChainSettingFlowUseCase: GetChainSettingFlowUseCase,
     private val analyzeQrUseCase: AnalyzeQrUseCase,
+    private val handleJadePinQrUseCase: HandleJadePinQrUseCase,
     private val syncKeyUseCase: SyncKeyUseCase,
     private val setKeyVerifiedUseCase: SetKeyVerifiedUseCase,
     private val setReplaceKeyVerifiedUseCase: SetReplaceKeyVerifiedUseCase,
@@ -456,10 +458,35 @@ internal class AddAirgapSignerViewModel @Inject constructor(
         val isDefinitive = errorCode in JADE_ERROR_CODES
         if (!isDefinitive && _state.value.progress < 100) return
 
+        // A locked Jade is unlocked in place rather than sending the user elsewhere: the scanned
+        // fragments are the PIN-server request, so resolve them before dropping the session.
+        if (errorCode == NativeErrorCode.JADE_QR_PIN_UNLOCK) {
+            resolveJadePin()
+            return
+        }
+
         // Drop what was scanned so the next attempt is not merged with this payload.
         qrDataList.clear()
         _state.update { it.copy(progress = 0.0) }
         setEvent(AddAirgapSignerErrorEvent(throwable.message.orUnknownError(), errorCode))
+    }
+
+    private fun resolveJadePin() = viewModelScope.launch {
+        val request = qrDataList.toList()
+        clearQrSession()
+        setEvent(LoadingEventAirgap(true))
+        handleJadePinQrUseCase(request)
+            .onSuccess { setEvent(AddAirgapSignerEvent.ShowJadePinReply(it)) }
+            .onFailure {
+                setEvent(AddAirgapSignerErrorEvent(it.message.orUnknownError(), it.nativeErrorCode()))
+            }
+        setEvent(LoadingEventAirgap(false))
+    }
+
+    /** Starts a fresh scan session, e.g. after unlocking Jade mid-flow. */
+    fun clearQrSession() {
+        qrDataList.clear()
+        _state.update { it.copy(progress = 0.0) }
     }
 
     private suspend fun analyzeQr() {

@@ -18,14 +18,11 @@
  **************************************************************************/
 package com.nunchuk.android.signer.components.jade
 
-import android.graphics.Bitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.nunchuk.android.core.qr.convertToQRCode
 import com.nunchuk.android.core.util.nativeErrorCode
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.usecase.qr.AnalyzeQrUseCase
-import com.nunchuk.android.usecase.qr.ExportJadePinQrUseCase
 import com.nunchuk.android.usecase.qr.HandleJadePinQrUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -38,14 +35,13 @@ import timber.log.Timber
 import javax.inject.Inject
 
 /**
- * Drives one leg of the Jade QR PIN unlock handshake: collect the fragments Jade shows, resolve
- * them against the Blockstream PIN server, then render the reply for Jade to scan. The device may
- * ask for several legs, so [reset] puts the screen back into scanning without losing the session.
+ * Collects the QR fragments a locked Jade shows and resolves them against the Blockstream PIN
+ * server. Rendering the reply is left to the shared dynamic-QR screen, which already has the
+ * density control the fragment length needs.
  */
 @HiltViewModel
 class JadeQrUnlockViewModel @Inject constructor(
     private val handleJadePinQrUseCase: HandleJadePinQrUseCase,
-    private val exportJadePinQrUseCase: ExportJadePinQrUseCase,
     private val analyzeQrUseCase: AnalyzeQrUseCase,
 ) : ViewModel() {
 
@@ -59,7 +55,6 @@ class JadeQrUnlockViewModel @Inject constructor(
     private var isProcessing = false
 
     fun onQrScanned(qrData: String) {
-        if (_state.value.replyQrs.isNotEmpty()) return
         if (!qrDataList.add(qrData) || isProcessing) return
         isProcessing = true
         viewModelScope.launch {
@@ -79,31 +74,17 @@ class JadeQrUnlockViewModel @Inject constructor(
     }
 
     private suspend fun resolvePin() {
+        _event.emit(JadeQrUnlockEvent.Loading(true))
         handleJadePinQrUseCase(qrDataList.toList())
             .onSuccess { pin ->
-                Timber.tag(TAG).d("Jade PIN request resolved")
-                exportReply(pin)
+                Timber.tag(TAG).d("Jade PIN request resolved, %d bytes", pin.length)
+                _event.emit(JadeQrUnlockEvent.ShowReply(pin))
             }
             .onFailure { throwable ->
                 // Every fragment of a multi-part QR fails until the set is complete, so stay
                 // quiet until there is nothing left to scan.
-                if (_state.value.progress < 100) return@onFailure
-                reportFailure(throwable)
+                if (_state.value.progress >= 100) reportFailure(throwable)
             }
-    }
-
-    private suspend fun exportReply(pin: String) {
-        _event.emit(JadeQrUnlockEvent.Loading(true))
-        exportJadePinQrUseCase(ExportJadePinQrUseCase.Param(pin))
-            .onSuccess { fragments ->
-                val bitmaps = fragments.mapNotNull { it.convertToQRCode() }
-                if (bitmaps.isEmpty()) {
-                    _event.emit(JadeQrUnlockEvent.Error("Could not render the unlock QR code."))
-                } else {
-                    _state.update { it.copy(replyQrs = bitmaps, progress = 0.0) }
-                }
-            }
-            .onFailure { reportFailure(it) }
         _event.emit(JadeQrUnlockEvent.Loading(false))
     }
 
@@ -126,7 +107,4 @@ class JadeQrUnlockViewModel @Inject constructor(
     }
 }
 
-data class JadeQrUnlockState(
-    val progress: Double = 0.0,
-    val replyQrs: List<Bitmap> = emptyList(),
-)
+data class JadeQrUnlockState(val progress: Double = 0.0)

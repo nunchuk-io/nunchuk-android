@@ -23,16 +23,15 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.compose.runtime.getValue
-import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.core.view.isVisible
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import com.nunchuk.android.core.base.BaseCameraActivity
 import com.nunchuk.android.core.base.ScannerViewComposer
 import com.nunchuk.android.core.constants.NativeErrorCode
 import com.nunchuk.android.core.domain.ParseQRCodeFromPhotoUseCase
+import com.nunchuk.android.core.qr.DynamicQRCodeActivity
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.databinding.ActivityJadeQrUnlockBinding
@@ -45,8 +44,9 @@ import kotlin.math.roundToInt
 
 /**
  * Jade QR PIN unlock. Jade shows a PIN-server request as an animated QR; the app scans it, forwards
- * it to Blockstream, then shows the reply for Jade to scan. The device drives however many
- * exchanges it needs, so the screen toggles between scanning and showing until the user is done.
+ * it to Blockstream, then hands the reply to the shared dynamic-QR screen for Jade to scan back.
+ * The device drives however many exchanges it needs, so returning from that screen puts this one
+ * back into scanning.
  */
 @AndroidEntryPoint
 class JadeQrUnlockActivity : BaseCameraActivity<ActivityJadeQrUnlockBinding>() {
@@ -56,6 +56,13 @@ class JadeQrUnlockActivity : BaseCameraActivity<ActivityJadeQrUnlockBinding>() {
 
     private val viewModel: JadeQrUnlockViewModel by viewModels()
 
+    private val showReplyLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) {
+        viewModel.reset()
+        scanner?.resumeScanning()
+    }
+
     override fun initializeBinding() = ActivityJadeQrUnlockBinding.inflate(layoutInflater)
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -64,40 +71,27 @@ class JadeQrUnlockActivity : BaseCameraActivity<ActivityJadeQrUnlockBinding>() {
         requestCameraPermissionOrExecuteAction()
         setLightStatusBar()
         binding.toolbar.setNavigationOnClickListener { finish() }
-        setupComposeView()
         observer()
-    }
-
-    private fun setupComposeView() {
-        binding.composeView.setViewCompositionStrategy(
-            ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed
-        )
-        binding.composeView.setContent {
-            val state by viewModel.state.collectAsStateWithLifecycle()
-            JadeUnlockReplyContent(
-                qrs = state.replyQrs,
-                onScanNextClicked = viewModel::reset,
-                onDoneClicked = ::finish,
-            )
-        }
     }
 
     private fun observer() {
         flowObserver(viewModel.state) { state ->
-            val isShowingReply = state.replyQrs.isNotEmpty()
-            binding.composeView.isVisible = isShowingReply
-            // Stop decoding while the reply is on screen, otherwise the camera keeps feeding
-            // fragments into a session that is already resolved.
-            if (isShowingReply) scanner?.stopScanning() else scanner?.resumeScanning()
-
-            binding.progressBar.isVisible = !isShowingReply && state.progress > 0.0
+            binding.progressBar.isVisible = state.progress > 0.0
             binding.progressBar.progress = state.progress.roundToInt()
-            binding.tvPercentage.isVisible = !isShowingReply && state.progress > 0.0
+            binding.tvPercentage.isVisible = state.progress > 0.0
             binding.tvPercentage.text = "${state.progress.roundToInt()}%"
         }
         flowObserver(viewModel.event) { event ->
             when (event) {
                 is JadeQrUnlockEvent.Loading -> if (event.isLoading) showLoading() else hideLoading()
+
+                is JadeQrUnlockEvent.ShowReply -> {
+                    scanner?.stopScanning()
+                    showReplyLauncher.launch(
+                        DynamicQRCodeActivity.buildJadePinIntent(this, event.pin)
+                    )
+                }
+
                 is JadeQrUnlockEvent.Error -> NCToastMessage(this).showError(
                     if (event.errorCode == NativeErrorCode.JADE_INVALID_PARAMETER) {
                         getString(R.string.nc_jade_qr_unlock_wrong_qr)
@@ -119,7 +113,7 @@ class JadeQrUnlockActivity : BaseCameraActivity<ActivityJadeQrUnlockBinding>() {
 
     override fun onResume() {
         super.onResume()
-        if (viewModel.state.value.replyQrs.isEmpty()) scanner?.resumeScanning()
+        scanner?.resumeScanning()
     }
 
     override fun onPause() {

@@ -107,6 +107,25 @@
         style="@style/NCText.Body"
         android:layout_height="wrap_content"/>
 
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/tvJadeHint"
+        style="@style/NCText.Title.Small"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/nc_padding_16"
+        android:layout_marginBottom="@dimen/nc_padding_12"
+        android:background="@drawable/nc_rounded_whisper_background"
+        android:drawableStart="@drawable/ic_info"
+        android:drawablePadding="@dimen/nc_padding_8"
+        android:paddingHorizontal="@dimen/nc_padding_16"
+        android:paddingVertical="@dimen/nc_padding_8"
+        android:text="@string/nc_jade_qr_unlock_show_hint"
+        android:visibility="gone"
+        app:drawableTint="@color/nc_text_primary"
+        app:layout_constraintBottom_toTopOf="@+id/btn_done_scan"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
     <com.nunchuk.android.widget.NCFontButton
         android:id="@+id/btn_done_scan"
         style="@style/NCPrimaryButton.Dark"

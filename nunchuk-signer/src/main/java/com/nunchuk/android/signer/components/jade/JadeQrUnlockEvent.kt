@@ -21,4 +21,7 @@ package com.nunchuk.android.signer.components.jade
 sealed class JadeQrUnlockEvent {
     data class Loading(val isLoading: Boolean) : JadeQrUnlockEvent()
     data class Error(val message: String, val errorCode: Int = -1) : JadeQrUnlockEvent()
+
+    /** PIN-server reply resolved; hand it to the shared dynamic-QR screen for Jade to scan. */
+    data class ShowReply(val pin: String) : JadeQrUnlockEvent()
 }

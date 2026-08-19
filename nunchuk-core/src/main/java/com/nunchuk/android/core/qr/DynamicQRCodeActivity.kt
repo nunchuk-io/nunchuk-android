@@ -34,6 +34,8 @@ import com.nunchuk.android.core.util.MEDIUM_DENSITY
 import com.nunchuk.android.core.util.ULTRA_DENSITY
 import com.nunchuk.android.core.util.densityToLevel
 import com.nunchuk.android.core.util.flowObserver
+import androidx.core.view.isVisible
+import com.nunchuk.android.core.R
 import com.nunchuk.android.core.util.ExportWalletQRCodeType
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
@@ -57,6 +59,9 @@ class DynamicQRCodeActivity : BaseShareSaveFileActivity<ActivityDynamicQrBinding
 
     private var showQrJob: Job? = null
 
+    private val isJadePinUnlock: Boolean
+        get() = viewModel.type == ExportWalletQRCodeType.JADE_PIN
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -67,7 +72,7 @@ class DynamicQRCodeActivity : BaseShareSaveFileActivity<ActivityDynamicQrBinding
 
         setupViews()
         flowObserver(viewModel.state) {
-            binding.toolbarTitle.text = it.name
+            if (!isJadePinUnlock) binding.toolbarTitle.text = it.name
             binding.slider.value = it.density.densityToLevel()
             bitmaps = it.bitmaps
             showQr()
@@ -110,6 +115,13 @@ class DynamicQRCodeActivity : BaseShareSaveFileActivity<ActivityDynamicQrBinding
         if (viewModel.type == ExportWalletQRCodeType.DESCRIPTOR_QR) {
             binding.groupDensity.visibility = android.view.View.GONE
         }
+
+        if (isJadePinUnlock) {
+            // No wallet behind this one, so the title is fixed rather than the wallet name.
+            binding.toolbarTitle.setText(R.string.nc_jade_qr_unlock_title)
+            binding.tvJadeHint.isVisible = true
+            binding.btnSavePdf.isVisible = false
+        }
     }
 
     override fun saveFileToLocal() {
@@ -148,6 +160,14 @@ class DynamicQRCodeActivity : BaseShareSaveFileActivity<ActivityDynamicQrBinding
             DynamicQRCodeArgs(walletId = walletId, qrCodeType = qrCodeType).buildIntent(
                 activityContext
             )
+
+        /** Shows the PIN-server reply for a locked Jade to scan back. */
+        fun buildJadePinIntent(activityContext: Context, jadePin: String) =
+            DynamicQRCodeArgs(
+                walletId = "",
+                qrCodeType = ExportWalletQRCodeType.JADE_PIN,
+                jadePin = jadePin,
+            ).buildIntent(activityContext)
     }
 
 }

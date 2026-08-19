@@ -24,12 +24,14 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.core.view.isVisible
 import com.nunchuk.android.core.base.BaseCameraActivity
 import com.nunchuk.android.core.base.ScannerViewComposer
 import com.nunchuk.android.core.constants.NativeErrorCode
 import com.nunchuk.android.core.data.model.QuickWalletParam
+import com.nunchuk.android.core.qr.DynamicQRCodeActivity
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.databinding.ActivityScanDynamicQrBinding
@@ -52,6 +54,14 @@ class ScanDynamicQRActivity : BaseCameraActivity<ActivityScanDynamicQrBinding>()
     }
     private val quickWalletParam: QuickWalletParam? by lazy {
         intent.parcelable<QuickWalletParam>(QUICK_WALLET_PARAM)
+    }
+
+    /** Jade needs several exchanges, so returning here just resumes scanning for the next QR. */
+    private val jadeUnlockLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) {
+        viewModel.clearQrSession()
+        scanner?.resumeScanning()
     }
 
     override fun decodeQRCodeFromUri(uri: Uri) {
@@ -77,6 +87,13 @@ class ScanDynamicQRActivity : BaseCameraActivity<ActivityScanDynamicQrBinding>()
                         putParcelableArrayListExtra(PASSPORT_EXTRA_KEYS, ArrayList(it.signers))
                     })
                     finish()
+                }
+
+                is AddAirgapSignerEvent.ShowJadePinReply -> {
+                    scanner?.stopScanning()
+                    jadeUnlockLauncher.launch(
+                        DynamicQRCodeActivity.buildJadePinIntent(this, it.pin)
+                    )
                 }
 
                 is AddAirgapSignerEvent.AddAirgapSignerErrorEvent -> {

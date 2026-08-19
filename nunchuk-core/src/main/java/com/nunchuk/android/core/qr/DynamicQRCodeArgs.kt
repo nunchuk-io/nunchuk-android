@@ -24,16 +24,23 @@ import android.content.Intent
 import com.nunchuk.android.arch.args.ActivityArgs
 import com.nunchuk.android.core.util.ExportWalletQRCodeType
 
-data class DynamicQRCodeArgs(val walletId: String, val qrCodeType: Int) : ActivityArgs {
+data class DynamicQRCodeArgs(
+    val walletId: String,
+    val qrCodeType: Int,
+    /** PIN-server reply to encode when [qrCodeType] is [ExportWalletQRCodeType.JADE_PIN]. */
+    val jadePin: String = "",
+) : ActivityArgs {
 
     override fun buildIntent(activityContext: Context) = Intent(activityContext, DynamicQRCodeActivity::class.java).apply {
         putExtra(EXTRA_WALLET_ID, walletId)
         putExtra(EXTRA_QR_CODE_TYPE, qrCodeType)
+        putExtra(EXTRA_JADE_PIN, jadePin)
     }
 
     companion object {
         const val EXTRA_WALLET_ID = "EXTRA_WALLET_ID"
         const val EXTRA_QR_CODE_TYPE = "EXTRA_QR_CODE_TYPE"
+        const val EXTRA_JADE_PIN = "EXTRA_JADE_PIN"
 
         fun deserializeFrom(intent: Intent): DynamicQRCodeArgs = DynamicQRCodeArgs(
             walletId = intent.extras?.getString(EXTRA_WALLET_ID, "").orEmpty(),
