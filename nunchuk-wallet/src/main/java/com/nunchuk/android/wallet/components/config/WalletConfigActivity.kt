@@ -752,24 +752,22 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
                 )
             }
 
-            if (!viewModel.isAssistedWallet()) {
-                if (viewModel.isArchived()) {
-                    options.add(
-                        SheetOption(
-                            SheetOptionType.TYPE_ARCHIVE,
-                            R.drawable.ic_un_archive_box,
-                            R.string.nc_unarchive_wallet
-                        )
+            if (viewModel.isArchived()) {
+                options.add(
+                    SheetOption(
+                        SheetOptionType.TYPE_ARCHIVE,
+                        R.drawable.ic_un_archive_box,
+                        R.string.nc_unarchive_wallet
                     )
-                } else {
-                    options.add(
-                        SheetOption(
-                            SheetOptionType.TYPE_ARCHIVE,
-                            R.drawable.ic_archive_box,
-                            R.string.nc_archive_wallet
-                        )
+                )
+            } else if (!viewModel.isAssistedWallet() || viewModel.hasZeroBalance()) {
+                options.add(
+                    SheetOption(
+                        SheetOptionType.TYPE_ARCHIVE,
+                        R.drawable.ic_archive_box,
+                        R.string.nc_archive_wallet
                     )
-                }
+                )
             }
 
             if (viewModel.isShowDeleteWallet()) {

@@ -719,6 +719,8 @@ internal class WalletConfigViewModel @Inject constructor(
 
     fun isArchived() = getState().walletExtended.wallet.archived
 
+    fun hasZeroBalance() = getState().walletExtended.wallet.balance.value == 0L
+
     fun hasMiniscriptTimelock(): Boolean {
         val root = getState().scriptNode ?: return false
         val stack = ArrayDeque<ScriptNode>()
