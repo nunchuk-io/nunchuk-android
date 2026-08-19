@@ -165,6 +165,66 @@
                     app:layout_constraintTop_toTopOf="parent" />
             </androidx.constraintlayout.widget.ConstraintLayout>
 
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/proxyContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/nc_padding_16"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/sigNetContainer">
+
+                <com.nunchuk.android.widget.NCFontTextView
+                    android:id="@+id/tvUseProxy"
+                    style="@style/NCText.Body"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/nc_padding_16"
+                    android:text="@string/nc_use_socks5_proxy"
+                    app:layout_constraintEnd_toStartOf="@+id/proxySwitch"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <com.nunchuk.android.widget.NCSwitchButton
+                    android:id="@+id/proxySwitch"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="@dimen/nc_padding_16"
+                    app:layout_constraintBottom_toBottomOf="@+id/tvUseProxy"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="@+id/tvUseProxy"
+                    app:sb_checked_color="@color/nc_primary_color" />
+
+                <com.nunchuk.android.widget.NCFontTextView
+                    android:id="@+id/tvProxyServer"
+                    style="@style/NCText.Body"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_marginHorizontal="@dimen/nc_padding_16"
+                    android:layout_marginTop="@dimen/nc_padding_8"
+                    android:background="@drawable/nc_edit_text_bg"
+                    android:ellipsize="end"
+                    android:gravity="start|center_vertical"
+                    android:maxLines="1"
+                    android:paddingVertical="@dimen/nc_padding_12"
+                    android:paddingStart="@dimen/nc_padding_12"
+                    android:paddingEnd="@dimen/nc_padding_48"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/tvUseProxy"
+                    tools:text="127.0.0.1:9050" />
+
+                <ImageView
+                    android:id="@+id/ivProxyArrow"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:padding="16dp"
+                    android:src="@drawable/ic_arrow"
+                    app:layout_constraintBottom_toBottomOf="@+id/tvProxyServer"
+                    app:layout_constraintEnd_toEndOf="@+id/tvProxyServer"
+                    app:layout_constraintTop_toTopOf="@+id/tvProxyServer"
+                    app:tint="@color/nc_text_primary" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
             <com.nunchuk.android.widget.NCFontTextView
                 android:id="@+id/tvConnectToElectrum"
                 style="@style/NCText.Body"

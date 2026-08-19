@@ -127,7 +127,32 @@ class NetworkSettingFragment : BaseFragment<ActivityNetworkSettingBinding>(){
             selectedChain = state.appSetting.chain
         )
 
+        binding.proxySwitch.isChecked = state.appSetting.enableProxy
+        binding.tvProxyServer.text = getString(
+            R.string.nc_proxy_server_summary,
+            state.appSetting.proxyHost.ifBlank { DEFAULT_PROXY_HOST },
+            state.appSetting.proxyPort.takeIf { it > 0 }?.toString() ?: DEFAULT_PROXY_PORT,
+        )
+        binding.tvProxyServer.setupProxySummaryInfo(state.appSetting.enableProxy)
+        binding.ivProxyArrow.isVisible = state.appSetting.enableProxy
+
         setupViewsWhenAppSettingChanged()
+    }
+
+    private fun TextView.setupProxySummaryInfo(enabled: Boolean) {
+        background = ContextCompat.getDrawable(
+            requireActivity(),
+            if (enabled) R.drawable.nc_edit_text_bg else R.drawable.nc_edit_text_bg_disabled,
+        )
+        setTextColor(
+            ColorStateList.valueOf(
+                ContextCompat.getColor(
+                    requireActivity(),
+                    if (enabled) R.color.nc_text_primary else R.color.nc_second_color,
+                )
+            )
+        )
+        isEnabled = enabled
     }
 
     private fun isAppSettingChanged(): Boolean {
@@ -253,7 +278,22 @@ class NetworkSettingFragment : BaseFragment<ActivityNetworkSettingBinding>(){
             openSelectElectrumServer()
         }
 
+        binding.proxySwitch.setOnCheckedChangeListener { _, checked ->
+            viewModel.onEnableProxyChanged(checked)
+        }
+        val openProxySetting: () -> Unit = {
+            (activity as? OnNetworkSettingMoreClickListener)?.onProxySettingClick()
+        }
+        binding.tvProxyServer.setOnDebounceClickListener { openProxySetting() }
+        binding.ivProxyArrow.setOnDebounceClickListener { openProxySetting() }
+
         showGuideText()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // The proxy screen shares these fields; pick up whatever it saved.
+        viewModel.refreshProxySetting()
     }
 
     private fun showGuideText() {
