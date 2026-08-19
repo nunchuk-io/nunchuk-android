@@ -252,12 +252,6 @@ interface AppNavigatorDelegate : AppNavigator {
 
     override fun restartApp(activityContext: Context) {
         SplashActivity.navigate(activityContext)
-        if (activityContext is Activity) activityContext.finish()
-        // Kill the process so Application.onCreate runs again: it is the only place
-        // that re-initialises the native SDK, so without this an AppSettings change
-        // (chain, Electrum server, proxy) never reaches libnunchuk. The activity
-        // start is already queued with the system, which cold-starts us back up.
-        Runtime.getRuntime().exit(0)
     }
 
     override fun openMembershipActivity(

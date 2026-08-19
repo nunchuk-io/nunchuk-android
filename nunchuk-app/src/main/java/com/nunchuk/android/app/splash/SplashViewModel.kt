@@ -31,6 +31,7 @@ import com.nunchuk.android.core.guestmode.isGuestMode
 import com.nunchuk.android.core.guestmode.isPrimaryKey
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.setting.WalletSecuritySetting
+import com.nunchuk.android.share.InitNunchukUseCase
 import com.nunchuk.android.usecase.GetBiometricConfigUseCase
 import com.nunchuk.android.usecase.GetWalletSecuritySettingUseCase
 import com.nunchuk.android.usecase.pin.GetCustomPinConfigFlowUseCase
@@ -52,6 +53,7 @@ internal class SplashViewModel @Inject constructor(
     private val getWalletSecuritySettingUseCase: GetWalletSecuritySettingUseCase,
     private val getCustomPinConfigFlowUseCase: GetCustomPinConfigFlowUseCase,
     private val getBiometricConfigUseCase: GetBiometricConfigUseCase,
+    private val initNunchukUseCase: InitNunchukUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
     private val _event = MutableSharedFlow<SplashEvent>(1)
@@ -61,6 +63,19 @@ internal class SplashViewModel @Inject constructor(
         viewModelScope.launch(ioDispatcher) {
             val mode = signInModeHolder.getCurrentMode()
             val account = accountManager.getAccount()
+            // restartApp() relaunches this activity without restarting the process, so
+            // Application.onCreate does not run again. Re-init here so an AppSettings
+            // change (chain, Electrum server, proxy) actually reaches libnunchuk; the
+            // use case no-ops when nothing changed, so a normal cold start pays nothing.
+            initNunchukUseCase(
+                InitNunchukUseCase.Param(
+                    accountId = if (account.loginType == SignInMode.PRIMARY_KEY.value) {
+                        account.username
+                    } else {
+                        account.email
+                    },
+                )
+            )
             val isStaySignedIn = accountManager.isStaySignedIn()
             val info = application.packageManager.getPackageInfo(application.packageName, 0)
             val isFreshInstall = info.firstInstallTime == info.lastUpdateTime
