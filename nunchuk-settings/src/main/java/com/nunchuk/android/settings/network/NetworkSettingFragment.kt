@@ -198,6 +198,10 @@ class NetworkSettingFragment : BaseFragment<ActivityNetworkSettingBinding>(){
                 binding.tvSigNetHost.setText(event.signetServer)
             }
 
+            NetworkSettingEvent.ProxySettingUpdatedEvent -> {
+                NCToastMessage(requireActivity()).show(getString(R.string.nc_update_saved))
+            }
+
             is NetworkSettingEvent.LoadingEvent -> showLoading()
             NetworkSettingEvent.SignOutSuccessEvent -> {
                 hideLoading()

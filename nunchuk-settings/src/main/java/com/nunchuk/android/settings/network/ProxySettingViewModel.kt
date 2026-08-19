@@ -21,15 +21,14 @@ package com.nunchuk.android.settings.network
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.nunchuk.android.core.domain.ClearInfoSessionUseCase
+import com.nunchuk.android.core.account.AccountManager
+import com.nunchuk.android.core.account.activeAccountId
 import com.nunchuk.android.core.domain.GetAppSettingUseCase
 import com.nunchuk.android.core.domain.UpdateAppSettingUseCase
-import com.nunchuk.android.core.guestmode.SignInModeHolder
-import com.nunchuk.android.core.profile.SendSignOutUseCase
 import com.nunchuk.android.model.AppSettings
 import com.nunchuk.android.model.StateEvent
+import com.nunchuk.android.share.InitNunchukUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -39,18 +38,17 @@ import javax.inject.Inject
 /**
  * SOCKS5 proxy for Electrum connections (e.g. Orbot on 127.0.0.1:9050).
  *
- * libnunchuk applies the proxy when the Electrum client is created, so a change
- * only takes effect after the SDK is re-initialised — hence the same
- * "app restart required" flow the rest of the network settings use.
+ * libnunchuk reads the proxy when it builds the Electrum client, so a change only
+ * lands once the SDK is re-initialised. Unlike a chain switch it does NOT need the
+ * app restarted (`Synchronizer::NeedRecreate` recreates rather than throwing), so
+ * saving re-initialises the SDK here and the change applies immediately.
  */
 @HiltViewModel
 class ProxySettingViewModel @Inject constructor(
     private val getAppSettingUseCase: GetAppSettingUseCase,
     private val updateAppSettingUseCase: UpdateAppSettingUseCase,
-    private val clearInfoSessionUseCase: ClearInfoSessionUseCase,
-    private val sendSignOutUseCase: SendSignOutUseCase,
-    private val signInModeHolder: SignInModeHolder,
-    private val appScope: CoroutineScope,
+    private val initNunchukUseCase: InitNunchukUseCase,
+    private val accountManager: AccountManager,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(ProxySettingUiState())
     val uiState = _uiState.asStateFlow()
@@ -122,6 +120,7 @@ class ProxySettingViewModel @Inject constructor(
             }
         }
         viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
             updateAppSettingUseCase(
                 settings.copy(
                     enableProxy = state.enableProxy,
@@ -132,24 +131,18 @@ class ProxySettingViewModel @Inject constructor(
                 )
             ).onSuccess { saved ->
                 appSettings = saved
+                // Rebuild the SDK so the Electrum client picks the change up now;
+                // without this a disable stays inert until the next cold start.
+                initNunchukUseCase(
+                    InitNunchukUseCase.Param(accountId = accountManager.activeAccountId())
+                )
                 _uiState.update { it.copy(saveSuccessEvent = StateEvent.Unit) }
             }
+            _uiState.update { it.copy(isLoading = false) }
         }
     }
 
     fun onHandleSaveSuccessEvent() = _uiState.update { it.copy(saveSuccessEvent = StateEvent.None) }
-
-    fun signOut() {
-        appScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
-            signInModeHolder.clear()
-            clearInfoSessionUseCase(Unit)
-            sendSignOutUseCase(Unit)
-            _uiState.update { it.copy(isLoading = false, logoutEvent = StateEvent.Unit) }
-        }
-    }
-
-    fun onHandleLogoutEvent() = _uiState.update { it.copy(logoutEvent = StateEvent.None) }
 
     private fun Int?.orZero() = this ?: 0
 
@@ -176,5 +169,4 @@ data class ProxySettingUiState(
     val portError: ProxyInputError? = null,
     val isLoading: Boolean = false,
     val saveSuccessEvent: StateEvent = StateEvent.None,
-    val logoutEvent: StateEvent = StateEvent.None,
 )

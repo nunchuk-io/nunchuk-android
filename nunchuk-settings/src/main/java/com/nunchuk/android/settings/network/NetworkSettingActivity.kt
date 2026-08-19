@@ -77,9 +77,7 @@ class NetworkSettingActivity : BaseComposeActivity(), OnNetworkSettingMoreClickL
                     CustomExplorerScreen()
                 }
                 composable<NetworkSettingScreens.ProxySetting> {
-                    ProxySettingScreen(
-                        onSignOutSuccess = { navigator.restartApp(this@NetworkSettingActivity) },
-                    )
+                    ProxySettingScreen()
                 }
             }
         }

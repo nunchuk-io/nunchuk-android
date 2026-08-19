@@ -30,16 +30,15 @@ import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -52,11 +51,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nunchuk.android.compose.NcHintMessage
 import com.nunchuk.android.compose.dialog.NcLoadingDialog
 import com.nunchuk.android.compose.NcPrimaryDarkButton
+import com.nunchuk.android.compose.NcScaffold
+import com.nunchuk.android.compose.NcSnackbarVisuals
 import com.nunchuk.android.compose.NcSwitch
 import com.nunchuk.android.compose.NcTextField
+import com.nunchuk.android.compose.NcToastType
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
-import com.nunchuk.android.compose.dialog.NcConfirmationDialog
 import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.model.StateEvent
 import com.nunchuk.android.settings.R
@@ -64,25 +65,25 @@ import com.nunchuk.android.settings.R
 @Composable
 fun ProxySettingScreen(
     viewModel: ProxySettingViewModel = hiltViewModel(),
-    onSignOutSuccess: () -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    var showRestartDialog by rememberSaveable { mutableStateOf(false) }
+    val snackState = remember { SnackbarHostState() }
+    val context = LocalContext.current
 
     LaunchedEffect(uiState.saveSuccessEvent) {
         if (uiState.saveSuccessEvent is StateEvent.Unit) {
             viewModel.onHandleSaveSuccessEvent()
-            showRestartDialog = true
-        }
-    }
-    LaunchedEffect(uiState.logoutEvent) {
-        if (uiState.logoutEvent is StateEvent.Unit) {
-            viewModel.onHandleLogoutEvent()
-            onSignOutSuccess()
+            snackState.showSnackbar(
+                NcSnackbarVisuals(
+                    type = NcToastType.SUCCESS,
+                    message = context.getString(R.string.nc_update_saved),
+                )
+            )
         }
     }
 
     ProxySettingContent(
+        snackState = snackState,
         uiState = uiState,
         onEnableProxyChanged = viewModel::onEnableProxyChanged,
         onHostChanged = viewModel::onHostChanged,
@@ -92,26 +93,11 @@ fun ProxySettingScreen(
         hasChanges = viewModel.hasChanges(),
         onSaveClicked = viewModel::save,
     )
-
-    // The proxy only reaches libnunchuk when the SDK is re-initialised, so saving
-    // follows the same restart flow as the rest of the network settings.
-    if (showRestartDialog) {
-        NcConfirmationDialog(
-            title = stringResource(R.string.nc_text_app_restart_required),
-            message = stringResource(R.string.nc_text_app_restart_des),
-            positiveButtonText = stringResource(R.string.nc_text_restart),
-            negativeButtonText = stringResource(R.string.nc_text_discard),
-            onPositiveClick = {
-                showRestartDialog = false
-                viewModel.signOut()
-            },
-            onDismiss = { showRestartDialog = false },
-        )
-    }
 }
 
 @Composable
 private fun ProxySettingContent(
+    snackState: SnackbarHostState = remember { SnackbarHostState() },
     uiState: ProxySettingUiState = ProxySettingUiState(),
     onEnableProxyChanged: (Boolean) -> Unit = {},
     onHostChanged: (String) -> Unit = {},
@@ -122,7 +108,8 @@ private fun ProxySettingContent(
     onSaveClicked: () -> Unit = {},
 ) {
     NunchukTheme {
-        Scaffold(
+        NcScaffold(
+            snackState = snackState,
             modifier = Modifier.systemBarsPadding(),
             topBar = {
                 NcTopAppBar(

@@ -17,26 +17,14 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.settings.network
+package com.nunchuk.android.core.account
 
-import com.nunchuk.android.model.AppSettings
+import com.nunchuk.android.core.guestmode.SignInMode
 
-data class NetworkSettingState(
-    val appSetting: AppSettings = AppSettings(),
-    val customMainnetServerName: String? = null,
-    val mainnetServer: String = "",
-    val testnetServer: String = "",
-    val signetServer: String = "",
-)
-
-sealed class NetworkSettingEvent {
-    data class UpdateSettingSuccessEvent(val appSetting: AppSettings) : NetworkSettingEvent()
-    data class ResetTextHostServerEvent(
-        val mainnetServer: String,
-        val testnetServer: String,
-        val signetServer: String,
-    ) : NetworkSettingEvent()
-    data object ProxySettingUpdatedEvent : NetworkSettingEvent()
-    object SignOutSuccessEvent : NetworkSettingEvent()
-    data class LoadingEvent(val loading: Boolean) : NetworkSettingEvent()
+/**
+ * The account id the native SDK is initialised with: a primary-key login is
+ * identified by its username, every other mode by the account email.
+ */
+fun AccountManager.activeAccountId(): String = getAccount().let { account ->
+    if (account.loginType == SignInMode.PRIMARY_KEY.value) account.username else account.email
 }
