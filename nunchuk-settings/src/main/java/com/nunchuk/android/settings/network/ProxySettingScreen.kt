@@ -35,10 +35,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -52,12 +54,11 @@ import com.nunchuk.android.compose.NcHintMessage
 import com.nunchuk.android.compose.dialog.NcLoadingDialog
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcScaffold
-import com.nunchuk.android.compose.NcSnackbarVisuals
 import com.nunchuk.android.compose.NcSwitch
 import com.nunchuk.android.compose.NcTextField
-import com.nunchuk.android.compose.NcToastType
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.dialog.NcConfirmationDialog
 import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.model.StateEvent
 import com.nunchuk.android.settings.R
@@ -65,20 +66,16 @@ import com.nunchuk.android.settings.R
 @Composable
 fun ProxySettingScreen(
     viewModel: ProxySettingViewModel = hiltViewModel(),
+    onRestartApp: () -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackState = remember { SnackbarHostState() }
-    val context = LocalContext.current
+    var showRestartDialog by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(uiState.saveSuccessEvent) {
         if (uiState.saveSuccessEvent is StateEvent.Unit) {
             viewModel.onHandleSaveSuccessEvent()
-            snackState.showSnackbar(
-                NcSnackbarVisuals(
-                    type = NcToastType.SUCCESS,
-                    message = context.getString(R.string.nc_update_saved),
-                )
-            )
+            showRestartDialog = true
         }
     }
 
@@ -93,6 +90,22 @@ fun ProxySettingScreen(
         hasChanges = viewModel.hasChanges(),
         onSaveClicked = viewModel::save,
     )
+
+    // The SDK only re-reads the proxy on Application.onCreate, so the change needs a
+    // real restart - but not the sign-out a chain switch forces.
+    if (showRestartDialog) {
+        NcConfirmationDialog(
+            title = stringResource(R.string.nc_text_app_restart_required),
+            message = stringResource(R.string.nc_text_app_restart_des),
+            positiveButtonText = stringResource(R.string.nc_text_restart),
+            negativeButtonText = stringResource(R.string.nc_text_discard),
+            onPositiveClick = {
+                showRestartDialog = false
+                onRestartApp()
+            },
+            onDismiss = { showRestartDialog = false },
+        )
+    }
 }
 
 @Composable

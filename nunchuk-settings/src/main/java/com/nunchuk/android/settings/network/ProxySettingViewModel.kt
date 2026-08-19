@@ -21,13 +21,10 @@ package com.nunchuk.android.settings.network
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.nunchuk.android.core.account.AccountManager
-import com.nunchuk.android.core.account.activeAccountId
 import com.nunchuk.android.core.domain.GetAppSettingUseCase
 import com.nunchuk.android.core.domain.UpdateAppSettingUseCase
 import com.nunchuk.android.model.AppSettings
 import com.nunchuk.android.model.StateEvent
-import com.nunchuk.android.share.InitNunchukUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -39,16 +36,14 @@ import javax.inject.Inject
  * SOCKS5 proxy for Electrum connections (e.g. Orbot on 127.0.0.1:9050).
  *
  * libnunchuk reads the proxy when it builds the Electrum client, so a change only
- * lands once the SDK is re-initialised. Unlike a chain switch it does NOT need the
- * app restarted (`Synchronizer::NeedRecreate` recreates rather than throwing), so
- * saving re-initialises the SDK here and the change applies immediately.
+ * lands once the SDK is re-initialised - which happens in Application.onCreate.
+ * Saving therefore restarts the app, but unlike a chain switch it does not need to
+ * sign the user out.
  */
 @HiltViewModel
 class ProxySettingViewModel @Inject constructor(
     private val getAppSettingUseCase: GetAppSettingUseCase,
     private val updateAppSettingUseCase: UpdateAppSettingUseCase,
-    private val initNunchukUseCase: InitNunchukUseCase,
-    private val accountManager: AccountManager,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(ProxySettingUiState())
     val uiState = _uiState.asStateFlow()
@@ -131,11 +126,6 @@ class ProxySettingViewModel @Inject constructor(
                 )
             ).onSuccess { saved ->
                 appSettings = saved
-                // Rebuild the SDK so the Electrum client picks the change up now;
-                // without this a disable stays inert until the next cold start.
-                initNunchukUseCase(
-                    InitNunchukUseCase.Param(accountId = accountManager.activeAccountId())
-                )
                 _uiState.update { it.copy(saveSuccessEvent = StateEvent.Unit) }
             }
             _uiState.update { it.copy(isLoading = false) }

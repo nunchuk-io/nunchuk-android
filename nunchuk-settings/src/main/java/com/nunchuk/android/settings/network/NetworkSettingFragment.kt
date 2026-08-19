@@ -199,7 +199,7 @@ class NetworkSettingFragment : BaseFragment<ActivityNetworkSettingBinding>(){
             }
 
             NetworkSettingEvent.ProxySettingUpdatedEvent -> {
-                NCToastMessage(requireActivity()).show(getString(R.string.nc_update_saved))
+                showRestartRequiredDialog(onRestart = ::restartApp)
             }
 
             is NetworkSettingEvent.LoadingEvent -> showLoading()
@@ -215,14 +215,17 @@ class NetworkSettingFragment : BaseFragment<ActivityNetworkSettingBinding>(){
     }
 
     private fun handleUpdateAppSettingsSuccess() {
+        // A chain or server switch also drops the session, so it signs out first.
+        showRestartRequiredDialog(onRestart = viewModel::signOut)
+    }
+
+    private fun showRestartRequiredDialog(onRestart: () -> Unit) {
         NCWarningDialog(requireActivity()).showDialog(
             title = getString(R.string.nc_text_app_restart_required),
             message = getString(R.string.nc_text_app_restart_des),
             btnYes = getString(R.string.nc_text_restart),
             btnNo = getString(R.string.nc_text_discard),
-            onYesClick = {
-                viewModel.signOut()
-            }
+            onYesClick = { onRestart() }
         )
     }
 
