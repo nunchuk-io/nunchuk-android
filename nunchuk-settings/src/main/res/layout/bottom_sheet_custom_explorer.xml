@@ -16,4 +16,15 @@
         android:paddingVertical="@dimen/nc_padding_12"
         android:text="@string/nc_custom_blockchain_explorer" />
 
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/proxySetting"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/selectableItemBackground"
+        android:drawablePadding="@dimen/nc_padding_8"
+        android:textAppearance="@style/NCText.Body"
+        android:paddingHorizontal="@dimen/nc_padding_16"
+        android:paddingVertical="@dimen/nc_padding_12"
+        android:text="@string/nc_proxy_settings" />
+
 </LinearLayout> 

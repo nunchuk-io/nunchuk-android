@@ -18,7 +18,11 @@ class CustomExplorerBottomSheet : BaseBottomSheet<BottomSheetCustomExplorerBindi
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.customExplorer.setOnClickListener {
-            (activity as? OnCustomExplorerClickListener)?.onCustomExplorerClick()
+            (activity as? OnNetworkSettingMoreClickListener)?.onCustomExplorerClick()
+            dismissAllowingStateLoss()
+        }
+        binding.proxySetting.setOnClickListener {
+            (activity as? OnNetworkSettingMoreClickListener)?.onProxySettingClick()
             dismissAllowingStateLoss()
         }
     }
@@ -31,6 +35,7 @@ class CustomExplorerBottomSheet : BaseBottomSheet<BottomSheetCustomExplorerBindi
     }
 }
 
-interface OnCustomExplorerClickListener {
+interface OnNetworkSettingMoreClickListener {
     fun onCustomExplorerClick()
+    fun onProxySettingClick()
 }

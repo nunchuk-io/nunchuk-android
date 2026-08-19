@@ -158,7 +158,18 @@ internal class NetworkSettingViewModel @Inject constructor(
         ncSharePreferences.customMainnetServer = current.mainnetServer
         ncSharePreferences.customTestnetServer = current.testnetServer
         ncSharePreferences.customSignetServer = current.signetServer
-        updateAppSettings(current.appSetting)
+        viewModelScope.launch {
+            // Re-read the persisted settings so fields owned by other screens (the
+            // proxy settings) aren't clobbered by this screen's older snapshot.
+            val persisted = getAppSettingUseCase(Unit).getOrNull() ?: current.appSetting
+            updateAppSettings(
+                persisted.copy(
+                    chain = current.appSetting.chain,
+                    electrumServers = current.appSetting.electrumServers,
+                    liquidServers = current.appSetting.liquidServers,
+                )
+            )
+        }
     }
 
     private fun updateAppSettings(appSettings: AppSettings) {

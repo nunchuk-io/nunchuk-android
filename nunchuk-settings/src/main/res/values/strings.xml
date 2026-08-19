@@ -153,6 +153,15 @@
     <string name="nc_customize_blockchain_explorer">Customize blockchain explorer</string>
     <string name="nc_update_saved">Update saved</string>
     <string name="nc_invalid_url_format">Invalid URL format</string>
+    <string name="nc_proxy_settings">Proxy settings</string>
+    <string name="nc_use_socks5_proxy">Use SOCKS5 proxy</string>
+    <string name="nc_proxy_settings_desc">Route Electrum connections through a SOCKS5 proxy, such as Orbot running locally. This lets you reach a node\'s .onion address without putting the whole device on a VPN.</string>
+    <string name="nc_proxy_host">Host</string>
+    <string name="nc_proxy_port">Port</string>
+    <string name="nc_proxy_username">Username (optional)</string>
+    <string name="nc_proxy_password">Password (optional)</string>
+    <string name="nc_proxy_host_required">Please enter the proxy host</string>
+    <string name="nc_proxy_port_invalid">Please enter a port between 1 and 65535</string>
     <string name="nc_threshold_must_be_greater_than_0">Threshold must be greater than 0</string>
     <string name="nc_enter_confirmation_code">Enter confirmation code</string>
     <string name="nc_confirmation_code">Confirmation code</string>

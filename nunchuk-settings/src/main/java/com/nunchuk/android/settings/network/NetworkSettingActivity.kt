@@ -27,10 +27,13 @@ sealed class NetworkSettingScreens {
 
     @Serializable
     data object CustomExplorer : NetworkSettingScreens()
+
+    @Serializable
+    data object ProxySetting : NetworkSettingScreens()
 }
 
 @AndroidEntryPoint
-class NetworkSettingActivity : BaseComposeActivity(), OnCustomExplorerClickListener {
+class NetworkSettingActivity : BaseComposeActivity(), OnNetworkSettingMoreClickListener {
     private val showScreenEvent = MutableSharedFlow<NetworkSettingScreens>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -49,6 +52,10 @@ class NetworkSettingActivity : BaseComposeActivity(), OnCustomExplorerClickListe
 
                         is NetworkSettingScreens.CustomExplorer -> {
                             navController.navigate(NetworkSettingScreens.CustomExplorer)
+                        }
+
+                        is NetworkSettingScreens.ProxySetting -> {
+                            navController.navigate(NetworkSettingScreens.ProxySetting)
                         }
                     }
                 }
@@ -69,6 +76,11 @@ class NetworkSettingActivity : BaseComposeActivity(), OnCustomExplorerClickListe
                 composable<NetworkSettingScreens.CustomExplorer> {
                     CustomExplorerScreen()
                 }
+                composable<NetworkSettingScreens.ProxySetting> {
+                    ProxySettingScreen(
+                        onSignOutSuccess = { navigator.restartApp(this@NetworkSettingActivity) },
+                    )
+                }
             }
         }
     }
@@ -76,6 +88,12 @@ class NetworkSettingActivity : BaseComposeActivity(), OnCustomExplorerClickListe
     override fun onCustomExplorerClick() {
         lifecycleScope.launch {
             showScreenEvent.emit(NetworkSettingScreens.CustomExplorer)
+        }
+    }
+
+    override fun onProxySettingClick() {
+        lifecycleScope.launch {
+            showScreenEvent.emit(NetworkSettingScreens.ProxySetting)
         }
     }
 
