@@ -87,6 +87,7 @@ class CosigningPolicyViewModel @Inject constructor(
                                         VerificationType.SIGN_DUMMY_TX,
                                         payload.requiredSignatures
                                     ),
+                                    pendingSignature = payload.pendingSignatures,
                                 )
                             }
                         }
@@ -275,6 +276,7 @@ data class CosigningPolicyState(
     val signingDelayText: String = "",
     val dummyTransactionId: String = "",
     val requiredSignature: CalculateRequiredSignatures = CalculateRequiredSignatures(),
+    val pendingSignature: Int = 0,
 )
 
 sealed class CosigningPolicyEvent {

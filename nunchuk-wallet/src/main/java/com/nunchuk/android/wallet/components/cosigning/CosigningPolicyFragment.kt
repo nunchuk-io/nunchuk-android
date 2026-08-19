@@ -75,7 +75,6 @@ import com.nunchuk.android.core.util.formatDecimalWithoutZero
 import com.nunchuk.android.core.util.formatFiatDecimalWithoutZero
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
-import com.nunchuk.android.model.CalculateRequiredSignatures
 import com.nunchuk.android.model.KeyPolicy
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.SpendingPolicy
@@ -214,7 +213,7 @@ private fun CosigningPolicyScreen(
         spendingPolicy = state.keyPolicy.spendingPolicy,
         isUpdateFlow = state.isUpdateFlow,
         walletName = state.walletName,
-        requiredSignature = state.requiredSignature,
+        pendingSignature = state.pendingSignature,
         isEditable = dummyTransactionId.isEmpty(),
         onEditSingingDelayClicked = viewModel::onEditSigningDelayClicked,
         onEditSpendingLimitClicked = viewModel::onEditSpendingLimitClicked,
@@ -228,7 +227,7 @@ private fun CosigningPolicyContent(
     isAutoBroadcast: Boolean = true,
     keyPolicy: KeyPolicy = KeyPolicy(),
     spendingPolicy: SpendingPolicy? = null,
-    requiredSignature: CalculateRequiredSignatures = CalculateRequiredSignatures(),
+    pendingSignature: Int = 0,
     walletName: String = "",
     isUpdateFlow: Boolean = false,
     isEditable: Boolean = true,
@@ -442,12 +441,12 @@ private fun CosigningPolicyContent(
                             .fillMaxWidth(),
                         onClick = onSaveChangeClicked,
                     ) {
-                        if (!isEditable) {
+                        if (!isEditable && pendingSignature > 0) {
                             Text(
                                 text = pluralStringResource(
                                     id = R.plurals.nc_text_continue_signature_pending,
-                                    count = requiredSignature.requiredSignatures,
-                                    requiredSignature.requiredSignatures
+                                    count = pendingSignature,
+                                    pendingSignature
                                 )
                             )
                         } else {
