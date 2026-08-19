@@ -174,7 +174,7 @@ private fun ProxySettingContent(
                     enabled = uiState.enableProxy,
                     singleLine = true,
                     error = uiState.hostError?.let { stringResource(R.string.nc_proxy_host_required) },
-                    placeholder = { Text(text = DEFAULT_PROXY_HOST, style = NunchukTheme.typography.body) },
+                    placeholder = { Text(text = DEFAULT_PROXY_HOST) },
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Uri,
                         imeAction = ImeAction.Next,
@@ -188,7 +188,7 @@ private fun ProxySettingContent(
                     enabled = uiState.enableProxy,
                     singleLine = true,
                     error = uiState.portError?.let { stringResource(R.string.nc_proxy_port_invalid) },
-                    placeholder = { Text(text = DEFAULT_PROXY_PORT, style = NunchukTheme.typography.body) },
+                    placeholder = { Text(text = DEFAULT_PROXY_PORT) },
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Number,
                         imeAction = ImeAction.Next,
