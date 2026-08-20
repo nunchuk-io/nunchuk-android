@@ -154,7 +154,6 @@
     <string name="nc_update_saved">Update saved</string>
     <string name="nc_invalid_url_format">Invalid URL format</string>
     <string name="nc_proxy_settings">Proxy settings</string>
-    <string name="nc_proxy_server_summary">%1$s:%2$s</string>
     <string name="nc_use_socks5_proxy">Use SOCKS5 proxy</string>
     <string name="nc_proxy_settings_desc">Route Electrum connections through a SOCKS5 proxy, such as Orbot running locally. This lets you reach a node\'s .onion address without putting the whole device on a VPN.</string>
     <string name="nc_proxy_host">Host</string>

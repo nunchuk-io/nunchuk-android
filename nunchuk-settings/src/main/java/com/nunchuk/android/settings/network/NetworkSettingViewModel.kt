@@ -145,57 +145,6 @@ internal class NetworkSettingViewModel @Inject constructor(
         }
     }
 
-    fun onEnableProxyChanged(enable: Boolean) {
-        val current = state.value ?: return
-        if (current.appSetting.enableProxy == enable) return
-        updateState {
-            copy(
-                appSetting = appSetting.copy(
-                    enableProxy = enable,
-                    // Seed the Orbot defaults so the toggle alone is a usable setup.
-                    proxyHost = if (enable) appSetting.proxyHost.ifBlank { DEFAULT_PROXY_HOST } else appSetting.proxyHost,
-                    proxyPort = if (enable && appSetting.proxyPort <= 0) {
-                        DEFAULT_PROXY_PORT.toInt()
-                    } else {
-                        appSetting.proxyPort
-                    },
-                )
-            )
-        }
-    }
-
-    /**
-     * Pull the proxy fields back in after the proxy screen may have written them.
-     * Only those fields, so any unsaved chain/server edit on this screen survives.
-     */
-    fun refreshProxySetting() {
-        viewModelScope.launch {
-            val persisted = getAppSettingUseCase(Unit).getOrNull() ?: return@launch
-            val current = state.value ?: return@launch
-            val initial = initAppSettings ?: return@launch
-            // onResume also fires on plain foregrounding, so keep an unsaved toggle
-            // made here and only adopt what the proxy screen wrote.
-            if (!current.appSetting.hasSameProxyAs(initial)) return@launch
-            initAppSettings = initial.withProxyOf(persisted)
-            updateState { copy(appSetting = appSetting.withProxyOf(persisted)) }
-        }
-    }
-
-    private fun AppSettings.hasSameProxyAs(other: AppSettings) =
-        enableProxy == other.enableProxy
-                && proxyHost == other.proxyHost
-                && proxyPort == other.proxyPort
-                && proxyUsername == other.proxyUsername
-                && proxyPassword == other.proxyPassword
-
-    private fun AppSettings.withProxyOf(source: AppSettings) = copy(
-        enableProxy = source.enableProxy,
-        proxyHost = source.proxyHost,
-        proxyPort = source.proxyPort,
-        proxyUsername = source.proxyUsername,
-        proxyPassword = source.proxyPassword,
-    )
-
     fun hasPendingChanges(): Boolean {
         val current = state.value ?: return false
         return current.appSetting != initAppSettings
@@ -218,11 +167,6 @@ internal class NetworkSettingViewModel @Inject constructor(
                     chain = current.appSetting.chain,
                     electrumServers = current.appSetting.electrumServers,
                     liquidServers = current.appSetting.liquidServers,
-                    // This screen owns the enable toggle (and the host/port it seeds);
-                    // the credentials stay whatever the proxy screen last saved.
-                    enableProxy = current.appSetting.enableProxy,
-                    proxyHost = current.appSetting.proxyHost,
-                    proxyPort = current.appSetting.proxyPort,
                 )
             )
         }
