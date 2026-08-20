@@ -166,7 +166,7 @@ abstract class BaseWalletConfigActivity<Binding : ViewBinding> : BaseNfcActivity
     }
 
     protected open fun openExportColdcardViaFileFlow() {
-        showSaveShareOption()
+        showSaveShareOption(includeQrExport = false)
     }
 
     protected open fun openExportBbqrFlow() {

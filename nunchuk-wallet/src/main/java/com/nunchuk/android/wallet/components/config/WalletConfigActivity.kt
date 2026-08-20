@@ -617,8 +617,8 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
     }
 
     override fun openExportColdcardViaFileFlow() {
-        isColdCardExportFlow = false
         if (viewModel.isMiniscriptWallet()) {
+            isColdCardExportFlow = false
             navigator.openRegisterColdCardWalletScreen(
                 activityContext = this,
                 walletId = args.walletId,
