@@ -107,7 +107,7 @@ class ProxySettingViewModel @Inject constructor(
     }
 
     fun save() {
-        val settings = appSettings ?: return
+        if (appSettings == null) return
         val state = _uiState.value
         val host = state.host.trim()
         val port = state.port.toIntOrNull().orZero()
@@ -122,6 +122,7 @@ class ProxySettingViewModel @Inject constructor(
             }
         }
         viewModelScope.launch {
+            val settings = getAppSettingUseCase(Unit).getOrNull() ?: appSettings ?: return@launch
             updateAppSettingUseCase(
                 settings.copy(
                     enableProxy = state.enableProxy,

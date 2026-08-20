@@ -50,13 +50,13 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nunchuk.android.compose.NcHintMessage
-import com.nunchuk.android.compose.dialog.NcLoadingDialog
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcSwitch
 import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.dialog.NcConfirmationDialog
+import com.nunchuk.android.compose.dialog.NcLoadingDialog
 import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.model.StateEvent
 import com.nunchuk.android.settings.R
@@ -82,32 +82,32 @@ fun ProxySettingScreen(
         }
     }
 
-    ProxySettingContent(
-        uiState = uiState,
-        onEnableProxyChanged = viewModel::onEnableProxyChanged,
-        onHostChanged = viewModel::onHostChanged,
-        onPortChanged = viewModel::onPortChanged,
-        onUsernameChanged = viewModel::onUsernameChanged,
-        onPasswordChanged = viewModel::onPasswordChanged,
-        hasChanges = viewModel.hasChanges(),
-        onSaveClicked = viewModel::save,
-    )
-
-    // The proxy only reaches libnunchuk when the SDK is re-initialised, so saving
-    // follows the same restart flow as the rest of the network settings.
-    if (showRestartDialog) {
-        NcConfirmationDialog(
-            title = stringResource(R.string.nc_text_app_restart_required),
-            message = stringResource(R.string.nc_text_app_restart_des),
-            positiveButtonText = stringResource(R.string.nc_text_restart),
-            negativeButtonText = stringResource(R.string.nc_text_discard),
-            onPositiveClick = {
-                showRestartDialog = false
-                viewModel.signOut()
-            },
-            onDismiss = { showRestartDialog = false },
+    NunchukTheme {
+        ProxySettingContent(
+            uiState = uiState,
+            onEnableProxyChanged = viewModel::onEnableProxyChanged,
+            onHostChanged = viewModel::onHostChanged,
+            onPortChanged = viewModel::onPortChanged,
+            onUsernameChanged = viewModel::onUsernameChanged,
+            onPasswordChanged = viewModel::onPasswordChanged,
+            hasChanges = viewModel.hasChanges(),
+            onSaveClicked = viewModel::save,
         )
+        if (showRestartDialog) {
+            NcConfirmationDialog(
+                title = stringResource(R.string.nc_text_app_restart_required),
+                message = stringResource(R.string.nc_text_app_restart_des),
+                positiveButtonText = stringResource(R.string.nc_text_restart),
+                negativeButtonText = stringResource(R.string.nc_text_discard),
+                onPositiveClick = {
+                    showRestartDialog = false
+                    viewModel.signOut()
+                },
+                onDismiss = { showRestartDialog = false },
+            )
+        }
     }
+
 }
 
 @Composable
@@ -121,111 +121,109 @@ private fun ProxySettingContent(
     hasChanges: Boolean = false,
     onSaveClicked: () -> Unit = {},
 ) {
-    NunchukTheme {
-        Scaffold(
-            modifier = Modifier.systemBarsPadding(),
-            topBar = {
-                NcTopAppBar(
-                    title = stringResource(R.string.nc_proxy_settings),
-                    textStyle = NunchukTheme.typography.titleLarge,
-                )
-            },
-            bottomBar = {
-                NcPrimaryDarkButton(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    enabled = hasChanges,
-                    onClick = onSaveClicked,
-                ) {
-                    Text(text = stringResource(R.string.nc_text_save))
-                }
-            }
-        ) { innerPadding ->
-            Column(
+    Scaffold(
+        modifier = Modifier.systemBarsPadding(),
+        topBar = {
+            NcTopAppBar(
+                title = stringResource(R.string.nc_proxy_settings),
+                textStyle = NunchukTheme.typography.titleLarge,
+            )
+        },
+        bottomBar = {
+            NcPrimaryDarkButton(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-                    .imePadding()
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                enabled = hasChanges,
+                onClick = onSaveClicked,
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        modifier = Modifier.weight(1f),
-                        text = stringResource(R.string.nc_use_socks5_proxy),
-                        style = NunchukTheme.typography.body,
-                    )
-                    NcSwitch(
-                        checked = uiState.enableProxy,
-                        onCheckedChange = onEnableProxyChanged,
-                    )
-                }
-
-                NcHintMessage(messages = listOf(ClickAbleText(content = stringResource(R.string.nc_proxy_settings_desc))))
-
-                NcTextField(
-                    title = stringResource(R.string.nc_proxy_host),
-                    value = uiState.host,
-                    enabled = uiState.enableProxy,
-                    singleLine = true,
-                    error = uiState.hostError?.let { stringResource(R.string.nc_proxy_host_required) },
-                    placeholder = { Text(text = DEFAULT_PROXY_HOST) },
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Uri,
-                        imeAction = ImeAction.Next,
-                    ),
-                    onValueChange = onHostChanged,
+                Text(text = stringResource(R.string.nc_text_save))
+            }
+        }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .imePadding()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    modifier = Modifier.weight(1f),
+                    text = stringResource(R.string.nc_use_socks5_proxy),
+                    style = NunchukTheme.typography.body,
                 )
-
-                NcTextField(
-                    title = stringResource(R.string.nc_proxy_port),
-                    value = uiState.port,
-                    enabled = uiState.enableProxy,
-                    singleLine = true,
-                    error = uiState.portError?.let { stringResource(R.string.nc_proxy_port_invalid) },
-                    placeholder = { Text(text = DEFAULT_PROXY_PORT) },
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Number,
-                        imeAction = ImeAction.Next,
-                    ),
-                    onValueChange = onPortChanged,
-                )
-
-                NcTextField(
-                    title = stringResource(R.string.nc_proxy_username),
-                    value = uiState.username,
-                    enabled = uiState.enableProxy,
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-                    onValueChange = onUsernameChanged,
-                )
-
-                NcTextField(
-                    title = stringResource(R.string.nc_proxy_password),
-                    value = uiState.password,
-                    enabled = uiState.enableProxy,
-                    singleLine = true,
-                    visualTransformation = if (uiState.password.isEmpty()) {
-                        VisualTransformation.None
-                    } else {
-                        PasswordVisualTransformation()
-                    },
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Password,
-                        imeAction = ImeAction.Done,
-                    ),
-                    onValueChange = onPasswordChanged,
+                NcSwitch(
+                    checked = uiState.enableProxy,
+                    onCheckedChange = onEnableProxyChanged,
                 )
             }
 
-            if (uiState.isLoading) {
-                NcLoadingDialog()
-            }
+            NcHintMessage(messages = listOf(ClickAbleText(content = stringResource(R.string.nc_proxy_settings_desc))))
+
+            NcTextField(
+                title = stringResource(R.string.nc_proxy_host),
+                value = uiState.host,
+                enabled = uiState.enableProxy,
+                singleLine = true,
+                error = uiState.hostError?.let { stringResource(R.string.nc_proxy_host_required) },
+                placeholder = { Text(text = DEFAULT_PROXY_HOST) },
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Uri,
+                    imeAction = ImeAction.Next,
+                ),
+                onValueChange = onHostChanged,
+            )
+
+            NcTextField(
+                title = stringResource(R.string.nc_proxy_port),
+                value = uiState.port,
+                enabled = uiState.enableProxy,
+                singleLine = true,
+                error = uiState.portError?.let { stringResource(R.string.nc_proxy_port_invalid) },
+                placeholder = { Text(text = DEFAULT_PROXY_PORT) },
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Number,
+                    imeAction = ImeAction.Next,
+                ),
+                onValueChange = onPortChanged,
+            )
+
+            NcTextField(
+                title = stringResource(R.string.nc_proxy_username),
+                value = uiState.username,
+                enabled = uiState.enableProxy,
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                onValueChange = onUsernameChanged,
+            )
+
+            NcTextField(
+                title = stringResource(R.string.nc_proxy_password),
+                value = uiState.password,
+                enabled = uiState.enableProxy,
+                singleLine = true,
+                visualTransformation = if (uiState.password.isEmpty()) {
+                    VisualTransformation.None
+                } else {
+                    PasswordVisualTransformation()
+                },
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Password,
+                    imeAction = ImeAction.Done,
+                ),
+                onValueChange = onPasswordChanged,
+            )
+        }
+
+        if (uiState.isLoading) {
+            NcLoadingDialog()
         }
     }
 }
@@ -233,11 +231,13 @@ private fun ProxySettingContent(
 @PreviewLightDark
 @Composable
 private fun ProxySettingContentPreview() {
-    ProxySettingContent(
-        uiState = ProxySettingUiState(
-            enableProxy = true,
-            host = "127.0.0.1",
-            port = "9050",
-        ),
-    )
+    NunchukTheme {
+        ProxySettingContent(
+            uiState = ProxySettingUiState(
+                enableProxy = true,
+                host = "127.0.0.1",
+                port = "9050",
+            ),
+        )
+    }
 }
