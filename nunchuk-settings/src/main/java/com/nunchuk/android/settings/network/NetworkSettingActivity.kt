@@ -3,6 +3,8 @@ package com.nunchuk.android.settings.network
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,6 +21,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
+import kotlin.system.exitProcess
 
 @Serializable
 sealed class NetworkSettingScreens {
@@ -78,10 +81,28 @@ class NetworkSettingActivity : BaseComposeActivity(), OnNetworkSettingMoreClickL
                 }
                 composable<NetworkSettingScreens.ProxySetting> {
                     ProxySettingScreen(
-                        onSignOutSuccess = { navigator.restartApp(this@NetworkSettingActivity) },
+                        onSignOutSuccess = {
+                            exitApp()
+                        },
                     )
                 }
             }
+        }
+    }
+
+    /**
+     * The proxy settings only reach the native SDK through
+     * [com.nunchuk.android.share.InitNunchukUseCase] in Application.onCreate, so the process has to
+     * go away for a change to take effect. Removing the task first stops the system from restoring
+     * this activity, and exitProcess(0) is a normal exit - no crash dialog, no Crashlytics report -
+     * so the next launcher tap is a clean cold start.
+     */
+    private fun exitApp() {
+        finishAndRemoveTask()
+        runCatching {
+            Handler(Looper.getMainLooper()).postDelayed({
+                exitProcess(0)
+            }, EXIT_DELAY_MS)
         }
     }
 
@@ -98,6 +119,8 @@ class NetworkSettingActivity : BaseComposeActivity(), OnNetworkSettingMoreClickL
     }
 
     companion object {
+        private const val EXIT_DELAY_MS = 300L
+
         fun start(activityContext: Context) {
             activityContext.startActivity(
                 Intent(
