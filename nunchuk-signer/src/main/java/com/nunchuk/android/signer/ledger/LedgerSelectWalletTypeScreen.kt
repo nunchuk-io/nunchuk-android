@@ -16,7 +16,8 @@ internal data class LedgerSelectWalletTypeRoute(val isUsb: Boolean = false)
 /**
  * Reuses the shared "Select wallet & address type" screen for Ledger. Unlike Trezor there's no
  * "Open Suite" prompt — Continue proceeds straight to connecting the device. [isUsb] is carried
- * through so the flow knows whether to go to the instruction screen (BLE) or scan directly (USB).
+ * through because the transport decides how the scan starts: list attached USB devices, or ask for
+ * the Bluetooth permission first.
  */
 fun NavGraphBuilder.ledgerSelectWalletType(
     onBack: () -> Unit = {},

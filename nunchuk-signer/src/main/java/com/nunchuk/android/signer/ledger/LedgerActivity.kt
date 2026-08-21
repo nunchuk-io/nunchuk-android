@@ -257,23 +257,8 @@ class LedgerActivity : BaseComposeActivity() {
                 ) {
                     ledgerIntro(
                         onBack = { finish() },
-                        // Standalone picks the wallet/address type first, then continues to the
-                        // instructions; add-key-to-wallet has it fixed and skips ahead. Either way
-                        // the picked transport rides along so the scan starts the right way.
-                        onAddViaBluetooth = {
-                            if (isMembershipFlow) {
-                                navController.navigateToLedgerInstruction(isUsb = false)
-                            } else {
-                                navController.navigateToLedgerSelectWalletType(isUsb = false)
-                            }
-                        },
-                        onAddViaUsb = {
-                            if (isMembershipFlow) {
-                                navController.navigateToLedgerInstruction(isUsb = true)
-                            } else {
-                                navController.navigateToLedgerSelectWalletType(isUsb = true)
-                            }
-                        },
+                        onAddViaBluetooth = { navController.navigateToLedgerInstruction(isUsb = false) },
+                        onAddViaUsb = { navController.navigateToLedgerInstruction(isUsb = true) },
                         onAddViaDesktop = {
                             setResult(
                                 RESULT_OK,
@@ -296,18 +281,31 @@ class LedgerActivity : BaseComposeActivity() {
                                 addressType = addressType,
                                 index = accountIndex,
                             )
-                            navController.navigateToLedgerInstruction(isUsb = isUsb)
-                        },
-                    )
-                    ledgerInstruction(
-                        onBack = { navController.popBackStack() },
-                        onContinue = { isUsb ->
                             navController.navigateToLedgerDeviceScan()
                             if (isUsb) {
                                 // USB needs no Bluetooth permission — just list attached devices.
                                 controller.refreshUsb()
                             } else {
                                 ensurePermissionThenScan()
+                            }
+                        },
+                    )
+                    ledgerInstruction(
+                        onBack = { navController.popBackStack() },
+                        // Add-key-to-wallet has the config fixed (multisig / native segwit /
+                        // account index from the caller), so it skips the select-wallet-type step
+                        // and connects right away.
+                        onContinue = { isUsb ->
+                            if (isMembershipFlow) {
+                                navController.navigateToLedgerDeviceScan()
+                                if (isUsb) {
+                                    // USB needs no Bluetooth permission — just list attached devices.
+                                    controller.refreshUsb()
+                                } else {
+                                    ensurePermissionThenScan()
+                                }
+                            } else {
+                                navController.navigateToLedgerSelectWalletType(isUsb = isUsb)
                             }
                         }
                     )
