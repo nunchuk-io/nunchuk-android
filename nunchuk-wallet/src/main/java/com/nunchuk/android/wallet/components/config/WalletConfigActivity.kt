@@ -760,7 +760,7 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
                         R.string.nc_unarchive_wallet
                     )
                 )
-            } else if (!viewModel.isAssistedWallet() || viewModel.hasZeroBalance()) {
+            } else if (viewModel.canArchiveWallet()) {
                 options.add(
                     SheetOption(
                         SheetOptionType.TYPE_ARCHIVE,
