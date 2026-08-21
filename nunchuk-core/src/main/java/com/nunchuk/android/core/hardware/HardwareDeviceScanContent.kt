@@ -1,5 +1,6 @@
-package com.nunchuk.android.core.ledger
+package com.nunchuk.android.core.hardware
 
+import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -35,32 +36,40 @@ import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.R
 
 /**
- * Shared Ledger device picker body: heading + Bluetooth / USB device sections. Layout and
- * scrolling come from [modifier], so the same body backs both the full-screen picker (the
- * standalone add-key / health-check flow) and [LedgerSignTransactionSheet].
+ * Shared hardware-signer device picker body: heading + Bluetooth / USB device sections.
+ * Layout and scrolling come from [modifier], so the same body backs the full-screen
+ * picker (the standalone add-key / health-check flows) and the sign-transaction sheets.
+ *
+ * The vendor-specific parts are parameters — [titleRes] / [subtitleRes] /
+ * [usbEmptyRes] / [deviceIconRes] — so Ledger and BitBox share one implementation
+ * rather than one copy each. Defaults are Ledger's, which is where this body started.
  */
 @Composable
-fun LedgerDeviceScanBody(
+fun HardwareDeviceScanBody(
     modifier: Modifier = Modifier,
     isScanning: Boolean = false,
-    devices: List<LedgerDevice> = emptyList(),
+    devices: List<HardwareDevice> = emptyList(),
     selectedAddress: String? = null,
     statusText: String = "",
     onRescan: () -> Unit = {},
     onRefreshUsb: () -> Unit = {},
-    onSelectDevice: (LedgerDevice) -> Unit = {},
+    onSelectDevice: (HardwareDevice) -> Unit = {},
+    @StringRes titleRes: Int = R.string.nc_ledger_connect_a_device,
+    @StringRes subtitleRes: Int = R.string.nc_ledger_connect_a_device_desc,
+    @StringRes usbEmptyRes: Int = R.string.nc_ledger_usb_empty,
+    @DrawableRes deviceIconRes: Int = R.drawable.ic_ledger_hardware,
 ) {
-    val bluetoothDevices = devices.filter { it.transport == LedgerTransportKind.BLE }
-    val usbDevices = devices.filter { it.transport == LedgerTransportKind.USB }
+    val bluetoothDevices = devices.filter { it.transport == HardwareTransportKind.BLE }
+    val usbDevices = devices.filter { it.transport == HardwareTransportKind.USB }
     Column(modifier = modifier) {
         Text(
             modifier = Modifier.padding(top = 8.dp),
-            text = stringResource(id = R.string.nc_ledger_connect_a_device),
+            text = stringResource(id = titleRes),
             style = NunchukTheme.typography.heading,
         )
         Text(
             modifier = Modifier.padding(top = 4.dp),
-            text = stringResource(id = R.string.nc_ledger_connect_a_device_desc),
+            text = stringResource(id = subtitleRes),
             style = NunchukTheme.typography.body,
         )
 
@@ -101,14 +110,15 @@ fun LedgerDeviceScanBody(
         }
 
         bluetoothDevices.forEach { device ->
-            LedgerDeviceRow(
+            HardwareDeviceRow(
                 device = device,
+                iconRes = deviceIconRes,
                 selected = device.id == selectedAddress,
                 onClick = { onSelectDevice(device) },
             )
         }
 
-        // USB section (Android supports USB-HID; list attached Ledgers).
+        // USB section (Android supports USB; list attached devices).
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -144,15 +154,16 @@ fun LedgerDeviceScanBody(
                 )
                 Text(
                     modifier = Modifier.padding(start = 12.dp),
-                    text = stringResource(id = R.string.nc_ledger_usb_empty),
+                    text = stringResource(id = usbEmptyRes),
                     style = NunchukTheme.typography.body
                         .copy(color = MaterialTheme.colorScheme.textSecondary),
                 )
             }
         } else {
             usbDevices.forEach { device ->
-                LedgerDeviceRow(
+                HardwareDeviceRow(
                     device = device,
+                    iconRes = deviceIconRes,
                     selected = device.id == selectedAddress,
                     onClick = { onSelectDevice(device) },
                 )
@@ -160,7 +171,7 @@ fun LedgerDeviceScanBody(
         }
 
         // Status / hint for whichever transport is in play ("Turn on Bluetooth…", "Connecting
-        // to…", "Confirm on your Ledger…"), so it sits below both sections rather than reading
+        // to…", "Confirm on your device…"), so it sits below both sections rather than reading
         // as a Bluetooth-only message.
         if (statusText.isNotEmpty()) {
             Text(
@@ -180,7 +191,7 @@ fun LedgerDeviceScanBody(
  * the transport reports progress).
  */
 @Composable
-fun LedgerConnectButton(
+fun HardwareConnectButton(
     modifier: Modifier = Modifier,
     enabled: Boolean,
     @StringRes connectButtonText: Int,
@@ -206,8 +217,9 @@ fun LedgerConnectButton(
 }
 
 @Composable
-private fun LedgerDeviceRow(
-    device: LedgerDevice,
+private fun HardwareDeviceRow(
+    device: HardwareDevice,
+    @DrawableRes iconRes: Int,
     selected: Boolean,
     onClick: () -> Unit,
 ) {
@@ -220,7 +232,7 @@ private fun LedgerDeviceRow(
     ) {
         NcIcon(
             modifier = Modifier.size(24.dp),
-            painter = painterResource(id = R.drawable.ic_ledger_hardware),
+            painter = painterResource(id = iconRes),
             contentDescription = null,
         )
         Column(

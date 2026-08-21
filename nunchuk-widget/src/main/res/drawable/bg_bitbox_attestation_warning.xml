@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    App-bar illustration for the BitBox attestation warning (design screen 05C). The design
+    asset attestation-warning.svg is a 160x160 spot illustration, so it is centred on the
+    shared 375x300 denim panel that NcImageAppBar expects — same structure as
+    bg_bitbox_illustration.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="375dp"
+    android:height="300dp"
+    android:viewportWidth="375"
+    android:viewportHeight="300">
+    <path
+        android:pathData="M0,0h375v300h-375z"
+        android:fillColor="@color/nc_fill_denim" />
+    <group
+        android:translateX="107.5"
+        android:translateY="70">
+        <path
+            android:pathData="M8,80A72,72 0 1 0 152,80A72,72 0 1 0 8,80Z"
+            android:fillColor="#FDEBD2" />
+        <path
+            android:pathData="M80 23 127.5 41v34c0 33-19 58-47.5 70C51.5 133 32.5 108 32.5 75V41L80 23Z"
+            android:fillColor="#FFF"
+            android:strokeColor="#A72D10"
+            android:strokeWidth="4"
+            android:strokeLineJoin="round" />
+        <path
+            android:pathData="M80 51v42m0 17v1"
+            android:fillColor="#00000000"
+            android:strokeColor="#A72D10"
+            android:strokeWidth="7"
+            android:strokeLineCap="round" />
+    </group>
+</vector>

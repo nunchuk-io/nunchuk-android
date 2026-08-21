@@ -128,6 +128,27 @@
                 android:resource="@xml/ledger_usb_device_filter" />
         </activity>
 
+        <!--
+            Same idea for the BitBox02 — see BitBoxUsbAttachActivity. Separate filter resource
+            because BitBox pins a product id (0x03eb is Atmel's shared vendor id) while the
+            Ledger filter matches on vendor alone.
+        -->
+        <activity
+            android:name=".app.bitbox.BitBoxUsbAttachActivity"
+            android:excludeFromRecents="true"
+            android:exported="true"
+            android:noHistory="true"
+            android:taskAffinity=""
+            android:theme="@android:style/Theme.NoDisplay">
+            <intent-filter>
+                <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
+                android:resource="@xml/bitbox_usb_device_filter" />
+        </activity>
+
         <activity android:name="com.nunchuk.android.app.wallet.QuickWalletActivity"
             android:label="@string/nc_wallet_add_wallet_title"
             android:screenOrientation="portrait"

@@ -66,6 +66,12 @@
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Light" />
         <activity
+            android:name=".bitbox.BitBoxActivity"
+            android:label="BitBox"
+            android:launchMode="singleTop"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light" />
+        <activity
             android:name=".trezor.TrezorCallbackActivity"
             android:excludeFromRecents="true"
             android:exported="true"

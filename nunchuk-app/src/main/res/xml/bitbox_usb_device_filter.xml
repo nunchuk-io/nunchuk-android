@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Devices that make Nunchuk an option when a USB device is attached. The BitBox02 uses vendor
+    id 0x03eb with product id 0x2403; this file takes decimal, so 1003 / 9219. Unlike the Ledger
+    filter this pins the product id too, because 0x03eb is Atmel's shared vendor id and would
+    otherwise match unrelated hardware the app cannot drive.
+
+    Keep in sync with BitBoxController.BITBOX_USB_VENDOR_ID / BITBOX_USB_PRODUCT_ID, which decide
+    what reaches the device picker: a device listed in only one of the two shows up in the picker
+    but isn't offered on plug-in, or the reverse.
+-->
+<resources>
+    <usb-device vendor-id="1003" product-id="9219" />
+</resources>

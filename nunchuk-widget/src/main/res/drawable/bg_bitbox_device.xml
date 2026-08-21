@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    App-bar illustration for the "Continue in BitBoxApp" screen (design screen 05B),
+    centring the 120x160 bitbox-device.svg asset on the shared denim panel.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="375dp"
+    android:height="300dp"
+    android:viewportWidth="375"
+    android:viewportHeight="300">
+    <path
+        android:pathData="M0,0h375v300h-375z"
+        android:fillColor="@color/nc_fill_denim" />
+    <group
+        android:translateX="127.5"
+        android:translateY="70">
+        <path
+            android:pathData="M44,24H76A7,7 0 0 1 83,31V129A7,7 0 0 1 76,136H44A7,7 0 0 1 37,129V31A7,7 0 0 1 44,24Z"
+            android:fillColor="#D0E2FF"
+            android:strokeColor="#031F2B"
+            android:strokeWidth="3" />
+        <path
+            android:pathData="M50 24V10h20v14"
+            android:fillColor="#031F2B" />
+        <path
+            android:pathData="m60 68 14 6v27l-14 6-14-6V74l14-6Zm-2 8-7 3v17l7 3V76Zm4 0v23l7-3V79l-7-3Z"
+            android:fillColor="#48466D" />
+    </group>
+</vector>

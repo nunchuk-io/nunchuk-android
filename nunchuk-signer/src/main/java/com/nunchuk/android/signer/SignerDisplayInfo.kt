@@ -137,7 +137,6 @@ fun SupportedSigner.toDisplayInfo(): SignerDisplayInfo? {
             SignerTag.BITBOX -> SignerDisplayInfo(
                 iconRes = R.drawable.ic_bitbox_hardware,
                 titleRes = R.string.nc_bitbox,
-                descriptionRes = R.string.nc_desktop_only,
                 keyType = keyType,
                 category = SignerDisplayCategory.CARD,
             )

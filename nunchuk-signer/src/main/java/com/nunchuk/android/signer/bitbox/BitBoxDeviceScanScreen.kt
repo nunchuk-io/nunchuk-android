@@ -1,4 +1,4 @@
-package com.nunchuk.android.signer.ledger
+package com.nunchuk.android.signer.bitbox
 
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,35 +17,42 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.core.bitbox.BitBoxDevice
 import com.nunchuk.android.core.hardware.HardwareConnectButton
-import com.nunchuk.android.core.ledger.LedgerDevice
 import com.nunchuk.android.core.hardware.HardwareDeviceScanBody
-import com.nunchuk.android.core.ledger.LedgerTransportKind
+import com.nunchuk.android.core.hardware.HardwareTransportKind
 import com.nunchuk.android.signer.R
 import kotlinx.serialization.Serializable
 
 @Serializable
-internal data object LedgerDeviceScanRoute
+internal data object BitBoxDeviceScanRoute
 
-fun NavGraphBuilder.ledgerDeviceScan(
+/**
+ * Design screen 04 — the device picker, sharing [HardwareDeviceScanBody] with Ledger as the
+ * design note asks ("reuse LedgerDeviceScanBody and its Bluetooth/USB refresh behavior"). Only
+ * the copy and the row icon differ.
+ */
+fun NavGraphBuilder.bitBoxDeviceScan(
     onBack: () -> Unit = {},
     isScanning: () -> Boolean = { false },
-    devices: () -> List<LedgerDevice> = { emptyList() },
+    devices: () -> List<BitBoxDevice> = { emptyList() },
     selectedAddress: () -> String? = { null },
     statusText: () -> String = { "" },
+    isProcessing: () -> Boolean = { false },
     onRescan: () -> Unit = {},
     onRefreshUsb: () -> Unit = {},
-    onSelectDevice: (LedgerDevice) -> Unit = {},
+    onSelectDevice: (BitBoxDevice) -> Unit = {},
     onConnect: () -> Unit = {},
-    @StringRes connectButtonText: Int = R.string.nc_ledger_connect,
+    @StringRes connectButtonText: Int = com.nunchuk.android.core.R.string.nc_ledger_connect,
 ) {
-    composable<LedgerDeviceScanRoute> {
-        LedgerDeviceScanScreen(
+    composable<BitBoxDeviceScanRoute> {
+        BitBoxDeviceScanScreen(
             onBack = onBack,
             isScanning = isScanning(),
             devices = devices(),
             selectedAddress = selectedAddress(),
             statusText = statusText(),
+            isProcessing = isProcessing(),
             onRescan = onRescan,
             onRefreshUsb = onRefreshUsb,
             onSelectDevice = onSelectDevice,
@@ -55,35 +62,26 @@ fun NavGraphBuilder.ledgerDeviceScan(
     }
 }
 
-fun NavHostController.navigateToLedgerDeviceScan() {
-    navigate(LedgerDeviceScanRoute)
+fun NavHostController.navigateToBitBoxDeviceScan() {
+    navigate(BitBoxDeviceScanRoute)
 }
 
-/**
- * Full-screen device picker (used by the standalone add-key / health-check flow). The
- * sign-transaction flow shows the same body in a bottom sheet — see
- * [com.nunchuk.android.core.ledger.LedgerSignTransactionSheet].
- */
 @Composable
-private fun LedgerDeviceScanScreen(
+private fun BitBoxDeviceScanScreen(
     onBack: () -> Unit = {},
     isScanning: Boolean = false,
-    devices: List<LedgerDevice> = emptyList(),
+    devices: List<BitBoxDevice> = emptyList(),
     selectedAddress: String? = null,
     statusText: String = "",
+    isProcessing: Boolean = false,
     onRescan: () -> Unit = {},
     onRefreshUsb: () -> Unit = {},
-    onSelectDevice: (LedgerDevice) -> Unit = {},
+    onSelectDevice: (BitBoxDevice) -> Unit = {},
     onConnect: () -> Unit = {},
-    @StringRes connectButtonText: Int = R.string.nc_ledger_connect,
+    @StringRes connectButtonText: Int = com.nunchuk.android.core.R.string.nc_ledger_connect,
 ) {
     Scaffold(
-        topBar = {
-            NcTopAppBar(
-                title = "",
-                onBackPress = onBack,
-            )
-        },
+        topBar = { NcTopAppBar(title = "", onBackPress = onBack) },
         bottomBar = {
             HardwareConnectButton(
                 modifier = Modifier
@@ -92,6 +90,7 @@ private fun LedgerDeviceScanScreen(
                     .fillMaxWidth(),
                 enabled = selectedAddress != null,
                 connectButtonText = connectButtonText,
+                isBusy = isProcessing,
                 onConnect = onConnect,
             )
         }
@@ -109,16 +108,22 @@ private fun LedgerDeviceScanScreen(
             onRescan = onRescan,
             onRefreshUsb = onRefreshUsb,
             onSelectDevice = onSelectDevice,
+            titleRes = com.nunchuk.android.core.R.string.nc_bitbox_connect_a_device,
+            subtitleRes = com.nunchuk.android.core.R.string.nc_bitbox_connect_a_device_desc,
+            usbEmptyRes = com.nunchuk.android.core.R.string.nc_bitbox_usb_empty,
+            deviceIconRes = R.drawable.ic_bitbox_hardware,
         )
     }
 }
 
 @PreviewLightDark
 @Composable
-private fun LedgerDeviceScanScreenPreview() {
+private fun BitBoxDeviceScanScreenPreview() {
     NunchukTheme {
-        LedgerDeviceScanScreen(
-            devices = listOf(LedgerDevice("DE:F1:60:10:BA:AB", "My Ledger Stax", LedgerTransportKind.BLE)),
+        BitBoxDeviceScanScreen(
+            devices = listOf(
+                BitBoxDevice("DE:F1:60:10:BA:AB", "BitBox02 Nova", HardwareTransportKind.BLE)
+            ),
             selectedAddress = "DE:F1:60:10:BA:AB",
         )
     }

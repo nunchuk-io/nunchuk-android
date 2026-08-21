@@ -37,16 +37,20 @@ import com.nunchuk.android.type.LedgerStepType
 import com.nunchuk.android.type.LedgerTransport
 import com.nunchuk.android.type.LedgerUserInteraction
 import com.nunchuk.android.type.WalletType
+import com.nunchuk.android.core.hardware.HardwareDevice
+import com.nunchuk.android.core.hardware.HardwareTransportKind
 import timber.log.Timber
 import java.util.ArrayDeque
 import java.util.UUID
 import java.util.regex.Pattern
 import kotlin.concurrent.thread
 
-enum class LedgerTransportKind {
-    BLE,
-    USB,
-}
+/**
+ * Ledger's view of the shared device model. Aliases rather than its own types so the Ledger
+ * and BitBox flows can share one device picker ([com.nunchuk.android.core.hardware.HardwareDeviceScanBody]).
+ */
+typealias LedgerTransportKind = HardwareTransportKind
+typealias LedgerDevice = HardwareDevice
 
 enum class LedgerRequest {
     MASTER_FINGERPRINT,
@@ -56,12 +60,6 @@ enum class LedgerRequest {
     SIGN_PSBT,
     GET_WALLET_ADDRESS,
 }
-
-data class LedgerDevice(
-    val id: String,
-    val name: String,
-    val transport: LedgerTransportKind,
-)
 
 /**
  * Drives the Ledger transports (BLE + USB-HID) and the native step loop for the

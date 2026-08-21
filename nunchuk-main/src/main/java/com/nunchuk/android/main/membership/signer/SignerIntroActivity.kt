@@ -64,6 +64,7 @@ import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.signer.KeyType
 import com.nunchuk.android.signer.SignerIntroEvent
 import com.nunchuk.android.signer.SignerIntroViewModel
+import com.nunchuk.android.signer.bitbox.BitBoxActivity
 import com.nunchuk.android.signer.ledger.LedgerActivity
 import com.nunchuk.android.signer.mk4.Mk4Activity
 import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
@@ -116,11 +117,11 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
      * holds. Hand the fingerprint back to whoever started this flow — the key list marks the key
      * verified, the same way it owns every other step of that card.
      */
-    private val verifyLedgerBackupLauncher = registerForActivityResult(
+    private val verifyHardwareBackupLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        // Backing out of the Ledger screen leaves the user here to pick a key type, the same as
-        // backing out of the Coldcard or air-gap screens does.
+        // Backing out of the Ledger/BitBox screen leaves the user here to pick a key type, the
+        // same as backing out of the Coldcard or air-gap screens does.
         if (result.resultCode != RESULT_OK) return@registerForActivityResult
         setResult(RESULT_OK, result.data)
         finish()
@@ -237,7 +238,7 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
                                     KeyType.PLATFORM_KEY -> returnPlatformKeyResult()
                                     KeyType.GENERIC_AIRGAP -> openAddAirSignerIntroScreen()
                                     KeyType.LEDGER -> openLedgerScreen()
-                                    KeyType.BITBOX -> handleHardwareSignerSelection(SignerTag.BITBOX)
+                                    KeyType.BITBOX -> openBitBoxScreen()
                                     KeyType.TREZOR -> openTrezorScreen()
                                 }
                             },
@@ -505,7 +506,7 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
         // rather than accept whatever device is connected.
         if (onChainAddSignerParam?.isVerifyBackupSeedPhrase() == true && verifyingKeyXfp.isNotEmpty()) {
             // Re-read the restored device instead of adding a second copy of the key.
-            verifyLedgerBackupLauncher.launch(
+            verifyHardwareBackupLauncher.launch(
                 LedgerActivity.buildIntent(
                     activityContext = this,
                     isMembershipFlow = true,
@@ -520,6 +521,35 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
             return
         }
         startActivity(LedgerActivity.buildIntent(this))
+        finish()
+    }
+
+    /**
+     * BitBox mirror of [openLedgerScreen] — BitBox pairs in-app over BLE/USB, so it goes to
+     * [BitBoxActivity] rather than the desktop-app hand-off.
+     */
+    private fun openBitBoxScreen() {
+        val onChainAddSignerParam = onChainAddSignerParam
+        val verifyingKeyXfp = onChainAddSignerParam?.currentSigner?.fingerPrint.orEmpty()
+        // Without a key to check the device against there is nothing to verify, so fall through
+        // rather than accept whatever device is connected.
+        if (onChainAddSignerParam?.isVerifyBackupSeedPhrase() == true && verifyingKeyXfp.isNotEmpty()) {
+            // Re-read the restored device instead of adding a second copy of the key.
+            verifyHardwareBackupLauncher.launch(
+                BitBoxActivity.buildIntent(
+                    activityContext = this,
+                    isMembershipFlow = true,
+                    expectedXfp = verifyingKeyXfp,
+                    verifyXfpOnly = true,
+                )
+            )
+            return
+        }
+        if (onChainAddSignerParam != null) {
+            handleHardwareSignerSelection(SignerTag.BITBOX)
+            return
+        }
+        startActivity(BitBoxActivity.buildIntent(this))
         finish()
     }
 

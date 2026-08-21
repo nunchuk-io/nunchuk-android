@@ -176,6 +176,7 @@
     <string name="nc_select_the_type_of_wallet_you_want_to_use_portal_in">Select the type of wallet and address you want to use Portal in:</string>
     <string name="nc_select_wallet_trezor_desc">Select the type of wallet and address you want to use Trezor in:</string>
     <string name="nc_select_wallet_ledger_desc">Select the type of wallet and address you want to use Ledger in:</string>
+    <string name="nc_select_wallet_bitbox_desc">Select the type of wallet and address you want to use BitBox in:</string>
     <string name="nc_single_sig">Single-sig</string>
     <string name="nc_address_type">Address type</string>
     <string name="nc_default_native_segwit">Default: Native Segwit</string>
@@ -240,6 +241,62 @@
     <string name="nc_ledger_step_connect_desc">Unlock your Ledger, then turn on Bluetooth or connect it with a USB cable.</string>
     <string name="nc_ledger_step_return_title">Return to Nunchuk and continue</string>
     <string name="nc_ledger_scanning">Looking for Ledger devices…</string>
+
+    <!-- BitBox -->
+    <string name="nc_add_bitbox">Add BitBox</string>
+    <string name="nc_add_bitbox_via_bluetooth">Add BitBox via Bluetooth</string>
+    <string name="nc_add_bitbox_via_bluetooth_desc">BitBox02 Nova</string>
+    <string name="nc_add_bitbox_via_usb">Add BitBox via USB</string>
+    <string name="nc_add_bitbox_via_usb_desc">BitBox02 and BitBox02 Nova</string>
+    <string name="nc_add_bitbox_via_desktop">Add BitBox via desktop app</string>
+    <string name="nc_add_your_bitbox">Add your BitBox</string>
+    <string name="nc_bitbox_before_continuing">Before continuing:</string>
+    <string name="nc_bitbox_step_setup_title">Set up your BitBox</string>
+    <string name="nc_bitbox_step_setup_desc">If it is new, finish setup using BitBoxApp.</string>
+    <string name="nc_bitbox_step_connect_bluetooth_title">Connect and enable Bluetooth</string>
+    <string name="nc_bitbox_step_connect_bluetooth_desc">Connect your BitBox to your phone or a power source, then enable Bluetooth.</string>
+    <string name="nc_bitbox_step_connect_usb_title">Connect via USB</string>
+    <string name="nc_bitbox_step_connect_usb_desc">Plug your BitBox into your phone using a USB cable.</string>
+    <string name="nc_bitbox_step_return_title">Return to Nunchuk</string>
+    <string name="nc_bitbox_step_return_desc">Continue to select the wallet and address type.</string>
+
+    <!-- Confirm pairing (screen 05) -->
+    <string name="nc_bitbox_confirm_pairing">Confirm pairing</string>
+    <string name="nc_bitbox_confirm_pairing_desc">Compare this code with the code shown on your BitBox.</string>
+    <string name="nc_bitbox_confirm_pairing_hint">Confirm the code on your BitBox.</string>
+    <string name="nc_bitbox_codes_match">Codes match</string>
+    <string name="nc_bitbox_codes_do_not_match">Codes don\'t match</string>
+
+    <!-- BitBoxApp required (screen 05B): uninitialized, upgrade-only, or bootloader -->
+    <string name="nc_bitbox_app_required_title">Continue in BitBoxApp</string>
+    <string name="nc_bitbox_app_required_desc">This BitBox is not ready to add to Nunchuk. Use BitBoxApp to finish preparing the device.</string>
+    <string name="nc_bitbox_app_required_step_open">Open BitBoxApp.</string>
+    <string name="nc_bitbox_app_required_step_finish">Complete setup or upgrade firmware.</string>
+    <string name="nc_bitbox_app_required_step_return">Return to Nunchuk and scan again.</string>
+    <string name="nc_bitbox_open_bitbox_app">Open BitBoxApp</string>
+    <string name="nc_bitbox_scan_again">Scan again</string>
+
+    <!-- Attestation warning (screen 05C) -->
+    <string name="nc_bitbox_attestation_title">Unable to verify BitBox</string>
+    <string name="nc_bitbox_attestation_desc">Nunchuk could not verify that this is a genuine BitBox device.</string>
+    <string name="nc_bitbox_attestation_warning_title">Do not continue</string>
+    <string name="nc_bitbox_attestation_warning_desc">Do not add a key or approve transactions with this device. Disconnect it and contact support.</string>
+    <string name="nc_bitbox_disconnect">Disconnect BitBox</string>
+    <string name="nc_bitbox_disconnected">BitBox disconnected. Reconnect and try again.</string>
+    <string name="nc_bitbox_initialize_failed">Could not read this BitBox. Reconnect and try again.</string>
+    <string name="nc_bitbox_open_app_failed">Could not open BitBoxApp.</string>
+    <string name="nc_bitbox_bluetooth_permission_required">Bluetooth permission is required to connect to BitBox.</string>
+    <string name="nc_bitbox_bluetooth_off">Turn on Bluetooth to scan for BitBox devices.</string>
+    <string name="nc_bitbox_no_devices_found">No BitBox devices found. Make sure your BitBox is connected and unlocked.</string>
+    <string name="nc_bitbox_communicating">Communicating with your BitBox…</string>
+
+    <!-- Device interaction prompts, from the Confluence UserInteraction table -->
+    <string name="nc_bitbox_unlock_device">Unlock your BitBox02 to continue.</string>
+    <string name="nc_bitbox_interaction_confirm_pairing">Check that the pairing code matches your BitBox02, then confirm it on the device and in Nunchuk.</string>
+    <string name="nc_bitbox_interaction_verify_address">Check the address on your BitBox02 and confirm that it matches Nunchuk.</string>
+    <string name="nc_bitbox_interaction_register_wallet">Review and confirm this wallet on your BitBox02.</string>
+    <string name="nc_bitbox_interaction_sign_message">Review and confirm the message on your BitBox02.</string>
+    <string name="nc_bitbox_interaction_sign_transaction">Review the transaction details on your BitBox02, then confirm.</string>
     <string name="nc_added_key_xfp_mismatch">The added key has an XFP mismatch. Please use the same device for both keys.</string>
     <string name="nc_verify_key_xfp_not_match">The key you just added (XFP:%1$s) doesn\'t match the original inheritance key (XFP:%2$s). Please try again.</string>
     <string name="nc_ensure_to_following_jade">Please ensure to do the following on your Jade before proceeding.</string>

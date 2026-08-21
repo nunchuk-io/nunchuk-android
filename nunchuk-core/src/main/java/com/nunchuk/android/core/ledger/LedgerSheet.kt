@@ -30,6 +30,8 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.nunchuk.android.core.hardware.HardwareConnectButton
+import com.nunchuk.android.core.hardware.HardwareDeviceScanBody
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.compose.textSecondary
@@ -359,7 +361,7 @@ private fun LedgerSheetContent(
             .padding(horizontal = 16.dp)
             .padding(top = 24.dp, bottom = 12.dp),
     ) {
-        LedgerDeviceScanBody(
+        HardwareDeviceScanBody(
             modifier = Modifier
                 .fillMaxWidth()
                 .wrapContentHeight(),
@@ -379,7 +381,7 @@ private fun LedgerSheetContent(
                 address = verifyAddress,
             )
         }
-        LedgerConnectButton(
+        HardwareConnectButton(
             modifier = Modifier
                 .padding(top = 24.dp)
                 .fillMaxWidth(),
