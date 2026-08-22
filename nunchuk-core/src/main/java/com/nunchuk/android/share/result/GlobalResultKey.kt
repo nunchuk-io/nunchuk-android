@@ -45,6 +45,13 @@ object GlobalResultKey {
     const val PASSPHRASE = "_w"
     const val XPRV = "_x"
     const val SIGNATURE = "_y"
+
+    /**
+     * Fingerprint of the device read back by a `verifyXfpOnly` add-key round trip. Shared because
+     * the flow that consumes it (the on-chain inheritance-key backup verification) is handed the
+     * Intent through [com.nunchuk.android.main] relays and can't tell which key type produced it.
+     */
+    const val EXTRA_VERIFIED_XFP = "extra_verified_xfp"
 }
 
 object GlobalResult {

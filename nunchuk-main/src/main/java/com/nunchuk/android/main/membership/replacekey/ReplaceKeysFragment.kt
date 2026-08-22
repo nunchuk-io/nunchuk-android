@@ -40,6 +40,7 @@ import com.nunchuk.android.nav.args.AddAirSignerArgs
 import com.nunchuk.android.nav.args.SetupMk4Args
 import com.nunchuk.android.share.ColdcardAction
 import com.nunchuk.android.share.result.GlobalResultKey
+import com.nunchuk.android.signer.bitbox.BitBoxActivity
 import com.nunchuk.android.signer.ledger.LedgerActivity
 import com.nunchuk.android.signer.trezor.TrezorActivity
 import com.nunchuk.android.type.SignerTag
@@ -92,6 +93,20 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
                     return@registerForActivityResult
                 }
                 if (data.getStringExtra(LedgerActivity.EXTRA_RESULT_ACTION) == LedgerActivity.RESULT_ACTION_OPEN_DESKTOP_FLOW) {
+                    showAddKeyByDesktopApp()
+                }
+            }
+        }
+
+    private val addBitBoxLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            val data = result.data
+            if (result.resultCode == Activity.RESULT_OK && data != null) {
+                data.parcelable<SingleSigner>(GlobalResultKey.EXTRA_SIGNER)?.let {
+                    viewModel.onReplaceKey(it)
+                    return@registerForActivityResult
+                }
+                if (data.getStringExtra(BitBoxActivity.EXTRA_RESULT_ACTION) == BitBoxActivity.RESULT_ACTION_OPEN_DESKTOP_FLOW) {
                     showAddKeyByDesktopApp()
                 }
             }
@@ -375,7 +390,7 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
                 handleShowKeysOrCreate(
                     viewModel.getHardwareSigners(SignerTag.BITBOX),
                     SignerType.HARDWARE
-                ) { showAddKeyByDesktopApp() }
+                ) { openBitBoxFlow() }
             }
 
             SheetOptionType.TYPE_ADD_SOFTWARE_KEY -> checkTwoSoftwareKeySameDevice {
@@ -389,11 +404,15 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
         }
     }
 
-    /** Trezor and Ledger have in-app add-key flows; every other hardware key is desktop-only. */
+    /**
+     * Trezor, Ledger and BitBox pair in-app; every other hardware key has no replace path here
+     * and falls back to the "not supported" dialog.
+     */
     private fun openInAppHardwareOrDesktopFlow(tag: SignerTag) {
         when (tag) {
             SignerTag.TREZOR -> openTrezorFlow()
             SignerTag.LEDGER -> openLedgerFlow()
+            SignerTag.BITBOX -> openBitBoxFlow()
             else -> showAddKeyByDesktopApp()
         }
     }
@@ -410,6 +429,15 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
     private fun openLedgerFlow() {
         addLedgerLauncher.launch(
             LedgerActivity.buildIntent(
+                activityContext = requireActivity(),
+                isMembershipFlow = true
+            )
+        )
+    }
+
+    private fun openBitBoxFlow() {
+        addBitBoxLauncher.launch(
+            BitBoxActivity.buildIntent(
                 activityContext = requireActivity(),
                 isMembershipFlow = true
             )

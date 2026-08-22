@@ -408,7 +408,7 @@ class LedgerActivity : BaseComposeActivity() {
         const val EXTRA_RESULT_ACTION = "extra_result_action"
 
         /** Lowercased fingerprint of the connected device, returned by [verifyXfpOnly]. */
-        const val EXTRA_VERIFIED_XFP = "extra_verified_xfp"
+        const val EXTRA_VERIFIED_XFP = GlobalResultKey.EXTRA_VERIFIED_XFP
 
         /** The user chose to claim the key from the desktop app instead of pairing here. */
         const val RESULT_ACTION_OPEN_DESKTOP_FLOW = "result_action_open_desktop_flow"

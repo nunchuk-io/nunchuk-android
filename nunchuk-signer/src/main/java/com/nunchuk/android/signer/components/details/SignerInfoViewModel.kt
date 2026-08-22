@@ -353,9 +353,15 @@ internal class SignerInfoViewModel @Inject constructor(
                 && remoteSigner.tags.contains(SignerTag.LEDGER)
     }
 
+    fun isBitBoxSigner(): Boolean {
+        val remoteSigner = getState().remoteSigner ?: return false
+        return args.signerType == SignerType.HARDWARE
+                && remoteSigner.tags.contains(SignerTag.BITBOX)
+    }
+
     /**
-     * Hardware key with an in-app flow (Trezor via Trezor Suite, Ledger over BLE/USB) rather than
-     * a desktop-only one, so it can sign a message from the app.
+     * Hardware key with an in-app flow (Trezor via Trezor Suite, Ledger and BitBox over
+     * BLE/USB) rather than a desktop-only one, so it can sign a message from the app.
      */
     fun isInAppHardwareSigner(): Boolean {
         val remoteSigner = getState().remoteSigner ?: return false
@@ -435,10 +441,10 @@ internal class SignerInfoViewModel @Inject constructor(
     }
 
     /**
-     * The Ledger flow signs + verifies the health check on its own activity and delegates
-     * the outcome here so the result shows on this screen (like [handleTrezorHealthCheckCallback]).
+     * The Ledger and BitBox sheets sign + verify the health check themselves and delegate the
+     * outcome here so the result shows on this screen (like [handleTrezorHealthCheckCallback]).
      */
-    fun onLedgerHealthCheckResult(isSuccess: Boolean, errorMessage: String?) {
+    fun onHardwareHealthCheckResult(isSuccess: Boolean, errorMessage: String?) {
         viewModelScope.launch {
             if (isSuccess) {
                 _event.emit(HealthCheckSuccessEvent)

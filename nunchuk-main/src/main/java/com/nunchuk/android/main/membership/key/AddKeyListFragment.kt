@@ -113,6 +113,7 @@ import com.nunchuk.android.share.ColdcardAction
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.share.result.GlobalResultKey
+import com.nunchuk.android.signer.bitbox.BitBoxActivity
 import com.nunchuk.android.signer.ledger.LedgerActivity
 import com.nunchuk.android.signer.trezor.TrezorActivity
 import com.nunchuk.android.type.SignerTag
@@ -163,6 +164,20 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
                 }
                 if (data.getStringExtra(LedgerActivity.EXTRA_RESULT_ACTION) == LedgerActivity.RESULT_ACTION_OPEN_DESKTOP_FLOW) {
                     openRequestAddDesktopKey(SignerTag.LEDGER)
+                }
+            }
+        }
+
+    private val addBitBoxLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            val data = result.data
+            if (result.resultCode == Activity.RESULT_OK && data != null) {
+                data.parcelable<SingleSigner>(GlobalResultKey.EXTRA_SIGNER)?.let {
+                    viewModel.onSelectedExistingHardwareSigner(it)
+                    return@registerForActivityResult
+                }
+                if (data.getStringExtra(BitBoxActivity.EXTRA_RESULT_ACTION) == BitBoxActivity.RESULT_ACTION_OPEN_DESKTOP_FLOW) {
+                    openRequestAddDesktopKey(SignerTag.BITBOX)
                 }
             }
         }
@@ -314,7 +329,7 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
                 handleShowKeysOrCreate(
                     viewModel.getHardwareSigners(SignerTag.BITBOX),
                     SignerType.HARDWARE
-                ) { openRequestAddDesktopKey(SignerTag.BITBOX) }
+                ) { openBitBoxFlow() }
             }
         }
     }
@@ -330,11 +345,15 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
         }
     }
 
-    /** Trezor and Ledger have in-app add-key flows; every other hardware key is desktop-only. */
+    /**
+     * Trezor, Ledger and BitBox have in-app add-key flows; every other hardware key
+     * (COLDCARD over USB) is desktop-only.
+     */
     private fun openInAppHardwareOrDesktopFlow(tag: SignerTag) {
         when (tag) {
             SignerTag.TREZOR -> openTrezorFlow()
             SignerTag.LEDGER -> openLedgerFlow()
+            SignerTag.BITBOX -> openBitBoxFlow()
             else -> openRequestAddDesktopKey(tag)
         }
     }
@@ -351,6 +370,15 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
     private fun openLedgerFlow() {
         addLedgerLauncher.launch(
             LedgerActivity.buildIntent(
+                activityContext = requireActivity(),
+                isMembershipFlow = true
+            )
+        )
+    }
+
+    private fun openBitBoxFlow() {
+        addBitBoxLauncher.launch(
+            BitBoxActivity.buildIntent(
                 activityContext = requireActivity(),
                 isMembershipFlow = true
             )

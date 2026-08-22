@@ -40,6 +40,7 @@ import androidx.viewbinding.ViewBinding
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.dialog.NcConfirmationDialog
 import com.nunchuk.android.core.base.BaseShareSaveFileFragment
+import com.nunchuk.android.core.bitbox.BitBoxHealthCheckSheet
 import com.nunchuk.android.core.domain.data.CheckFirmwareVersion
 import com.nunchuk.android.core.ledger.LedgerHealthCheckSheet
 import com.nunchuk.android.core.nfc.BaseNfcActivity.Companion.REQUEST_GENERATE_HEAL_CHECK_MSG
@@ -88,8 +89,13 @@ class SignerInfoFragment : BaseShareSaveFileFragment<ViewBinding>(),
 
     private var openTrezorSuiteDeeplink: String? by mutableStateOf(null)
 
-    /** Signer to run the Ledger health check for; non-null shows the sign-message sheet. */
+    /**
+     * Signer to run the in-app health check for; non-null shows that key type's sign-message
+     * sheet. One field per key type because each sheet drives its own transport, and only one
+     * can be up at a time.
+     */
     private var ledgerHealthCheckSigner: SingleSigner? by mutableStateOf(null)
+    private var bitBoxHealthCheckSigner: SingleSigner? by mutableStateOf(null)
 
     override fun initializeBinding(inflater: LayoutInflater, container: ViewGroup?): ViewBinding =
         ViewBinding {
@@ -185,7 +191,18 @@ class SignerInfoFragment : BaseShareSaveFileFragment<ViewBinding>(),
                                 derivationPath = signer.derivationPath,
                                 onDismiss = { ledgerHealthCheckSigner = null },
                                 onResult = { isSuccess, errorMessage ->
-                                    viewModel.onLedgerHealthCheckResult(isSuccess, errorMessage)
+                                    viewModel.onHardwareHealthCheckResult(isSuccess, errorMessage)
+                                },
+                            )
+                        }
+
+                        bitBoxHealthCheckSigner?.let { signer ->
+                            BitBoxHealthCheckSheet(
+                                masterFingerprint = signer.masterFingerprint,
+                                derivationPath = signer.derivationPath,
+                                onDismiss = { bitBoxHealthCheckSigner = null },
+                                onResult = { isSuccess, errorMessage ->
+                                    viewModel.onHardwareHealthCheckResult(isSuccess, errorMessage)
                                 },
                             )
                         }
@@ -562,6 +579,10 @@ class SignerInfoFragment : BaseShareSaveFileFragment<ViewBinding>(),
                 // Ledger runs the health check (sign message + verify) over BLE/USB in-app,
                 // shown inline as a bottom sheet on this screen.
                 ledgerHealthCheckSigner = remoteSigner
+            } else if (viewModel.isBitBoxSigner()) {
+                // Same in-app sign-message + verify round trip as Ledger, over the BitBox
+                // transport — Confluence "4. Sign message".
+                bitBoxHealthCheckSigner = remoteSigner
             } else {
                 showWarning(getString(R.string.nc_health_check_is_unavailable_for_this_key))
             }

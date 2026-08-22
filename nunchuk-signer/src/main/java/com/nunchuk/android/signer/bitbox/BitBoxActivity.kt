@@ -27,6 +27,7 @@ import com.nunchuk.android.core.bitbox.BitBoxController
 import com.nunchuk.android.core.bitbox.BitBoxDevice
 import com.nunchuk.android.core.bitbox.BitBoxRequest
 import com.nunchuk.android.core.bitbox.isSessionLost
+import com.nunchuk.android.core.bitbox.statusText
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.signer.R
@@ -130,7 +131,7 @@ class BitBoxActivity : BaseComposeActivity() {
         }
 
         override fun onInteraction(interaction: BitBoxUserInteraction) {
-            viewModel.setStatus(interactionText(interaction))
+            viewModel.setStatus(interaction.statusText(this@BitBoxActivity))
         }
 
         override fun onPairingCode(code: String) {
@@ -528,18 +529,6 @@ class BitBoxActivity : BaseComposeActivity() {
         controller.startScan()
     }
 
-    /** Confluence "UserInteraction" table — the copy shown while the device waits on the user. */
-    private fun interactionText(interaction: BitBoxUserInteraction): String = when (interaction) {
-        BitBoxUserInteraction.UNLOCK_DEVICE -> getString(R.string.nc_bitbox_unlock_device)
-        BitBoxUserInteraction.CONFIRM_PAIRING -> getString(R.string.nc_bitbox_interaction_confirm_pairing)
-        BitBoxUserInteraction.VERIFY_ADDRESS -> getString(R.string.nc_bitbox_interaction_verify_address)
-        BitBoxUserInteraction.REGISTER_WALLET -> getString(R.string.nc_bitbox_interaction_register_wallet)
-        BitBoxUserInteraction.SIGN_MESSAGE -> getString(R.string.nc_bitbox_interaction_sign_message)
-        BitBoxUserInteraction.SIGN_TRANSACTION -> getString(R.string.nc_bitbox_interaction_sign_transaction)
-        // The setup / management interactions only arise in BitBoxApp now.
-        else -> getString(R.string.nc_bitbox_communicating)
-    }
-
     override fun onDestroy() {
         controller.close()
         super.onDestroy()
@@ -555,7 +544,7 @@ class BitBoxActivity : BaseComposeActivity() {
         const val EXTRA_RESULT_ACTION = "extra_result_action"
 
         /** Lowercased fingerprint of the connected device, returned by [verifyXfpOnly]. */
-        const val EXTRA_VERIFIED_XFP = "extra_verified_xfp"
+        const val EXTRA_VERIFIED_XFP = GlobalResultKey.EXTRA_VERIFIED_XFP
 
         /** The user chose to claim the key from the desktop app instead of pairing here. */
         const val RESULT_ACTION_OPEN_DESKTOP_FLOW = "result_action_open_desktop_flow"

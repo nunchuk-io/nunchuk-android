@@ -835,6 +835,32 @@
     <string name="nc_bitbox_connect_a_device_desc">Connect your BitBox to your phone or a power source, then select it below.</string>
     <string name="nc_bitbox_usb_empty">No compatible USB device found</string>
     <string name="nc_bitbox_scanning">Scanning for nearby BitBox devices…</string>
+
+    <!-- Shared by the add-key flow (nunchuk-signer) and the sign / health-check sheet -->
+    <!-- Confirm pairing (add-key design screen 05, and the sheet's pairing state) -->
+    <string name="nc_bitbox_confirm_pairing">Confirm pairing</string>
+    <string name="nc_bitbox_confirm_pairing_desc">Compare this code with the code shown on your BitBox.</string>
+    <string name="nc_bitbox_confirm_pairing_hint">Confirm the code on your BitBox.</string>
+    <string name="nc_bitbox_codes_match">Codes match</string>
+    <string name="nc_bitbox_codes_do_not_match">Codes don\'t match</string>
+    <string name="nc_bitbox_bluetooth_permission_required">Bluetooth permission is required to connect to BitBox.</string>
+    <string name="nc_bitbox_bluetooth_off">Turn on Bluetooth to scan for BitBox devices.</string>
+    <string name="nc_bitbox_no_devices_found">No BitBox devices found. Make sure your BitBox is connected and unlocked.</string>
+    <string name="nc_bitbox_disconnected">BitBox disconnected. Reconnect and try again.</string>
+    <string name="nc_bitbox_initialize_failed">Could not read this BitBox. Reconnect and try again.</string>
+    <string name="nc_bitbox_communicating">Communicating with your BitBox…</string>
+
+    <!-- Device interaction prompts, from the Confluence UserInteraction table -->
+    <string name="nc_bitbox_unlock_device">Unlock your BitBox02 to continue.</string>
+    <string name="nc_bitbox_interaction_confirm_pairing">Check that the pairing code matches your BitBox02, then confirm it on the device and in Nunchuk.</string>
+    <string name="nc_bitbox_interaction_verify_address">Check the address on your BitBox02 and confirm that it matches Nunchuk.</string>
+    <string name="nc_bitbox_interaction_register_wallet">Review and confirm this wallet on your BitBox02.</string>
+    <string name="nc_bitbox_interaction_sign_message">Review and confirm the message on your BitBox02.</string>
+    <string name="nc_bitbox_interaction_sign_transaction">Review the transaction details on your BitBox02, then confirm.</string>
+
+    <!-- Sheet-only: the add-key flow sends these to full dead-end screens (05B / 05C) instead -->
+    <string name="nc_bitbox_not_ready_error">This BitBox is not ready to use. Finish setup or upgrade its firmware in BitBoxApp, then try again.</string>
+    <string name="nc_bitbox_attestation_error">Nunchuk could not verify that this is a genuine BitBox. Disconnect it and contact support.</string>
     <string name="nc_ledger_bluetooth_permission_required">Bluetooth permission is required to connect to Ledger.</string>
     <string name="nc_ledger_no_devices_found">No Ledger devices found. Make sure your Ledger is unlocked with Bluetooth enabled.</string>
     <string name="nc_ledger_connecting">Connecting to %1$s…</string>

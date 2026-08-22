@@ -122,7 +122,12 @@ Legend: ⬜ not started · 🟡 in progress · ✅ done · ⏹ dropped
 **Where things stand.** Phases 0–2 are done and the add-key flow has been **confirmed working
 on a real BitBox02**. The native bindings ship as `io.nunchuk.android:nativesdk:1.2.22-bitbox`,
 the BLE/USB controller lives in `nunchuk-core`, and the flow runs end to end from
-`SignerIntroActivity` to a created signer. Phase 3 (sign flows) is next.
+`SignerIntroActivity` to a created signer. Phase 4 (assisted / membership + replace) is now
+wired at every dispatcher — off-chain personal, off-chain group, replace, and on-chain timelock
+all pair BitBox in-app instead of handing off to the desktop app. Phase 3 has started: the
+health check (3.7) runs in-app off the new BitBox sheet and is **confirmed working on a real
+BitBox02**. Transaction signing (3.3–3.6) is still open, so an assisted BitBox key can be added
+and health-checked but not yet used to sign.
 
 ### Picking this up
 
@@ -313,35 +318,117 @@ Checked and fine:
 - `SignerIntroScreen.kt`'s remaining "Desktop only" is sample text inside `SignerItemPreview`,
   a preview of the generic disabled row — not BitBox-specific, left alone.
 
-### Phase 3 — Sign flows ⬜ ← next
+### Phase 3 — Sign flows 🟡
 
 All three dispatchers are separate `when`s over type/tag — each needs its own BITBOX branch.
 
 | # | Task | File | State |
 |---|---|---|---|
-| 3.1 | `BitBoxSheet.kt` + `BitBoxSheetViewModel` (mirror `LedgerSheet.kt` / `LedgerSheetViewModel`) | `nunchuk-core/.../bitbox/` | ⬜ |
+| 3.1 | `BitBoxSheet.kt` + `BitBoxSheetViewModel` (mirror `LedgerSheet.kt` / `LedgerSheetViewModel`) | `nunchuk-core/.../bitbox/` | 🟡 built, health-check action only |
 | 3.2 | Register-wallet-before-sign; `isWalletRegistered` gate (BitBox self-reports, no HMAC cache needed unlike Ledger) | — | ⬜ |
-| 3.3 | **Normal tx**: `isLedger` sibling | `TransactionDetailsViewModel.kt:785`, `TransactionDetailComposeActivity.kt:294` | ⬜ |
-| 3.4 | **Dummy tx**: `isLedger` sibling → `GetDummyTransactionSignatureUseCase` | `WalletAuthenticationViewModel.kt:549`, `DummyTransactionDetailsFragment.kt:203/211` | ⬜ |
+| 3.3 | **Normal tx**: `isLedger` sibling | `TransactionDetailsViewModel.kt`, `TransactionDetailComposeActivity.kt` | ⬜ |
+| 3.4 | **Dummy tx**: `isLedger` sibling → `GetDummyTransactionSignatureUseCase` | `WalletAuthenticationViewModel.kt`, `DummyTransactionDetailsFragment.kt` | ⬜ |
 | 3.5 | **Sign-in BSMS**: same dispatcher as 3.4 with `args.walletId` blank — must not key off a local wallet | `WalletAuthenticationViewModel` (`isSignInSignatureFlow`) | ⬜ |
-| 3.6 | Membership `CheckSignMessageFragment` sheet | `CheckSignMessageFragment.kt:114` | ⬜ |
-| 3.7 | Health check via `signMessage` + `HealthCheckSingleSigner` | `SignerInfoViewModel.kt:353`, `SignMessageUiState.kt:35` | ⬜ |
-| 3.8 | Verify address on device via `getWalletAddress` | `UnusedAddressViewModel.kt:115` | ⬜ |
+| 3.6 | Membership `CheckSignMessageFragment` sheet | `CheckSignMessageFragment.kt` | ⬜ |
+| 3.7 | Health check via `signMessage` + `HealthCheckSingleSigner` | `SignerInfoFragment` / `SignerInfoViewModel` | ✅ verified on device |
+| 3.8 | Verify address on device via `getWalletAddress` | `UnusedAddressViewModel.kt` | ⬜ |
+| 3.9 | **Sign message** (the "..." menu beside health check) — see the open bug below | `SignMessageViewModel` / `SignMessageFragment` | ⬜ |
 
-### Phase 4 — Assisted / membership + replace ⬜
+#### 3.7 Health check — what shipped
 
-Mirror the Ledger branch at every dispatcher; each is independent, a miss silently
-falls through to "use the desktop app".
+`BitBoxSheetViewModel` + `BitBoxSheet` in `nunchuk-core/.../bitbox/`, the BitBox counterpart of
+the Ledger pair, wired to "Run health check" on Key Info through the same relay Ledger uses
+(`SignerInfoViewModel.isBitBoxSigner()` → `BitBoxHealthCheckSheet` → `onHardwareHealthCheckResult`,
+renamed from `onLedgerHealthCheckResult` now that two key types share it).
+
+The device conversation follows Confluence §0 + "4. Sign message":
+
+1. connect → `initialize()` — **every** BitBox session opens with it, and its result is the
+   readiness gate (attestation, firmware, set-up), so nothing is asked of the device before it
+2. pairing, if the device asks — the sheet shows the code *in place of* the picker, because that
+   step is waiting on exactly those two buttons
+3. `GetBitBoxSignMessagePath(signer)` → `signMessage(path, "Run health check")`
+4. `HealthCheckSingleSigner(signer, message, signature)` → the verdict the host displays
+
+Three things that are genuinely different from Ledger, not stylistic:
+
+- **The signing path is not the signer's derivation path.** BitBox signs with the
+  compact-signature key below it (`GetBitBoxSignMessagePath`), which is also where the displayed
+  address comes from. New `GetBitBoxSignMessagePathUseCase` — deliberately with *no* fallback,
+  unlike `GetTrezorSignMessagePathUseCase`: a guessed path signs with the wrong key and then
+  fails verification with nothing to point at.
+- **The readiness gate has nowhere to go in a sheet.** The add-key flow routes attestation
+  failure and not-ready devices to full dead-end screens (05C / 05B). A sheet reports them
+  (`nc_bitbox_attestation_error`, `nc_bitbox_not_ready_error`) and stays open to retry.
+- **Only a completed verification reports a result.** `HealthCheckResult` dismisses the sheet and
+  posts a verdict, so a device that never signed — declined pairing, wrong firmware, transport
+  drop — emits `Error` instead. Otherwise "not set up" would be recorded as a *failed* health
+  check.
+
+Deduped rather than copied, since the sheet and the add-key flow now need the same things:
+
+| Was | Now |
+|---|---|
+| `BitBoxActivity.interactionText()` — the Confluence §0 UI-text table | `BitBoxUserInteraction.statusText(context)` in `nunchuk-core/.../bitbox/` |
+| `BitBoxConfirmPairingScreen`'s body (heading, code card, waiting line) | `BitBoxPairingCodeBody` in core; the screen keeps its Scaffold and the sheet supplies its own buttons |
+| 17 `nc_bitbox_*` strings in `nunchuk-signer` | moved to `nunchuk-core` (`nonTransitiveRClass=false`, so signer's existing `R.string.*` references still resolve) |
+
+#### Open bug — "Sign message" is reachable for BitBox and broken (3.9)
+
+Phase 2.9 added `BITBOX` to `isInAppHardwareTag`, which is what `canSignMessage` keys off, so the
+"Sign message" option is already offered for a BitBox key. But `SignMessageFragment.onSignMessage`
+only branches on Ledger and Trezor, so a BitBox falls through to `signMessageBySoftware()` — the
+software path, for a key with no master signer.
+
+Not fixed here because the export half needs a decision the health check doesn't:
+`GetSignedMessageUseCase` derives the address from the signer, while the Confluence flow pairs the
+signature with `GetBitBoxSignMessageAddress(signer)` — the compact-signature P2PKH address. Those
+may not be the same address, and shipping the wrong one produces a signed message that verifies
+nowhere. Worth confirming against the native side before wiring it.
+
+### Phase 4 — Assisted / membership + replace ✅
+
+Every dispatcher is its own `when`, so each got its own BITBOX branch. All four in-app
+dispatchers now follow the same three-part shape as Ledger: an `addBitBoxLauncher` that takes
+the returned signer (or falls back to the desktop hand-off on
+`RESULT_ACTION_OPEN_DESKTOP_FLOW`), an `openBitBoxFlow()`, and a `SignerTag.BITBOX` branch in
+`openInAppHardwareOrDesktopFlow`. The `TYPE_ADD_BITBOX` option sheet entries changed with them —
+each one used to run the desktop hand-off as its "no existing key" lambda.
+
+`:nunchuk-main:compileDebugKotlin` is clean.
 
 | # | Task | File | State |
 |---|---|---|---|
-| 4.1 | Assisted personal | `AddKeyListFragment.kt:312/337` | ⬜ |
-| 4.2 | Assisted group (Byzantine) | `AddByzantineKeyListFragment.kt:287/364` | ⬜ |
-| 4.3 | Replace key | `ReplaceKeysFragment.kt:373/396` | ⬜ |
-| 4.4 | On-chain timelock add key (two accounts of the same device, `expectedXfp`) | `OnChainTimelockAddKeyListFragment.kt:392/616` | ⬜ |
-| 4.5 | On-chain replace keys (no desktop path — decide: enable BitBox or keep the "not supported" dialog) | `OnChainReplaceKeysFragment.kt:562` | ⬜ |
-| 4.6 | Inheritance-key seed-phrase backup verify (`verifyXfpOnly` mode, relay `EXTRA_VERIFIED_XFP`) | `BackUpSeedPhraseActivity` chain | ⬜ |
-| 4.7 | Remove BitBox from `AddDesktopKeyFragment` copy paths that now have an in-app flow | `AddDesktopKeyFragment.kt:85/93` | ⬜ |
+| 4.1 | Assisted personal | `AddKeyListFragment.kt` | ✅ |
+| 4.2 | Assisted group (Byzantine) | `AddByzantineKeyListFragment.kt` | ✅ |
+| 4.3 | Replace key | `ReplaceKeysFragment.kt` | ✅ |
+| 4.4 | On-chain timelock add key (two accounts of the same device, `expectedXfp`) | `OnChainTimelockAddKeyListFragment.kt` | ✅ |
+| 4.5 | On-chain replace keys | `OnChainReplaceKeysFragment.kt` | ⏹ left alone — see below |
+| 4.6 | Inheritance-key seed-phrase backup verify (`verifyXfpOnly` mode, relay `EXTRA_VERIFIED_XFP`) | `SignerIntroActivity` → `BackUpSeedPhraseActivity` chain | ✅ shipped in phase 2 |
+| 4.7 | `AddDesktopKeyFragment` BitBox copy | `AddDesktopKeyFragment.kt` | ⏹ dropped — the copy is still reachable |
+
+Notes on the three rows that aren't a plain "add the branch":
+
+- **4.3 replace key.** `ReplaceKeysFragment` has no desktop path — `showAddKeyByDesktopApp()` is
+  an "not supported" info dialog. BitBox's intro screen still offers "Add via desktop app"
+  whenever `isMembershipFlow` is set, so pressing it in the replace flow lands on that dialog.
+  That is exactly what Ledger and Trezor do there today, so it was left matching rather than
+  special-cased.
+- **4.5 on-chain replace.** `OnChainReplaceKeysFragment` has no in-app hardware path *for any
+  key* — Ledger and Trezor both go to the same "not supported" dialog. Wiring BitBox in would
+  make it the only hardware key replaceable on an on-chain wallet, which is a product call, not
+  a parity fix. Left as it was.
+- **4.7 desktop copy.** The plan assumed an in-app flow retires the desktop screen. It doesn't:
+  `isAddViaDesktopEnabled = isMembershipFlow && !isVerifyXfpOnly` means every assisted BitBox add
+  still offers the desktop hand-off, which navigates to `AddDesktopKeyFragment`. Its
+  `SignerTag.BITBOX` copy (`nc_main_add_bitbox_desc` + `bg_add_bitbox`) is live and has to stay —
+  Ledger and Trezor keep theirs for the same reason.
+
+**One shared constant.** The on-chain verify relay read `LedgerActivity.EXTRA_VERIFIED_XFP` to
+pull a fingerprint out of an Intent that now comes from either activity — it worked only because
+the two literals happened to match, and would have broken silently if either changed. The key
+moved to `GlobalResultKey.EXTRA_VERIFIED_XFP`; both companions now alias it, so their public
+contracts are unchanged and no call site moved.
 
 ### Phase 5 — Device setup ⏹ dropped (2026-08-21 design revision)
 

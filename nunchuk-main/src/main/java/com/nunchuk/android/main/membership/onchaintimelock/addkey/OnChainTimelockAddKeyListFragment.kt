@@ -122,6 +122,7 @@ import com.nunchuk.android.nav.args.SetupMk4Args
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.share.result.GlobalResultKey
+import com.nunchuk.android.signer.bitbox.BitBoxActivity
 import com.nunchuk.android.signer.ledger.LedgerActivity
 import com.nunchuk.android.signer.mk4.inheritance.ColdCardIntroFragment
 import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
@@ -188,7 +189,7 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
      */
     private val verifyBackUpSeedPhraseLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            val verifiedXfp = result.data?.getStringExtra(LedgerActivity.EXTRA_VERIFIED_XFP)
+            val verifiedXfp = result.data?.getStringExtra(GlobalResultKey.EXTRA_VERIFIED_XFP)
             if (result.resultCode == Activity.RESULT_OK && !verifiedXfp.isNullOrEmpty()) {
                 viewModel.setKeyVerified(verifiedXfp)
             }
@@ -204,6 +205,20 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                 }
                 if (data.getStringExtra(LedgerActivity.EXTRA_RESULT_ACTION) == LedgerActivity.RESULT_ACTION_OPEN_DESKTOP_FLOW) {
                     openRequestAddDesktopKey(SignerTag.LEDGER)
+                }
+            }
+        }
+
+    private val addBitBoxLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            val data = result.data
+            if (result.resultCode == Activity.RESULT_OK && data != null) {
+                data.parcelable<SingleSigner>(GlobalResultKey.EXTRA_SIGNER)?.let { signer ->
+                    viewModel.onSelectedExistingHardwareSigner(signer, currentKeyData)
+                    return@registerForActivityResult
+                }
+                if (data.getStringExtra(BitBoxActivity.EXTRA_RESULT_ACTION) == BitBoxActivity.RESULT_ACTION_OPEN_DESKTOP_FLOW) {
+                    openRequestAddDesktopKey(SignerTag.BITBOX)
                 }
             }
         }
@@ -386,10 +401,14 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
         return viewModel.key.value.flatMap { it.getAllSigners() }
     }
 
-    /** Ledger pairs with the app over BLE/USB; every other hardware key is desktop-only. */
+    /**
+     * Ledger and BitBox pair with the app over BLE/USB; every other hardware key (Trezor,
+     * COLDCARD over USB, Jade) is desktop-only here.
+     */
     private fun openInAppHardwareOrDesktopFlow(tag: SignerTag) {
         when (tag) {
             SignerTag.LEDGER -> openLedgerFlow()
+            SignerTag.BITBOX -> openBitBoxFlow()
             else -> openRequestAddDesktopKey(tag)
         }
     }
@@ -402,6 +421,19 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
         val signers = currentKeyData?.getAllSigners().orEmpty()
         addLedgerLauncher.launch(
             LedgerActivity.buildIntent(
+                activityContext = requireActivity(),
+                isMembershipFlow = true,
+                accountIndex = signers.size,
+                expectedXfp = signers.firstOrNull()?.fingerPrint.orEmpty(),
+            )
+        )
+    }
+
+    /** Same two-accounts-of-one-device rule as [openLedgerFlow]. */
+    private fun openBitBoxFlow() {
+        val signers = currentKeyData?.getAllSigners().orEmpty()
+        addBitBoxLauncher.launch(
+            BitBoxActivity.buildIntent(
                 activityContext = requireActivity(),
                 isMembershipFlow = true,
                 accountIndex = signers.size,
@@ -698,8 +730,8 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                 groupId = (activity as MembershipActivity).groupId,
                 walletId = (activity as MembershipActivity).walletId
             ),
-            // Keys that re-add themselves in-app (Ledger) report the restored device back here;
-            // Coldcard and air-gap finish verification on their own screens and return nothing.
+            // Keys that re-add themselves in-app (Ledger, BitBox) report the restored device back
+            // here; Coldcard and air-gap finish verification on their own screens and return nothing.
             launcher = verifyBackUpSeedPhraseLauncher,
         )
     }
