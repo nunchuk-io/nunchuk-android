@@ -32,6 +32,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nunchuk.android.core.hardware.HardwareConnectButton
 import com.nunchuk.android.core.hardware.HardwareDeviceScanBody
+import com.nunchuk.android.core.hardware.KeepScreenOn
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.compose.textSecondary
@@ -301,6 +302,10 @@ private fun LedgerSheet(
 
     // Show and start scanning immediately.
     LaunchedEffect(Unit) { ensurePermissionThenScan() }
+
+    // Minutes of reading and approving on the device itself, with nothing to touch
+    // here; a display timeout under that drops the sign result.
+    KeepScreenOn()
 
     // Tear the transport down when the sheet leaves composition, however it was dismissed.
     DisposableEffect(Unit) {

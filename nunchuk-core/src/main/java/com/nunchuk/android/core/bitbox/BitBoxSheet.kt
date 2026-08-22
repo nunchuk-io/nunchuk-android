@@ -36,6 +36,7 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.R
 import com.nunchuk.android.core.hardware.HardwareConnectButton
 import com.nunchuk.android.core.hardware.HardwareDeviceScanBody
+import com.nunchuk.android.core.hardware.KeepScreenOn
 import com.nunchuk.android.core.hardware.HardwareTransportKind
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.widget.NCToastMessage
@@ -211,6 +212,10 @@ private fun BitBoxSheet(
 
     // Show and start scanning immediately.
     LaunchedEffect(Unit) { ensurePermissionThenScan() }
+
+    // Minutes of reading and approving on the device itself, with nothing to touch
+    // here; a display timeout under that drops the sign result.
+    KeepScreenOn()
 
     // Tear the transport down when the sheet leaves composition, however it was dismissed.
     DisposableEffect(Unit) {
