@@ -128,9 +128,8 @@ all pair BitBox in-app instead of handing off to the desktop app. Phase 3 has st
 health check (3.7) runs in-app off the new BitBox sheet and is **confirmed working on a real
 BitBox02**, and signing is wired everywhere it matters (3.1–3.6) — a wallet transaction, the
 membership dummy tx, sign-in via digital signature, and the membership sign-message check all
-sign in-app. Still open:
-verify-address-on-device (3.8) and sign message (3.9). Transaction signing — dummy and real —
-is **not yet exercised on hardware**.
+sign in-app, and an address can be verified on the device. Still open:
+sign message (3.9). Everything except the health check is **not yet exercised on hardware**.
 
 ### Picking this up
 
@@ -334,7 +333,7 @@ All three dispatchers are separate `when`s over type/tag — each needs its own 
 | 3.5 | **Sign-in BSMS**: same dispatcher as 3.4 with `args.walletId` blank — must not key off a local wallet | `WalletAuthenticationViewModel` (`isSignInSignatureFlow`) | ✅ |
 | 3.6 | Membership `CheckSignMessageFragment` sheet | `CheckSignMessageFragment.kt` | ✅ |
 | 3.7 | Health check via `signMessage` + `HealthCheckSingleSigner` | `SignerInfoFragment` / `SignerInfoViewModel` | ✅ verified on device |
-| 3.8 | Verify address on device via `getWalletAddress` | `UnusedAddressViewModel.kt` | ⬜ |
+| 3.8 | Verify address on device via `getWalletAddress` | `UnusedAddressViewModel.kt` | ✅ |
 | 3.9 | **Sign message** (the "..." menu beside health check) — see the open bug below | `SignMessageViewModel` / `SignMessageFragment` | ⬜ |
 
 #### 3.7 Health check — what shipped
@@ -459,6 +458,42 @@ Portal, Trezor and software keys. Related, in shared code: `handleSignatureResul
 non-dummy-tx / non-sign-in branch puts the **final** signature only in `SignDummyTxSuccess` and
 never in state, unlike the non-final branch — so dropping that event drops the signature itself,
 not just the navigation.
+
+#### 3.8 Verify address on device
+
+Confluence §5: register the policy if the device doesn't have it, ask for the address at that
+index, compare. `BitBoxAddressVerifier` mirrors `LedgerAddressVerifier`, and like it does **not**
+check the device fingerprint first — any BitBox holding a key of this wallet derives the same
+address, and one that doesn't can't register the wallet in the first place.
+
+Two things worth knowing:
+
+- **`checkOnDevice` is now passed explicitly.** The binding defaults it to `true`, which is
+  correct, but it is the flag that makes the device *display* the address — the entire point of
+  verifying one. Left implicit, a flipped default would silently turn verification into comparing
+  a number the device computed without ever showing the user, and nothing would look wrong.
+- **`BitBoxWalletRegistrar`** was extracted from `BitBoxTransactionSigner`, since signing (§3) and
+  showing an address (§5) open with the same step. It also owns the BSMS policy-name fallback, so
+  that rule lives in one place. Still far thinner than `LedgerWalletRegistrar`: no HMAC, no cache.
+
+Ledger's private `LedgerVerifyAddressBox` became the shared `HardwareVerifyAddressBox`, with the
+"check this on your <device>" label as a parameter.
+
+#### Exception handling — the Confluence §6 table
+
+Audited both hosts against §6. Three gaps, all fixed:
+
+| Gap | Was | Now |
+|---|---|---|
+| **Lost Noise session** (`SESSION_LOST` / `DEVICE_NOISE_ENCRYPT` / `DEVICE_NOISE_DECRYPT`) | fell through to a generic error toast, so the user had to reconnect by hand after nothing visibly went wrong | initializes a fresh session and restarts the operation, as §6 says. Capped at one rebuild per connect so a device failing this way can't spin, and **only while the transport is still up** — §6 is explicit that a disconnect is not resumable, so `onDisconnected` marks it unrecoverable |
+| **`deviceCode` was dropped** | `onCommandFailed` never carried it, so §6's `showOperationError(message, device_code)` couldn't be implemented | plumbed through the listener and `BitBoxCommandException`; the `DEVICE_INVALID_INPUT` / `DEVICE` / `DEVICE_INVALID_STATE` errors now report it, where the message alone rarely says which device state was wrong |
+| **`UNSUPPORTED_FIRMWARE` lost its message** | replaced by generic "not ready" copy, same as `DEVICE_UNINITIALIZED` | shows the firmware's own message — "unsupported" covers both too old and too new, and only the message says which |
+
+`isUserCancellation()` and `isOperationError()` now sit next to `isSessionLost()` in
+`BitBoxController.kt`, so both hosts read the same table rather than each spelling out the codes.
+
+**Retry shape.** The rebuild is a loop inside the action's own job, not a re-entrant call to
+`runAction` — re-entering would call `actionJob.cancel()` on the job the retry was running in.
 
 #### Open bug — "Sign message" is reachable for BitBox and broken (3.9)
 

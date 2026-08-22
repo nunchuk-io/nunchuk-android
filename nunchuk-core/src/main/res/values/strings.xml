@@ -858,6 +858,10 @@
     <string name="nc_bitbox_interaction_sign_message">Review and confirm the message on your BitBox02.</string>
     <string name="nc_bitbox_interaction_sign_transaction">Review the transaction details on your BitBox02, then confirm.</string>
 
+    <string name="nc_bitbox_reconnecting">Reconnecting to your BitBox…</string>
+    <string name="nc_bitbox_firmware_error">This BitBox\'s firmware can\'t be used: %1$s</string>
+    <string name="nc_bitbox_device_error">%1$s (device error %2$d)</string>
+    <string name="nc_bitbox_check_this_address">Please check this address on your BitBox</string>
     <string name="nc_bitbox_wrong_device">This BitBox doesn\'t match the selected key. Please connect the correct device.</string>
 
     <!-- Sheet-only: the add-key flow sends these to full dead-end screens (05B / 05C) instead -->

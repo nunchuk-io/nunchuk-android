@@ -132,8 +132,18 @@ class BitBoxController(
          */
         fun onCommandComplete(request: BitBoxRequest)
 
-        /** [request] reached FAILED. [code] drives recovery — see the Confluence error table. */
-        fun onCommandFailed(request: BitBoxRequest, code: BitBoxErrorCode, message: String)
+        /**
+         * [request] reached FAILED. [code] drives recovery — see the Confluence §6 error table.
+         * [deviceCode] is the firmware's own error number, 0 when the failure didn't come from
+         * the device; §6 asks for it alongside the message on the DEVICE_* codes, where the
+         * message alone rarely says which of the device's states was wrong.
+         */
+        fun onCommandFailed(
+            request: BitBoxRequest,
+            code: BitBoxErrorCode,
+            message: String,
+            deviceCode: Int,
+        )
 
         /**
          * A `REBOOT` step: the frames have been written and the device is expected to drop
@@ -715,10 +725,20 @@ class BitBoxController(
             nativeSdk.bitboxSignMessage(id, derivationPath, message)
         }
 
-    fun getWalletAddress(wallet: Wallet, addressIndex: Int, change: Boolean) =
-        startCommand(BitBoxRequest.GET_WALLET_ADDRESS) { id, _ ->
-            nativeSdk.bitboxGetWalletAddress(id, wallet, addressIndex, change)
-        }
+    /**
+     * Confluence §5 `WalletAddressOptions`. [checkOnDevice] is passed explicitly rather than left
+     * to the binding's default: it is what makes the device *display* the address, which is the
+     * entire point of verifying one, and a silently-flipped default would turn verification into
+     * comparing a value the device computed without ever showing the user.
+     */
+    fun getWalletAddress(
+        wallet: Wallet,
+        addressIndex: Int,
+        change: Boolean,
+        checkOnDevice: Boolean = true,
+    ) = startCommand(BitBoxRequest.GET_WALLET_ADDRESS) { id, _ ->
+        nativeSdk.bitboxGetWalletAddress(id, wallet, addressIndex, change, checkOnDevice)
+    }
 
     fun setDeviceName(name: String) = startCommand(BitBoxRequest.SET_DEVICE_NAME) { id, _ ->
         nativeSdk.bitboxSetDeviceName(id, name)
@@ -922,7 +942,7 @@ class BitBoxController(
                 // re-initialize before restarting the operation (Confluence §6).
                 if (code.isSessionLost()) shownPairingCode = null
                 if (request != null) {
-                    listener.onCommandFailed(request, code, message)
+                    listener.onCommandFailed(request, code, message, error?.deviceCode ?: 0)
                 } else {
                     listener.onError(message)
                 }
@@ -1073,6 +1093,16 @@ class BitBoxController(
 fun BitBoxErrorCode.isSessionLost(): Boolean = this == BitBoxErrorCode.SESSION_LOST ||
     this == BitBoxErrorCode.DEVICE_NOISE_ENCRYPT ||
     this == BitBoxErrorCode.DEVICE_NOISE_DECRYPT
+
+/** The user backed out — on the device or on the pairing screen. Not a fault to report. */
+fun BitBoxErrorCode.isUserCancellation(): Boolean =
+    this == BitBoxErrorCode.PAIRING_REJECTED || this == BitBoxErrorCode.USER_ABORT
+
+/** Confluence §6's operation errors — the ones reported with the firmware's own error number. */
+fun BitBoxErrorCode.isOperationError(): Boolean =
+    this == BitBoxErrorCode.DEVICE_INVALID_INPUT ||
+        this == BitBoxErrorCode.DEVICE ||
+        this == BitBoxErrorCode.DEVICE_INVALID_STATE
 
 /** Per-device runtime state + BLE write queue. */
 @Suppress("DEPRECATION")

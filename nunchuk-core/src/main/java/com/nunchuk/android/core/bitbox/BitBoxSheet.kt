@@ -38,6 +38,7 @@ import com.nunchuk.android.core.hardware.HardwareConnectButton
 import com.nunchuk.android.core.hardware.HardwareDeviceScanBody
 import com.nunchuk.android.core.hardware.KeepScreenOn
 import com.nunchuk.android.core.hardware.HardwareTransportKind
+import com.nunchuk.android.core.hardware.HardwareVerifyAddressBox
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.widget.NCToastMessage
 
@@ -179,6 +180,36 @@ fun BitBoxSignPsbtSheet(
 }
 
 /**
+ * BitBox "Show address on device" bottom sheet, shown inline by the host screen (receive
+ * addresses). Connects over BLE/USB in-app, registers [walletId] on the device if it isn't
+ * already, then asks the device to display [address] and compares what it derived.
+ *
+ * [onResult] reports whether the device showed the same address; the sheet dismisses either way,
+ * leaving the host to display success/failure.
+ */
+@Composable
+fun BitBoxVerifyAddressSheet(
+    walletId: String,
+    address: String,
+    onDismiss: () -> Unit,
+    onResult: (isMatch: Boolean) -> Unit,
+) {
+    val action = remember(walletId, address) {
+        BitBoxSheetAction.VerifyAddress(walletId = walletId, address = address)
+    }
+    BitBoxSheet(
+        action = action,
+        onDismiss = onDismiss,
+        onEvent = { event ->
+            if (event is BitBoxSheetEvent.VerifyAddressResult) {
+                onResult(event.isMatch)
+                onDismiss()
+            }
+        },
+    )
+}
+
+/**
  * Shared body of every BitBox sheet: the device picker (or the pairing code, while that answer
  * is outstanding) plus the transport plumbing that only the UI layer can do — runtime
  * permissions, the "turn on Bluetooth" prompt, error toasts.
@@ -273,6 +304,8 @@ private fun BitBoxSheet(
             selectedAddress = state.selectedDeviceId,
             statusText = state.statusText,
             pairingCode = state.pairingCode,
+            // Shown so the user has something to compare the device screen against.
+            verifyAddress = (action as? BitBoxSheetAction.VerifyAddress)?.address,
             connectButtonText = action.connectButtonText,
             onRescan = ensurePermissionThenScan,
             onRefreshUsb = { viewModel.refreshUsb() },
@@ -298,6 +331,7 @@ private fun BitBoxSheetContent(
     selectedAddress: String? = null,
     statusText: String = "",
     pairingCode: String? = null,
+    verifyAddress: String? = null,
     @StringRes connectButtonText: Int = R.string.nc_ledger_connect,
     onRescan: () -> Unit = {},
     onRefreshUsb: () -> Unit = {},
@@ -358,6 +392,15 @@ private fun BitBoxSheetContent(
             usbEmptyRes = R.string.nc_bitbox_usb_empty,
             deviceIconRes = R.drawable.ic_bitbox_hardware,
         )
+        if (verifyAddress != null) {
+            HardwareVerifyAddressBox(
+                modifier = Modifier
+                    .padding(top = 24.dp)
+                    .fillMaxWidth(),
+                address = verifyAddress,
+                labelRes = R.string.nc_bitbox_check_this_address,
+            )
+        }
         HardwareConnectButton(
             modifier = Modifier
                 .padding(top = 24.dp)

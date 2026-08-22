@@ -116,6 +116,12 @@ internal class UnusedAddressViewModel @Inject constructor(
         }
     }
 
+    fun isBitBoxWallet(): Boolean {
+        return _state.value.wallet.signers.any { signer ->
+            signer.tags.contains(SignerTag.BITBOX)
+        }
+    }
+
     fun requestVerifyAddressByTrezor(address: String) {
         val wallet = _state.value.wallet
         if (wallet.id.isBlank() || address.isBlank()) return

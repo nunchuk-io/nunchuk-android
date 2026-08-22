@@ -37,6 +37,7 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.dialog.NcConfirmationDialog
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.domain.data.VerifyAddress
+import com.nunchuk.android.core.bitbox.BitBoxVerifyAddressSheet
 import com.nunchuk.android.core.ledger.LedgerVerifyAddressSheet
 import com.nunchuk.android.core.nfc.BasePortalActivity
 import com.nunchuk.android.core.share.IntentSharingController
@@ -78,8 +79,12 @@ internal class UnusedAddressFragment : BaseFragment<ViewBinding>(),
     private var currentPage = 0
     private var openTrezorSuiteDeeplink: String? by mutableStateOf(null)
 
-    /** Address being shown on a Ledger; non-null while the verify sheet is up. */
+    /**
+     * Address being shown on an in-app hardware device; non-null while that key type's verify
+     * sheet is up. One field each because the sheets drive their own transport.
+     */
     private var ledgerVerifyAddress: String? by mutableStateOf(null)
+    private var bitBoxVerifyAddress: String? by mutableStateOf(null)
 
     @Inject
     lateinit var trezorCallbackHolder: TrezorCallbackHolder
@@ -129,6 +134,15 @@ internal class UnusedAddressFragment : BaseFragment<ViewBinding>(),
                             walletId = args.walletId,
                             address = address,
                             onDismiss = { ledgerVerifyAddress = null },
+                            onResult = ::showAddressVerificationResult,
+                        )
+                    }
+
+                    bitBoxVerifyAddress?.let { address ->
+                        BitBoxVerifyAddressSheet(
+                            walletId = args.walletId,
+                            address = address,
+                            onDismiss = { bitBoxVerifyAddress = null },
                             onResult = ::showAddressVerificationResult,
                         )
                     }
@@ -235,6 +249,7 @@ internal class UnusedAddressFragment : BaseFragment<ViewBinding>(),
                     label = when {
                         viewModel.isTrezorWallet() -> getString(R.string.nc_verify_address_via_trezor_suite)
                         viewModel.isLedgerWallet() -> getString(R.string.nc_verify_address_via_ledger)
+                        viewModel.isBitBoxWallet() -> getString(R.string.nc_verify_address_via_bitbox)
                         else -> getString(R.string.nc_verify_address_via_portal)
                     },
                 )
@@ -263,6 +278,7 @@ internal class UnusedAddressFragment : BaseFragment<ViewBinding>(),
                             viewModel.isTrezorWallet() -> viewModel.requestVerifyAddressByTrezor(address)
                             // The sheet resolves the address index itself, on the device session.
                             viewModel.isLedgerWallet() -> ledgerVerifyAddress = address
+                            viewModel.isBitBoxWallet() -> bitBoxVerifyAddress = address
                             else -> {
                                 val index = viewModel.getAddressIndex(address)
                                 if (index != -1) {

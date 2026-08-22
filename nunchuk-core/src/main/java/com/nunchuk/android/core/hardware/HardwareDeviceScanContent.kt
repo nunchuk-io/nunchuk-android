@@ -8,6 +8,7 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -15,6 +16,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
@@ -32,6 +34,7 @@ import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcRadioButton
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.R
 
@@ -257,6 +260,39 @@ private fun HardwareDeviceRow(
             modifier = Modifier.size(24.dp),
             selected = selected,
             onClick = onClick,
+        )
+    }
+}
+
+/**
+ * The address the device is asked to display, so the user can compare it with the device screen
+ * without leaving the sheet. [labelRes] names the device, which is all that differs between the
+ * Ledger and BitBox sheets.
+ */
+@Composable
+fun HardwareVerifyAddressBox(
+    modifier: Modifier = Modifier,
+    address: String,
+    @StringRes labelRes: Int = R.string.nc_ledger_check_this_address,
+) {
+    Column(
+        modifier = modifier
+            .border(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.strokePrimary,
+                shape = RoundedCornerShape(8.dp),
+            )
+            .padding(12.dp),
+    ) {
+        Text(
+            text = stringResource(id = labelRes),
+            style = NunchukTheme.typography.bodySmall
+                .copy(color = MaterialTheme.colorScheme.textSecondary),
+        )
+        Text(
+            modifier = Modifier.padding(top = 4.dp),
+            text = address,
+            style = NunchukTheme.typography.body,
         )
     }
 }

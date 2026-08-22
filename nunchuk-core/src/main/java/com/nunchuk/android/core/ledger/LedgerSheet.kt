@@ -7,7 +7,6 @@ import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -32,10 +31,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nunchuk.android.core.hardware.HardwareConnectButton
 import com.nunchuk.android.core.hardware.HardwareDeviceScanBody
+import com.nunchuk.android.core.hardware.HardwareVerifyAddressBox
 import com.nunchuk.android.core.hardware.KeepScreenOn
 import com.nunchuk.android.compose.NunchukTheme
-import com.nunchuk.android.compose.strokePrimary
-import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.R
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.widget.NCToastMessage
@@ -379,7 +377,7 @@ private fun LedgerSheetContent(
             onSelectDevice = onSelectDevice,
         )
         if (verifyAddress != null) {
-            LedgerVerifyAddressBox(
+            HardwareVerifyAddressBox(
                 modifier = Modifier
                     .padding(top = 24.dp)
                     .fillMaxWidth(),
@@ -394,37 +392,6 @@ private fun LedgerSheetContent(
             connectButtonText = connectButtonText,
             isBusy = isBusy,
             onConnect = onConnect,
-        )
-    }
-}
-
-/**
- * The address the Ledger is asked to display, so the user can compare it with the device
- * screen without leaving the sheet.
- */
-@Composable
-private fun LedgerVerifyAddressBox(
-    modifier: Modifier = Modifier,
-    address: String,
-) {
-    Column(
-        modifier = modifier
-            .border(
-                width = 1.dp,
-                color = MaterialTheme.colorScheme.strokePrimary,
-                shape = RoundedCornerShape(8.dp),
-            )
-            .padding(12.dp),
-    ) {
-        Text(
-            text = stringResource(id = R.string.nc_ledger_check_this_address),
-            style = NunchukTheme.typography.bodySmall
-                .copy(color = MaterialTheme.colorScheme.textSecondary),
-        )
-        Text(
-            modifier = Modifier.padding(top = 4.dp),
-            text = address,
-            style = NunchukTheme.typography.body,
         )
     }
 }

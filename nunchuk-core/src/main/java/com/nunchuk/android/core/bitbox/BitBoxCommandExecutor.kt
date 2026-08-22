@@ -17,6 +17,8 @@ import kotlin.coroutines.resumeWithException
 class BitBoxCommandException(
     val code: BitBoxErrorCode,
     message: String,
+    /** The firmware's own error number, 0 when the failure didn't come from the device. */
+    val deviceCode: Int = 0,
 ) : Exception(message)
 
 /**
@@ -61,11 +63,16 @@ class BitBoxCommandExecutor(
         take()?.resume(Unit)
     }
 
-    fun deliverFailure(request: BitBoxRequest?, code: BitBoxErrorCode, message: String) {
+    fun deliverFailure(
+        request: BitBoxRequest?,
+        code: BitBoxErrorCode,
+        message: String,
+        deviceCode: Int = 0,
+    ) {
         // A null request is a transport-level failure (onError / onDisconnected): it kills
         // whatever is in flight, whichever command that is.
         if (request != null && request != awaitingRequest) return
-        take()?.resumeWithException(BitBoxCommandException(code, message))
+        take()?.resumeWithException(BitBoxCommandException(code, message, deviceCode))
     }
 
     private fun take(): CancellableContinuation<Unit>? {
@@ -113,6 +120,14 @@ class BitBoxCommandExecutor(
 
     suspend fun signPsbt(wallet: Wallet, psbt: String): String {
         run(BitBoxRequest.SIGN_PSBT) { controller.signPsbt(wallet, psbt) }
+        return controller.resultString()
+    }
+
+    /** Confluence §5: the device displays the address and reports what it derived. */
+    suspend fun getWalletAddress(wallet: Wallet, addressIndex: Int, change: Boolean): String {
+        run(BitBoxRequest.GET_WALLET_ADDRESS) {
+            controller.getWalletAddress(wallet, addressIndex, change)
+        }
         return controller.resultString()
     }
 

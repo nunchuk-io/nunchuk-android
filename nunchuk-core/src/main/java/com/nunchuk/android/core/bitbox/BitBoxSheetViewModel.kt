@@ -5,6 +5,7 @@ import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.R
+import com.nunchuk.android.core.domain.utils.BitBoxAddressVerifier
 import com.nunchuk.android.core.domain.utils.BitBoxTransactionSigner
 import com.nunchuk.android.core.domain.utils.GetBitBoxSignMessagePathUseCase
 import com.nunchuk.android.core.domain.utils.HealthCheckSingleSignerUseCase
@@ -81,6 +82,17 @@ sealed interface BitBoxSheetAction {
     ) : BitBoxSheetAction {
         override val connectButtonText: Int get() = R.string.nc_ledger_sign_transaction
     }
+
+    /**
+     * Confluence "5. Show address on device": register [walletId]'s policy if needed, show
+     * [address] on the device and check the address it derived matches.
+     */
+    data class VerifyAddress(
+        val walletId: String,
+        val address: String,
+    ) : BitBoxSheetAction {
+        override val connectButtonText: Int get() = R.string.nc_verify_address_on_device
+    }
 }
 
 data class BitBoxSheetUiState(
@@ -112,6 +124,9 @@ sealed class BitBoxSheetEvent {
 
     /** A dummy transaction was signed; the host turns [signedPsbt] into a signature. */
     data class SignPsbtSuccess(val signedPsbt: String) : BitBoxSheetEvent()
+
+    /** The device showed the address; [isMatch] is whether it derived the one we display. */
+    data class VerifyAddressResult(val isMatch: Boolean) : BitBoxSheetEvent()
 
     /** Connected BitBox isn't the signer we're signing for — ask for the right device. */
     data object WrongDevice : BitBoxSheetEvent()
@@ -149,6 +164,7 @@ class BitBoxSheetViewModel @Inject constructor(
     private val getBitBoxSignMessagePathUseCase: GetBitBoxSignMessagePathUseCase,
     private val healthCheckSingleSignerUseCase: HealthCheckSingleSignerUseCase,
     private val transactionSigner: BitBoxTransactionSigner,
+    private val addressVerifier: BitBoxAddressVerifier,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(BitBoxSheetUiState())
@@ -159,6 +175,14 @@ class BitBoxSheetViewModel @Inject constructor(
 
     /** The running device conversation, cancelled when the sheet goes away mid-flow. */
     private var actionJob: Job? = null
+
+    /**
+     * The transport dropped, so a lost Noise session can't be rebuilt on it. Distinguishes §6's
+     * two cases: a session lost *while connected* is recoverable by initializing a fresh one,
+     * a session lost *with the device gone* is not.
+     */
+    private var transportLost = false
+
 
     private val listener = object : BitBoxController.Listener {
         override fun onScanResults(devices: List<BitBoxDevice>) = _state.update { state ->
@@ -200,9 +224,10 @@ class BitBoxSheetViewModel @Inject constructor(
             request: BitBoxRequest,
             code: BitBoxErrorCode,
             message: String,
+            deviceCode: Int,
         ) {
             clearPairingCode()
-            executor.deliverFailure(request, code, message)
+            executor.deliverFailure(request, code, message, deviceCode)
         }
 
         override fun onReboot(request: BitBoxRequest) {
@@ -213,6 +238,9 @@ class BitBoxSheetViewModel @Inject constructor(
 
         override fun onDisconnected() {
             clearPairingCode()
+            // No transport left to build a fresh session on, so this is not the retryable kind of
+            // session loss — §6's "after a disconnect, never resume".
+            transportLost = true
             // Nothing resumes across a transport drop, so fail the sequence rather than leaving
             // it suspended on a session that no longer exists.
             failInFlight(BitBoxErrorCode.SESSION_LOST, disconnectedMessage())
@@ -280,6 +308,7 @@ class BitBoxSheetViewModel @Inject constructor(
         // Busy from the tap, not from the first device command: connecting — and over USB the
         // permission prompt — happens first, and until then nothing on screen would move.
         _state.update { it.copy(isBusy = true) }
+        transportLost = false
         controller.connect(device)
         controller.whenReady { runAction(action) }
     }
@@ -298,58 +327,94 @@ class BitBoxSheetViewModel @Inject constructor(
     private fun runAction(action: BitBoxSheetAction) {
         actionJob?.cancel()
         actionJob = viewModelScope.launch {
-            runCatching {
-                val result = executor.initialize()
-                    ?: throw IllegalStateException(
-                        context.getString(R.string.nc_bitbox_initialize_failed)
-                    )
-                when {
-                    result.isAttestationInvalid ->
-                        throw IllegalStateException(
-                            context.getString(R.string.nc_bitbox_attestation_error)
-                        )
-
-                    result.device.firmwareUpgradeRequired || !result.device.initialized ->
-                        throw IllegalStateException(
-                            context.getString(R.string.nc_bitbox_not_ready_error)
-                        )
+            // At most two passes: the second only happens when the first lost its Noise session
+            // while the device was still connected, which §6 says to recover by initializing a
+            // fresh one rather than reporting. Looping here rather than re-entering runAction
+            // keeps it one job — re-entering would cancel the job the retry runs in.
+            var sessionRebuilt = false
+            while (true) {
+                val outcome = runCatching { runSequence(action) }
+                val error = outcome.exceptionOrNull()
+                if (error == null) {
+                    _state.update { it.copy(isBusy = false) }
+                    _event.emit(outcome.getOrThrow())
+                    return@launch
                 }
-                when (action) {
-                    is BitBoxSheetAction.HealthCheck -> runHealthCheck(action)
-                    is BitBoxSheetAction.SignTransaction -> {
-                        transactionSigner.sign(
-                            executor = executor,
-                            walletId = action.walletId,
-                            txId = action.txId,
-                            expectedXfp = action.masterFingerprint,
-                        )
-                        BitBoxSheetEvent.SignTransactionSuccess
-                    }
+                // runCatching catches CancellationException too, and a cancelled sequence is the
+                // sheet being dismissed mid-conversation — not something to report or retry.
+                if (error is CancellationException) throw error
 
-                    is BitBoxSheetAction.SignPsbt -> BitBoxSheetEvent.SignPsbtSuccess(
-                        transactionSigner.signPsbt(
-                            executor = executor,
-                            walletId = action.walletId,
-                            psbt = action.psbt,
-                            expectedXfp = action.masterFingerprint,
-                        )
-                    )
-
-                    is BitBoxSheetAction.SignPsbtWithWallet -> BitBoxSheetEvent.SignPsbtSuccess(
-                        transactionSigner.signPsbt(
-                            executor = executor,
-                            wallet = action.wallet,
-                            psbt = action.psbt,
-                            expectedXfp = action.masterFingerprint,
-                        )
-                    )
+                val recoverable = error is BitBoxCommandException && error.code.isSessionLost() &&
+                    !transportLost && !sessionRebuilt
+                if (!recoverable) {
+                    reportFailure(error)
+                    return@launch
                 }
-            }.onSuccess { outcome ->
-                _state.update { it.copy(isBusy = false) }
-                _event.emit(outcome)
-            }.onFailure { e ->
-                reportFailure(e)
+                sessionRebuilt = true
+                setStatus(context.getString(R.string.nc_bitbox_reconnecting))
             }
+        }
+    }
+
+    /**
+     * One pass of the device conversation for [action], as the sequence Confluence describes.
+     * Every BitBox session opens with `initialize()`, and its result is the readiness gate — a
+     * device that isn't genuine, isn't set up, or is on unusable firmware is never asked for
+     * anything. Re-running this is what §6's "initialize a fresh session and restart the
+     * operation" amounts to, since `initialize()` replaces the native session outright.
+     */
+    private suspend fun runSequence(action: BitBoxSheetAction): BitBoxSheetEvent {
+        val result = executor.initialize()
+            ?: throw IllegalStateException(context.getString(R.string.nc_bitbox_initialize_failed))
+        when {
+            result.isAttestationInvalid ->
+                throw IllegalStateException(
+                    context.getString(R.string.nc_bitbox_attestation_error)
+                )
+
+            result.device.firmwareUpgradeRequired || !result.device.initialized ->
+                throw IllegalStateException(
+                    context.getString(R.string.nc_bitbox_not_ready_error)
+                )
+        }
+        return when (action) {
+            is BitBoxSheetAction.HealthCheck -> runHealthCheck(action)
+
+            is BitBoxSheetAction.SignTransaction -> {
+                transactionSigner.sign(
+                    executor = executor,
+                    walletId = action.walletId,
+                    txId = action.txId,
+                    expectedXfp = action.masterFingerprint,
+                )
+                BitBoxSheetEvent.SignTransactionSuccess
+            }
+
+            is BitBoxSheetAction.SignPsbt -> BitBoxSheetEvent.SignPsbtSuccess(
+                transactionSigner.signPsbt(
+                    executor = executor,
+                    walletId = action.walletId,
+                    psbt = action.psbt,
+                    expectedXfp = action.masterFingerprint,
+                )
+            )
+
+            is BitBoxSheetAction.SignPsbtWithWallet -> BitBoxSheetEvent.SignPsbtSuccess(
+                transactionSigner.signPsbt(
+                    executor = executor,
+                    wallet = action.wallet,
+                    psbt = action.psbt,
+                    expectedXfp = action.masterFingerprint,
+                )
+            )
+
+            is BitBoxSheetAction.VerifyAddress -> BitBoxSheetEvent.VerifyAddressResult(
+                addressVerifier.verify(
+                    executor = executor,
+                    walletId = action.walletId,
+                    address = action.address,
+                )
+            )
         }
     }
 
@@ -397,10 +462,12 @@ class BitBoxSheetViewModel @Inject constructor(
      * event: a health check whose device never signed hasn't produced a verdict, and reporting
      * one would record "not set up" as a *failed* key.
      */
+    /**
+     * The Confluence §6 error table, as it applies to a sheet: pick the message the user can act
+     * on. The one case that isn't a message — a recoverable lost session — is handled by
+     * [runAction] before this is reached.
+     */
     private suspend fun reportFailure(e: Throwable) {
-        // runCatching catches CancellationException too, and a cancelled sequence is the sheet
-        // being dismissed mid-conversation — not something to report.
-        if (e is CancellationException) throw e
         _state.update { it.copy(isBusy = false) }
         when {
             // The user said the codes don't match, or declined on the device — they know what
@@ -409,15 +476,41 @@ class BitBoxSheetViewModel @Inject constructor(
 
             e is BitBoxWrongDeviceException -> _event.emit(BitBoxSheetEvent.WrongDevice)
 
-            // Nunchuk can't prepare the device any more; the add-key flow sends these to a
-            // hand-off screen, which a sheet has no room for.
-            e is BitBoxCommandException && e.code.isDeviceNotReady() -> _event.emit(
-                BitBoxSheetEvent.Error(context.getString(R.string.nc_bitbox_not_ready_error))
-            )
+            // Nunchuk can't set the device up any more; the add-key flow sends this to a hand-off
+            // screen, which a sheet has no room for.
+            e is BitBoxCommandException && e.code == BitBoxErrorCode.DEVICE_UNINITIALIZED ->
+                _event.emit(
+                    BitBoxSheetEvent.Error(context.getString(R.string.nc_bitbox_not_ready_error))
+                )
+
+            // §6 wants the firmware's own message here: "unsupported" covers both too old and too
+            // new, and only the message says which.
+            e is BitBoxCommandException && e.code == BitBoxErrorCode.UNSUPPORTED_FIRMWARE ->
+                _event.emit(
+                    BitBoxSheetEvent.Error(
+                        context.getString(
+                            R.string.nc_bitbox_firmware_error,
+                            e.message.orUnknownError(),
+                        )
+                    )
+                )
 
             e is BitBoxCommandException && e.code == BitBoxErrorCode.ATTESTATION -> _event.emit(
                 BitBoxSheetEvent.Error(context.getString(R.string.nc_bitbox_attestation_error))
             )
+
+            // §6's operation errors: the message alone rarely says which device state was wrong,
+            // so the firmware's own error number goes with it.
+            e is BitBoxCommandException && e.code.isOperationError() && e.deviceCode != 0 ->
+                _event.emit(
+                    BitBoxSheetEvent.Error(
+                        context.getString(
+                            R.string.nc_bitbox_device_error,
+                            e.message.orUnknownError(),
+                            e.deviceCode,
+                        )
+                    )
+                )
 
             else -> _event.emit(BitBoxSheetEvent.Error(e.message.orUnknownError()))
         }
@@ -471,11 +564,3 @@ class BitBoxSheetViewModel @Inject constructor(
         private const val HEALTH_CHECK_MESSAGE = "Run health check"
     }
 }
-
-/** The user backed out — on the device or on the pairing screen. Not worth reporting as an error. */
-private fun BitBoxErrorCode.isUserCancellation(): Boolean =
-    this == BitBoxErrorCode.PAIRING_REJECTED || this == BitBoxErrorCode.USER_ABORT
-
-/** Nunchuk cannot prepare the device any further; it has to be finished in BitBoxApp. */
-private fun BitBoxErrorCode.isDeviceNotReady(): Boolean =
-    this == BitBoxErrorCode.DEVICE_UNINITIALIZED || this == BitBoxErrorCode.UNSUPPORTED_FIRMWARE

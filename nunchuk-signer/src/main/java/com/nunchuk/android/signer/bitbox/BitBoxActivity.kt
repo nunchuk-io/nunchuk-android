@@ -26,7 +26,9 @@ import com.nunchuk.android.core.base.BaseComposeActivity
 import com.nunchuk.android.core.bitbox.BitBoxController
 import com.nunchuk.android.core.bitbox.BitBoxDevice
 import com.nunchuk.android.core.bitbox.BitBoxRequest
+import com.nunchuk.android.core.bitbox.isOperationError
 import com.nunchuk.android.core.bitbox.isSessionLost
+import com.nunchuk.android.core.bitbox.isUserCancellation
 import com.nunchuk.android.core.bitbox.statusText
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.share.result.GlobalResultKey
@@ -95,6 +97,12 @@ class BitBoxActivity : BaseComposeActivity() {
     private val controller: BitBoxController by lazy {
         BitBoxController(this, nativeSdk, deviceListener)
     }
+
+    /**
+     * Whether this connection has already had its Noise session rebuilt once. Reset on connect,
+     * so a device that keeps losing its session reports instead of looping.
+     */
+    private var sessionRebuilt = false
 
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -186,20 +194,51 @@ class BitBoxActivity : BaseComposeActivity() {
             }
         }
 
-        override fun onCommandFailed(request: BitBoxRequest, code: BitBoxErrorCode, message: String) {
+        override fun onCommandFailed(
+            request: BitBoxRequest,
+            code: BitBoxErrorCode,
+            message: String,
+            deviceCode: Int,
+        ) {
             viewModel.setScanning(false)
             when {
+                // Confluence §6: a lost Noise session is rebuilt rather than reported — the
+                // transport is still up, and initialize() replaces the native session. Capped at
+                // one attempt per connection so a device failing this way can't spin.
+                code.isSessionLost() && !sessionRebuilt -> {
+                    sessionRebuilt = true
+                    viewModel.setStatus(getString(com.nunchuk.android.core.R.string.nc_bitbox_reconnecting))
+                    // initialize() builds a brand-new native session over the transport that is
+                    // still connected, and its result restarts the add-key chain from the top —
+                    // which is what §6's "restart the operation" amounts to here.
+                    controller.initialize()
+                }
+
                 // The user said the codes don't match, or declined on the device — not an error
                 // worth a toast, just drop back to the picker.
-                code == BitBoxErrorCode.PAIRING_REJECTED || code == BitBoxErrorCode.USER_ABORT ->
-                    viewModel.setProcessing(false)
+                code.isUserCancellation() -> viewModel.setProcessing(false)
 
                 // Nunchuk can't prepare the device any more, so route these to the hand-off
                 // screen rather than showing a raw protocol message.
-                code == BitBoxErrorCode.DEVICE_UNINITIALIZED ||
-                    code == BitBoxErrorCode.UNSUPPORTED_FIRMWARE -> viewModel.onDeviceNotReady()
+                code == BitBoxErrorCode.DEVICE_UNINITIALIZED -> viewModel.onDeviceNotReady()
 
                 code == BitBoxErrorCode.ATTESTATION -> viewModel.onAttestationInvalid()
+
+                // §6 wants the firmware's own message: "unsupported" covers both too old and
+                // too new, and only the message says which.
+                code == BitBoxErrorCode.UNSUPPORTED_FIRMWARE -> viewModel.onError(
+                    getString(com.nunchuk.android.core.R.string.nc_bitbox_firmware_error, message)
+                )
+
+                // §6's operation errors: the message alone rarely says which device state was
+                // wrong, so the firmware's own error number goes with it.
+                code.isOperationError() && deviceCode != 0 -> viewModel.onError(
+                    getString(
+                        com.nunchuk.android.core.R.string.nc_bitbox_device_error,
+                        message,
+                        deviceCode,
+                    )
+                )
 
                 else -> viewModel.onError(message)
             }
@@ -397,6 +436,7 @@ class BitBoxActivity : BaseComposeActivity() {
                         onConnect = {
                             val device = state.selectedDevice ?: return@bitBoxDeviceScan
                             viewModel.setProcessing(true)
+                            sessionRebuilt = false
                             controller.connect(device)
                             // Every BitBox session opens with initialize(); the result decides
                             // whether the device is usable at all.

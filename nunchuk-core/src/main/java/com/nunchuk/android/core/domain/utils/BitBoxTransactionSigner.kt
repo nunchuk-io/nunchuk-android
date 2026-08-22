@@ -41,12 +41,14 @@ import javax.inject.Inject
  * Steps:
  *  1. Read the connected device's fingerprint and confirm it is the key being signed with —
  *     unlike add-key, signing targets a specific signer, not whatever device is connected.
- *  2. Register the wallet policy on the device if it doesn't already have it.
+ *  2. Register the wallet policy on the device if it doesn't already have it
+ *     ([BitBoxWalletRegistrar]).
  *  3. Sign the PSBT and return it.
  */
 class BitBoxTransactionSigner @Inject constructor(
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val nativeSdk: NunchukNativeSdk,
+    private val walletRegistrar: BitBoxWalletRegistrar,
     private val importPsbtUseCase: ImportPsbtUseCase,
 ) {
     /**
@@ -125,30 +127,13 @@ class BitBoxTransactionSigner @Inject constructor(
         )
         require(psbt.isNotBlank()) { "Transaction has no PSBT to sign" }
 
-        // The policy name is shown on the device and has to be there: a wallet parsed from a BSMS
-        // has no name, since the format doesn't carry one.
-        val policyWallet = if (wallet.name.isBlank()) {
-            wallet.copy(name = DEFAULT_POLICY_NAME)
-        } else {
-            wallet
+        walletRegistrar.withRegisteredWallet(executor, wallet) { policyWallet ->
+            executor.signPsbt(policyWallet, psbt)
+                .also { Timber.tag(TAG).d("signed psbt length=${it.length}") }
         }
-
-        // Confluence §3: ask first, register only if the device doesn't already know the policy —
-        // registering is a user-confirmed step on the device, so re-doing it every sign would put
-        // an extra approval in front of every transaction.
-        if (!executor.isWalletRegistered(policyWallet)) {
-            Timber.tag(TAG).d("wallet not registered; registering policy")
-            executor.registerWallet(policyWallet)
-        }
-
-        executor.signPsbt(policyWallet, psbt)
-            .also { Timber.tag(TAG).d("signed psbt length=${it.length}") }
     }
 
     private companion object {
         private const val TAG = "BitBoxSign"
-
-        /** Wallet policy name registered on the device when the wallet itself has none. */
-        private const val DEFAULT_POLICY_NAME = "Nunchuk"
     }
 }
