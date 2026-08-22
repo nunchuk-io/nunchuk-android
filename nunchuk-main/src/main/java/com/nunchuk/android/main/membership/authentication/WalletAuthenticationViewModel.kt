@@ -636,6 +636,16 @@ class WalletAuthenticationViewModel @Inject constructor(
         handleSignatureResult(result, singleSigner)
     }
 
+    /**
+     * "Import signature" from the more menu signs without picking a key first, so remember whoever
+     * the imported PSBT turned out to be signed by: the health check success message names it.
+     */
+    private fun rememberInteractSignerIfNeeded(singleSigner: SingleSigner) {
+        if (_state.value.interactSingleSigner != null) return
+        savedStateHandle[EXTRA_CURRENT_INTERACT_SIGNER] = singleSigner
+        _state.update { it.copy(interactSingleSigner = singleSigner) }
+    }
+
     fun handleImportAirgapTransaction(transaction: Transaction) {
         viewModelScope.launch {
             val signatures = _state.value.signatures
@@ -671,6 +681,7 @@ class WalletAuthenticationViewModel @Inject constructor(
                     return@launch
                 }
                 validSignatures.forEach {
+                    rememberInteractSignerIfNeeded(it)
                     handleSignatureResult(
                         getDummyTransactionSignatureUseCase(
                             GetDummyTransactionSignatureUseCase.Param(

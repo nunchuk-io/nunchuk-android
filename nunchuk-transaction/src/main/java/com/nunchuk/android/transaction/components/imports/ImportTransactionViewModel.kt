@@ -24,6 +24,7 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.domain.ParseQRCodeFromPhotoUseCase
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.share.model.SignFlowType
 import com.nunchuk.android.transaction.components.imports.ImportTransactionEvent.ImportTransactionSuccess
 import com.nunchuk.android.usecase.ImportKeystoneTransactionUseCase
@@ -104,15 +105,6 @@ internal class ImportTransactionViewModel @Inject constructor(
 
     private suspend fun parseDummyTransaction() {
         when (args.signFlowType) {
-            is SignFlowType.SignInDummy, is SignFlowType.NormalDummy -> {
-                parseKeystoneDummyTransactionSignIn(
-                    ParseKeystoneDummyTransactionSignIn.Param(
-                        qrDataList.toList()
-                    )
-                ).onSuccess {
-                    setEvent(ImportTransactionSuccess(it))
-                }
-            }
             is SignFlowType.ClaimDummy -> {
                 extractColdcardMessageSignatureFromQrUseCase(
                     qrDataList.toList()
@@ -120,13 +112,9 @@ internal class ImportTransactionViewModel @Inject constructor(
                     setEvent(ImportTransactionSuccess(signature = it))
                 }
             }
+
             else -> {
-                parseKeystoneDummyTransaction(
-                    ParseKeystoneDummyTransaction.Param(
-                        args.walletId,
-                        qrDataList.toList()
-                    )
-                ).onSuccess {
+                parseDummyTransactionPsbt().onSuccess {
                     setEvent(ImportTransactionSuccess(it))
                 }
             }
@@ -135,6 +123,31 @@ internal class ImportTransactionViewModel @Inject constructor(
                 setEvent(ImportTransactionEvent.ImportTransactionError("Invalid or unreadable QR code. Please try again."))
             }
         }
+    }
+
+    /**
+     * A dummy tx has to be decoded against the wallet it belongs to whenever we have one: signers
+     * that strip the redundant PSBT metadata (SeedSigner, Krux) leave nothing to attribute the
+     * partial signature to, so decoding without the wallet reports no signature at all ("No new
+     * signatures detected"). The wallet-less decode stays for the flows that genuinely have no
+     * local wallet — sign-in via digital signature and inheritance claim — and as a fallback when
+     * the wallet cannot be loaded.
+     */
+    private suspend fun parseDummyTransactionPsbt(): Result<Transaction> {
+        val qrs = qrDataList.toList()
+        if (args.signFlowType !is SignFlowType.SignInDummy && args.walletId.isNotEmpty()) {
+            val result = parseKeystoneDummyTransaction(
+                ParseKeystoneDummyTransaction.Param(args.walletId, qrs)
+            )
+            if (result.isSuccess) return result
+            Timber.e(
+                result.exceptionOrNull(),
+                "Decode dummy tx with wallet ${args.walletId} failed, fallback to wallet-less decode"
+            )
+        }
+        return parseKeystoneDummyTransactionSignIn(
+            ParseKeystoneDummyTransactionSignIn.Param(qrs)
+        )
     }
 
     private suspend fun parseNormalTransaction() {
