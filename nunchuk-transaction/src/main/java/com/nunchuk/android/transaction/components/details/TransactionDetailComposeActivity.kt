@@ -19,6 +19,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.dialog.NcConfirmationDialog
+import com.nunchuk.android.core.bitbox.BitBoxSignTransactionSheet
 import com.nunchuk.android.core.domain.data.SignTransaction
 import com.nunchuk.android.core.ledger.LedgerSignTransactionSheet
 import com.nunchuk.android.core.manager.NcToastManager
@@ -106,8 +107,13 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
     private var shouldReload: Boolean = true
     private var openTrezorSuiteDeeplink: String? by mutableStateOf(null)
 
-    /** Fingerprint of the Ledger the user tapped "Sign" for; non-null shows the sign sheet. */
+    /**
+     * Fingerprint of the in-app hardware key the user tapped "Sign" for; non-null shows that key
+     * type's sign sheet. One field each because the sheets drive their own transport, and only
+     * one can be up at a time.
+     */
     private var ledgerSignFingerprint: String? by mutableStateOf(null)
+    private var bitBoxSignFingerprint: String? by mutableStateOf(null)
 
     @Inject
     lateinit var trezorCallbackHolder: TrezorCallbackHolder
@@ -220,6 +226,9 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
                                 viewModel.isLedgerSigner(signer) ->
                                     ledgerSignFingerprint = signer.fingerPrint
 
+                                viewModel.isBitBoxSigner(signer) ->
+                                    bitBoxSignFingerprint = signer.fingerPrint
+
                                 else -> showError(getString(R.string.nc_use_desktop_app_to_sign))
                             }
 
@@ -287,16 +296,27 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
                     )
                 }
 
-                // The Ledger sheet signs + imports the PSBT itself; on success just let the
-                // ViewModel refresh and report it like any other signer, so the success message
-                // is decided in one place (showSignTransactionSuccess) instead of twice.
+                // The Ledger and BitBox sheets sign + import the PSBT themselves; on success
+                // just let the ViewModel refresh and report it like any other signer, so the
+                // success message is decided in one place (showSignTransactionSuccess) instead
+                // of once per key type.
                 ledgerSignFingerprint?.let { fingerprint ->
                     LedgerSignTransactionSheet(
                         walletId = args.walletId,
                         txId = args.txId,
                         masterFingerprint = fingerprint,
                         onDismiss = { ledgerSignFingerprint = null },
-                        onSignSuccess = viewModel::handleSignLedgerSuccess,
+                        onSignSuccess = viewModel::handleHardwareSignSuccess,
+                    )
+                }
+
+                bitBoxSignFingerprint?.let { fingerprint ->
+                    BitBoxSignTransactionSheet(
+                        walletId = args.walletId,
+                        txId = args.txId,
+                        masterFingerprint = fingerprint,
+                        onDismiss = { bitBoxSignFingerprint = null },
+                        onSignSuccess = viewModel::handleHardwareSignSuccess,
                     )
                 }
             }

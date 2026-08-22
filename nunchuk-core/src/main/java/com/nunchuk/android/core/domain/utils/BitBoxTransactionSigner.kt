@@ -22,8 +22,10 @@ package com.nunchuk.android.core.domain.utils
 import com.nunchuk.android.core.bitbox.BitBoxCommandExecutor
 import com.nunchuk.android.core.bitbox.BitBoxWrongDeviceException
 import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.nativelib.NunchukNativeSdk
+import com.nunchuk.android.usecase.transaction.ImportPsbtUseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -45,7 +47,39 @@ import javax.inject.Inject
 class BitBoxTransactionSigner @Inject constructor(
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val nativeSdk: NunchukNativeSdk,
+    private val importPsbtUseCase: ImportPsbtUseCase,
 ) {
+    /**
+     * The three steps above for a real wallet transaction, plus importing the signed PSBT back
+     * into the wallet — unlike a dummy transaction, whose signature the caller extracts itself.
+     *
+     * @param executor a connected BitBox session for the device the user picked.
+     * @param walletId the wallet whose pending transaction is being signed.
+     * @param txId the pending transaction to sign.
+     * @param expectedXfp master fingerprint of the signer the user tapped "Sign" for.
+     * @throws BitBoxWrongDeviceException if the connected device is not [expectedXfp].
+     */
+    suspend fun sign(
+        executor: BitBoxCommandExecutor,
+        walletId: String,
+        txId: String,
+        expectedXfp: String,
+    ): Transaction = withContext(ioDispatcher) {
+        Timber.tag(TAG).d("sign start walletId=$walletId txId=$txId expectedXfp=$expectedXfp")
+        val psbt = nativeSdk.getTransaction(walletId = walletId, txId = txId).psbt
+        val signedPsbt = signPsbt(
+            executor = executor,
+            walletId = walletId,
+            psbt = psbt,
+            expectedXfp = expectedXfp,
+        )
+
+        Timber.tag(TAG).d("importing signed psbt")
+        importPsbtUseCase(ImportPsbtUseCase.Param(psbt = signedPsbt, walletId = walletId))
+            .getOrThrow()
+            .also { Timber.tag(TAG).d("import done; tx status=${it.status} signers=${it.signers}") }
+    }
+
     /**
      * @param executor a connected BitBox session for the device the user picked.
      * @param walletId wallet whose policy the device signs under, loaded from local storage.

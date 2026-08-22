@@ -80,6 +80,40 @@ fun BitBoxHealthCheckSheet(
 }
 
 /**
+ * BitBox "Sign transaction" bottom sheet, shown inline by the host screen (transaction detail).
+ * Connects over BLE/USB in-app, verifies the device is [masterFingerprint], then
+ * registers-if-needed + signs [txId] in [walletId] and imports the signed PSBT.
+ *
+ * [onSignSuccess] fires once the signed PSBT is imported so the host can refresh.
+ */
+@Composable
+fun BitBoxSignTransactionSheet(
+    walletId: String,
+    txId: String,
+    masterFingerprint: String,
+    onDismiss: () -> Unit,
+    onSignSuccess: () -> Unit,
+) {
+    val action = remember(walletId, txId, masterFingerprint) {
+        BitBoxSheetAction.SignTransaction(
+            walletId = walletId,
+            txId = txId,
+            masterFingerprint = masterFingerprint,
+        )
+    }
+    BitBoxSheet(
+        action = action,
+        onDismiss = onDismiss,
+        onEvent = { event ->
+            if (event is BitBoxSheetEvent.SignTransactionSuccess) {
+                onSignSuccess()
+                onDismiss()
+            }
+        },
+    )
+}
+
+/**
  * BitBox "Sign transaction" bottom sheet for a dummy transaction, shown inline by the host screen
  * (dummy transaction details, membership sign-message check). Connects over BLE/USB in-app,
  * verifies the device is [masterFingerprint], registers [walletId]'s policy if the device doesn't

@@ -126,10 +126,11 @@ the BLE/USB controller lives in `nunchuk-core`, and the flow runs end to end fro
 wired at every dispatcher — off-chain personal, off-chain group, replace, and on-chain timelock
 all pair BitBox in-app instead of handing off to the desktop app. Phase 3 has started: the
 health check (3.7) runs in-app off the new BitBox sheet and is **confirmed working on a real
-BitBox02**, and dummy-transaction signing (3.1, 3.2, 3.4–3.6) is wired — membership dummy tx,
-sign-in via digital signature, and the membership sign-message check all sign in-app. Still open:
-signing a real wallet transaction (3.3), verify-address-on-device (3.8) and sign message (3.9).
-Dummy-tx signing is **not yet exercised on hardware**.
+BitBox02**, and signing is wired everywhere it matters (3.1–3.6) — a wallet transaction, the
+membership dummy tx, sign-in via digital signature, and the membership sign-message check all
+sign in-app. Still open:
+verify-address-on-device (3.8) and sign message (3.9). Transaction signing — dummy and real —
+is **not yet exercised on hardware**.
 
 ### Picking this up
 
@@ -328,7 +329,7 @@ All three dispatchers are separate `when`s over type/tag — each needs its own 
 |---|---|---|---|
 | 3.1 | `BitBoxSheet.kt` + `BitBoxSheetViewModel` (mirror `LedgerSheet.kt` / `LedgerSheetViewModel`) | `nunchuk-core/.../bitbox/` | ✅ health check + sign PSBT |
 | 3.2 | Register-wallet-before-sign; `isWalletRegistered` gate (BitBox self-reports, no HMAC cache needed unlike Ledger) | `BitBoxTransactionSigner` | ✅ |
-| 3.3 | **Normal tx**: `isLedger` sibling | `TransactionDetailsViewModel.kt`, `TransactionDetailComposeActivity.kt` | ⬜ |
+| 3.3 | **Normal tx**: `isLedger` sibling | `TransactionDetailsViewModel.kt`, `TransactionDetailComposeActivity.kt` | ✅ |
 | 3.4 | **Dummy tx**: `isLedger` sibling → `GetDummyTransactionSignatureUseCase` | `WalletAuthenticationViewModel.kt`, `DummyTransactionDetailsFragment.kt` | ✅ |
 | 3.5 | **Sign-in BSMS**: same dispatcher as 3.4 with `args.walletId` blank — must not key off a local wallet | `WalletAuthenticationViewModel` (`isSignInSignatureFlow`) | ✅ |
 | 3.6 | Membership `CheckSignMessageFragment` sheet | `CheckSignMessageFragment.kt` | ✅ |
@@ -422,6 +423,42 @@ the health check, because a hung sequence looks identical to a slow device:
   cancelled sequence is the user closing the sheet, not a failure
 - declining pairing or aborting on the device releases the button silently; only a real fault
   reports
+
+#### 3.3 Signing a wallet transaction
+
+The same §3 conversation as the dummy tx, plus the step a real transaction needs and a dummy one
+doesn't: `BitBoxTransactionSigner.sign` reads the PSBT off the pending transaction, signs it, and
+**imports the signed PSBT back into the wallet** — where a dummy tx hands its PSBT to the caller
+to extract a signature from.
+
+`TransactionDetailComposeActivity` keeps one fingerprint field per key type, because each sheet
+drives its own transport and only one can be up at a time. Success is deliberately *not* reported
+by the sheet: both sheets call `handleHardwareSignSuccess` (renamed from `handleSignLedgerSuccess`
+now that two key types share it), which reloads the transaction and emits the same
+`SignTransactionSuccess` every other signer emits — so the success message stays decided in one
+place rather than once per key type.
+
+#### Screen timeout during signing
+
+`KeepScreenOn()` (`nunchuk-core/.../hardware/`) is held for the lifetime of the Ledger and BitBox
+sheets. A device conversation is minutes of reading a pairing code and approving on the device,
+with nothing to touch on the phone, so the display times out under it — which can disturb the BLE
+link and, worse, drops the sign result.
+
+The result is dropped because everything downstream of a signed PSBT reports through one-shot
+events on a no-replay `MutableSharedFlow`, and every collector on that flow is gated at `STARTED`
+(both dummy-tx fragments and `WalletAuthenticationActivity`). With the screen off there are no
+subscribers, so `emit` returns immediately and the value is discarded; on resume there is nothing
+to replay. The upload paths write state before emitting, which is why the screen comes back
+half-updated rather than frozen — the signature count is right, but `SignDummyTxSuccess` /
+`UploadSignatureSuccess` are gone and the key still reads as unsigned.
+
+**Still open:** an outcome landing while the app is *backgrounded* is lost the same way. Fixing
+that means making the shared event bus durable, and that bus also feeds TapSigner, Coldcard,
+Portal, Trezor and software keys. Related, in shared code: `handleSignatureResult`'s
+non-dummy-tx / non-sign-in branch puts the **final** signature only in `SignDummyTxSuccess` and
+never in state, unlike the non-final branch — so dropping that event drops the signature itself,
+not just the navigation.
 
 #### Open bug — "Sign message" is reachable for BitBox and broken (3.9)
 

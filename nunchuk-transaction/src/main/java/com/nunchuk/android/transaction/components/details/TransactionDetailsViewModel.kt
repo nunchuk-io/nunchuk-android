@@ -785,6 +785,10 @@ internal class TransactionDetailsViewModel @Inject constructor(
         return signer.type == SignerType.HARDWARE && signer.tags.contains(SignerTag.LEDGER)
     }
 
+    fun isBitBoxSigner(signer: SignerModel): Boolean {
+        return signer.type == SignerType.HARDWARE && signer.tags.contains(SignerTag.BITBOX)
+    }
+
     fun requestSignTransactionByTrezor() {
         val signer = currentSigner() ?: return
         val wallet = getState().wallet
@@ -1430,11 +1434,11 @@ internal class TransactionDetailsViewModel @Inject constructor(
     }
 
     /**
-     * The Ledger sheet signs and imports the PSBT itself, so there is nothing left to import here
-     * — reload the transaction and report success through the same event as the other signer
-     * flows, so the success messaging stays in one place (the host screen).
+     * The Ledger and BitBox sheets sign and import the PSBT themselves, so there is nothing left
+     * to import here — reload the transaction and report success through the same event as the
+     * other signer flows, so the success messaging stays in one place (the host screen).
      */
-    fun handleSignLedgerSuccess() {
+    fun handleHardwareSignSuccess() {
         getTransactionInfo()
         viewModelScope.launch {
             _event.emit(SignTransactionSuccess())

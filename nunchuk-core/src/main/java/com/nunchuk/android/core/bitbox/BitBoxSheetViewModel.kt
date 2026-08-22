@@ -46,9 +46,21 @@ sealed interface BitBoxSheetAction {
     }
 
     /**
-     * Confluence "3. Sign transaction" for a PSBT that isn't a wallet transaction — a dummy
-     * transaction: register [walletId]'s policy if needed, sign [psbt], and hand the signed PSBT
-     * back for the caller to extract a signature from rather than importing it.
+     * Confluence "3. Sign transaction": verify the device, register [walletId]'s policy if the
+     * device doesn't already have it, then sign [txId] and import the signed PSBT.
+     */
+    data class SignTransaction(
+        val walletId: String,
+        val txId: String,
+        val masterFingerprint: String,
+    ) : BitBoxSheetAction {
+        override val connectButtonText: Int get() = R.string.nc_ledger_sign_transaction
+    }
+
+    /**
+     * Same device conversation as [SignTransaction] for a PSBT that isn't a wallet transaction —
+     * a dummy transaction: sign [psbt] under [walletId]'s policy and hand the signed PSBT back
+     * for the caller to extract a signature from rather than importing it.
      */
     data class SignPsbt(
         val walletId: String,
@@ -94,6 +106,9 @@ sealed class BitBoxSheetEvent {
         val isSuccess: Boolean,
         val errorMessage: String? = null,
     ) : BitBoxSheetEvent()
+
+    /** The signed PSBT was imported into the wallet; the host should refresh and dismiss. */
+    data object SignTransactionSuccess : BitBoxSheetEvent()
 
     /** A dummy transaction was signed; the host turns [signedPsbt] into a signature. */
     data class SignPsbtSuccess(val signedPsbt: String) : BitBoxSheetEvent()
@@ -301,6 +316,16 @@ class BitBoxSheetViewModel @Inject constructor(
                 }
                 when (action) {
                     is BitBoxSheetAction.HealthCheck -> runHealthCheck(action)
+                    is BitBoxSheetAction.SignTransaction -> {
+                        transactionSigner.sign(
+                            executor = executor,
+                            walletId = action.walletId,
+                            txId = action.txId,
+                            expectedXfp = action.masterFingerprint,
+                        )
+                        BitBoxSheetEvent.SignTransactionSuccess
+                    }
+
                     is BitBoxSheetAction.SignPsbt -> BitBoxSheetEvent.SignPsbtSuccess(
                         transactionSigner.signPsbt(
                             executor = executor,
