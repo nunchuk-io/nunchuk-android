@@ -126,8 +126,10 @@ the BLE/USB controller lives in `nunchuk-core`, and the flow runs end to end fro
 wired at every dispatcher — off-chain personal, off-chain group, replace, and on-chain timelock
 all pair BitBox in-app instead of handing off to the desktop app. Phase 3 has started: the
 health check (3.7) runs in-app off the new BitBox sheet and is **confirmed working on a real
-BitBox02**. Transaction signing (3.3–3.6) is still open, so an assisted BitBox key can be added
-and health-checked but not yet used to sign.
+BitBox02**, and dummy-transaction signing (3.1, 3.2, 3.4–3.6) is wired — membership dummy tx,
+sign-in via digital signature, and the membership sign-message check all sign in-app. Still open:
+signing a real wallet transaction (3.3), verify-address-on-device (3.8) and sign message (3.9).
+Dummy-tx signing is **not yet exercised on hardware**.
 
 ### Picking this up
 
@@ -324,12 +326,12 @@ All three dispatchers are separate `when`s over type/tag — each needs its own 
 
 | # | Task | File | State |
 |---|---|---|---|
-| 3.1 | `BitBoxSheet.kt` + `BitBoxSheetViewModel` (mirror `LedgerSheet.kt` / `LedgerSheetViewModel`) | `nunchuk-core/.../bitbox/` | 🟡 built, health-check action only |
-| 3.2 | Register-wallet-before-sign; `isWalletRegistered` gate (BitBox self-reports, no HMAC cache needed unlike Ledger) | — | ⬜ |
+| 3.1 | `BitBoxSheet.kt` + `BitBoxSheetViewModel` (mirror `LedgerSheet.kt` / `LedgerSheetViewModel`) | `nunchuk-core/.../bitbox/` | ✅ health check + sign PSBT |
+| 3.2 | Register-wallet-before-sign; `isWalletRegistered` gate (BitBox self-reports, no HMAC cache needed unlike Ledger) | `BitBoxTransactionSigner` | ✅ |
 | 3.3 | **Normal tx**: `isLedger` sibling | `TransactionDetailsViewModel.kt`, `TransactionDetailComposeActivity.kt` | ⬜ |
-| 3.4 | **Dummy tx**: `isLedger` sibling → `GetDummyTransactionSignatureUseCase` | `WalletAuthenticationViewModel.kt`, `DummyTransactionDetailsFragment.kt` | ⬜ |
-| 3.5 | **Sign-in BSMS**: same dispatcher as 3.4 with `args.walletId` blank — must not key off a local wallet | `WalletAuthenticationViewModel` (`isSignInSignatureFlow`) | ⬜ |
-| 3.6 | Membership `CheckSignMessageFragment` sheet | `CheckSignMessageFragment.kt` | ⬜ |
+| 3.4 | **Dummy tx**: `isLedger` sibling → `GetDummyTransactionSignatureUseCase` | `WalletAuthenticationViewModel.kt`, `DummyTransactionDetailsFragment.kt` | ✅ |
+| 3.5 | **Sign-in BSMS**: same dispatcher as 3.4 with `args.walletId` blank — must not key off a local wallet | `WalletAuthenticationViewModel` (`isSignInSignatureFlow`) | ✅ |
+| 3.6 | Membership `CheckSignMessageFragment` sheet | `CheckSignMessageFragment.kt` | ✅ |
 | 3.7 | Health check via `signMessage` + `HealthCheckSingleSigner` | `SignerInfoFragment` / `SignerInfoViewModel` | ✅ verified on device |
 | 3.8 | Verify address on device via `getWalletAddress` | `UnusedAddressViewModel.kt` | ⬜ |
 | 3.9 | **Sign message** (the "..." menu beside health check) — see the open bug below | `SignMessageViewModel` / `SignMessageFragment` | ⬜ |
@@ -372,6 +374,54 @@ Deduped rather than copied, since the sheet and the add-key flow now need the sa
 | `BitBoxActivity.interactionText()` — the Confluence §0 UI-text table | `BitBoxUserInteraction.statusText(context)` in `nunchuk-core/.../bitbox/` |
 | `BitBoxConfirmPairingScreen`'s body (heading, code card, waiting line) | `BitBoxPairingCodeBody` in core; the screen keeps its Scaffold and the sheet supplies its own buttons |
 | 17 `nc_bitbox_*` strings in `nunchuk-signer` | moved to `nunchuk-core` (`nonTransitiveRClass=false`, so signer's existing `R.string.*` references still resolve) |
+
+#### 3.1–3.2, 3.4–3.6 Dummy-transaction signing — what shipped
+
+Signing is a multi-step conversation, so the sheet gained the piece the health check didn't need:
+**`BitBoxCommandExecutor`**, the counterpart of `LedgerControllerExecutor`. Confluence §3 is four
+lines — ask whether the wallet is registered, register if not, sign, read the PSBT — and as a
+chain of `onCommandComplete` branches that is a state machine with one branch per step. As a
+suspend sequence it is the four lines the doc shows.
+
+The whole sheet moved onto it, health check included, so there is one shape for every action
+instead of two. That also avoids the `!executor.isAwaiting` special case the Ledger sheet carries,
+which exists only because its health check predates its coordinator.
+
+`BitBoxTransactionSigner` (`core/domain/utils/`) is the §3 coordinator, and it is genuinely
+smaller than `LedgerTransactionSigner`: **BitBox self-reports registration**, so there is no
+registration HMAC and therefore no `LedgerWalletRegistrar`, no per-wallet cache, and no
+`cacheRegistration = false` special case for a wallet with no local storage. `isWalletRegistered`
+is asked every time and is cheap; registering is the expensive part because it needs an approval
+on the device.
+
+It does keep two things from Ledger, both correctness rather than style:
+
+- **the device check.** Signing targets a specific signer, so the fingerprint is read first and a
+  mismatch raises `BitBoxWrongDeviceException` → "connect the correct device". Add-key can accept
+  whatever is connected; signing cannot.
+- **the policy-name fallback.** A wallet parsed from a BSMS has no name (the format doesn't carry
+  one) and the name is shown on the device, so it registers as "Nunchuk".
+
+Hosts: one event serves both in-app key types rather than two parallel ones.
+`RequestSignLedger` becomes `RequestSignHardwareKey(tag, fingerprint, psbt, wallet)` and
+`handleSignLedgerKey` becomes `handleHardwareSignedPsbt` — Ledger and BitBox take the same PSBT in
+and hand the same signed PSBT back, so `tag` only decides which sheet the fragment puts up. That
+keeps `DummyTransactionDetailsFragment` and `CheckSignMessageFragment` at one block each.
+
+3.5 needs no separate work: the sign-in BSMS wallet already travels in the event's `wallet` field
+(non-null only when there is no local wallet to look the policy up by id), and
+`requestSignTransactionInApp` resolves it the same way for both key types.
+
+Failure handling is where a sheet differs from the add-key flow, and it matters more here than for
+the health check, because a hung sequence looks identical to a slow device:
+
+- a transport drop, an `onError`, or a `REBOOT` fails the suspended command rather than leaving it
+  waiting on a session that no longer exists — nothing resumes across a drop
+- `close()` doesn't report a disconnect, so dismissing the sheet cancels the sequence explicitly
+- `CancellationException` is rethrown rather than reported: `runCatching` catches it, and a
+  cancelled sequence is the user closing the sheet, not a failure
+- declining pairing or aborting on the device releases the button silently; only a real fault
+  reports
 
 #### Open bug — "Sign message" is reachable for BitBox and broken (3.9)
 

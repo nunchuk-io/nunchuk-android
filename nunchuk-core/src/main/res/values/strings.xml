@@ -858,6 +858,8 @@
     <string name="nc_bitbox_interaction_sign_message">Review and confirm the message on your BitBox02.</string>
     <string name="nc_bitbox_interaction_sign_transaction">Review the transaction details on your BitBox02, then confirm.</string>
 
+    <string name="nc_bitbox_wrong_device">This BitBox doesn\'t match the selected key. Please connect the correct device.</string>
+
     <!-- Sheet-only: the add-key flow sends these to full dead-end screens (05B / 05C) instead -->
     <string name="nc_bitbox_not_ready_error">This BitBox is not ready to use. Finish setup or upgrade its firmware in BitBoxApp, then try again.</string>
     <string name="nc_bitbox_attestation_error">Nunchuk could not verify that this is a genuine BitBox. Disconnect it and contact support.</string>

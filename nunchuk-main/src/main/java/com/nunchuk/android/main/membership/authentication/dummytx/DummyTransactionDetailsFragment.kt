@@ -45,6 +45,7 @@ import com.nunchuk.android.compose.dialog.NcConfirmationDialog
 import com.nunchuk.android.core.base.BaseShareSaveFileFragment
 import com.nunchuk.android.core.domain.data.SignTransaction
 import com.nunchuk.android.core.domain.membership.TargetAction
+import com.nunchuk.android.core.bitbox.BitBoxSignPsbtSheet
 import com.nunchuk.android.core.ledger.LedgerSignPsbtSheet
 import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.nfc.BaseNfcActivity
@@ -111,8 +112,11 @@ class DummyTransactionDetailsFragment : BaseShareSaveFileFragment<ViewBinding>()
     private val nfcViewModel: NfcViewModel by activityViewModels()
     private var openTrezorSuiteDeeplink: String? by mutableStateOf(null)
 
-    /** Ledger key + dummy tx PSBT the user tapped "Sign" for; non-null shows the Ledger sheet. */
-    private var ledgerSignRequest: WalletAuthenticationEvent.RequestSignLedger? by mutableStateOf(
+    /**
+     * In-app hardware key + dummy tx PSBT the user tapped "Sign" for; non-null shows that key
+     * type's sheet.
+     */
+    private var hardwareSignRequest: WalletAuthenticationEvent.RequestSignHardwareKey? by mutableStateOf(
         null
     )
     /**
@@ -190,31 +194,52 @@ class DummyTransactionDetailsFragment : BaseShareSaveFileFragment<ViewBinding>()
                             )
                         }
 
-                        // The Ledger signs the dummy tx PSBT in-app; the signature is extracted
-                        // from the PSBT it hands back. Signing in via digital signature has no
-                        // local wallet to look the policy up by id, so the event carries the
-                        // wallet parsed from the BSMS instead.
-                        ledgerSignRequest?.let { request ->
-                            val onDismiss = { ledgerSignRequest = null }
+                        // Ledger and BitBox sign the dummy tx PSBT in-app; the signature is
+                        // extracted from the PSBT they hand back. Signing in via digital signature
+                        // has no local wallet to look the policy up by id, so the event carries
+                        // the wallet parsed from the BSMS instead.
+                        hardwareSignRequest?.let { request ->
+                            val onDismiss = { hardwareSignRequest = null }
                             val onSignSuccess = { signedPsbt: String ->
-                                walletAuthenticationViewModel.handleSignLedgerKey(signedPsbt)
+                                walletAuthenticationViewModel.handleHardwareSignedPsbt(signedPsbt)
                             }
-                            if (request.wallet != null) {
-                                LedgerSignPsbtSheet(
-                                    wallet = request.wallet,
-                                    psbt = request.psbt,
-                                    masterFingerprint = request.fingerprint,
-                                    onDismiss = onDismiss,
-                                    onSignSuccess = onSignSuccess,
-                                )
-                            } else {
-                                LedgerSignPsbtSheet(
-                                    walletId = walletAuthenticationViewModel.getWalletId(),
-                                    psbt = request.psbt,
-                                    masterFingerprint = request.fingerprint,
-                                    onDismiss = onDismiss,
-                                    onSignSuccess = onSignSuccess,
-                                )
+                            val walletId = walletAuthenticationViewModel.getWalletId()
+                            when (request.tag) {
+                                SignerTag.BITBOX -> if (request.wallet != null) {
+                                    BitBoxSignPsbtSheet(
+                                        wallet = request.wallet,
+                                        psbt = request.psbt,
+                                        masterFingerprint = request.fingerprint,
+                                        onDismiss = onDismiss,
+                                        onSignSuccess = onSignSuccess,
+                                    )
+                                } else {
+                                    BitBoxSignPsbtSheet(
+                                        walletId = walletId,
+                                        psbt = request.psbt,
+                                        masterFingerprint = request.fingerprint,
+                                        onDismiss = onDismiss,
+                                        onSignSuccess = onSignSuccess,
+                                    )
+                                }
+
+                                else -> if (request.wallet != null) {
+                                    LedgerSignPsbtSheet(
+                                        wallet = request.wallet,
+                                        psbt = request.psbt,
+                                        masterFingerprint = request.fingerprint,
+                                        onDismiss = onDismiss,
+                                        onSignSuccess = onSignSuccess,
+                                    )
+                                } else {
+                                    LedgerSignPsbtSheet(
+                                        walletId = walletId,
+                                        psbt = request.psbt,
+                                        masterFingerprint = request.fingerprint,
+                                        onDismiss = onDismiss,
+                                        onSignSuccess = onSignSuccess,
+                                    )
+                                }
                             }
                         }
                     }
@@ -352,8 +377,8 @@ class DummyTransactionDetailsFragment : BaseShareSaveFileFragment<ViewBinding>()
                             )
                         }
 
-                        is WalletAuthenticationEvent.RequestSignLedger -> {
-                            ledgerSignRequest = event
+                        is WalletAuthenticationEvent.RequestSignHardwareKey -> {
+                            hardwareSignRequest = event
                         }
 
                         is WalletAuthenticationEvent.NoInternetConnectionToSign -> showWarning(

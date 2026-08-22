@@ -37,6 +37,7 @@ import com.nunchuk.android.core.R
 import com.nunchuk.android.core.hardware.HardwareConnectButton
 import com.nunchuk.android.core.hardware.HardwareDeviceScanBody
 import com.nunchuk.android.core.hardware.HardwareTransportKind
+import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.widget.NCToastMessage
 
 /**
@@ -71,6 +72,71 @@ fun BitBoxHealthCheckSheet(
         onEvent = { event ->
             if (event is BitBoxSheetEvent.HealthCheckResult) {
                 onResult(event.isSuccess, event.errorMessage)
+                onDismiss()
+            }
+        },
+    )
+}
+
+/**
+ * BitBox "Sign transaction" bottom sheet for a dummy transaction, shown inline by the host screen
+ * (dummy transaction details, membership sign-message check). Connects over BLE/USB in-app,
+ * verifies the device is [masterFingerprint], registers [walletId]'s policy if the device doesn't
+ * already have it, and signs [psbt] — handing the signed PSBT to [onSignSuccess] rather than
+ * importing it, so the host can extract the dummy transaction signature from it.
+ */
+@Composable
+fun BitBoxSignPsbtSheet(
+    walletId: String,
+    psbt: String,
+    masterFingerprint: String,
+    onDismiss: () -> Unit,
+    onSignSuccess: (signedPsbt: String) -> Unit,
+) {
+    val action = remember(walletId, psbt, masterFingerprint) {
+        BitBoxSheetAction.SignPsbt(
+            walletId = walletId,
+            psbt = psbt,
+            masterFingerprint = masterFingerprint,
+        )
+    }
+    BitBoxSheet(
+        action = action,
+        onDismiss = onDismiss,
+        onEvent = { event ->
+            if (event is BitBoxSheetEvent.SignPsbtSuccess) {
+                onSignSuccess(event.signedPsbt)
+                onDismiss()
+            }
+        },
+    )
+}
+
+/**
+ * [BitBoxSignPsbtSheet] for a [wallet] that isn't stored locally, so it can't be looked up by id:
+ * the sign-in dummy transaction, whose wallet is parsed from the BSMS the user pasted.
+ */
+@Composable
+fun BitBoxSignPsbtSheet(
+    wallet: Wallet,
+    psbt: String,
+    masterFingerprint: String,
+    onDismiss: () -> Unit,
+    onSignSuccess: (signedPsbt: String) -> Unit,
+) {
+    val action = remember(wallet, psbt, masterFingerprint) {
+        BitBoxSheetAction.SignPsbtWithWallet(
+            wallet = wallet,
+            psbt = psbt,
+            masterFingerprint = masterFingerprint,
+        )
+    }
+    BitBoxSheet(
+        action = action,
+        onDismiss = onDismiss,
+        onEvent = { event ->
+            if (event is BitBoxSheetEvent.SignPsbtSuccess) {
+                onSignSuccess(event.signedPsbt)
                 onDismiss()
             }
         },
@@ -125,6 +191,10 @@ private fun BitBoxSheet(
     LaunchedEffect(Unit) {
         viewModel.event.collect { event ->
             when (event) {
+                is BitBoxSheetEvent.WrongDevice -> activity?.let {
+                    NCToastMessage(it).showError(it.getString(R.string.nc_bitbox_wrong_device))
+                }
+
                 is BitBoxSheetEvent.Error -> activity?.let {
                     NCToastMessage(it).showError(event.message)
                 }

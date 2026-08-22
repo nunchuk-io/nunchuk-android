@@ -5,10 +5,11 @@ import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.R
+import com.nunchuk.android.core.domain.utils.BitBoxTransactionSigner
 import com.nunchuk.android.core.domain.utils.GetBitBoxSignMessagePathUseCase
 import com.nunchuk.android.core.domain.utils.HealthCheckSingleSignerUseCase
 import com.nunchuk.android.core.util.orUnknownError
-import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.type.BitBoxErrorCode
 import com.nunchuk.android.type.BitBoxUserInteraction
@@ -16,6 +17,8 @@ import com.nunchuk.android.type.HealthStatus
 import com.nunchuk.android.usecase.GetRemoteSignerUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -40,6 +43,31 @@ sealed interface BitBoxSheetAction {
         val derivationPath: String,
     ) : BitBoxSheetAction {
         override val connectButtonText: Int get() = R.string.nc_ledger_sign_message
+    }
+
+    /**
+     * Confluence "3. Sign transaction" for a PSBT that isn't a wallet transaction — a dummy
+     * transaction: register [walletId]'s policy if needed, sign [psbt], and hand the signed PSBT
+     * back for the caller to extract a signature from rather than importing it.
+     */
+    data class SignPsbt(
+        val walletId: String,
+        val psbt: String,
+        val masterFingerprint: String,
+    ) : BitBoxSheetAction {
+        override val connectButtonText: Int get() = R.string.nc_ledger_sign_transaction
+    }
+
+    /**
+     * [SignPsbt] for a [wallet] that isn't stored locally, so it can't be looked up by id: the
+     * sign-in dummy transaction, whose wallet is parsed from the BSMS the user pasted.
+     */
+    data class SignPsbtWithWallet(
+        val wallet: Wallet,
+        val psbt: String,
+        val masterFingerprint: String,
+    ) : BitBoxSheetAction {
+        override val connectButtonText: Int get() = R.string.nc_ledger_sign_transaction
     }
 }
 
@@ -67,6 +95,12 @@ sealed class BitBoxSheetEvent {
         val errorMessage: String? = null,
     ) : BitBoxSheetEvent()
 
+    /** A dummy transaction was signed; the host turns [signedPsbt] into a signature. */
+    data class SignPsbtSuccess(val signedPsbt: String) : BitBoxSheetEvent()
+
+    /** Connected BitBox isn't the signer we're signing for — ask for the right device. */
+    data object WrongDevice : BitBoxSheetEvent()
+
     data class Error(val message: String) : BitBoxSheetEvent()
 
     /** Bluetooth is off; the host owns the "enable Bluetooth" launcher. */
@@ -74,8 +108,10 @@ sealed class BitBoxSheetEvent {
 }
 
 /**
- * Owns one BitBox sheet session: the BLE/USB transport ([BitBoxController]) and whichever
- * [BitBoxSheetAction] the host asked for. The BitBox counterpart of [com.nunchuk.android.core.ledger.LedgerSheetViewModel].
+ * Owns one BitBox sheet session: the BLE/USB transport ([BitBoxController]), the
+ * [BitBoxCommandExecutor] adapting it to suspend commands, and whichever [BitBoxSheetAction] the
+ * host asked for. The BitBox counterpart of
+ * [com.nunchuk.android.core.ledger.LedgerSheetViewModel].
  *
  * The transport lives here rather than in the composable so it survives recomposition and is
  * closed exactly once. Everything the transport can't do itself (runtime permissions, turning
@@ -84,7 +120,8 @@ sealed class BitBoxSheetEvent {
  * Two things differ from the Ledger sheet, both from the BitBox protocol:
  * - **initialize comes first.** Every session opens with `initialize()`, whose result says
  *   whether the device is genuine, whether its firmware is usable, and whether it has been set
- *   up. The action only starts once that gate passes.
+ *   up. The action only starts once that gate passes, so it is the head of every sequence
+ *   rather than something the host does beforehand.
  * - **pairing may need answering.** A first-time pairing surfaces a code to compare with the
  *   device, which the sheet shows in place of the picker. Pairing data is stored per Nunchuk
  *   account/chain, so a known device never shows one.
@@ -96,6 +133,7 @@ class BitBoxSheetViewModel @Inject constructor(
     private val getRemoteSignerUseCase: GetRemoteSignerUseCase,
     private val getBitBoxSignMessagePathUseCase: GetBitBoxSignMessagePathUseCase,
     private val healthCheckSingleSignerUseCase: HealthCheckSingleSignerUseCase,
+    private val transactionSigner: BitBoxTransactionSigner,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(BitBoxSheetUiState())
@@ -104,11 +142,8 @@ class BitBoxSheetViewModel @Inject constructor(
     private val _event = MutableSharedFlow<BitBoxSheetEvent>()
     val event = _event.asSharedFlow()
 
-    /** The action this attempt is running, kept until it finishes or fails. */
-    private var activeAction: BitBoxSheetAction? = null
-
-    /** Signer the in-flight health check verifies against, resolved before the device signs. */
-    private var healthCheckSigner: SingleSigner? = null
+    /** The running device conversation, cancelled when the sheet goes away mid-flow. */
+    private var actionJob: Job? = null
 
     private val listener = object : BitBoxController.Listener {
         override fun onScanResults(devices: List<BitBoxDevice>) = _state.update { state ->
@@ -143,12 +178,7 @@ class BitBoxSheetViewModel @Inject constructor(
             // buttons — and from every command, since the code rides whichever request is
             // outstanding.
             clearPairingCode()
-            when (request) {
-                BitBoxRequest.INITIALIZE -> onInitialized()
-                BitBoxRequest.SIGN_MESSAGE -> onMessageSigned(controller.resultString())
-                // Every other command belongs to the sign flows, which this sheet doesn't run yet.
-                else -> Unit
-            }
+            executor.deliverComplete(request)
         }
 
         override fun onCommandFailed(
@@ -157,38 +187,33 @@ class BitBoxSheetViewModel @Inject constructor(
             message: String,
         ) {
             clearPairingCode()
-            when (code) {
-                // The user said the codes don't match, or declined on the device — not an error
-                // worth reporting, just release the button so they can try again.
-                BitBoxErrorCode.PAIRING_REJECTED, BitBoxErrorCode.USER_ABORT -> release()
-
-                // Nunchuk can't prepare the device any more; the add-key flow sends these to a
-                // hand-off screen, which a sheet has no room for.
-                BitBoxErrorCode.DEVICE_UNINITIALIZED, BitBoxErrorCode.UNSUPPORTED_FIRMWARE ->
-                    fail(context.getString(R.string.nc_bitbox_not_ready_error))
-
-                BitBoxErrorCode.ATTESTATION ->
-                    fail(context.getString(R.string.nc_bitbox_attestation_error))
-
-                else -> fail(message)
-            }
+            executor.deliverFailure(request, code, message)
         }
 
         override fun onReboot(request: BitBoxRequest) {
-            // Nothing here reboots the device (factory reset / firmware live in BitBoxApp).
-            release()
+            // Nothing here reboots the device (factory reset / firmware live in BitBoxApp), so if
+            // one arrives the session is gone and whatever was in flight cannot finish.
+            failInFlight(BitBoxErrorCode.SESSION_LOST, disconnectedMessage())
         }
 
         override fun onDisconnected() {
             clearPairingCode()
-            release()
-            setStatus(context.getString(R.string.nc_bitbox_disconnected))
+            // Nothing resumes across a transport drop, so fail the sequence rather than leaving
+            // it suspended on a session that no longer exists.
+            failInFlight(BitBoxErrorCode.SESSION_LOST, disconnectedMessage())
+            setStatus(disconnectedMessage())
         }
 
         override fun onError(message: String) {
             clearPairingCode()
             _state.update { it.copy(isScanning = false) }
-            fail(message)
+            // A transport error mid-command fails the in-flight sequence, which reports it;
+            // otherwise there is nothing running and it is a scan-time error.
+            if (executor.isAwaiting) {
+                failInFlight(BitBoxErrorCode.NONE, message)
+            } else {
+                emit(BitBoxSheetEvent.Error(message))
+            }
         }
 
         override fun onBluetoothDisabled() {
@@ -198,6 +223,7 @@ class BitBoxSheetViewModel @Inject constructor(
     }
 
     private val controller: BitBoxController = BitBoxController(context, nativeSdk, listener)
+    private val executor: BitBoxCommandExecutor = BitBoxCommandExecutor(controller)
 
     fun hasBlePermissions(): Boolean = controller.hasBlePermissions()
 
@@ -229,19 +255,18 @@ class BitBoxSheetViewModel @Inject constructor(
     fun selectDevice(deviceId: String) = _state.update { it.copy(selectedDeviceId = deviceId) }
 
     /**
-     * Connects to the selected device and runs [action] once the session is initialized. No-op
-     * while a command is already in flight — it's a multi-step device conversation and
-     * reconnecting mid-way would drop it.
+     * Connects to the selected device and runs [action] once the transport is ready. No-op while
+     * a command is already in flight — it's a multi-step device conversation and reconnecting
+     * mid-way would drop it.
      */
     fun connect(action: BitBoxSheetAction) {
         if (_state.value.isBusy) return
         val device = _state.value.selectedDevice ?: return
-        activeAction = action
         // Busy from the tap, not from the first device command: connecting — and over USB the
         // permission prompt — happens first, and until then nothing on screen would move.
         _state.update { it.copy(isBusy = true) }
         controller.connect(device)
-        controller.whenReady { controller.initialize() }
+        controller.whenReady { runAction(action) }
     }
 
     /** The user's answer to the pairing code shown by [BitBoxSheetUiState.pairingCode]. */
@@ -251,74 +276,136 @@ class BitBoxSheetViewModel @Inject constructor(
     }
 
     /**
-     * The initialize result decides whether this device can be used at all — Confluence §0.
-     * Only a genuine, set-up device on usable firmware gets as far as the action.
+     * The whole device conversation for [action], as the sequence Confluence describes. Every
+     * BitBox session opens with `initialize()`, and its result is the readiness gate — a device
+     * that isn't genuine, isn't set up, or is on unusable firmware is never asked for anything.
      */
-    private fun onInitialized() {
-        val result = controller.initializeResult()
-            ?: return fail(context.getString(R.string.nc_bitbox_initialize_failed))
-        when {
-            result.isAttestationInvalid ->
-                fail(context.getString(R.string.nc_bitbox_attestation_error))
+    private fun runAction(action: BitBoxSheetAction) {
+        actionJob?.cancel()
+        actionJob = viewModelScope.launch {
+            runCatching {
+                val result = executor.initialize()
+                    ?: throw IllegalStateException(
+                        context.getString(R.string.nc_bitbox_initialize_failed)
+                    )
+                when {
+                    result.isAttestationInvalid ->
+                        throw IllegalStateException(
+                            context.getString(R.string.nc_bitbox_attestation_error)
+                        )
 
-            result.device.firmwareUpgradeRequired || !result.device.initialized ->
-                fail(context.getString(R.string.nc_bitbox_not_ready_error))
+                    result.device.firmwareUpgradeRequired || !result.device.initialized ->
+                        throw IllegalStateException(
+                            context.getString(R.string.nc_bitbox_not_ready_error)
+                        )
+                }
+                when (action) {
+                    is BitBoxSheetAction.HealthCheck -> runHealthCheck(action)
+                    is BitBoxSheetAction.SignPsbt -> BitBoxSheetEvent.SignPsbtSuccess(
+                        transactionSigner.signPsbt(
+                            executor = executor,
+                            walletId = action.walletId,
+                            psbt = action.psbt,
+                            expectedXfp = action.masterFingerprint,
+                        )
+                    )
 
-            else -> when (val action = activeAction) {
-                is BitBoxSheetAction.HealthCheck -> startHealthCheck(action)
-                null -> Unit
+                    is BitBoxSheetAction.SignPsbtWithWallet -> BitBoxSheetEvent.SignPsbtSuccess(
+                        transactionSigner.signPsbt(
+                            executor = executor,
+                            wallet = action.wallet,
+                            psbt = action.psbt,
+                            expectedXfp = action.masterFingerprint,
+                        )
+                    )
+                }
+            }.onSuccess { outcome ->
+                _state.update { it.copy(isBusy = false) }
+                _event.emit(outcome)
+            }.onFailure { e ->
+                reportFailure(e)
             }
         }
     }
 
     /**
-     * Resolves the signer and the path it signs at, then asks the device to sign. The path is
-     * the BitBox compact-signature path, not the signer's own — signing at the wrong one would
-     * simply fail verification later with nothing to point at.
+     * Signs the health-check message and verifies it against the stored signer. The path is the
+     * BitBox compact-signature path, not the signer's own — signing at the wrong one would fail
+     * verification later with nothing to point at.
+     *
+     * A signature from the wrong device also simply fails verification, so unlike signing there
+     * is no separate device check here.
      */
-    private fun startHealthCheck(action: BitBoxSheetAction.HealthCheck) = viewModelScope.launch {
-        getRemoteSignerUseCase(
+    private suspend fun runHealthCheck(
+        action: BitBoxSheetAction.HealthCheck,
+    ): BitBoxSheetEvent.HealthCheckResult {
+        val signer = getRemoteSignerUseCase(
             GetRemoteSignerUseCase.Data(
                 id = action.masterFingerprint,
                 derivationPath = action.derivationPath,
             )
-        ).onSuccess { signer ->
-            getBitBoxSignMessagePathUseCase(
-                GetBitBoxSignMessagePathUseCase.Param(signer = signer)
-            ).onSuccess { path ->
-                healthCheckSigner = signer
-                controller.signMessage(path, HEALTH_CHECK_MESSAGE)
-            }.onFailure { e -> fail(e.message.orUnknownError()) }
-        }.onFailure { e -> fail(e.message.orUnknownError()) }
+        ).getOrThrow()
+        val path = getBitBoxSignMessagePathUseCase(
+            GetBitBoxSignMessagePathUseCase.Param(signer = signer)
+        ).getOrThrow()
+
+        val signature = executor.signMessage(path, HEALTH_CHECK_MESSAGE)
+
+        return healthCheckSingleSignerUseCase(
+            HealthCheckSingleSignerUseCase.Param(
+                signer = signer,
+                message = HEALTH_CHECK_MESSAGE,
+                signature = signature,
+            )
+        ).fold(
+            onSuccess = { status ->
+                BitBoxSheetEvent.HealthCheckResult(isSuccess = status == HealthStatus.SUCCESS)
+            },
+            onFailure = { e ->
+                BitBoxSheetEvent.HealthCheckResult(isSuccess = false, errorMessage = e.message)
+            },
+        )
     }
 
     /**
-     * Verifies the signature the BitBox just produced over [HEALTH_CHECK_MESSAGE] against the
-     * stored signer. A signature from the wrong device simply fails verification, so there's no
-     * separate device check here.
+     * Ends a failed attempt and leaves the sheet retryable. Deliberately never a success-shaped
+     * event: a health check whose device never signed hasn't produced a verdict, and reporting
+     * one would record "not set up" as a *failed* key.
      */
-    private fun onMessageSigned(signature: String) {
-        val signer = healthCheckSigner ?: return release()
-        healthCheckSigner = null
-        activeAction = null
-        viewModelScope.launch {
-            healthCheckSingleSignerUseCase(
-                HealthCheckSingleSignerUseCase.Param(
-                    signer = signer,
-                    message = HEALTH_CHECK_MESSAGE,
-                    signature = signature,
-                )
-            ).onSuccess { status ->
-                emitHealthCheckResult(isSuccess = status == HealthStatus.SUCCESS)
-            }.onFailure { e ->
-                emitHealthCheckResult(isSuccess = false, errorMessage = e.message)
-            }
+    private suspend fun reportFailure(e: Throwable) {
+        // runCatching catches CancellationException too, and a cancelled sequence is the sheet
+        // being dismissed mid-conversation — not something to report.
+        if (e is CancellationException) throw e
+        _state.update { it.copy(isBusy = false) }
+        when {
+            // The user said the codes don't match, or declined on the device — they know what
+            // happened, so just release the button.
+            e is BitBoxCommandException && e.code.isUserCancellation() -> Unit
+
+            e is BitBoxWrongDeviceException -> _event.emit(BitBoxSheetEvent.WrongDevice)
+
+            // Nunchuk can't prepare the device any more; the add-key flow sends these to a
+            // hand-off screen, which a sheet has no room for.
+            e is BitBoxCommandException && e.code.isDeviceNotReady() -> _event.emit(
+                BitBoxSheetEvent.Error(context.getString(R.string.nc_bitbox_not_ready_error))
+            )
+
+            e is BitBoxCommandException && e.code == BitBoxErrorCode.ATTESTATION -> _event.emit(
+                BitBoxSheetEvent.Error(context.getString(R.string.nc_bitbox_attestation_error))
+            )
+
+            else -> _event.emit(BitBoxSheetEvent.Error(e.message.orUnknownError()))
         }
     }
 
-    private suspend fun emitHealthCheckResult(isSuccess: Boolean, errorMessage: String? = null) {
+    /**
+     * Fails the suspended command, if any, so the sequence unwinds and reports instead of hanging
+     * on a session that no longer exists. Releases the button either way — there may have been
+     * nothing suspended (a drop between commands), and the sequence setting it again is harmless.
+     */
+    private fun failInFlight(code: BitBoxErrorCode, message: String) {
+        executor.deliverFailure(request = null, code = code, message = message)
         _state.update { it.copy(isBusy = false) }
-        _event.emit(BitBoxSheetEvent.HealthCheckResult(isSuccess, errorMessage))
     }
 
     /**
@@ -327,28 +414,15 @@ class BitBoxSheetViewModel @Inject constructor(
      * [onCleared] — otherwise a second attempt would resume a stale session.
      */
     fun closeSession() {
+        // close() doesn't report a disconnect, so cancel the sequence here or it stays suspended
+        // on a session that is already gone.
+        actionJob?.cancel()
+        actionJob = null
         controller.close()
-        activeAction = null
-        healthCheckSigner = null
         _state.update { BitBoxSheetUiState() }
     }
 
-    /** Ends the attempt without reporting anything (the user cancelled). */
-    private fun release() {
-        activeAction = null
-        healthCheckSigner = null
-        _state.update { it.copy(isBusy = false) }
-    }
-
-    /**
-     * Reports a failed attempt and leaves the sheet retryable. Deliberately *not* a
-     * [BitBoxSheetEvent.HealthCheckResult]: that result dismisses the sheet and posts a verdict,
-     * and a device that never signed hasn't produced one.
-     */
-    private fun fail(message: String) {
-        release()
-        emit(BitBoxSheetEvent.Error(message))
-    }
+    private fun disconnectedMessage() = context.getString(R.string.nc_bitbox_disconnected)
 
     private fun clearPairingCode() = _state.update { it.copy(pairingCode = null) }
 
@@ -356,8 +430,7 @@ class BitBoxSheetViewModel @Inject constructor(
 
     private fun emit(event: BitBoxSheetEvent) = viewModelScope.launch {
         // Everything routed through here ends the attempt (denied permission, Bluetooth off,
-        // transport error), so release the button for a retry. The health-check verdict goes out
-        // through emitHealthCheckResult instead, which dismisses the sheet.
+        // scan-time error), so release the button for a retry.
         _state.update { it.copy(isBusy = false) }
         _event.emit(event)
     }
@@ -373,3 +446,11 @@ class BitBoxSheetViewModel @Inject constructor(
         private const val HEALTH_CHECK_MESSAGE = "Run health check"
     }
 }
+
+/** The user backed out — on the device or on the pairing screen. Not worth reporting as an error. */
+private fun BitBoxErrorCode.isUserCancellation(): Boolean =
+    this == BitBoxErrorCode.PAIRING_REJECTED || this == BitBoxErrorCode.USER_ABORT
+
+/** Nunchuk cannot prepare the device any further; it has to be finished in BitBoxApp. */
+private fun BitBoxErrorCode.isDeviceNotReady(): Boolean =
+    this == BitBoxErrorCode.DEVICE_UNINITIALIZED || this == BitBoxErrorCode.UNSUPPORTED_FIRMWARE

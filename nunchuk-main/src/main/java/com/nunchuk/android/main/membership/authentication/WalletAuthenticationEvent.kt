@@ -24,6 +24,7 @@ import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.byzantine.DummyTransactionType
+import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.TransactionStatus
 
 sealed class WalletAuthenticationEvent {
@@ -48,14 +49,18 @@ sealed class WalletAuthenticationEvent {
         WalletAuthenticationEvent()
 
     /**
-     * Show the Ledger sign sheet for [fingerprint] so it can sign the dummy transaction [psbt].
+     * Show the in-app sign sheet for [fingerprint] so it can sign the dummy transaction [psbt].
+     * [tag] picks which sheet — the hardware keys that pair with the app over BLE/USB (Ledger,
+     * BitBox) take the same PSBT in and hand the same signed PSBT back, so only the transport
+     * differs.
      *
      * Signing registers the wallet policy on the device. [wallet] is null in the usual case, where
      * the sheet loads it by the flow's local wallet id; it carries the wallet parsed from the BSMS
      * when there is no local one to load — signing in via digital signature, before the wallet has
      * ever been stored.
      */
-    data class RequestSignLedger(
+    data class RequestSignHardwareKey(
+        val tag: SignerTag,
         val fingerprint: String,
         val psbt: String,
         val wallet: Wallet? = null,

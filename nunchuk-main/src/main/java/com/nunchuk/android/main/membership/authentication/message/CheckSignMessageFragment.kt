@@ -64,6 +64,7 @@ import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.provider.SignersModelProvider
 import com.nunchuk.android.core.domain.data.SignTransaction
+import com.nunchuk.android.core.bitbox.BitBoxSignPsbtSheet
 import com.nunchuk.android.core.ledger.LedgerSignPsbtSheet
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.BasePortalActivity
@@ -79,6 +80,7 @@ import com.nunchuk.android.main.membership.authentication.WalletAuthenticationEv
 import com.nunchuk.android.main.membership.authentication.WalletAuthenticationViewModel
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.result.GlobalResultKey
+import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.widget.NCInputDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
@@ -93,8 +95,11 @@ class CheckSignMessageFragment : Fragment() {
     private val walletAuthenticationViewModel: WalletAuthenticationViewModel by activityViewModels()
     private val nfcViewModel: NfcViewModel by activityViewModels()
 
-    /** Ledger key + dummy tx PSBT the user tapped "Sign" for; non-null shows the Ledger sheet. */
-    private var ledgerSignRequest: WalletAuthenticationEvent.RequestSignLedger? by mutableStateOf(
+    /**
+     * In-app hardware key + dummy tx PSBT the user tapped "Sign" for; non-null shows that key
+     * type's sheet.
+     */
+    private var hardwareSignRequest: WalletAuthenticationEvent.RequestSignHardwareKey? by mutableStateOf(
         null
     )
 
@@ -107,19 +112,33 @@ class CheckSignMessageFragment : Fragment() {
             setContent {
                 CheckSignMessageScreen(walletAuthenticationViewModel)
 
-                // The Ledger signs the dummy tx PSBT in-app; the signature is extracted from
-                // the PSBT it hands back.
-                ledgerSignRequest?.let { request ->
+                // Ledger and BitBox sign the dummy tx PSBT in-app; the signature is extracted
+                // from the PSBT they hand back. This flow always has a local wallet, so the policy
+                // is looked up by id — unlike the sign-in dummy tx, which has none.
+                hardwareSignRequest?.let { request ->
+                    val onDismiss = { hardwareSignRequest = null }
+                    val onSignSuccess = { signedPsbt: String ->
+                        walletAuthenticationViewModel.handleHardwareSignedPsbt(signedPsbt)
+                    }
+                    val walletId = walletAuthenticationViewModel.getWalletId()
                     NunchukTheme {
-                        LedgerSignPsbtSheet(
-                            walletId = walletAuthenticationViewModel.getWalletId(),
-                            psbt = request.psbt,
-                            masterFingerprint = request.fingerprint,
-                            onDismiss = { ledgerSignRequest = null },
-                            onSignSuccess = { signedPsbt ->
-                                walletAuthenticationViewModel.handleSignLedgerKey(signedPsbt)
-                            },
-                        )
+                        when (request.tag) {
+                            SignerTag.BITBOX -> BitBoxSignPsbtSheet(
+                                walletId = walletId,
+                                psbt = request.psbt,
+                                masterFingerprint = request.fingerprint,
+                                onDismiss = onDismiss,
+                                onSignSuccess = onSignSuccess,
+                            )
+
+                            else -> LedgerSignPsbtSheet(
+                                walletId = walletId,
+                                psbt = request.psbt,
+                                masterFingerprint = request.fingerprint,
+                                onDismiss = onDismiss,
+                                onSignSuccess = onSignSuccess,
+                            )
+                        }
                     }
                 }
             }
@@ -178,8 +197,8 @@ class CheckSignMessageFragment : Fragment() {
                                 )
                             )
                         }
-                        is WalletAuthenticationEvent.RequestSignLedger -> {
-                            ledgerSignRequest = event
+                        is WalletAuthenticationEvent.RequestSignHardwareKey -> {
+                            hardwareSignRequest = event
                         }
                         is WalletAuthenticationEvent.ForceSyncSuccess,
                         is WalletAuthenticationEvent.Loading,

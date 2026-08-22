@@ -368,7 +368,7 @@ class WalletAuthenticationViewModel @Inject constructor(
 
     /**
      * Resolves the wallet the desktop-style signers need: Trezor to build its signing deeplink,
-     * Ledger to register the wallet policy on the device.
+     * Ledger and BitBox to register the wallet policy on the device.
      *
      * In the sign-in via digital signature flow the wallet is not guaranteed to exist in the
      * local database yet (and the server does not return a wallet id/descriptor before sign-in is
@@ -413,7 +413,12 @@ class WalletAuthenticationViewModel @Inject constructor(
 
             signerModel.type == SignerType.SOFTWARE -> checkSoftwarePassPhrase(singleSigner)
             isTrezorSigner(signerModel) -> requestSignTransactionByTrezor(signerModel)
-            isLedgerSigner(signerModel) -> requestSignTransactionByLedger(signerModel)
+            isLedgerSigner(signerModel) ->
+                requestSignTransactionInApp(signerModel, SignerTag.LEDGER)
+
+            isBitBoxSigner(signerModel) ->
+                requestSignTransactionInApp(signerModel, SignerTag.BITBOX)
+
             signerModel.type == SignerType.HARDWARE -> _event.emit(WalletAuthenticationEvent.CanNotSignHardwareKey)
             signerModel.type == SignerType.AIRGAP -> _event.emit(WalletAuthenticationEvent.ShowAirgapOption)
             signerModel.type == SignerType.PORTAL_NFC -> _event.emit(
@@ -498,10 +503,12 @@ class WalletAuthenticationViewModel @Inject constructor(
     }
 
     /**
-     * Unlike Trezor (a deeplink out to Trezor Suite), the Ledger signs in-app over BLE/USB: the
-     * screen shows the Ledger sheet, which hands the signed PSBT back to [handleSignLedgerKey].
+     * Unlike Trezor (a deeplink out to Trezor Suite), Ledger and BitBox sign in-app over BLE/USB:
+     * the screen shows that key type's sheet, which hands the signed PSBT back to
+     * [handleHardwareSignedPsbt]. Both take the same PSBT and produce the same signed PSBT, so
+     * [tag] only decides which sheet the host puts up.
      */
-    private suspend fun requestSignTransactionByLedger(signerModel: SignerModel) {
+    private suspend fun requestSignTransactionInApp(signerModel: SignerModel, tag: SignerTag) {
         // Signing registers the wallet policy on the device. The sheet normally loads that wallet
         // by the flow's local wallet id; signing in via digital signature has no local wallet (and
         // no id), so there it is resolved from the BSMS and handed to the sheet directly. The other
@@ -521,7 +528,8 @@ class WalletAuthenticationViewModel @Inject constructor(
             return
         }
         _event.emit(
-            WalletAuthenticationEvent.RequestSignLedger(
+            WalletAuthenticationEvent.RequestSignHardwareKey(
+                tag = tag,
                 fingerprint = signerModel.fingerPrint,
                 psbt = dataToSign.value,
                 wallet = bsmsWallet,
@@ -529,7 +537,8 @@ class WalletAuthenticationViewModel @Inject constructor(
         )
     }
 
-    fun handleSignLedgerKey(signedPsbt: String) {
+    /** Both in-app hardware sheets hand back a signed PSBT; the signature is extracted from it. */
+    fun handleHardwareSignedPsbt(signedPsbt: String) {
         viewModelScope.launch {
             val signer = getInteractSingleSigner() ?: return@launch
             handleSignatureResult(
@@ -547,6 +556,10 @@ class WalletAuthenticationViewModel @Inject constructor(
 
     private fun isLedgerSigner(signerModel: SignerModel): Boolean {
         return signerModel.type == SignerType.HARDWARE && signerModel.tags.contains(SignerTag.LEDGER)
+    }
+
+    private fun isBitBoxSigner(signerModel: SignerModel): Boolean {
+        return signerModel.type == SignerType.HARDWARE && signerModel.tags.contains(SignerTag.BITBOX)
     }
 
     private fun isTrezorSigner(singleSigner: SingleSigner): Boolean {
