@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -29,7 +30,11 @@ import androidx.navigation.fragment.findNavController
 import com.nunchuk.android.compose.ActionItem
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.HighlightMessageType
+import com.nunchuk.android.compose.NcHintMessage
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
+import com.nunchuk.android.core.util.ClickAbleText
+import com.nunchuk.android.core.util.openExternalLink
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.signer.R
@@ -220,6 +225,19 @@ internal fun ColdCardIntroScreen(
                         style = NunchukTheme.typography.body
                     )
                 }
+
+                val context = LocalContext.current
+                NcHintMessage(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    type = HighlightMessageType.WARNING,
+                    messages = listOf(
+                        ClickAbleText(content = stringResource(R.string.nc_coldcard_seed_entropy_warning)),
+                        ClickAbleText(
+                            content = stringResource(R.string.nc_coldcard_seed_entropy_warning_link),
+                            onClick = { context.openExternalLink("https://blog.coinkite.com/coldcard-mk3-seed-generation-warning/") }
+                        )
+                    )
+                )
 
                 ActionItem(
                     title = stringResource(R.string.nc_add_coldcard_via_nfc),
