@@ -100,6 +100,7 @@
 
     <style name="NCBottomSheetDialogStyle" parent="Theme.Design.Light.BottomSheetDialog">
         <item name="bottomSheetStyle">@style/NCBottomSheetStyle</item>
+        <item name="colorControlNormal">@color/nc_text_primary</item>
     </style>
 
     <style name="NCBottomSheetStyle" parent="Widget.Design.BottomSheet.Modal">
