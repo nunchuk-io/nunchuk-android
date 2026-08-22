@@ -1098,6 +1098,25 @@ fun BitBoxErrorCode.isSessionLost(): Boolean = this == BitBoxErrorCode.SESSION_L
 fun BitBoxErrorCode.isUserCancellation(): Boolean =
     this == BitBoxErrorCode.PAIRING_REJECTED || this == BitBoxErrorCode.USER_ABORT
 
+/**
+ * Confluence §0: "Firmware below 9.0 is upgrade-only. Firmware 10.0 or newer requires an updated
+ * integration." The two ends need different words, because they need different actions — too old
+ * is fixed in BitBoxApp, too new is fixed by updating Nunchuk, and telling someone to update
+ * firmware that is already ahead of us sends them the wrong way.
+ *
+ * Returns null when the version string isn't something we can read, in which case the caller
+ * falls back to copy that doesn't claim to know which end it is.
+ */
+fun String.bitBoxFirmwareMajor(): Int? =
+    trim().trimStart('v', 'V').substringBefore('.').toIntOrNull()
+
+/** Firmware newer than the integration was written against — see [bitBoxFirmwareMajor]. */
+fun String.isBitBoxFirmwareTooNew(): Boolean =
+    (bitBoxFirmwareMajor() ?: 0) >= BITBOX_UNSUPPORTED_MAJOR_FIRMWARE
+
+/** First firmware major the Confluence integration explicitly does not cover. */
+const val BITBOX_UNSUPPORTED_MAJOR_FIRMWARE = 10
+
 /** Confluence §6's operation errors — the ones reported with the firmware's own error number. */
 fun BitBoxErrorCode.isOperationError(): Boolean =
     this == BitBoxErrorCode.DEVICE_INVALID_INPUT ||

@@ -487,10 +487,38 @@ Audited both hosts against §6. Three gaps, all fixed:
 |---|---|---|
 | **Lost Noise session** (`SESSION_LOST` / `DEVICE_NOISE_ENCRYPT` / `DEVICE_NOISE_DECRYPT`) | fell through to a generic error toast, so the user had to reconnect by hand after nothing visibly went wrong | initializes a fresh session and restarts the operation, as §6 says. Capped at one rebuild per connect so a device failing this way can't spin, and **only while the transport is still up** — §6 is explicit that a disconnect is not resumable, so `onDisconnected` marks it unrecoverable |
 | **`deviceCode` was dropped** | `onCommandFailed` never carried it, so §6's `showOperationError(message, device_code)` couldn't be implemented | plumbed through the listener and `BitBoxCommandException`; the `DEVICE_INVALID_INPUT` / `DEVICE` / `DEVICE_INVALID_STATE` errors now report it, where the message alone rarely says which device state was wrong |
-| **`UNSUPPORTED_FIRMWARE` lost its message** | replaced by generic "not ready" copy, same as `DEVICE_UNINITIALIZED` | shows the firmware's own message — "unsupported" covers both too old and too new, and only the message says which |
+| **`UNSUPPORTED_FIRMWARE` was generic** | replaced by generic "not ready" copy, same as `DEVICE_UNINITIALIZED` | names the version and the direction to move in — see below |
 
 `isUserCancellation()` and `isOperationError()` now sit next to `isSessionLost()` in
 `BitBoxController.kt`, so both hosts read the same table rather than each spelling out the codes.
+
+##### Firmware messages
+
+Confluence §0 defines a *window*: below 9.0 is upgrade-only, 10.0 or newer needs an updated
+integration. One `UNSUPPORTED_FIRMWARE` code covers both ends, and the two ends need **opposite
+actions** — too old is fixed in BitBoxApp, too new is fixed by updating Nunchuk. Telling someone
+to update firmware that is already ahead of us sends them the wrong way, and showing the
+firmware's own wording (written for a developer reading a log) doesn't tell them either way.
+
+So the version decides the copy, via `String.isBitBoxFirmwareTooNew()` next to the other §6
+classifiers:
+
+| Case | Message |
+|---|---|
+| `firmwareUpgradeRequired` (below 9.0) | names the version, "update it in BitBoxApp" |
+| major ≥ 10 | names the version, "Nunchuk doesn't support it yet — update Nunchuk" |
+| version unknown | covers both directions rather than guessing |
+| not initialized | its own copy now — "hasn't been set up yet", which is what `DEVICE_UNINITIALIZED` means |
+
+`UNSUPPORTED_FIRMWARE` carries no version of its own, so both hosts remember the one from the last
+successful `initialize()`; when initialize itself is what failed there is nothing to go on, and
+the fallback copy says so instead of guessing.
+
+**This also closes the ≥ 10.0 gate** the plan listed as an open question. It is checked right after
+initialize, alongside the below-9.0 case — without it a device ahead of the integration sailed
+past the readiness gate and failed later on some unrelated-looking command. In the add-key flow it
+deliberately does *not* route to the "continue in BitBoxApp" hand-off (screen 05B): that screen
+tells the user to upgrade, which is exactly the wrong move for a device that is already ahead.
 
 **Retry shape.** The rebuild is a loop inside the action's own job, not a re-entrant call to
 `runAction` — re-entering would call `actionJob.cancel()` on the job the retry was running in.
@@ -594,4 +622,6 @@ bootloader session) if this ever comes back.
 - **iOS parity.** Design ships 01b (no USB on iPhone); Android shows both. Nothing to
   do here beyond keeping the transport list data-driven.
 - **Firmware ≥ 10.0** is explicitly out of scope per Confluence ("requires an updated
-  integration") — gate it like the < 9.0 case.
+  integration"). **Now gated** — checked right after initialize alongside the < 9.0 case, and
+  reported with copy that points at updating Nunchuk rather than the device. See "Firmware
+  messages" under phase 3.

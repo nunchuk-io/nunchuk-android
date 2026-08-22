@@ -26,6 +26,7 @@ import com.nunchuk.android.core.base.BaseComposeActivity
 import com.nunchuk.android.core.bitbox.BitBoxController
 import com.nunchuk.android.core.bitbox.BitBoxDevice
 import com.nunchuk.android.core.bitbox.BitBoxRequest
+import com.nunchuk.android.core.bitbox.isBitBoxFirmwareTooNew
 import com.nunchuk.android.core.bitbox.isOperationError
 import com.nunchuk.android.core.bitbox.isSessionLost
 import com.nunchuk.android.core.bitbox.isUserCancellation
@@ -104,6 +105,13 @@ class BitBoxActivity : BaseComposeActivity() {
      */
     private var sessionRebuilt = false
 
+    /**
+     * Firmware version from the last successful `initialize()`. An `UNSUPPORTED_FIRMWARE` failure
+     * carries no version of its own, so this is what lets the message say which end of the
+     * supported window the device is on.
+     */
+    private var lastFirmwareVersion: String = ""
+
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { result ->
@@ -158,10 +166,16 @@ class BitBoxActivity : BaseComposeActivity() {
                         viewModel.onError(getString(R.string.nc_bitbox_initialize_failed))
                         return
                     }
+                    lastFirmwareVersion = result.device.firmwareVersion
                     viewModel.onInitializeResult(
                         isAttestationInvalid = result.isAttestationInvalid,
                         isFirmwareUpgradeRequired = result.device.firmwareUpgradeRequired,
                         isDeviceInitialized = result.device.initialized,
+                        // Confluence §0 gates the far end of the window too. BitBoxApp can't fix
+                        // it — the device is ahead of Nunchuk, not behind — so this reports
+                        // rather than routing to the "continue in BitBoxApp" screen.
+                        unsupportedFirmwareMessage = firmwareMessage(tooNew = true)
+                            .takeIf { result.device.firmwareVersion.isBitBoxFirmwareTooNew() },
                     )
                 }
 
@@ -226,8 +240,10 @@ class BitBoxActivity : BaseComposeActivity() {
 
                 // §6 wants the firmware's own message: "unsupported" covers both too old and
                 // too new, and only the message says which.
+                // "Unsupported" covers both ends of the window and they need opposite actions,
+                // so name the version and say which way to go.
                 code == BitBoxErrorCode.UNSUPPORTED_FIRMWARE -> viewModel.onError(
-                    getString(com.nunchuk.android.core.R.string.nc_bitbox_firmware_error, message)
+                    firmwareMessage(tooNew = lastFirmwareVersion.isBitBoxFirmwareTooNew())
                 )
 
                 // §6's operation errors: the message alone rarely says which device state was
@@ -528,6 +544,24 @@ class BitBoxActivity : BaseComposeActivity() {
         )
     } else {
         getString(R.string.nc_added_key_xfp_mismatch)
+    }
+
+    /**
+     * Firmware copy naming the version and the direction to move in. Falls back to copy that
+     * covers both directions when the version is unknown — better than telling someone to update
+     * a device that is already ahead of us.
+     */
+    private fun firmwareMessage(tooNew: Boolean): String {
+        val version = lastFirmwareVersion.trim()
+        if (version.isEmpty()) {
+            return getString(com.nunchuk.android.core.R.string.nc_bitbox_firmware_unsupported)
+        }
+        val res = if (tooNew) {
+            com.nunchuk.android.core.R.string.nc_bitbox_firmware_too_new
+        } else {
+            com.nunchuk.android.core.R.string.nc_bitbox_firmware_too_old
+        }
+        return getString(res, version)
     }
 
     /** Opens BitBoxApp if it's installed, otherwise its Play listing. */

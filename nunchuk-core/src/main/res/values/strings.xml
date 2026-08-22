@@ -859,13 +859,15 @@
     <string name="nc_bitbox_interaction_sign_transaction">Review the transaction details on your BitBox02, then confirm.</string>
 
     <string name="nc_bitbox_reconnecting">Reconnecting to your BitBox…</string>
-    <string name="nc_bitbox_firmware_error">This BitBox\'s firmware can\'t be used: %1$s</string>
+    <string name="nc_bitbox_firmware_too_old">This BitBox is running firmware %1$s, which Nunchuk can\'t use. Update it in BitBoxApp, then try again.</string>
+    <string name="nc_bitbox_firmware_too_new">Nunchuk doesn\'t support BitBox firmware %1$s yet. Update Nunchuk, or use a BitBox on an earlier firmware.</string>
+    <string name="nc_bitbox_firmware_unsupported">Nunchuk can\'t use this BitBox\'s firmware version. Update the device in BitBoxApp — or update Nunchuk, if the device is already on the latest firmware.</string>
     <string name="nc_bitbox_device_error">%1$s (device error %2$d)</string>
     <string name="nc_bitbox_check_this_address">Please check this address on your BitBox</string>
     <string name="nc_bitbox_wrong_device">This BitBox doesn\'t match the selected key. Please connect the correct device.</string>
 
     <!-- Sheet-only: the add-key flow sends these to full dead-end screens (05B / 05C) instead -->
-    <string name="nc_bitbox_not_ready_error">This BitBox is not ready to use. Finish setup or upgrade its firmware in BitBoxApp, then try again.</string>
+    <string name="nc_bitbox_not_set_up">This BitBox hasn\'t been set up yet. Finish setup in BitBoxApp, then try again.</string>
     <string name="nc_bitbox_attestation_error">Nunchuk could not verify that this is a genuine BitBox. Disconnect it and contact support.</string>
     <string name="nc_ledger_bluetooth_permission_required">Bluetooth permission is required to connect to Ledger.</string>
     <string name="nc_ledger_no_devices_found">No Ledger devices found. Make sure your Ledger is unlocked with Bluetooth enabled.</string>

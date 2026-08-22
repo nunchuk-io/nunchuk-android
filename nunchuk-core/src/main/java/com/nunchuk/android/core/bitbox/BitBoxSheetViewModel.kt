@@ -183,6 +183,14 @@ class BitBoxSheetViewModel @Inject constructor(
      */
     private var transportLost = false
 
+    /**
+     * Firmware version from the last successful `initialize()`. An `UNSUPPORTED_FIRMWARE` failure
+     * carries no version of its own, so this is what lets the message say *which* end of the
+     * supported window the device is on — when initialize itself is what failed there is nothing
+     * to go on, and the copy says so instead of guessing.
+     */
+    private var lastFirmwareVersion: String = ""
+
 
     private val listener = object : BitBoxController.Listener {
         override fun onScanResults(devices: List<BitBoxDevice>) = _state.update { state ->
@@ -366,16 +374,23 @@ class BitBoxSheetViewModel @Inject constructor(
     private suspend fun runSequence(action: BitBoxSheetAction): BitBoxSheetEvent {
         val result = executor.initialize()
             ?: throw IllegalStateException(context.getString(R.string.nc_bitbox_initialize_failed))
+        lastFirmwareVersion = result.device.firmwareVersion
         when {
             result.isAttestationInvalid ->
                 throw IllegalStateException(
                     context.getString(R.string.nc_bitbox_attestation_error)
                 )
 
-            result.device.firmwareUpgradeRequired || !result.device.initialized ->
-                throw IllegalStateException(
-                    context.getString(R.string.nc_bitbox_not_ready_error)
-                )
+            result.device.firmwareUpgradeRequired ->
+                throw IllegalStateException(firmwareMessage(tooNew = false))
+
+            // Confluence §0 gates this end too; without the check a device ahead of the
+            // integration would sail past here and fail later on some unrelated-looking command.
+            result.device.firmwareVersion.isBitBoxFirmwareTooNew() ->
+                throw IllegalStateException(firmwareMessage(tooNew = true))
+
+            !result.device.initialized ->
+                throw IllegalStateException(context.getString(R.string.nc_bitbox_not_set_up))
         }
         return when (action) {
             is BitBoxSheetAction.HealthCheck -> runHealthCheck(action)
@@ -480,18 +495,16 @@ class BitBoxSheetViewModel @Inject constructor(
             // screen, which a sheet has no room for.
             e is BitBoxCommandException && e.code == BitBoxErrorCode.DEVICE_UNINITIALIZED ->
                 _event.emit(
-                    BitBoxSheetEvent.Error(context.getString(R.string.nc_bitbox_not_ready_error))
+                    BitBoxSheetEvent.Error(context.getString(R.string.nc_bitbox_not_set_up))
                 )
 
-            // §6 wants the firmware's own message here: "unsupported" covers both too old and too
-            // new, and only the message says which.
+            // "Unsupported" covers both ends of the window and they need opposite actions, so
+            // name the version and say which way to go rather than repeating the firmware's own
+            // wording, which is written for a developer reading a log.
             e is BitBoxCommandException && e.code == BitBoxErrorCode.UNSUPPORTED_FIRMWARE ->
                 _event.emit(
                     BitBoxSheetEvent.Error(
-                        context.getString(
-                            R.string.nc_bitbox_firmware_error,
-                            e.message.orUnknownError(),
-                        )
+                        firmwareMessage(tooNew = lastFirmwareVersion.isBitBoxFirmwareTooNew())
                     )
                 )
 
@@ -538,6 +551,22 @@ class BitBoxSheetViewModel @Inject constructor(
         actionJob = null
         controller.close()
         _state.update { BitBoxSheetUiState() }
+    }
+
+    /**
+     * Firmware copy naming the version and the direction to move in. Falls back to copy that
+     * covers both directions when the version is unknown — better than telling someone to update
+     * a device that is already ahead of us.
+     */
+    private fun firmwareMessage(tooNew: Boolean): String {
+        val version = lastFirmwareVersion.trim()
+        if (version.isEmpty()) return context.getString(R.string.nc_bitbox_firmware_unsupported)
+        val res = if (tooNew) {
+            R.string.nc_bitbox_firmware_too_new
+        } else {
+            R.string.nc_bitbox_firmware_too_old
+        }
+        return context.getString(res, version)
     }
 
     private fun disconnectedMessage() = context.getString(R.string.nc_bitbox_disconnected)

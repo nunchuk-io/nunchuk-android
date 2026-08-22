@@ -100,13 +100,20 @@ class BitBoxViewModel @Inject constructor(
      * the firmware is upgrade-only, then whether the device has been set up. Anything short of
      * ready hands off to BitBoxApp; a ready device continues to the fingerprint.
      */
+    /**
+     * @param unsupportedFirmwareMessage set when the device is *ahead* of the integration
+     * (Confluence §0's "10.0 or newer"). That is the one not-usable case BitBoxApp can't fix, so
+     * it is reported rather than routed to the "continue in BitBoxApp" hand-off.
+     */
     fun onInitializeResult(
         isAttestationInvalid: Boolean,
         isFirmwareUpgradeRequired: Boolean,
         isDeviceInitialized: Boolean,
+        unsupportedFirmwareMessage: String? = null,
     ) = viewModelScope.launch {
         when {
             isAttestationInvalid -> emitNotUsable(BitBoxScanEvent.NavigateToAttestationWarning)
+            unsupportedFirmwareMessage != null -> onError(unsupportedFirmwareMessage)
             isFirmwareUpgradeRequired || !isDeviceInitialized ->
                 emitNotUsable(BitBoxScanEvent.NavigateToBitBoxAppRequired)
             // Stay in the processing state: the device conversation continues straight away.
