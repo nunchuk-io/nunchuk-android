@@ -130,7 +130,7 @@ internal class SplashActivity : AppCompatActivity() {
             }
             is SplashEvent.NavHomeScreenEvent -> {
                 navigator.openMainScreen(this)
-                if (NotificationUtils.areNotificationsEnabled(this).not() && !event.isGuestMode) {
+                if (NotificationUtils.areNotificationsEnabled(this).not()) {
                     navigator.openTurnNotificationScreen(this)
                 }
                 if (event.askPin) {

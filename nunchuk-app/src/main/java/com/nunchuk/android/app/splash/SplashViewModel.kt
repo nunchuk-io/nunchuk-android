@@ -95,7 +95,6 @@ internal class SplashViewModel @Inject constructor(
                             askPin = shouldAskPin && isDecoyDisablePin,
                             askBiometric = isBiometricEnable && mode.isGuestMode()
                                 .not() && mode.isPrimaryKey().not(),
-                            isGuestMode = mode.isGuestMode()
                         )
                     )
                 }
@@ -106,7 +105,6 @@ internal class SplashViewModel @Inject constructor(
                         SplashEvent.NavHomeScreenEvent(
                             askPin = shouldAskPin && isDecoyDisablePin,
                             false,
-                            isGuestMode = mode.isGuestMode()
                         )
                     )
                 }
