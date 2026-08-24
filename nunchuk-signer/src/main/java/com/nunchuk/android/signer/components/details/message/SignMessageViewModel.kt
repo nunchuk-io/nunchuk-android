@@ -23,6 +23,8 @@ import android.nfc.tech.IsoDep
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.domain.utils.GetBitBoxSignMessagePathUseCase
+import com.nunchuk.android.core.domain.utils.GetBitBoxSignedMessageUseCase
 import com.nunchuk.android.core.domain.utils.GetSignedMessageUseCase
 import com.nunchuk.android.core.domain.utils.GetTrezorSignMessagePathUseCase
 import com.nunchuk.android.core.domain.utils.GetTrezorSignMessageDeeplinkUseCase
@@ -61,6 +63,8 @@ class SignMessageViewModel @Inject constructor(
     private val getTrezorSignMessagePathUseCase: GetTrezorSignMessagePathUseCase,
     private val getTrezorSignMessageDeeplinkUseCase: GetTrezorSignMessageDeeplinkUseCase,
     private val getSignedMessageUseCase: GetSignedMessageUseCase,
+    private val getBitBoxSignMessagePathUseCase: GetBitBoxSignMessagePathUseCase,
+    private val getBitBoxSignedMessageUseCase: GetBitBoxSignedMessageUseCase,
     private val parseTrezorSignMessageResponseUseCase: ParseTrezorSignMessageResponseUseCase,
     private val createShareFileUseCase: CreateShareFileUseCase,
     private val savedStateHandle: SavedStateHandle,
@@ -93,7 +97,7 @@ class SignMessageViewModel @Inject constructor(
 
     /**
      * Loads the hardware signer (its tags decide how signing happens: Trezor Suite deeplink or
-     * Ledger over BLE/USB) and the derivation path to sign with.
+     * Ledger and BitBox over BLE/USB) and the derivation path to sign with.
      */
     private fun loadSigner() {
         viewModelScope.launch {
@@ -109,6 +113,20 @@ class SignMessageViewModel @Inject constructor(
                     // message"), which is also the path its address is derived from.
                     if (isLedgerSigner()) {
                         _state.update { it.copy(defaultPath = signer.derivationPath) }
+                        return@launch
+                    }
+                    // A BitBox signs with the compact-signature key *below* the signer
+                    // (Confluence "4. Sign message"), which the SDK resolves. There is no sane
+                    // fallback: a guessed path signs with the wrong key and the export then
+                    // verifies against nothing, so leave the path empty and let signing refuse.
+                    if (isBitBoxSigner()) {
+                        getBitBoxSignMessagePathUseCase(
+                            GetBitBoxSignMessagePathUseCase.Param(signer = signer)
+                        ).onSuccess { path ->
+                            _state.update { it.copy(defaultPath = path) }
+                        }.onFailure {
+                            _event.emit(SignMessageEvent.ShowError(it))
+                        }
                         return@launch
                     }
                     getTrezorSignMessagePathUseCase(
@@ -155,6 +173,8 @@ class SignMessageViewModel @Inject constructor(
 
     fun isLedgerSigner(): Boolean = isHardwareSigner() && _state.value.isLedger
 
+    fun isBitBoxSigner(): Boolean = isHardwareSigner() && _state.value.isBitBox
+
     fun requestSignMessageByTrezor() {
         if (!isTrezorSigner()) return
         val message = savedStateHandle.get<String>(KEY_MESSAGE).orEmpty()
@@ -170,6 +190,35 @@ class SignMessageViewModel @Inject constructor(
                 )
             ).onSuccess { deeplink ->
                 _event.emit(SignMessageEvent.ShowOpenTrezorSuiteConfirmation(deeplink))
+            }.onFailure {
+                _event.emit(SignMessageEvent.ShowError(it))
+            }
+            _event.emit(SignMessageEvent.Loading(false))
+        }
+    }
+
+    /**
+     * The BitBox signed the message over BLE/USB. Unlike Ledger, the export can't be built from
+     * the signer: the device signed with the compact-signature key below it, so the block has to
+     * name *that* key's address or it verifies against nothing (Confluence "4. Sign message").
+     */
+    fun onBitBoxMessageSigned(signature: String) {
+        val signer = _state.value.remoteSigner ?: return
+        viewModelScope.launch {
+            _event.emit(SignMessageEvent.Loading(true))
+            getBitBoxSignedMessageUseCase(
+                GetBitBoxSignedMessageUseCase.Param(
+                    signer = signer,
+                    message = savedStateHandle.get<String>(KEY_MESSAGE).orEmpty(),
+                    signature = signature,
+                )
+            ).onSuccess { signedMessage ->
+                _state.update { it.copy(signedMessage = signedMessage) }
+                if (signedMessage.signature.isBlank()) {
+                    _event.emit(SignMessageEvent.NoSignatureDetected)
+                } else {
+                    _event.emit(SignMessageEvent.SignSuccess)
+                }
             }.onFailure {
                 _event.emit(SignMessageEvent.ShowError(it))
             }

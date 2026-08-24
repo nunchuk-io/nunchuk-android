@@ -180,6 +180,39 @@ fun BitBoxSignPsbtSheet(
 }
 
 /**
+ * BitBox "Sign message" bottom sheet, shown inline by the host screen (sign message). Connects
+ * over BLE/USB in-app, verifies the device is [masterFingerprint], then signs [message] with the
+ * key at [derivationPath] and hands the signature to [onSignature] — the host pairs it with the
+ * BitBox sign-message address to produce the signed-message export.
+ */
+@Composable
+fun BitBoxSignMessageSheet(
+    masterFingerprint: String,
+    derivationPath: String,
+    message: String,
+    onDismiss: () -> Unit,
+    onSignature: (signature: String) -> Unit,
+) {
+    val action = remember(masterFingerprint, derivationPath, message) {
+        BitBoxSheetAction.SignMessage(
+            masterFingerprint = masterFingerprint,
+            derivationPath = derivationPath,
+            message = message,
+        )
+    }
+    BitBoxSheet(
+        action = action,
+        onDismiss = onDismiss,
+        onEvent = { event ->
+            if (event is BitBoxSheetEvent.SignMessageSuccess) {
+                onSignature(event.signature)
+                onDismiss()
+            }
+        },
+    )
+}
+
+/**
  * BitBox "Show address on device" bottom sheet, shown inline by the host screen (receive
  * addresses). Connects over BLE/USB in-app, registers [walletId] on the device if it isn't
  * already, then asks the device to display [address] and compares what it derived.

@@ -84,6 +84,21 @@ sealed interface BitBoxSheetAction {
     }
 
     /**
+     * Confluence "4. Sign message": verify the device is [masterFingerprint], then sign [message]
+     * with the key at [derivationPath] and hand the signature back.
+     *
+     * [derivationPath] is the BitBox compact-signature path, not the signer's own — the host
+     * resolves it (and displays it) before opening this sheet.
+     */
+    data class SignMessage(
+        val masterFingerprint: String,
+        val derivationPath: String,
+        val message: String,
+    ) : BitBoxSheetAction {
+        override val connectButtonText: Int get() = R.string.nc_ledger_sign_message
+    }
+
+    /**
      * Confluence "5. Show address on device": register [walletId]'s policy if needed, show
      * [address] on the device and check the address it derived matches.
      */
@@ -124,6 +139,9 @@ sealed class BitBoxSheetEvent {
 
     /** A dummy transaction was signed; the host turns [signedPsbt] into a signature. */
     data class SignPsbtSuccess(val signedPsbt: String) : BitBoxSheetEvent()
+
+    /** A message was signed; the host turns [signature] into a signed-message export. */
+    data class SignMessageSuccess(val signature: String) : BitBoxSheetEvent()
 
     /** The device showed the address; [isMatch] is whether it derived the one we display. */
     data class VerifyAddressResult(val isMatch: Boolean) : BitBoxSheetEvent()
@@ -422,6 +440,22 @@ class BitBoxSheetViewModel @Inject constructor(
                     expectedXfp = action.masterFingerprint,
                 )
             )
+
+            is BitBoxSheetAction.SignMessage -> {
+                // Signing a message for a specific key has to happen on that key's device:
+                // a signature from another one verifies against a different address, which
+                // would surface as a broken export rather than as "wrong device".
+                val deviceXfp = executor.getMasterFingerprint()
+                if (!deviceXfp.equals(action.masterFingerprint, ignoreCase = true)) {
+                    throw BitBoxWrongDeviceException(
+                        expected = action.masterFingerprint,
+                        actual = deviceXfp,
+                    )
+                }
+                BitBoxSheetEvent.SignMessageSuccess(
+                    executor.signMessage(action.derivationPath, action.message)
+                )
+            }
 
             is BitBoxSheetAction.VerifyAddress -> BitBoxSheetEvent.VerifyAddressResult(
                 addressVerifier.verify(

@@ -128,8 +128,10 @@ all pair BitBox in-app instead of handing off to the desktop app. Phase 3 has st
 health check (3.7) runs in-app off the new BitBox sheet and is **confirmed working on a real
 BitBox02**, and signing is wired everywhere it matters (3.1–3.6) — a wallet transaction, the
 membership dummy tx, sign-in via digital signature, and the membership sign-message check all
-sign in-app, and an address can be verified on the device. Still open:
-sign message (3.9). Everything except the health check is **not yet exercised on hardware**.
+sign in-app, an address can be verified on the device, and a message can be signed. Still open:
+nothing — phase 3 is complete. Everything except the health check is **not yet exercised on
+hardware**, and sign message carries one assumption worth checking there first: the RFC2440 block
+is assembled in Kotlin, so its output should be compared against a Ledger or software-key export.
 
 ### Picking this up
 
@@ -320,7 +322,7 @@ Checked and fine:
 - `SignerIntroScreen.kt`'s remaining "Desktop only" is sample text inside `SignerItemPreview`,
   a preview of the generic disabled row — not BitBox-specific, left alone.
 
-### Phase 3 — Sign flows 🟡
+### Phase 3 — Sign flows ✅
 
 All three dispatchers are separate `when`s over type/tag — each needs its own BITBOX branch.
 
@@ -334,7 +336,7 @@ All three dispatchers are separate `when`s over type/tag — each needs its own 
 | 3.6 | Membership `CheckSignMessageFragment` sheet | `CheckSignMessageFragment.kt` | ✅ |
 | 3.7 | Health check via `signMessage` + `HealthCheckSingleSigner` | `SignerInfoFragment` / `SignerInfoViewModel` | ✅ verified on device |
 | 3.8 | Verify address on device via `getWalletAddress` | `UnusedAddressViewModel.kt` | ✅ |
-| 3.9 | **Sign message** (the "..." menu beside health check) — see the open bug below | `SignMessageViewModel` / `SignMessageFragment` | ⬜ |
+| 3.9 | **Sign message** (the "..." menu beside health check) | `SignMessageViewModel` / `SignMessageFragment` | ✅ |
 
 #### 3.7 Health check — what shipped
 
@@ -523,18 +525,49 @@ tells the user to upgrade, which is exactly the wrong move for a device that is 
 **Retry shape.** The rebuild is a loop inside the action's own job, not a re-entrant call to
 `runAction` — re-entering would call `actionJob.cancel()` on the job the retry was running in.
 
-#### Open bug — "Sign message" is reachable for BitBox and broken (3.9)
+#### 3.9 Sign message
 
-Phase 2.9 added `BITBOX` to `isInAppHardwareTag`, which is what `canSignMessage` keys off, so the
-"Sign message" option is already offered for a BitBox key. But `SignMessageFragment.onSignMessage`
-only branches on Ledger and Trezor, so a BitBox falls through to `signMessageBySoftware()` — the
-software path, for a key with no master signer.
+Phase 2.9 put `BITBOX` in `isInAppHardwareTag`, which is what `canSignMessage` keys off, so the
+option had been offered since then while `SignMessageFragment` only branched on Ledger and
+Trezor — a BitBox fell through to `signMessageBySoftware()`, the software path, for a key with no
+master signer. That is now a real flow.
 
-Not fixed here because the export half needs a decision the health check doesn't:
-`GetSignedMessageUseCase` derives the address from the signer, while the Confluence flow pairs the
-signature with `GetBitBoxSignMessageAddress(signer)` — the compact-signature P2PKH address. Those
-may not be the same address, and shipping the wrong one produces a signed message that verifies
-nowhere. Worth confirming against the native side before wiring it.
+The device half is the health check's: sign at `GetBitBoxSignMessagePath`, which is displayed as
+the (locked) path — Confluence §4's `showSigningPath`. The **export** half is where BitBox differs
+from every other signer, and it is why this was held back:
+
+```cpp
+const auto signing_address = GetBitBoxSignMessageAddress(signer);  // compact-signature P2PKH
+ExportBitcoinSignedMessage(BitcoinSignedMessage{message, signing_address, signature});
+```
+
+The address is **not the signer's**. BitBox signs with the compact-signature key *below* it, so
+the block has to name that key's address. `GetSignedMessageUseCase` derives the address from the
+signer — right for Ledger, which signs at the signer's own path, and wrong here: it would produce
+a block that verifies against nothing, and nothing about it would look broken.
+
+There is no binding that takes an explicit address (`getSignedMessage` only takes a signer, and
+`ExportBitcoinSignedMessage` isn't exposed), so `GetBitBoxSignedMessageUseCase` assembles the
+RFC2440 block itself around `getBitBoxSignMessageAddress`. **The delimiters are the ones
+libnunchuk emits**, read out of `libnunchuk-android.so` rather than guessed:
+`-----BEGIN BITCOIN SIGNED MESSAGE-----`, `-----BEGIN BITCOIN SIGNATURE-----`,
+`-----END BITCOIN SIGNATURE-----`. If an `ExportBitcoinSignedMessage` binding is ever added, that
+use case should call it and drop the assembly.
+
+Smaller pieces:
+
+- **The path is locked**, like Ledger's — `isPathEditable` is now `!isLedger && !isBitBox`. They
+  lock it for different reasons (Ledger uses the signer's own path, BitBox the one below it) but
+  in both cases an edited path signs with a key the displayed address doesn't belong to.
+- **No fallback path.** If the SDK can't resolve the signing path the screen leaves it blank and
+  signing refuses, rather than falling back to the generic health-check path — that would sign
+  with the wrong key and read as a device fault.
+- **The device is checked first**, as in Ledger's message signer: a signature from another BitBox
+  verifies against a different address, which would surface as a broken export rather than as
+  "wrong device".
+- The confirmed path travels with the message to the sheet instead of being re-read from state;
+  the two match only because the field is locked, and nothing at the call site would show that if
+  it stopped being true.
 
 ### Phase 4 — Assisted / membership + replace ✅
 

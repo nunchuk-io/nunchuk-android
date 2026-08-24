@@ -17,34 +17,27 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.signer.components.details.message
+package com.nunchuk.android.core.domain.utils
 
-import com.nunchuk.android.model.SignedMessage
+import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.SingleSigner
-import com.nunchuk.android.type.SignerTag
+import com.nunchuk.android.nativelib.NunchukNativeSdk
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
+import javax.inject.Inject
 
-data class SignMessageUiState(
-    val defaultPath: String = "",
-    val signedMessage: SignedMessage? = null,
-    val needPassphrase: Boolean = false,
-    /**
-     * The hardware signer being signed with, loaded for HARDWARE keys (Trezor / Ledger / BitBox).
-     */
-    val remoteSigner: SingleSigner? = null,
-) {
-    val isTrezor: Boolean get() = hasTag(SignerTag.TREZOR)
+/**
+ * The compact-signature P2PKH address a BitBox signs messages from — Confluence "4. Sign message".
+ * It pairs with [GetBitBoxSignMessagePathUseCase]: the path is where the device signs, this is the
+ * address that signature verifies against, and neither is the signer's own.
+ */
+class GetBitBoxSignMessageAddressUseCase @Inject constructor(
+    @IoDispatcher dispatcher: CoroutineDispatcher,
+    private val nunchukNativeSdk: NunchukNativeSdk,
+) : UseCase<GetBitBoxSignMessageAddressUseCase.Param, String>(dispatcher) {
 
-    val isLedger: Boolean get() = hasTag(SignerTag.LEDGER)
+    override suspend fun execute(parameters: Param): String =
+        nunchukNativeSdk.getBitBoxSignMessageAddress(parameters.signer)
 
-    val isBitBox: Boolean get() = hasTag(SignerTag.BITBOX)
-
-    /**
-     * Ledger and BitBox both sign at a path the SDK decides, and the address shown next to the
-     * signature is derived from that key, so the path isn't the user's to change. They pick
-     * different paths — Ledger the signer's own, BitBox the compact-signature key below it — but
-     * in both cases editing it would produce a signature that verifies against nothing.
-     */
-    val isPathEditable: Boolean get() = !isLedger && !isBitBox
-
-    private fun hasTag(tag: SignerTag) = remoteSigner?.tags?.contains(tag) == true
+    data class Param(val signer: SingleSigner)
 }

@@ -80,6 +80,7 @@ import com.nunchuk.android.compose.greyLight
 import com.nunchuk.android.compose.whisper
 import com.nunchuk.android.compose.dialog.NcConfirmationDialog
 import com.nunchuk.android.core.base.BaseShareSaveFileFragment
+import com.nunchuk.android.core.bitbox.BitBoxSignMessageSheet
 import com.nunchuk.android.core.ledger.LedgerSignMessageSheet
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.NfcActionListener
@@ -113,6 +114,13 @@ class SignMessageFragment : BaseShareSaveFileFragment<ViewBinding>() {
 
     /** Message to sign on a Ledger; non-null shows the connect-and-sign sheet. */
     private var ledgerSignMessage: String? by mutableStateOf(null)
+
+    /**
+     * Message + the path it was confirmed at, for the BitBox sheet. The path travels with the
+     * message rather than being re-read from state: they match only because the field is locked
+     * for BitBox, and nothing at the call site would show that if it ever stopped being true.
+     */
+    private var bitBoxSignMessage: Pair<String, String>? by mutableStateOf(null)
 
     @Inject
     lateinit var trezorCallbackHolder: TrezorCallbackHolder
@@ -174,6 +182,18 @@ class SignMessageFragment : BaseShareSaveFileFragment<ViewBinding>() {
                             onSignature = viewModel::onLedgerMessageSigned,
                         )
                     }
+
+                    // The BitBox signs at the path the SDK resolved (state.defaultPath), not the
+                    // signer's own — see Confluence "4. Sign message".
+                    bitBoxSignMessage?.let { (message, path) ->
+                        BitBoxSignMessageSheet(
+                            masterFingerprint = args.masterFingerprint,
+                            derivationPath = path,
+                            message = message,
+                            onDismiss = { bitBoxSignMessage = null },
+                            onSignature = viewModel::onBitBoxMessageSigned,
+                        )
+                    }
                 }
             }
         }
@@ -194,6 +214,15 @@ class SignMessageFragment : BaseShareSaveFileFragment<ViewBinding>() {
         if (viewModel.isLedgerSigner()) {
             // The Ledger signs in-app over BLE/USB, shown inline as a bottom sheet.
             ledgerSignMessage = message.trim()
+        } else if (viewModel.isBitBoxSigner()) {
+            // Same, over the BitBox transport. Its signing path comes from the SDK, so refuse
+            // rather than sign at a path we couldn't resolve — the signature would verify
+            // against nothing and look like a device fault.
+            if (path.isBlank()) {
+                showError(getString(R.string.nc_signer_invalid_derivation_path))
+            } else {
+                bitBoxSignMessage = message.trim() to path
+            }
         } else if (viewModel.isTrezorSigner()) {
             viewModel.requestSignMessageByTrezor()
         } else if (args.signerType == SignerType.NFC) {
