@@ -182,48 +182,48 @@ internal fun WalletsScreen(
                 )
             }
         } else {
-            if (isShowEmptyState) {
-                WalletEmptyStateView(
-                    modifier = Modifier
-                        .padding(top = padding.calculateTopPadding())
-                        .verticalScroll(rememberScrollState())
-                        .padding(16.dp),
-                    activityContext = activity,
-                    navigator = navigator,
-                    groupStage = state.stage,
-                    assistedWalletId = state.assistedWallets.firstOrNull()?.localId.orEmpty(),
-                    hasSigner = hasSigner,
-                    state = state,
-                    openArchivedWalletsScreen = openArchivedWalletsScreen
-                )
-            } else {
-                Column(
-                    modifier = Modifier
-                        .padding(top = padding.calculateTopPadding())
-                        .fillMaxSize()
-                ) {
-                    // Show banner if there is at least one claim wallets
-                    if (state.claimWallet != null) {
-                        ClaimWalletBanner(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 12.dp),
-                            onClick = {
-                                navigator.openClaimInheritanceScreen(
-                                    activityContext = activity,
-                                    args = ClaimArgs(bsms = state.claimWallet.bsms)
-                                )
-                            }
-                        )
-                    }
-                    if (banner != null) {
-                        Banner(
-                            modifier = Modifier.fillMaxWidth(),
-                            banner = banner,
-                            onClick = onBannerClick
-                        )
-                    }
+            Column(
+                modifier = Modifier
+                    .padding(top = padding.calculateTopPadding())
+                    .fillMaxSize()
+            ) {
+                // Show banner if there is at least one claim wallets
+                if (state.claimWallet != null) {
+                    ClaimWalletBanner(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                        onClick = {
+                            navigator.openClaimInheritanceScreen(
+                                activityContext = activity,
+                                args = ClaimArgs(bsms = state.claimWallet.bsms)
+                            )
+                        }
+                    )
+                }
+                if (banner != null) {
+                    Banner(
+                        modifier = Modifier.fillMaxWidth(),
+                        banner = banner,
+                        onClick = onBannerClick
+                    )
+                }
 
+                if (isShowEmptyState) {
+                    WalletEmptyStateView(
+                        modifier = Modifier
+                            .weight(1f)
+                            .verticalScroll(rememberScrollState())
+                            .padding(16.dp),
+                        activityContext = activity,
+                        navigator = navigator,
+                        groupStage = state.stage,
+                        assistedWalletId = state.assistedWallets.firstOrNull()?.localId.orEmpty(),
+                        hasSigner = hasSigner,
+                        state = state,
+                        openArchivedWalletsScreen = openArchivedWalletsScreen
+                    )
+                } else {
                     LazyColumn(
                         modifier = Modifier.weight(1f),
                         contentPadding = PaddingValues(vertical = 24.dp, horizontal = 16.dp),
