@@ -168,10 +168,10 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
         if (loginHalfToken.isNotEmpty() && deviceId.isNotEmpty()) {
             syncRoomViewModel.setupMatrixIfNeeded(loginHalfToken, deviceId)
         }
+        pushNotificationHelper.retrieveFcmToken(
+            onTokenRetrieved = ::onTokenRetrieved,
+        )
         if (sessionHolder.getSafeActiveSession() != null) {
-            pushNotificationHelper.retrieveFcmToken(
-                onTokenRetrieved = ::onTokenRetrieved,
-            )
             syncRoomViewModel.findSyncRoom()
         }
         viewModel.scheduleGetBTCConvertPrice()
