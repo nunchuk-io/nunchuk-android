@@ -95,6 +95,13 @@ enum class ScriptMode {
 
 private val LocalScriptContentAlpha = compositionLocalOf { 1f }
 
+/**
+ * Vertical offset that drops the collapse/expand toggle below a node's top-end status label.
+ * The label row is ~16dp (its icon) and the 16sp title line is ~21dp + 4dp spacing, so this lands
+ * the toggle on the node's second line, level with its description text.
+ */
+private val STATUS_LABEL_OFFSET = 24.dp
+
 @Composable
 fun ScriptNodeTree(
     node: ScriptNode,
@@ -1422,6 +1429,14 @@ fun TreeBranchContainer(
     var showDetail by remember(node.id) {
         mutableStateOf(!showExpand)
     }
+    val hasTopEndStatus = data.mode == ScriptMode.SIGN && when (node.type) {
+        ScriptNodeType.MUSIG.name -> data.keySetStatues[node.idString] != null
+        ScriptNodeType.AFTER.name, ScriptNodeType.OLDER.name,
+        ScriptNodeType.HASH160.name, ScriptNodeType.HASH256.name,
+        ScriptNodeType.RIPEMD160.name, ScriptNodeType.SHA256.name -> true
+
+        else -> data.satisfiableMap[node.idString] != false && !data.transactionStatus.isConfirmed()
+    }
 
     Box(
         modifier = Modifier
@@ -1452,6 +1467,7 @@ fun TreeBranchContainer(
                 Row(
                     modifier = Modifier
                         .padding(top = if (showThreadCurve) 10.dp else 0.dp)
+                        .padding(top = if (hasTopEndStatus) STATUS_LABEL_OFFSET else 0.dp)
                         .clickable { showDetail = !showDetail },
                     verticalAlignment = Alignment.CenterVertically
                 ) {
