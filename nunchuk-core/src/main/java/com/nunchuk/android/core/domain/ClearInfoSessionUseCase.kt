@@ -31,9 +31,9 @@ import com.nunchuk.android.repository.SettingRepository
 import com.nunchuk.android.usecase.UseCase
 import com.nunchuk.android.usecase.free.groupwallet.NotificationDeviceUnregisterUseCase
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withTimeoutOrNull
+import timber.log.Timber
 import javax.inject.Inject
 
 class ClearInfoSessionUseCase @Inject constructor(
@@ -44,12 +44,14 @@ class ClearInfoSessionUseCase @Inject constructor(
     private val ncDataStore: NcDataStore,
     private val premiumWalletRepository: PremiumWalletRepository,
     private val notificationDeviceUnregisterUseCase: NotificationDeviceUnregisterUseCase,
-    private val applicationScope: CoroutineScope,
     private val settingRepository: SettingRepository,
     private val encryptedPreferences: NcEncryptedPreferences,
 ) : UseCase<Unit, Unit>(dispatcher) {
 
     override suspend fun execute(parameters: Unit) {
+        // Must run before the account is cleared, otherwise the request goes out without
+        // the Authorization header and the server keeps the device registered.
+        unregisterNotificationDevice()
         sessionHolder.clearActiveSession()
         val currentChatId = accountManager.getAccount().chatId
         if (currentChatId.isNotEmpty()) {
@@ -60,10 +62,18 @@ class ClearInfoSessionUseCase @Inject constructor(
         primaryKeySignerInfoHolder.clear()
         premiumWalletRepository.clearLocalData()
         settingRepository.resetSyncRoomSuccess()
-        applicationScope.launch {
-            runCatching { FirebaseMessaging.getInstance().token.await() }.onSuccess { token ->
-                notificationDeviceUnregisterUseCase(NotificationDeviceUnregisterUseCase.Param(token))
-            }
-        }
+    }
+
+    private suspend fun unregisterNotificationDevice() {
+        withTimeoutOrNull(UNREGISTER_DEVICE_TIMEOUT) {
+            runCatching { FirebaseMessaging.getInstance().token.await() }
+                .onSuccess { token ->
+                    notificationDeviceUnregisterUseCase(NotificationDeviceUnregisterUseCase.Param(token))
+                }.onFailure { Timber.e(it, "Failed to get FCM token to unregister device") }
+        } ?: Timber.e("Unregister notification device timed out")
+    }
+
+    companion object {
+        private const val UNREGISTER_DEVICE_TIMEOUT = 1_000L
     }
 }
