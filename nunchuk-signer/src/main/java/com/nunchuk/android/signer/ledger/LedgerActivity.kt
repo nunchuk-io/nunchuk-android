@@ -258,19 +258,18 @@ class LedgerActivity : BaseComposeActivity() {
                     ledgerIntro(
                         onBack = { finish() },
                         // Standalone picks the wallet/address type first, then continues to the
-                        // transport-specific step; add-key-to-wallet has it fixed and skips ahead.
+                        // instructions; add-key-to-wallet has it fixed and skips ahead. Either way
+                        // the picked transport rides along so the scan starts the right way.
                         onAddViaBluetooth = {
                             if (isMembershipFlow) {
-                                navController.navigateToLedgerInstruction()
+                                navController.navigateToLedgerInstruction(isUsb = false)
                             } else {
                                 navController.navigateToLedgerSelectWalletType(isUsb = false)
                             }
                         },
                         onAddViaUsb = {
                             if (isMembershipFlow) {
-                                // USB needs no Bluetooth permission — just list attached devices.
-                                navController.navigateToLedgerDeviceScan()
-                                controller.refreshUsb()
+                                navController.navigateToLedgerInstruction(isUsb = true)
                             } else {
                                 navController.navigateToLedgerSelectWalletType(isUsb = true)
                             }
@@ -297,20 +296,19 @@ class LedgerActivity : BaseComposeActivity() {
                                 addressType = addressType,
                                 index = accountIndex,
                             )
-                            if (isUsb) {
-                                // USB needs no Bluetooth permission — just list attached devices.
-                                navController.navigateToLedgerDeviceScan()
-                                controller.refreshUsb()
-                            } else {
-                                navController.navigateToLedgerInstruction()
-                            }
+                            navController.navigateToLedgerInstruction(isUsb = isUsb)
                         },
                     )
                     ledgerInstruction(
                         onBack = { navController.popBackStack() },
-                        onContinue = {
+                        onContinue = { isUsb ->
                             navController.navigateToLedgerDeviceScan()
-                            ensurePermissionThenScan()
+                            if (isUsb) {
+                                // USB needs no Bluetooth permission — just list attached devices.
+                                controller.refreshUsb()
+                            } else {
+                                ensurePermissionThenScan()
+                            }
                         }
                     )
                     ledgerDeviceScan(

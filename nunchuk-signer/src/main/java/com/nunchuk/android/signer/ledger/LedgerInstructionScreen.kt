@@ -26,29 +26,35 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
+import androidx.navigation.toRoute
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.signer.R
 import kotlinx.serialization.Serializable
 
+/**
+ * [isUsb] only rides along so [onContinue] knows which transport the user picked on the intro —
+ * the instructions themselves are the same for Bluetooth and USB.
+ */
 @Serializable
-internal data object LedgerInstructionRoute
+internal data class LedgerInstructionRoute(val isUsb: Boolean = false)
 
 fun NavGraphBuilder.ledgerInstruction(
     onBack: () -> Unit = {},
-    onContinue: () -> Unit = {}
+    onContinue: (isUsb: Boolean) -> Unit = {}
 ) {
-    composable<LedgerInstructionRoute> {
+    composable<LedgerInstructionRoute> { entry ->
+        val route = entry.toRoute<LedgerInstructionRoute>()
         LedgerInstructionScreen(
             onBack = onBack,
-            onContinue = onContinue
+            onContinue = { onContinue(route.isUsb) }
         )
     }
 }
 
-fun NavHostController.navigateToLedgerInstruction() {
-    navigate(LedgerInstructionRoute)
+fun NavHostController.navigateToLedgerInstruction(isUsb: Boolean) {
+    navigate(LedgerInstructionRoute(isUsb = isUsb))
 }
 
 @Composable
