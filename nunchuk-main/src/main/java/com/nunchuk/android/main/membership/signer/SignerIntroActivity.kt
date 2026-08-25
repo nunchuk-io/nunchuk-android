@@ -407,29 +407,47 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
         }
     }
 
-    private fun handleSelectAddAirgapType(tag: SignerTag?) {
-        val args = AddAirSignerArgs(
-            isMembershipFlow = onChainAddSignerParam != null,
-            tag = tag,
-            groupId = groupId,
-            walletId = walletId,
-            onChainAddSignerParam = onChainAddSignerParam,
-            step = membershipStepManager.currentStep
-        )
+    /**
+     * XFP of the key an on-chain replace is swapping out. The air-gap add-key screen performs the
+     * replace itself, and without this it falls through to syncKey instead and the replace fails
+     * with "Unknown error". Verify-backup hands its key back without replacing anything, so it
+     * stays a plain add.
+     */
+    private val airgapReplacedXfp: String?
+        get() = onChainAddSignerParam
+            ?.takeIf { it.isReplaceKeyFlow() && !it.isVerifyBackupSeedPhrase() }
+            ?.replaceInfo?.replacedXfp
 
-        if (onChainAddSignerParam != null) {
+    private fun buildAddAirSignerArgs(tag: SignerTag?) = AddAirSignerArgs(
+        isMembershipFlow = onChainAddSignerParam != null,
+        tag = tag,
+        groupId = groupId,
+        replacedXfp = airgapReplacedXfp,
+        walletId = walletId,
+        onChainAddSignerParam = onChainAddSignerParam,
+        step = membershipStepManager.currentStep
+    )
+
+    private fun handleSelectAddAirgapType(tag: SignerTag?) {
+        // A replace is finished inside the air-gap screen, so there is no signer to relay back —
+        // relaying one would have the key list replace a second time.
+        if (onChainAddSignerParam != null && airgapReplacedXfp == null) {
             navigator.openAddAirSignerScreenForResult(
                 launcher = signerResultLauncher,
                 activityContext = this,
-                args = args
+                args = buildAddAirSignerArgs(tag)
             )
         } else {
-            navigator.openAddAirSignerScreen(
-                activityContext = this,
-                args = args
-            )
-            finish()
+            openAddAirSignerScreen(tag)
         }
+    }
+
+    private fun openAddAirSignerScreen(tag: SignerTag?) {
+        navigator.openAddAirSignerScreen(
+            activityContext = this,
+            args = buildAddAirSignerArgs(tag)
+        )
+        finish()
     }
 
     private fun openSetupMk4() {
@@ -505,18 +523,7 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
         finish()
     }
 
-    private fun openAddAirSignerIntroScreen() {
-        navigator.openAddAirSignerScreen(
-            activityContext = this,
-            args = AddAirSignerArgs(
-                isMembershipFlow = onChainAddSignerParam != null,
-                groupId = groupId,
-                walletId = walletId,
-                onChainAddSignerParam = onChainAddSignerParam,
-            )
-        )
-        finish()
-    }
+    private fun openAddAirSignerIntroScreen() = openAddAirSignerScreen(tag = null)
 
     private fun showSoftwareSigners() {
         if (onChainAddSignerParam != null && onChainAddSignerParam?.isClaiming == true) {

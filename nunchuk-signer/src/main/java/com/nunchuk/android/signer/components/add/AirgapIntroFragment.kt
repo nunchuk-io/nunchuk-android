@@ -53,6 +53,7 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.signer.R
+import com.nunchuk.android.signer.util.airgapAddKeyTitleRes
 import com.nunchuk.android.type.SignerTag
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -103,13 +104,7 @@ private fun AirgapIntroContent(
         else -> R.drawable.bg_airgap_other_intro
     }
 
-    val title = when (signerTag) {
-        SignerTag.SEEDSIGNER -> stringResource(id = R.string.nc_add_seedsigner)
-        SignerTag.JADE -> stringResource(id = R.string.nc_add_jade)
-        SignerTag.PASSPORT -> stringResource(id = R.string.nc_add_foundation_passport)
-        SignerTag.KEYSTONE -> stringResource(id = R.string.nc_add_keystone)
-        else -> stringResource(id = R.string.nc_add_an_airgapped_key)
-    }
+    val title = stringResource(id = signerTag.airgapAddKeyTitleRes())
     NunchukTheme {
         Scaffold(
             modifier = Modifier.navigationBarsPadding(),

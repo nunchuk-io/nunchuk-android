@@ -91,6 +91,7 @@ import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.ErrorMk4Te
 import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.KeyVerifiedSuccess
 import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.LoadingEventAirgap
 import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.ParseKeystoneAirgapSignerSuccess
+import com.nunchuk.android.signer.util.airgapAddKeyTitleRes
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
@@ -137,6 +138,7 @@ class AddAirgapSignerFragment : BaseCameraFragment<ViewBinding>(),
                 AddAirgapSignerContent(
                     remainTime = remainTime, uiState = uiState,
                     isMembershipFlow = (requireActivity() as AddAirgapSignerActivity).isMembershipFlow,
+                    signerTag = (requireActivity() as AddAirgapSignerActivity).signerTag,
                     onKeyNameChange = { viewModel.updateKeyName(it) },
                     onKeySpecChange = { viewModel.updateKeySpec(it) },
                     onChainAddSignerParam = (requireActivity() as AddAirgapSignerActivity).onChainAddSignerParam,
@@ -447,6 +449,7 @@ private fun AddAirgapSignerContent(
     remainTime: Int = 0,
     uiState: AddAirgapSignerState = AddAirgapSignerState(),
     isMembershipFlow: Boolean = false,
+    signerTag: SignerTag? = null,
     onChainAddSignerParam: OnChainAddSignerParam? = null,
     onAddSigner: (String, String) -> Unit = { _, _ -> },
     onScanQr: () -> Unit = {},
@@ -493,9 +496,7 @@ private fun AddAirgapSignerContent(
             ) {
 
                 Text(
-                    text = if (onChainAddSignerParam != null) "Add Blockstream Jade" else stringResource(
-                        R.string.nc_add_an_airgapped_key
-                    ),
+                    text = stringResource(signerTag.airgapAddKeyTitleRes()),
                     style = NunchukTheme.typography.heading
                 )
 
