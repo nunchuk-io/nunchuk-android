@@ -116,6 +116,9 @@ class LedgerBleController(
 
     private var usbReceiverRegistered = false
 
+    /** Pending "the BLE write callback never arrived" guard for the frame in flight. */
+    private var bleWriteTimeout: Runnable? = null
+
     /** Pending "the Ledger never re-enumerated" fallback for a USB app switch. */
     private var usbAppSwitchGrace: Runnable? = null
 
@@ -312,6 +315,7 @@ class LedgerBleController(
         conn.gatt?.let { old ->
             runCatching { old.disconnect() }
             runCatching { old.close() }
+            cancelBleWriteTimeout()
             conn.clearBleRuntime()
         }
         conn.gatt = device.connectGatt(context, false, bleCallback, BluetoothDevice.TRANSPORT_LE)
@@ -342,12 +346,12 @@ class LedgerBleController(
         }
 
         override fun onCharacteristicWrite(gatt: BluetoothGatt, characteristic: BluetoothGattCharacteristic, status: Int) {
-            mainHandler.post { handleCharacteristicWrite(status) }
+            mainHandler.post { handleCharacteristicWrite(gatt, characteristic, status) }
         }
 
         override fun onCharacteristicChanged(gatt: BluetoothGatt, characteristic: BluetoothGattCharacteristic) {
             val data = characteristic.value?.copyOf() ?: ByteArray(0)
-            mainHandler.post { onData(data) }
+            mainHandler.post { if (connection?.gatt === gatt) onData(data) }
         }
     }
 
@@ -361,6 +365,7 @@ class LedgerBleController(
                 return
             }
             runCatching { gatt.close() }
+            cancelBleWriteTimeout()
             conn.clearBleRuntime()
             when {
                 // Dropped while the device opens the Bitcoin app: reconnect, and
@@ -414,24 +419,40 @@ class LedgerBleController(
         onTransportReady()
     }
 
-    private fun handleCharacteristicWrite(status: Int) {
+    private fun handleCharacteristicWrite(
+        gatt: BluetoothGatt,
+        characteristic: BluetoothGattCharacteristic,
+        status: Int,
+    ) {
         val conn = connection ?: return
+        // An ack from a GATT we have already replaced would clear the new in-flight frame and
+        // drop the new queue head, so only the live one may touch the queue.
+        if (conn.gatt !== gatt || conn.writeCharacteristic?.uuid != characteristic.uuid) return
+        cancelBleWriteTimeout()
+        val acked = conn.bleWriteInFlight
         conn.bleWriteInFlight = null
         if (status == BluetoothGatt.GATT_SUCCESS) {
             conn.bleWriteRetries = 0
-            if (conn.bleWriteQueue.isNotEmpty()) conn.bleWriteQueue.removeFirst()
+            // Drop the head only when it really is the frame being acked. An ack that arrives
+            // after the queue moved on (a command boundary drained it) must not consume a frame
+            // that was never written.
+            if (conn.bleWriteQueue.firstOrNull() === acked) conn.bleWriteQueue.removeFirst()
             writeNextBleFrame()
         } else {
             retryBleWrite()
         }
     }
 
+    /**
+     * Queues one APDU's frames. Never drop the in-flight one: the device can answer before the
+     * stack acks our last write, and its late ack would then remove a *new* frame from the queue.
+     */
     private fun writeBleFrames(frames: List<ByteArray>) {
         val conn = connection ?: return
-        conn.bleWriteQueue.clear()
+        if (conn.bleWriteInFlight == null && conn.bleWriteQueue.isEmpty()) {
+            conn.bleWriteRetries = 0
+        }
         conn.bleWriteQueue.addAll(frames)
-        conn.bleWriteInFlight = null
-        conn.bleWriteRetries = 0
         writeNextBleFrame()
     }
 
@@ -444,7 +465,9 @@ class LedgerBleController(
         characteristic.value = frame
         characteristic.writeType = conn.bleWriteType
         conn.bleWriteInFlight = frame
-        if (!gatt.writeCharacteristic(characteristic)) {
+        if (gatt.writeCharacteristic(characteristic)) {
+            armBleWriteTimeout(conn)
+        } else {
             conn.bleWriteInFlight = null
             retryBleWrite()
         }
@@ -460,7 +483,52 @@ class LedgerBleController(
             return
         }
         conn.bleWriteRetries += 1
-        mainHandler.postDelayed({ if (connection?.canWriteBle() == true) writeNextBleFrame() }, BLE_WRITE_RETRY_DELAY_MS)
+        // Bind the retry to this connection: after a reconnect or device switch it would
+        // otherwise pump frames into whatever session is current when it fires.
+        mainHandler.postDelayed(
+            { if (connection === conn && conn.canWriteBle()) writeNextBleFrame() },
+            BLE_WRITE_RETRY_DELAY_MS,
+        )
+    }
+
+    /**
+     * A write that starts but never gets its callback would pin [LedgerConnection.bleWriteInFlight]
+     * forever and stall the command with nothing on screen. Fail it instead so the sheet can retry.
+     */
+    private fun armBleWriteTimeout(conn: LedgerConnection) {
+        cancelBleWriteTimeout()
+        val timeout = Runnable {
+            bleWriteTimeout = null
+            if (connection !== conn || conn.bleWriteInFlight == null) return@Runnable
+            Timber.tag(TAG).e("no BLE write callback after ${BLE_WRITE_TIMEOUT_MS}ms")
+            conn.bleWriteQueue.clear()
+            conn.bleWriteInFlight = null
+            fail("Ledger stopped responding. Reconnect and try again.")
+        }
+        bleWriteTimeout = timeout
+        mainHandler.postDelayed(timeout, BLE_WRITE_TIMEOUT_MS)
+    }
+
+    private fun cancelBleWriteTimeout() {
+        bleWriteTimeout?.let { mainHandler.removeCallbacks(it) }
+        bleWriteTimeout = null
+    }
+
+    /**
+     * A top-level command starts a fresh APDU stream, so nothing from the previous one may still
+     * be queued: an unacked frame left behind either prefixes the next command's APDU (the device
+     * then misreads it - e.g. answers the app check with garbage and quits the Bitcoin app) or
+     * blocks it forever, since [writeBleFrames] now waits for the in-flight frame.
+     */
+    private fun resetBleWriteState(conn: LedgerConnection) {
+        if (conn.bleWriteInFlight != null || conn.bleWriteQueue.isNotEmpty()) {
+            Timber.tag(TAG).w("dropping ${conn.bleWriteQueue.size} stale BLE frame(s)")
+        }
+        conn.bleWriteQueue.clear()
+        conn.bleWriteRetries = 0
+        // bleWriteInFlight and its timeout stay: a frame already handed to the stack cannot be
+        // un-sent, so it has to be drained by its ack (or time out) before the next one goes out.
+        // Starting a second write now is what corrupts the stream.
     }
     // endregion
 
@@ -606,8 +674,9 @@ class LedgerBleController(
         }
         frames.forEach { frame ->
             val wrote = usbConnection.bulkTransfer(endpoint, frame, frame.size, USB_TIMEOUT_MS)
-            if (wrote < 0) {
-                fail("USB write failed")
+            // A short write leaves half a frame on the wire; the device just drops it.
+            if (wrote != frame.size) {
+                fail("USB write failed: $wrote/${frame.size}")
                 return
             }
         }
@@ -709,7 +778,15 @@ class LedgerBleController(
             listener.onError("Ledger not connected")
             return
         }
+        if (conn.commandActive) {
+            // The coordinators run one command at a time; enforce it here too so two commands
+            // can never interleave their frames in the same queue.
+            Timber.tag(TAG).e("startCommand($request) while ${conn.activeRequest} is still active")
+            listener.onError("Ledger is busy with another command")
+            return
+        }
         Timber.tag(TAG).d("startCommand($request) session=${conn.id} transport=${conn.transport}")
+        if (conn.transport == LedgerTransportKind.BLE) resetBleWriteState(conn)
         conn.activeRequest = request
         conn.commandActive = true
         runLedger { handleStep(block(conn.id, conn.transport.toNative())) }
@@ -730,12 +807,10 @@ class LedgerBleController(
 
     private fun onData(data: ByteArray) {
         val conn = connection ?: return
-        Timber.tag(TAG).d("onData ${data.size} bytes: ${data.toHexPreview()}")
         runLedger { handleStep(nativeSdk.ledgerOnData(conn.id, data)) }
     }
 
     private fun handleStep(step: LedgerStep) {
-        Timber.tag(TAG).d("handleStep type=${step.stepType} interaction=${step.userInteraction} writes=${step.writes.size} request=${connection?.activeRequest}")
         listener.onInteraction(step.userInteraction)
         val conn = connection ?: return
         when (step.stepType) {
@@ -806,7 +881,6 @@ class LedgerBleController(
     }
 
     private fun writeFrames(frames: List<ByteArray>) {
-        Timber.tag(TAG).d("writeFrames ${frames.size} frame(s) via ${connection?.transport}")
         when (connection?.transport) {
             LedgerTransportKind.BLE -> writeBleFrames(frames)
             LedgerTransportKind.USB -> writeUsbFrames(frames)
@@ -832,6 +906,7 @@ class LedgerBleController(
     // endregion
 
     private fun teardown(conn: LedgerConnection) {
+        cancelBleWriteTimeout()
         runCatching { conn.gatt?.disconnect() }
         runCatching { conn.gatt?.close() }
         conn.clearBleRuntime()
@@ -863,18 +938,14 @@ class LedgerBleController(
         LedgerTransportKind.USB -> LedgerTransport.USB_HID
     }
 
-    /** First bytes of a frame as hex, for logging (APDU/response headers are the useful part). */
-    private fun ByteArray.toHexPreview(max: Int = 24): String {
-        val shown = take(max).joinToString(" ") { "%02X".format(it) }
-        return if (size > max) "$shown … (${size}B)" else shown
-    }
-
     companion object {
         private const val TAG = "LedgerBle"
         private const val BLE_SCAN_TIMEOUT_MS = 12_000L
         private const val LEDGER_BLE_GATT_MTU = 156
         private const val BLE_WRITE_RETRY_ATTEMPTS = 8
         private const val BLE_WRITE_RETRY_DELAY_MS = 120L
+        // The ack is an ATT response, not the device answering the APDU, so it is always prompt.
+        private const val BLE_WRITE_TIMEOUT_MS = 10_000L
         private const val USB_TIMEOUT_MS = 5_000
         // How long to wait for the Ledger to re-enumerate after a USB app switch before
         // assuming it kept its USB configuration and resuming on the handle we already have.
