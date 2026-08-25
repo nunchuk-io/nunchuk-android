@@ -114,6 +114,7 @@ import com.nunchuk.android.signer.mk4.inheritance.ColdCardIntroFragment
 import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.utils.parcelableArrayList
 import com.nunchuk.android.widget.NCInfoDialog
@@ -511,7 +512,8 @@ class OnChainReplaceKeysFragment : Fragment() {
                                 step = it
                             )
                         }
-                    )
+                    ),
+                    walletType = WalletType.MINISCRIPT,
                 )
             }
         } else {
@@ -750,7 +752,7 @@ private fun OnChainReplaceKeysContent(
                         .fillMaxWidth()
                         .padding(16.dp),
                     onClick = onCreateWalletClicked,
-                    enabled = isEnableCreateWallet
+                    enabled = isEnableCreateWallet && !uiState.isFinalizing && !uiState.isWalletFinalized
                 ) {
                     Text(text = stringResource(R.string.nc_continue_to_create_a_new_wallet))
                 }

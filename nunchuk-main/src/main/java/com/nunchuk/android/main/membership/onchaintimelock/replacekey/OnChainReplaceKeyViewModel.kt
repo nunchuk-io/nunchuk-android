@@ -127,6 +127,7 @@ class OnChainReplaceKeysViewModel @Inject constructor(
     val key = _keys.asStateFlow()
 
     private var loadWalletStatusJob: Job? = null
+    private var initReplaceKeyJob: Job? = null
 
     init {
         viewModelScope.launch {
@@ -240,7 +241,9 @@ class OnChainReplaceKeysViewModel @Inject constructor(
         }
     }
 
+    // The server retires the old wallet id on finalize, so a later refresh only 404s.
     fun getReplaceWalletStatus() {
+        if (_uiState.value.isFinalizing || _uiState.value.isWalletFinalized) return
         if (loadWalletStatusJob?.isActive == true) return
         loadWalletStatusJob = viewModelScope.launch {
             getReplaceWalletStatusUseCase(
@@ -310,15 +313,19 @@ class OnChainReplaceKeysViewModel @Inject constructor(
                     _uiState.update { state -> state.copy(message = it.message.orUnknownError()) }
                 }
             }
-            _uiState.update { state -> state.copy(isLoading = false, isDataLoaded = true) }
+            // Don't clear an isLoading this refresh didn't set — it hid another action's dialog.
+            _uiState.update { state -> state.copy(isDataLoaded = true) }
         }
     }
 
     fun onCreateWallet() {
+        // A second tap would finalize a wallet the server has already replaced.
+        if (_uiState.value.isFinalizing || _uiState.value.isWalletFinalized) return
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
+            loadWalletStatusJob?.cancel()
+            _uiState.update { it.copy(isLoading = true, isFinalizing = true) }
             finalizeReplaceAssistedWallet()
-            _uiState.update { it.copy(isLoading = false) }
+            _uiState.update { it.copy(isLoading = false, isFinalizing = false) }
         }
     }
 
@@ -329,6 +336,7 @@ class OnChainReplaceKeysViewModel @Inject constructor(
                 walletId = args.walletId
             )
         ).onSuccess { result ->
+            _uiState.update { it.copy(isWalletFinalized = true) }
             if (args.groupId.isEmpty()) {
                 syncPersonalWallets(Unit)
             } else {
@@ -357,15 +365,18 @@ class OnChainReplaceKeysViewModel @Inject constructor(
         }
     }
 
+    // Opens the replacement session; a replace that overtakes it has no session to attach to.
     fun initReplaceKey() {
-        viewModelScope.launch {
+        initReplaceKeyJob = viewModelScope.launch {
             initReplaceKeyUseCase(
                 InitReplaceKeyUseCase.Param(
                     groupId = args.groupId,
                     walletId = args.walletId,
                     xfp = savedStateHandle.get<String>(REPLACE_XFP).orEmpty()
                 )
-            )
+            ).onFailure {
+                _uiState.update { state -> state.copy(message = it.message.orUnknownError()) }
+            }
         }
     }
 
@@ -376,6 +387,7 @@ class OnChainReplaceKeysViewModel @Inject constructor(
     fun onReplaceKey(signer: SingleSigner) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
+            initReplaceKeyJob?.join()
             replaceKeyUseCase(
                 ReplaceKeyUseCase.Param(
                     groupId = args.groupId,
@@ -921,6 +933,8 @@ data class OnChainReplaceKeysUiState(
     val isDataLoaded: Boolean = false,
     val pendingReplaceXfps: List<String> = emptyList(),
     val isLoading: Boolean = false,
+    val isFinalizing: Boolean = false,
+    val isWalletFinalized: Boolean = false,
     val walletSigners: List<SignerModel> = emptyList(),
     val verifiedSigners: Set<String> = emptySet(),
     val group: ByzantineGroup? = null,
