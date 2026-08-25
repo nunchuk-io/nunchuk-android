@@ -168,7 +168,11 @@ fun InheritancePlanningGraph(
                         setupFlowType = InheritanceSetupFlowType.OLD_FLOW
                     )
                 )
-                navController.navigateToInheritanceDistributionMethod()
+                if (activityViewModel.isMiniscriptWallet()) {
+                    navController.navigateToInheritancePlanOverview(setupFlowType = InheritanceSetupFlowType.OLD_FLOW)
+                } else {
+                    navController.navigateToInheritanceDistributionMethod()
+                }
             },
         )
 
