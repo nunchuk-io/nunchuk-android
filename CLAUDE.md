@@ -2,6 +2,33 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Git Remotes
+
+This repo has two remotes. **`origin` (GitLab) is the working remote — push there and only there.**
+
+| Remote | URL | Use |
+|--------|-----|-----|
+| `origin` | `gitlab.com/nunchuck/nunchuk-android` | All day-to-day work: feature branches, fixes, release branches (`2.8.3`, …) |
+| `github_origin` | `github.com/nunchuk-io/nunchuk-android` | Public mirror. **Never push here unless explicitly asked for a release.** |
+
+**RULE — never push to `github_origin`** unless the user asks for a release in that message. Not to
+"keep the mirror in sync", not because a branch is missing there, not as a follow-up to a GitLab
+push. A bare `git push` is also disallowed when it could resolve to `github_origin`; always name the
+remote and branch: `git push origin <branch>`.
+
+**If a push to `github_origin` happens by mistake, delete the pushed branch from it right away**
+(`git push github_origin --delete <branch>`), then say what was pushed and what was deleted. Only
+ever delete a branch that the mistaken push itself created — never one of the mirror's pre-existing
+branches (`main`, `main-github_origin`, `master`, `update-dockerfile`), and never force-push over
+someone else's history to "clean up".
+
+Release branches live on GitLab only — `github_origin` carries just `main`/`master`, so a missing
+branch there is expected and is not a reason to push.
+
+After pushing, say which remote and branch received the commit, and if the checkout is left on a
+different branch than the one that was pushed, say that too — the user's working tree will not show
+the change otherwise.
+
 ## Build & Development
 
 Multi-module Android app (Nunchuk wallet) using Gradle with mixed Kotlin DSL and Groovy scripts.
