@@ -41,7 +41,8 @@ internal data class BitBoxInstructionRoute(val isUsb: Boolean = false)
  * before the device picker: settled on the thread that the intro screen leads in every flow
  * (Trezor Android already does this; Ledger shows its instructions for Bluetooth only).
  *
- * Step 2 is the only difference between the two variants — enable Bluetooth, or plug in a cable.
+ * Step 2 and the illustration are the only difference between the two variants — enable
+ * Bluetooth, or plug the device straight into the phone's USB-C port.
  */
 fun NavGraphBuilder.bitBoxInstruction(
     onBack: () -> Unit = {},
@@ -70,7 +71,13 @@ private fun BitBoxInstructionScreen(
     Scaffold(
         topBar = {
             NcImageAppBar(
-                backgroundRes = R.drawable.bg_bitbox_illustration,
+                // One illustration per transport, as in the design: over the air for
+                // Bluetooth, plugged straight into the phone for USB.
+                backgroundRes = if (isUsb) {
+                    R.drawable.bg_bitbox_instructions_usb
+                } else {
+                    R.drawable.bg_bitbox_instructions_bluetooth
+                },
                 onClosedClicked = onBack,
             )
         },

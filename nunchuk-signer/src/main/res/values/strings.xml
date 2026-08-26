@@ -255,8 +255,8 @@
     <string name="nc_bitbox_step_setup_desc">If it is new, finish setup using BitBoxApp.</string>
     <string name="nc_bitbox_step_connect_bluetooth_title">Connect and enable Bluetooth</string>
     <string name="nc_bitbox_step_connect_bluetooth_desc">Connect your BitBox to your phone or a power source, then enable Bluetooth.</string>
-    <string name="nc_bitbox_step_connect_usb_title">Connect via USB</string>
-    <string name="nc_bitbox_step_connect_usb_desc">Plug your BitBox into your phone using a USB cable.</string>
+    <string name="nc_bitbox_step_connect_usb_title">Plug into your phone</string>
+    <string name="nc_bitbox_step_connect_usb_desc">Insert your BitBox directly into your phone’s USB-C port.</string>
     <string name="nc_bitbox_step_return_title">Return to Nunchuk</string>
     <string name="nc_bitbox_step_return_desc">Continue to select the wallet and address type.</string>
 

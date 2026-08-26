@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    App-bar illustration for "Add your BitBox" over USB (design screen 02B): a BitBox
+    plugged directly into the phone's USB-C port — no cable, which is what step 2 says.
+
+    Converted from the design asset 02b-bitbox-instructions-usb.svg. Its artwork lives
+    in the top 238px band of the 375x812 mock, so it is offset by 62 here to sit at the
+    bottom of the 375x300 panel NcImageAppBar draws — same panel size as
+    bg_bitbox_illustration and bg_ledger_illustration.
+
+    Must stay a <vector>: NcImageAppBar loads it with painterResource, which rejects
+    anything that is not a VectorDrawable or a raster. The backdrop uses
+    @color/nc_fill_denim rather than the asset SVG's literal #D0E2FF so it tracks the
+    theme — the asset value is that colour's light-mode entry.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="375dp"
+    android:height="300dp"
+    android:viewportWidth="375"
+    android:viewportHeight="300">
+    <path
+        android:pathData="M0,0h375v300h-375z"
+        android:fillColor="@color/nc_fill_denim" />
+
+    <group android:translateY="62">
+        <path
+            android:pathData="M0 169c57-33 106 38 175 18 77-23 126-79 200-31v82H0v-69Z"
+            android:fillColor="#ABEDD8"
+            android:fillAlpha="0.58" />
+
+        <!-- Phone, held landscape, with its USB-C port facing the device -->
+        <group
+            android:translateX="45"
+            android:translateY="72">
+            <path
+                android:pathData="M16,0H121A16,16 0 0 1 137,16V72A16,16 0 0 1 121,88H16A16,16 0 0 1 0,72V16A16,16 0 0 1 16,0Z"
+                android:fillColor="#FFFFFF"
+                android:strokeColor="#031F2B"
+                android:strokeWidth="1.5" />
+            <path
+                android:pathData="M21,12H106A8,8 0 0 1 114,20V68A8,8 0 0 1 106,76H21A8,8 0 0 1 13,68V20A8,8 0 0 1 21,12Z"
+                android:fillColor="#ABEDD8" />
+            <path
+                android:pathData="M122,44A4,4 0 1 0 130,44A4,4 0 1 0 122,44Z"
+                android:fillColor="#031F2B" />
+            <path
+                android:pathData="M136,37H138A2,2 0 0 1 140,39V49A2,2 0 0 1 138,51H136A2,2 0 0 1 134,49V39A2,2 0 0 1 136,37Z"
+                android:fillColor="#031F2B" />
+        </group>
+
+        <path
+            android:pathData="M222 116h-20m6-6-6 6 6 6"
+            android:fillColor="#00000000"
+            android:strokeColor="#031F2B"
+            android:strokeWidth="2"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round" />
+
+        <!-- BitBox, turned on its side so the connector meets the port -->
+        <group
+            android:translateX="330"
+            android:translateY="86"
+            android:rotation="90"
+            android:scaleX="1.2"
+            android:scaleY="1.2">
+            <group
+                android:translateX="-165.14"
+                android:translateY="-108">
+                <path
+                    android:pathData="M169.14,108H211.25A4,4 0 0 1 215.25,112V172.33A4,4 0 0 1 211.25,176.33H169.14A4,4 0 0 1 165.14,172.33V112A4,4 0 0 1 169.14,108Z"
+                    android:fillColor="#78C7E0"
+                    android:strokeColor="#333333"
+                    android:strokeWidth="0.6" />
+                <path
+                    android:pathData="M182.39 190h16v-13.67h-16V190Z"
+                    android:fillColor="#46CDCF"
+                    android:strokeColor="#333333"
+                    android:strokeWidth="0.6" />
+            </group>
+        </group>
+        <!-- The logo stays upright while the body is rotated -->
+        <group
+            android:translateX="98.8"
+            android:translateY="-21">
+            <path
+                android:pathData="m199.24 152.86-6.93 2.97v-22.11l13.83-5.94v8.46l-6.9 3.27v13.35ZM188.08 155.83l-6.93-2.97v-13.35l-6.9-3.27v-8.46l13.83 5.94v22.11ZM190.21 118.25l14.32 6.19-14.32 6.19-14.31-6.19 14.31-6.19Z"
+                android:fillColor="#48466D" />
+        </group>
+    </group>
+</vector>
