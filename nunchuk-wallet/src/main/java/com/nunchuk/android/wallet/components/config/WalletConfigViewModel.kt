@@ -700,6 +700,13 @@ internal class WalletConfigViewModel @Inject constructor(
 
     fun isBitBoxWallet(): Boolean = hasKeyTagged(SignerTag.BITBOX)
 
+    /**
+     * Portal is identified by its signer type rather than a tag — it has none. Same rule as the
+     * tagged devices above: a wallet with no Portal key has nothing to register on one.
+     */
+    fun isPortalWallet(): Boolean =
+        state.value.walletExtended.wallet.signers.any { it.type == SignerType.PORTAL_NFC }
+
     fun setRegisterWalletOnLedger(isOpen: Boolean) =
         _state.update { it.copy(isRegisterWalletOnLedger = isOpen) }
 

@@ -849,7 +849,10 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
             )
         }
 
-        if (!isMiniscript) {
+        // Portal, like Ledger and BitBox, only for a wallet that holds one of its keys — unlike
+        // those two it can't register itself on the way past a signature, but a wallet it holds
+        // no key of still has nothing to put on it.
+        if (!isMiniscript && viewModel.isPortalWallet()) {
             options.add(
                 SheetOption(
                     SheetOptionType.TYPE_EXPORT_PORTAL,
