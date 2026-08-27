@@ -9,6 +9,7 @@ import com.nunchuk.android.core.domain.utils.HealthCheckSingleSignerUseCase
 import com.nunchuk.android.core.domain.utils.LedgerAddressVerifier
 import com.nunchuk.android.core.domain.utils.LedgerMessageSigner
 import com.nunchuk.android.core.domain.utils.LedgerTransactionSigner
+import com.nunchuk.android.core.domain.utils.LedgerWalletRegistrar
 import com.nunchuk.android.core.domain.utils.LedgerWrongDeviceException
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.Wallet
@@ -90,6 +91,14 @@ sealed interface LedgerSheetAction {
     }
 
     /**
+     * Register [walletId] on the device and stop there — the wallet's "Ledger" export option,
+     * which is the registration every other wallet command opens with, offered on its own.
+     */
+    data class RegisterWallet(val walletId: String) : LedgerSheetAction {
+        override val connectButtonText: Int get() = R.string.nc_register_wallet_on_device
+    }
+
+    /**
      * Confluence "4. Show address on device": register the wallet if needed, show [address] on
      * the device and check the address it derived matches.
      */
@@ -132,6 +141,9 @@ sealed class LedgerSheetEvent {
     /** The device showed the address; [isMatch] is whether it derived the one we display. */
     data class VerifyAddressResult(val isMatch: Boolean) : LedgerSheetEvent()
 
+    /** The wallet policy was approved on the device; the host should report and dismiss. */
+    data object RegisterWalletSuccess : LedgerSheetEvent()
+
     /** Connected Ledger isn't the signer we're signing for — ask for the right device. */
     data object WrongDevice : LedgerSheetEvent()
 
@@ -157,6 +169,7 @@ class LedgerSheetViewModel @Inject constructor(
     private val ledgerTransactionSigner: LedgerTransactionSigner,
     private val ledgerMessageSigner: LedgerMessageSigner,
     private val ledgerAddressVerifier: LedgerAddressVerifier,
+    private val ledgerWalletRegistrar: LedgerWalletRegistrar,
     private val getRemoteSignerUseCase: GetRemoteSignerUseCase,
     private val healthCheckSingleSignerUseCase: HealthCheckSingleSignerUseCase,
 ) : ViewModel() {
@@ -283,6 +296,7 @@ class LedgerSheetViewModel @Inject constructor(
             }
 
             is LedgerSheetAction.VerifyAddress -> verifyAddress(action)
+            is LedgerSheetAction.RegisterWallet -> registerWallet(action)
         }
     }
 
@@ -353,6 +367,17 @@ class LedgerSheetViewModel @Inject constructor(
         }.onSuccess { isMatch ->
             _state.update { it.copy(isBusy = false) }
             _event.emit(LedgerSheetEvent.VerifyAddressResult(isMatch))
+        }.onFailure { e ->
+            emitSignFailure(e)
+        }
+    }
+
+    private fun registerWallet(action: LedgerSheetAction.RegisterWallet) = viewModelScope.launch {
+        runCatching {
+            ledgerWalletRegistrar.registerWallet(executor = executor, walletId = action.walletId)
+        }.onSuccess {
+            _state.update { it.copy(isBusy = false) }
+            _event.emit(LedgerSheetEvent.RegisterWalletSuccess)
         }.onFailure { e ->
             emitSignFailure(e)
         }

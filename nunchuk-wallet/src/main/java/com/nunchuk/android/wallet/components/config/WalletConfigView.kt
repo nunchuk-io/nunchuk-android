@@ -51,6 +51,8 @@ import com.nunchuk.android.compose.provider.SignersModelProvider
 import com.nunchuk.android.compose.signer.SignerCard
 import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.textSecondary
+import com.nunchuk.android.core.bitbox.BitBoxRegisterWalletSheet
+import com.nunchuk.android.core.ledger.LedgerRegisterWalletSheet
 import com.nunchuk.android.core.miniscript.ScriptNodeType
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
@@ -78,6 +80,9 @@ internal fun WalletConfigView(
     onShowMore: () -> Unit = {},
     onChangeAlias: () -> Unit = {},
     openWalletConfig: (SignerModel) -> Unit = {},
+    onDismissRegisterWalletOnLedger: () -> Unit = {},
+    onDismissRegisterWalletOnBitBox: () -> Unit = {},
+    onRegisterWalletSuccess: () -> Unit = {},
 ) {
     val wallet = state.walletExtended.wallet
     val miniscriptDisplaySignerMap = buildWalletConfigMiniscriptDisplaySignerMap(
@@ -322,6 +327,23 @@ internal fun WalletConfigView(
                     }
                 }
             }
+        }
+
+        // The "Ledger" / "BitBox" export options: register the wallet on the device over BLE/USB.
+        if (state.isRegisterWalletOnLedger) {
+            LedgerRegisterWalletSheet(
+                walletId = wallet.id,
+                onDismiss = onDismissRegisterWalletOnLedger,
+                onSuccess = onRegisterWalletSuccess,
+            )
+        }
+
+        if (state.isRegisterWalletOnBitBox) {
+            BitBoxRegisterWalletSheet(
+                walletId = wallet.id,
+                onDismiss = onDismissRegisterWalletOnBitBox,
+                onSuccess = onRegisterWalletSuccess,
+            )
         }
     }
 }

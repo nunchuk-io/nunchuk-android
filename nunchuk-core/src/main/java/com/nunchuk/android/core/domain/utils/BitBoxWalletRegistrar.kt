@@ -20,7 +20,11 @@
 package com.nunchuk.android.core.domain.utils
 
 import com.nunchuk.android.core.bitbox.BitBoxCommandExecutor
+import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.Wallet
+import com.nunchuk.android.nativelib.NunchukNativeSdk
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -33,7 +37,24 @@ import javax.inject.Inject
  * registration, so there is no HMAC to hand back, nothing to cache per wallet, and no special
  * case for a wallet with no local storage to cache into.
  */
-class BitBoxWalletRegistrar @Inject constructor() {
+class BitBoxWalletRegistrar @Inject constructor(
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    private val nativeSdk: NunchukNativeSdk,
+) {
+    /**
+     * Registers the wallet with [walletId] on the connected device as an end in itself — the
+     * "BitBox" entry in the wallet's export options, which exists so the user can put the wallet
+     * on a device without waiting for a transaction to sign.
+     *
+     * Unlike the Ledger entry point this still asks the device first: BitBox self-reports
+     * registration, so "does this device hold the policy" has a real answer here, and a second
+     * registration would only put another approval in front of a device that is already done.
+     */
+    suspend fun registerWallet(executor: BitBoxCommandExecutor, walletId: String) {
+        withContext(ioDispatcher) {
+            withRegisteredWallet(executor, nativeSdk.getWallet(walletId)) { }
+        }
+    }
 
     /**
      * Ensures [wallet] is registered, then runs [block] with the wallet the device actually knows

@@ -167,6 +167,9 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
                         walletName = viewModel.walletName()
                     ).setListener(viewModel::handleEditCompleteEvent)
                 },
+                onDismissRegisterWalletOnLedger = { viewModel.setRegisterWalletOnLedger(false) },
+                onDismissRegisterWalletOnBitBox = { viewModel.setRegisterWalletOnBitBox(false) },
+                onRegisterWalletSuccess = ::showRegisterWalletSuccess,
             )
         }
 
@@ -217,6 +220,9 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
                 isColdCardExportFlow = true
                 showExportColdcardOptions()
             }
+
+            SheetOptionType.TYPE_EXPORT_TO_LEDGER -> viewModel.setRegisterWalletOnLedger(true)
+            SheetOptionType.TYPE_EXPORT_TO_BITBOX -> viewModel.setRegisterWalletOnBitBox(true)
 
             SheetOptionType.TYPE_FORCE_REFRESH_WALLET -> showForceRefreshWalletDialog()
             SheetOptionType.TYPE_SAVE_WALLET_CONFIG -> showSaveWalletConfigurationOption()
@@ -577,6 +583,10 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
         NCToastMessage(this).showError(event.message)
     }
 
+    private fun showRegisterWalletSuccess() {
+        NCToastMessage(this).showMessage(getString(R.string.nc_register_wallet_success))
+    }
+
     private fun shareConfigurationFile(filePath: String) {
         controller.shareFile(filePath)
     }
@@ -807,7 +817,29 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
             )
         )
 
-        // Show COLDCARD only for multisig and supported address types
+        // Registering the wallet over BLE/USB, offered per device because each speaks its own
+        // protocol — and only for a wallet that actually holds that device's key, since a device
+        // that isn't part of the wallet has no reason to hold its policy.
+        if (viewModel.isLedgerWallet()) {
+            options.add(
+                SheetOption(
+                    SheetOptionType.TYPE_EXPORT_TO_LEDGER,
+                    stringId = R.string.nc_ledger
+                )
+            )
+        }
+
+        if (viewModel.isBitBoxWallet()) {
+            options.add(
+                SheetOption(
+                    SheetOptionType.TYPE_EXPORT_TO_BITBOX,
+                    stringId = R.string.nc_bitbox
+                )
+            )
+        }
+
+        // Show Coldcard only for multisig and supported address types, and below the devices
+        // that register in-app: those are the one-tap path when the wallet has such a key.
         if ((isMiniscript || isMultisig) && isSupportedType) {
             options.add(
                 SheetOption(

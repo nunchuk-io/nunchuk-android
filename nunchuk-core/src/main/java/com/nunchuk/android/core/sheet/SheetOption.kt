@@ -171,4 +171,10 @@ object SheetOptionType {
     const val TYPE_CHANGE_ON_CHAIN_TIMELOCK = 104
     const val TYPE_REPLACE_KEY_CHANGE_TIMELOCK = 105
     const val TYPE_VIEW_WALLET_CONFIG = 106
+
+    /** Register the wallet on a Ledger over BLE/USB, from the wallet's export options. */
+    const val TYPE_EXPORT_TO_LEDGER = 107
+
+    /** Register the wallet on a BitBox over BLE/USB, from the wallet's export options. */
+    const val TYPE_EXPORT_TO_BITBOX = 108
 }

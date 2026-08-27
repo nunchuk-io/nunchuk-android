@@ -235,6 +235,33 @@ fun LedgerVerifyAddressSheet(
 }
 
 /**
+ * Ledger "Register wallet" bottom sheet, shown inline by the host screen (wallet config's export
+ * options). Connects over BLE/USB in-app and registers [walletId]'s policy on the device, which
+ * is what lets that device sign for the wallet and derive its addresses later.
+ *
+ * [onSuccess] fires once the device has approved the policy; the sheet dismisses either way,
+ * leaving the host to display the result.
+ */
+@Composable
+fun LedgerRegisterWalletSheet(
+    walletId: String,
+    onDismiss: () -> Unit,
+    onSuccess: () -> Unit,
+) {
+    val action = remember(walletId) { LedgerSheetAction.RegisterWallet(walletId = walletId) }
+    LedgerSheet(
+        action = action,
+        onDismiss = onDismiss,
+        onEvent = { event ->
+            if (event is LedgerSheetEvent.RegisterWalletSuccess) {
+                onSuccess()
+                onDismiss()
+            }
+        },
+    )
+}
+
+/**
  * Shared body of every Ledger sheet: the device picker plus the transport plumbing that only
  * the UI layer can do (runtime permissions, the "turn on Bluetooth" prompt, error toasts).
  * The session itself lives in [LedgerSheetViewModel]; [onEvent] handles whatever is specific

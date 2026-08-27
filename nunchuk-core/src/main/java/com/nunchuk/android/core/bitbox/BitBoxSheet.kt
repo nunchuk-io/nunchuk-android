@@ -243,6 +243,33 @@ fun BitBoxVerifyAddressSheet(
 }
 
 /**
+ * BitBox "Register wallet" bottom sheet, shown inline by the host screen (wallet config's export
+ * options). Connects over BLE/USB in-app and puts [walletId]'s policy on the device, which is
+ * what lets that device sign for the wallet and derive its addresses later.
+ *
+ * [onSuccess] fires once the device holds the policy — including when it already did, since the
+ * device is asked first and a second approval would add nothing.
+ */
+@Composable
+fun BitBoxRegisterWalletSheet(
+    walletId: String,
+    onDismiss: () -> Unit,
+    onSuccess: () -> Unit,
+) {
+    val action = remember(walletId) { BitBoxSheetAction.RegisterWallet(walletId = walletId) }
+    BitBoxSheet(
+        action = action,
+        onDismiss = onDismiss,
+        onEvent = { event ->
+            if (event is BitBoxSheetEvent.RegisterWalletSuccess) {
+                onSuccess()
+                onDismiss()
+            }
+        },
+    )
+}
+
+/**
  * Shared body of every BitBox sheet: the device picker (or the pairing code, while that answer
  * is outstanding) plus the transport plumbing that only the UI layer can do — runtime
  * permissions, the "turn on Bluetooth" prompt, error toasts.

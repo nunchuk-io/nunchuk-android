@@ -46,4 +46,8 @@ data class WalletConfigState(
     val isGroupSandboxWallet: Boolean = false,
     val isDeprecatedGroupWallet: Boolean = false,
     val usdtAssetId: String = "",
+    /** True while the "Ledger" export option's register-wallet sheet is open. */
+    val isRegisterWalletOnLedger: Boolean = false,
+    /** True while the "BitBox" export option's register-wallet sheet is open. */
+    val isRegisterWalletOnBitBox: Boolean = false,
 )

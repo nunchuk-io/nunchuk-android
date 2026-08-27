@@ -20,7 +20,11 @@
 package com.nunchuk.android.core.domain.utils
 
 import com.nunchuk.android.core.domain.utils.LedgerCommandException.Companion.SW_INVALID_SIGNATURE_OR_HMAC
+import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.Wallet
+import com.nunchuk.android.nativelib.NunchukNativeSdk
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -34,9 +38,28 @@ import javax.inject.Inject
  *     stored registration is stale — clear it, re-register and retry once (Confluence §6).
  */
 class LedgerWalletRegistrar @Inject constructor(
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    private val nativeSdk: NunchukNativeSdk,
     private val getLedgerWalletHmacUseCase: GetLedgerWalletHmacUseCase,
     private val setLedgerWalletHmacUseCase: SetLedgerWalletHmacUseCase,
 ) {
+    /**
+     * Registers the wallet with [walletId] on the connected device as an end in itself — the
+     * "Ledger" entry in the wallet's export options, which exists so the user can put the wallet
+     * on a device without waiting for a transaction to sign.
+     *
+     * Deliberately registers every time instead of reusing the cached HMAC the way
+     * [withRegisteredWallet] does: that cache records what this app last registered, not what
+     * the device in hand holds, so a fresh or reset Ledger would otherwise be reported as
+     * registered without ever having been asked. The HMAC it returns replaces the cached one,
+     * which is what lets signing go straight through on the device just registered.
+     */
+    suspend fun registerWallet(executor: LedgerCommandExecutor, walletId: String) {
+        withContext(ioDispatcher) {
+            register(executor, nativeSdk.getWallet(walletId), cacheRegistration = true)
+        }
+    }
+
     /**
      * Runs [block] with a registration HMAC valid for [wallet] on the connected device.
      *

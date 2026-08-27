@@ -53,6 +53,7 @@ import com.nunchuk.android.model.wallet.WalletStatus
 import com.nunchuk.android.share.GetContactsUseCase
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.ExportFormat
+import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.WalletTemplate
 import com.nunchuk.android.type.WalletType
@@ -687,6 +688,23 @@ internal class WalletConfigViewModel @Inject constructor(
     fun isMiniscriptWallet(): Boolean {
         return state.value.walletExtended.wallet.miniscript.isNotEmpty()
     }
+
+    /**
+     * Whether the wallet holds a key of [tag] — what decides if registering the wallet on that
+     * device is offered in the export options. A wallet with no such key has nothing to register.
+     */
+    private fun hasKeyTagged(tag: SignerTag): Boolean =
+        state.value.walletExtended.wallet.signers.any { it.tags.contains(tag) }
+
+    fun isLedgerWallet(): Boolean = hasKeyTagged(SignerTag.LEDGER)
+
+    fun isBitBoxWallet(): Boolean = hasKeyTagged(SignerTag.BITBOX)
+
+    fun setRegisterWalletOnLedger(isOpen: Boolean) =
+        _state.update { it.copy(isRegisterWalletOnLedger = isOpen) }
+
+    fun setRegisterWalletOnBitBox(isOpen: Boolean) =
+        _state.update { it.copy(isRegisterWalletOnBitBox = isOpen) }
 
     fun isServerWallet() = assistedWalletManager.getBriefWallet(walletId) != null
 

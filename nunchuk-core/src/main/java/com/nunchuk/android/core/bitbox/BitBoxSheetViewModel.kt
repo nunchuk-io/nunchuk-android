@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.R
 import com.nunchuk.android.core.domain.utils.BitBoxAddressVerifier
 import com.nunchuk.android.core.domain.utils.BitBoxTransactionSigner
+import com.nunchuk.android.core.domain.utils.BitBoxWalletRegistrar
 import com.nunchuk.android.core.domain.utils.GetBitBoxSignMessagePathUseCase
 import com.nunchuk.android.core.domain.utils.HealthCheckSingleSignerUseCase
 import com.nunchuk.android.core.util.orUnknownError
@@ -108,6 +109,14 @@ sealed interface BitBoxSheetAction {
     ) : BitBoxSheetAction {
         override val connectButtonText: Int get() = R.string.nc_verify_address_on_device
     }
+
+    /**
+     * Register [walletId]'s policy on the device and stop there — the wallet's "BitBox" export
+     * option, which is the registration every other wallet command opens with, offered on its own.
+     */
+    data class RegisterWallet(val walletId: String) : BitBoxSheetAction {
+        override val connectButtonText: Int get() = R.string.nc_register_wallet_on_device
+    }
 }
 
 data class BitBoxSheetUiState(
@@ -146,6 +155,9 @@ sealed class BitBoxSheetEvent {
     /** The device showed the address; [isMatch] is whether it derived the one we display. */
     data class VerifyAddressResult(val isMatch: Boolean) : BitBoxSheetEvent()
 
+    /** The wallet policy is on the device; the host should report and dismiss. */
+    data object RegisterWalletSuccess : BitBoxSheetEvent()
+
     /** Connected BitBox isn't the signer we're signing for — ask for the right device. */
     data object WrongDevice : BitBoxSheetEvent()
 
@@ -183,6 +195,7 @@ class BitBoxSheetViewModel @Inject constructor(
     private val healthCheckSingleSignerUseCase: HealthCheckSingleSignerUseCase,
     private val transactionSigner: BitBoxTransactionSigner,
     private val addressVerifier: BitBoxAddressVerifier,
+    private val walletRegistrar: BitBoxWalletRegistrar,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(BitBoxSheetUiState())
@@ -464,6 +477,11 @@ class BitBoxSheetViewModel @Inject constructor(
                     address = action.address,
                 )
             )
+
+            is BitBoxSheetAction.RegisterWallet -> {
+                walletRegistrar.registerWallet(executor = executor, walletId = action.walletId)
+                BitBoxSheetEvent.RegisterWalletSuccess
+            }
         }
     }
 
