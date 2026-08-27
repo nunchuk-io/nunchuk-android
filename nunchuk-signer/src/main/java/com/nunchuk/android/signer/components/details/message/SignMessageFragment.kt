@@ -227,6 +227,21 @@ class SignMessageFragment : BaseShareSaveFileFragment<ViewBinding>() {
             viewModel.requestSignMessageByTrezor()
         } else if (args.signerType == SignerType.NFC) {
             (requireActivity() as NfcActionListener).startNfcFlow(BaseNfcActivity.REQUEST_NFC_HEALTH_CHECK)
+        } else if (args.signerType == SignerType.HARDWARE) {
+            // A hardware key can never sign through the software path below, so don't let it fall
+            // there. Reaching here means either the signer hasn't loaded yet — its tags are what
+            // pick the device flow, and they arrive asynchronously — or it has no in-app flow at
+            // all. Both are worth saying out loud; silently attempting a software sign fails in a
+            // way that looks like the key is broken.
+            showError(
+                getString(
+                    if (viewModel.isSignerLoaded()) {
+                        com.nunchuk.android.core.R.string.nc_use_desktop_app_to_sign
+                    } else {
+                        R.string.nc_signer_key_not_loaded
+                    }
+                )
+            )
         } else if (viewModel.needPassphrase()) {
             NCInputDialog(requireActivity()).showDialog(
                 title = getString(R.string.nc_transaction_enter_passphrase),

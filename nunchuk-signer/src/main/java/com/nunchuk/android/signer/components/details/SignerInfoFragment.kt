@@ -296,7 +296,7 @@ class SignerInfoFragment : BaseShareSaveFileFragment<ViewBinding>(),
 
     /**
      * TapSigner and software keys sign a message in-app; among hardware keys only the ones with
-     * an in-app flow (Trezor, Ledger) can, so the rest don't offer the option.
+     * an in-app flow (Trezor, Ledger, BitBox) can, so the rest don't offer the option.
      */
     private fun canSignMessage(signerType: SignerType) = signerType == SignerType.NFC ||
             signerType == SignerType.SOFTWARE ||

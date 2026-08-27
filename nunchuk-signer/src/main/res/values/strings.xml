@@ -277,6 +277,7 @@
     <string name="nc_bitbox_disconnect">Disconnect BitBox</string>
     <string name="nc_bitbox_open_app_failed">Could not open BitBoxApp.</string>
 
+    <string name="nc_signer_key_not_loaded">Still loading this key. Please try again in a moment.</string>
     <string name="nc_added_key_xfp_mismatch">The added key has an XFP mismatch. Please use the same device for both keys.</string>
     <string name="nc_verify_key_xfp_not_match">The key you just added (XFP:%1$s) doesn\'t match the original inheritance key (XFP:%2$s). Please try again.</string>
     <string name="nc_ensure_to_following_jade">Please ensure to do the following on your Jade before proceeding.</string>

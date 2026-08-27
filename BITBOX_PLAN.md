@@ -439,6 +439,32 @@ now that two key types share it), which reloads the transaction and emits the sa
 `SignTransactionSuccess` every other signer emits — so the success message stays decided in one
 place rather than once per key type.
 
+#### Review pass (2026-08-27)
+
+Swept every `SignerTag.LEDGER` dispatcher outside the Ledger packages for a missing BitBox
+sibling — none found. Checked and confirmed fine:
+
+- **Miniscript refresh after an in-app sign.** `handleHardwareSignSuccess` → `getTransactionInfo()`
+  → `loadLocalTransaction()`, which does call `getSignedSigners()`, so miniscript signer state is
+  refreshed. (`getTransactionFromNetwork()` doesn't, but that path is inheritance-claim only and
+  returns early.)
+- **Sign-in.** `enabledSigners` is restricted only for the health-check payload, so BitBox is
+  tappable; the BSMS wallet reaches the sheet through the event's `wallet` field.
+- **Replace key.** BitBox is correctly absent from the *off-chain inheritance* option sheet, which
+  is TAPSIGNER/COLDCARD only by design.
+- **On-chain.** BitBox is in `defaultSupportedSigners`, in `handleSignerTypeLogic`, and has its own
+  icon in `SignerUtil`.
+
+Two limitations found and left alone, both pre-existing rather than BitBox regressions:
+
+- **Verify address can't be steered on a mixed wallet.** `isTrezorWallet()` / `isLedgerWallet()` /
+  `isBitBoxWallet()` are wallet-level `any {}` checks read in that order, so a wallet holding both
+  a Ledger and a BitBox always routes to Ledger with no way to pick. Label and dispatcher use the
+  same order, so they at least agree. Trezor+Ledger had this already.
+- **On-chain timelock claiming will fail on the device.** Current BitBox firmware can't spend after
+  a time-based timelock (Huy, in Scope above). Adding and signing work; claiming hits a device
+  error with no in-app explanation, and gating it would need a firmware-version rule we don't have.
+
 #### Screen timeout during signing
 
 `KeepScreenOn()` (`nunchuk-core/.../hardware/`) is held for the lifetime of the Ledger and BitBox
@@ -568,6 +594,14 @@ Smaller pieces:
 - The confirmed path travels with the message to the sheet instead of being re-read from state;
   the two match only because the field is locked, and nothing at the call site would show that if
   it stopped being true.
+
+**Hardware keys no longer fall into the software path.** `onSignMessage` picked its branch from
+`is<Vendor>Signer()`, all of which need `remoteSigner` — loaded asynchronously in `init`. Tap Sign
+before that read lands and no branch matched, so a hardware key dropped through to
+`signMessageBySoftware()`, which cannot work for a key with no master signer and fails in a way
+that reads as a broken key. A `SignerType.HARDWARE` branch now catches it and says which of the
+two cases it is: still loading, or genuinely no in-app flow. This was Ledger's bug too — one
+branch fixes both.
 
 ### Phase 4 — Assisted / membership + replace ✅
 

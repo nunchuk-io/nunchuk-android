@@ -175,6 +175,12 @@ class SignMessageViewModel @Inject constructor(
 
     fun isBitBoxSigner(): Boolean = isHardwareSigner() && _state.value.isBitBox
 
+    /**
+     * True once the hardware signer has been loaded. Its tags are what pick the device flow, and
+     * they arrive asynchronously — until then no `is<Vendor>Signer()` can answer.
+     */
+    fun isSignerLoaded(): Boolean = _state.value.remoteSigner != null
+
     fun requestSignMessageByTrezor() {
         if (!isTrezorSigner()) return
         val message = savedStateHandle.get<String>(KEY_MESSAGE).orEmpty()
