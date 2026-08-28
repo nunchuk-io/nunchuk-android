@@ -852,12 +852,12 @@
     <string name="nc_bitbox_communicating">Communicating with your BitBox…</string>
 
     <!-- Device interaction prompts, from the Confluence UserInteraction table -->
-    <string name="nc_bitbox_unlock_device">Unlock your BitBox02 to continue.</string>
-    <string name="nc_bitbox_interaction_confirm_pairing">Check that the pairing code matches your BitBox02, then confirm it on the device and in Nunchuk.</string>
-    <string name="nc_bitbox_interaction_verify_address">Check the address on your BitBox02 and confirm that it matches Nunchuk.</string>
-    <string name="nc_bitbox_interaction_register_wallet">Review and confirm this wallet on your BitBox02.</string>
-    <string name="nc_bitbox_interaction_sign_message">Review and confirm the message on your BitBox02.</string>
-    <string name="nc_bitbox_interaction_sign_transaction">Review the transaction details on your BitBox02, then confirm.</string>
+    <string name="nc_bitbox_unlock_device">Unlock your BitBox to continue.</string>
+    <string name="nc_bitbox_interaction_confirm_pairing">Check that the pairing code matches your BitBox, then confirm it on the device and in Nunchuk.</string>
+    <string name="nc_bitbox_interaction_verify_address">Check the address on your BitBox and confirm that it matches Nunchuk.</string>
+    <string name="nc_bitbox_interaction_register_wallet">Review and confirm this wallet on your BitBox.</string>
+    <string name="nc_bitbox_interaction_sign_message">Review and confirm the message on your BitBox.</string>
+    <string name="nc_bitbox_interaction_sign_transaction">Review the transaction details on your BitBox, then confirm.</string>
 
     <string name="nc_bitbox_reconnecting">Reconnecting to your BitBox…</string>
     <string name="nc_bitbox_firmware_too_old">This BitBox is running firmware %1$s, which Nunchuk can\'t use. Update it in BitBoxApp, then try again.</string>
