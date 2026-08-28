@@ -1,12 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    App-bar illustration for the BitBox add-key screens, the BitBox counterpart of
-    bg_ledger_illustration. Converted from the design asset connect-bitbox.svg.
+    App-bar illustration for the BitBox add-key screens (design screen 01), the BitBox
+    counterpart of bg_ledger_illustration.
+
+    Converted from the design asset bitbox-hero.svg, which replaced the earlier
+    connect-bitbox.svg: the desk-and-laptop scene is gone, leaving the device on its own
+    at 1.8x. Like the 02A/02B assets the artwork is a 238px band, so it is offset by 62
+    to sit at the bottom of the 375x300 panel NcImageAppBar draws — the same panel size
+    as bg_bitbox_instructions_* and bg_ledger_illustration.
 
     Must stay a <vector>: NcImageAppBar loads it with painterResource, which rejects
     anything that is not a VectorDrawable or a raster. The backdrop uses
-    @color/nc_fill_denim rather than the asset SVG’s literal #D0E2FF so it tracks the
-    theme, exactly as bg_ledger_illustration does — the asset value is that colour’s
+    @color/nc_fill_denim rather than the asset SVG's literal #D0E2FF so it tracks the
+    theme, exactly as bg_ledger_illustration does — the asset value is that colour's
     light-mode entry.
 -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
@@ -15,50 +21,32 @@
     android:viewportWidth="375"
     android:viewportHeight="300">
     <path
-        android:pathData="M0,0H375V300H0Z"
+        android:pathData="M0,0h375v300h-375z"
         android:fillColor="@color/nc_fill_denim" />
-    <path
-        android:pathData="M190 194v20"
-        android:fillColor="#00000000"
-        android:strokeColor="#333"
-        android:strokeWidth="0.6"
-        android:strokeLineCap="round" />
-    <path
-        android:pathData="M221.9 275.54h-93.73l26.97-64.88h93.74l-26.98 64.88Z"
-        android:fillColor="#ABEDD8" />
-    <path
-        android:pathData="M229.9 256.35l-8 19.19h-20.76M197.38 275.54h-4.5M192.87 275.54h-43.93M148.94 275.54h-20.77l7.96-19.19M141.16 244.32l5.98-14.47 8-19.19h20.77M179.67 210.66h4.5M184.17 210.66h43.94M228.11 210.66h20.77l-7.96 19.19M235.89 241.88l-5.99 14.47"
-        android:fillColor="#00000000"
-        android:strokeColor="#333"
-        android:strokeWidth="0.6"
-        android:strokeLineCap="round"
-        android:strokeLineJoin="round" />
-    <path
-        android:pathData="M183.73,240.65A5.82,5.82 0 1 0 195.37,240.65A5.82,5.82 0 1 0 183.73,240.65Z"
-        android:fillColor="#46CDCF"
-        android:strokeColor="#333"
-        android:strokeWidth="0.6" />
-    <path
-        android:pathData="M97 279.08h126.96v-8.44H105.43c-4.67 0-8.43 3.81-8.43 8.44Z"
-        android:fillColor="#ABEDD8"
-        android:strokeColor="#333"
-        android:strokeWidth="0.6" />
-    <path
-        android:pathData="M94 177.76V199h192V99H94v78.76Z"
-        android:fillColor="#ABEDD8"
-        android:strokeColor="#333"
-        android:strokeWidth="0.6" />
-    <path
-        android:pathData="M169.14,108H211.25A4,4 0 0 1 215.25,112V172.33A4,4 0 0 1 211.25,176.33H169.14A4,4 0 0 1 165.14,172.33V112A4,4 0 0 1 169.14,108Z"
-        android:fillColor="#78C7E0"
-        android:strokeColor="#333"
-        android:strokeWidth="0.6" />
-    <path
-        android:pathData="m199.24 152.86-6.93 2.97v-22.11l13.83-5.94v8.46l-6.9 3.27v13.35ZM188.08 155.83l-6.93-2.97v-13.35l-6.9-3.27v-8.46l13.83 5.94v22.11ZM190.21 118.25l14.32 6.19-14.32 6.19-14.31-6.19 14.31-6.19Z"
-        android:fillColor="#48466D" />
-    <path
-        android:pathData="M182.39 190h16v-13.67h-16V190Z"
-        android:fillColor="#46CDCF"
-        android:strokeColor="#333"
-        android:strokeWidth="0.6" />
+
+    <group android:translateY="62">
+        <group
+            android:translateX="142.4"
+            android:translateY="58"
+            android:scaleX="1.8"
+            android:scaleY="1.8">
+            <group
+                android:translateX="-165.14"
+                android:translateY="-108">
+                <path
+                    android:pathData="M169.14,108H211.25A4,4 0 0 1 215.25,112V172.33A4,4 0 0 1 211.25,176.33H169.14A4,4 0 0 1 165.14,172.33V112A4,4 0 0 1 169.14,108Z"
+                    android:fillColor="#78C7E0"
+                    android:strokeColor="#333333"
+                    android:strokeWidth="0.6" />
+                <path
+                    android:pathData="m199.24 152.86-6.93 2.97v-22.11l13.83-5.94v8.46l-6.9 3.27v13.35ZM188.08 155.83l-6.93-2.97v-13.35l-6.9-3.27v-8.46l13.83 5.94v22.11ZM190.21 118.25l14.32 6.19-14.32 6.19-14.31-6.19 14.31-6.19Z"
+                    android:fillColor="#48466D" />
+                <path
+                    android:pathData="M182.39 190h16v-13.67h-16V190Z"
+                    android:fillColor="#46CDCF"
+                    android:strokeColor="#333333"
+                    android:strokeWidth="0.6" />
+            </group>
+        </group>
+    </group>
 </vector>
