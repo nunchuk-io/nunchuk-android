@@ -37,5 +37,6 @@ fun SignerTag?.airgapAddKeyTitleRes(): Int = when (this) {
     SignerTag.JADE -> R.string.nc_add_jade
     SignerTag.PASSPORT -> R.string.nc_add_foundation_passport
     SignerTag.KEYSTONE -> R.string.nc_add_keystone
+    SignerTag.KRUX -> R.string.nc_add_krux
     else -> R.string.nc_add_an_airgapped_key
 }

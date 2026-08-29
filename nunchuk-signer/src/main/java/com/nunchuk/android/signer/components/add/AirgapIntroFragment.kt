@@ -101,6 +101,7 @@ private fun AirgapIntroContent(
         SignerTag.JADE -> R.drawable.bg_airgap_jade_intro
         SignerTag.PASSPORT -> R.drawable.bg_airgap_passport_intro
         SignerTag.KEYSTONE -> R.drawable.bg_airgap_keystone_intro
+        SignerTag.KRUX -> R.drawable.bg_airgap_krux_intro
         else -> R.drawable.bg_airgap_other_intro
     }
 

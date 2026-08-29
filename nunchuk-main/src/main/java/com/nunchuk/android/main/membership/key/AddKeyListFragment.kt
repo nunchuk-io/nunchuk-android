@@ -298,6 +298,7 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
             SheetOptionType.TYPE_ADD_AIRGAP_SEEDSIGNER,
             SheetOptionType.TYPE_ADD_AIRGAP_PASSPORT,
             SheetOptionType.TYPE_ADD_AIRGAP_KEYSTONE,
+            SheetOptionType.TYPE_ADD_AIRGAP_KRUX,
             SheetOptionType.TYPE_ADD_AIRGAP_OTHER,
                 -> {
                 selectedSignerTag = getSignerTag(option.type)
@@ -429,6 +430,7 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
             SheetOptionType.TYPE_ADD_AIRGAP_SEEDSIGNER -> SignerTag.SEEDSIGNER
             SheetOptionType.TYPE_ADD_AIRGAP_PASSPORT -> SignerTag.PASSPORT
             SheetOptionType.TYPE_ADD_AIRGAP_KEYSTONE -> SignerTag.KEYSTONE
+            SheetOptionType.TYPE_ADD_AIRGAP_KRUX -> SignerTag.KRUX
             else -> null
         }
     }
@@ -452,6 +454,10 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
                 SheetOption(
                     type = SheetOptionType.TYPE_ADD_AIRGAP_KEYSTONE,
                     label = getString(R.string.nc_keystone),
+                ),
+                SheetOption(
+                    type = SheetOptionType.TYPE_ADD_AIRGAP_KRUX,
+                    label = getString(R.string.nc_krux),
                 ),
                 SheetOption(
                     type = SignerType.COLDCARD_NFC.ordinal,

@@ -292,6 +292,7 @@ enum class KeyType {
     LEDGER,
     BITBOX,
     TREZOR,
+    KRUX,
     SOFTWARE,
     GENERIC_AIRGAP,
     PLATFORM_KEY,

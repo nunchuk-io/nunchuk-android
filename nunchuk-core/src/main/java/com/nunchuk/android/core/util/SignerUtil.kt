@@ -75,6 +75,7 @@ private fun toReadableDrawableResId(
         type == AIRGAP && tags.contains(SignerTag.SEEDSIGNER) -> R.drawable.ic_air_gapped_seedsigner
         type == AIRGAP && tags.contains(SignerTag.PASSPORT) -> R.drawable.ic_air_gapped_passport
         type == AIRGAP && tags.contains(SignerTag.KEYSTONE) -> R.drawable.ic_air_gapped_keystone
+        type == AIRGAP && tags.contains(SignerTag.KRUX) -> R.drawable.ic_air_gapped_krux
         type == AIRGAP && tags.contains(SignerTag.COLDCARD) -> R.drawable.ic_coldcard_small
         type == HARDWARE && tags.contains(SignerTag.JADE) -> R.drawable.ic_air_gapped_jade
         type == HARDWARE && tags.contains(SignerTag.TREZOR) -> R.drawable.ic_trezor_hardware
@@ -111,7 +112,7 @@ fun MasterSigner.toReadableDrawableResId(isPrimaryKey: Boolean = false): Int {
 }
 
 val SignerTag.isAirgapTag: Boolean
-    get() = this == SignerTag.JADE || this == SignerTag.SEEDSIGNER || this == SignerTag.PASSPORT || this == SignerTag.KEYSTONE
+    get() = this == SignerTag.JADE || this == SignerTag.SEEDSIGNER || this == SignerTag.PASSPORT || this == SignerTag.KEYSTONE || this == SignerTag.KRUX
 
 /**
  * Hardware signers that have an in-app add-key flow (Trezor via companion app, Ledger and
@@ -130,6 +131,7 @@ val SignerTag?.formattedName: String
         SignerTag.SEEDSIGNER -> "Seed"
         SignerTag.PASSPORT -> "Passport"
         SignerTag.KEYSTONE -> "Keystone"
+        SignerTag.KRUX -> "Krux"
         SignerTag.COLDCARD -> COLDCARD_DEFAULT_KEY_NAME
         else -> "Hardware Key"
     }

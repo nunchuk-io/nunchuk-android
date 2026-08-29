@@ -194,6 +194,7 @@ class AddAirgapSignerFragment : BaseCameraFragment<ViewBinding>(),
             SheetOptionType.TYPE_ADD_AIRGAP_KEYSTONE -> viewModel.changeKeyType(signerTag = SignerTag.KEYSTONE)
             SheetOptionType.TYPE_ADD_LEDGER -> viewModel.changeKeyType(signerTag = SignerTag.LEDGER)
             SheetOptionType.TYPE_ADD_AIRGAP_SEEDSIGNER -> viewModel.changeKeyType(signerTag = SignerTag.SEEDSIGNER)
+            SheetOptionType.TYPE_ADD_AIRGAP_KRUX -> viewModel.changeKeyType(signerTag = SignerTag.KRUX)
             SheetOptionType.TYPE_ADD_TREZOR -> viewModel.changeKeyType(signerTag = SignerTag.TREZOR)
             else -> viewModel.signers.getOrNull(option.type)?.let {
                 val isMembershipFlow =
@@ -360,6 +361,10 @@ class AddAirgapSignerFragment : BaseCameraFragment<ViewBinding>(),
                 SheetOption(
                     type = SheetOptionType.TYPE_ADD_AIRGAP_KEYSTONE,
                     label = getString(com.nunchuk.android.core.R.string.nc_keystone),
+                ),
+                SheetOption(
+                    type = SheetOptionType.TYPE_ADD_AIRGAP_KRUX,
+                    label = getString(com.nunchuk.android.core.R.string.nc_krux),
                 ),
                 SheetOption(
                     type = SheetOptionType.TYPE_ADD_AIRGAP_SEEDSIGNER,

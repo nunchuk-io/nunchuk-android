@@ -234,6 +234,7 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
                                     KeyType.SEEDSIGNER -> handleSelectAddAirgapType(SignerTag.SEEDSIGNER)
                                     KeyType.KEYSTONE -> handleSelectAddAirgapType(SignerTag.KEYSTONE)
                                     KeyType.FOUNDATION -> handleSelectAddAirgapType(SignerTag.PASSPORT)
+                                    KeyType.KRUX -> handleSelectAddAirgapType(SignerTag.KRUX)
                                     KeyType.SOFTWARE -> showSoftwareSigners()
                                     KeyType.PLATFORM_KEY -> returnPlatformKeyResult()
                                     KeyType.GENERIC_AIRGAP -> openAddAirSignerIntroScreen()

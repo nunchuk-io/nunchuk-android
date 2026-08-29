@@ -177,4 +177,7 @@ object SheetOptionType {
 
     /** Register the wallet on a BitBox over BLE/USB, from the wallet's export options. */
     const val TYPE_EXPORT_TO_BITBOX = 108
+
+    /** Add a Krux, an air-gapped key added over QR/file like the other air-gap tags. */
+    const val TYPE_ADD_AIRGAP_KRUX = 109
 }

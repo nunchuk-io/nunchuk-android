@@ -887,6 +887,7 @@
     <string name="nc_trezor">Trezor</string>
     <string name="nc_software">Software</string>
     <string name="nc_seedsigner">SeedSigner</string>
+    <string name="nc_krux">Krux</string>
     <string name="nc_foundation">Foundation</string>
     <string name="nc_select_the_key_type">Please select the key type</string>
     <string name="nc_key_has_added_change_key">This key has already been added. Do you want to change the key type?</string>

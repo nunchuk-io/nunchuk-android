@@ -454,6 +454,12 @@ val defaultSupportedSigners = listOf(
         addressType = AddressType.NATIVE_SEGWIT
     ),
     SupportedSigner(
+        type = SignerType.AIRGAP,
+        tag = SignerTag.KRUX,
+        walletType = WalletType.MULTI_SIG,
+        addressType = AddressType.NATIVE_SEGWIT
+    ),
+    SupportedSigner(
         type = SignerType.SOFTWARE,
         tag = null,
         walletType = WalletType.MULTI_SIG,

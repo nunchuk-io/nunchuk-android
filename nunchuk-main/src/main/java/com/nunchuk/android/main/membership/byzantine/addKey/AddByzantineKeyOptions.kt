@@ -61,6 +61,10 @@ fun getKeyOptions(context: Context,
                 label = context.getString(R.string.nc_keystone),
             ),
             SheetOption(
+                type = SheetOptionType.TYPE_ADD_AIRGAP_KRUX,
+                label = context.getString(R.string.nc_krux),
+            ),
+            SheetOption(
                 type = SheetOptionType.TYPE_ADD_LEDGER,
                 label = context.getString(R.string.nc_ledger)
             ),

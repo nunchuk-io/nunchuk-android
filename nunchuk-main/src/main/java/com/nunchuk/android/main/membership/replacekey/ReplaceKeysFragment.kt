@@ -360,6 +360,7 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
             SheetOptionType.TYPE_ADD_AIRGAP_SEEDSIGNER,
             SheetOptionType.TYPE_ADD_AIRGAP_PASSPORT,
             SheetOptionType.TYPE_ADD_AIRGAP_KEYSTONE,
+            SheetOptionType.TYPE_ADD_AIRGAP_KRUX,
             SheetOptionType.TYPE_ADD_AIRGAP_OTHER -> {
                 selectedSignerTag = getSignerTag(option.type)
                 handleShowKeysOrCreate(
@@ -450,6 +451,7 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
             SheetOptionType.TYPE_ADD_AIRGAP_SEEDSIGNER -> SignerTag.SEEDSIGNER
             SheetOptionType.TYPE_ADD_AIRGAP_PASSPORT -> SignerTag.PASSPORT
             SheetOptionType.TYPE_ADD_AIRGAP_KEYSTONE -> SignerTag.KEYSTONE
+            SheetOptionType.TYPE_ADD_AIRGAP_KRUX -> SignerTag.KRUX
             else -> null
         }
     }

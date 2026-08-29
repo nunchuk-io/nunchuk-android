@@ -211,6 +211,7 @@
     <string name="nc_add_jade">Add Blockstream Jade</string>
     <string name="nc_add_trezor">Add Trezor</string>
     <string name="nc_add_seedsigner">Add SeedSigner</string>
+    <string name="nc_add_krux">Add Krux</string>
     <string name="nc_add_foundation_passport">Add Foundation Passport</string>
     <string name="nc_add_keystone">Add Keystone</string>
     <string name="nc_desktop_only">Desktop only</string>

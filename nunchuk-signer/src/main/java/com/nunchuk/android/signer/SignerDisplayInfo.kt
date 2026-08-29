@@ -36,6 +36,7 @@ fun SupportedSigner.toKeyType(): KeyType? = when (type) {
         SignerTag.SEEDSIGNER -> KeyType.SEEDSIGNER
         SignerTag.KEYSTONE -> KeyType.KEYSTONE
         SignerTag.PASSPORT -> KeyType.FOUNDATION
+        SignerTag.KRUX -> KeyType.KRUX
         else -> null
     }
     SignerType.HARDWARE -> when (tag) {
@@ -55,6 +56,7 @@ fun KeyType.toSignerTypeAndTag(): Pair<SignerType, SignerTag?> = when (this) {
     KeyType.SEEDSIGNER -> SignerType.AIRGAP to SignerTag.SEEDSIGNER
     KeyType.KEYSTONE -> SignerType.AIRGAP to SignerTag.KEYSTONE
     KeyType.FOUNDATION -> SignerType.AIRGAP to SignerTag.PASSPORT
+    KeyType.KRUX -> SignerType.AIRGAP to SignerTag.KRUX
     KeyType.LEDGER -> SignerType.HARDWARE to SignerTag.LEDGER
     KeyType.TREZOR -> SignerType.HARDWARE to SignerTag.TREZOR
     KeyType.BITBOX -> SignerType.HARDWARE to SignerTag.BITBOX
@@ -105,6 +107,13 @@ fun SupportedSigner.toDisplayInfo(): SignerDisplayInfo? {
             SignerTag.PASSPORT -> SignerDisplayInfo(
                 iconRes = R.drawable.ic_air_gapped_passport,
                 titleRes = R.string.nc_foundation,
+                keyType = keyType,
+                category = SignerDisplayCategory.CARD,
+            )
+
+            SignerTag.KRUX -> SignerDisplayInfo(
+                iconRes = R.drawable.ic_air_gapped_krux,
+                titleRes = R.string.nc_krux,
                 keyType = keyType,
                 category = SignerDisplayCategory.CARD,
             )
