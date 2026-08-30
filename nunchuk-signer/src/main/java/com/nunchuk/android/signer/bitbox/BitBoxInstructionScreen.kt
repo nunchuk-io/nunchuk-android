@@ -42,16 +42,20 @@ internal data class BitBoxInstructionRoute(val isUsb: Boolean = false)
  * (Trezor Android already does this; Ledger shows its instructions for Bluetooth only).
  *
  * Step 2 and the illustration are the only difference between the two variants — enable
- * Bluetooth, or plug the device straight into the phone's USB-C port.
+ * Bluetooth, or plug the device straight into the phone's USB-C port. Step 3 only appears where
+ * a select-wallet-type screen actually follows: assisted wallets have that config fixed for
+ * them, so the screen — and this step with it — drops out.
  */
 fun NavGraphBuilder.bitBoxInstruction(
     onBack: () -> Unit = {},
     onContinue: (isUsb: Boolean) -> Unit = {},
+    hasSelectWalletTypeStep: Boolean = true,
 ) {
     composable<BitBoxInstructionRoute> { entry ->
         val route = entry.toRoute<BitBoxInstructionRoute>()
         BitBoxInstructionScreen(
             isUsb = route.isUsb,
+            hasSelectWalletTypeStep = hasSelectWalletTypeStep,
             onBack = onBack,
             onContinue = { onContinue(route.isUsb) },
         )
@@ -65,6 +69,7 @@ fun NavHostController.navigateToBitBoxInstruction(isUsb: Boolean) {
 @Composable
 private fun BitBoxInstructionScreen(
     isUsb: Boolean = false,
+    hasSelectWalletTypeStep: Boolean = true,
     onBack: () -> Unit = {},
     onContinue: () -> Unit = {},
 ) {
@@ -148,16 +153,18 @@ private fun BitBoxInstructionScreen(
                 )
             }
 
-            BitBoxStep(index = 3) {
-                Text(
-                    text = stringResource(id = R.string.nc_bitbox_step_return_title),
-                    style = NunchukTheme.typography.title,
-                )
-                Text(
-                    modifier = Modifier.padding(top = 8.dp),
-                    text = stringResource(id = R.string.nc_bitbox_step_return_desc),
-                    style = NunchukTheme.typography.body,
-                )
+            if (hasSelectWalletTypeStep) {
+                BitBoxStep(index = 3) {
+                    Text(
+                        text = stringResource(id = R.string.nc_bitbox_step_return_title),
+                        style = NunchukTheme.typography.title,
+                    )
+                    Text(
+                        modifier = Modifier.padding(top = 8.dp),
+                        text = stringResource(id = R.string.nc_bitbox_step_return_desc),
+                        style = NunchukTheme.typography.body,
+                    )
+                }
             }
         }
     }
@@ -205,4 +212,10 @@ private fun BitBoxInstructionBluetoothPreview() {
 @Composable
 private fun BitBoxInstructionUsbPreview() {
     NunchukTheme { BitBoxInstructionScreen(isUsb = true) }
+}
+
+@PreviewLightDark
+@Composable
+private fun BitBoxInstructionAssistedPreview() {
+    NunchukTheme { BitBoxInstructionScreen(isUsb = false, hasSelectWalletTypeStep = false) }
 }

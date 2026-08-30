@@ -423,6 +423,7 @@ class BitBoxActivity : BaseComposeActivity() {
                                 navController.navigateToBitBoxSelectWalletType(isUsb = isUsb)
                             }
                         },
+                        hasSelectWalletTypeStep = !isMembershipFlow,
                     )
                     bitBoxSelectWalletType(
                         onBack = { navController.popBackStack() },
