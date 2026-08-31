@@ -51,11 +51,13 @@ import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.signer.KeyFlow
 import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.signer.SelectSignerArgs
 import com.nunchuk.android.core.signer.SelectSignerBottomSheet
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.MembershipStep
+import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.signer.SupportedSigner
 import com.nunchuk.android.nav.args.AddAirSignerArgs
 import com.nunchuk.android.nav.args.SetupMk4Args
@@ -99,6 +101,14 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
         onChainAddSignerParam?.isClaiming == true
     }
 
+    /**
+     * Account to read the inheritance key from when pairing a Ledger/BitBox in-app for a claim.
+     * Same source the Coldcard claim uses, and the same default (account 0) when the caller
+     * doesn't name one.
+     */
+    private val claimAccountIndex: Int
+        get() = onChainAddSignerParam?.keyIndex?.takeIf { it >= 0 } ?: 0
+
     private val viewModel: SignerIntroViewModel by viewModels()
 
     private val signerResultLauncher = registerForActivityResult(
@@ -109,6 +119,34 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
             if (signer != null) {
                 returnSigner(signer)
             }
+        }
+    }
+
+    /**
+     * Ledger paired in-app while claiming an inheritance: the device screen either hands back the
+     * key it read, or reports that the user picked "Add via desktop app" on its intro — the
+     * hand-off this flow used to be hard-wired to.
+     */
+    private val addLedgerForClaimLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val data = result.data
+        if (result.resultCode != RESULT_OK || data == null) return@registerForActivityResult
+        if (relayClaimHardwareSigner(data)) return@registerForActivityResult
+        if (data.getStringExtra(LedgerActivity.EXTRA_RESULT_ACTION) == LedgerActivity.RESULT_ACTION_OPEN_DESKTOP_FLOW) {
+            openAddDesktopKeyForClaim(SignerTag.LEDGER)
+        }
+    }
+
+    /** BitBox mirror of [addLedgerForClaimLauncher]. */
+    private val addBitBoxForClaimLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val data = result.data
+        if (result.resultCode != RESULT_OK || data == null) return@registerForActivityResult
+        if (relayClaimHardwareSigner(data)) return@registerForActivityResult
+        if (data.getStringExtra(BitBoxActivity.EXTRA_RESULT_ACTION) == BitBoxActivity.RESULT_ACTION_OPEN_DESKTOP_FLOW) {
+            openAddDesktopKeyForClaim(SignerTag.BITBOX)
         }
     }
 
@@ -399,14 +437,35 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
             setResult(Activity.RESULT_OK, intent)
             finish()
         } else if (onChainAddSignerParam?.isClaiming == true) {
-            navigator.openAddDesktopKey(
-                this,
-                signerTag = tag,
-                step = MembershipStep.SETUP_INHERITANCE,
-                isInheritanceKey = true,
-                magic = onChainAddSignerParam?.magic.orEmpty()
-            )
+            openAddDesktopKeyForClaim(tag)
         }
+    }
+
+    /**
+     * Claim the inheritance key from the desktop app: the key is added there and arrives back over
+     * [com.nunchuk.android.core.push.PushEvent.ClaimSignerAdded]. Ledger and BitBox reach this
+     * from their own intro's desktop row; every other hardware tag has no in-app flow and comes
+     * straight here.
+     */
+    private fun openAddDesktopKeyForClaim(tag: SignerTag) {
+        navigator.openAddDesktopKey(
+            this,
+            signerTag = tag,
+            step = MembershipStep.SETUP_INHERITANCE,
+            isInheritanceKey = true,
+            magic = onChainAddSignerParam?.magic.orEmpty()
+        )
+    }
+
+    /**
+     * Hands a key just paired over BLE/USB back to whoever started this flow (the claim adds it to
+     * its key list). The device screens return a [SingleSigner]; everything upstream works in
+     * [SignerModel]. Returns false when the result carries no key, i.e. it is the desktop hand-off.
+     */
+    private fun relayClaimHardwareSigner(data: Intent): Boolean {
+        val signer = data.parcelable<SingleSigner>(GlobalResultKey.EXTRA_SIGNER) ?: return false
+        returnSigner(signer.toModel())
+        return true
     }
 
     /**
@@ -517,6 +576,18 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
             )
             return
         }
+        // Claiming pairs the device in-app the same way adding a key does; the intro's desktop row
+        // keeps the old hand-off for a device that won't pair here.
+        if (onChainAddSignerParam?.isClaiming == true) {
+            addLedgerForClaimLauncher.launch(
+                LedgerActivity.buildIntent(
+                    activityContext = this,
+                    isMembershipFlow = true,
+                    accountIndex = claimAccountIndex,
+                )
+            )
+            return
+        }
         if (onChainAddSignerParam != null) {
             handleHardwareSignerSelection(SignerTag.LEDGER)
             return
@@ -542,6 +613,16 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
                     isMembershipFlow = true,
                     expectedXfp = verifyingKeyXfp,
                     verifyXfpOnly = true,
+                )
+            )
+            return
+        }
+        if (onChainAddSignerParam?.isClaiming == true) {
+            addBitBoxForClaimLauncher.launch(
+                BitBoxActivity.buildIntent(
+                    activityContext = this,
+                    isMembershipFlow = true,
+                    accountIndex = claimAccountIndex,
                 )
             )
             return

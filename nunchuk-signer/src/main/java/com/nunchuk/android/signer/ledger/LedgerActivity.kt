@@ -50,7 +50,9 @@ import javax.inject.Inject
  *   signer is returned to the caller via [GlobalResultKey.EXTRA_SIGNER], and the intro adds a
  *   desktop-app hand-off returned as [RESULT_ACTION_OPEN_DESKTOP_FLOW]. The on-chain timelock
  *   wallets hold two accounts of the same device per key slot, so they add the key twice — account
- *   0, then account 1 with [EXTRA_EXPECTED_XFP] set to the first key's fingerprint.
+ *   0, then account 1 with [EXTRA_EXPECTED_XFP] set to the first key's fingerprint. Claiming an
+ *   inheritance key runs in this mode too (via SignerIntroActivity): the key is returned the same
+ *   way, and its desktop row is the hand-off the claim used to be hard-wired to.
  *
  * (Sign transaction and health check are hosted inline on their own screens as
  * [com.nunchuk.android.core.ledger.LedgerSignTransactionSheet] /

@@ -61,7 +61,9 @@ import javax.inject.Inject
  *
  * Modes match Ledger: standalone (user picks wallet config, signer opens its info screen) and
  * membership (`isMembershipFlow`, config fixed to multisig / native segwit / [EXTRA_ACCOUNT_INDEX],
- * signer returned via [GlobalResultKey.EXTRA_SIGNER]).
+ * signer returned via [GlobalResultKey.EXTRA_SIGNER]). Claiming an inheritance key runs in the
+ * membership mode too, with the intro's desktop row as the hand-off the claim used to be
+ * hard-wired to.
  */
 @AndroidEntryPoint
 class BitBoxActivity : BaseComposeActivity() {
