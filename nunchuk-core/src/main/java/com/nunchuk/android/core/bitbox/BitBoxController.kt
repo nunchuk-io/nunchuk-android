@@ -175,6 +175,9 @@ class BitBoxController(
 
     private var usbReceiverRegistered = false
 
+    /** Pending "the BLE write callback never arrived" guard for the frame in flight. */
+    private var bleWriteTimeout: Runnable? = null
+
     /** The last interaction surfaced, so polling can't repeat it — Confluence §0. */
     private var lastInteraction = BitBoxUserInteraction.NONE
 
@@ -383,6 +386,7 @@ class BitBoxController(
         conn.gatt?.let { old ->
             runCatching { old.disconnect() }
             runCatching { old.close() }
+            cancelBleWriteTimeout()
             conn.clearBleRuntime()
         }
         // Bonding authenticates the app side of the pairing (Confluence §0), so ask for it
@@ -400,8 +404,14 @@ class BitBoxController(
 
         override fun onMtuChanged(gatt: BluetoothGatt, mtu: Int, status: Int) {
             mainHandler.post {
-                // Leave room for the ATT opcode + handle; the rest is payload.
-                        Timber.tag(TAG).d("onMtuChanged mtu=$mtu status=$status")
+                // Nothing here chunks by MTU — the frames arrive pre-cut at 64 bytes — but a
+                // refused negotiation leaves the link at the 23-byte default, where those
+                // frames no longer fit in one write. Log it; discovery continues either way.
+                if (status != BluetoothGatt.GATT_SUCCESS || mtu < BITBOX_BLE_MIN_MTU) {
+                    Timber.tag(TAG).w("MTU negotiation fell short: mtu=$mtu status=$status")
+                } else {
+                    Timber.tag(TAG).d("onMtuChanged mtu=$mtu")
+                }
                 gatt.discoverServices()
             }
         }
@@ -416,6 +426,14 @@ class BitBoxController(
             status: Int,
         ) {
             mainHandler.post {
+                if (connection?.gatt !== gatt) return@post
+                // Bonding runs alongside this write, and until it completes the CCCD comes back
+                // refused. Reporting it beats setting the flag anyway: the transport would look
+                // ready, initialize() would write into it, and no indication would ever answer.
+                if (status != BluetoothGatt.GATT_SUCCESS) {
+                    fail("Failed to enable BitBox indications")
+                    return@post
+                }
                 // Indications are live: the transport is only usable once both this and the
                 // write characteristic are in place (Confluence §0).
                 connection?.bleNotifyReady = true
@@ -428,20 +446,22 @@ class BitBoxController(
             characteristic: BluetoothGattCharacteristic,
             status: Int,
         ) {
-            mainHandler.post { handleCharacteristicWrite(status) }
+            mainHandler.post { handleCharacteristicWrite(gatt, characteristic, status) }
         }
 
         override fun onCharacteristicChanged(
             gatt: BluetoothGatt,
             characteristic: BluetoothGattCharacteristic,
         ) {
-            val value = characteristic.value ?: return
-            mainHandler.post { onData(value) }
+            // Copy before handing the frame to another thread: this is the stack's own buffer
+            // and the next indication overwrites it in place.
+            val value = characteristic.value?.copyOf() ?: return
+            mainHandler.post { if (connection?.gatt === gatt) onData(value) }
         }
     }
 
     private fun handleConnectionStateChange(gatt: BluetoothGatt, newState: Int) {
-        val conn = connection ?: return
+        val conn = connection?.takeIf { it.transport == BitBoxTransportKind.BLE } ?: return
         when (newState) {
             BluetoothGatt.STATE_CONNECTED -> {
                 Timber.tag(TAG).d("BLE connected, requesting MTU $BITBOX_BLE_MTU")
@@ -450,6 +470,13 @@ class BitBoxController(
 
             BluetoothGatt.STATE_DISCONNECTED -> {
                 Timber.tag(TAG).d("BLE disconnected")
+                // Every GATT client has to be closed, including one we have already replaced:
+                // the platform only allows a limited number of them, and clearBleRuntime()
+                // drops the reference, so nothing can close it after this point.
+                runCatching { gatt.close() }
+                // A late callback from the replaced client must not tear down the live session.
+                if (conn.gatt !== gatt && conn.gatt != null) return
+                cancelBleWriteTimeout()
                 conn.clearBleRuntime()
                 notifyDisconnected(conn)
             }
@@ -490,8 +517,16 @@ class BitBoxController(
         onTransportReady()
     }
 
-    private fun handleCharacteristicWrite(status: Int) {
+    private fun handleCharacteristicWrite(
+        gatt: BluetoothGatt,
+        characteristic: BluetoothGattCharacteristic,
+        status: Int,
+    ) {
         val conn = connection ?: return
+        // An ack from a GATT we have already replaced would clear the new frame in flight and
+        // pump the new queue, so only the live one may touch the write state.
+        if (conn.gatt !== gatt || conn.writeCharacteristic?.uuid != characteristic.uuid) return
+        cancelBleWriteTimeout()
         if (status == BluetoothGatt.GATT_SUCCESS) {
             conn.bleWriteInFlight = null
             conn.bleWriteRetries = 0
@@ -515,23 +550,82 @@ class BitBoxController(
         conn.bleWriteInFlight = frame
         characteristic.value = frame
         characteristic.writeType = conn.bleWriteType
-        if (!gatt.writeCharacteristic(characteristic)) retryBleWrite()
+        if (gatt.writeCharacteristic(characteristic)) armBleWriteTimeout(conn) else retryBleWrite()
     }
 
     private fun retryBleWrite() {
         val conn = connection ?: return
         val frame = conn.bleWriteInFlight ?: return
+        cancelBleWriteTimeout()
         if (conn.bleWriteRetries++ >= BLE_WRITE_RETRY_ATTEMPTS) {
+            // Give the frame up rather than leaving it in flight: writeBleFrames() only starts
+            // a write when nothing is pending, so a frame kept here would gate every later
+            // command — including the initialize() the host recovers with — on an ack that is
+            // never coming, and it would do it silently.
+            dropBleWriteState(conn)
             fail("BitBox BLE write failed")
             return
         }
+        // Bind the retry to this connection: after a reconnect or a device switch it would
+        // otherwise write into whatever session happens to be current when it fires.
         mainHandler.postDelayed({
+            if (connection !== conn) return@postDelayed
             val gatt = conn.gatt ?: return@postDelayed
             val characteristic = conn.writeCharacteristic ?: return@postDelayed
             characteristic.value = frame
             characteristic.writeType = conn.bleWriteType
-            if (!gatt.writeCharacteristic(characteristic)) retryBleWrite()
+            if (gatt.writeCharacteristic(characteristic)) {
+                armBleWriteTimeout(conn)
+            } else {
+                retryBleWrite()
+            }
         }, BLE_WRITE_RETRY_DELAY_MS)
+    }
+
+    /**
+     * A write that starts but never gets its callback would pin [BitBoxConnection.bleWriteInFlight]
+     * forever and stall the operation with nothing but a spinner on screen. Fail it instead, so
+     * the host can reconnect and retry.
+     */
+    private fun armBleWriteTimeout(conn: BitBoxConnection) {
+        cancelBleWriteTimeout()
+        val timeout = Runnable {
+            bleWriteTimeout = null
+            if (connection !== conn || conn.bleWriteInFlight == null) return@Runnable
+            Timber.tag(TAG).e("no BLE write callback after ${BLE_WRITE_TIMEOUT_MS}ms")
+            dropBleWriteState(conn)
+            fail("BitBox stopped responding. Reconnect and try again.")
+        }
+        bleWriteTimeout = timeout
+        mainHandler.postDelayed(timeout, BLE_WRITE_TIMEOUT_MS)
+    }
+
+    private fun cancelBleWriteTimeout() {
+        bleWriteTimeout?.let { mainHandler.removeCallbacks(it) }
+        bleWriteTimeout = null
+    }
+
+    /** Abandons the frame in flight and everything queued behind it. */
+    private fun dropBleWriteState(conn: BitBoxConnection) {
+        cancelBleWriteTimeout()
+        conn.bleWriteQueue.clear()
+        conn.bleWriteInFlight = null
+        conn.bleWriteRetries = 0
+    }
+
+    /**
+     * A new operation starts a fresh frame stream, so nothing queued for the last one may still
+     * be waiting: a leftover frame either prefixes the new request — which the device then
+     * misreads — or blocks it behind an ack that belongs to a conversation that is over.
+     */
+    private fun resetBleWriteState(conn: BitBoxConnection) {
+        if (conn.bleWriteQueue.isNotEmpty()) {
+            Timber.tag(TAG).w("dropping ${conn.bleWriteQueue.size} stale BLE frame(s)")
+        }
+        conn.bleWriteQueue.clear()
+        conn.bleWriteRetries = 0
+        // bleWriteInFlight and its timeout stay: a frame already handed to the stack cannot be
+        // un-sent, so it has to drain by its ack (or time out) before the next one goes out.
     }
     // endregion
 
@@ -631,8 +725,9 @@ class BitBoxController(
         }
         frames.forEach { frame ->
             val wrote = usbConnection.bulkTransfer(endpoint, frame, frame.size, USB_TIMEOUT_MS)
-            if (wrote < 0) {
-                fail("USB write failed")
+            // A short write leaves half a frame on the wire; the device just drops it.
+            if (wrote != frame.size) {
+                fail("USB write failed: $wrote/${frame.size}")
                 return
             }
         }
@@ -856,6 +951,7 @@ class BitBoxController(
             return
         }
         Timber.tag(TAG).d("startCommand($request) session=${conn.id} transport=${conn.transport}")
+        if (conn.transport == BitBoxTransportKind.BLE) resetBleWriteState(conn)
         conn.activeRequest = request
         conn.commandActive = true
         // Each operation reports its own interactions from scratch.
@@ -1021,6 +1117,7 @@ class BitBoxController(
     // endregion
 
     private fun teardown(conn: BitBoxConnection) {
+        cancelBleWriteTimeout()
         runCatching { conn.gatt?.disconnect() }
         runCatching { conn.gatt?.close() }
         conn.clearBleRuntime()
@@ -1062,10 +1159,15 @@ class BitBoxController(
         private const val BLE_SCAN_TIMEOUT_MS = 12_000L
         private const val BLE_WRITE_RETRY_ATTEMPTS = 8
         private const val BLE_WRITE_RETRY_DELAY_MS = 120L
+        // The ack is an ATT response, not the device answering the request, so it is always prompt.
+        private const val BLE_WRITE_TIMEOUT_MS = 10_000L
         private const val USB_TIMEOUT_MS = 5_000
 
         /** Confluence §0: Android bonds and requests MTU 512. */
         private const val BITBOX_BLE_MTU = 512
+
+        /** A 64-byte frame plus the ATT opcode and handle — below this one write no longer fits. */
+        private const val BITBOX_BLE_MIN_MTU = 67
 
         // Confluence §0. Mirrored in decimal by nunchuk-app's res/xml/bitbox_usb_device_filter.xml,
         // which decides whether Nunchuk is offered when one is plugged in — change both together.
