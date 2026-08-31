@@ -85,6 +85,11 @@ internal class InheritanceRepositoryImpl @Inject constructor(
         val walletServer =
             response.data.wallet ?: throw NunchukApiException(code = 831) // inheritance not found
         val walletLocalId = walletServer.localId.orEmpty()
+
+        walletServer.signerServerDtos?.forEach { signer ->
+            signerGateway.saveServerSignerIfNeed(signer)
+        }
+
         if (nunchukNativeSdk.hasWallet(walletLocalId).not()) {
             val wallet = nunchukNativeSdk.parseWalletDescriptor(walletServer.bsms.orEmpty()).apply {
                 name = walletServer.name.orEmpty()
@@ -92,10 +97,6 @@ internal class InheritanceRepositoryImpl @Inject constructor(
                 createDate = System.currentTimeMillis() / 1000
             }
             nunchukNativeSdk.createWallet2(wallet)
-        }
-
-        walletServer.signerServerDtos?.forEach { signer ->
-            signerGateway.saveServerSignerIfNeed(signer)
         }
 
         // Add wallet to claim wallets set
@@ -295,4 +296,3 @@ internal class InheritanceRepositoryImpl @Inject constructor(
         return response.data.toClaimSigningChallenge()
     }
 }
-
