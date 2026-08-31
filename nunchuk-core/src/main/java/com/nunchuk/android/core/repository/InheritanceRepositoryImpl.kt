@@ -99,6 +99,14 @@ internal class InheritanceRepositoryImpl @Inject constructor(
             nunchukNativeSdk.createWallet2(wallet)
         }
 
+        keys.filter { it.tags.isNotEmpty() }.forEach { key ->
+            runCatching {
+                val stored = nunchukNativeSdk.getSigner(key).tags
+                if (stored.containsAll(key.tags)) return@runCatching
+                nunchukNativeSdk.updateRemoteSigner(key.copy(tags = (stored + key.tags).distinct()))
+            }
+        }
+
         // Add wallet to claim wallets set
         val currentClaimWallets = ncDataStore.claimWalletsFlow.first().toMutableSet()
         currentClaimWallets.add(walletLocalId)
