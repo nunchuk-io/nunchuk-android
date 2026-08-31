@@ -405,6 +405,13 @@ class WalletAuthenticationViewModel @Inject constructor(
         _state.update { it.copy(interactSingleSigner = singleSigner) }
         when {
             signerModel.type == SignerType.NFC -> _event.emit(WalletAuthenticationEvent.ScanTapSigner)
+            isTrezorSigner(signerModel) -> requestSignTransactionByTrezor(signerModel)
+            isLedgerSigner(signerModel) ->
+                requestSignTransactionInApp(signerModel, SignerTag.LEDGER)
+
+            isBitBoxSigner(signerModel) ->
+                requestSignTransactionInApp(signerModel, SignerTag.BITBOX)
+
             signerModel.type == SignerType.COLDCARD_NFC
                     || (signerModel.type == SignerType.HARDWARE
                     && signerModel.tags.contains(SignerTag.COLDCARD)) -> {
@@ -412,12 +419,6 @@ class WalletAuthenticationViewModel @Inject constructor(
             }
 
             signerModel.type == SignerType.SOFTWARE -> checkSoftwarePassPhrase(singleSigner)
-            isTrezorSigner(signerModel) -> requestSignTransactionByTrezor(signerModel)
-            isLedgerSigner(signerModel) ->
-                requestSignTransactionInApp(signerModel, SignerTag.LEDGER)
-
-            isBitBoxSigner(signerModel) ->
-                requestSignTransactionInApp(signerModel, SignerTag.BITBOX)
 
             signerModel.type == SignerType.HARDWARE -> _event.emit(WalletAuthenticationEvent.CanNotSignHardwareKey)
             signerModel.type == SignerType.AIRGAP -> _event.emit(WalletAuthenticationEvent.ShowAirgapOption)
