@@ -464,6 +464,9 @@ class BitBoxController(
         val conn = connection?.takeIf { it.transport == BitBoxTransportKind.BLE } ?: return
         when (newState) {
             BluetoothGatt.STATE_CONNECTED -> {
+                // Only the live client's connect drives the session; a replaced one reconnecting
+                // would take the session through discovery on a GATT nothing writes to.
+                if (conn.gatt !== gatt) return
                 Timber.tag(TAG).d("BLE connected, requesting MTU $BITBOX_BLE_MTU")
                 if (!gatt.requestMtu(BITBOX_BLE_MTU)) gatt.discoverServices()
             }
@@ -484,7 +487,9 @@ class BitBoxController(
     }
 
     private fun handleServicesDiscovered(gatt: BluetoothGatt) {
-        val conn = connection ?: return
+        // Discovery on a client we have already replaced would hand the live session a write
+        // characteristic belonging to a dead GATT, and every later write would go nowhere.
+        val conn = connection?.takeIf { it.gatt === gatt } ?: return
         val service = gatt.getService(BITBOX_BLE_SERVICE_UUID) ?: run {
             fail("BitBox BLE service not found")
             return
@@ -512,7 +517,9 @@ class BitBoxController(
 
     private fun completeBleReady(gatt: BluetoothGatt) {
         val conn = connection ?: return
-        if (!conn.canWriteBle()) return
+        // Ready has to mean *this* session is ready: signalling it for a replaced client would
+        // start initialize() on a transport that can no longer carry it.
+        if (conn.gatt !== gatt || !conn.canWriteBle()) return
         Timber.tag(TAG).d("BLE ready for ${conn.id}")
         onTransportReady()
     }
