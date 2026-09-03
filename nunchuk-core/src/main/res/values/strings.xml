@@ -150,7 +150,7 @@
     <string name="nc_add_inheritance_key_to_nunchuk">Let\'s now add the inheritance key to Nunchuk.</string>
     <string name="nc_export_via_nfc">Export via NFC</string>
     <string name="nc_export_via_file">Export via a file</string>
-    <string name="nc_export_via_file_advance">Export via file (Advanced)</string>
+    <string name="nc_export_via_file_advance">Export via file (advanced)</string>
     <string name="nc_transaction_exported">Transaction has been exported</string>
     <string name="nc_export_via_qr">Export via QR</string>
     <string name="nc_import_signature">Import signature</string>
