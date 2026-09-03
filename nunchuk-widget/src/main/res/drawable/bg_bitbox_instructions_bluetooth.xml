@@ -54,8 +54,11 @@
             android:fillColor="#FFFFFF"
             android:strokeColor="#031F2B"
             android:strokeWidth="2" />
+        <!-- Bluetooth rune, centred on the circle (197,131) and 40 tall inside its
+             58 diameter. Drawn as one stroke: the two diagonals cross on the stem,
+             then the stem runs top to bottom, then the upper arm closes back. -->
         <path
-            android:pathData="M194 107v48l18-16-18-17 18-15-18 15-14-12m14 12-14 13"
+            android:pathData="M187,121L207,141L197,151L197,111L207,121L187,141"
             android:fillColor="#00000000"
             android:strokeColor="#031F2B"
             android:strokeWidth="3"
