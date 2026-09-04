@@ -68,7 +68,7 @@ class BitBoxWalletRegistrar @Inject constructor(
         // The policy name is shown on the device and has to be there: a wallet parsed from a BSMS
         // has no name, since the format doesn't carry one.
         val policyWallet = if (wallet.name.isBlank()) {
-            wallet.copy(name = DEFAULT_POLICY_NAME)
+            wallet.copy(name = defaultPolicyName(wallet))
         } else {
             wallet
         }
@@ -81,6 +81,21 @@ class BitBoxWalletRegistrar @Inject constructor(
             executor.registerWallet(policyWallet)
         }
         return block(policyWallet)
+    }
+
+    /**
+     * Registration name for a wallet that carries none of its own.
+     *
+     * The device keeps one name per registered policy and rejects a second policy under a name it
+     * already holds with "duplicate entry" — after the user has confirmed the registration, so it
+     * reads as the signature failing. A fixed name would therefore collide the moment a second
+     * nameless wallet is signed with, which is every sign-in via BSMS after the first, so the
+     * wallet id goes in the name. It is the descriptor checksum: eight printable ASCII characters,
+     * the same every time for the same wallet, and well inside the device's 30-character limit.
+     */
+    private fun defaultPolicyName(wallet: Wallet): String = when {
+        wallet.id.isBlank() -> DEFAULT_POLICY_NAME
+        else -> "$DEFAULT_POLICY_NAME ${wallet.id}"
     }
 
     private companion object {
