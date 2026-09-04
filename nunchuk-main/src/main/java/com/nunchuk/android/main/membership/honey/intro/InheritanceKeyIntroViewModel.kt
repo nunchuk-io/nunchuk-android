@@ -51,9 +51,10 @@ class TapSignerInheritanceIntroViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             getAllSignersUseCase(false).onSuccess { pair ->
-                val signers = pair.first.map { signer ->
+                val signers = (pair.first.map { signer ->
                     masterSignerMapper(signer)
-                } + pair.second.map { signer -> signer.toModel() }
+                } + pair.second.map { signer -> signer.toModel() })
+                    .filter { signer -> signer.derivationPath.isRecommendedMultiSigPath }
                 val coldCard = getColdcard(signers)
                 val tapSigners = getTapSigners(signers)
 
