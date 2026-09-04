@@ -61,9 +61,22 @@ class ScheduleBroadcastTransactionViewModel @Inject constructor(
         }
     }
 
-    fun setDate(timeInMillis: Long) {
+    /**
+     * [utcTimeInMillis] comes from MaterialDatePicker, which reports the selected day as
+     * midnight UTC. Only the calendar day is taken from it, the picked hour/minute is kept.
+     */
+    fun setDate(utcTimeInMillis: Long) {
+        val utcCal = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
+            timeInMillis = utcTimeInMillis
+        }
+        val cal = Calendar.getInstance().apply {
+            timeInMillis = _state.value.time
+            set(Calendar.YEAR, utcCal.get(Calendar.YEAR))
+            set(Calendar.MONTH, utcCal.get(Calendar.MONTH))
+            set(Calendar.DAY_OF_MONTH, utcCal.get(Calendar.DAY_OF_MONTH))
+        }
         _state.update {
-            it.copy(time = timeInMillis)
+            it.copy(time = cal.timeInMillis)
         }
     }
 
@@ -92,16 +105,24 @@ class ScheduleBroadcastTransactionViewModel @Inject constructor(
             val selectedCalInCurrentZone = Calendar.getInstance().apply {
                 timeInMillis = _state.value.time
             }
-            val selectedTime = Calendar.getInstance().apply {
-                timeZone = selectedTimeZone
-                set(Calendar.YEAR, selectedCalInCurrentZone.get(Calendar.YEAR))
-                set(Calendar.MONTH, selectedCalInCurrentZone.get(Calendar.MONTH))
-                set(Calendar.DAY_OF_MONTH, selectedCalInCurrentZone.get(Calendar.DAY_OF_MONTH))
-                set(Calendar.HOUR, selectedCalInCurrentZone.get(Calendar.HOUR))
-                set(Calendar.MINUTE, selectedCalInCurrentZone.get(Calendar.MINUTE))
+            // The picked date/time is a wall clock reading, it is now stamped onto the
+            // selected time zone. HOUR_OF_DAY (0-23) must be used here: HOUR is the 12-hour
+            // field and would be resolved against whatever AM/PM it currently is.
+            val selectedTime = Calendar.getInstance(selectedTimeZone).apply {
+                clear()
+                set(
+                    selectedCalInCurrentZone.get(Calendar.YEAR),
+                    selectedCalInCurrentZone.get(Calendar.MONTH),
+                    selectedCalInCurrentZone.get(Calendar.DAY_OF_MONTH),
+                    selectedCalInCurrentZone.get(Calendar.HOUR_OF_DAY),
+                    selectedCalInCurrentZone.get(Calendar.MINUTE),
+                    0,
+                )
             }
             if (selectedTime.timeInMillis > nextYear.timeInMillis) {
                 _event.emit(ScheduleBroadcastTransactionEvent.ShowError(application.getString(R.string.nc_error_schedule_broadcast_out_of_range)))
+            } else if (selectedTime.timeInMillis <= System.currentTimeMillis()) {
+                _event.emit(ScheduleBroadcastTransactionEvent.ShowError(application.getString(R.string.nc_error_schedule_broadcast_in_past)))
             } else {
                 _event.emit(ScheduleBroadcastTransactionEvent.Loading(true))
                 val result = scheduleBroadcastTransactionUseCase(

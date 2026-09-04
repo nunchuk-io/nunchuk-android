@@ -122,13 +122,21 @@ class ScheduleBroadcastTransactionFragment : Fragment() {
     }
 
     private fun showDatePicker() {
-        val oldCalUtc = Calendar.getInstance().apply {
+        val selectedCal = Calendar.getInstance().apply {
             timeInMillis = viewModel.state.value.time
-            timeZone = TimeZone.getTimeZone("UTC")
+        }
+        // MaterialDatePicker works in UTC, so the selected day is passed as midnight UTC
+        val utcSelection = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
+            clear()
+            set(
+                selectedCal.get(Calendar.YEAR),
+                selectedCal.get(Calendar.MONTH),
+                selectedCal.get(Calendar.DAY_OF_MONTH),
+            )
         }
         val materialDatePicker = MaterialDatePicker.Builder.datePicker()
             .setTheme(R.style.NcMaterialCalendar)
-            .setSelection(oldCalUtc.timeInMillis)
+            .setSelection(utcSelection.timeInMillis)
             .build()
         materialDatePicker.addOnPositiveButtonClickListener { timeInMillis ->
             viewModel.setDate(timeInMillis)
@@ -137,13 +145,13 @@ class ScheduleBroadcastTransactionFragment : Fragment() {
     }
 
     private fun showTimePicker() {
-        val oldCalUtc = Calendar.getInstance().apply {
+        val selectedCal = Calendar.getInstance().apply {
             timeInMillis = viewModel.state.value.time
         }
         val materialTimePicker = MaterialTimePicker.Builder()
             .setTheme(R.style.NcMaterialTimePicker)
-            .setHour(oldCalUtc.get(Calendar.HOUR_OF_DAY))
-            .setMinute(oldCalUtc.get(Calendar.MINUTE))
+            .setHour(selectedCal.get(Calendar.HOUR_OF_DAY))
+            .setMinute(selectedCal.get(Calendar.MINUTE))
             .build()
         materialTimePicker.addOnPositiveButtonClickListener {
             viewModel.setTime(materialTimePicker.hour, materialTimePicker.minute)
