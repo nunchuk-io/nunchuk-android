@@ -631,7 +631,9 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
             handleHardwareSignerSelection(SignerTag.BITBOX)
             return
         }
-        startActivity(BitBoxActivity.buildIntent(this))
+        startActivity(
+            BitBoxActivity.buildIntent(this, isFromWalletFlow = isFromWalletFlow)
+        )
         finish()
     }
 
@@ -768,6 +770,16 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
 
     // group sandbox id
     private val groupId by lazy { intent.getStringExtra(EXTRA_GROUP_ID).orEmpty() }
+
+    /**
+     * The caller is in the middle of building or editing a wallet (free group wallet, miniscript
+     * create-wallet, replace key in a free wallet) and picks the new key up itself. An add-key
+     * screen that would otherwise end on key info has to end without it, or that screen's back
+     * button takes the user to the wallet list instead of back into the flow they were in — the
+     * same condition the air-gap add-key screen checks.
+     */
+    private val isFromWalletFlow: Boolean
+        get() = walletId.isNotEmpty() || groupId.isNotEmpty()
 
     companion object {
         const val EXTRA_PLATFORM_KEY_SELECTED = "platform_key_selected"

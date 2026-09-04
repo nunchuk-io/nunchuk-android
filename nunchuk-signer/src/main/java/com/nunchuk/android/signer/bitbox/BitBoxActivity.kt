@@ -97,6 +97,17 @@ class BitBoxActivity : BaseComposeActivity() {
         intent.getBooleanExtra(EXTRA_VERIFY_XFP_ONLY, false)
     }
 
+    /**
+     * Set when the add-key was started from a flow that is building a wallet (the free group
+     * wallet and the miniscript create-wallet screens). Those screens pick the key up over
+     * [com.nunchuk.android.core.push.PushEvent.LocalUserSignerAdded], and key info's back button
+     * returns to the wallet list — so showing it here drops the user out of the flow they were in.
+     * The air-gap add-key screen skips the screen for the same reason.
+     */
+    private val isFromWalletFlow: Boolean by lazy {
+        intent.getBooleanExtra(EXTRA_FROM_WALLET_FLOW, false)
+    }
+
     private val controller: BitBoxController by lazy {
         BitBoxController(this, nativeSdk, deviceListener)
     }
@@ -362,7 +373,7 @@ class BitBoxActivity : BaseComposeActivity() {
                                             putExtra(GlobalResultKey.EXTRA_SIGNER, signer)
                                         }
                                     )
-                                } else {
+                                } else if (!isFromWalletFlow) {
                                     navigator.openSignerInfoScreen(
                                         activityContext = this@BitBoxActivity,
                                         isMasterSigner = signer.hasMasterSigner,
@@ -618,6 +629,7 @@ class BitBoxActivity : BaseComposeActivity() {
         const val EXTRA_ACCOUNT_INDEX = "extra_account_index"
         const val EXTRA_EXPECTED_XFP = "extra_expected_xfp"
         const val EXTRA_VERIFY_XFP_ONLY = "extra_verify_xfp_only"
+        const val EXTRA_FROM_WALLET_FLOW = "extra_from_wallet_flow"
         const val EXTRA_RESULT_ACTION = "extra_result_action"
 
         /** Lowercased fingerprint of the connected device, returned by [verifyXfpOnly]. */
@@ -634,6 +646,9 @@ class BitBoxActivity : BaseComposeActivity() {
          * seed-phrase-backup verification: no key is created and [EXTRA_VERIFIED_XFP] comes back
          * on RESULT_OK. Pass [expectedXfp] with it — a device reporting anything else is turned
          * away here rather than by the caller.
+         *
+         * [isFromWalletFlow] keeps the standalone config step but ends the flow without opening
+         * key info, for callers that are in the middle of building a wallet.
          */
         fun buildIntent(
             activityContext: Context,
@@ -641,11 +656,13 @@ class BitBoxActivity : BaseComposeActivity() {
             accountIndex: Int = 0,
             expectedXfp: String = "",
             verifyXfpOnly: Boolean = false,
+            isFromWalletFlow: Boolean = false,
         ): Intent = Intent(activityContext, BitBoxActivity::class.java).apply {
             putExtra(EXTRA_IS_MEMBERSHIP_FLOW, isMembershipFlow)
             putExtra(EXTRA_ACCOUNT_INDEX, accountIndex)
             putExtra(EXTRA_EXPECTED_XFP, expectedXfp)
             putExtra(EXTRA_VERIFY_XFP_ONLY, verifyXfpOnly)
+            putExtra(EXTRA_FROM_WALLET_FLOW, isFromWalletFlow)
         }
     }
 }
