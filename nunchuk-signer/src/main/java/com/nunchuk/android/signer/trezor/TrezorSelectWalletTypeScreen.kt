@@ -67,7 +67,9 @@ import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.util.openExternalLink
 import com.nunchuk.android.signer.R
+import com.nunchuk.android.signer.components.HardwareTaprootSupportState
 import com.nunchuk.android.type.AddressType
+import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.WalletType
 
 const val trezorSelectWalletTypeRoute = "trezor_select_wallet_type_route"
@@ -110,15 +112,16 @@ private val addressTypeOptions = listOf(
 )
 
 fun NavGraphBuilder.trezorSelectWalletType(
+    taprootSupportState: HardwareTaprootSupportState,
     onBack: () -> Unit = {},
-    taprootSupportState: TrezorTaprootSupportState = TrezorTaprootSupportState(),
     onContinue: (Boolean, AddressType, Int) -> Unit = { _, _, _ -> }
 ) {
     composable(trezorSelectWalletTypeRoute) {
         SelectWalletTypeScreen(
             subtitle = stringResource(id = R.string.nc_select_wallet_trezor_desc),
-            onBack = onBack,
+            signerTag = SignerTag.TREZOR,
             taprootSupportState = taprootSupportState,
+            onBack = onBack,
             continueConfirmation = ContinueConfirmation(
                 title = stringResource(id = com.nunchuk.android.core.R.string.nc_confirmation),
                 message = stringResource(id = R.string.nc_open_trezor_suite_continue_message),
@@ -143,8 +146,9 @@ fun NavHostController.navigateToTrezorSelectWalletType() {
 @Composable
 fun SelectWalletTypeScreen(
     subtitle: String,
+    signerTag: SignerTag,
+    taprootSupportState: HardwareTaprootSupportState,
     onBack: () -> Unit = {},
-    taprootSupportState: TrezorTaprootSupportState = TrezorTaprootSupportState(),
     continueConfirmation: ContinueConfirmation? = null,
     onContinue: (Boolean, AddressType, Int) -> Unit = { _, _, _ -> }
 ) {
@@ -157,7 +161,7 @@ fun SelectWalletTypeScreen(
 
     val addressType = addressTypeName.toAddressTypeOrDefault()
     val selectedWalletType = if (isSingleSig) WalletType.SINGLE_SIG else WalletType.MULTI_SIG
-    val isTaprootSupported = taprootSupportState.isTaprootSupported(selectedWalletType)
+    val isTaprootSupported = taprootSupportState.isTaprootSupported(signerTag, selectedWalletType)
     val addressTypeValue = stringResource(
         id = R.string.nc_default_value,
         walletAddressTypeText(addressType)
@@ -570,7 +574,9 @@ private fun String.toAddressTypeOrDefault(): AddressType {
 private fun SelectWalletTypeScreenPreview() {
     NunchukTheme {
         SelectWalletTypeScreen(
-            subtitle = stringResource(id = R.string.nc_select_wallet_trezor_desc)
+            subtitle = stringResource(id = R.string.nc_select_wallet_trezor_desc),
+            signerTag = SignerTag.TREZOR,
+            taprootSupportState = HardwareTaprootSupportState(),
         )
     }
 }

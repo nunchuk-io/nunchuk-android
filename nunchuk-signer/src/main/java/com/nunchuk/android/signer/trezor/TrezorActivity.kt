@@ -19,6 +19,7 @@ import com.nunchuk.android.core.util.TrezorCallbackHolder
 import com.nunchuk.android.core.util.openTrezorSuiteLink
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.signer.R
+import com.nunchuk.android.signer.components.HardwareTaprootSupportViewModel
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.ResultExistingKey
@@ -30,7 +31,7 @@ import kotlinx.coroutines.flow.collectLatest
 
 @AndroidEntryPoint
 class TrezorActivity : BaseComposeActivity() {
-    private val taprootSupportViewModel: TrezorTaprootSupportViewModel by viewModels()
+    private val taprootSupportViewModel: HardwareTaprootSupportViewModel by viewModels()
     private val deeplinkViewModel: TrezorDeeplinkViewModel by viewModels()
 
     @Inject

@@ -1,13 +1,18 @@
 package com.nunchuk.android.signer.ledger
 
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.res.stringResource
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import com.nunchuk.android.signer.R
+import com.nunchuk.android.signer.components.HardwareTaprootSupportViewModel
 import com.nunchuk.android.signer.trezor.SelectWalletTypeScreen
 import com.nunchuk.android.type.AddressType
+import com.nunchuk.android.type.SignerTag
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -25,8 +30,12 @@ fun NavGraphBuilder.ledgerSelectWalletType(
 ) {
     composable<LedgerSelectWalletTypeRoute> { entry ->
         val route = entry.toRoute<LedgerSelectWalletTypeRoute>()
+        val taprootSupportViewModel: HardwareTaprootSupportViewModel = hiltViewModel()
+        val taprootSupportState by taprootSupportViewModel.state.collectAsStateWithLifecycle()
         SelectWalletTypeScreen(
             subtitle = stringResource(id = R.string.nc_select_wallet_ledger_desc),
+            signerTag = SignerTag.LEDGER,
+            taprootSupportState = taprootSupportState,
             onBack = onBack,
             onContinue = { isSingleSig, addressType, accountIndex ->
                 onContinue(route.isUsb, isSingleSig, addressType, accountIndex)
