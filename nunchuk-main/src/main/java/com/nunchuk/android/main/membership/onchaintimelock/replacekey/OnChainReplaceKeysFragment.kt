@@ -100,6 +100,7 @@ import com.nunchuk.android.main.membership.model.ReplaceStepData
 import com.nunchuk.android.main.membership.model.resId
 import com.nunchuk.android.main.membership.onchaintimelock.importantpassphrase.ImportantNoticePassphraseFragment
 import com.nunchuk.android.model.OnChainReplaceKeyStep
+import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.TimelockBased
 import com.nunchuk.android.model.TimelockExtra
 import com.nunchuk.android.model.VerifyType
@@ -110,6 +111,8 @@ import com.nunchuk.android.nav.args.AddAirSignerArgs
 import com.nunchuk.android.nav.args.BackUpSeedPhraseArgs
 import com.nunchuk.android.nav.args.SetupMk4Args
 import com.nunchuk.android.share.result.GlobalResultKey
+import com.nunchuk.android.signer.bitbox.BitBoxActivity
+import com.nunchuk.android.signer.ledger.LedgerActivity
 import com.nunchuk.android.signer.mk4.inheritance.ColdCardIntroFragment
 import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
 import com.nunchuk.android.type.SignerTag
@@ -156,6 +159,39 @@ class OnChainReplaceKeysFragment : Fragment() {
                         currentKeyData,
                         (activity as MembershipActivity).walletId
                     )
+                }
+            }
+        }
+
+    /**
+     * Ledger paired in-app for this slot: the device hands back the key it read, or reports that
+     * the user picked "Add via desktop app" on its intro — which this flow can not do.
+     */
+    private val addLedgerLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            val data = result.data
+            if (result.resultCode == Activity.RESULT_OK && data != null) {
+                data.parcelable<SingleSigner>(GlobalResultKey.EXTRA_SIGNER)?.let { signer ->
+                    viewModel.handleSignerNewIndex(signer, currentKeyData)
+                    return@registerForActivityResult
+                }
+                if (data.getStringExtra(LedgerActivity.EXTRA_RESULT_ACTION) == LedgerActivity.RESULT_ACTION_OPEN_DESKTOP_FLOW) {
+                    openRequestAddDesktopKey(SignerTag.LEDGER)
+                }
+            }
+        }
+
+    /** BitBox mirror of [addLedgerLauncher]. */
+    private val addBitBoxLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            val data = result.data
+            if (result.resultCode == Activity.RESULT_OK && data != null) {
+                data.parcelable<SingleSigner>(GlobalResultKey.EXTRA_SIGNER)?.let { signer ->
+                    viewModel.handleSignerNewIndex(signer, currentKeyData)
+                    return@registerForActivityResult
+                }
+                if (data.getStringExtra(BitBoxActivity.EXTRA_RESULT_ACTION) == BitBoxActivity.RESULT_ACTION_OPEN_DESKTOP_FLOW) {
+                    openRequestAddDesktopKey(SignerTag.BITBOX)
                 }
             }
         }
@@ -359,10 +395,52 @@ class OnChainReplaceKeysFragment : Fragment() {
                 )
             )
         } else {
-            openRequestAddDesktopKey(tag)
+            openInAppHardwareOrDesktopFlow(tag)
         }
     }
 
+    /**
+     * Ledger and BitBox pair with the app over BLE/USB, the same as they do when the key is first
+     * added; every other hardware key has no in-app flow here.
+     */
+    private fun openInAppHardwareOrDesktopFlow(tag: SignerTag) {
+        when (tag) {
+            SignerTag.LEDGER -> openLedgerFlow()
+            SignerTag.BITBOX -> openBitBoxFlow()
+            else -> openRequestAddDesktopKey(tag)
+        }
+    }
+
+    /**
+     * A key slot here holds two accounts of the same device, so the account to read is however
+     * many signers the slot already has, and the second one has to come off the first one's device.
+     */
+    private fun openLedgerFlow() {
+        val signers = currentKeyData?.getAllSigners().orEmpty()
+        addLedgerLauncher.launch(
+            LedgerActivity.buildIntent(
+                activityContext = requireActivity(),
+                isMembershipFlow = true,
+                accountIndex = signers.size,
+                expectedXfp = signers.firstOrNull()?.fingerPrint.orEmpty(),
+            )
+        )
+    }
+
+    /** Same two-accounts-of-one-device rule as [openLedgerFlow]. */
+    private fun openBitBoxFlow() {
+        val signers = currentKeyData?.getAllSigners().orEmpty()
+        addBitBoxLauncher.launch(
+            BitBoxActivity.buildIntent(
+                activityContext = requireActivity(),
+                isMembershipFlow = true,
+                accountIndex = signers.size,
+                expectedXfp = signers.firstOrNull()?.fingerPrint.orEmpty(),
+            )
+        )
+    }
+
+    /** Replace has no desktop hand-off, so a desktop-only key can only be reported as such. */
     private fun openRequestAddDesktopKey(tag: SignerTag) {
         NCInfoDialog(requireActivity())
             .showDialog(
@@ -559,11 +637,13 @@ class OnChainReplaceKeysFragment : Fragment() {
             SignerType.HARDWARE -> {
                 selectedSignerTag = tag
                 when (tag) {
-                    SignerTag.LEDGER -> openRequestAddDesktopKey(SignerTag.LEDGER)
-                    SignerTag.TREZOR -> openRequestAddDesktopKey(SignerTag.TREZOR)
-                    SignerTag.BITBOX -> openRequestAddDesktopKey(SignerTag.BITBOX)
-                    SignerTag.COLDCARD -> openRequestAddDesktopKey(SignerTag.COLDCARD)
-                    SignerTag.JADE -> openRequestAddDesktopKey(SignerTag.JADE)
+                    SignerTag.LEDGER,
+                    SignerTag.TREZOR,
+                    SignerTag.BITBOX,
+                    SignerTag.COLDCARD,
+                    SignerTag.JADE,
+                        -> openInAppHardwareOrDesktopFlow(tag)
+
                     else -> {}
                 }
             }
