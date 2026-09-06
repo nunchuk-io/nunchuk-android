@@ -25,8 +25,8 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
                 targetSdk = 36
             }
             compileOptions {
-                sourceCompatibility = JavaVersion.VERSION_21
-                targetCompatibility = JavaVersion.VERSION_21
+                sourceCompatibility = JavaVersion.VERSION_25
+                targetCompatibility = JavaVersion.VERSION_25
             }
             packaging {
                 resources {
@@ -36,7 +36,7 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
         }
 
         extensions.configure<KotlinAndroidProjectExtension> {
-            jvmToolchain(21)
+            jvmToolchain(25)
         }
     }
 }
