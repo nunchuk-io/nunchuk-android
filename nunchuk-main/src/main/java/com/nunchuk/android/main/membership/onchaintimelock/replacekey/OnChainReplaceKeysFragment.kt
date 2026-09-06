@@ -119,7 +119,6 @@ import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.utils.parcelable
-import com.nunchuk.android.utils.parcelableArrayList
 import com.nunchuk.android.widget.NCInfoDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -269,31 +268,16 @@ class OnChainReplaceKeysFragment : Fragment() {
             clearFragmentResult(TapSignerListBottomSheetFragment.REQUEST_KEY)
         }
 
+        // An inheritance key reaches the signer intro through ImportantNoticePassphraseFragment,
+        // which relays the intro's result back here as a fragment result instead of an activity
+        // result. It carries the same extras, so it takes the same dispatcher.
         setFragmentResultListener(ImportantNoticePassphraseFragment.REQUEST_KEY) { _, bundle ->
-            val filteredSigners =
-                bundle.parcelableArrayList<SignerModel>(GlobalResultKey.EXTRA_SIGNERS)
-            val signerTag = filteredSigners?.firstOrNull()?.tags?.firstOrNull { it != SignerTag.INHERITANCE }
-            selectedSignerTag = signerTag
-            if (!filteredSigners.isNullOrEmpty()) {
-                findNavController().navigate(
-                    OnChainReplaceKeysFragmentDirections.actionOnChainReplaceKeysFragmentToTapSignerListBottomSheetFragment(
-                        filteredSigners.toTypedArray(),
-                        if (filteredSigners.first().type == SignerType.COLDCARD_NFC || filteredSigners.first().tags.contains(
-                                SignerTag.COLDCARD
-                            )
-                        ) {
-                            SignerType.COLDCARD_NFC
-                        } else {
-                            SignerType.AIRGAP
-                        },
-                        "",
-                        true
-                    )
-                )
-            }
+            handleSignerIntroResult(
+                signerModel = bundle.parcelable<SignerModel>(GlobalResultKey.EXTRA_SIGNER),
+                requestDesktopSignerTag = bundle.getSerializable(GlobalResultKey.EXTRA_SIGNER_TAG) as? SignerTag,
+            )
             clearFragmentResult(ImportantNoticePassphraseFragment.REQUEST_KEY)
         }
-        // Removed: Fragment result listener replaced with signerIntroLauncher activity result
 
         setFragmentResultListener(ColdCardIntroFragment.REQUEST_KEY) { _, bundle ->
             val signerTag = bundle.getSerializable(GlobalResultKey.EXTRA_SIGNER_TAG) as? SignerTag
@@ -342,9 +326,16 @@ class OnChainReplaceKeysFragment : Fragment() {
     }
 
     private fun handleSignerIntroResult(data: Intent) {
-        val signerModel = data.parcelable<SignerModel>(GlobalResultKey.EXTRA_SIGNER)
-        val requestDesktopSignerTag =
-            data.getSerializableExtra(GlobalResultKey.EXTRA_SIGNER_TAG) as? SignerTag
+        handleSignerIntroResult(
+            signerModel = data.parcelable<SignerModel>(GlobalResultKey.EXTRA_SIGNER),
+            requestDesktopSignerTag = data.getSerializableExtra(GlobalResultKey.EXTRA_SIGNER_TAG) as? SignerTag,
+        )
+    }
+
+    private fun handleSignerIntroResult(
+        signerModel: SignerModel?,
+        requestDesktopSignerTag: SignerTag?,
+    ) {
         val signerTag =
             requestDesktopSignerTag ?: signerModel?.tags?.firstOrNull { it != SignerTag.INHERITANCE }
         selectedSignerTag = signerTag
