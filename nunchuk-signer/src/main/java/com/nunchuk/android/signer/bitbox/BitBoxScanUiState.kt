@@ -39,8 +39,6 @@ data class BitBoxScanUiState(
     // Set once the xpub is fetched: the signer waits on the name step (standalone flow) and/or
     // the replace-key confirmation before being persisted.
     val pendingSigner: SingleSigner? = null,
-    /** Accounts read after [pendingSigner], created alongside it. Empty unless [accountCount] > 1. */
-    val extraSigners: List<SingleSigner> = emptyList(),
     val existingKeyType: ResultExistingKey? = null,
     val replaceExistingKey: Boolean = false,
     // Prefilled into the "Name your key" field; the connected device name when we have one.

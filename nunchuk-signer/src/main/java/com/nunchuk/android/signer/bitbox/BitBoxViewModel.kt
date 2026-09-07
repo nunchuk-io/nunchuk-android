@@ -15,6 +15,7 @@ import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.CheckExistingKeyUseCase
+import com.nunchuk.android.signer.util.createDeviceAccountKeys
 import com.nunchuk.android.usecase.CreateSignerUseCase
 import com.nunchuk.android.usecase.GetCompoundSignersUseCase
 import com.nunchuk.android.usecase.ResultExistingKey
@@ -200,7 +201,6 @@ class BitBoxViewModel @Inject constructor(
                     it.copy(
                         isProcessing = false,
                         pendingSigner = firstSigner,
-                        extraSigners = collectedSigners.drop(1),
                         existingKeyType = existingKeyType.takeIf { type -> type != ResultExistingKey.None },
                         replaceExistingKey = false,
                         // Design names the key after the connected device.
@@ -243,12 +243,7 @@ class BitBoxViewModel @Inject constructor(
     fun dismissExistingKeyDialog() {
         collectedSigners = emptyList()
         _state.update {
-            it.copy(
-                pendingSigner = null,
-                extraSigners = emptyList(),
-                existingKeyType = null,
-                replaceExistingKey = false,
-            )
+            it.copy(pendingSigner = null, existingKeyType = null, replaceExistingKey = false)
         }
     }
 
@@ -280,53 +275,31 @@ class BitBoxViewModel @Inject constructor(
         viewModelScope.launch { createSigner(signerName) }
     }
 
-    /**
-     * Persists every account read from the device. The user names the first one; the accounts
-     * behind it step up to "<name> 2", "<name> 3"… the same way membership auto-naming does. Each
-     * is announced with its own [PushEvent.LocalUserSignerAdded] so a wallet flow waiting on the
-     * key picks up all of them (a miniscript reuse slot fills one policy per account).
-     */
     private suspend fun createSigner(name: String) {
-        val state = _state.value
-        val signers = listOfNotNull(state.pendingSigner) + state.extraSigners
-        if (signers.isEmpty()) return
-        val replace = state.replaceExistingKey
+        val accounts = collectedSigners
+        if (accounts.isEmpty()) return
         _state.update { it.copy(isProcessing = true) }
-        var firstCreated: SingleSigner? = null
-        signers.forEachIndexed { position, signer ->
-            val signerName = if (position == 0) name else uniqueName(name)
-            val result = createSignerUseCase(
-                CreateSignerUseCase.Params(
-                    name = signerName,
-                    xpub = signer.xpub,
-                    type = signer.type,
-                    derivationPath = signer.derivationPath,
-                    masterFingerprint = signer.masterFingerprint,
-                    tags = signer.tags,
-                    replace = replace,
+        createDeviceAccountKeys(
+            accounts = accounts,
+            name = name,
+            replace = _state.value.replaceExistingKey,
+            takenNames = existingSignerNames,
+            createSignerUseCase = createSignerUseCase,
+            onCreated = { pushEventManager.push(PushEvent.LocalUserSignerAdded(it)) },
+        ).onSuccess { firstCreated ->
+            collectedSigners = emptyList()
+            _state.update {
+                it.copy(
+                    isProcessing = false,
+                    pendingSigner = null,
+                    existingKeyType = null,
+                    replaceExistingKey = false,
                 )
-            )
-            val createdSigner = result.getOrElse { e ->
-                _state.update { it.copy(isProcessing = false) }
-                _event.emit(BitBoxScanEvent.Error(e.message.orUnknownError()))
-                return
             }
-            // Keep the generated names apart from each other, not just from the keys that were
-            // already in the app when the device was read.
-            existingSignerNames = existingSignerNames + createdSigner.name
-            pushEventManager.push(PushEvent.LocalUserSignerAdded(createdSigner))
-            if (firstCreated == null) firstCreated = createdSigner
+            _event.emit(BitBoxScanEvent.OpenSignerInfo(firstCreated))
+        }.onFailure { e ->
+            _state.update { it.copy(isProcessing = false) }
+            _event.emit(BitBoxScanEvent.Error(e.message.orUnknownError()))
         }
-        collectedSigners = emptyList()
-        _state.update {
-            it.copy(
-                isProcessing = false,
-                pendingSigner = null,
-                extraSigners = emptyList(),
-                existingKeyType = null,
-                replaceExistingKey = false,
-            )
-        }
-        firstCreated?.let { _event.emit(BitBoxScanEvent.OpenSignerInfo(it)) }
     }
 }

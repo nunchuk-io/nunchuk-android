@@ -288,18 +288,13 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
                 // Reusing the very same account twice would build the wallet from one xpub in two
                 // policies, so prefer the account the user picked and fall back to another account
                 // of the same device that the wallet isn't using yet.
-                val usedKeys = _uiState.value.signers
-                    .filterKeys { it != keyName }
-                    .values
-                    .filterNotNull()
-                    .map { it.signerKey() }
-                    .toSet()
-                val sameDevice = singleSigners.filter { it.masterFingerprint == signer.fingerPrint }
-                val singleSigner = sameDevice.firstOrNull {
-                    it.derivationPath == signer.derivationPath &&
-                            it.signerKey() !in usedKeys
-                } ?: sameDevice.filter { it.signerKey() !in usedKeys }
-                    .minByOrNull { it.derivationPath }
+                val usedKeys = _uiState.value.signers.filterKeys { it != keyName }
+                    .values.filterNotNull().map { it.signerKey() }.toSet()
+                val freeAccounts = singleSigners.filter {
+                    it.masterFingerprint == signer.fingerPrint && it.signerKey() !in usedKeys
+                }
+                val singleSigner = freeAccounts.firstOrNull { it.derivationPath == signer.derivationPath }
+                    ?: freeAccounts.minByOrNull { it.derivationPath }
                 if (singleSigner == null) {
                     _uiState.update {
                         it.copy(
@@ -673,14 +668,12 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
             // account of the device is its own key. They arrive one at a time: drop this one in
             // the slot the user tapped, or — when that is taken by another account of the same
             // device — in the next empty policy of the same reuse group.
-            val targetKey = when {
-                currentSigners[keyName] == null -> keyName
-                else -> nextUnassignedKeyInGroup(keyName).ifEmpty { keyName }
-            }
-            if (currentSigners.values.any { it != null && it.signerKey() == signerModel.signerKey() }) {
+            if (currentSigners.values.any { it?.signerKey() == signerModel.signerKey() }) {
                 Timber.tag(TAG).d("Signer ${signerModel.signerKey()} is already assigned, skipping")
                 return
             }
+            val targetKey = keyName.takeIf { currentSigners[it] == null }
+                ?: nextUnassignedKeyInGroup(keyName).ifEmpty { keyName }
             currentSigners[targetKey] = signerModel
 
             _uiState.update {
