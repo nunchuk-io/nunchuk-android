@@ -75,6 +75,15 @@ class LedgerActivity : BaseComposeActivity() {
         intent.getIntExtra(EXTRA_ACCOUNT_INDEX, 0)
     }
 
+    /**
+     * How many consecutive accounts to read while the device is connected. A miniscript slot that
+     * reuses one key across policies needs an xpub per policy, and Ledger returns them all in the
+     * same session, so the user pairs the device once. 1 for every other caller.
+     */
+    private val accountCount: Int by lazy {
+        intent.getIntExtra(EXTRA_ACCOUNT_COUNT, 1)
+    }
+
     /** Set when the key has to come off a specific device — the other account of an on-chain pair,
      *  or, when verifying a seed-phrase backup, the key that backup belongs to. */
     private val expectedXfp: String by lazy {
@@ -210,6 +219,7 @@ class LedgerActivity : BaseComposeActivity() {
         enableEdgeToEdge()
 
         viewModel.setMembershipFlow(isMembershipFlow)
+        viewModel.setAccountCount(accountCount)
         if (isMembershipFlow) {
             // Assisted/group membership wallets take multisig keys only, so the config is fixed here
             // instead of on the (skipped) select-wallet-type step. Free group wallet is not this mode.
@@ -228,6 +238,17 @@ class LedgerActivity : BaseComposeActivity() {
                 LaunchedEffect(Unit) {
                     viewModel.event.collect { event ->
                         when (event) {
+                            is LedgerScanEvent.FetchXpub -> {
+                                // Same connection, next account: only the device prompts are
+                                // per-session, so no further user interaction is needed.
+                                val config = viewModel.state.value
+                                controller.getExtendedPublicKey(
+                                    config.walletType,
+                                    config.addressType,
+                                    event.index,
+                                )
+                            }
+
                             LedgerScanEvent.NavigateToSetKeyName -> {
                                 if (navController.currentDestination?.route != ledgerSetKeyNameRoute) {
                                     navController.navigateToLedgerSetKeyName()
@@ -416,6 +437,7 @@ class LedgerActivity : BaseComposeActivity() {
     companion object {
         const val EXTRA_IS_MEMBERSHIP_FLOW = "extra_is_membership_flow"
         const val EXTRA_ACCOUNT_INDEX = "extra_account_index"
+        const val EXTRA_ACCOUNT_COUNT = "extra_account_count"
         const val EXTRA_EXPECTED_XFP = "extra_expected_xfp"
         const val EXTRA_VERIFY_XFP_ONLY = "extra_verify_xfp_only"
         const val EXTRA_FROM_WALLET_FLOW = "extra_from_wallet_flow"
@@ -438,6 +460,10 @@ class LedgerActivity : BaseComposeActivity() {
          *
          * [isFromWalletFlow] keeps the standalone config step but ends the flow without opening
          * key info, for callers that are in the middle of building a wallet.
+         *
+         * [accountCount] reads that many consecutive accounts in the one session, starting at the
+         * account the flow settled on, and creates a key for each. Used by the miniscript "Reuse
+         * keys across policies" slots, which need one xpub per policy off the same device.
          */
         fun buildIntent(
             activityContext: Context,
@@ -446,9 +472,11 @@ class LedgerActivity : BaseComposeActivity() {
             expectedXfp: String = "",
             verifyXfpOnly: Boolean = false,
             isFromWalletFlow: Boolean = false,
+            accountCount: Int = 1,
         ): Intent = Intent(activityContext, LedgerActivity::class.java).apply {
             putExtra(EXTRA_IS_MEMBERSHIP_FLOW, isMembershipFlow)
             putExtra(EXTRA_ACCOUNT_INDEX, accountIndex)
+            putExtra(EXTRA_ACCOUNT_COUNT, accountCount)
             putExtra(EXTRA_EXPECTED_XFP, expectedXfp)
             putExtra(EXTRA_VERIFY_XFP_ONLY, verifyXfpOnly)
             putExtra(EXTRA_FROM_WALLET_FLOW, isFromWalletFlow)

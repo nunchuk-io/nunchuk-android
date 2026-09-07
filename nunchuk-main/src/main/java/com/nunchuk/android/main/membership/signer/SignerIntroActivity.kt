@@ -93,6 +93,13 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
         intent.parcelableArrayList<SupportedSigner>(EXTRA_SUPPORTED_SIGNERS).orEmpty()
     }
     private val keyFlow by lazy { intent.getIntExtra(EXTRA_KEY_FLOW, KeyFlow.NONE) }
+
+    /**
+     * How many consecutive accounts of the picked device the caller needs. A miniscript slot that
+     * reuses one key across policies needs an xpub per policy; Ledger and BitBox read them all in
+     * one session, so it is only honoured by those two flows. 1 for every other caller.
+     */
+    private val accountCount by lazy { intent.getIntExtra(EXTRA_ACCOUNT_COUNT, 1) }
     private val walletType by lazy { intent.serializable<WalletType>(EXTRA_WALLET_TYPE) }
     private val onChainAddSignerParam by lazy {
         intent.parcelable<OnChainAddSignerParam>(EXTRA_ONCHAIN_ADD_SIGNER_PARAM)
@@ -593,7 +600,11 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
             return
         }
         startActivity(
-            LedgerActivity.buildIntent(this, isFromWalletFlow = isFromWalletFlow)
+            LedgerActivity.buildIntent(
+                activityContext = this,
+                isFromWalletFlow = isFromWalletFlow,
+                accountCount = accountCount,
+            )
         )
         finish()
     }
@@ -634,7 +645,11 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
             return
         }
         startActivity(
-            BitBoxActivity.buildIntent(this, isFromWalletFlow = isFromWalletFlow)
+            BitBoxActivity.buildIntent(
+                activityContext = this,
+                isFromWalletFlow = isFromWalletFlow,
+                accountCount = accountCount,
+            )
         )
         finish()
     }
@@ -791,6 +806,7 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
         private const val EXTRA_KEY_FLOW = "key_flow"
         private const val EXTRA_ONCHAIN_ADD_SIGNER_PARAM = "onchain_add_signer_param"
         private const val EXTRA_WALLET_TYPE = "wallet_type"
+        private const val EXTRA_ACCOUNT_COUNT = "account_count"
 
         fun start(
             activityContext: Context,
@@ -800,6 +816,7 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
             @KeyFlow.PrimaryFlowInfo keyFlow: Int = KeyFlow.NONE,
             onChainAddSignerParam: OnChainAddSignerParam? = null,
             walletType: WalletType? = null,
+            accountCount: Int = 1,
         ) {
             activityContext.startActivity(
                 buildIntent(
@@ -809,7 +826,8 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
                     supportedSigners,
                     keyFlow,
                     onChainAddSignerParam,
-                    walletType
+                    walletType,
+                    accountCount
                 )
             )
         }
@@ -822,11 +840,13 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
             @KeyFlow.PrimaryFlowInfo keyFlow: Int = KeyFlow.NONE,
             onChainAddSignerParam: OnChainAddSignerParam? = null,
             walletType: WalletType? = null,
+            accountCount: Int = 1,
         ): Intent {
             return Intent(activityContext, SignerIntroActivity::class.java).apply {
                 putExtra(EXTRA_WALLET_ID, walletId)
                 putExtra(EXTRA_GROUP_ID, groupId)
                 putExtra(EXTRA_KEY_FLOW, keyFlow)
+                putExtra(EXTRA_ACCOUNT_COUNT, accountCount)
                 putExtra(EXTRA_ONCHAIN_ADD_SIGNER_PARAM, onChainAddSignerParam)
                 putExtra(EXTRA_WALLET_TYPE, walletType)
                 supportedSigners?.let {

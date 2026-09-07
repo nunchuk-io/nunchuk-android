@@ -84,6 +84,7 @@ import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.utils.dateTimeFormat
 import java.util.Date
 import java.util.Locale
+import com.nunchuk.android.core.signer.signerKey
 
 enum class ScriptMode {
     VIEW,
@@ -412,7 +413,7 @@ internal fun CreateKeyItem(
             bottomContent = {
                 if (data.showBip32Path && signer != null && !signer.type.isPlatformKey) {
                     val isDuplicateSigner =
-                        data.duplicateSignerKeys.contains("${signer.fingerPrint}:${signer.derivationPath}")
+                        data.duplicateSignerKeys.contains(signer.signerKey())
                     Row(
                         modifier = if (data.mode == ScriptMode.CONFIG) Modifier.clickable(
                             onClick = {

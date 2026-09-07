@@ -136,7 +136,11 @@ class MiniscriptActivity : BaseComposeNfcActivity(), InputBipPathBottomSheetList
                                 navigator.openSignerIntroScreen(
                                     activityContext = this@MiniscriptActivity,
                                     groupId = "-1",
-                                    supportedSigners = supportedSigners
+                                    supportedSigners = supportedSigners,
+                                    // A slot that reuses one key across policies needs an xpub per
+                                    // policy. Ledger and BitBox read them all in one session so the
+                                    // user pairs the device once; the other flows add one key.
+                                    accountCount = sharedWalletViewModel.getRequiredAccountCount(),
                                 )
                             },
                             onContinue = {

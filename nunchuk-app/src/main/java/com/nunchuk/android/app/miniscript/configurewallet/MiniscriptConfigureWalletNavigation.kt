@@ -63,6 +63,7 @@ import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.SignerType
 import kotlinx.serialization.Serializable
 import timber.log.Timber
+import com.nunchuk.android.core.signer.signerKey
 
 @Serializable
 data class MiniscriptConfigureWallet(
@@ -512,7 +513,7 @@ private fun getDuplicateSignerKeys(
 
     // Create a unique key for each signer combining fingerprint and derivation path
     signers.values.filterNotNull().forEach { signer ->
-        val signerKey = "${signer.fingerPrint}:${signer.derivationPath}"
+        val signerKey = signer.signerKey()
         val currentCount = signerKeyCounts.getOrDefault(signerKey, 0)
         signerKeyCounts[signerKey] = currentCount + 1
 

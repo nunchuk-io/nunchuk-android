@@ -23,6 +23,12 @@ data class BitBoxScanUiState(
     val walletType: WalletType = WalletType.SINGLE_SIG,
     val addressType: AddressType = AddressType.NATIVE_SEGWIT,
     val accountIndex: Int = 0,
+    /**
+     * Consecutive accounts to read in this one session, starting at [accountIndex]. A miniscript
+     * "Reuse keys across policies" slot holds one xpub per policy, and BitBox returns them all
+     * over the same Noise session, so the user pairs the device once. 1 for every other caller.
+     */
+    val accountCount: Int = 1,
     /** Shown on the confirm-pairing screen; only set for a pairing this account hasn't seen. */
     val pairingCode: String = "",
     // BitBox reads the xpub at an explicit derivation path (Ledger derives it from the wallet
@@ -33,6 +39,8 @@ data class BitBoxScanUiState(
     // Set once the xpub is fetched: the signer waits on the name step (standalone flow) and/or
     // the replace-key confirmation before being persisted.
     val pendingSigner: SingleSigner? = null,
+    /** Accounts read after [pendingSigner], created alongside it. Empty unless [accountCount] > 1. */
+    val extraSigners: List<SingleSigner> = emptyList(),
     val existingKeyType: ResultExistingKey? = null,
     val replaceExistingKey: Boolean = false,
     // Prefilled into the "Name your key" field; the connected device name when we have one.

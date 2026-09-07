@@ -216,6 +216,7 @@ interface AppNavigator {
         @KeyFlow.PrimaryFlowInfo keyFlow: Int = KeyFlow.NONE,
         onChainAddSignerParam: OnChainAddSignerParam? = null,
         walletType: WalletType? = null,
+        accountCount: Int = 1,
     )
 
     fun returnMembershipScreen()

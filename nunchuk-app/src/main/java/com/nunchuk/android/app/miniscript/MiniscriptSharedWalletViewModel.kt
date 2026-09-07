@@ -48,6 +48,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
+import com.nunchuk.android.core.signer.signerKey
 
 @HiltViewModel
 class MiniscriptSharedWalletViewModel @Inject constructor(
@@ -89,9 +90,9 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
                 .collect {
                     Timber.d("Pushing event: $it")
                     if (currentKeyToAssign.isNotEmpty()) {
-                        addSignerToState(it.signer.toModel(), currentKeyToAssign)
-                        currentKeyToAssign = ""
-                        _uiState.update { state -> state.copy(currentKeyToAssign = "") }
+                        val signerModel = it.signer.toModel()
+                        addSignerToState(signerModel, currentKeyToAssign)
+                        setCurrentKeyToAssign(advanceKeyToAssign(signerModel, currentKeyToAssign))
                         loadInfo()
                     }
                 }
@@ -140,8 +141,9 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
                 _uiState.update { it.copy(allSigners = signers) }
 
                 Timber.tag(TAG).d("Loaded signers: $signers")
-                // Store current signers' fingerprints for comparison later
-                oldSigners = signers.map { it.fingerPrint }.toSet()
+                // Store the current signers for comparison later, keyed on XFP + path so another
+                // account of a device already in the app still counts as a new key.
+                oldSigners = signers.map { it.signerKey() }.toSet()
             }
         }
     }
@@ -153,14 +155,17 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
             getAllSignersUseCase(true).onSuccess { pair ->
                 val currentSigners = pair.first.map { masterSignerMapper(it) }
                     .plus(pair.second.map { it.toModel() })
-                val newSigners = currentSigners.filter { !oldSigners.contains(it.fingerPrint) }
-                if (newSigners.isNotEmpty()) {
-                    addSignerToState(newSigners.first(), currentKeyToAssign)
-                    currentKeyToAssign = ""
-                    _uiState.update { it.copy(currentKeyToAssign = "") }
+                // Compared on XFP *and* path: a second account of a device that is already in the
+                // app shares its XFP, and on XFP alone it would look like nothing was added.
+                val newSigners = currentSigners.filter { !oldSigners.contains(it.signerKey()) }
+                    .sortedBy { it.derivationPath }
+                newSigners.forEach { signer ->
+                    if (currentKeyToAssign.isEmpty()) return@forEach
+                    addSignerToState(signer, currentKeyToAssign)
+                    setCurrentKeyToAssign(advanceKeyToAssign(signer, currentKeyToAssign))
                 }
                 // Update oldSigners with current state after processing
-                oldSigners = currentSigners.map { it.fingerPrint }.toSet()
+                oldSigners = currentSigners.map { it.signerKey() }.toSet()
             }
         }
     }
@@ -280,10 +285,31 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
                     }
                 }
             } else {
-                val singleSigner = singleSigners.find {
-                    it.masterFingerprint == signer.fingerPrint &&
-                            it.derivationPath == signer.derivationPath
-                } ?: return@launch
+                // Reusing the very same account twice would build the wallet from one xpub in two
+                // policies, so prefer the account the user picked and fall back to another account
+                // of the same device that the wallet isn't using yet.
+                val usedKeys = _uiState.value.signers
+                    .filterKeys { it != keyName }
+                    .values
+                    .filterNotNull()
+                    .map { it.signerKey() }
+                    .toSet()
+                val sameDevice = singleSigners.filter { it.masterFingerprint == signer.fingerPrint }
+                val singleSigner = sameDevice.firstOrNull {
+                    it.derivationPath == signer.derivationPath &&
+                            it.signerKey() !in usedKeys
+                } ?: sameDevice.filter { it.signerKey() !in usedKeys }
+                    .minByOrNull { it.derivationPath }
+                if (singleSigner == null) {
+                    _uiState.update {
+                        it.copy(
+                            event = MiniscriptSharedWalletEvent.Error(
+                                "Add another account of this key to use it in more than one policy"
+                            )
+                        )
+                    }
+                    return@launch
+                }
                 addSignerToState(singleSigner.toModel(), keyName)
             }
         }
@@ -468,16 +494,23 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
         }
         
         val currentSigners = _uiState.value.signers
-        
+
+        // Policies of the same slot are meant to hold the same key at another account, so a hit
+        // inside the group is the reuse working, not a clash to warn about — another account is
+        // picked for it in proceedWithAddingSigner.
+        val groupKeys = groupKeys(excludeKeyName).toSet()
+
         // For non-master signers or keys that don't follow key_x_y pattern, use original logic
         val isUsedInRegularKeys = currentSigners.any { (keyName, signerModel) ->
-            keyName != excludeKeyName && signerModel?.fingerPrint == fingerPrint
+            keyName != excludeKeyName && keyName !in groupKeys &&
+                    signerModel?.fingerPrint == fingerPrint
         }
         
         val keyPath = _uiState.value.keyPaths
         val isUsedInTaprootKey = keyPath.isNotEmpty() && 
             keyPath.any { keyName -> 
-                keyName != excludeKeyName && currentSigners[keyName]?.fingerPrint == fingerPrint 
+                keyName != excludeKeyName && keyName !in groupKeys &&
+                        currentSigners[keyName]?.fingerPrint == fingerPrint
             }
         
         return isUsedInRegularKeys || isUsedInTaprootKey
@@ -636,8 +669,19 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
             }
         } else {
             Timber.tag(TAG).d("Handling non-master signer case or old key format")
-            // Handle non-master signer case or old key format
-            currentSigners[keyName] = signerModel
+            // Hardware and air-gapped keys can't derive another account in the app, so each
+            // account of the device is its own key. They arrive one at a time: drop this one in
+            // the slot the user tapped, or — when that is taken by another account of the same
+            // device — in the next empty policy of the same reuse group.
+            val targetKey = when {
+                currentSigners[keyName] == null -> keyName
+                else -> nextUnassignedKeyInGroup(keyName).ifEmpty { keyName }
+            }
+            if (currentSigners.values.any { it != null && it.signerKey() == signerModel.signerKey() }) {
+                Timber.tag(TAG).d("Signer ${signerModel.signerKey()} is already assigned, skipping")
+                return
+            }
+            currentSigners[targetKey] = signerModel
 
             _uiState.update {
                 it.copy(
@@ -645,8 +689,44 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
                     areAllKeysAssigned = areAllKeysAssigned(it.scriptNode, currentSigners)
                 )
             }
-            Timber.tag(TAG).d("Updated state with new signer: $signerModel for key: $keyName")
+            Timber.tag(TAG).d("Updated state with new signer: $signerModel for key: $targetKey")
         }
+    }
+
+    /**
+     * Keys of the reuse group [keyName] belongs to — every policy that holds the same key slot,
+     * i.e. `key_<slot>_*`. A key outside that naming is a group of its own.
+     */
+    private fun groupKeys(keyName: String): List<String> {
+        if (!isKeyPatternXY(keyName)) return listOf(keyName)
+        val prefix = "${getKeyPrefix(keyName)}_"
+        return getAllWalletKeys().filter { it.startsWith(prefix) }.sorted()
+    }
+
+    /** First policy of [keyName]'s reuse group that still has no key, or "" when the group is full. */
+    private fun nextUnassignedKeyInGroup(keyName: String): String {
+        val signers = _uiState.value.signers
+        return groupKeys(keyName).firstOrNull { signers[it] == null }.orEmpty()
+    }
+
+    /**
+     * Slot to wait for a key for, now that [signerModel] has landed in [keyName]. A master signer
+     * fills its whole reuse group off one master key, so nothing is left to wait for; the accounts
+     * of a hardware or air-gapped device arrive one key at a time, so the next empty policy of the
+     * same group is where the following one belongs.
+     */
+    private fun advanceKeyToAssign(signerModel: SignerModel, keyName: String): String =
+        if (signerModel.isMasterSigner) "" else nextUnassignedKeyInGroup(keyName)
+
+    /**
+     * Accounts of one device the slot the user is filling needs — one per policy that reuses it.
+     * Ledger and BitBox read them all in a single session; every other add-key flow ignores this
+     * and adds the one key it always did.
+     */
+    fun getRequiredAccountCount(): Int {
+        val keyName = currentKeyToAssign.ifEmpty { return 1 }
+        val signers = _uiState.value.signers
+        return groupKeys(keyName).count { signers[it] == null }.coerceAtLeast(1)
     }
 
     fun removeSigner(keyName: String) {

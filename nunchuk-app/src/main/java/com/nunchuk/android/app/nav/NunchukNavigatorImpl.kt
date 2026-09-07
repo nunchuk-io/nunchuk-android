@@ -527,7 +527,8 @@ interface AppNavigatorDelegate : AppNavigator {
         supportedSigners: List<SupportedSigner>?,
         keyFlow: Int,
         onChainAddSignerParam: OnChainAddSignerParam?,
-        walletType: WalletType?
+        walletType: WalletType?,
+        accountCount: Int
     ) {
         launcher?.launch(
             SignerIntroActivity.buildIntent(
@@ -537,7 +538,8 @@ interface AppNavigatorDelegate : AppNavigator {
                 supportedSigners = supportedSigners,
                 keyFlow = keyFlow,
                 onChainAddSignerParam = onChainAddSignerParam,
-                walletType = walletType
+                walletType = walletType,
+                accountCount = accountCount
             )
         ) ?: SignerIntroActivity.start(
             activityContext = activityContext,
@@ -546,7 +548,8 @@ interface AppNavigatorDelegate : AppNavigator {
             supportedSigners = supportedSigners,
             keyFlow = keyFlow,
             onChainAddSignerParam = onChainAddSignerParam,
-            walletType = walletType
+            walletType = walletType,
+            accountCount = accountCount
         )
     }
 

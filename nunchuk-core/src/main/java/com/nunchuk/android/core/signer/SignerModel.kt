@@ -131,6 +131,16 @@ fun SignerServer.toModel(index: Int) = SignerModel(
     cardId = tapsigner?.cardId.orEmpty(),
 )
 
+/**
+ * Identity of one *account* of a key: XFP plus BIP32 path. Two accounts of the same device share
+ * an XFP but are separate keys — a miniscript wallet may hold both (that is what "Reuse keys
+ * across policies" builds), while the same account in two slots is a duplicate.
+ */
+fun SignerModel.signerKey(): String = "$fingerPrint:$derivationPath"
+
+/** [SignerModel.signerKey] for the domain model. */
+fun SingleSigner.signerKey(): String = "$masterFingerprint:$derivationPath"
+
 fun SignerModel.toSingleSigner() = SingleSigner(
     name = name,
     xpub = xpub,
