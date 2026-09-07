@@ -592,7 +592,9 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
             handleHardwareSignerSelection(SignerTag.LEDGER)
             return
         }
-        startActivity(LedgerActivity.buildIntent(this))
+        startActivity(
+            LedgerActivity.buildIntent(this, isFromWalletFlow = isFromWalletFlow)
+        )
         finish()
     }
 
