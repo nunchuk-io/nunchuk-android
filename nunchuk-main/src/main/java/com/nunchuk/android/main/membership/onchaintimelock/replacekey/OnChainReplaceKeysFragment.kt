@@ -195,6 +195,20 @@ class OnChainReplaceKeysFragment : Fragment() {
             }
         }
 
+    /**
+     * Tail end of "verify your inheritance key seed phrase": the user restored the seed onto the
+     * device and re-added it, and the flow hands back the fingerprint it saw. Matching it against
+     * the key on the card is what the verification is, so mark the step verified from here — the
+     * same relay the add-key list runs, against the replacement key instead of the wizard step.
+     */
+    private val verifyBackUpSeedPhraseLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            val verifiedXfp = result.data?.getStringExtra(GlobalResultKey.EXTRA_VERIFIED_XFP)
+            if (result.resultCode == Activity.RESULT_OK && !verifiedXfp.isNullOrEmpty()) {
+                viewModel.setReplaceKeyVerified(verifiedXfp)
+            }
+        }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -510,6 +524,8 @@ class OnChainReplaceKeysFragment : Fragment() {
                 is OnChainReplaceKeyEvent.HandleSignerTypeLogic -> {
                     handleSignerTypeLogic(event.type, event.tag)
                 }
+
+                OnChainReplaceKeyEvent.OnKeyVerified -> openVerifyBackUpSuccess()
             }
         }
     }
@@ -703,6 +719,21 @@ class OnChainReplaceKeysFragment : Fragment() {
                 groupId = (activity as MembershipActivity).groupId,
                 walletId = (activity as MembershipActivity).walletId,
                 replacedXfp = event.signer.fingerPrint
+            ),
+            // Keys that re-add themselves in-app (Ledger, BitBox) report the restored device back
+            // here; Coldcard and air-gap finish verification on their own screens and return nothing.
+            launcher = verifyBackUpSeedPhraseLauncher,
+        )
+    }
+
+    private fun openVerifyBackUpSuccess() {
+        navigator.openBackUpSeedPhraseActivity(
+            requireActivity(),
+            BackUpSeedPhraseArgs(
+                type = BackUpSeedPhraseType.SUCCESS,
+                signer = null,
+                groupId = (activity as MembershipActivity).groupId,
+                walletId = (activity as MembershipActivity).walletId,
             )
         )
     }

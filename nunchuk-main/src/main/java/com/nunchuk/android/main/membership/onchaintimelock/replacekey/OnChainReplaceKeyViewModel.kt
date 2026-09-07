@@ -53,6 +53,7 @@ import com.nunchuk.android.usecase.UpdateRemoteSignerUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
 import com.nunchuk.android.usecase.byzantine.SyncGroupWalletUseCase
 import com.nunchuk.android.usecase.byzantine.SyncGroupWalletsUseCase
+import com.nunchuk.android.usecase.membership.SetReplaceKeyVerifiedUseCase
 import com.nunchuk.android.usecase.replace.FinalizeReplaceKeyUseCase
 import com.nunchuk.android.usecase.replace.GetReplaceWalletStatusUseCase
 import com.nunchuk.android.usecase.replace.InitReplaceKeyUseCase
@@ -106,6 +107,7 @@ class OnChainReplaceKeysViewModel @Inject constructor(
     private val getUnusedSignerFromMasterSignerV2UseCase: GetUnusedSignerFromMasterSignerV2UseCase,
     private val getSignerFromTapsignerMasterSignerByPathUseCase: GetSignerFromTapsignerMasterSignerByPathUseCase,
     private val getChainSettingFlowUseCase: GetChainSettingFlowUseCase,
+    private val setReplaceKeyVerifiedUseCase: SetReplaceKeyVerifiedUseCase,
 ) : ViewModel() {
     private val args = ReplaceKeysFragmentArgs.fromSavedStateHandle(savedStateHandle)
     private val _uiState =
@@ -559,6 +561,30 @@ class OnChainReplaceKeysViewModel @Inject constructor(
         }
     }
 
+    /**
+     * The replacement key proved which device it lives on — for Ledger and BitBox by reporting the
+     * fingerprint back from their own screens, which create nothing and leave the marking to us.
+     * Coldcard and air-gap mark themselves verified inside their add-key screens instead.
+     */
+    fun setReplaceKeyVerified(keyId: String) {
+        viewModelScope.launch {
+            setReplaceKeyVerifiedUseCase(
+                SetReplaceKeyVerifiedUseCase.Param(
+                    keyId = keyId,
+                    checkSum = "",
+                    verifyType = VerifyType.SELF_VERIFIED,
+                    groupId = args.groupId,
+                    walletId = args.walletId
+                )
+            ).onSuccess {
+                getReplaceWalletStatus()
+                _event.emit(OnChainReplaceKeyEvent.OnKeyVerified)
+            }.onFailure {
+                _event.emit(OnChainReplaceKeyEvent.ShowError(it.message.orUnknownError()))
+            }
+        }
+    }
+
     fun onContinueClicked() {
         viewModelScope.launch {
             _event.emit(OnChainReplaceKeyEvent.OnAddAllKey)
@@ -919,6 +945,7 @@ sealed class OnChainReplaceKeyEvent {
     ) : OnChainReplaceKeyEvent()
 
     data object OnAddAllKey : OnChainReplaceKeyEvent()
+    data object OnKeyVerified : OnChainReplaceKeyEvent()
     data object SelectAirgapType : OnChainReplaceKeyEvent()
     data class ShowError(val message: String) : OnChainReplaceKeyEvent()
     data class UpdateSignerTag(val signer: SignerModel) : OnChainReplaceKeyEvent()
