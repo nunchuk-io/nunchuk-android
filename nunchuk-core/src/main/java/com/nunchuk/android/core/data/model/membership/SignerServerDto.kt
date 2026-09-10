@@ -26,6 +26,9 @@ import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.model.signer.SignerServer
 import com.nunchuk.android.model.toVerifyType
 import com.nunchuk.android.type.SignerTag
+import com.nunchuk.android.model.inheritance.InheritanceKeyVerification
+import com.nunchuk.android.model.inheritance.toClaimOptionOrNull
+import com.nunchuk.android.model.inheritance.toClaimOptions
 import com.nunchuk.android.type.SignerType
 
 data class SignerServerDto(
@@ -44,6 +47,15 @@ data class SignerServerDto(
     // Miniscript slot name for this key (e.g. "user_1", "platform"). Used by custom
     // Miniscript flows instead of key_index.
     @SerializedName("key_slot") val keySlot: String? = null,
+    // Off-chain inheritance keys only: how the owner passes the key on, and one verification
+    // record per option they chose. Both are absent/empty on a legacy plan.
+    @SerializedName("claim_options") val claimOptions: List<String>? = null,
+    @SerializedName("verifications") val verifications: List<KeyVerificationDto>? = null,
+)
+
+data class KeyVerificationDto(
+    @SerializedName("verification_method") val verificationMethod: String? = null,
+    @SerializedName("verification_type") val verificationType: String? = null,
 )
 
 internal fun SignerServerDto.toModel(): SignerServer {
@@ -62,7 +74,16 @@ internal fun SignerServerDto.toModel(): SignerServer {
         pubkey = pubkey,
         tags = tags ?: emptyList(),
         userBackUpFileName = userKey?.fileName,
-        keySlot = keySlot
+        keySlot = keySlot,
+        claimOptions = claimOptions.toClaimOptions(),
+        verifications = verifications.orEmpty().mapNotNull { verification ->
+            verification.verificationMethod.toClaimOptionOrNull()?.let { method ->
+                InheritanceKeyVerification(
+                    method = method,
+                    verifyType = verification.verificationType.toVerifyType(),
+                )
+            }
+        }
     )
 }
 

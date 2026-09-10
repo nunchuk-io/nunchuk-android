@@ -47,6 +47,7 @@ import com.nunchuk.android.model.byzantine.isFacilitatorAdmin
 
 @Composable
 fun AddByzantineKeyListContent(
+    onSetUpClaimOptionsClicked: (data: AddKeyData) -> Unit = {},
     onAddClicked: (data: AddKeyData) -> Unit = {},
     onVerifyClicked: (data: AddKeyData) -> Unit = {},
     onContinueClicked: () -> Unit = {},
@@ -134,6 +135,7 @@ fun AddByzantineKeyListContent(
                             isBlur = (key.signer?.isVisible == false || key.type == MembershipStep.ADD_SEVER_KEY) && role == AssistedWalletRole.KEYHOLDER_LIMITED,
                         ) { modifier ->
                             AddKeyCard(
+                                onSetUpClaimOptionsClicked = onSetUpClaimOptionsClicked,
                                 modifier = modifier,
                                 item = key,
                                 onAddClicked = onAddClicked,

@@ -32,7 +32,9 @@ import com.nunchuk.android.core.util.COLDCARD_DEFAULT_KEY_NAME
 import com.nunchuk.android.core.util.formattedName
 import com.nunchuk.android.core.util.toSignerType
 import com.nunchuk.android.model.KeyUpload
+import com.nunchuk.android.model.ClaimOptionsRequest
 import com.nunchuk.android.model.KeyVerifiedRequest
+import com.nunchuk.android.model.inheritance.ClaimOption
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.SignerExtra
@@ -495,6 +497,32 @@ internal class KeyRepositoryImpl @Inject constructor(
         } else {
             throw response.error
         }
+    }
+
+    override suspend fun setInheritanceClaimOptions(
+        groupId: String,
+        walletId: String,
+        xfp: String,
+        claimOptions: List<ClaimOption>
+    ) {
+        // The server rejects an empty list; an unset choice is simply never sent.
+        require(claimOptions.isNotEmpty()) { "claimOptions must not be empty" }
+        val payload = ClaimOptionsRequest(claimOptions.distinct().map { it.name })
+        val response = when {
+            groupId.isEmpty() && walletId.isEmpty() ->
+                userWalletApiManager.walletApi.setDraftClaimOptions(xfp, payload)
+
+            groupId.isEmpty() ->
+                userWalletApiManager.walletApi.setReplacementClaimOptions(walletId, xfp, payload)
+
+            walletId.isEmpty() ->
+                userWalletApiManager.groupWalletApi.setDraftClaimOptions(groupId, xfp, payload)
+
+            else -> userWalletApiManager.groupWalletApi.setReplacementClaimOptions(
+                groupId, walletId, xfp, payload
+            )
+        }
+        if (response.isSuccess.not()) throw response.error
     }
 
     override suspend fun setReplaceKeyVerified(

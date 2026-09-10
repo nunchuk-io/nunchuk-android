@@ -22,6 +22,9 @@ package com.nunchuk.android.model.signer
 import android.os.Parcelable
 import com.nunchuk.android.model.TapSigner
 import com.nunchuk.android.model.VerifyType
+import com.nunchuk.android.model.inheritance.ClaimOption
+import com.nunchuk.android.type.SignerTag
+import com.nunchuk.android.model.inheritance.InheritanceKeyVerification
 import com.nunchuk.android.type.SignerType
 import kotlinx.parcelize.Parcelize
 
@@ -41,4 +44,15 @@ data class SignerServer(
     val tags: List<String> = emptyList(),
     val userBackUpFileName: String? = null,
     val keySlot: String? = null,
-) : Parcelable
+    /** Off-chain inheritance key: how the owner passes it on. Empty on a legacy plan. */
+    val claimOptions: List<ClaimOption> = emptyList(),
+    /** One record per option in [claimOptions]. Empty on a legacy plan. */
+    val verifications: List<InheritanceKeyVerification> = emptyList(),
+) : Parcelable {
+    /**
+     * Whether the server considers this the inheritance key of the plan. This is the authority —
+     * the local membership step only knows which slot was filled.
+     */
+    val isInheritanceKey: Boolean
+        get() = tags.contains(SignerTag.INHERITANCE.name)
+}

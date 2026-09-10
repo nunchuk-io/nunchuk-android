@@ -52,6 +52,10 @@ data class OnChainAddSignerParam(
  * Use with [androidx.compose.ui.res.stringResource] in Compose.
  */
 fun OnChainAddSignerParam?.getSelectKeyTypeSubtitleRes(): Int = when {
-    this?.isAddInheritanceOffChainSigner() == true -> R.string.nc_add_inheritance_key_to_nunchuk
+    // Only the Beneficiary is "adding the key to Nunchuk"; the owner setting the plan up is
+    // choosing which device the inheritance key will live on.
+    this?.isAddInheritanceOffChainSigner() == true && isClaiming ->
+        R.string.nc_add_inheritance_key_to_nunchuk
+
     else -> R.string.nc_select_your_key_type
 }

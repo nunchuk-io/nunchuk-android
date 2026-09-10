@@ -41,6 +41,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -75,6 +76,7 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTag
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.compose.provider.SignerModelProvider
 import com.nunchuk.android.compose.pullrefresh.PullRefreshIndicator
 import com.nunchuk.android.compose.pullrefresh.pullRefresh
@@ -85,9 +87,11 @@ import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
+import com.nunchuk.android.core.signer.OnChainAddSignerParam
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toSingleSigner
-import com.nunchuk.android.core.util.InheritancePlanType
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.toReadableDrawableResId
@@ -96,6 +100,7 @@ import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.main.membership.byzantine.addKey.getKeyOptions
 import com.nunchuk.android.main.membership.custom.CustomKeyAccountFragment
+import com.nunchuk.android.main.membership.honey.distribution.KeyDistributionActivity
 import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragment
 import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragmentArgs
 import com.nunchuk.android.main.membership.model.AddKeyData
@@ -113,6 +118,7 @@ import com.nunchuk.android.share.ColdcardAction
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.share.result.GlobalResultKey
+import com.nunchuk.android.signer.KeyType
 import com.nunchuk.android.signer.bitbox.BitBoxActivity
 import com.nunchuk.android.signer.ledger.LedgerActivity
 import com.nunchuk.android.signer.trezor.TrezorActivity
@@ -129,6 +135,18 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
     private val viewModel by activityViewModels<AddKeyListViewModel>()
 
     private var selectedSignerTag: SignerTag? = null
+
+    /**
+     * Whether the slot being filled is the inheritance key. TAPSIGNER and COLDCARD share their
+     * reuse-an-existing-key sheet with the ordinary hardware slots, but an inheritance key must go
+     * on to create its encrypted backup, so the sheet's result needs to know.
+     *
+     * Read from the step manager rather than held in a field: the sheet and the picker both return
+     * long after they were launched, and a field would be lost if the process is killed while they
+     * are foreground.
+     */
+    private val isAddingInheritanceKey: Boolean
+        get() = membershipStepManager.currentStep?.isAddInheritanceKey == true
 
     private val addPortalLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -194,6 +212,63 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
             }
         }
 
+    /**
+     * The off-chain inheritance key type picker, preceded by the inheritance intro and the
+     * passphrase notice. It
+     * runs every key type's own flow itself, except TAPSIGNER and COLDCARD whose inheritance
+     * backup flow this screen owns — those come back as [GlobalResultKey.EXTRA_KEY_TYPE].
+     */
+    private val inheritanceKeyPickerLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            val data = result.data
+            if (result.resultCode != Activity.RESULT_OK || data == null) return@registerForActivityResult
+            // Every other key type is added inside the picker and comes back as a signer.
+            data.parcelable<SignerModel>(GlobalResultKey.EXTRA_SIGNER)?.let { signer ->
+                viewModel.onSelectedExistingHardwareSigner(signer.toSingleSigner())
+                return@registerForActivityResult
+            }
+            // Ledger, Trezor and BitBox are handed back as a tag: the picker only records which
+            // device was chosen, the in-app pairing (or desktop hand-off) belongs to this screen.
+            (data.getSerializableExtra(GlobalResultKey.EXTRA_SIGNER_TAG) as? SignerTag)?.let { tag ->
+                selectedSignerTag = tag
+                openInAppHardwareOrDesktopFlow(tag)
+                return@registerForActivityResult
+            }
+            val keyTypeName = data.getStringExtra(GlobalResultKey.EXTRA_KEY_TYPE)
+                ?: return@registerForActivityResult
+            when (runCatching { KeyType.valueOf(keyTypeName) }.getOrNull()) {
+                KeyType.TAPSIGNER -> handleShowKeysOrCreate(
+                    viewModel.getTapSigners(),
+                    SignerType.NFC,
+                    {
+                        // No key yet — the xfp only exists once the device has been set up.
+                        viewModel.onInheritanceKeyAdded()
+                        openSetupTapSigner()
+                    }
+                )
+
+                KeyType.COLDCARD -> {
+                    selectedSignerTag = SignerTag.COLDCARD
+                    handleShowKeysOrCreate(
+                        viewModel.getColdcard(),
+                        SignerType.COLDCARD_NFC,
+                        ::openSetupMk4ForInheritanceKey
+                    )
+                }
+
+                else -> Unit
+            }
+        }
+
+    /**
+     * The confirm-and-choose-sharing-method flow. Re-runs [AddKeyListViewModel.refresh] on the way back so the key row
+     * reflects the choice; a cancelled run leaves the key without one and the row keeps offering it.
+     */
+    private val keyDistributionLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            viewModel.refresh()
+        }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
     ): View {
@@ -201,7 +276,12 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
-                AddKeyListScreen(viewModel, membershipStepManager, ::handleShowMore)
+                AddKeyListScreen(
+                    viewModel = viewModel,
+                    membershipStepManager = membershipStepManager,
+                    onMoreClicked = ::handleShowMore,
+                    onSetUpClaimOptionsClicked = ::openKeyDistribution,
+                )
             }
         }
     }
@@ -209,6 +289,24 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         observer()
+        // A StateFlow, not an event: the key is saved while the add-key screen is still on top, so
+        // a one-shot event would be dropped by this stopped fragment and the owner would have to
+        // resume the app by hand to see the screen.
+        flowObserver(
+            viewModel.state
+                .map { it.pendingClaimOptionsSigner }
+                .distinctUntilChanged()
+        ) { signer ->
+            if (signer != null) {
+                viewModel.onClaimOptionsPromptHandled()
+                keyDistributionLauncher.launch(
+                    KeyDistributionActivity.buildIntent(
+                        activityContext = requireActivity(),
+                        signer = signer,
+                    )
+                )
+            }
+        }
         setFragmentResultListener(CustomKeyAccountFragment.REQUEST_KEY) { _, bundle ->
             val signer = bundle.parcelable<SingleSigner>(GlobalResultKey.EXTRA_SIGNER)
             if (signer != null) {
@@ -231,10 +329,14 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
                     else -> {
                         val signer = data.signers.first()
                         val selectedSignerTag = selectedSignerTag
-                        if (signer.type == SignerType.AIRGAP && signer.tags.isEmpty() && selectedSignerTag != null) {
-                            viewModel.onUpdateSignerTag(signer, selectedSignerTag)
-                        } else {
-                            viewModel.onSelectedExistingHardwareSigner(signer.toSingleSigner())
+                        when {
+                            // Reused as the inheritance key, so it still owes an encrypted backup.
+                            isAddingInheritanceKey -> openCreateBackUpColdCard(signer)
+
+                            signer.type == SignerType.AIRGAP && signer.tags.isEmpty() && selectedSignerTag != null ->
+                                viewModel.onUpdateSignerTag(signer, selectedSignerTag)
+
+                            else -> viewModel.onSelectedExistingHardwareSigner(signer.toSingleSigner())
                         }
                     }
                 }
@@ -511,13 +613,7 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
                 )
             }
 
-            MembershipStep.HONEY_ADD_INHERITANCE_KEY -> {
-                findNavController().navigate(
-                    AddKeyListFragmentDirections.actionAddKeyListFragmentToInheritanceKeyIntroFragment(
-                        inheritanceType = InheritancePlanType.OFF_CHAIN
-                    )
-                )
-            }
+            MembershipStep.HONEY_ADD_INHERITANCE_KEY -> openInheritanceKeyPicker()
 
             MembershipStep.IRON_ADD_HARDWARE_KEY_1,
             MembershipStep.IRON_ADD_HARDWARE_KEY_2,
@@ -616,10 +712,59 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
     }
 
     private fun openCreateBackUpTapSigner(masterSignerId: String) {
+        if (isAddingInheritanceKey) viewModel.onInheritanceKeyAdded(masterSignerId)
         navigator.openCreateBackUpTapSigner(
             activity = requireActivity(),
             fromMembershipFlow = true,
             masterSignerId = masterSignerId,
+        )
+    }
+
+    /** The sharing-method choice, entered from the key row rather than opening itself. */
+    private fun openKeyDistribution(data: AddKeyData) {
+        val signer = data.signer ?: return
+        keyDistributionLauncher.launch(
+            KeyDistributionActivity.buildIntent(
+                activityContext = requireActivity(),
+                signer = signer,
+                skipKeyAdded = true,
+            )
+        )
+    }
+
+    private fun openInheritanceKeyPicker() {
+        navigator.openSignerIntroScreen(
+            launcher = inheritanceKeyPickerLauncher,
+            activityContext = requireActivity(),
+            groupId = (activity as MembershipActivity).groupId,
+            walletId = (activity as MembershipActivity).walletId,
+            walletType = WalletType.MULTI_SIG,
+            onChainAddSignerParam = OnChainAddSignerParam(
+                flags = OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER or
+                        OnChainAddSignerParam.FLAG_ADD_INHERITANCE_OFF_CHAIN_SIGNER,
+            ),
+        )
+    }
+
+    /** Coldcard set up fresh as the inheritance key: passphrase notice -> encrypted backup. */
+    private fun openSetupMk4ForInheritanceKey() = openInheritanceColdCardFlow(signer = null)
+
+    /** Coldcard already in the key manager and picked for reuse as the inheritance key. */
+    private fun openCreateBackUpColdCard(signer: SignerModel) = openInheritanceColdCardFlow(signer)
+
+    private fun openInheritanceColdCardFlow(signer: SignerModel?) {
+        viewModel.onInheritanceKeyAdded(signer?.fingerPrint)
+        navigator.openSetupMk4(
+            activity = requireActivity(),
+            args = SetupMk4Args(
+                fromMembershipFlow = true,
+                action = ColdcardAction.INHERITANCE_PASSPHRASE_QUESTION,
+                groupId = (activity as MembershipActivity).groupId,
+                walletId = (activity as MembershipActivity).walletId,
+                xfp = signer?.fingerPrint,
+                keyName = signer?.name,
+                signerType = signer?.type,
+            )
         )
     }
 }
@@ -629,11 +774,13 @@ fun AddKeyListScreen(
     viewModel: AddKeyListViewModel = viewModel(),
     membershipStepManager: MembershipStepManager,
     onMoreClicked: () -> Unit = {},
+    onSetUpClaimOptionsClicked: (data: AddKeyData) -> Unit = {},
 ) {
     val keys by viewModel.key.collectAsStateWithLifecycle()
     val uiState by viewModel.state.collectAsStateWithLifecycle()
     val remainingTime by membershipStepManager.remainingTime.collectAsStateWithLifecycle()
     AddKeyListContent(
+        onSetUpClaimOptionsClicked = onSetUpClaimOptionsClicked,
         onContinueClicked = viewModel::onContinueClicked,
         onAddClicked = viewModel::onAddKeyClicked,
         onVerifyClicked = viewModel::onVerifyClicked,
@@ -656,6 +803,7 @@ fun AddKeyListContent(
     missingBackupKeys: List<AddKeyData> = emptyList(),
     onVerifyClicked: (data: AddKeyData) -> Unit = {},
     onAddClicked: (data: AddKeyData) -> Unit = {},
+    onSetUpClaimOptionsClicked: (data: AddKeyData) -> Unit = {},
     refresh: () -> Unit = { },
 ) {
     val state = rememberPullRefreshState(isRefreshing, refresh)
@@ -733,6 +881,7 @@ fun AddKeyListContent(
 
                     items(keys) { key ->
                         AddKeyCard(
+                            onSetUpClaimOptionsClicked = onSetUpClaimOptionsClicked,
                             item = key,
                             onAddClicked = onAddClicked,
                             onVerifyClicked = onVerifyClicked,
@@ -754,6 +903,7 @@ fun AddKeyCard(
     isMissingBackup: Boolean = false,
     onAddClicked: (data: AddKeyData) -> Unit = {},
     onVerifyClicked: (data: AddKeyData) -> Unit = {},
+    onSetUpClaimOptionsClicked: (data: AddKeyData) -> Unit = {},
     isDisabled: Boolean = false,
     isStandard: Boolean = false
 ) {
@@ -826,8 +976,24 @@ fun AddKeyCard(
                                 text = item.signer.getXfpOrCardIdLabel(),
                                 style = NunchukTheme.typography.bodySmall
                             )
+                            item.claimStatusRes()?.let { statusRes ->
+                                Text(
+                                    modifier = Modifier.padding(top = 4.dp),
+                                    text = stringResource(statusRes),
+                                    style = NunchukTheme.typography.bodySmall.copy(
+                                        color = MaterialTheme.colorScheme.textSecondary
+                                    )
+                                )
+                            }
                         }
-                        if (item.verifyType != VerifyType.NONE) {
+                        if (item.needsClaimOptions) {
+                            NcOutlineButton(
+                                modifier = Modifier.height(36.dp),
+                                onClick = { onSetUpClaimOptionsClicked(item) },
+                            ) {
+                                Text(text = stringResource(R.string.nc_set_up))
+                            }
+                        } else if (item.verifyType != VerifyType.NONE) {
                             Icon(
                                 painter = painterResource(id = R.drawable.nc_circle_checked),
                                 contentDescription = "Checked icon"

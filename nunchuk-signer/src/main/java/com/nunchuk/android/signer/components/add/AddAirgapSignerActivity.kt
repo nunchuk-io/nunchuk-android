@@ -58,7 +58,11 @@ class AddAirgapSignerActivity : BaseActivity<ActivityNavigationBinding>() {
         val inflater = navHostFragment.navController.navInflater
         val graph = inflater.inflate(R.navigation.airgap_navigation)
 
-        if (signerTag == SignerTag.JADE) {
+        // Jade's QR/USB action intro leads into the Miniscript (on-chain) "Export Account XPUB"
+        // variant. Off-chain, Jade is just another air-gapped device and uses the generic intro.
+        val isOffChainInheritanceSetup = onChainAddSignerParam
+            ?.let { it.isAddInheritanceOffChainSigner() && !it.isClaiming } == true
+        if (signerTag == SignerTag.JADE && !isOffChainInheritanceSetup) {
             graph.setStartDestination(R.id.airgapActionIntroFragment)
         } else {
             graph.setStartDestination(R.id.airgapIntroFragment)

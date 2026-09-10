@@ -79,6 +79,13 @@ class SignerIntroViewModel @Inject constructor(
     private var isTestNet: Boolean = false
     private var isAddInheritanceSigner: Boolean = false
 
+    /**
+     * Adding the inheritance key of an off-chain timelock plan. The picker is then driven by the
+     * server's inheritance-key list alone, so the full supported-signer list must not overwrite the
+     * fallback the state was seeded with.
+     */
+    private var isAddInheritanceOffChainSetup: Boolean = false
+
     private val _state = MutableStateFlow(SignerIntroState())
     val state = _state.asStateFlow()
 
@@ -112,9 +119,17 @@ class SignerIntroViewModel @Inject constructor(
         if (onChainAddSignerParam != null) {
             isAddInheritanceSigner =
                 onChainAddSignerParam.isAddInheritanceSigner() || onChainAddSignerParam.isVerifyBackupSeedPhrase()
-            if (onChainAddSignerParam.isAddInheritanceOffChainSigner()) {
-                _state.update { it.copy(supportedSigners = offChainInheritanceKeyTypes) }
+            isAddInheritanceOffChainSetup =
+                onChainAddSignerParam.isAddInheritanceOffChainSigner() && !onChainAddSignerParam.isClaiming
+            if (onChainAddSignerParam.isClaiming && onChainAddSignerParam.isAddInheritanceOffChainSigner()) {
+                _state.update { it.copy(supportedSigners = offChainInheritanceClaimKeyTypes) }
             } else {
+                // The BYOH picker is server-driven — supported_signers where is_inheritance_key is
+                // true, which is also what keeps a device the server does not advertise (SeedSigner
+                // today) out of it. The static list only stands in for a legacy setup response.
+                if (isAddInheritanceOffChainSetup) {
+                    _state.update { it.copy(supportedSigners = offChainInheritanceSetupKeyTypes) }
+                }
                 fetchUserWalletConfigs()
             }
             loadAllSigners()
@@ -126,8 +141,15 @@ class SignerIntroViewModel @Inject constructor(
         supportedSigners: List<SupportedSigner>,
     ): Boolean {
         val isDisableAll = keyFlow != KeyFlow.NONE
-        return (supportedSigners.isEmpty()
-                || supportedSigners.any { it.type == SignerType.AIRGAP && it.tag == null }) && isDisableAll.not()
+        // The BYOH picker is server-driven, so this row follows the server's inheritance-key list
+        // rather than the static fallback the state was seeded with.
+        val signers = if (isAddInheritanceOffChainSetup) {
+            _state.value.eligibleSupportedSigners.ifEmpty { return false }
+        } else {
+            supportedSigners
+        }
+        return (signers.isEmpty()
+                || signers.any { it.type == SignerType.AIRGAP && it.tag == null }) && isDisableAll.not()
     }
 
     private fun updateSignerDisplayInfos() {
@@ -196,8 +218,10 @@ class SignerIntroViewModel @Inject constructor(
                         configs = walletConfigs.supportedSigners,
                         walletType = walletType,
                     )
-                    val supportedSigners = convertToSupportedSigners(relevantConfigs)
-                    _state.update { it.copy(supportedSigners = supportedSigners) }
+                    if (!isAddInheritanceOffChainSetup) {
+                        val supportedSigners = convertToSupportedSigners(relevantConfigs)
+                        _state.update { it.copy(supportedSigners = supportedSigners) }
+                    }
                     updateEligibleSupportedSigners(relevantConfigs)
                 }
             }
@@ -268,7 +292,16 @@ class SignerIntroViewModel @Inject constructor(
 
     private fun filterSignerByType(type: SignerType, tag: SignerTag? = null): List<SignerModel> {
         return state.value.allSigners.filter { signer ->
-            signer.type == type || (tag != null && signer.tags.contains(tag))
+            when {
+                tag == null -> signer.type == type
+                // A Coldcard is either its own type or an air-gapped key carrying the tag, so here
+                // the tag widens the match.
+                tag == SignerTag.COLDCARD -> signer.type == type || signer.tags.contains(tag)
+                // Every other tag is what tells devices of the same type apart — Ledger/Trezor/
+                // BitBox all being HARDWARE, Jade/Keystone/Passport all being AIRGAP — so it has to
+                // narrow the match. Widening here offers a Trezor when the owner picked BitBox.
+                else -> signer.type == type && signer.tags.contains(tag)
+            }
         }
     }
 
@@ -371,25 +404,43 @@ class SignerIntroViewModel @Inject constructor(
     }
 }
 
-private val offChainInheritanceKeyTypes = listOf(
-    SupportedSigner(
-        type = SignerType.COLDCARD_NFC,
-        tag = null,
-        walletType = WalletType.MULTI_SIG,
-        addressType = AddressType.NATIVE_SEGWIT
-    ),
-    SupportedSigner(
-        type = SignerType.NFC,
-        tag = null,
-        walletType = WalletType.MULTI_SIG,
-        addressType = AddressType.NATIVE_SEGWIT
-    ),
-    SupportedSigner(
-        type = SignerType.SOFTWARE,
-        tag = null,
-        walletType = WalletType.MULTI_SIG,
-        addressType = AddressType.NATIVE_SEGWIT
-    )
+private fun multiSigSigner(type: SignerType, tag: SignerTag? = null) = SupportedSigner(
+    type = type,
+    tag = tag,
+    walletType = WalletType.MULTI_SIG,
+    addressType = AddressType.NATIVE_SEGWIT
+)
+
+/**
+ * Key types offered when adding the inheritance key while setting up an off-chain timelock
+ * wallet. Hardware only — an inheritance key must live outside the owner's phone, so there is no
+ * software key here. Portal is left out: it is not offered as an inheritance key today. The order
+ * is the picker order in the design.
+ */
+private val offChainInheritanceSetupKeyTypes = listOf(
+    multiSigSigner(SignerType.NFC),
+    multiSigSigner(SignerType.COLDCARD_NFC),
+    multiSigSigner(SignerType.AIRGAP, SignerTag.JADE),
+    multiSigSigner(SignerType.AIRGAP, SignerTag.KEYSTONE),
+    multiSigSigner(SignerType.HARDWARE, SignerTag.LEDGER),
+    multiSigSigner(SignerType.AIRGAP, SignerTag.PASSPORT),
+    multiSigSigner(SignerType.AIRGAP, SignerTag.SEEDSIGNER),
+    multiSigSigner(SignerType.HARDWARE, SignerTag.TREZOR),
+    multiSigSigner(SignerType.HARDWARE, SignerTag.BITBOX),
+    multiSigSigner(SignerType.AIRGAP, SignerTag.KRUX),
+    // Carries no card of its own (toDisplayInfo returns null for an untagged air-gap); it is what
+    // enables the "Generic Airgap" row.
+    multiSigSigner(SignerType.AIRGAP),
+)
+
+/**
+ * Key types offered to a Beneficiary claiming an inheritance. The software key stays here — the
+ * Beneficiary may hold nothing but the seed phrase.
+ */
+private val offChainInheritanceClaimKeyTypes = listOf(
+    multiSigSigner(SignerType.COLDCARD_NFC),
+    multiSigSigner(SignerType.NFC),
+    multiSigSigner(SignerType.SOFTWARE),
 )
 
 val defaultSupportedSigners = listOf(

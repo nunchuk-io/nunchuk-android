@@ -105,6 +105,7 @@ import com.nunchuk.android.core.network.Data
 import com.nunchuk.android.model.DownloadBackupKeyResponseData
 import com.nunchuk.android.model.KeyResponse
 import com.nunchuk.android.model.KeyResponseData
+import com.nunchuk.android.model.ClaimOptionsRequest
 import com.nunchuk.android.model.KeyVerifiedRequest
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
@@ -342,6 +343,18 @@ internal interface UserWalletsApi {
     @POST("/v1.1/user-wallets/draft-wallets/{xfp}/verify")
     suspend fun setKeyVerified(
         @Path("xfp") xfp: String, @Body payload: KeyVerifiedRequest
+    ): Data<Unit>
+
+    @PUT("/v1.1/user-wallets/draft-wallets/{xfp}/claim-options")
+    suspend fun setDraftClaimOptions(
+        @Path("xfp") xfp: String, @Body payload: ClaimOptionsRequest
+    ): Data<Unit>
+
+    @PUT("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/replacement/{xfp}/claim-options")
+    suspend fun setReplacementClaimOptions(
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Path("xfp") xfp: String,
+        @Body payload: ClaimOptionsRequest
     ): Data<Unit>
 
     @POST("/v1.1/user-wallets/inheritance/claiming/status")

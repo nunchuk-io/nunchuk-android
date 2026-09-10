@@ -20,6 +20,7 @@
 package com.nunchuk.android.model
 
 import android.os.Parcelable
+import com.nunchuk.android.model.inheritance.ClaimOption
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
@@ -35,7 +36,14 @@ data class SupportedSignerConfig(
     val walletType: String,
     val isInheritanceKey: Boolean,
     val signerType: String,
-    val signerTag: String?
+    val signerTag: String?,
+    /**
+     * Which inheritance claim options this device supports. Empty on a legacy setup response, and
+     * on every entry that is not an inheritance key.
+     */
+    val claimOptions: List<ClaimOption> = emptyList(),
+    /** Display-only explanation of why a device is limited, e.g. on the distribution choice. */
+    val claimNote: String? = null,
 ) : Parcelable
 
 @Parcelize

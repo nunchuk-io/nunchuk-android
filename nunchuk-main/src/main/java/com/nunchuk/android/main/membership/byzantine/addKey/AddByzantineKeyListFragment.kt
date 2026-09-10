@@ -44,8 +44,12 @@ import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import com.nunchuk.android.core.signer.SignerModel
-import com.nunchuk.android.core.util.InheritancePlanType
+import com.nunchuk.android.main.membership.honey.distribution.KeyDistributionActivity
+import com.nunchuk.android.model.isAddInheritanceKey
+import com.nunchuk.android.core.signer.toSingleSigner
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.isAirgapTag
 import com.nunchuk.android.core.util.showError
@@ -63,15 +67,18 @@ import com.nunchuk.android.model.byzantine.isFacilitatorAdmin
 import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.nav.args.AddAirSignerArgs
 import com.nunchuk.android.nav.args.SetupMk4Args
+import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.share.ColdcardAction
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.share.result.GlobalResultKey
+import com.nunchuk.android.signer.KeyType
 import com.nunchuk.android.signer.bitbox.BitBoxActivity
 import com.nunchuk.android.signer.ledger.LedgerActivity
 import com.nunchuk.android.signer.trezor.TrezorActivity
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.widget.NCInfoDialog
 import dagger.hilt.android.AndroidEntryPoint
@@ -84,6 +91,75 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
     private val args: AddByzantineKeyListFragmentArgs by navArgs()
 
     private var selectedSignerTag: SignerTag? = null
+
+    /**
+     * Whether the slot being filled is the inheritance key. TAPSIGNER and COLDCARD share their
+     * reuse-an-existing-key sheet with the ordinary hardware slots, but an inheritance key must go
+     * on to create its encrypted backup, so the sheet's result needs to know.
+     *
+     * Read from the step manager rather than held in a field: the sheet and the picker both return
+     * long after they were launched, and a field would be lost if the process is killed while they
+     * are foreground.
+     */
+    private val isAddingInheritanceKey: Boolean
+        get() = membershipStepManager.currentStep?.isAddInheritanceKey == true
+
+    /**
+     * The confirm-and-choose-sharing-method flow. Refreshes on the way back so the key row reflects the choice; a
+     * cancelled run leaves the key without one and the row keeps offering it.
+     */
+    private val keyDistributionLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            viewModel.refresh()
+        }
+
+    /**
+     * The off-chain inheritance key type picker, preceded by the inheritance intro and the
+     * passphrase notice. Every
+     * key type runs its own flow inside that screen except TAPSIGNER and COLDCARD, whose
+     * inheritance backup flow this screen owns; those come back as [GlobalResultKey.EXTRA_KEY_TYPE].
+     */
+    private val inheritanceKeyPickerLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            val data = result.data
+            if (result.resultCode != Activity.RESULT_OK || data == null) return@registerForActivityResult
+            // Every other key type is added inside the picker and comes back as a signer.
+            data.parcelable<SignerModel>(GlobalResultKey.EXTRA_SIGNER)?.let { signer ->
+                viewModel.handleSignerNewIndex(signer.toSingleSigner())
+                return@registerForActivityResult
+            }
+            // Ledger, Trezor and BitBox are handed back as a tag: the picker only records which
+            // device was chosen, the in-app pairing (or desktop hand-off) belongs to this screen.
+            (data.getSerializableExtra(GlobalResultKey.EXTRA_SIGNER_TAG) as? SignerTag)?.let { tag ->
+                selectedSignerTag = tag
+                openInAppHardwareOrDesktopFlow(tag)
+                return@registerForActivityResult
+            }
+            val keyTypeName = data.getStringExtra(GlobalResultKey.EXTRA_KEY_TYPE)
+                ?: return@registerForActivityResult
+            when (runCatching { KeyType.valueOf(keyTypeName) }.getOrNull()) {
+                KeyType.TAPSIGNER -> handleShowKeysOrCreate(
+                    signer = viewModel.getTapSigners(),
+                    type = SignerType.NFC,
+                    onEmptySigner = {
+                        // No key yet — the xfp only exists once the device has been set up.
+                        viewModel.onInheritanceKeyAdded()
+                        openSetupTapSigner()
+                    },
+                )
+
+                KeyType.COLDCARD -> {
+                    selectedSignerTag = SignerTag.COLDCARD
+                    handleShowKeysOrCreate(
+                        signer = viewModel.getColdcard(),
+                        type = SignerType.COLDCARD_NFC,
+                        onEmptySigner = { openInheritanceColdCardFlow(signer = null) },
+                    )
+                }
+
+                else -> Unit
+            }
+        }
 
     private val isKeyHolderLimited: Boolean by lazy { args.role.toRole == AssistedWalletRole.KEYHOLDER_LIMITED }
 
@@ -152,6 +228,7 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
                     membershipStepManager = membershipStepManager,
                     role = args.role.toRole,
                     onMoreClicked = ::handleShowMore,
+                    onSetUpClaimOptionsClicked = ::openKeyDistribution,
                 )
             }
         }
@@ -160,9 +237,37 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         observer()
+        // A StateFlow, not an event: the key is saved while the add-key screen is still on top, so
+        // a one-shot event would be dropped by this stopped fragment and the owner would have to
+        // resume the app by hand to see the screen.
+        flowObserver(
+            viewModel.state
+                .map { it.pendingClaimOptionsSigner }
+                .distinctUntilChanged()
+        ) { signer ->
+            if (signer != null) {
+                viewModel.onClaimOptionsPromptHandled()
+                keyDistributionLauncher.launch(
+                    KeyDistributionActivity.buildIntent(
+                        activityContext = requireActivity(),
+                        signer = signer,
+                        groupId = args.groupId,
+                    )
+                )
+            }
+        }
         setFragmentResultListener(TapSignerListBottomSheetFragment.REQUEST_KEY) { _, bundle ->
             val data = TapSignerListBottomSheetFragmentArgs.fromBundle(bundle)
-            if (data.signers.isNotEmpty()) {
+            if (data.signers.isNotEmpty() && isAddingInheritanceKey) {
+                // Reused as the inheritance key: it still owes an encrypted backup, so it skips the
+                // account-index screen the ordinary hardware slots go through.
+                val signer = data.signers.first()
+                if (signer.type == SignerType.NFC) {
+                    openCreateBackUpTapSigner(signer.id)
+                } else {
+                    openInheritanceColdCardFlow(signer)
+                }
+            } else if (data.signers.isNotEmpty()) {
                 val signer = data.signers.first()
                 when (signer.type) {
                     SignerType.AIRGAP -> {
@@ -538,11 +643,9 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
                 }
             }
 
-            MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY, MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_1 -> {
-                findNavController().navigate(AddByzantineKeyListFragmentDirections.actionAddByzantineKeyListFragmentToInheritanceKeyIntroFragment(
-                    inheritanceType = InheritancePlanType.OFF_CHAIN
-                ))
-            }
+            MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY,
+            MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_1,
+                -> openInheritanceKeyPicker()
 
             MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0,
             MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1,
@@ -620,6 +723,63 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
         )
     }
 
+    /** The sharing-method choice, entered from the key row rather than opening itself. */
+    private fun openKeyDistribution(data: AddKeyData) {
+        val signer = data.signer ?: return
+        keyDistributionLauncher.launch(
+            KeyDistributionActivity.buildIntent(
+                activityContext = requireActivity(),
+                signer = signer,
+                groupId = args.groupId,
+                skipKeyAdded = true,
+            )
+        )
+    }
+
+    private fun openInheritanceKeyPicker() {
+        navigator.openSignerIntroScreen(
+            launcher = inheritanceKeyPickerLauncher,
+            activityContext = requireActivity(),
+            groupId = (activity as MembershipActivity).groupId,
+            walletId = (activity as MembershipActivity).walletId,
+            walletType = WalletType.MULTI_SIG,
+            onChainAddSignerParam = OnChainAddSignerParam(
+                flags = OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER or
+                        OnChainAddSignerParam.FLAG_ADD_INHERITANCE_OFF_CHAIN_SIGNER,
+            ),
+        )
+    }
+
+    private fun openCreateBackUpTapSigner(masterSignerId: String) {
+        if (isAddingInheritanceKey) viewModel.onInheritanceKeyAdded(masterSignerId)
+        navigator.openCreateBackUpTapSigner(
+            activity = requireActivity(),
+            fromMembershipFlow = true,
+            masterSignerId = masterSignerId,
+            groupId = (activity as MembershipActivity).groupId,
+        )
+    }
+
+    /**
+     * Coldcard picked as the inheritance key: passphrase notice -> encrypted backup -> upload.
+     * [signer] is null when the device is being set up fresh rather than reused.
+     */
+    private fun openInheritanceColdCardFlow(signer: SignerModel?) {
+        viewModel.onInheritanceKeyAdded(signer?.fingerPrint)
+        navigator.openSetupMk4(
+            activity = requireActivity(),
+            args = SetupMk4Args(
+                fromMembershipFlow = true,
+                action = ColdcardAction.INHERITANCE_PASSPHRASE_QUESTION,
+                groupId = (activity as MembershipActivity).groupId,
+                walletId = (activity as MembershipActivity).walletId,
+                xfp = signer?.fingerPrint,
+                keyName = signer?.name,
+                signerType = signer?.type,
+            )
+        )
+    }
+
     private fun openSetupPortal() {
         navigator.openPortalScreen(
             launcher = addPortalLauncher,
@@ -646,11 +806,13 @@ fun AddByzantineKeyListScreen(
     membershipStepManager: MembershipStepManager,
     onMoreClicked: () -> Unit = {},
     role: AssistedWalletRole = AssistedWalletRole.NONE,
+    onSetUpClaimOptionsClicked: (data: AddKeyData) -> Unit = {},
 ) {
     val keys by viewModel.key.collectAsStateWithLifecycle()
     val state by viewModel.state.collectAsStateWithLifecycle()
     val remainingTime by membershipStepManager.remainingTime.collectAsStateWithLifecycle()
     AddByzantineKeyListContent(
+        onSetUpClaimOptionsClicked = onSetUpClaimOptionsClicked,
         onContinueClicked = viewModel::onContinueClicked,
         onAddClicked = viewModel::onAddKeyClicked,
         onVerifyClicked = viewModel::onVerifyClicked,

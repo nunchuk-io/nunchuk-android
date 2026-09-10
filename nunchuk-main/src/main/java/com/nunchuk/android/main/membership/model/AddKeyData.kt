@@ -23,20 +23,63 @@ import android.content.Context
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.DEFAULT_KEY_NAME
 import com.nunchuk.android.core.util.HARDWARE_KEY_NAME
+import androidx.annotation.StringRes
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.TimelockExtra
 import com.nunchuk.android.model.VerifyType
+import com.nunchuk.android.model.inheritance.ClaimOption
+import com.nunchuk.android.model.inheritance.InheritanceKeyVerification
+import com.nunchuk.android.model.inheritance.isResolved
 import com.nunchuk.android.model.isAddInheritanceKey
 import com.nunchuk.android.model.isTimelockStep
 
 data class AddKeyData(
     val type: MembershipStep,
     val signer: SignerModel? = null,
-    val verifyType: VerifyType = VerifyType.NONE
+    val verifyType: VerifyType = VerifyType.NONE,
+    /**
+     * Off-chain inheritance key only: how the owner chose to pass it to their Beneficiary. Read
+     * from the draft wallet rather than the local step, because the server tracks it per key.
+     * Empty means the choice has not been made yet — the design's "sharing method not set" state.
+     */
+    val claimOptions: List<ClaimOption> = emptyList(),
+    /** One record per entry in [claimOptions]; empty on a legacy plan. */
+    val verifications: List<InheritanceKeyVerification> = emptyList(),
+    /**
+     * Whether this slot is the inheritance key.
+     *
+     * The membership step is the reliable signal here: a freshly created draft comes back with an
+     * empty `signers` list, so keying this off the draft alone left the row, its status line and
+     * the distribution flow silently dead. The draft still supplies [claimOptions] and
+     * [verifications] when it has the key.
+     */
+    val isInheritanceKey: Boolean = false,
 ) {
     val isVerifyOrAddKey: Boolean
         get() = signer != null || verifyType != VerifyType.NONE
+
+    /** An inheritance key that is in place but whose sharing method still has to be picked. */
+    val needsClaimOptions: Boolean
+        get() = isInheritanceKey && signer != null && claimOptions.isEmpty()
+
+    /**
+     * The line under an inheritance key: which sharing method the owner chose and how far its
+     * verification has got. Null for every other key, which keeps its existing row.
+     */
+    @StringRes
+    fun claimStatusRes(): Int? {
+        if (!isInheritanceKey || signer == null) return null
+        if (claimOptions.isEmpty()) return R.string.nc_sharing_method_not_set
+        val verified = verifications.count { it.isResolved }
+        return when {
+            verified == 0 -> R.string.nc_not_verified
+            verified < claimOptions.size -> R.string.nc_one_of_two_verified
+            claimOptions.size > 1 -> R.string.nc_backup_uploaded_seed_shared
+            claimOptions.first() == ClaimOption.ENCRYPTED_BACKUP -> R.string.nc_backup_uploaded
+            else -> R.string.nc_seed_shared
+        }
+    }
 }
 
 /**

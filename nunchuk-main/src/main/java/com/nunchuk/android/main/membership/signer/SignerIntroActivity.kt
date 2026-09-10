@@ -35,6 +35,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
@@ -64,6 +65,7 @@ import com.nunchuk.android.nav.args.SetupMk4Args
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.signer.KeyType
+import com.nunchuk.android.signer.toSignerTypeAndTag
 import com.nunchuk.android.signer.SignerIntroEvent
 import com.nunchuk.android.signer.SignerIntroViewModel
 import com.nunchuk.android.signer.bitbox.BitBoxActivity
@@ -217,6 +219,7 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
 
             setContent {
                 val navHostController = rememberNavController()
+                val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
                 var showSignerBottomSheet by remember { mutableStateOf(false) }
                 var filteredSigners by remember { mutableStateOf<List<SignerModel>>(emptyList()) }
                 var signerType by remember { mutableStateOf<SignerType?>(null) }
@@ -234,6 +237,9 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
                             }
 
                             is SignerIntroEvent.OpenSetupSigner -> {
+                                if (setUpPickedInheritanceKey(navHostController)) {
+                                    return@collect
+                                }
                                 when (event.type) {
                                     SignerType.NFC -> navigateToSetupTapSigner()
                                     SignerType.COLDCARD_NFC -> openSetupMk4()
@@ -265,30 +271,35 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
                 NunchukTheme {
                     NavHost(
                         navController = navHostController,
-                        startDestination = SignerIntroDestination
+                        startDestination = if (isAddInheritanceKeyForSetup) {
+                            InheritanceKeyIntroDestination
+                        } else {
+                            SignerIntroDestination
+                        }
                     ) {
                         signerIntroDestination(
                             viewModel = viewModel,
                             onChainAddSignerParam = onChainAddSignerParam,
                             onClick = { keyType: KeyType ->
-                                when (keyType) {
-                                    KeyType.TAPSIGNER -> handleTapSignerSelection()
-                                    KeyType.COLDCARD -> handleColdCardSelection(navHostController)
-                                    KeyType.JADE -> handleJadeSelection(navHostController)
-                                    KeyType.PORTAL -> openPortalScreen()
-                                    KeyType.SEEDSIGNER -> handleSelectAddAirgapType(SignerTag.SEEDSIGNER)
-                                    KeyType.KEYSTONE -> handleSelectAddAirgapType(SignerTag.KEYSTONE)
-                                    KeyType.FOUNDATION -> handleSelectAddAirgapType(SignerTag.PASSPORT)
-                                    KeyType.KRUX -> handleSelectAddAirgapType(SignerTag.KRUX)
-                                    KeyType.SOFTWARE -> showSoftwareSigners()
-                                    KeyType.PLATFORM_KEY -> returnPlatformKeyResult()
-                                    KeyType.GENERIC_AIRGAP -> openAddAirSignerIntroScreen()
-                                    KeyType.LEDGER -> openLedgerScreen()
-                                    KeyType.BITBOX -> openBitBoxScreen()
-                                    KeyType.TREZOR -> openTrezorScreen()
-                                }
+                                handleKeyTypePicked(keyType, navHostController)
                             },
                             onMoreClicked = ::handleShowMore,
+                        )
+
+                        inheritanceKeyIntroDestination(
+                            remainTime = remainTime,
+                            onMoreClicked = ::handleShowMore,
+                            onContinueClicked = {
+                                navHostController.navigate(InheritancePassphraseNoticeDestination)
+                            },
+                        )
+
+                        inheritancePassphraseNoticeDestination(
+                            remainTime = remainTime,
+                            onMoreClicked = ::handleShowMore,
+                            onContinueClicked = {
+                                navHostController.navigate(SignerIntroDestination)
+                            },
                         )
 
                         checkFirmwareDestination(
@@ -324,8 +335,10 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
                             },
                             onAddNewKey = {
                                 showSignerBottomSheet = false
-                                signerType?.let { signerType ->
-                                    viewModel.createNewSigner(signerType, signerTag)
+                                if (!setUpPickedInheritanceKey(navHostController)) {
+                                    signerType?.let { signerType ->
+                                        viewModel.createNewSigner(signerType, signerTag)
+                                    }
                                 }
                             }
                         )
@@ -381,6 +394,88 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
         )
     }
 
+    /**
+     * True while the owner is adding the inheritance key of an off-chain timelock plan — i.e. the
+     * BYOH setup picker, not a Beneficiary claiming (which carries a magic phrase).
+     */
+    private val isAddInheritanceKeyForSetup: Boolean
+        get() = onChainAddSignerParam?.isAddInheritanceOffChainSigner() == true && !isClaiming
+
+    /** Inheritance key types whose flow belongs to the key-list screen, not to this picker. */
+    private val keyTypesOwnedByKeyList = setOf(KeyType.TAPSIGNER, KeyType.COLDCARD)
+
+    /**
+     * Key type picked for an inheritance key, held while the "reuse an existing key" sheet is up so
+     * that "add a new one" can resume the device's own flow.
+     */
+    private var pickedInheritanceKeyType: KeyType? = null
+
+    /**
+     * Runs the flow of the key type the owner picked. Shared by the picker and by the
+     * "Your inheritance key" intro that sits between them during BYOH setup, so the key type is
+     * only ever chosen once.
+     */
+    /**
+     * Entry point from the key-type picker. An inheritance key is offered the matching keys already
+     * in the key manager before any device is set up; [handleKeyTypeSelection] is what actually
+     * starts the device's own flow, once that offer is answered.
+     */
+    private fun handleKeyTypePicked(keyType: KeyType, navController: NavHostController) {
+        // TAPSIGNER and COLDCARD keep the inheritance backup flow the key-list screen already
+        // owns (reuse-an-existing-key sheet -> encrypted backup -> upload), so hand the choice
+        // back to it rather than starting a second, divergent path here.
+        if (isAddInheritanceKeyForSetup && keyType in keyTypesOwnedByKeyList) {
+            returnKeyTypeResult(keyType)
+            return
+        }
+        if (isAddInheritanceKeyForSetup) {
+            pickedInheritanceKeyType = keyType
+            val (signerType, signerTag) = keyType.toSignerTypeAndTag()
+            viewModel.showExistingSignerOrCreateNew(signerType, signerTag)
+            return
+        }
+        handleKeyTypeSelection(keyType, navController)
+    }
+
+    /** Resumes the picked key type's own add-key flow after the reuse offer was declined. */
+    private fun setUpPickedInheritanceKey(navController: NavHostController): Boolean {
+        val keyType = pickedInheritanceKeyType?.takeIf { isAddInheritanceKeyForSetup } ?: return false
+        pickedInheritanceKeyType = null
+        handleKeyTypeSelection(keyType, navController)
+        return true
+    }
+
+    private fun handleKeyTypeSelection(keyType: KeyType, navController: NavHostController) {
+        when (keyType) {
+            KeyType.TAPSIGNER -> handleTapSignerSelection()
+            KeyType.COLDCARD -> handleColdCardSelection(navController)
+            KeyType.JADE -> handleJadeSelection(navController)
+            KeyType.PORTAL -> openPortalScreen()
+            KeyType.SEEDSIGNER -> handleSelectAddAirgapType(SignerTag.SEEDSIGNER)
+            KeyType.KEYSTONE -> handleSelectAddAirgapType(SignerTag.KEYSTONE)
+            KeyType.FOUNDATION -> handleSelectAddAirgapType(SignerTag.PASSPORT)
+            KeyType.KRUX -> handleSelectAddAirgapType(SignerTag.KRUX)
+            KeyType.SOFTWARE -> showSoftwareSigners()
+            KeyType.PLATFORM_KEY -> returnPlatformKeyResult()
+            KeyType.GENERIC_AIRGAP -> if (isAddInheritanceKeyForSetup) {
+                handleSelectAddAirgapType(tag = null)
+            } else {
+                openAddAirSignerIntroScreen()
+            }
+            KeyType.LEDGER -> openLedgerScreen()
+            KeyType.BITBOX -> openBitBoxScreen()
+            KeyType.TREZOR -> openTrezorScreen()
+        }
+    }
+
+    private fun returnKeyTypeResult(keyType: KeyType) {
+        setResult(
+            RESULT_OK,
+            Intent().putExtra(GlobalResultKey.EXTRA_KEY_TYPE, keyType.name)
+        )
+        finish()
+    }
+
     private fun handleTapSignerSelection() {
         if (onChainAddSignerParam != null) {
             viewModel.showExistingSignerOrCreateNew(SignerType.NFC)
@@ -407,7 +502,12 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
     }
 
     private fun handleJadeSelection(navController: NavHostController) {
-        if (onChainAddSignerParam == null || onChainAddSignerParam?.isVerifyBackupSeedPhrase() == true) {
+        // The firmware gate belongs to the Miniscript (on-chain) protocol. Off-chain, Jade is just
+        // another air-gapped device and uses the generic air-gap intro.
+        if (onChainAddSignerParam == null
+            || onChainAddSignerParam?.isVerifyBackupSeedPhrase() == true
+            || isAddInheritanceKeyForSetup
+        ) {
             handleSelectAddAirgapType(SignerTag.JADE)
         } else {
             navController.navigate(

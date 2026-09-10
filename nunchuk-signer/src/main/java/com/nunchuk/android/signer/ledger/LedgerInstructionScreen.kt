@@ -121,13 +121,6 @@ private fun LedgerInstructionScreen(
                     style = NunchukTheme.typography.body
                 )
             }
-
-            LedgerStep(index = 3) {
-                Text(
-                    text = stringResource(id = R.string.nc_ledger_step_return_title),
-                    style = NunchukTheme.typography.title
-                )
-            }
         }
     }
 }

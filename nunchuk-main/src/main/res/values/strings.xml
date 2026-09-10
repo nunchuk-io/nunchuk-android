@@ -715,4 +715,27 @@
     <string name="nc_warning_dummy_transaction">For security reasons, changes require a dummy transaction.</string>
     <string name="nc_warning_dummy_transaction_with_delay">For security reasons, changes require a dummy transaction and will only take effect after %1$s.</string>
     <string name="nc_unsupported_verification_type">This request could not be verified. Please update the app and try again.</string>
+    <!-- Off-chain inheritance key (BYOH) — setup flow -->
+    <string name="nc_inheritance_key_intro_purpose">The inheritance key is used to claim funds and spend from the wallet after the timelock.</string>
+    <string name="nc_inheritance_key_intro_seed_phrase_bold">If you do not already have a BIP39 seed phrase, view it on your device or generate a new one.</string>
+    <string name="nc_inheritance_key_intro_seed_phrase">Either a 12-word or 24-word seed phrase is acceptable (12 words are sufficient). Keep it secret.</string>
+    <string name="nc_inheritance_key_intro_next_step">In the next step, you will choose how this key reaches your Beneficiary when it is time to claim.</string>
+    <string name="nc_inheritance_key_intro_hint">Your device may use a different term for the seed phrase, such as \"recovery phrase\" or \"mnemonic.\"</string>
+    <string name="nc_inheritance_key_added">Inheritance key added</string>
+    <string name="nc_key_distribution_title">How will you pass the inheritance key to your Beneficiary?</string>
+    <string name="nc_key_distribution_desc">Choose how your Beneficiary will unlock the key at claim time.</string>
+    <string name="nc_claim_option_seed_phrase_title">Share the seed phrase directly</string>
+    <string name="nc_claim_option_seed_phrase_desc">Back up the key\'s seed phrase and hand it to your Beneficiary (optionally with a pre-loaded device).</string>
+    <string name="nc_claim_option_encrypted_backup_title">Upload an encrypted backup</string>
+    <string name="nc_claim_option_encrypted_backup_desc">Nunchuk stores the encrypted backup. You share the Backup Password with your Beneficiary.</string>
+    <string name="nc_claim_option_both_title">Do both</string>
+    <string name="nc_claim_option_both_desc">Upload an encrypted backup and also share the seed phrase directly.</string>
+    <string name="nc_claim_options_unavailable">No sharing options are available for this key right now. Please try again later.</string>
+    <string name="nc_set_up">Set up</string>
+    <string name="nc_sharing_method_not_set">Sharing method not set</string>
+    <string name="nc_not_verified">Not verified</string>
+    <string name="nc_one_of_two_verified">1 of 2 verified</string>
+    <string name="nc_backup_uploaded_seed_shared">Backup uploaded \u00b7 Seed shared</string>
+    <string name="nc_backup_uploaded">Backup uploaded</string>
+    <string name="nc_seed_shared">Seed shared</string>
 </resources>

@@ -24,6 +24,7 @@ import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.VerifyType
+import com.nunchuk.android.model.inheritance.ClaimOption
 import com.nunchuk.android.model.signer.SupportedSigner
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
@@ -68,6 +69,20 @@ interface KeyRepository {
         groupId: String,
         masterSignerId: String,
         verifyType: VerifyType
+    )
+
+    /**
+     * Records how the owner will pass an off-chain inheritance key to their Beneficiary.
+     *
+     * [walletId] empty targets the draft wallet, otherwise the replacement on that wallet. Dropping
+     * [ClaimOption.ENCRYPTED_BACKUP] deletes the pending backup and its verification server-side and
+     * cannot be undone, so confirm before calling.
+     */
+    suspend fun setInheritanceClaimOptions(
+        groupId: String,
+        walletId: String,
+        xfp: String,
+        claimOptions: List<ClaimOption>
     )
 
     suspend fun setReplaceKeyVerified(

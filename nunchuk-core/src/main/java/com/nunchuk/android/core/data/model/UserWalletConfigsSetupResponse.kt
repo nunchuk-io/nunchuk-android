@@ -40,7 +40,11 @@ data class SupportedSignerConfig(
     @SerializedName("signer_type")
     val signerType: String,
     @SerializedName("signer_tag")
-    val signerTag: String?
+    val signerTag: String?,
+    @SerializedName("claim_options")
+    val claimOptions: List<String>? = null,
+    @SerializedName("claim_note")
+    val claimNote: String? = null
 )
 
 data class MiniscriptSupportedFirmware(

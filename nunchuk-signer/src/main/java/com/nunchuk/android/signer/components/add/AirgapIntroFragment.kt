@@ -67,6 +67,12 @@ class AirgapIntroFragment : MembershipFragment() {
         val isMembershipFlow = (requireActivity() as AddAirgapSignerActivity).isMembershipFlow
         val signerTag = (requireActivity() as AddAirgapSignerActivity).signerTag
         val replacedXfp = (requireActivity() as AddAirgapSignerActivity).replacedXfp.orEmpty()
+        // Krux exports its XPUB from a menu the generic copy does not mention, so the off-chain
+        // inheritance guide carries a third step. Scoped to that flow to leave the ordinary
+        // add-key and on-chain flows exactly as they are.
+        val showKruxExportStep = signerTag == SignerTag.KRUX &&
+                (requireActivity() as AddAirgapSignerActivity).onChainAddSignerParam
+                    ?.let { it.isAddInheritanceOffChainSigner() && !it.isClaiming } == true
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
@@ -77,6 +83,7 @@ class AirgapIntroFragment : MembershipFragment() {
                     isMembershipFlow = isMembershipFlow,
                     isReplaceKey = replacedXfp.isNotEmpty(),
                     signerTag = signerTag,
+                    showKruxExportStep = showKruxExportStep,
                     onMoreClicked = ::handleShowMore,
                 ) {
                     findNavController().navigate(AirgapIntroFragmentDirections.actionAirgapIntroFragmentToAddAirgapSignerFragment())
@@ -92,6 +99,7 @@ private fun AirgapIntroContent(
     isMembershipFlow: Boolean = true,
     isReplaceKey: Boolean = false,
     signerTag: SignerTag? = null,
+    showKruxExportStep: Boolean = false,
     onMoreClicked: () -> Unit = {},
     onContinueClicked: () -> Unit = {},
 ) {
@@ -127,6 +135,16 @@ private fun AirgapIntroContent(
                         }
                     }
                 )
+            },
+            bottomBar = {
+                NcPrimaryDarkButton(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    onClick = onContinueClicked,
+                ) {
+                    Text(text = stringResource(id = R.string.nc_text_continue))
+                }
             },
         ) { innerPadding ->
             Column(
@@ -169,14 +187,19 @@ private fun AirgapIntroContent(
                         style = NunchukTheme.typography.body
                     )
                 }
-                Spacer(modifier = Modifier.weight(1.0f))
-                NcPrimaryDarkButton(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    onClick = onContinueClicked,
-                ) {
-                    Text(text = stringResource(id = R.string.nc_text_continue))
+                if (showKruxExportStep) {
+                    LabelNumberAndDesc(
+                        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp),
+                        index = 3,
+                        title = stringResource(id = R.string.nc_krux_export_xpub_title),
+                        titleStyle = NunchukTheme.typography.title
+                    ) {
+                        Text(
+                            modifier = Modifier.padding(top = 8.dp, start = 36.dp),
+                            text = stringResource(id = R.string.nc_krux_export_xpub_desc),
+                            style = NunchukTheme.typography.body
+                        )
+                    }
                 }
             }
         }

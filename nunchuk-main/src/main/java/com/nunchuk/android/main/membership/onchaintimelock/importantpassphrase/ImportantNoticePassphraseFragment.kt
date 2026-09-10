@@ -10,6 +10,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -138,13 +139,15 @@ private fun ImportantNoticePassphraseScreen(
 }
 
 @Composable
-private fun ImportantNoticePassphraseContent(
+internal fun ImportantNoticePassphraseContent(
     remainTime: Int = 0,
     onMoreClicked: () -> Unit = {},
     onContinueClicked: () -> Unit = {},
 ) {
     NunchukTheme {
-        Scaffold(topBar = {
+        Scaffold(
+            modifier = Modifier.navigationBarsPadding(),
+            topBar = {
             NcImageAppBar(
                 backgroundRes = R.drawable.bg_importance_passphrase_notice_illustration,
                 title = if (remainTime <= 0) "" else stringResource(
@@ -160,7 +163,18 @@ private fun ImportantNoticePassphraseContent(
                     }
                 }
             )
-        }) { innerPadding ->
+            },
+            bottomBar = {
+                NcPrimaryDarkButton(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    onClick = onContinueClicked,
+                ) {
+                    Text(text = stringResource(id = com.nunchuk.android.signer.R.string.nc_text_continue))
+                }
+            },
+        ) { innerPadding ->
             Column(
                 modifier = Modifier
                     .padding(innerPadding)
@@ -185,15 +199,6 @@ private fun ImportantNoticePassphraseContent(
                     },
                     style = NunchukTheme.typography.body
                 )
-                Spacer(modifier = Modifier.weight(1.0f))
-                NcPrimaryDarkButton(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    onClick = onContinueClicked,
-                ) {
-                    Text(text = stringResource(id = com.nunchuk.android.signer.R.string.nc_text_continue))
-                }
             }
         }
     }

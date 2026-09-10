@@ -212,6 +212,8 @@
     <string name="nc_add_trezor">Add Trezor</string>
     <string name="nc_add_seedsigner">Add SeedSigner</string>
     <string name="nc_add_krux">Add Krux</string>
+    <string name="nc_krux_export_xpub_title">Export XPUB from Krux</string>
+    <string name="nc_krux_export_xpub_desc">Go to Wallet \u2192 Customize \u2192 Policy Type \u2192 Multisig Native Segwit - 48. Then go to Extended Public Key \u2192 XPUB.</string>
     <string name="nc_add_foundation_passport">Add Foundation Passport</string>
     <string name="nc_add_keystone">Add Keystone</string>
     <string name="nc_desktop_only">Desktop only</string>
@@ -237,7 +239,7 @@
     <string name="nc_add_your_ledger">Add your Ledger</string>
     <string name="nc_ensure_to_following_ledger">Please ensure to do the following on your Ledger before proceeding.</string>
     <string name="nc_ledger_step_setup_title">Set up your Ledger</string>
-    <string name="nc_ledger_step_setup_desc">If your Ledger is new, set it up using the Ledger Wallet app. Install the Bitcoin app on your Ledger if it isn\'t already installed.</string>
+    <string name="nc_ledger_step_setup_desc">If it is new, finish setup using the Ledger Wallet app. Install the Bitcoin app on your Ledger if it isn\'t already installed. Then fully quit the Ledger Wallet app.</string>
     <string name="nc_ledger_step_connect_title">Connect your Ledger</string>
     <string name="nc_ledger_step_connect_desc">Unlock your Ledger, then turn on Bluetooth or connect it with a USB cable.</string>
     <string name="nc_ledger_step_return_title">Return to Nunchuk and continue</string>
