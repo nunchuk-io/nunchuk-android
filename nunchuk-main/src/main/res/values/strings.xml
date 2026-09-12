@@ -738,4 +738,26 @@
     <string name="nc_backup_uploaded_seed_shared">Backup uploaded \u00b7 Seed shared</string>
     <string name="nc_backup_uploaded">Backup uploaded</string>
     <string name="nc_seed_shared">Seed shared</string>
+    <!-- Off-chain inheritance key (BYOH) — verify the backups -->
+    <string name="nc_verify_your_backups">Verify your backups</string>
+    <string name="nc_verify_your_backups_desc">You chose to upload an encrypted backup and share the seed phrase. These are two independent ways for your Beneficiary to recover the key, so each is verified separately.</string>
+    <string name="nc_encrypted_backup">Encrypted backup</string>
+    <string name="nc_encrypted_backup_verify_desc">Checks that the backup on the server decrypts with the Backup Password you recorded.</string>
+    <string name="nc_seed_phrase_backup">Seed phrase backup</string>
+    <string name="nc_seed_phrase_backup_verify_desc">Restore the words onto a device \u2014 Nunchuk checks the public key matches the inheritance key.</string>
+    <string name="nc_verify_your_backups_hint">Verifying both is recommended. Your Beneficiary only needs one to work, and you can return to this later.</string>
+    <string name="nc_verified">Verified</string>
+    <string name="nc_change_sharing_method">Change how you share this key</string>
+    <string name="nc_remove_encrypted_backup_title">Remove the encrypted backup?</string>
+    <string name="nc_remove_encrypted_backup_desc">Switching to \u201cShare the seed phrase directly\u201d deletes the encrypted backup from the server. Your Beneficiary will no longer be able to claim with a Backup Password, and the seed phrase backup becomes the only way to recover the inheritance key.</string>
+    <string name="nc_remove_encrypted_backup_warning">This cannot be undone. You would need to create and upload a new encrypted backup to restore this option.</string>
+    <string name="nc_remove_backup">Remove backup</string>
+    <!-- Off-chain inheritance key (BYOH) — seed phrase verification outcome -->
+    <string name="nc_seed_phrase_verified">Seed phrase verified</string>
+    <string name="nc_public_key_matches_inheritance_key">Public key matches your inheritance key</string>
+    <string name="nc_key_does_not_match">This key doesn\u2019t match</string>
+    <string name="nc_key_does_not_match_desc">The key you re-added derives a different public key, so this seed phrase backup would not recover your inheritance key. Check the words and their order, then try again.</string>
+    <string name="nc_signer_name_re_added">%1$s (re-added)</string>
+    <string name="nc_xfp_expected">XFP: %1$s \u2014 expected %2$s</string>
+    <string name="nc_back_to_seed_phrase_steps">Back to seed phrase steps</string>
 </resources>

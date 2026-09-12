@@ -31,6 +31,7 @@ import com.nunchuk.android.core.domain.GetTapSignerBackupUseCase
 import com.nunchuk.android.core.domain.VerifyTapSignerBackupUseCase
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.VerifyType
+import com.nunchuk.android.model.inheritance.ClaimOption
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.usecase.GetDownloadBackUpKeyReplacementUseCase
 import com.nunchuk.android.usecase.GetDownloadBackUpKeyUseCase
@@ -71,7 +72,12 @@ class CheckBackUpByAppViewModel @Inject constructor(
 
     private var tryCount = 0
 
-    fun onContinueClicked(groupId: String, masterSignerId: String, isOnChainBackUp: Boolean) {
+    fun onContinueClicked(
+        groupId: String,
+        masterSignerId: String,
+        isOnChainBackUp: Boolean,
+        verificationMethod: ClaimOption? = null,
+    ) {
         viewModelScope.launch {
             val newFile = try {
                 downloadBackupKeyIfNeeded(
@@ -96,9 +102,10 @@ class CheckBackUpByAppViewModel @Inject constructor(
                 val apiResult =
                     setKeyVerifiedUseCase(
                         SetKeyVerifiedUseCase.Param(
-                            groupId,
-                            masterSignerId,
-                            verifyType = VerifyType.APP_VERIFIED
+                            groupId = groupId,
+                            masterSignerId = masterSignerId,
+                            verifyType = VerifyType.APP_VERIFIED,
+                            verificationMethod = verificationMethod,
                         )
                     )
                 if (apiResult.isSuccess) {

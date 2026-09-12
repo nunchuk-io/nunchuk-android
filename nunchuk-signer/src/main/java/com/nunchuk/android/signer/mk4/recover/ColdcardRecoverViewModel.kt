@@ -40,6 +40,7 @@ import com.nunchuk.android.model.MembershipStepInfo
 import com.nunchuk.android.model.SignerExtra
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.VerifyType
+import com.nunchuk.android.model.inheritance.ClaimOption
 import com.nunchuk.android.model.toIndex
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.signer.util.isTestNetPath
@@ -416,13 +417,18 @@ class ColdcardRecoverViewModel @Inject constructor(
         )
     }
 
-    fun setKeyVerified(groupId: String, masterSignerId: String) {
+    fun setKeyVerified(
+        groupId: String,
+        masterSignerId: String,
+        verificationMethod: ClaimOption? = null,
+    ) {
         viewModelScope.launch {
             setKeyVerifiedUseCase(
                 SetKeyVerifiedUseCase.Param(
                     groupId = groupId,
                     masterSignerId = masterSignerId,
-                    verifyType = VerifyType.APP_VERIFIED
+                    verifyType = VerifyType.APP_VERIFIED,
+                    verificationMethod = verificationMethod,
                 )
             ).onSuccess {
                 _event.emit(ColdcardRecoverEvent.KeyVerifiedSuccess)

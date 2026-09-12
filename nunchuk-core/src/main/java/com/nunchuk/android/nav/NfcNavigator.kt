@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.nav
 
+import com.nunchuk.android.model.inheritance.ClaimOption
 import android.app.Activity
 import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
@@ -65,7 +66,9 @@ interface NfcNavigator {
         keyId: String = "",
         walletId: String,
         isOnChainBackUp: Boolean = false,
-        replacedXfp: String = ""
+        replacedXfp: String = "",
+        /** Which sharing method of an off-chain inheritance key this backup resolves. */
+        claimOption: ClaimOption? = null,
     )
 
     fun openCreateBackUpTapSigner(
@@ -77,6 +80,8 @@ interface NfcNavigator {
         replacedXfp: String = "",
         walletId: String = "",
         isOnChainBackUp: Boolean = false,
+        /** Which sharing method of an off-chain inheritance key this backup resolves. */
+        claimOption: ClaimOption? = null,
     )
 
     fun openRecoverTapSigner(

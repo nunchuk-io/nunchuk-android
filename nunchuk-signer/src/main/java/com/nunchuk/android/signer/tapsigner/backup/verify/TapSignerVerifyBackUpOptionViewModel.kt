@@ -22,6 +22,7 @@ package com.nunchuk.android.signer.tapsigner.backup.verify
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.model.VerifyType
+import com.nunchuk.android.model.inheritance.ClaimOption
 import com.nunchuk.android.usecase.membership.SetKeyVerifiedUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -37,7 +38,11 @@ class TapSignerVerifyBackUpOptionViewModel @Inject constructor(
     private val _event = MutableSharedFlow<TapSignerVerifyBackUpOptionEvent>()
     val event = _event.asSharedFlow()
 
-    fun skipVerification(groupId: String, masterSignerId: String) {
+    fun skipVerification(
+        groupId: String,
+        masterSignerId: String,
+        verificationMethod: ClaimOption? = null,
+    ) {
         if (masterSignerId.isEmpty()) {
             viewModelScope.launch {
                 _event.emit(TapSignerVerifyBackUpOptionEvent.SkipVerificationError(Exception("Missing masterSignerId")))
@@ -50,7 +55,8 @@ class TapSignerVerifyBackUpOptionViewModel @Inject constructor(
                 SetKeyVerifiedUseCase.Param(
                     groupId = groupId,
                     masterSignerId = masterSignerId,
-                    verifyType = VerifyType.SKIPPED_VERIFICATION
+                    verifyType = VerifyType.SKIPPED_VERIFICATION,
+                    verificationMethod = verificationMethod,
                 )
             )
             if (result.isSuccess) {

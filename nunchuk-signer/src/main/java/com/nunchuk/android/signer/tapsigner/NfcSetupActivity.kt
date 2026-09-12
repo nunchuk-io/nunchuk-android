@@ -27,6 +27,7 @@ import androidx.navigation.fragment.NavHostFragment
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.NfcViewModel.Companion.EXTRA_MASTER_SIGNER_ID
 import com.nunchuk.android.core.signer.OnChainAddSignerParam
+import com.nunchuk.android.model.inheritance.ClaimOption
 import com.nunchuk.android.model.SatsCardSlot
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.tapsigner.backup.onchain.TapSignerBackingUpIntroOnChainFragmentArgs
@@ -139,6 +140,18 @@ class NfcSetupActivity : BaseNfcActivity<ActivityNavigationBinding>() {
                 intent.getBooleanExtra(EXTRA_IS_ONCHAIN_BACKUP, false)
             }
 
+    /**
+     * Which sharing method of an off-chain inheritance key this run is dealing with. The backup
+     * screens only ever produce or check the encrypted backup, so the server has to be told which
+     * half of a "do both" key they resolved. Null on every other flow, where the key carries a
+     * single verification.
+     */
+    val claimOption: ClaimOption?
+            by lazy(LazyThreadSafetyMode.NONE) {
+                intent.getStringExtra(EXTRA_CLAIM_OPTION)
+                    ?.let { name -> ClaimOption.entries.firstOrNull { it.name == name } }
+            }
+
     var keyId: String = ""
 
     companion object {
@@ -154,6 +167,7 @@ class NfcSetupActivity : BaseNfcActivity<ActivityNavigationBinding>() {
         const val EXTRA_WALLET_ID = "wallet_id"
         private const val EXTRA_ONCHAIN_ADD_SIGNER_PARAM = "onchain_add_signer_param"
         private const val EXTRA_IS_ONCHAIN_BACKUP = "is_onchain_backup"
+        private const val EXTRA_CLAIM_OPTION = "claim_option"
 
         /**
          * Setup action
@@ -207,6 +221,7 @@ class NfcSetupActivity : BaseNfcActivity<ActivityNavigationBinding>() {
             keyId: String = "",
             onChainAddSignerParam: OnChainAddSignerParam? = null,
             isOnChainBackUp: Boolean = false,
+            claimOption: ClaimOption? = null,
         ) = Intent(activity, NfcSetupActivity::class.java).apply {
             putExtra(EXTRA_ACTION, setUpAction)
             putExtra(EXTRA_MASTER_SIGNER_ID, masterSignerId)
@@ -221,6 +236,7 @@ class NfcSetupActivity : BaseNfcActivity<ActivityNavigationBinding>() {
             putExtra(EXTRA_KEY_ID, keyId)
             putExtra(EXTRA_ONCHAIN_ADD_SIGNER_PARAM, onChainAddSignerParam)
             putExtra(EXTRA_IS_ONCHAIN_BACKUP, isOnChainBackUp)
+            putExtra(EXTRA_CLAIM_OPTION, claimOption?.name)
         }
     }
 }

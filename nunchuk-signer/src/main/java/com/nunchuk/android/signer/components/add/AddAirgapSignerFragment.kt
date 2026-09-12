@@ -71,7 +71,6 @@ import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.core.signer.toModel
-import com.nunchuk.android.core.util.BackUpSeedPhraseType
 import com.nunchuk.android.core.util.hideLoading
 import com.nunchuk.android.core.util.isRecommendedMultiSigPath
 import com.nunchuk.android.core.util.isRecommendedSingleSigPath
@@ -241,7 +240,8 @@ class AddAirgapSignerFragment : BaseCameraFragment<ViewBinding>(),
                 } else {
                     viewModel.setKeyVerified(
                         groupId = activity.groupId,
-                        masterSignerId = signer.masterFingerprint
+                        masterSignerId = signer.masterFingerprint,
+                        verificationMethod = onChainAddSignerParam.claimOption,
                     )
                 }
             } else {
@@ -325,13 +325,14 @@ class AddAirgapSignerFragment : BaseCameraFragment<ViewBinding>(),
                 KeyVerifiedSuccess -> {
                     val activity = requireActivity() as AddAirgapSignerActivity
                     activity.setResult(Activity.RESULT_OK)
+                    val param = activity.onChainAddSignerParam
                     navigator.openBackUpSeedPhraseActivity(
                         requireActivity(),
-                        BackUpSeedPhraseArgs(
-                            type = BackUpSeedPhraseType.SUCCESS,
-                            signer = null,
+                        BackUpSeedPhraseArgs.verified(
+                            signer = param?.currentSigner,
                             groupId = activity.groupId,
-                            walletId = activity.walletId
+                            walletId = activity.walletId,
+                            claimOption = param?.claimOption,
                         )
                     )
                 }

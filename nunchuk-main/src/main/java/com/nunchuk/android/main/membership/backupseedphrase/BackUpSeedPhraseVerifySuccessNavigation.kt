@@ -1,4 +1,4 @@
-package com.nunchuk.android.main.membership.onchaintimelock.backupseedphrase
+package com.nunchuk.android.main.membership.backupseedphrase
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement

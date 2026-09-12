@@ -5,7 +5,10 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.model.SupportedSignerConfig
 import com.nunchuk.android.model.inheritance.ClaimOption
+import com.nunchuk.android.model.inheritance.InheritanceKeyVerification
+import com.nunchuk.android.model.inheritance.isResolved
 import com.nunchuk.android.usecase.membership.SetInheritanceClaimOptionsUseCase
+import com.nunchuk.android.usecase.membership.SyncDraftWalletUseCase
 import com.nunchuk.android.usecase.GetUserWalletConfigsSetupFromCacheUseCase
 import com.nunchuk.android.usecase.GetUserWalletConfigsSetupUseCase
 import com.nunchuk.android.utils.onException
@@ -36,6 +39,9 @@ enum class KeyDistributionChoice {
         ENCRYPTED_BACKUP_ONLY -> listOf(ClaimOption.ENCRYPTED_BACKUP)
         BOTH -> listOf(ClaimOption.SEED_PHRASE, ClaimOption.ENCRYPTED_BACKUP)
     }
+
+    /** The single artifact this choice asks for, or null for [BOTH], which asks for two. */
+    fun singleClaimOption(): ClaimOption? = toClaimOptions().singleOrNull()
 }
 
 data class KeyDistributionUiState(
@@ -49,6 +55,10 @@ data class KeyDistributionUiState(
     val claimNote: String? = null,
     /** Null until the server has told us which options exist, so nothing is preselected blindly. */
     val selectedChoice: KeyDistributionChoice? = null,
+    /** The choice already recorded against this key, empty until the draft says otherwise. */
+    val claimOptions: List<ClaimOption> = emptyList(),
+    /** How far each recorded option has got; the two halves are verified independently. */
+    val verifications: List<InheritanceKeyVerification> = emptyList(),
     val isLoading: Boolean = false,
 ) {
     val canUseEncryptedBackup: Boolean
@@ -57,6 +67,17 @@ data class KeyDistributionUiState(
     /** No options means the server has not told us any; the screen has nothing to offer. */
     val isEmpty: Boolean
         get() = supportedOptions.isEmpty()
+
+    fun isClaimOptionResolved(option: ClaimOption): Boolean =
+        verifications.any { it.method == option && it.isResolved }
+
+    /**
+     * Whether saving [selectedChoice] would delete the encrypted backup the server is already
+     * holding. That is the one irreversible direction, so it needs confirming first.
+     */
+    val isDroppingEncryptedBackup: Boolean
+        get() = ClaimOption.ENCRYPTED_BACKUP in claimOptions &&
+                selectedChoice?.toClaimOptions()?.contains(ClaimOption.ENCRYPTED_BACKUP) == false
 }
 
 sealed interface KeyDistributionEvent {
@@ -69,6 +90,7 @@ class KeyDistributionViewModel @Inject constructor(
     private val getUserWalletConfigsSetupFromCacheUseCase: GetUserWalletConfigsSetupFromCacheUseCase,
     private val getUserWalletConfigsSetupUseCase: GetUserWalletConfigsSetupUseCase,
     private val setInheritanceClaimOptionsUseCase: SetInheritanceClaimOptionsUseCase,
+    private val syncDraftWalletUseCase: SyncDraftWalletUseCase,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(KeyDistributionUiState())
@@ -81,6 +103,14 @@ class KeyDistributionViewModel @Inject constructor(
     private var walletId: String = ""
     private var isInitialized: Boolean = false
 
+    /**
+     * Whether the owner has picked an option on this run. Until they do, the preselection is
+     * derived — from what the server already records for the key, or from the safest option it
+     * supports. The two loaders below land in either order, so without this flag the slower one
+     * would overwrite a recorded choice with the generic default.
+     */
+    private var hasUserChosen: Boolean = false
+
     fun init(signer: SignerModel, groupId: String, walletId: String) {
         // The activity re-runs this on every recreation; the cache flow never completes, so a second
         // collector would just pile up writing to the same state.
@@ -90,6 +120,32 @@ class KeyDistributionViewModel @Inject constructor(
         this.walletId = walletId
         _state.update { it.copy(signer = signer) }
         loadSupportedOptions(signer)
+        refreshClaimState()
+    }
+
+    /**
+     * Re-reads what the server records against this key: the sharing method the owner picked and
+     * how far each half of it has been verified. Called again whenever a sub-flow returns, because
+     * the verification is recorded over there, not here.
+     */
+    fun refreshClaimState() {
+        val xfp = _state.value.signer?.fingerPrint ?: return
+        viewModelScope.launch {
+            syncDraftWalletUseCase(groupId).onSuccess { draft ->
+                val draftSigner = draft.signers.firstOrNull { it.xfp == xfp } ?: return@onSuccess
+                _state.update { current ->
+                    current.copy(
+                        claimOptions = draftSigner.claimOptions,
+                        verifications = draftSigner.verifications,
+                        // Coming back to change the method starts from the current one.
+                        selectedChoice = current.preselection(
+                            recorded = draftSigner.claimOptions,
+                            supported = current.supportedOptions,
+                        ),
+                    )
+                }
+            }
+        }
     }
 
     /**
@@ -120,14 +176,27 @@ class KeyDistributionViewModel @Inject constructor(
                         current.copy(
                             supportedOptions = supported,
                             claimNote = config?.claimNote,
-                            selectedChoice = current.selectedChoice.coerceTo(supported),
+                            selectedChoice = current.preselection(
+                                recorded = current.claimOptions,
+                                supported = supported,
+                            ),
                         )
                     }
                 }
         }
     }
 
+    private fun KeyDistributionUiState.preselection(
+        recorded: List<ClaimOption>,
+        supported: List<ClaimOption>,
+    ): KeyDistributionChoice? = if (hasUserChosen) {
+        selectedChoice.coerceTo(supported)
+    } else {
+        recorded.toChoiceOrNull().coerceTo(supported)
+    }
+
     fun onChoiceSelected(choice: KeyDistributionChoice) {
+        hasUserChosen = true
         _state.update { it.copy(selectedChoice = choice) }
     }
 
@@ -151,6 +220,14 @@ class KeyDistributionViewModel @Inject constructor(
             _state.update { it.copy(isLoading = false) }
         }
     }
+}
+
+/** The recorded claim options as the tri-state this screen shows; null when nothing is recorded. */
+private fun List<ClaimOption>.toChoiceOrNull(): KeyDistributionChoice? = when {
+    isEmpty() -> null
+    size > 1 -> KeyDistributionChoice.BOTH
+    first() == ClaimOption.SEED_PHRASE -> KeyDistributionChoice.SEED_PHRASE_ONLY
+    else -> KeyDistributionChoice.ENCRYPTED_BACKUP_ONLY
 }
 
 /**

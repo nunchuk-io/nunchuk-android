@@ -21,6 +21,7 @@ package com.nunchuk.android.usecase.membership
 
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.VerifyType
+import com.nunchuk.android.model.inheritance.ClaimOption
 import com.nunchuk.android.repository.KeyRepository
 import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
@@ -31,8 +32,23 @@ class SetKeyVerifiedUseCase @Inject constructor(
     private val repository: KeyRepository
 ) : UseCase<SetKeyVerifiedUseCase.Param, Unit>(dispatcher) {
     override suspend fun execute(parameters: Param) {
-        repository.setKeyVerified(parameters.groupId, parameters.masterSignerId, parameters.verifyType)
+        repository.setKeyVerified(
+            groupId = parameters.groupId,
+            masterSignerId = parameters.masterSignerId,
+            verifyType = parameters.verifyType,
+            verificationMethod = parameters.verificationMethod,
+        )
     }
 
-    data class Param(val groupId: String, val masterSignerId: String, val verifyType: VerifyType)
+    data class Param(
+        val groupId: String,
+        val masterSignerId: String,
+        val verifyType: VerifyType,
+        /**
+         * Which sharing method of an off-chain inheritance key this verification covers. The two
+         * artifacts of a "do both" key are tracked apart server-side, so a verification that does
+         * not name its method would resolve the wrong one. Null everywhere else.
+         */
+        val verificationMethod: ClaimOption? = null,
+    )
 }

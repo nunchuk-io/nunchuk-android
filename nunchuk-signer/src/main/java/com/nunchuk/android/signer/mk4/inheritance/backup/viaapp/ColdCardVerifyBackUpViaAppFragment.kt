@@ -111,7 +111,12 @@ class ColdCardVerifyBackupViaAppFragment : MembershipFragment() {
                         groupId = groupId, walletId = walletId.orEmpty()
                     )
                 } else {
-                    viewModel.onContinueClicked(groupId, masterSignerId, filePath)
+                    viewModel.onContinueClicked(
+                    groupId = groupId,
+                    masterSignerId = masterSignerId,
+                    filePath = filePath,
+                    verificationMethod = (requireActivity() as Mk4Activity).claimOption,
+                )
                 }
             })
     }

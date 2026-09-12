@@ -64,6 +64,47 @@ data class AddKeyData(
         get() = isInheritanceKey && signer != null && claimOptions.isEmpty()
 
     /**
+     * Whether [option] has been dealt with. The server keeps one record per method and can still
+     * hold records for a method the owner has since dropped, so the chosen options — not
+     * [verifications] — decide what counts.
+     */
+    fun isClaimOptionResolved(option: ClaimOption): Boolean =
+        verifications.any { it.method == option && it.isResolved }
+
+    /** How many of the chosen sharing methods are verified (or deliberately skipped). */
+    val resolvedClaimOptionCount: Int
+        get() = claimOptions.count { isClaimOptionResolved(it) }
+
+    /** True once every chosen sharing method has been dealt with. */
+    val isClaimVerified: Boolean
+        get() = claimOptions.isNotEmpty() && resolvedClaimOptionCount == claimOptions.size
+
+    /**
+     * An inheritance key whose chosen sharing method still owes a backup or its verification.
+     *
+     * This outranks [verifyType]: the local step holds a single flag and goes green as soon as one
+     * artifact is done, which would hide the second half of a "do both" key behind an "Added" tick.
+     */
+    val needsClaimVerification: Boolean
+        get() = isInheritanceKey && signer != null && claimOptions.isNotEmpty() && !isClaimVerified
+
+    /**
+     * An off-chain inheritance key that still owes something — a sharing method, or the
+     * verification of one it chose. The wallet cannot be configured until it is settled; a
+     * deliberately skipped verification counts as settled.
+     */
+    val isInheritanceIncomplete: Boolean
+        get() = needsClaimOptions || needsClaimVerification
+
+    /** Whether the row is finished, i.e. renders green with a tick rather than an action. */
+    val isRowComplete: Boolean
+        get() = if (isInheritanceKey && claimOptions.isNotEmpty()) {
+            isClaimVerified
+        } else {
+            verifyType != VerifyType.NONE
+        }
+
+    /**
      * The line under an inheritance key: which sharing method the owner chose and how far its
      * verification has got. Null for every other key, which keeps its existing row.
      */
@@ -71,7 +112,7 @@ data class AddKeyData(
     fun claimStatusRes(): Int? {
         if (!isInheritanceKey || signer == null) return null
         if (claimOptions.isEmpty()) return R.string.nc_sharing_method_not_set
-        val verified = verifications.count { it.isResolved }
+        val verified = resolvedClaimOptionCount
         return when {
             verified == 0 -> R.string.nc_not_verified
             verified < claimOptions.size -> R.string.nc_one_of_two_verified

@@ -52,7 +52,7 @@ import com.nunchuk.android.main.membership.authentication.WalletAuthenticationAc
 import com.nunchuk.android.main.membership.byzantine.groupdashboard.GroupDashboardActivity
 import com.nunchuk.android.main.membership.byzantine.primaryowner.PrimaryOwnerActivity
 import com.nunchuk.android.main.membership.key.desktop.AddDesktopKeyActivity
-import com.nunchuk.android.main.membership.onchaintimelock.backupseedphrase.BackUpSeedPhraseActivity
+import com.nunchuk.android.main.membership.backupseedphrase.BackUpSeedPhraseActivity
 import com.nunchuk.android.main.membership.policy.ConfigServerKeyActivity
 import com.nunchuk.android.main.membership.signer.SignerIntroActivity
 import com.nunchuk.android.main.rollover.RollOverWalletActivity

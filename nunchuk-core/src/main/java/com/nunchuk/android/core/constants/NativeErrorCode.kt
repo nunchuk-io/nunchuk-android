@@ -7,6 +7,9 @@ object NativeErrorCode {
     const val GROUP_WALLET_JOINED = -7012
     const val INVALID_SIGNED_MESSAGE = -1017
 
+    /** A TAPSIGNER's xpub for the requested path is not cached; the card has to be tapped. */
+    const val XPUB_NOT_CACHED = -1009
+
     // Jade (JadeException in the native SDK)
     const val JADE_QR_PIN_UNLOCK = -8000
     const val JADE_INVALID_PARAMETER = -8001

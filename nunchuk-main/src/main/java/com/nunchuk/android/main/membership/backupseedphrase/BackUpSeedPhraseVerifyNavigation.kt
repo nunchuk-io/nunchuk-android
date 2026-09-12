@@ -1,9 +1,9 @@
-package com.nunchuk.android.main.membership.onchaintimelock.backupseedphrase
+package com.nunchuk.android.main.membership.backupseedphrase
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -16,10 +16,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -34,14 +30,14 @@ import com.nunchuk.android.main.R
 import kotlinx.serialization.Serializable
 
 @Serializable
-object BackUpSeedPhraseIntro
+object BackUpSeedPhraseVerify
 
-fun NavGraphBuilder.backUpSeedPhraseIntroDestination(
+fun NavGraphBuilder.backUpSeedPhraseVerifyDestination(
     onContinue: () -> Unit = {},
     onMoreClicked: () -> Unit = {}
 ) {
-    composable<BackUpSeedPhraseIntro> {
-        BackUpSeedPhraseIntroScreen(
+    composable<BackUpSeedPhraseVerify> {
+        BackUpSeedPhraseVerifyScreen(
             onContinue = onContinue,
             onMoreClicked = onMoreClicked
         )
@@ -49,13 +45,13 @@ fun NavGraphBuilder.backUpSeedPhraseIntroDestination(
 }
 
 @Composable
-private fun BackUpSeedPhraseIntroScreen(
+private fun BackUpSeedPhraseVerifyScreen(
     viewModel: BackUpSeedPhraseSharedViewModel = hiltViewModel(),
     onContinue: () -> Unit = {},
     onMoreClicked: () -> Unit = {},
 ) {
     val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
-    BackUpSeedPhraseIntroContent(
+    BackUpSeedPhraseVerifyContent(
         onContinueClicked = onContinue,
         remainTime = remainTime,
         onMoreClicked = onMoreClicked
@@ -63,77 +59,75 @@ private fun BackUpSeedPhraseIntroScreen(
 }
 
 @Composable
-private fun BackUpSeedPhraseIntroContent(
+private fun BackUpSeedPhraseVerifyContent(
     remainTime: Int = 0,
     onContinueClicked: () -> Unit = {},
     onMoreClicked: () -> Unit = {},
 ) {
     NunchukTheme {
-        Scaffold(topBar = {
-            NcImageAppBar(
-                backgroundRes = R.drawable.bg_seed_phrase_intro_illustration,
-                title = if (remainTime <= 0) "" else stringResource(
-                    id = R.string.nc_estimate_remain_time,
-                    remainTime
-                ),
-                actions = {
-                    IconButton(onClick = onMoreClicked) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_more),
-                            contentDescription = "More icon"
-                        )
-                    }
-                }
-            )
-        }) { innerPadding ->
-            Column(
-                modifier = Modifier
-                    .padding(innerPadding)
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-            ) {
-                Text(
-                    modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
-                    text = "Back up your inheritance key seed phrase",
-                    style = NunchukTheme.typography.heading
-                )
-                Text(
-                    modifier = Modifier.padding(16.dp),
-                    text = buildAnnotatedString {
-                        withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                            append("Please back up the inheritance key seed phrase on a steel plate, or a durable format that is non-digital.")
+        Scaffold(
+            modifier = Modifier.navigationBarsPadding(),
+            topBar = {
+                NcImageAppBar(
+                    backgroundRes = R.drawable.bg_seed_phrase_verify_illustration,
+                    title = if (remainTime <= 0) "" else stringResource(
+                        id = R.string.nc_estimate_remain_time,
+                        remainTime
+                    ),
+                    actions = {
+                        IconButton(onClick = onMoreClicked) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_more),
+                                contentDescription = "More icon"
+                            )
                         }
-                        append(" You will need to share this seed phrase backup with your Beneficiary so they can access the inheritance.")
-                    },
-                    style = NunchukTheme.typography.body
+                    }
                 )
-
-                NCLabelWithIndex(
-                    modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
-                    index = 1,
-                    label = "Turn on your hardware signing device",
-                )
-                NCLabelWithIndex(
-                    modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
-                    index = 2,
-                    label = "Refer to your device’s instruction manual and find the option to view or back up the recovery words for this key (12 or 24 words)",
-                )
-                NCLabelWithIndex(
-                    modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
-                    index = 3,
-                    label = "Write each word in the correct sequence and check the spelling carefully",
-                )
-
-
-                Spacer(modifier = Modifier.weight(1.0f))
+            },
+            bottomBar = {
                 NcPrimaryDarkButton(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp),
                     onClick = onContinueClicked,
                 ) {
-                    Text(text = "I have backed it up")
+                    Text(text = stringResource(id = com.nunchuk.android.signer.R.string.nc_text_continue))
                 }
+            },
+        ) { innerPadding ->
+            Column(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(bottom = 16.dp)
+            ) {
+                Text(
+                    modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
+                    text = "Verify your inheritance key seed phrase",
+                    style = NunchukTheme.typography.heading
+                )
+
+                NCLabelWithIndex(
+                    modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
+                    index = 1,
+                    label = "Refer to your inheritance key device's instruction manual and locate the option to [B]Wipe the seed[/B] or [B]Set a temporary seed.[/B] If you choose to wipe the seed, make sure the existing seed has also been backed up.",
+                )
+                NCLabelWithIndex(
+                    modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
+                    index = 2,
+                    label = "Locate the option to [B]Restore from a BIP39 seed phrase[/B]",
+                )
+                NCLabelWithIndex(
+                    modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
+                    index = 3,
+                    label = "Enter the inheritance key seed phrase carefully on the device",
+                )
+                NCLabelWithIndex(
+                    modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
+                    index = 4,
+                    label = "Once the device is loaded with the seed phrase, [B]re-add the restored key[/B] to the Nunchuk app to verify that its public key matches the public key of your inheritance key",
+                )
             }
         }
     }
@@ -141,8 +135,8 @@ private fun BackUpSeedPhraseIntroContent(
 
 @Preview
 @Composable
-private fun BackUpSeedPhraseIntroScreenPreview() {
-    BackUpSeedPhraseIntroContent(
+private fun BackUpSeedPhraseVerifyScreenPreview() {
+    BackUpSeedPhraseVerifyContent(
 
     )
 }

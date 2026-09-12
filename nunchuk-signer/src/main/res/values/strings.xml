@@ -303,4 +303,15 @@
     <string name="nc_jade_qr_unlock_show_desc">Scan this QR code with your Jade to continue unlocking.</string>
     <string name="nc_jade_qr_unlock_scan_next">Scan next QR from Jade</string>
     <string name="nc_jade_qr_unlock_wrong_qr">That QR code is not a Jade unlock request. On Jade, choose to unlock via QR.</string>
+    <!-- Off-chain inheritance key (BYOH) — encrypted backup, per device -->
+    <string name="nc_back_up_device">Back up %1$s</string>
+    <string name="nc_back_up_device_desc">In the upcoming steps, you\u2019ll use your %1$s to back up the key and encrypt the backup file. Once encrypted, the file can be uploaded to our server.\n\nThe encrypted backup will later be used to recover the inheritance key on the Beneficiary\u2019s device when they claim the inheritance.</string>
+    <string name="nc_backing_up_device">Backing up %1$s</string>
+    <string name="nc_backing_up_device_desc">An encrypted backup for the %1$s will be stored on the server.</string>
+    <string name="nc_encrypt_backup_follow_on_device">Please follow the instructions below on your %1$s:</string>
+    <string name="nc_recovered_key_on_device">You should now have recovered the original key on %1$s. Please verify that the master key fingerprint (XFP) below matches the one on your device.</string>
+    <string name="nc_keystone_backup_step_password">On Keystone, go to Settings \u2192 Encrypted Backup and set a Backup Password</string>
+    <string name="nc_keystone_backup_step_create">Create the encrypted backup of this key on the device</string>
+    <string name="nc_keystone_backup_step_export">Export the backup file via QR code or microSD card</string>
+    <string name="nc_keystone_backup_hint">Menu names may differ by firmware version. Exact steps to be finalized with Keystone.</string>
 </resources>

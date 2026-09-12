@@ -70,6 +70,7 @@ import com.nunchuk.android.core.util.showOrHideNfcLoading
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.signer.R
+import com.nunchuk.android.model.inheritance.ClaimOption
 import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
 import com.nunchuk.android.widget.NCWarningVerticalDialog
 import dagger.hilt.android.AndroidEntryPoint
@@ -96,7 +97,8 @@ class CheckBackUpByAppFragment : MembershipFragment() {
                     groupId = (activity as NfcSetupActivity).groupId,
                     keyId = (activity as NfcSetupActivity).keyId.ifEmpty { (activity as NfcSetupActivity).replacedXfp },
                     walletId = (activity as NfcSetupActivity).walletId,
-                    isOnChainBackUp = (activity as NfcSetupActivity).isOnChainBackUp
+                    isOnChainBackUp = (activity as NfcSetupActivity).isOnChainBackUp,
+                    claimOption = (activity as NfcSetupActivity).claimOption,
                 )
             }
         }
@@ -168,6 +170,7 @@ private fun CheckBackUpByAppScreen(
     keyId: String,
     walletId: String,
     isOnChainBackUp: Boolean,
+    claimOption: ClaimOption? = null,
 ) {
     val remainingTime by membershipStepManager.remainingTime.collectAsStateWithLifecycle()
 
@@ -180,7 +183,12 @@ private fun CheckBackUpByAppScreen(
                     isOnChainBackUp = isOnChainBackUp
                 )
             } else {
-                viewModel.onContinueClicked(groupId, masterSignerId, isOnChainBackUp)
+                viewModel.onContinueClicked(
+                    groupId = groupId,
+                    masterSignerId = masterSignerId,
+                    isOnChainBackUp = isOnChainBackUp,
+                    verificationMethod = claimOption,
+                )
             }
         },
         decryptionKey = viewModel.decryptionKey,

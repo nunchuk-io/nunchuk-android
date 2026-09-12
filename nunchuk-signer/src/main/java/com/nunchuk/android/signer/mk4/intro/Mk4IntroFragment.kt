@@ -61,7 +61,6 @@ import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.signer.toModel
-import com.nunchuk.android.core.util.BackUpSeedPhraseType
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.isRecommendedMultiSigPath
 import com.nunchuk.android.core.util.isRecommendedSingleSigPath
@@ -172,7 +171,8 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
                                     } else {
                                         viewModel.setKeyVerified(
                                             groupId = (activity as Mk4Activity).groupId,
-                                            masterSignerId = it.signer.masterFingerprint
+                                            masterSignerId = it.signer.masterFingerprint,
+                                            verificationMethod = onChainAddSignerParam.claimOption,
                                         )
                                     }
                                 } else {
@@ -276,13 +276,14 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
 
                 Mk4IntroViewEvent.KeyVerifiedSuccess -> {
                     requireActivity().setResult(Activity.RESULT_OK)
+                    val param = (activity as Mk4Activity).onChainAddSignerParam
                     navigator.openBackUpSeedPhraseActivity(
                         requireActivity(),
-                        BackUpSeedPhraseArgs(
-                            type = BackUpSeedPhraseType.SUCCESS,
-                            signer = null,
+                        BackUpSeedPhraseArgs.verified(
+                            signer = param?.currentSigner,
                             groupId = (activity as Mk4Activity).groupId,
-                            walletId = (activity as Mk4Activity).walletId.orEmpty()
+                            walletId = (activity as Mk4Activity).walletId.orEmpty(),
+                            claimOption = param?.claimOption,
                         )
                     )
                 }

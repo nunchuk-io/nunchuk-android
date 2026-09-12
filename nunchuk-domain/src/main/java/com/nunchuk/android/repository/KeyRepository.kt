@@ -65,10 +65,15 @@ interface KeyRepository {
         isOnChainFlow: Boolean = false
     ): Flow<KeyUpload>
 
+    /**
+     * [verificationMethod] names which claim option of an off-chain inheritance key was just
+     * verified. Null on every other flow, where the server keeps one verification per key.
+     */
     suspend fun setKeyVerified(
         groupId: String,
         masterSignerId: String,
-        verifyType: VerifyType
+        verifyType: VerifyType,
+        verificationMethod: ClaimOption? = null,
     )
 
     /**

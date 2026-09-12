@@ -29,6 +29,9 @@ import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.controlTextPrimary
+import com.nunchuk.android.core.util.COLDCARD_DEFAULT_KEY_NAME
+import com.nunchuk.android.core.util.formattedName
+import com.nunchuk.android.signer.mk4.Mk4Activity
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.signer.R
@@ -44,7 +47,10 @@ class ColdCardBackUpIntroFragment : MembershipFragment() {
         savedInstanceState: Bundle?
     ): View = content {
         val remainTime by membershipStepManager.remainingTime.collectAsStateWithLifecycle()
-        ColdCardBackUpIntroScreen(remainTime) {
+        ColdCardBackUpIntroScreen(
+            remainTime = remainTime,
+            deviceName = (requireActivity() as Mk4Activity).signerTag.formattedName,
+        ) {
             findNavController().navigate(ColdCardBackUpIntroFragmentDirections.actionColdCardBackUpIntroFragmentToColdCardEncryptBackUpFileFragment())
         }
     }
@@ -54,6 +60,7 @@ class ColdCardBackUpIntroFragment : MembershipFragment() {
 @Composable
 internal fun ColdCardBackUpIntroScreen(
     remainTime: Int = 0,
+    deviceName: String = COLDCARD_DEFAULT_KEY_NAME,
     onContinue: () -> Unit = {}
 ) {
 
@@ -94,12 +101,12 @@ internal fun ColdCardBackUpIntroScreen(
             ) {
                 Text(
                     modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
-                    text = stringResource(R.string.nc_back_up_coldcard),
+                    text = stringResource(R.string.nc_back_up_device, deviceName),
                     style = NunchukTheme.typography.heading
                 )
                 Text(
                     modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp),
-                    text = stringResource(R.string.nc_back_up_coldcard_desc),
+                    text = stringResource(R.string.nc_back_up_device_desc, deviceName),
                     style = NunchukTheme.typography.body
                 )
             }

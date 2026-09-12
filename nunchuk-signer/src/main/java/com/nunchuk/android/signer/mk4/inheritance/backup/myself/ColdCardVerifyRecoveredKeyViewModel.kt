@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.VerifyType
+import com.nunchuk.android.model.inheritance.ClaimOption
 import com.nunchuk.android.usecase.membership.SetKeyVerifiedUseCase
 import com.nunchuk.android.usecase.membership.SetReplaceKeyVerifiedUseCase
 import com.nunchuk.android.utils.ChecksumUtil
@@ -26,14 +27,19 @@ class ColdCardVerifyRecoveredKeyViewModel @Inject constructor(
     private val _event = MutableSharedFlow<ColdCardVerifyRecoveredKeyEvent>()
     val event = _event.asSharedFlow()
 
-    fun setKeyVerified(groupId: String, masterSignerId: String) {
+    fun setKeyVerified(
+        groupId: String,
+        masterSignerId: String,
+        verificationMethod: ClaimOption? = null,
+    ) {
         viewModelScope.launch {
             val result =
                 setKeyVerifiedUseCase(
                     SetKeyVerifiedUseCase.Param(
-                        groupId,
-                        masterSignerId,
-                        VerifyType.SELF_VERIFIED
+                        groupId = groupId,
+                        masterSignerId = masterSignerId,
+                        verifyType = VerifyType.SELF_VERIFIED,
+                        verificationMethod = verificationMethod,
                     )
                 )
             if (result.isSuccess) {

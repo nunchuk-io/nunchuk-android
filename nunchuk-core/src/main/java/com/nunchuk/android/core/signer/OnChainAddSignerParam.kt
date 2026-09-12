@@ -3,6 +3,7 @@ package com.nunchuk.android.core.signer
 import android.os.Parcelable
 import com.nunchuk.android.core.R
 import com.nunchuk.android.model.OnChainReplaceKeyStep
+import com.nunchuk.android.model.inheritance.ClaimOption
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
@@ -12,7 +13,14 @@ data class OnChainAddSignerParam(
     val currentSigner: SignerModel? = null,
     val magic: String = "",
     val replaceInfo: ReplaceInfo? = null,
-    val existingSigners: List<SignerModel> = emptyList()
+    val existingSigners: List<SignerModel> = emptyList(),
+    /**
+     * Which sharing method of an off-chain inheritance key a [FLAG_VERIFY_BACKUP_SEED_PHRASE] run
+     * is proving. The two artifacts of a "do both" key are verified independently server-side, so
+     * the screens that mark the key verified have to name the one they just checked. Null on the
+     * on-chain timelock flow, which keeps a single verification per key.
+     */
+    val claimOption: ClaimOption? = null,
 ) : Parcelable {
 
     val isClaiming: Boolean

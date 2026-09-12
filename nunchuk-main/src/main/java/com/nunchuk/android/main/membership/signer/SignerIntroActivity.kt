@@ -401,9 +401,6 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
     private val isAddInheritanceKeyForSetup: Boolean
         get() = onChainAddSignerParam?.isAddInheritanceOffChainSigner() == true && !isClaiming
 
-    /** Inheritance key types whose flow belongs to the key-list screen, not to this picker. */
-    private val keyTypesOwnedByKeyList = setOf(KeyType.TAPSIGNER, KeyType.COLDCARD)
-
     /**
      * Key type picked for an inheritance key, held while the "reuse an existing key" sheet is up so
      * that "add a new one" can resume the device's own flow.
@@ -411,23 +408,13 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
     private var pickedInheritanceKeyType: KeyType? = null
 
     /**
-     * Runs the flow of the key type the owner picked. Shared by the picker and by the
-     * "Your inheritance key" intro that sits between them during BYOH setup, so the key type is
-     * only ever chosen once.
-     */
-    /**
      * Entry point from the key-type picker. An inheritance key is offered the matching keys already
      * in the key manager before any device is set up; [handleKeyTypeSelection] is what actually
      * starts the device's own flow, once that offer is answered.
      */
     private fun handleKeyTypePicked(keyType: KeyType, navController: NavHostController) {
-        // TAPSIGNER and COLDCARD keep the inheritance backup flow the key-list screen already
-        // owns (reuse-an-existing-key sheet -> encrypted backup -> upload), so hand the choice
-        // back to it rather than starting a second, divergent path here.
-        if (isAddInheritanceKeyForSetup && keyType in keyTypesOwnedByKeyList) {
-            returnKeyTypeResult(keyType)
-            return
-        }
+        // Every key type is added here and comes back as a signer, which is what lets the owner
+        // see "Inheritance key added" and pick a sharing method before any backup is made.
         if (isAddInheritanceKeyForSetup) {
             pickedInheritanceKeyType = keyType
             val (signerType, signerTag) = keyType.toSignerTypeAndTag()
@@ -468,14 +455,6 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
         }
     }
 
-    private fun returnKeyTypeResult(keyType: KeyType) {
-        setResult(
-            RESULT_OK,
-            Intent().putExtra(GlobalResultKey.EXTRA_KEY_TYPE, keyType.name)
-        )
-        finish()
-    }
-
     private fun handleTapSignerSelection() {
         if (onChainAddSignerParam != null) {
             viewModel.showExistingSignerOrCreateNew(SignerType.NFC)
@@ -486,10 +465,14 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
 
     private fun handleColdCardSelection(navController: NavHostController) {
         val onChainAddSignerParam = onChainAddSignerParam
-        if (onChainAddSignerParam == null || onChainAddSignerParam.isVerifyBackupSeedPhrase()) {
+        // Off-chain inheritance reaches here only after the reuse offer was declined, so it goes
+        // straight to the device. The Coldcard is added like any other key — no encrypted backup
+        // yet, because the owner has not chosen a sharing method at this point.
+        if (onChainAddSignerParam == null ||
+            onChainAddSignerParam.isVerifyBackupSeedPhrase() ||
+            onChainAddSignerParam.isAddInheritanceOffChainSigner()
+        ) {
             openSetupMk4()
-        } else if (onChainAddSignerParam.isAddInheritanceOffChainSigner()) {
-            viewModel.showExistingSignerOrCreateNew(SignerType.COLDCARD_NFC, SignerTag.COLDCARD)
         } else {
             navController.navigate(
                 CheckFirmwareDestination(

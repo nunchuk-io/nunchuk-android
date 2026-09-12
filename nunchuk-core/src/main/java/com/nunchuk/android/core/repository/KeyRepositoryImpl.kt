@@ -458,7 +458,8 @@ internal class KeyRepositoryImpl @Inject constructor(
     override suspend fun setKeyVerified(
         groupId: String,
         masterSignerId: String,
-        verifyType: VerifyType
+        verifyType: VerifyType,
+        verificationMethod: ClaimOption?,
     ) {
         val stepInfo =
             membershipDao.getStepByMasterSignerId(
@@ -479,7 +480,8 @@ internal class KeyRepositoryImpl @Inject constructor(
                 stepInfo.keyIdInServer.ifEmpty { stepInfo.masterSignerId },
                 KeyVerifiedRequest(
                     stepInfo.checkSum,
-                    verifyTypeString
+                    verifyTypeString,
+                    verificationMethod?.name
                 )
             )
         } else {
@@ -488,7 +490,8 @@ internal class KeyRepositoryImpl @Inject constructor(
                 stepInfo.keyIdInServer.ifEmpty { stepInfo.masterSignerId },
                 KeyVerifiedRequest(
                     stepInfo.checkSum,
-                    verifyTypeString
+                    verifyTypeString,
+                    verificationMethod?.name
                 )
             )
         }

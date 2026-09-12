@@ -77,14 +77,24 @@ key list  ──Add on the inheritance slot──►  inheritance intro
 
 Re-entering the key list never reopens this by itself; the key row carries the entry point.
 
-### Key row states (owner picks these up later)
+**No device runs its backup at add time.** Adding the key only adds the key; the sharing method is
+chosen afterwards and decides which artifact is made. Coldcard used to be pushed straight from the
+picker into its passphrase question and encrypted backup — it is now added like any other key
+(`keyTypesOwnedByKeyList` in `SignerIntroActivity`). TAPSIGNER is the one exception left: the server
+registers it through the upload of its encrypted backup, so it still backs up first (see §5).
 
-| Condition | Status line | Action |
-|---|---|---|
-| `claim_options` empty | *Sharing method not set* | **Set up** → sharing-method choice directly |
-| chosen, nothing verified | *Not verified* | Verify backup |
-| chose both, one verified | *1 of 2 verified* | Verify backup |
-| verified | *Backup uploaded · Seed shared* | ✓ Added |
+### Key row states
+
+| Condition | Status line | Action | Opens |
+|---|---|---|---|
+| `claim_options` empty | *Sharing method not set* | **Set up** | sharing-method choice |
+| chosen, nothing verified | *Not verified* | **Backup** | the chosen branch |
+| chose both, one verified | *1 of 2 verified* | **Verify backup** | the checklist |
+| verified | *Backup uploaded · Seed shared* | ✓ Added | — |
+
+The action dispatches on `claim_options`, not on the device
+(`AddKeyData.inheritanceBackupBranch()`): seed phrase → `BackUpSeedPhraseActivity`, encrypted backup
+→ the device's own backup flow, both → the checklist.
 
 ---
 
@@ -127,10 +137,91 @@ backup.
   `SignerIntroViewModel.offChainInheritanceSetupKeyTypes` is only a fallback for a legacy response
 - Inheritance intro + passphrase notice inside `SignerIntroActivity`, before the picker
 - Existing-key sheet after the key type is picked
-- `KeyDistributionActivity` — "key added" + sharing-method choice, with `skipKeyAdded` for the
-  key-row entry
+- `KeyDistributionActivity` — "key added" + sharing-method choice + the "do both" checklist,
+  entered at any of the three by `KeyDistributionEntry`
 - Key row status line + **Set up** action, both key lists
 - No client-side fallback for `claim_options`: nothing from the server ⇒ empty state + toast
+- **Backup/Verify on the key row dispatches on the sharing method.** `inheritanceBackupBranch()` on
+  `AddKeyData`; the row's completeness (`isRowComplete`, `needsClaimVerification`) now comes from
+  `claim_options` + `verifications[]` rather than the single local `verifyType`, which goes green
+  after one artifact and would hide the second half of a "do both" key.
+- **Branch (a), seed phrase** — reuses `BackUpSeedPhraseActivity` (11 → 12 → 13 → re-add → 13b/13c).
+  Ledger/BitBox hand back `EXTRA_VERIFIED_XFP` and the key list records it; Coldcard and air-gap
+  record themselves inside their own screens.
+- **13b / 13c.** `InheritanceSeedPhraseVerified` names the key whose backup was proven;
+  `BackUpSeedPhraseVerifyMismatch` shows the derived XFP against the expected one, with **Try
+  again** and **Back to seed phrase steps**. The mismatch was silent before — air-gap hands the
+  re-added key back and nobody looked at it — so the activity now answers it itself rather than
+  relaying it, which fixes the on-chain flow at the same time. What each device hands back differs
+  — Ledger/BitBox return only a verified fingerprint, Coldcard and air-gap compare themselves and
+  mark a match on their own screens, **TAPSIGNER compares nothing and returns whatever it read** —
+  so `BackUpSeedPhraseActivity` does the comparison rather than reading a returned key as proof of
+  failure. In practice 13c shows for air-gap and TAPSIGNER; Coldcard and Ledger/BitBox report
+  their own mismatch inline and never return.
+- **The seed-phrase flow moved out of `onchaintimelock/`** into `membership/backupseedphrase/`: it
+  now serves the on-chain timelock, on-chain replace and off-chain inheritance flows alike.
+  Which confirmation screen a caller wants is explicit in `BackUpSeedPhraseType`
+  (`SUCCESS` vs `INHERITANCE_VERIFIED`), chosen through `BackUpSeedPhraseArgs.verified()`.
+- **The backup upload no longer re-adds the key.** `uploadBackupKey` asks the server to add the key
+  when `isRequestAddKey` is set, which is how a TAPSIGNER used to get onto the draft. The key is
+  now added before the sharing method is chosen, so that request came back
+  `400 Duplicate key xfp`. `UploadBackUpTapSignerFragment` sets the flag from
+  `NfcSetupActivity.claimOption`: non-null means the off-chain inheritance backup, which by
+  construction runs after the key is on the draft. Coldcard already did this — `Mk4Activity` sets
+  `isRequestAddOrReplaceKey = action != UPLOAD_BACKUP` — so this only brings TAPSIGNER in line.
+- **The key row's action and its colour come from one rule** (`AddKeyData.isRowComplete`). Reading
+  the local `verifyType` for the tick while the card colour read the server's `verifications[]`
+  left a finished, green inheritance row still offering "Verify backup" whenever the local step
+  lagged the server.
+- **Both key lists share one set of entry points** (`honey/distribution/InheritanceBackupNavigation.kt`)
+  instead of mirroring the same navigation methods each.
+- **The branch opens as soon as the sharing method is saved**, for every device — no key backs up
+  before the method is chosen any more. "Do both" goes to the checklist in place; a single option
+  is handed back to the key list, which owns the step state those flows need.
+- **Continue on the key list is blocked until the inheritance key is settled**
+  (`AddKeyData.isInheritanceIncomplete`): a sharing method recorded, and each chosen method
+  verified or deliberately skipped.
+- **Skipping a verification is recorded**, so it settles the artifact rather than leaving the row
+  asking forever. It already was on the seed-phrase branch; the encrypted one now writes it too
+  (`TapSignerVerifyBackUpOptionViewModel`, new `ColdCardVerifyBackUpOptionViewModel`).
+- **The encrypted-backup branch is the flow Coldcard already had.** `openVerifyColdCard` sends
+  every non-TAPSIGNER key into `Mk4Activity` with `ColdcardAction.UPLOAD_BACKUP`, which is screens
+  15 → 18 end to end: intro, on-device steps, import, upload, verify (by app / myself / skip).
+  Keystone needed no new screens, only the vendor to travel with the request —
+  `SetupMk4Args.signerTag`, from `SignerModel.backupVendorTag` — so the copy names the right
+  device (`nc_back_up_device`, `nc_backing_up_device`, `nc_encrypt_backup_follow_on_device`,
+  `nc_recovered_key_on_device`), the on-device steps are Keystone's own, and **verify via the app
+  is hidden for anything but Coldcard**: that check runs `verifyColdCardBackup`, which decrypts
+  Coldcard's format only.
+- **Branch (c), "do both"** — `VerifyBackupsContent` (12c/12c-ii) inside `KeyDistributionActivity`,
+  with "Change how you share this key" → the distribution choice, and `RemoveEncryptedBackupSheet`
+  (12c-iii) confirming the one irreversible downgrade. The checklist only *chooses* which half to
+  verify and hands it back to the key list, which owns the step state those flows need.
+- **Per-method verification is written, on both halves.** `verification_method` travels through
+  `SetKeyVerifiedUseCase` → `KeyRepository.setKeyVerified`. Two carriers, because the two branches
+  reach different screens and none of them know what a claim option is:
+  - seed phrase → `BackUpSeedPhraseArgs.claimOption` → `OnChainAddSignerParam.claimOption`, read by
+    `Mk4IntroFragment`, `ColdcardRecoverFragment` and `AddAirgapSignerFragment`
+  - encrypted backup → `AddKeyData.encryptedBackupClaimOption()` on `OnVerifySigner` →
+    `SetupMk4Args.claimOption` / `NfcSetupActivity.claimOption`, read by the four verify view
+    models (`CheckBackUpByApp`, `CheckBackUpBySelf`, `ColdCardVerifyRecoveredKey`,
+    `ColdCardVerifyBackupViaApp`)
+
+  Null everywhere else, so on-chain and legacy plans keep the single verification the server
+  infers.
+- **No device backs up at add time any more.** The off-chain inheritance picker adds every key
+  type itself and hands back the signer, so the owner always sees "Inheritance key added" and the
+  sharing-method choice first; the backup runs only if they asked for one. Coldcard needed only to
+  leave `keyTypesOwnedByKeyList` (now gone entirely); TAPSIGNER needed the key derived from the
+  card without the upload that used to register it — `TapSignerKeyResolver`, shared by both key
+  lists, which asks for a card tap when the xpub at the wallet's path is not cached
+  (`MembershipActivity.requestTapSignerCaching`). A TAPSIGNER row with no backup yet opens
+  create-backup instead of verify, the same way Coldcard already chose between `UPLOAD_BACKUP`
+  and `VERIFY_KEY`.
+- **`missingBackupKeys` no longer blocks Continue for a BYOH key.** The old rule flagged every
+  non-NFC inheritance key with no `userKeyFileName`, i.e. every device that has no encrypted backup
+  to make, which disabled Continue forever. It now only applies once the owner has actually asked
+  for an encrypted backup (legacy plans, which record no `claim_options`, keep the old rule).
 
 **Fixes made along the way**
 - `HeaderProviderImpl.getAppVersion()` strips the build-type suffix. `versionNameSuffix = ".DEV"`
@@ -157,17 +248,23 @@ backup.
    screen, which was correct for the older design and is now wrong. Fix the same way Krux was done
    (`AirgapIntroFragment`, gated to off-chain inheritance), and drop the override in
    `AddAirgapSignerActivity` that keeps Jade off `airgapActionIntroFragment`.
-2. **Seed-phrase branch** — back up seed phrase → verify now / skip → restore-on-device steps →
-   re-add the key → public keys match / do not match. The on-chain
-   `membership/onchaintimelock/backupseedphrase/` covers most of it; the match / no-match screens
-   are new.
-3. **Encrypted-backup branch** — generic intro → vendor steps (Keystone first; Passport & Jade are
-   TBD placeholders in the design) → import via QR/file → upload → verify.
-4. **"Do both" checklist** — the two artifacts are verified separately. Switching back to
-   seed-phrase-only deletes the encrypted backup, so that path needs a confirm sheet.
-5. **Per-method verification** — `verifications[]` is modelled but nothing writes it.
-   `MembershipStepInfo.verifyType` is a single value and cannot express "1 of 2".
-6. **The existing backup flow still has bugs** (owner's note) — audit before extending it.
+2. **Screen 16 has no QR import — deferred by the owner.** The design draws QR / file / Desktop;
+   the shared screen offers file and Desktop. The scanner this app has (`ScanDynamicQRActivity` →
+   `parsePassportSigners`) decodes air-gapped *signers* and hands back a `SingleSigner`, i.e.
+   xpubs; nothing turns a scanned QR into raw bytes, which is what an encrypted backup is. Whoever
+   picks this up has to settle what the QR carries first — uploading the scanned xpub as the
+   "backup" would leave the Beneficiary unable to claim, since it is public data and no Backup
+   Password protects it. Coldcard's import screen has never offered QR either, so this is a gap in
+   the shared flow rather than a Keystone one.
+3. **The on-chain re-add picker is not scoped to a wallet type.** `openReAddKeyForVerification`
+   now passes `BackUpSeedPhraseArgs.walletType`, and the off-chain flow sets `MULTI_SIG`; the
+   on-chain callers still leave it null, so their picker keeps listing a vendor once per wallet
+   type the server advertises it for. Left alone deliberately — on-chain is out of scope — but it
+   is the same bug, fixed by passing `MINISCRIPT` from those two call sites.
+4. **"Verify the backup via the app" is Coldcard-only.** It decrypts with
+   `nunchukNativeSdk.verifyColdCardBackup`; another vendor's backup would fail it for the wrong
+   reason, so the option is filtered out. Needs native SDK support to come back.
+5. **The existing backup flow still has bugs** (owner's note) — audit before extending it.
 
 ---
 

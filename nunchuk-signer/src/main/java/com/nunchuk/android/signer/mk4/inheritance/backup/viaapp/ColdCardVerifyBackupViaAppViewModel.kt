@@ -7,6 +7,7 @@ import com.nunchuk.android.core.util.lastWord
 import com.nunchuk.android.core.util.replaceLastWord
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.VerifyType
+import com.nunchuk.android.model.inheritance.ClaimOption
 import com.nunchuk.android.usecase.GetBip39WordListUseCase
 import com.nunchuk.android.usecase.membership.SetKeyVerifiedUseCase
 import com.nunchuk.android.usecase.membership.SetReplaceKeyVerifiedUseCase
@@ -47,7 +48,12 @@ class ColdCardVerifyBackupViaAppViewModel @Inject constructor(
         }
     }
 
-    fun onContinueClicked(groupId: String, masterSignerId: String, filePath: String) {
+    fun onContinueClicked(
+        groupId: String,
+        masterSignerId: String,
+        filePath: String,
+        verificationMethod: ClaimOption? = null,
+    ) {
         viewModelScope.launch {
             _state.update { it.copy(showVerifyError = false) }
             val result =
@@ -62,9 +68,10 @@ class ColdCardVerifyBackupViaAppViewModel @Inject constructor(
                 val apiResult =
                     setKeyVerifiedUseCase(
                         SetKeyVerifiedUseCase.Param(
-                            groupId,
-                            masterSignerId,
-                            VerifyType.APP_VERIFIED
+                            groupId = groupId,
+                            masterSignerId = masterSignerId,
+                            verifyType = VerifyType.APP_VERIFIED,
+                            verificationMethod = verificationMethod,
                         )
                     )
                 if (apiResult.isSuccess) {

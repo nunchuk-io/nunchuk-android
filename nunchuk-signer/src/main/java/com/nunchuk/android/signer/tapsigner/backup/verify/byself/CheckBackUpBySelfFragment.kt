@@ -124,7 +124,8 @@ class CheckBackUpBySelfFragment : MembershipFragment() {
                                     } else {
                                         viewModel.setKeyVerified(
                                             groupId = activity.groupId,
-                                            isOnChainBackUp = isOnChainBackUp
+                                            isOnChainBackUp = isOnChainBackUp,
+                                            verificationMethod = activity.claimOption,
                                         )
                                     }
                                 },

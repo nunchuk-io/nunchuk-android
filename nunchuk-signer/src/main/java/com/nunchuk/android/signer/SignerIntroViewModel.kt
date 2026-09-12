@@ -307,6 +307,13 @@ class SignerIntroViewModel @Inject constructor(
 
     fun showExistingSignerOrCreateNew(type: SignerType, tag: SignerTag? = null) {
         viewModelScope.launch {
+            // Verifying a seed-phrase backup is the act of reading the restored device. Offering
+            // the keys already in the app would let the owner pick the very key being verified,
+            // which proves nothing about the words they wrote down.
+            if (onChainAddSignerParam?.isVerifyBackupSeedPhrase() == true) {
+                _event.emit(SignerIntroEvent.OpenSetupSigner(type, tag))
+                return@launch
+            }
             val signers = filterSignerByType(
                 type,
                 tag

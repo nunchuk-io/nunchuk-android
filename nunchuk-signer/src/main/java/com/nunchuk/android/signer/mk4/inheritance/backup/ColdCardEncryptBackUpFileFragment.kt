@@ -39,7 +39,11 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.controlTextPrimary
 import com.nunchuk.android.share.membership.MembershipFragment
+import com.nunchuk.android.core.util.ClickAbleText
+import com.nunchuk.android.core.util.formattedName
 import com.nunchuk.android.signer.R
+import com.nunchuk.android.signer.mk4.Mk4Activity
+import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.signer.mk4.Mk4ViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -54,8 +58,11 @@ class ColdCardEncryptBackUpFileFragment : MembershipFragment() {
         savedInstanceState: Bundle?
     ): View = content {
         val remainTime by membershipStepManager.remainingTime.collectAsStateWithLifecycle()
-        ColdCardEncryptBackUpFileScreen(remainTime = remainTime,
-            isHasPassphrase = mk4ViewModel.coldCardBackUpParam.isHasPassphrase) {
+        ColdCardEncryptBackUpFileScreen(
+            remainTime = remainTime,
+            isHasPassphrase = mk4ViewModel.coldCardBackUpParam.isHasPassphrase,
+            signerTag = (requireActivity() as Mk4Activity).signerTag,
+        ) {
             findNavController().navigate(ColdCardEncryptBackUpFileFragmentDirections.actionColdCardEncryptBackUpFileFragmentToColdCardImportEncryptedBackUpFragment())
         }
     }
@@ -66,6 +73,7 @@ class ColdCardEncryptBackUpFileFragment : MembershipFragment() {
 internal fun ColdCardEncryptBackUpFileScreen(
     remainTime: Int = 0,
     isHasPassphrase: Boolean = false,
+    signerTag: SignerTag = SignerTag.COLDCARD,
     onContinue: () -> Unit = {}
 ) {
     NunchukTheme {
@@ -123,7 +131,10 @@ internal fun ColdCardEncryptBackUpFileScreen(
                 )
                 Text(
                     modifier = Modifier.padding(16.dp),
-                    text = "Please follow the instructions below on your COLDCARD:",
+                    text = stringResource(
+                        R.string.nc_encrypt_backup_follow_on_device,
+                        signerTag.formattedName
+                    ),
                     style = NunchukTheme.typography.body
                 )
 
@@ -131,7 +142,13 @@ internal fun ColdCardEncryptBackUpFileScreen(
                     modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
                     index = 1,
                     title = "Record Backup Password",
-                    label = if (isHasPassphrase) "Navigate to Advanced/Tools → Backup → Backup System → 2 [B](with passphrase).[/B]" else "Navigate to Advanced/Tools → Backup → Backup System",
+                    label = when {
+                        signerTag == SignerTag.KEYSTONE ->
+                            stringResource(R.string.nc_keystone_backup_step_password)
+
+                        isHasPassphrase -> "Navigate to Advanced/Tools → Backup → Backup System → 2 [B](with passphrase).[/B]"
+                        else -> "Navigate to Advanced/Tools → Backup → Backup System"
+                    },
                 )
 
                 Box(
@@ -161,8 +178,25 @@ internal fun ColdCardEncryptBackUpFileScreen(
                     modifier = Modifier.padding(16.dp),
                     index = 2,
                     title = "Encrypt the backup file",
-                    label = "Confirm backup file password → OK.",
+                    label = if (signerTag == SignerTag.KEYSTONE) {
+                        stringResource(R.string.nc_keystone_backup_step_create)
+                    } else {
+                        "Confirm backup file password → OK."
+                    },
                 )
+                if (signerTag == SignerTag.KEYSTONE) {
+                    NCLabelWithIndex(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        index = 3,
+                        title = "Export the backup file",
+                        label = stringResource(R.string.nc_keystone_backup_step_export),
+                    )
+                    NcHintMessage(
+                        modifier = Modifier.padding(16.dp),
+                        messages = listOf(ClickAbleText(content = stringResource(R.string.nc_keystone_backup_hint))),
+                        type = HighlightMessageType.HINT,
+                    )
+                }
             }
         }
     }
@@ -172,4 +206,10 @@ internal fun ColdCardEncryptBackUpFileScreen(
 @Composable
 private fun ColdCardEncryptBackUpFileScreenPreview() {
     ColdCardEncryptBackUpFileScreen(isHasPassphrase = true)
+}
+
+@PreviewLightDark
+@Composable
+private fun KeystoneEncryptBackUpFileScreenPreview() {
+    ColdCardEncryptBackUpFileScreen(signerTag = SignerTag.KEYSTONE)
 }
