@@ -162,6 +162,11 @@ backup.
   now serves the on-chain timelock, on-chain replace and off-chain inheritance flows alike.
   Which confirmation screen a caller wants is explicit in `BackUpSeedPhraseType`
   (`SUCCESS` vs `INHERITANCE_VERIFIED`), chosen through `BackUpSeedPhraseArgs.verified()`.
+- **The re-add picker is scoped to the wallet type it is building.** The server advertises an
+  inheritance entry per wallet type, so an unscoped picker lists the same device once for each —
+  Coldcard, Jade, Ledger and BitBox each appeared twice. `BackUpSeedPhraseArgs.walletType` carries
+  it: `MULTI_SIG` off-chain, `MINISCRIPT` from the on-chain timelock and replace flows. The four
+  add-key pickers already passed it; only the re-add ones had no way to.
 - **The backup upload no longer re-adds the key.** `uploadBackupKey` asks the server to add the key
   when `isRequestAddKey` is set, which is how a TAPSIGNER used to get onto the draft. The key is
   now added before the sharing method is chosen, so that request came back
@@ -253,15 +258,10 @@ backup.
    "backup" would leave the Beneficiary unable to claim, since it is public data and no Backup
    Password protects it. Coldcard's import screen has never offered QR either, so this is a gap in
    the shared flow rather than a Keystone one.
-2. **The on-chain re-add picker is not scoped to a wallet type.** `openReAddKeyForVerification`
-   now passes `BackUpSeedPhraseArgs.walletType`, and the off-chain flow sets `MULTI_SIG`; the
-   on-chain callers still leave it null, so their picker keeps listing a vendor once per wallet
-   type the server advertises it for. Left alone deliberately — on-chain is out of scope — but it
-   is the same bug, fixed by passing `MINISCRIPT` from those two call sites.
-3. **"Verify the backup via the app" is Coldcard-only.** It decrypts with
+2. **"Verify the backup via the app" is Coldcard-only.** It decrypts with
    `nunchukNativeSdk.verifyColdCardBackup`; another vendor's backup would fail it for the wrong
    reason, so the option is filtered out. Needs native SDK support to come back.
-4. **The existing backup flow still has bugs** (owner's note) — audit before extending it.
+3. **The existing backup flow still has bugs** (owner's note) — audit before extending it.
 
 ---
 

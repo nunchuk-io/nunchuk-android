@@ -728,7 +728,11 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                 type = BackUpSeedPhraseType.INTRO,
                 signer = event.signer,
                 groupId = (activity as MembershipActivity).groupId,
-                walletId = (activity as MembershipActivity).walletId
+                walletId = (activity as MembershipActivity).walletId,
+                // Scopes the key types offered when the restored key is re-added. The server
+                // advertises an inheritance entry per wallet type, so without this the same
+                // device is listed once for each of them.
+                walletType = WalletType.MINISCRIPT,
             ),
             // Keys that re-add themselves in-app (Ledger, BitBox) report the restored device back
             // here; Coldcard and air-gap finish verification on their own screens and return nothing.
