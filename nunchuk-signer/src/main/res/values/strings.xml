@@ -214,6 +214,8 @@
     <string name="nc_add_krux">Add Krux</string>
     <string name="nc_krux_export_xpub_title">Export XPUB from Krux</string>
     <string name="nc_krux_export_xpub_desc">Go to Wallet \u2192 Customize \u2192 Policy Type \u2192 Multisig Native Segwit - 48. Then go to Extended Public Key \u2192 XPUB.</string>
+    <string name="nc_jade_export_xpub_title">Export XPUB from Jade</string>
+    <string name="nc_jade_export_xpub_desc">Go to Options \u2192 Wallet \u2192 Export Xpub \u2192 Options \u2192 Wallet \u2192 Multisig \u2192 Enter \u2192 Account Index. Enter Account # (0 if first time)</string>
     <string name="nc_add_foundation_passport">Add Foundation Passport</string>
     <string name="nc_add_keystone">Add Keystone</string>
     <string name="nc_desktop_only">Desktop only</string>

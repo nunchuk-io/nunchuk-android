@@ -237,18 +237,15 @@ backup.
 - Assets re-exported for Ledger + Trezor. Their `#D0E2FF` plate is mapped back to
   `@color/nc_fill_denim` — the converter hard-codes it and dark mode breaks otherwise. BitBox was
   **not** re-exported (design only flagged a copy change there).
-- Ledger step 1 copy; Krux gained its "Export XPUB from Krux" step (gated to this flow).
+- Ledger step 1 copy. Krux and Jade each gained their "Export XPUB from <device>" third step,
+  gated to this flow — `SignerTag.exportXpubStepRes()` in `AirgapIntroFragment`, one line per
+  device. Steps 1 and 2 stay the generic copy, which is what the Krux and Jade frames show.
 
 ---
 
 ## 5. Not done
 
-1. **Jade guide** — the design gives Jade its own three steps (`Initialize Jade` / `Unlock Jade` /
-   `Export XPUB from Jade`). The code currently forces Jade onto the generic two-step air-gap
-   screen, which was correct for the older design and is now wrong. Fix the same way Krux was done
-   (`AirgapIntroFragment`, gated to off-chain inheritance), and drop the override in
-   `AddAirgapSignerActivity` that keeps Jade off `airgapActionIntroFragment`.
-2. **Screen 16 has no QR import — deferred by the owner.** The design draws QR / file / Desktop;
+1. **Screen 16 has no QR import — deferred by the owner.** The design draws QR / file / Desktop;
    the shared screen offers file and Desktop. The scanner this app has (`ScanDynamicQRActivity` →
    `parsePassportSigners`) decodes air-gapped *signers* and hands back a `SingleSigner`, i.e.
    xpubs; nothing turns a scanned QR into raw bytes, which is what an encrypted backup is. Whoever
@@ -256,15 +253,15 @@ backup.
    "backup" would leave the Beneficiary unable to claim, since it is public data and no Backup
    Password protects it. Coldcard's import screen has never offered QR either, so this is a gap in
    the shared flow rather than a Keystone one.
-3. **The on-chain re-add picker is not scoped to a wallet type.** `openReAddKeyForVerification`
+2. **The on-chain re-add picker is not scoped to a wallet type.** `openReAddKeyForVerification`
    now passes `BackUpSeedPhraseArgs.walletType`, and the off-chain flow sets `MULTI_SIG`; the
    on-chain callers still leave it null, so their picker keeps listing a vendor once per wallet
    type the server advertises it for. Left alone deliberately — on-chain is out of scope — but it
    is the same bug, fixed by passing `MINISCRIPT` from those two call sites.
-4. **"Verify the backup via the app" is Coldcard-only.** It decrypts with
+3. **"Verify the backup via the app" is Coldcard-only.** It decrypts with
    `nunchukNativeSdk.verifyColdCardBackup`; another vendor's backup would fail it for the wrong
    reason, so the option is filtered out. Needs native SDK support to come back.
-5. **The existing backup flow still has bugs** (owner's note) — audit before extending it.
+4. **The existing backup flow still has bugs** (owner's note) — audit before extending it.
 
 ---
 

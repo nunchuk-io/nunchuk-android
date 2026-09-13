@@ -67,12 +67,13 @@ class AirgapIntroFragment : MembershipFragment() {
         val isMembershipFlow = (requireActivity() as AddAirgapSignerActivity).isMembershipFlow
         val signerTag = (requireActivity() as AddAirgapSignerActivity).signerTag
         val replacedXfp = (requireActivity() as AddAirgapSignerActivity).replacedXfp.orEmpty()
-        // Krux exports its XPUB from a menu the generic copy does not mention, so the off-chain
-        // inheritance guide carries a third step. Scoped to that flow to leave the ordinary
-        // add-key and on-chain flows exactly as they are.
-        val showKruxExportStep = signerTag == SignerTag.KRUX &&
-                (requireActivity() as AddAirgapSignerActivity).onChainAddSignerParam
-                    ?.let { it.isAddInheritanceOffChainSigner() && !it.isClaiming } == true
+        // Some devices export their XPUB from a menu the generic copy does not mention, so the
+        // off-chain inheritance guide carries a third step naming it. Scoped to that flow to
+        // leave the ordinary add-key and on-chain flows exactly as they are.
+        val isOffChainInheritanceSetup = (requireActivity() as AddAirgapSignerActivity)
+            .onChainAddSignerParam
+            ?.let { it.isAddInheritanceOffChainSigner() && !it.isClaiming } == true
+        val exportXpubStep = signerTag.exportXpubStepRes().takeIf { isOffChainInheritanceSetup }
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
@@ -83,7 +84,7 @@ class AirgapIntroFragment : MembershipFragment() {
                     isMembershipFlow = isMembershipFlow,
                     isReplaceKey = replacedXfp.isNotEmpty(),
                     signerTag = signerTag,
-                    showKruxExportStep = showKruxExportStep,
+                    exportXpubStep = exportXpubStep,
                     onMoreClicked = ::handleShowMore,
                 ) {
                     findNavController().navigate(AirgapIntroFragmentDirections.actionAirgapIntroFragmentToAddAirgapSignerFragment())
@@ -99,7 +100,7 @@ private fun AirgapIntroContent(
     isMembershipFlow: Boolean = true,
     isReplaceKey: Boolean = false,
     signerTag: SignerTag? = null,
-    showKruxExportStep: Boolean = false,
+    exportXpubStep: Pair<Int, Int>? = null,
     onMoreClicked: () -> Unit = {},
     onContinueClicked: () -> Unit = {},
 ) {
@@ -187,16 +188,17 @@ private fun AirgapIntroContent(
                         style = NunchukTheme.typography.body
                     )
                 }
-                if (showKruxExportStep) {
+                if (exportXpubStep != null) {
+                    val (titleRes, descRes) = exportXpubStep
                     LabelNumberAndDesc(
                         modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp),
                         index = 3,
-                        title = stringResource(id = R.string.nc_krux_export_xpub_title),
+                        title = stringResource(id = titleRes),
                         titleStyle = NunchukTheme.typography.title
                     ) {
                         Text(
                             modifier = Modifier.padding(top = 8.dp, start = 36.dp),
-                            text = stringResource(id = R.string.nc_krux_export_xpub_desc),
+                            text = stringResource(id = descRes),
                             style = NunchukTheme.typography.body
                         )
                     }
@@ -210,4 +212,14 @@ private fun AirgapIntroContent(
 @Composable
 private fun AirgapIntroScreenPreview() {
     AirgapIntroContent()
+}
+
+/**
+ * Title and body of the third step for a device whose XPUB export lives somewhere the generic
+ * copy does not mention. Null for the devices the two generic steps already cover.
+ */
+private fun SignerTag?.exportXpubStepRes(): Pair<Int, Int>? = when (this) {
+    SignerTag.KRUX -> R.string.nc_krux_export_xpub_title to R.string.nc_krux_export_xpub_desc
+    SignerTag.JADE -> R.string.nc_jade_export_xpub_title to R.string.nc_jade_export_xpub_desc
+    else -> null
 }
