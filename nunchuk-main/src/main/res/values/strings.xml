@@ -733,11 +733,13 @@
     <string name="nc_claim_options_unavailable">No sharing options are available for this key right now. Please try again later.</string>
     <string name="nc_set_up">Set up</string>
     <string name="nc_sharing_method_not_set">Sharing method not set</string>
-    <string name="nc_not_verified">Not verified</string>
-    <string name="nc_one_of_two_verified">1 of 2 verified</string>
-    <string name="nc_backup_uploaded_seed_shared">Backup uploaded \u00b7 Seed shared</string>
-    <string name="nc_backup_uploaded">Backup uploaded</string>
-    <string name="nc_seed_shared">Seed shared</string>
+    <!-- Inheritance key row: one entry per chosen sharing method, e.g. "File: Verified" -->
+    <string name="nc_claim_status_encrypted_backup">File: %1$s</string>
+    <string name="nc_claim_status_seed_phrase">Seed: %1$s</string>
+    <string name="nc_claim_status_not_uploaded">Not uploaded</string>
+    <string name="nc_claim_status_pending">Pending</string>
+    <string name="nc_claim_status_skipped">Skipped</string>
+    <string name="nc_claim_status_verified">Verified</string>
     <!-- Off-chain inheritance key (BYOH) — verify the backups -->
     <string name="nc_verify_your_backups">Verify your backups</string>
     <string name="nc_verify_your_backups_desc">You chose to upload an encrypted backup and share the seed phrase. These are two independent ways for your Beneficiary to recover the key, so each is verified separately.</string>

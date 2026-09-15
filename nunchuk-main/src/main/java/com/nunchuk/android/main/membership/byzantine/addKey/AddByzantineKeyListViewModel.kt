@@ -190,6 +190,9 @@ class AddByzantineKeyListViewModel @Inject constructor(
                 verifyType = info.verifyType,
                 claimOptions = draftSigner?.claimOptions.orEmpty(),
                 verifications = draftSigner?.verifications.orEmpty(),
+                // The local step carries the uploaded backup's file name before the draft catches up.
+                hasEncryptedBackupFile = draftSigner?.userBackUpFileName.isNullOrEmpty().not()
+                        || extra?.userKeyFileName.isNullOrEmpty().not(),
                 isInheritanceKey = addKeyData.type.isAddInheritanceKey || draftSigner?.isInheritanceKey == true,
             )
             if (newKeyData.owesEncryptedBackup(extra)) {

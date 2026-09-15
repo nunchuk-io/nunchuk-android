@@ -111,6 +111,9 @@ import com.nunchuk.android.main.membership.honey.distribution.verifyClaimOptionR
 import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragment
 import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragmentArgs
 import com.nunchuk.android.main.membership.model.AddKeyData
+import com.nunchuk.android.main.membership.model.ClaimOptionState
+import com.nunchuk.android.main.membership.model.claimStatuses
+import com.nunchuk.android.main.membership.model.needsEncryptedBackupUpload
 import com.nunchuk.android.main.membership.model.InheritanceBackupBranch
 import com.nunchuk.android.main.membership.model.backupVendorTag
 import com.nunchuk.android.main.membership.model.inheritanceBackupBranch
@@ -970,6 +973,50 @@ fun AddKeyListContent(
     }
 }
 
+/**
+ * The status line under an off-chain inheritance key: one entry per sharing method the owner chose,
+ * or a prompt while the choice is still outstanding.
+ */
+@Composable
+private fun InheritanceClaimStatus(item: AddKeyData) {
+    val statuses = item.claimStatuses()
+    val style = NunchukTheme.typography.bodySmall.copy(
+        color = MaterialTheme.colorScheme.textSecondary
+    )
+    if (statuses.isEmpty()) {
+        Text(
+            modifier = Modifier.padding(top = 4.dp),
+            text = stringResource(R.string.nc_sharing_method_not_set),
+            style = style
+        )
+        return
+    }
+    Row(
+        modifier = Modifier.padding(top = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        statuses.forEach { status ->
+            Text(
+                text = stringResource(
+                    when (status.option) {
+                        ClaimOption.ENCRYPTED_BACKUP -> R.string.nc_claim_status_encrypted_backup
+                        ClaimOption.SEED_PHRASE -> R.string.nc_claim_status_seed_phrase
+                    },
+                    stringResource(
+                        when (status.state) {
+                            ClaimOptionState.NOT_UPLOADED -> R.string.nc_claim_status_not_uploaded
+                            ClaimOptionState.PENDING -> R.string.nc_claim_status_pending
+                            ClaimOptionState.SKIPPED -> R.string.nc_claim_status_skipped
+                            ClaimOptionState.VERIFIED -> R.string.nc_claim_status_verified
+                        }
+                    )
+                ),
+                style = style
+            )
+        }
+    }
+}
+
 @Composable
 fun AddKeyCard(
     item: AddKeyData,
@@ -1051,14 +1098,8 @@ fun AddKeyCard(
                                 text = item.signer.getXfpOrCardIdLabel(),
                                 style = NunchukTheme.typography.bodySmall
                             )
-                            item.claimStatusRes()?.let { statusRes ->
-                                Text(
-                                    modifier = Modifier.padding(top = 4.dp),
-                                    text = stringResource(statusRes),
-                                    style = NunchukTheme.typography.bodySmall.copy(
-                                        color = MaterialTheme.colorScheme.textSecondary
-                                    )
-                                )
+                            if (item.showsClaimStatus) {
+                                InheritanceClaimStatus(item = item)
                             }
                         }
                         if (item.needsClaimOptions) {
@@ -1076,7 +1117,7 @@ fun AddKeyCard(
                                 onClick = { onInheritanceBackupClicked(item) },
                             ) {
                                 Text(
-                                    text = if (item.resolvedClaimOptionCount == 0) {
+                                    text = if (item.needsEncryptedBackupUpload) {
                                         stringResource(R.string.nc_upload_backup)
                                     } else {
                                         stringResource(R.string.nc_verify_backup)

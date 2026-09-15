@@ -23,7 +23,6 @@ import android.content.Context
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.DEFAULT_KEY_NAME
 import com.nunchuk.android.core.util.HARDWARE_KEY_NAME
-import androidx.annotation.StringRes
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.TimelockExtra
@@ -31,6 +30,7 @@ import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.model.inheritance.ClaimOption
 import com.nunchuk.android.model.inheritance.InheritanceKeyVerification
 import com.nunchuk.android.model.inheritance.isResolved
+import com.nunchuk.android.model.inheritance.isVerified
 import com.nunchuk.android.model.isAddInheritanceKey
 import com.nunchuk.android.model.isTimelockStep
 
@@ -47,6 +47,12 @@ data class AddKeyData(
     /** One record per entry in [claimOptions]; empty on a legacy plan. */
     val verifications: List<InheritanceKeyVerification> = emptyList(),
     /**
+     * Whether the encrypted backup file has been uploaded for this key. The verification record
+     * alone cannot tell "no backup yet" from "backup uploaded, not verified yet", and the row
+     * distinguishes them: the first offers "Backup", the second "Verify backup".
+     */
+    val hasEncryptedBackupFile: Boolean = false,
+    /**
      * Whether this slot is the inheritance key.
      *
      * The membership step is the reliable signal here: a freshly created draft comes back with an
@@ -59,42 +65,57 @@ data class AddKeyData(
     val isVerifyOrAddKey: Boolean
         get() = signer != null || verifyType != VerifyType.NONE
 
+    /** Whether the row carries the inheritance status line at all. */
+    val showsClaimStatus: Boolean
+        get() = isInheritanceKey && signer != null
+
     /** An inheritance key that is in place but whose sharing method still has to be picked. */
     val needsClaimOptions: Boolean
-        get() = isInheritanceKey && signer != null && claimOptions.isEmpty()
+        get() = showsClaimStatus && claimOptions.isEmpty()
 
     /**
-     * Whether [option] has been dealt with. The server keeps one record per method and can still
-     * hold records for a method the owner has since dropped, so the chosen options — not
-     * [verifications] — decide what counts.
+     * Whether [option] has been dealt with — verified or deliberately skipped. The server keeps one
+     * record per method and can still hold records for a method the owner has since dropped, so the
+     * chosen options — not [verifications] — decide what counts.
      */
     fun isClaimOptionResolved(option: ClaimOption): Boolean =
         verifications.any { it.method == option && it.isResolved }
+
+    /** Whether [option] was actually checked. A skipped verification is resolved but not verified. */
+    fun isClaimOptionVerified(option: ClaimOption): Boolean =
+        verifications.any { it.method == option && it.isVerified }
 
     /** How many of the chosen sharing methods are verified (or deliberately skipped). */
     val resolvedClaimOptionCount: Int
         get() = claimOptions.count { isClaimOptionResolved(it) }
 
     /** True once every chosen sharing method has been dealt with. */
-    val isClaimVerified: Boolean
+    val isClaimSettled: Boolean
         get() = claimOptions.isNotEmpty() && resolvedClaimOptionCount == claimOptions.size
 
+    /** True only once every chosen sharing method has actually been verified. */
+    val isClaimVerified: Boolean
+        get() = claimOptions.isNotEmpty() && claimOptions.all { isClaimOptionVerified(it) }
+
     /**
-     * An inheritance key whose chosen sharing method still owes a backup or its verification.
+     * An off-chain inheritance key whose chosen sharing method still owes a backup or its
+     * verification — the state that keeps the row amber with an action on it.
      *
      * This outranks [verifyType]: the local step holds a single flag and goes green as soon as one
      * artifact is done, which would hide the second half of a "do both" key behind an "Added" tick.
+     * A skipped verification does not satisfy it either; the owner can still come back and verify,
+     * which is why skipping unblocks the wizard ([isInheritanceIncomplete]) without greening the row.
      */
     val needsClaimVerification: Boolean
-        get() = isInheritanceKey && signer != null && claimOptions.isNotEmpty() && !isClaimVerified
+        get() = showsClaimStatus && claimOptions.isNotEmpty() && !isClaimVerified
 
     /**
-     * An off-chain inheritance key that still owes something — a sharing method, or the
-     * verification of one it chose. The wallet cannot be configured until it is settled; a
-     * deliberately skipped verification counts as settled.
+     * An off-chain inheritance key that still owes something the wizard insists on — a sharing
+     * method, or an untouched verification of one it chose. The wallet cannot be configured until
+     * it is settled; a deliberately skipped verification counts as settled.
      */
     val isInheritanceIncomplete: Boolean
-        get() = needsClaimOptions || needsClaimVerification
+        get() = needsClaimOptions || (showsClaimStatus && claimOptions.isNotEmpty() && !isClaimSettled)
 
     /** Whether the row is finished, i.e. renders green with a tick rather than an action. */
     val isRowComplete: Boolean
@@ -103,24 +124,6 @@ data class AddKeyData(
         } else {
             verifyType != VerifyType.NONE
         }
-
-    /**
-     * The line under an inheritance key: which sharing method the owner chose and how far its
-     * verification has got. Null for every other key, which keeps its existing row.
-     */
-    @StringRes
-    fun claimStatusRes(): Int? {
-        if (!isInheritanceKey || signer == null) return null
-        if (claimOptions.isEmpty()) return R.string.nc_sharing_method_not_set
-        val verified = resolvedClaimOptionCount
-        return when {
-            verified == 0 -> R.string.nc_not_verified
-            verified < claimOptions.size -> R.string.nc_one_of_two_verified
-            claimOptions.size > 1 -> R.string.nc_backup_uploaded_seed_shared
-            claimOptions.first() == ClaimOption.ENCRYPTED_BACKUP -> R.string.nc_backup_uploaded
-            else -> R.string.nc_seed_shared
-        }
-    }
 }
 
 /**

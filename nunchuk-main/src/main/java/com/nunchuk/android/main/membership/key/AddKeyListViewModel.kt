@@ -164,10 +164,10 @@ class AddKeyListViewModel @Inject constructor(
                             return@map addKeyData.copy(
                                 signer = signer,
                                 verifyType = info.verifyType,
-                            ).withDraftClaimState(info.masterSignerId)
+                            ).withDraftClaimState(info.masterSignerId, extra)
                         }
                         val newKeyData = addKeyData.copy(verifyType = info.verifyType)
-                            .withDraftClaimState(info.masterSignerId)
+                            .withDraftClaimState(info.masterSignerId, extra)
                         if (newKeyData.owesEncryptedBackup(extra)) {
                             coldCardMissingBackupKeys.add(newKeyData)
                         }
@@ -256,12 +256,17 @@ class AddKeyListViewModel @Inject constructor(
         _state.update { it.copy(pendingClaimOptionsSigner = null) }
     }
 
-    /** Overlays what the server knows about this key onto the locally tracked step. */
-    private fun AddKeyData.withDraftClaimState(xfp: String): AddKeyData {
+    /**
+     * Overlays what the server knows about this key onto the locally tracked step. [extra] is the
+     * local step data, which carries the uploaded backup's file name before the draft catches up.
+     */
+    private fun AddKeyData.withDraftClaimState(xfp: String, extra: SignerExtra?): AddKeyData {
         val draftSigner = _state.value.draftSigners[xfp]
         return copy(
             claimOptions = draftSigner?.claimOptions.orEmpty(),
             verifications = draftSigner?.verifications.orEmpty(),
+            hasEncryptedBackupFile = draftSigner?.userBackUpFileName.isNullOrEmpty().not()
+                    || extra?.userKeyFileName.isNullOrEmpty().not(),
             isInheritanceKey = type.isAddInheritanceKey || draftSigner?.isInheritanceKey == true,
         )
     }
