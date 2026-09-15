@@ -772,7 +772,28 @@ internal class KeyRepositoryImpl @Inject constructor(
             response.data.keyId,
             response.data.keyBackUpBase64
         )
+        saveBackUpCheckSum(xfp = xfp, groupId = groupId, checkSum = response.data.keyCheckSum)
         return serverKeyFilePath
+    }
+
+    /**
+     * Keeps the local step's checksum in sync with the backup the server actually holds.
+     *
+     * [setKeyVerified] echoes this value back and the server rejects a mismatch with
+     * "Invalid backup checksum". It is otherwise written only while uploading, so verifying at any
+     * later point — the off-chain inheritance key's "Verify backup" action, a reinstall, any run
+     * where the step row outlived the upload — sent an empty checksum and could never succeed.
+     */
+    private suspend fun saveBackUpCheckSum(xfp: String, groupId: String, checkSum: String) {
+        if (checkSum.isEmpty()) return
+        val stepInfo = membershipDao.getStepByMasterSignerId(
+            email = accountManager.getAccount().chatId,
+            chain = chain.value,
+            masterSignerId = xfp,
+            groupId = groupId,
+        ) ?: return
+        if (stepInfo.checkSum == checkSum) return
+        membershipDao.update(stepInfo.copy(checkSum = checkSum))
     }
 
     override suspend fun getBackUpKeyReplacement(
