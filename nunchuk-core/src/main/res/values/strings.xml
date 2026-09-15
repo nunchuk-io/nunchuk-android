@@ -541,8 +541,6 @@
     <string name="nc_inheritance_share_secret_info_title_indirect">Please share these two secrets with the Trustee:</string>
     <string name="nc_inheritance_share_secret_info_title_joint_control">Please share one secret with the Beneficiary and the other secret with the Trustee. [B]Neither party should have both secrets.[/B]</string>
     <!-- Share your secrets — the list is driven by the inheritance key's claim options (seed phrase, encrypted backup, or both) -->
-    <string name="nc_inheritance_share_secret_info_title_direct_three">Please share these three secrets with the Beneficiary:</string>
-    <string name="nc_inheritance_share_secret_info_title_indirect_three">Please share these three secrets with the Trustee:</string>
     <string name="nc_inheritance_share_secret_seed_phrase">The inheritance key’s seed phrase backup.</string>
     <string name="nc_inheritance_share_secret_warning_seed_only">There is no encrypted backup on the server for this plan, so the seed phrase backup is the only way to recover the inheritance key. Failure to share it will result in the inheritance being unclaimable.</string>
     <string name="nc_inheritance_share_secret_warning_all">You are solely responsible for sharing these secrets with the %s. Failure to share will result in the inheritance being unclaimable.</string>

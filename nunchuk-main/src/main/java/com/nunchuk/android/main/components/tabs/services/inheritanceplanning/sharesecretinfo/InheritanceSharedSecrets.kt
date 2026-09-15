@@ -9,8 +9,8 @@ import com.nunchuk.android.model.inheritance.ClaimOption
  * What "Share your secrets" has to list, derived from the inheritance key's claim options.
  *
  * The plan used to have exactly two secrets — the Magic Phrase and the Backup Password. With BYOH the
- * key can reach the Beneficiary by two routes, so the Magic Phrase is still secret 1 and the rest of
- * the list is whatever the owner chose during wallet setup.
+ * key can reach the Beneficiary by two routes, so it is still two secrets — the Magic Phrase, then the
+ * inheritance key — and the routes the owner chose during wallet setup are bullets inside the second.
  *
  * The Backup Password comes first when both are chosen, which is the order the design lists them in.
  */
@@ -41,22 +41,22 @@ internal val ClaimOption.shareSecretLabelRes: Int
         ClaimOption.SEED_PHRASE -> R.string.nc_inheritance_share_secret_seed_phrase
     }
 
-/** "Please share these two/three secrets with the <party>:" — the Magic Phrase plus every key route. */
+/**
+ * "Please share these two secrets with the <party>:" — the Magic Phrase, then the inheritance key.
+ *
+ * The count does not follow the key's routes: however many it has, they all unlock that one key, so
+ * the screen lists two secrets and the routes are bullets inside the second.
+ */
 @StringRes
-internal fun shareSecretTitleRes(type: Int, routes: List<ClaimOption>): Int {
-    val hasThreeSecrets = routes.size > 1
-    return when (type) {
-        InheritanceShareSecretType.INDIRECT.ordinal ->
-            if (hasThreeSecrets) R.string.nc_inheritance_share_secret_info_title_indirect_three
-            else R.string.nc_inheritance_share_secret_info_title_indirect
+internal fun shareSecretTitleRes(type: Int): Int = when (type) {
+    InheritanceShareSecretType.INDIRECT.ordinal ->
+        R.string.nc_inheritance_share_secret_info_title_indirect
 
-        InheritanceShareSecretType.JOINT_CONTROL.ordinal ->
-            R.string.nc_inheritance_share_secret_info_title_joint_control
+    InheritanceShareSecretType.JOINT_CONTROL.ordinal ->
+        R.string.nc_inheritance_share_secret_info_title_joint_control
 
-        else ->
-            if (hasThreeSecrets) R.string.nc_inheritance_share_secret_info_title_direct_three
-            else R.string.nc_inheritance_share_secret_info_title_direct
-    }
+    else ->
+        R.string.nc_inheritance_share_secret_info_title_direct
 }
 
 /** The party the secrets go to, for the warning that names them. */

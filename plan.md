@@ -245,20 +245,28 @@ backup.
   as the key can reach the Beneficiary by two routes. The list is now driven by the inheritance
   key's `claim_options`, read off the wallet's server signers in `InheritancePlanningViewModel`
   (`inheritanceClaimOptions`, the **union** across keys: every route any key uses has to be shared):
+  - The screen is **two cards in every case** — Secret 1 the Magic Phrase, Secret 2 the inheritance
+    key with a bullet per route — which is what the 2026-09-15 frames
+    (`Downloads/inheritance/Post 02–05`) draw for Direct, Indirect and Joint alike. The routes are
+    not secrets of their own, so the title stays "these two secrets" however many there are, and the
+    old numbered `NCLabelWithIndex` list and its "three secrets" titles are gone.
   - seed phrase only → Magic Phrase + seed phrase backup, with the "no encrypted backup exists"
-    warning; encrypted backup only → today's screen, unchanged; both → three secrets.
+    warning; encrypted backup only → the same two cards, one bullet; both → two bullets in Secret 2.
   - `toInheritanceKeyRoutes()` (`sharesecretinfo/InheritanceSharedSecrets.kt`) is the one place that
     reads an **empty** `claim_options` as `ENCRYPTED_BACKUP`: a legacy plan predates the choice and
     always had one, so empty must not read as "nothing to share". On-chain never reaches it.
-  - Joint control gets the grouped **Secret 1 | Secret 2** card once the key has a seed route: the
-    two routes unlock the same key, so handing one to each party would give both a working copy and
-    leave the Magic Phrase unmatched. A backup-only key has nothing to group, so it keeps the
-    numbered list — **confirmed with the owner (2026-09-15)**, not an inference from the design note:
-    the design never drew that case, and leaving it alone means no existing joint plan changes
-    appearance. The guard is `ClaimOption.SEED_PHRASE in routes` in `InheritanceShareSecretInfoContent`.
-    Card icons: Secret 2's `key-dark` turned out to be the existing `ic_key` scaled 24→20 (same path,
-    same `#031F2B`), so only Secret 1's `security-answer-distribution` needed importing — monochrome,
-    tinted by `NcIcon`, so no dark-mode plate to remap.
+  - Joint control is the same two cards, plus the grey note under Secret 2 when the key has both
+    routes: they unlock the same key, so handing one to each party would give both a working copy
+    and leave the Magic Phrase unmatched. The note is the only joint-only piece — the grouping
+    itself is now how every party type renders, so there is no `SEED_PHRASE in routes` branch left
+    in `InheritanceShareSecretInfoContent` and joint + backup-only no longer falls back to a
+    numbered list. Card icons: Secret 2's `key-dark` turned out to be the existing `ic_key` scaled
+    24→20 (same path, same `#031F2B`), so only Secret 1's `security-answer-distribution` needed
+    importing — monochrome, tinted by `NcIcon`, so no dark-mode plate to remap.
+  - Multi-beneficiary is **not** redrawn: its per-beneficiary card keeps the numbered list, because
+    the frames never covered that flow. With both routes it therefore still reads as three numbered
+    items inside one beneficiary card, which contradicts the two-secret framing — raise it with
+    design before changing it.
   - "Learn more" is now two destinations: the Backup Password screen (Keystone + a generic "Other
     devices" added — it listed only TAPSIGNER and COLDCARD, which no longer covers the hardware, and
     its copy was hard-coded English) and a new seed-phrase screen (`seedphrasebackupinfo/`).
