@@ -24,6 +24,7 @@ import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.Inh
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.MembershipStepEffect
 import com.nunchuk.android.model.Period
+import com.nunchuk.android.model.inheritance.ClaimOption
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.utils.serializable
@@ -46,7 +47,7 @@ fun NavGraphBuilder.inheritanceReviewPlan(
     onClose: () -> Unit,
     onViewClaimingInstruction: () -> Unit,
     onEditBufferPeriodClick: (Period?) -> Unit,
-    onBackUpPasswordInfoClick: () -> Unit,
+    onInheritanceKeyInfoClick: (routes: List<ClaimOption>) -> Unit,
     onEditAssetAllocationClick: () -> Unit,
     onEditReleaseMethodClick: () -> Unit,
     onEditBeneficiarySchedulesClick: () -> Unit,
@@ -159,7 +160,7 @@ fun NavGraphBuilder.inheritanceReviewPlan(
             },
             onViewClaimingInstruction = onViewClaimingInstruction,
             onEditBufferPeriodClick = onEditBufferPeriodClick,
-            onBackUpPasswordInfoClick = onBackUpPasswordInfoClick,
+            onInheritanceKeyInfoClick = onInheritanceKeyInfoClick,
             onEditAssetAllocationClick = onEditAssetAllocationClick,
             onEditReleaseMethodClick = onEditReleaseMethodClick,
             onEditBeneficiarySchedulesClick = onEditBeneficiarySchedulesClick,

@@ -22,6 +22,7 @@ import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.act
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.activationdate.navigateToInheritanceActivationDate
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.assetallocation.inheritanceAssetAllocation
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.assetallocation.navigateToInheritanceAssetAllocation
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.backupdownload.InheritanceBackUpDownloadRoute
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.backupdownload.inheritanceBackUpDownload
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.backupdownload.navigateToInheritanceBackUpDownload
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.beneficiaryschedules.InheritanceBeneficiaryScheduleConfig
@@ -91,11 +92,14 @@ import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.rev
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.reviewplan.navigateToInheritanceReviewPlan
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.sharesecret.inheritanceShareSecret
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.sharesecret.navigateToInheritanceShareSecret
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.seedphrasebackupinfo.inheritanceSeedPhraseBackupInfo
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.seedphrasebackupinfo.navigateToInheritanceSeedPhraseBackupInfo
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.sharesecretinfo.inheritanceShareSecretInfo
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.sharesecretinfo.navigateToInheritanceShareSecretInfo
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.timelockinfo.inheritanceTimelockInfo
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.timelockinfo.navigateToInheritanceTimelockInfo
 import com.nunchuk.android.model.Period
+import com.nunchuk.android.model.inheritance.ClaimOption
 import com.nunchuk.android.model.inheritance.InheritanceNotificationSettings
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipStepManager
@@ -881,8 +885,18 @@ fun InheritancePlanningGraph(
                     navController.navigateToInheritanceBufferPeriod(isUpdateRequest = true)
                 }
             },
-            onBackUpPasswordInfoClick = {
-                navController.navigateToInheritanceBackUpDownload()
+            onInheritanceKeyInfoClick = { routes ->
+                // Both methods run as one two-step explanation; a single method opens its own screen.
+                when {
+                    routes.size > 1 -> navController.navigateToInheritanceBackUpDownload(
+                        continueToSeedPhrase = true
+                    )
+
+                    routes.singleOrNull() == ClaimOption.SEED_PHRASE ->
+                        navController.navigateToInheritanceSeedPhraseBackupInfo()
+
+                    else -> navController.navigateToInheritanceBackUpDownload()
+                }
             },
             onEditAssetAllocationClick = {
                 navController.navigateToInheritanceAssetAllocation(isUpdateRequest = true)
@@ -931,10 +945,30 @@ fun InheritancePlanningGraph(
             onNavigateToBackUpDownload = {
                 navController.navigateToInheritanceBackUpDownload()
             },
+            onNavigateToSeedPhraseBackupInfo = {
+                navController.navigateToInheritanceSeedPhraseBackupInfo()
+            },
         )
 
         inheritanceBackUpDownload(
-            onContinueClicked = { navController.popBackStack() },
+            onContinueClicked = { route ->
+                if (route.continueToSeedPhrase) {
+                    navController.navigateToInheritanceSeedPhraseBackupInfo(hasBothMethods = true)
+                } else {
+                    navController.popBackStack()
+                }
+            },
+        )
+
+        inheritanceSeedPhraseBackupInfo(
+            onContinueClicked = { route ->
+                // Step 2 of the both-methods explanation closes the pair; on its own it closes itself.
+                if (route.hasBothMethods) {
+                    navController.popBackStack<InheritanceBackUpDownloadRoute>(inclusive = true)
+                } else {
+                    navController.popBackStack()
+                }
+            },
         )
 
         inheritanceHowItWorks(

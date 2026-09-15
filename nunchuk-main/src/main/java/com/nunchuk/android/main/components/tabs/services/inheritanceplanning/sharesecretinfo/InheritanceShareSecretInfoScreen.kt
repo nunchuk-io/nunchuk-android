@@ -19,11 +19,13 @@
 
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.sharesecretinfo
 
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -33,9 +35,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -62,9 +66,11 @@ import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
+import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.greyLight
 import com.nunchuk.android.compose.strokePrimary
+import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.main.R
@@ -72,6 +78,7 @@ import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.Inh
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceSetupFlowType
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.sharesecret.InheritanceShareSecretType
+import com.nunchuk.android.model.inheritance.ClaimOption
 import com.nunchuk.android.utils.Utils
 
 @Composable
@@ -82,7 +89,8 @@ internal fun InheritanceShareSecretInfoScreen(
     magicalPhrase: String,
     planFlow: Int,
     onContinue: () -> Unit = {},
-    onLearnMoreClicked: () -> Unit = {},
+    onLearnMoreBackupPasswordClicked: () -> Unit = {},
+    onLearnMoreSeedPhraseClicked: () -> Unit = {},
     onSaveBsms: () -> Unit = {},
 ) {
     val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
@@ -94,10 +102,12 @@ internal fun InheritanceShareSecretInfoScreen(
         magicalPhrase = magicalPhrase,
         planFlow = planFlow,
         onContinue = onContinue,
-        onLearnMoreClicked = onLearnMoreClicked,
+        onLearnMoreBackupPasswordClicked = onLearnMoreBackupPasswordClicked,
+        onLearnMoreSeedPhraseClicked = onLearnMoreSeedPhraseClicked,
         onSaveBsms = onSaveBsms,
         beneficiaryAllocations = sharedUiState.setupOrReviewParam.beneficiaryAllocations,
         setupFlowType = sharedUiState.setupOrReviewParam.setupFlowType,
+        claimOptions = sharedUiState.inheritanceClaimOptions,
     )
 }
 
@@ -110,11 +120,14 @@ private fun InheritanceShareSecretInfoContent(
     type: Int = 0,
     planFlow: Int = InheritancePlanFlow.NONE,
     onContinue: () -> Unit = {},
-    onLearnMoreClicked: () -> Unit = {},
+    onLearnMoreBackupPasswordClicked: () -> Unit = {},
+    onLearnMoreSeedPhraseClicked: () -> Unit = {},
     onSaveBsms: () -> Unit = {},
     beneficiaryAllocations: List<InheritanceBeneficiaryAllocation> = emptyList(),
     setupFlowType: InheritanceSetupFlowType = InheritanceSetupFlowType.OLD_FLOW,
+    claimOptions: List<ClaimOption> = emptyList(),
 ) {
+    val routes = claimOptions.toInheritanceKeyRoutes()
     if (isMiniscriptWallet) {
         InheritanceOnChainShareSecretInfoContent(
             remainTime = remainTime,
@@ -130,8 +143,25 @@ private fun InheritanceShareSecretInfoContent(
             beneficiaryAllocations = beneficiaryAllocations,
             type = type,
             planFlow = planFlow,
+            routes = routes,
             onActionClick = onContinue,
-            onLearnMoreClicked = onLearnMoreClicked
+            onLearnMoreBackupPasswordClicked = onLearnMoreBackupPasswordClicked,
+            onLearnMoreSeedPhraseClicked = onLearnMoreSeedPhraseClicked,
+        )
+    } else if (type == InheritanceShareSecretType.JOINT_CONTROL.ordinal &&
+        ClaimOption.SEED_PHRASE in routes
+    ) {
+        // The two routes unlock the same key, so joint control must not split them one per party.
+        // Grouping them into a single "Secret 2" card makes that structural rather than advisory.
+        // A key that only has an encrypted backup has nothing to group and keeps the numbered list.
+        InheritanceJointControlShareSecretContent(
+            remainTime = remainTime,
+            magicalPhrase = magicalPhrase,
+            planFlow = planFlow,
+            routes = routes,
+            onActionClick = onContinue,
+            onLearnMoreBackupPasswordClicked = onLearnMoreBackupPasswordClicked,
+            onLearnMoreSeedPhraseClicked = onLearnMoreSeedPhraseClicked,
         )
     } else {
         InheritanceOffChainShareSecretInfoContent(
@@ -139,10 +169,52 @@ private fun InheritanceShareSecretInfoContent(
             magicalPhrase = magicalPhrase,
             type = type,
             planFlow = planFlow,
+            routes = routes,
             onActionClick = onContinue,
-            onLearnMoreClicked = onLearnMoreClicked
+            onLearnMoreBackupPasswordClicked = onLearnMoreBackupPasswordClicked,
+            onLearnMoreSeedPhraseClicked = onLearnMoreSeedPhraseClicked,
         )
     }
+}
+
+/** The inline "Learn more" that opens the explanation for this route. */
+@Composable
+private fun ShareSecretRouteText(
+    modifier: Modifier = Modifier,
+    route: ClaimOption,
+    prefix: String = "",
+    onLearnMoreBackupPasswordClicked: () -> Unit,
+    onLearnMoreSeedPhraseClicked: () -> Unit,
+) {
+    val onLearnMoreClicked = when (route) {
+        ClaimOption.ENCRYPTED_BACKUP -> onLearnMoreBackupPasswordClicked
+        ClaimOption.SEED_PHRASE -> onLearnMoreSeedPhraseClicked
+    }
+    NcClickableText(
+        modifier = modifier,
+        messages = listOf(
+            ClickAbleText(content = prefix + stringResource(id = route.shareSecretLabelRes)),
+            ClickAbleText(content = stringResource(id = R.string.nc_learn_more), onLearnMoreClicked)
+        ),
+        style = NunchukTheme.typography.body
+    )
+}
+
+@Composable
+private fun ShareSecretWarningMessage(
+    modifier: Modifier = Modifier,
+    type: Int,
+    routes: List<ClaimOption>,
+) {
+    val warning = shareSecretWarning(type = type, routes = routes)
+    val text = warning.partyRes
+        ?.let { stringResource(warning.textRes, stringResource(it)) }
+        ?: stringResource(warning.textRes)
+    NcHintMessage(
+        modifier = modifier,
+        messages = listOf(ClickAbleText(content = text)),
+        type = HighlightMessageType.WARNING,
+    )
 }
 
 @Composable
@@ -151,8 +223,10 @@ private fun InheritanceOffChainShareSecretInfoContent(
     magicalPhrase: String = "",
     type: Int = 0,
     planFlow: Int = InheritancePlanFlow.NONE,
+    routes: List<ClaimOption> = listOf(ClaimOption.ENCRYPTED_BACKUP),
     onActionClick: () -> Unit = {},
-    onLearnMoreClicked: () -> Unit = {}
+    onLearnMoreBackupPasswordClicked: () -> Unit = {},
+    onLearnMoreSeedPhraseClicked: () -> Unit = {},
 ) {
     NunchukTheme {
         Scaffold(
@@ -178,16 +252,9 @@ private fun InheritanceOffChainShareSecretInfoContent(
             ) {
                 LazyColumn(modifier = Modifier.weight(1f)) {
                     item {
-                        val typeDesc = when (type) {
-                            InheritanceShareSecretType.DIRECT.ordinal -> stringResource(id = R.string.nc_inheritance_share_secret_info_title_direct)
-                            InheritanceShareSecretType.INDIRECT.ordinal -> stringResource(id = R.string.nc_inheritance_share_secret_info_title_indirect)
-                            InheritanceShareSecretType.JOINT_CONTROL.ordinal -> stringResource(id = R.string.nc_inheritance_share_secret_info_title_joint_control)
-                            else -> ""
-                        }
-
                         NcHighlightText(
                             modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
-                            text = typeDesc,
+                            text = stringResource(id = shareSecretTitleRes(type, routes)),
                             style = NunchukTheme.typography.body
                         )
                         NCLabelWithIndex(
@@ -224,44 +291,28 @@ private fun InheritanceOffChainShareSecretInfoContent(
                             }
                         }
 
-                        NCLabelWithIndex(
-                            modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp),
-                            index = 2,
-                        ) {
-                            NcClickableText(
-                                modifier = Modifier.padding(top = 0.dp),
-                                messages = listOf(
-                                    ClickAbleText(content = stringResource(id = R.string.nc_inheritance_share_secret_info_2)),
-                                    ClickAbleText(
-                                        content = stringResource(id = R.string.nc_learn_more),
-                                        onLearnMoreClicked
-                                    )
-                                ),
-                                style = NunchukTheme.typography.body
-                            )
+                        routes.forEachIndexed { position, route ->
+                            NCLabelWithIndex(
+                                modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp),
+                                index = position + 2,
+                            ) {
+                                ShareSecretRouteText(
+                                    modifier = Modifier.padding(top = 0.dp),
+                                    route = route,
+                                    onLearnMoreBackupPasswordClicked = onLearnMoreBackupPasswordClicked,
+                                    onLearnMoreSeedPhraseClicked = onLearnMoreSeedPhraseClicked,
+                                )
+                            }
                         }
 
                         Spacer(modifier = Modifier.height(20.dp))
                     }
                 }
 
-                val warningDesc = when (type) {
-                    InheritanceShareSecretType.DIRECT.ordinal -> stringResource(id = R.string.nc_beneficiary)
-                    InheritanceShareSecretType.INDIRECT.ordinal -> stringResource(id = R.string.nc_trustee)
-                    InheritanceShareSecretType.JOINT_CONTROL.ordinal -> stringResource(id = R.string.nc_beneficiary_trustee)
-                    else -> ""
-                }
-                NcHintMessage(
+                ShareSecretWarningMessage(
                     modifier = Modifier.padding(horizontal = 16.dp),
-                    messages = listOf(
-                        ClickAbleText(
-                            content = stringResource(
-                                R.string.nc_inheritance_share_secret_info_warning,
-                                warningDesc
-                            )
-                        )
-                    ),
-                    type = HighlightMessageType.WARNING,
+                    type = type,
+                    routes = routes,
                 )
                 NcPrimaryDarkButton(
                     modifier = Modifier
@@ -292,8 +343,10 @@ private fun InheritanceOffChainMultiBeneficiaryContent(
     beneficiaryAllocations: List<InheritanceBeneficiaryAllocation> = emptyList(),
     type: Int = 0,
     planFlow: Int = InheritancePlanFlow.NONE,
+    routes: List<ClaimOption> = listOf(ClaimOption.ENCRYPTED_BACKUP),
     onActionClick: () -> Unit = {},
-    onLearnMoreClicked: () -> Unit = {}
+    onLearnMoreBackupPasswordClicked: () -> Unit = {},
+    onLearnMoreSeedPhraseClicked: () -> Unit = {},
 ) {
     NunchukTheme {
         Scaffold(
@@ -303,23 +356,10 @@ private fun InheritanceOffChainMultiBeneficiaryContent(
             ),
             bottomBar = {
                 Column {
-                    val warningDesc = when (type) {
-                        InheritanceShareSecretType.DIRECT.ordinal -> stringResource(id = R.string.nc_beneficiary)
-                        InheritanceShareSecretType.INDIRECT.ordinal -> stringResource(id = R.string.nc_trustee)
-                        InheritanceShareSecretType.JOINT_CONTROL.ordinal -> stringResource(id = R.string.nc_beneficiary_trustee)
-                        else -> ""
-                    }
-                    NcHintMessage(
+                    ShareSecretWarningMessage(
                         modifier = Modifier.padding(horizontal = 16.dp),
-                        messages = listOf(
-                            ClickAbleText(
-                                content = stringResource(
-                                    R.string.nc_inheritance_share_secret_info_warning,
-                                    warningDesc
-                                )
-                            )
-                        ),
-                        type = HighlightMessageType.WARNING,
+                        type = type,
+                        routes = routes,
                     )
                     NcPrimaryDarkButton(
                         modifier = Modifier
@@ -379,7 +419,9 @@ private fun InheritanceOffChainMultiBeneficiaryContent(
                             .padding(start = 16.dp, end = 16.dp, top = 16.dp),
                         email = allocation.email,
                         magicalPhrase = allocation.magic,
-                        onLearnMoreClicked = onLearnMoreClicked,
+                        routes = routes,
+                        onLearnMoreBackupPasswordClicked = onLearnMoreBackupPasswordClicked,
+                        onLearnMoreSeedPhraseClicked = onLearnMoreSeedPhraseClicked,
                     )
                 }
 
@@ -396,7 +438,9 @@ private fun BeneficiarySecretCard(
     modifier: Modifier = Modifier,
     email: String,
     magicalPhrase: String,
-    onLearnMoreClicked: () -> Unit = {},
+    routes: List<ClaimOption> = listOf(ClaimOption.ENCRYPTED_BACKUP),
+    onLearnMoreBackupPasswordClicked: () -> Unit = {},
+    onLearnMoreSeedPhraseClicked: () -> Unit = {},
 ) {
     Column(
         modifier = modifier
@@ -439,22 +483,187 @@ private fun BeneficiarySecretCard(
             )
         }
 
-        NCLabelWithIndex(
-            modifier = Modifier.padding(top = 16.dp),
-            index = 2,
-        ) {
-            NcClickableText(
-                modifier = Modifier.padding(top = 0.dp),
-                messages = listOf(
-                    ClickAbleText(content = stringResource(id = R.string.nc_inheritance_share_secret_info_2)),
-                    ClickAbleText(
-                        content = stringResource(id = R.string.nc_learn_more),
-                        onLearnMoreClicked
+        routes.forEachIndexed { position, route ->
+            NCLabelWithIndex(
+                modifier = Modifier.padding(top = 16.dp),
+                index = position + 2,
+            ) {
+                ShareSecretRouteText(
+                    modifier = Modifier.padding(top = 0.dp),
+                    route = route,
+                    onLearnMoreBackupPasswordClicked = onLearnMoreBackupPasswordClicked,
+                    onLearnMoreSeedPhraseClicked = onLearnMoreSeedPhraseClicked,
+                )
+            }
+        }
+    }
+}
+
+/**
+ * Joint control, where the key reaches its party by more than one route.
+ *
+ * The routes are not two secrets — they both unlock the same inheritance key — so the split has to
+ * stay Magic Phrase | inheritance key. Handing one route to each party would give both a working copy
+ * of the key and leave the Magic Phrase unmatched, which defeats joint control, hence the single
+ * "Secret 2" card instead of a numbered list.
+ */
+@Composable
+private fun InheritanceJointControlShareSecretContent(
+    remainTime: Int = 0,
+    magicalPhrase: String = "",
+    planFlow: Int = InheritancePlanFlow.NONE,
+    routes: List<ClaimOption> = listOf(ClaimOption.ENCRYPTED_BACKUP, ClaimOption.SEED_PHRASE),
+    onActionClick: () -> Unit = {},
+    onLearnMoreBackupPasswordClicked: () -> Unit = {},
+    onLearnMoreSeedPhraseClicked: () -> Unit = {},
+) {
+    NunchukTheme {
+        Scaffold(
+            modifier = Modifier.navigationBarsPadding(),
+            topBar = {
+                val title = if (planFlow == InheritancePlanFlow.SETUP) {
+                    stringResource(id = R.string.nc_estimate_remain_time, remainTime)
+                } else {
+                    ""
+                }
+                NcTopAppBar(title = title)
+            },
+            bottomBar = {
+                Column {
+                    ShareSecretWarningMessage(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        type = InheritanceShareSecretType.JOINT_CONTROL.ordinal,
+                        routes = routes,
                     )
-                ),
-                style = NunchukTheme.typography.body
+                    NcPrimaryDarkButton(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        onClick = onActionClick,
+                    ) {
+                        Text(text = stringResource(id = R.string.nc_text_done))
+                    }
+                    NcOutlineButton(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp)
+                            .padding(bottom = 16.dp)
+                            .height(48.dp),
+                        onClick = onActionClick,
+                    ) {
+                        Text(text = stringResource(R.string.nc_text_do_this_later))
+                    }
+                }
+            }
+        ) { innerPadding ->
+            LazyColumn(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .fillMaxSize()
+            ) {
+                item {
+                    NcHighlightText(
+                        modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
+                        text = stringResource(id = R.string.nc_inheritance_share_secret_info_title_joint_control),
+                        style = NunchukTheme.typography.body
+                    )
+
+                    SecretCard(
+                        modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
+                        iconRes = R.drawable.ic_security_answer_distribution,
+                        title = stringResource(id = R.string.nc_inheritance_secret_magic_phrase_card),
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .padding(top = 16.dp)
+                                .fillMaxWidth()
+                                .background(
+                                    color = MaterialTheme.colorScheme.greyLight,
+                                    shape = RoundedCornerShape(12.dp)
+                                )
+                        ) {
+                            Text(
+                                modifier = Modifier
+                                    .padding(16.dp)
+                                    .fillMaxWidth(),
+                                text = magicalPhrase.ifEmpty { Utils.maskValue("", isMask = true) },
+                                style = NunchukTheme.typography.body,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+
+                    SecretCard(
+                        modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
+                        iconRes = R.drawable.ic_key,
+                        title = stringResource(id = R.string.nc_inheritance_secret_key_card),
+                    ) {
+                        routes.forEach { route ->
+                            ShareSecretRouteText(
+                                modifier = Modifier.padding(top = 16.dp),
+                                route = route,
+                                prefix = "•  ",
+                                onLearnMoreBackupPasswordClicked = onLearnMoreBackupPasswordClicked,
+                                onLearnMoreSeedPhraseClicked = onLearnMoreSeedPhraseClicked,
+                            )
+                        }
+                        if (routes.size > 1) {
+                            Text(
+                                modifier = Modifier.padding(top = 16.dp),
+                                text = stringResource(id = R.string.nc_inheritance_key_routes_same_party),
+                                style = NunchukTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.textSecondary,
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(20.dp))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SecretCard(
+    modifier: Modifier = Modifier,
+    @DrawableRes iconRes: Int,
+    title: String,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .border(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.strokePrimary,
+                shape = RoundedCornerShape(12.dp)
+            )
+            .padding(16.dp)
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                modifier = Modifier
+                    .size(36.dp)
+                    .background(
+                        color = MaterialTheme.colorScheme.greyLight,
+                        shape = CircleShape
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                NcIcon(
+                    modifier = Modifier.size(20.dp),
+                    painter = painterResource(iconRes),
+                    contentDescription = null,
+                )
+            }
+            Text(
+                modifier = Modifier.padding(start = 12.dp),
+                text = title,
+                style = NunchukTheme.typography.title,
             )
         }
+        content()
     }
 }
 
@@ -626,6 +835,44 @@ private fun InheritanceOnChainShareSecretInfoContent(
 private fun InheritanceShareSecretInfoScreenPreview() {
     InheritanceShareSecretInfoContent(
         isMiniscriptWallet = false
+    )
+}
+
+@PreviewLightDark
+@Composable
+private fun InheritanceShareSecretSeedPhraseOnlyPreview() {
+    InheritanceOffChainShareSecretInfoContent(
+        type = InheritanceShareSecretType.DIRECT.ordinal,
+        magicalPhrase = "dolphin concert apple",
+        routes = listOf(ClaimOption.SEED_PHRASE),
+    )
+}
+
+@PreviewLightDark
+@Composable
+private fun InheritanceShareSecretDoBothPreview() {
+    InheritanceOffChainShareSecretInfoContent(
+        type = InheritanceShareSecretType.DIRECT.ordinal,
+        magicalPhrase = "dolphin concert apple",
+        routes = listOf(ClaimOption.ENCRYPTED_BACKUP, ClaimOption.SEED_PHRASE),
+    )
+}
+
+@PreviewLightDark
+@Composable
+private fun InheritanceJointControlDoBothPreview() {
+    InheritanceJointControlShareSecretContent(
+        magicalPhrase = "dolphin concert apple",
+        routes = listOf(ClaimOption.ENCRYPTED_BACKUP, ClaimOption.SEED_PHRASE),
+    )
+}
+
+@PreviewLightDark
+@Composable
+private fun InheritanceJointControlSeedPhraseOnlyPreview() {
+    InheritanceJointControlShareSecretContent(
+        magicalPhrase = "dolphin concert apple",
+        routes = listOf(ClaimOption.SEED_PHRASE),
     )
 }
 

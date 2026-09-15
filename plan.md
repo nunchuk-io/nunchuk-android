@@ -35,13 +35,25 @@ Two traps when extracting it:
    the Ledger frames hide step 3 (so Ledger is 2 steps) and the Jade/Krux frames have 3 visible
    steps. Trust the frames.
 
-MCP access is rate-limited hard (Figma counts tool calls **per month** — 6 or 20 depending on seat).
-Prefer the REST API with the PAT already in `.mcp.json`:
+**Both ways in are metered — budget them.** MCP counts tool calls **per month** (6 or 20 depending on
+seat) and says so plainly when exhausted. The REST PAT in `.mcp.json` is the one to prefer, but it is
+not unlimited either: `/v1/files/.../nodes` and `/v1/images` sit behind the API paywall
+(`x-figma-rate-limit-type: low`, `x-figma-plan-tier: pro`) and return `429` with a `retry-after` in
+the **tens of thousands of seconds** — 13.7 h on 2026-09-14. `/v1/me` keeps working, so a 200 there
+only proves the token is valid, not that you have budget. The limit is per account, so minting a
+fresh PAT does not reset it.
 
 ```
 curl -H "X-Figma-Token: $TOKEN" \
   "https://api.figma.com/v1/files/c1J2lsV2uVgb8XBtQa4m03/nodes?ids=1:2"
+# check the budget before assuming a fetch will land:
+curl -sD - -o /dev/null -H "X-Figma-Token: $TOKEN" \
+  "https://api.figma.com/v1/files/c1J2lsV2uVgb8XBtQa4m03/nodes?ids=1:2&depth=1" | grep -i retry-after
 ```
+
+So **fetch the whole page once and keep the dump**, rather than pulling frame by frame. When the
+budget is gone, a screenshot pasted into the conversation is the fastest substitute for everything
+except asset export.
 
 ---
 
@@ -228,6 +240,44 @@ backup.
   to make, which disabled Continue forever. It now only applies once the owner has actually asked
   for an encrypted backup (legacy plans, which record no `claim_options`, keep the old rule).
 
+- **"Share your secrets" follows the sharing method** (post-plan setup, `inheritanceplanning/`). The
+  step used to assume exactly two secrets — Magic Phrase + Backup Password — which is wrong as soon
+  as the key can reach the Beneficiary by two routes. The list is now driven by the inheritance
+  key's `claim_options`, read off the wallet's server signers in `InheritancePlanningViewModel`
+  (`inheritanceClaimOptions`, the **union** across keys: every route any key uses has to be shared):
+  - seed phrase only → Magic Phrase + seed phrase backup, with the "no encrypted backup exists"
+    warning; encrypted backup only → today's screen, unchanged; both → three secrets.
+  - `toInheritanceKeyRoutes()` (`sharesecretinfo/InheritanceSharedSecrets.kt`) is the one place that
+    reads an **empty** `claim_options` as `ENCRYPTED_BACKUP`: a legacy plan predates the choice and
+    always had one, so empty must not read as "nothing to share". On-chain never reaches it.
+  - Joint control gets the grouped **Secret 1 | Secret 2** card once the key has a seed route: the
+    two routes unlock the same key, so handing one to each party would give both a working copy and
+    leave the Magic Phrase unmatched. A backup-only key has nothing to group, so it keeps the
+    numbered list — **confirmed with the owner (2026-09-15)**, not an inference from the design note:
+    the design never drew that case, and leaving it alone means no existing joint plan changes
+    appearance. The guard is `ClaimOption.SEED_PHRASE in routes` in `InheritanceShareSecretInfoContent`.
+    Card icons: Secret 2's `key-dark` turned out to be the existing `ic_key` scaled 24→20 (same path,
+    same `#031F2B`), so only Secret 1's `security-answer-distribution` needed importing — monochrome,
+    tinted by `NcIcon`, so no dark-mode plate to remap.
+  - "Learn more" is now two destinations: the Backup Password screen (Keystone + a generic "Other
+    devices" added — it listed only TAPSIGNER and COLDCARD, which no longer covers the hardware, and
+    its copy was hard-coded English) and a new seed-phrase screen (`seedphrasebackupinfo/`).
+  - **With both methods the explanation is one two-step sequence** — Backup Password (**Continue**)
+    → seed phrase (**Got it**) — reached from the single **Info** on the review plan's inheritance
+    key card. `InheritanceBackUpDownloadRoute.continueToSeedPhrase` picks the CTA, and step 2 pops
+    `popBackStack<InheritanceBackUpDownloadRoute>(inclusive = true)` so Got it closes the pair rather
+    than landing back on step 1. The share-secrets list keeps a separate "Learn more" per item, so
+    each of those still opens its one screen. Step 2 also swaps its closing note for the
+    joint-control one and its sharing advice for the passphrase case — the seed-only screen keeps
+    its own wording for both; checked against the frames, they genuinely differ.
+  - **Review your plan** lists the same secrets for the same reason — it was showing a Backup
+    Password card for plans that have no encrypted backup. With **both** methods it collapses to a
+    single **Inheritance key (XFP: …)** card, because the two methods unlock the same key and are
+    one thing to hand over; seed-only shows the same card with the seed phrase description; and
+    backup-only keeps today's Backup Password card. All three carry the **Info** link, and
+    `onInheritanceKeyInfoClick(routes)` picks its destination: both → the two-step pair, seed only →
+    the seed phrase screen, backup only → the Backup Password screen.
+
 **Fixes made along the way**
 - `HeaderProviderImpl.getAppVersion()` strips the build-type suffix. `versionNameSuffix = ".DEV"`
   made every debug build send `2.8.5.DEV`, which the server cannot parse, so it **silently** served
@@ -305,6 +355,12 @@ backup.
   up** where the verified tick used to be. That matches the design's "sharing method not set"
   state, but it is a visible regression for existing wallets — decide whether a legacy plan should
   keep its verified row instead.
+- **`inheritanceClaimOptions` and `walletType` share a race.** `InheritancePlanningViewModel` fills
+  both from `getWallet`, a plain network call with no cache read first. Until it lands, `claimOptions`
+  is empty (reads as a legacy backup-only plan) and `walletType` is `MULTI_SIG` (reads as off-chain).
+  The review plan can be the first screen of the flow, so a seed-only plan briefly shows the Backup
+  Password card — and stays wrong if the call fails. Pre-existing for `walletType`; the new field
+  joins it. Fix with one "loaded" flag covering both, not a nullable on one field.
 - **`m/48h` message signing** is unconfirmed for BitBox, Trezor and Krux (Krux signs over SD card
   only). An inheritance key that cannot sign at the wallet's `m/48h` path leaves the Beneficiary
   unable to claim. The server list is the throttle: drop a device there rather than in the client.

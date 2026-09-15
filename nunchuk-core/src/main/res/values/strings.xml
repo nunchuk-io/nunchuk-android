@@ -521,8 +521,8 @@
     <string name="nc_no_note">(No note)</string>
     <string name="nc_no_listed">(None listed)</string>
     <string name="nc_no_buffer">(No buffer)</string>
-    <string name="nc_backup_password_desc">(The Backup Password is printed on the back of the inheritance key)</string>
-    <string name="nc_backup_passwords_desc">(The Backup Passwords are printed on the back of the inheritance keys)</string>
+    <string name="nc_backup_password_desc">The Backup Password for the encrypted backup</string>
+    <string name="nc_backup_passwords_desc">The Backup Passwords for the encrypted backups</string>
     <string name="nc_inheritance_notify_pref_hint">To include multiple email addresses, separate them by commas or spaces.</string>
     <string name="nc_inheritance_create_success">The inheritance plan has been set up!</string>
     <string name="nc_share_your_secrets">Share your secrets</string>
@@ -540,6 +540,36 @@
     <string name="nc_inheritance_share_secret_info_title_direct">Please share these two secrets with the Beneficiary:</string>
     <string name="nc_inheritance_share_secret_info_title_indirect">Please share these two secrets with the Trustee:</string>
     <string name="nc_inheritance_share_secret_info_title_joint_control">Please share one secret with the Beneficiary and the other secret with the Trustee. [B]Neither party should have both secrets.[/B]</string>
+    <!-- Share your secrets — the list is driven by the inheritance key's claim options (seed phrase, encrypted backup, or both) -->
+    <string name="nc_inheritance_share_secret_info_title_direct_three">Please share these three secrets with the Beneficiary:</string>
+    <string name="nc_inheritance_share_secret_info_title_indirect_three">Please share these three secrets with the Trustee:</string>
+    <string name="nc_inheritance_share_secret_seed_phrase">The inheritance key’s seed phrase backup.</string>
+    <string name="nc_inheritance_share_secret_warning_seed_only">There is no encrypted backup on the server for this plan, so the seed phrase backup is the only way to recover the inheritance key. Failure to share it will result in the inheritance being unclaimable.</string>
+    <string name="nc_inheritance_share_secret_warning_all">You are solely responsible for sharing these secrets with the %s. Failure to share will result in the inheritance being unclaimable.</string>
+    <string name="nc_inheritance_share_secret_warning_joint">You are solely responsible for sharing these secrets. Failure to share will result in the inheritance being unclaimable.</string>
+    <string name="nc_inheritance_secret_magic_phrase_card">Secret 1 — The Magic Phrase</string>
+    <string name="nc_inheritance_secret_key_card">Secret 2 — The inheritance key</string>
+    <string name="nc_inheritance_key_routes_same_party">Both unlock the same key, so they must go to the same party. Splitting them would give each party a copy of the key and leave the Magic Phrase unmatched.</string>
+    <!-- Learn more: The Backup Password -->
+    <string name="nc_coldcard_uppercase">COLDCARD</string>
+    <string name="nc_the_backup_password">The Backup Password</string>
+    <string name="nc_the_backup_password_desc">The Backup Password decrypts the encrypted backup, and can be found on the device designated for inheritance.</string>
+    <string name="nc_backup_password_tapsigner_desc">On the back of the TAPSIGNER designated for inheritance. (It might be listed under “Backup key”.)</string>
+    <string name="nc_backup_password_coldcard_desc">The 12 words displayed on the COLDCARD when you created the backup file.</string>
+    <string name="nc_backup_password_keystone_desc">The password you set on the device when creating the encrypted backup.</string>
+    <string name="nc_backup_password_other_devices">Other devices</string>
+    <string name="nc_backup_password_other_devices_desc">Whatever password you set on the device when you created its encrypted backup.</string>
+    <!-- Learn more: The seed phrase backup -->
+    <string name="nc_the_seed_phrase_backup">The seed phrase backup</string>
+    <string name="nc_the_seed_phrase_backup_desc">This is the 12 or 24 word seed phrase of the inheritance key, which you backed up during wallet setup.</string>
+    <string name="nc_seed_phrase_backup_where_title">Where it is</string>
+    <string name="nc_seed_phrase_backup_where_desc">On the steel plate, paper, or other non-digital backup you created. Nunchuk never stored it, so it cannot be recovered from the app.</string>
+    <string name="nc_seed_phrase_backup_share_title">How to share it</string>
+    <string name="nc_seed_phrase_backup_share_desc">Hand over the backup itself, or a hardware device pre-loaded with the inheritance key. Sharing the backup is essential — electronics may not last until the claim.</string>
+    <string name="nc_seed_phrase_backup_share_desc_both">Share the backup itself. If you used a passphrase, share it with the seed phrase backup.</string>
+    <string name="nc_seed_phrase_backup_hint">Anyone holding both the seed phrase and the Magic Phrase can claim the inheritance once the timelock expires. Keep them apart.</string>
+    <string name="nc_seed_phrase_backup_hint_both">For joint control, keep both recovery methods with the same party. Share the Magic Phrase with the other party.</string>
+    <string name="nc_inheritance_key_backup_or_seed_desc">Backup Password, or the seed phrase you backed up earlier</string>
     <string name="nc_multi_beneficiary_share_secret_title_direct">Please share the following secrets with each Beneficiary.</string>
     <string name="nc_multi_beneficiary_share_secret_title_indirect">Each Beneficiary has two secrets. Please share the following secrets with the Trustee:</string>
     <string name="nc_multi_beneficiary_share_secret_title_joint_control">For each beneficiary, share the Magic Phrase with the beneficiary and the Backup Password with a trustee, [B]ensuring that no individual has access to both secrets.[/B]</string>

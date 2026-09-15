@@ -51,6 +51,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
@@ -84,11 +85,13 @@ import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.rel
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasescheduledetail.ReleaseScheduleStage
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasescheduledetail.ReleaseScheduleSummaryProgress
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasescheduledetail.ReleaseScheduleUiState
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.sharesecretinfo.toInheritanceKeyRoutes
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.view.AllocationDonutChart
 import com.nunchuk.android.model.Period
 import com.nunchuk.android.model.TimelockBased
 import com.nunchuk.android.model.byzantine.isMasterOrAdmin
 import com.nunchuk.android.model.byzantine.toRole
+import com.nunchuk.android.model.inheritance.ClaimOption
 import com.nunchuk.android.model.inheritance.EmailNotificationSettings
 import com.nunchuk.android.model.inheritance.InheritancePlanBeneficiary
 import com.nunchuk.android.utils.Utils
@@ -109,7 +112,7 @@ fun InheritanceReviewPlanScreen(
     onClose: () -> Unit = {},
     onViewClaimingInstruction: () -> Unit = {},
     onEditBufferPeriodClick: (bufferPeriod: Period?) -> Unit = {},
-    onBackUpPasswordInfoClick: () -> Unit = {},
+    onInheritanceKeyInfoClick: (routes: List<ClaimOption>) -> Unit = {},
     onEditAssetAllocationClick: () -> Unit = {},
     onEditReleaseMethodClick: () -> Unit = {},
     onEditBeneficiarySchedulesClick: () -> Unit = {},
@@ -140,6 +143,7 @@ fun InheritanceReviewPlanScreen(
         setupOrReviewParam = setupOrReviewParam,
         state = state,
         isContinueButtonEnabled = isContinueButtonEnabled,
+        claimOptions = sharedUiState.inheritanceClaimOptions,
         onContinueClicked = {
             viewModel.calculateRequiredSignatures(
                 flow = InheritanceReviewPlanViewModel.ReviewFlow.CREATE_OR_UPDATE,
@@ -161,7 +165,7 @@ fun InheritanceReviewPlanScreen(
         onClose = onClose,
         onViewClaimingInstruction = onViewClaimingInstruction,
         onEditBufferPeriodClick = onEditBufferPeriodClick,
-        onBackUpPasswordInfoClick = onBackUpPasswordInfoClick,
+        onInheritanceKeyInfoClick = onInheritanceKeyInfoClick,
         onEditAssetAllocationClick = onEditAssetAllocationClick,
         onEditReleaseMethodClick = onEditReleaseMethodClick,
         onEditBeneficiarySchedulesClick = onEditBeneficiarySchedulesClick,
@@ -183,6 +187,7 @@ fun InheritanceReviewPlanScreenContent(
         walletId = ""
     ),
     isContinueButtonEnabled: Boolean = true,
+    claimOptions: List<ClaimOption> = emptyList(),
     onContinueClicked: () -> Unit = {},
     onShareSecretClicked: () -> Unit = {},
     onDiscardChange: () -> Unit = {},
@@ -193,7 +198,7 @@ fun InheritanceReviewPlanScreenContent(
     onClose: () -> Unit = {},
     onViewClaimingInstruction: () -> Unit = {},
     onEditBufferPeriodClick: (bufferPeriod: Period?) -> Unit = {},
-    onBackUpPasswordInfoClick: () -> Unit = {},
+    onInheritanceKeyInfoClick: (routes: List<ClaimOption>) -> Unit = {},
     onEditAssetAllocationClick: () -> Unit = {},
     onEditReleaseMethodClick: () -> Unit = {},
     onEditBeneficiarySchedulesClick: () -> Unit = {},
@@ -382,20 +387,59 @@ fun InheritanceReviewPlanScreenContent(
                                         )
                                     }
                                 } else {
-                                    Spacer(modifier = Modifier.height(12.dp))
-                                    val isSingleKey = setupOrReviewParam.inheritanceKeys.size == 1
-                                    SpecialDetailPlanItem(
-                                        iconId = R.drawable.ic_password_light,
-                                        title = stringResource(if (isSingleKey) R.string.nc_backup_password else R.string.nc_two_backup_password),
-                                        actionText = stringResource(id = R.string.nc_text_info),
-                                        content = if (!isSingleKey) stringResource(
-                                            id = R.string.nc_backup_passwords_desc
-                                        ) else stringResource(id = R.string.nc_backup_password_desc),
-                                        editable = true,
-                                        onClick = {
-                                            onBackUpPasswordInfoClick()
+                                    // What the Beneficiary needs follows the distribution choice made
+                                    // during wallet setup, so a plan with no encrypted backup must not
+                                    // list a Backup Password it does not have.
+                                    val routes = claimOptions.toInheritanceKeyRoutes()
+                                    when {
+                                        // Both methods unlock the same key, so they are one thing to
+                                        // hand over: a single card per key, whose Info explains the
+                                        // Backup Password and the seed phrase back to back.
+                                        routes.size > 1 -> {
+                                            setupOrReviewParam.inheritanceKeys.forEach { key ->
+                                                Spacer(modifier = Modifier.height(12.dp))
+                                                SpecialDetailPlanItem(
+                                                    iconId = R.drawable.ic_key,
+                                                    title = pluralStringResource(R.plurals.nc_inheritance_key, 1),
+                                                    subTitle = "XFP: ${key.uppercase()}",
+                                                    content = stringResource(R.string.nc_inheritance_key_backup_or_seed_desc),
+                                                    actionText = stringResource(id = R.string.nc_text_info),
+                                                    editable = true,
+                                                    onClick = { onInheritanceKeyInfoClick(routes) }
+                                                )
+                                            }
                                         }
-                                    )
+
+                                        ClaimOption.SEED_PHRASE in routes -> {
+                                            setupOrReviewParam.inheritanceKeys.forEach { key ->
+                                                Spacer(modifier = Modifier.height(12.dp))
+                                                SpecialDetailPlanItem(
+                                                    iconId = R.drawable.ic_key,
+                                                    title = pluralStringResource(R.plurals.nc_inheritance_key, 1),
+                                                    subTitle = "XFP: ${key.uppercase()}",
+                                                    content = stringResource(R.string.nc_12_or_24_word_inheritance_key_backup),
+                                                    actionText = stringResource(id = R.string.nc_text_info),
+                                                    editable = true,
+                                                    onClick = { onInheritanceKeyInfoClick(routes) }
+                                                )
+                                            }
+                                        }
+
+                                        else -> {
+                                            Spacer(modifier = Modifier.height(12.dp))
+                                            val isSingleKey = setupOrReviewParam.inheritanceKeys.size == 1
+                                            SpecialDetailPlanItem(
+                                                iconId = R.drawable.ic_password_light,
+                                                title = stringResource(if (isSingleKey) R.string.nc_backup_password else R.string.nc_two_backup_password),
+                                                actionText = stringResource(id = R.string.nc_text_info),
+                                                content = if (!isSingleKey) stringResource(
+                                                    id = R.string.nc_backup_passwords_desc
+                                                ) else stringResource(id = R.string.nc_backup_password_desc),
+                                                editable = true,
+                                                onClick = { onInheritanceKeyInfoClick(routes) }
+                                            )
+                                        }
+                                    }
                                 }
                                 if (setupOrReviewParam.setupFlowType == InheritanceSetupFlowType.OLD_FLOW) {
                                     Text(

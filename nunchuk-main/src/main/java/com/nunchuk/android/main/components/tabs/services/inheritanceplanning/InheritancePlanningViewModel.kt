@@ -17,6 +17,7 @@ import com.nunchuk.android.model.TimelockBased
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.WalletServer
 import com.nunchuk.android.model.byzantine.GroupWalletType
+import com.nunchuk.android.model.inheritance.ClaimOption
 import com.nunchuk.android.model.inheritance.InheritanceNotificationSettings
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.type.SignerTag
@@ -103,18 +104,22 @@ class InheritancePlanningViewModel @Inject constructor(
 
     private fun updateKeyTypes(wallet: WalletServer) {
         val keyTypes = mutableListOf<InheritanceKeyType>()
-        wallet.signers.filter { it.tags.contains(SignerTag.INHERITANCE.name) }
+        val inheritanceKeys = wallet.signers.filter { it.tags.contains(SignerTag.INHERITANCE.name) }
             .distinctBy { it.xfp }
-            .forEach { key ->
+        inheritanceKeys.forEach { key ->
                 if (key.type == SignerType.NFC) {
                     keyTypes.add(InheritanceKeyType.TAPSIGNER)
                 } else {
                     keyTypes.add(InheritanceKeyType.COLDCARD)
                 }
             }
+        // A plan may hold more than one inheritance key. Every route any of them uses has to be
+        // shared, so the union is what the owner must hand over — never the intersection.
+        val claimOptions = inheritanceKeys.flatMap { it.claimOptions }.distinct()
         _state.update {
             it.copy(
                 keyTypes = keyTypes,
+                inheritanceClaimOptions = claimOptions,
                 walletType = wallet.walletType,
                 setupOrReviewParam = it.setupOrReviewParam.copy(
                     activationDate = if (wallet.walletType == WalletType.MINISCRIPT) wallet.timelock.timelockValue * 1000 else it.setupOrReviewParam.activationDate,
@@ -200,6 +205,11 @@ data class InheritancePlanningState(
     val groupId: String = "",
     val groupWalletType: GroupWalletType? = null,
     val keyTypes: List<InheritanceKeyType> = emptyList(),
+    /**
+     * How the plan's inheritance key(s) reach the Beneficiary, as recorded on the server. Empty on a
+     * legacy plan, which predates the choice — see `toInheritanceKeyRoutes()`.
+     */
+    val inheritanceClaimOptions: List<ClaimOption> = emptyList(),
     val walletType: WalletType = WalletType.MULTI_SIG,
     val userEmail: String = "",
     val setupOrReviewParam: InheritancePlanningParam.SetupOrReview,
