@@ -222,6 +222,7 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
 
                             SignerType.AIRGAP, SignerType.UNKNOWN -> showSignByAirgapOptions()
                             SignerType.HARDWARE -> when {
+                                signer.isColdCard -> showSignByMk4Options()
                                 viewModel.isTrezorSigner(signer) -> viewModel.requestSignTransactionByTrezor()
                                 viewModel.isLedgerSigner(signer) ->
                                     ledgerSignFingerprint = signer.fingerPrint

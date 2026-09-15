@@ -77,6 +77,7 @@ private fun toReadableDrawableResId(
         type == AIRGAP && tags.contains(SignerTag.KEYSTONE) -> R.drawable.ic_air_gapped_keystone
         type == AIRGAP && tags.contains(SignerTag.KRUX) -> R.drawable.ic_air_gapped_krux
         type == AIRGAP && tags.contains(SignerTag.COLDCARD) -> R.drawable.ic_coldcard_small
+        type == HARDWARE && tags.contains(SignerTag.COLDCARD) -> R.drawable.ic_coldcard_small
         type == HARDWARE && tags.contains(SignerTag.JADE) -> R.drawable.ic_air_gapped_jade
         type == HARDWARE && tags.contains(SignerTag.TREZOR) -> R.drawable.ic_trezor_hardware
         type == HARDWARE && tags.contains(SignerTag.LEDGER) -> R.drawable.ic_ledger_hardware
