@@ -33,9 +33,11 @@ import com.nunchuk.android.main.R
 import com.nunchuk.android.model.inheritance.ClaimOption
 
 /**
- * How the owner passes the inheritance key to their Beneficiary. One screen, two states: a device
- * that cannot create an encrypted backup on-device reports only [ClaimOption.SEED_PHRASE], which
- * disables the other two options and surfaces the server's `claim_note` explaining why.
+ * How the owner passes the inheritance key to their Beneficiary.
+ *
+ * Each option is enabled only when the device supports every artifact it asks for, so "do both"
+ * needs both — a device reporting one option leaves it disabled, whichever option that is. The
+ * server's `claim_note` explains the limitation whenever something is unavailable.
  */
 @Composable
 fun KeyDistributionContent(
@@ -48,6 +50,7 @@ fun KeyDistributionContent(
     onContinueClicked: () -> Unit = {},
     onBackPressed: () -> Unit = {},
 ) {
+    val canUseSeedPhrase = ClaimOption.SEED_PHRASE in supportedOptions
     val canUseEncryptedBackup = ClaimOption.ENCRYPTED_BACKUP in supportedOptions
     val isEmpty = supportedOptions.isEmpty()
     NunchukTheme {
@@ -113,7 +116,7 @@ fun KeyDistributionContent(
                     titleRes = R.string.nc_claim_option_seed_phrase_title,
                     descRes = R.string.nc_claim_option_seed_phrase_desc,
                     isSelected = selectedChoice == KeyDistributionChoice.SEED_PHRASE_ONLY,
-                    enabled = ClaimOption.SEED_PHRASE in supportedOptions,
+                    enabled = canUseSeedPhrase,
                     onClick = { onChoiceSelected(KeyDistributionChoice.SEED_PHRASE_ONLY) },
                 )
                 ChoiceOption(
@@ -127,12 +130,15 @@ fun KeyDistributionContent(
                     titleRes = R.string.nc_claim_option_both_title,
                     descRes = R.string.nc_claim_option_both_desc,
                     isSelected = selectedChoice == KeyDistributionChoice.BOTH,
-                    enabled = canUseEncryptedBackup,
+                    // Both artifacts, so both have to be supported — enabling this off the
+                    // encrypted backup alone offered "do both" on a device that cannot do the
+                    // seed-phrase half, right below that half greyed out.
+                    enabled = canUseSeedPhrase && canUseEncryptedBackup,
                     isRecommended = true,
                     onClick = { onChoiceSelected(KeyDistributionChoice.BOTH) },
                 )
 
-                if (!canUseEncryptedBackup && !claimNote.isNullOrBlank()) {
+                if ((!canUseSeedPhrase || !canUseEncryptedBackup) && !claimNote.isNullOrBlank()) {
                     NcHintMessage(
                         modifier = Modifier.padding(top = 16.dp),
                         messages = listOf(ClickAbleText(content = claimNote)),
@@ -196,6 +202,16 @@ private fun KeyDistributionContentPreview() {
 @Composable
 private fun KeyDistributionContentEmptyPreview() {
     KeyDistributionContent(supportedOptions = emptyList(), selectedChoice = null)
+}
+
+@PreviewLightDark
+@Composable
+private fun KeyDistributionContentEncryptedBackupOnlyPreview() {
+    KeyDistributionContent(
+        supportedOptions = listOf(ClaimOption.ENCRYPTED_BACKUP),
+        selectedChoice = KeyDistributionChoice.ENCRYPTED_BACKUP_ONLY,
+        claimNote = "This device cannot export its seed phrase, so the encrypted backup must be used.",
+    )
 }
 
 @PreviewLightDark
