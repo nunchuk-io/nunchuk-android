@@ -22,6 +22,7 @@ import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.nav.args.ClaimTransactionArgs
 import com.nunchuk.android.transaction.components.details.TransactionDetailsState
 import com.nunchuk.android.transaction.components.details.TransactionMiniscriptUiState
+import com.nunchuk.android.transaction.usecase.GetBlockchainExplorerUrlUseCase
 import com.nunchuk.android.usecase.CreateShareFileUseCase
 import com.nunchuk.android.usecase.GetMasterSignerUseCase
 import com.nunchuk.android.usecase.SaveLocalFileUseCase
@@ -64,6 +65,7 @@ class ClaimTransactionViewModel @AssistedInject constructor(
     private val getPsbtFromMk4UseCase: GetPsbtFromMk4UseCase,
     private val decodeTxUseCase: DecodeTxUseCase,
     private val valueFromAmountUseCase: ValueFromAmountUseCase,
+    private val getBlockchainExplorerUrlUseCase: GetBlockchainExplorerUrlUseCase,
     @ApplicationContext private val applicationContext: Context,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val savedStateHandle: SavedStateHandle,
@@ -308,6 +310,18 @@ class ClaimTransactionViewModel @AssistedInject constructor(
         }
     }
 
+    fun viewOnBlockExplorer() {
+        viewModelScope.launch {
+            getBlockchainExplorerUrlUseCase(
+                GetBlockchainExplorerUrlUseCase.Params(txId = _state.value.transaction.txId)
+            ).onSuccess { url ->
+                _event.emit(ClaimTransactionEvent.OpenBlockExplorer(url))
+            }.onFailure {
+                _event.emit(ClaimTransactionEvent.ShowError(it.message.orUnknownError()))
+            }
+        }
+    }
+
     fun saveLocalFile(psbt: String) {
         viewModelScope.launch {
             _loadingType.update { LoadingType.Normal }
@@ -412,6 +426,7 @@ sealed class ClaimTransactionEvent {
     data class SaveLocalFile(val isSuccess: Boolean) : ClaimTransactionEvent()
     data class ExportToFileSuccess(val filePath: String) : ClaimTransactionEvent()
     data class ShowError(val message: String) : ClaimTransactionEvent()
+    data class OpenBlockExplorer(val url: String) : ClaimTransactionEvent()
     data object ExportTransactionToMk4Success : ClaimTransactionEvent()
     data object ImportTransactionFromMk4Success : ClaimTransactionEvent()
 }

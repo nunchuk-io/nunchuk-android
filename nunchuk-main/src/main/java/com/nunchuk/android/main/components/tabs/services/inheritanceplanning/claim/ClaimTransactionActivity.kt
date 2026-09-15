@@ -32,6 +32,7 @@ import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.NfcActionListener
 import com.nunchuk.android.core.nfc.NfcViewModel
 import com.nunchuk.android.core.share.IntentSharingController
+import com.nunchuk.android.core.util.openExternalLink
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.ClaimTransactionViewModel.LoadingType
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.verifymessage.ColdCardSigningBottomSheets
@@ -143,6 +144,8 @@ private fun ClaimTransactionScreen(
                         type = NcToastType.ERROR
                     )
                 }
+
+                is ClaimTransactionEvent.OpenBlockExplorer -> context.openExternalLink(event.url)
 
                 ClaimTransactionEvent.ExportTransactionToMk4Success -> {
                     snackbarHostState.showNunchukSnackbar(
@@ -270,7 +273,7 @@ private fun ClaimTransactionScreen(
                 }
             },
             onBroadcastClick = { /* Handle broadcast click */ },
-            onViewOnBlockExplorer = { /* Handle view on block explorer */ },
+            onViewOnBlockExplorer = viewModel::viewOnBlockExplorer,
             onManageCoinClick = { /* Handle manage coin click */ },
             onEditNote = { /* Handle edit note */ },
             onEditChangeCoin = { /* Handle edit change coin */ },
