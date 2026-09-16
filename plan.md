@@ -134,6 +134,54 @@ backup.
 
 ---
 
+### Coverage against the ticket
+
+Every endpoint NUN-10192 touches, and whether the client honours it. The owner side is complete;
+what is left is the **claim (Beneficiary) side**, which this branch scoped out.
+
+| Endpoint | New field(s) | State |
+|---|---|---|
+| `GET configs/setup` | `supported_signers[].claim_options`, `claim_note` | done |
+| `GET draft-wallets/current`, `POST add-key` (+ group) | signer `claim_options`, `verifications[]` | done — `SignerServerDto` |
+| `PUT draft-wallets/{xfp}/claim-options` (+ group) | new endpoint | done |
+| `POST draft-wallets/{xfp}/verify` (+ group) | `verification_method`, `key_checksum` | done |
+| `GET .../replacement/status` (+ group) | signer `claim_options`, `verifications[]` | done — same DTO, now read by the replace screen |
+| `PUT .../replacement/{xfp}/claim-options` (+ group) | new endpoint | done |
+| `POST .../replacement/{xfp}/verify` (+ group) | `verification_method` | done |
+| `GET/POST/PUT /v1.1/user-wallets/inheritance` | `inheritance_keys[].claim_options` | **not parsed** |
+| `POST inheritance/claiming/init` | `key_origins[].claim_options` | **not parsed** |
+| `POST inheritance/claiming/status` | `inheritance_keys[].claim_options`, `requires_wallet_registration`, `bsms` | **not parsed** |
+| Removed: `user-keys/upload-backup`, `user-keys/{id}`, `user-keys/{id}/verify` | must not be called | none are called |
+
+**`inheritance_keys[].claim_options`** (`InheritanceKeyDto` carries only `xfp`). The owner-facing
+screens that need it — share-secrets, review plan — read the union off the wallet's server signers
+instead (`InheritancePlanningViewModel.inheritanceClaimOptions`), which works but is the source of
+the load race noted in §7. The documented field is per key and arrives with the plan itself, so
+adopting it would settle that race rather than paper over it.
+
+**The claim flow does not read its two payloads at all.** `KeyOriginDto` has `xfp` +
+`derivation_path`; `InheritanceClaimStatusResponse` has no `bsms` and its `inheritance_keys` no
+`claim_options` / `requires_wallet_registration`. Three consequences, in rough order of severity:
+
+1. **The route choice is hard-coded.** `PrepareInheritanceKeyScreen` always offers the same two
+   options, and off-chain `SEED_PHRASE` routes to *Enter backup password*
+   (`navigateToClaimBackupPassword`) — the legacy assumption that every inheritance key has an
+   encrypted backup. Under BYOH most devices are seed-phrase only, so a Beneficiary is sent to ask
+   for a password that does not exist. `claim_options` on init/status is what should drive that
+   screen.
+2. **No wallet registration.** `requires_wallet_registration` is true for Coldcard and Keystone;
+   without registering the wallet those devices cannot sign the claim. The `bsms` the response
+   carries is what to register with — and the ticket is emphatic that it must **not** be used to
+   create a wallet.
+3. `inheritance_key_count` / `key_origins` are already consumed, so the plumbing to hang
+   `claim_options` on exists; it is the UI decisions that are missing, not the wiring.
+
+Also unverified: the **claim logic update** at the end of the ticket (libnunchuk `SignMessageFlow`
+on the `message-signing` branch) — per-vendor message export/import for Coldcard, Krux, Passport,
+Keystone, Jade and SeedSigner. That is native SDK work the claim flow depends on; check
+`nativeSdkVersion` in `configs/dependencies.gradle` carries it before building any of the above.
+
+
 ## 4. Done
 
 **Data layer**
@@ -306,6 +354,105 @@ backup.
 
 ---
 
+## 4b. Replace key — the same flow against the wallet's replacement
+
+Replacing the inheritance key of an existing assisted wallet (`ReplaceKeysFragment`, personal and
+group) ran the **pre-BYOH** flow: a hard-coded "We support Inheritance Key on COLDCARD and
+TAPSIGNER" sheet, Coldcard pushed straight into its passphrase question and encrypted backup, no
+sharing method anywhere, and every verification written without `verification_method`. It now runs
+the same flow the key lists do; `walletId` is the single switch that points it at the replacement
+instead of the draft.
+
+- **The picker is the server-driven one.** `openInheritanceKeyPicker()` opens `SignerIntroActivity`
+  with `FLAG_ADD_INHERITANCE_SIGNER or FLAG_ADD_INHERITANCE_OFF_CHAIN_SIGNER`, `walletType =
+  MULTI_SIG` and `replaceInfo.replacedXfp`, so each device's own flow performs a replace rather
+  than an add — the activity already forwarded `replacedXfp` to Coldcard and air-gap. The keys
+  already in the wallet travel as `existingSigners` so the reuse sheet cannot offer one of them.
+  The hard-coded sheet and the `INHERITANCE_PASSPHRASE_QUESTION` shortcut are gone.
+- **"Inheritance key added" then the sharing method.** `KeyDistributionActivity` already took a
+  `walletId`; the shared entry points (`InheritanceBackupNavigation`) now pass it, and
+  `KeyDistributionViewModel.refreshClaimState()` reads `GetReplaceWalletStatusUseCase` instead of
+  the draft when it is set — a replacement key never reaches the draft wallet, so the old read
+  found nothing and the screen would have shown "not configured" forever.
+  `SetInheritanceClaimOptionsUseCase` then writes `PUT .../replacement/{xfp}/claim-options`, which
+  the repository already routed on `walletId`.
+- **`{xfp}` there is the *new* key's, not the slot's** — confirmed with BE. The neighbouring
+  replacement endpoints do not agree on this, so it is worth knowing rather than inferring:
+  `POST .../replacement/{xfp}` takes the key being replaced, and `.../replacement/{xfp}/verify` is
+  called with the server key id of the new key. Claim options follow the draft rule instead — the
+  key is added first and identified by its own XFP.
+- **The prompt is armed when the picker opens**, not on its result: air-gap performs the replace
+  inside its own screen and never hands a key back. It fires once the replacement status shows a
+  key on the slot that was not there before, so backing out of the picker raises nothing.
+- **The key row carries the same states** — *Sharing method not set* + **Set up**, the per-method
+  status line, **Backup** / **Verify backup** — and dispatches on the sharing method rather than on
+  the device. `InheritanceClaimState` holds the claim-side state that `AddKeyData` used to own
+  inline, so both rows share one set of rules, and `InheritanceClaimStatusRow` is the one status
+  line. Continue is blocked while a replaced inheritance slot owes a sharing method or an untouched
+  verification.
+- **Per-method verification now reaches the replacement endpoint.** `verification_method` travels
+  through `SetReplaceKeyVerifiedUseCase` → `KeyRepository.setReplaceKeyVerified` →
+  `POST .../replacement/{xfp}/verify`, and every screen that already carried a `claimOption` on the
+  draft path now carries it on the replace path too (`CheckBackUpByApp`, `CheckBackUpBySelf`,
+  `ColdCardVerifyRecoveredKey`, `ColdCardVerifyBackupViaApp`, `Mk4Intro`, `ColdcardRecover`,
+  `AddAirgapSigner`, and the seed-phrase skip). Without it the server resolves whichever half it
+  guesses, so a "do both" key can never be finished.
+- **Skipping a verification reaches it as well.** The two verify-option screens wrote every skip to
+  the *draft* endpoint; on a replace that either targets the wrong record or fails outright, since
+  there is no membership step to read the checksum from. They now branch on the replaced slot.
+- **The backup upload no longer replaces the key a second time.** `BackingUpViewModel` hard-coded
+  `isRequestReplaceKey = true`, the replace-side twin of the `Duplicate key xfp` bug fixed on the
+  draft: the key is replaced before the sharing method is chosen, so the upload must not ask again.
+  It now honours the caller's flag, and everything that request needs — reading the signer back at
+  account 0, the wallet GET, the tag guess — moved inside the `if`, where it belongs.
+
+### Review findings (create + replace)
+
+Four defects the review turned up, all fixed:
+
+- **The replace row's label and its action read different sources.** `getBackUpFileName` comes
+  from a map built only for non-NFC keys, so a TAPSIGNER whose encrypted backup the server already
+  holds read as having none: the row said *Verify backup* and the button opened *create a backup*.
+  Both now read `InheritanceClaimState.hasEncryptedBackupFile` — the same rule, as on the key list.
+- **The inheritance slot was identified from a network call alone.** `inheritanceXfps` comes from
+  `getServerWallet`/`syncGroupWallet`; until it lands (or if it fails) the row rendered as an
+  ordinary key and, worse, the Continue gate opened — letting a wallet be built with an inheritance
+  key that has no sharing method. `isInheritanceSlot()` now falls back to the local wallet's own
+  `INHERITANCE` tag, which is what `replaceKey` itself reads and is there immediately.
+- **The skip change leaked into on-chain.** Routing a skipped verification to the replacement
+  endpoint also caught the on-chain timelock replace, which sets `replacedXfp` on the same screens
+  — against this branch's scope guard. Both verify-option view models now require a claim option,
+  which only the off-chain flow sets. (The on-chain replace still writes its skip to the *draft*
+  endpoint, which looks wrong but is pre-existing; worth a ticket of its own.)
+- **Create did not filter keys already on the wallet.** Replace passes `existingSigners` so the
+  reuse sheet cannot offer a key the wallet already holds; the two assisted key lists did not, so
+  the owner could pick a key already on the draft and get a duplicate-key error from the server.
+  Both now pass it.
+
+Checked and found correct: both key lists are symmetric (group passes its real `groupId` where
+personal passes `""`); the pending-prompt arming survives backing out of the picker, because it
+fires on the slot's occupant *changing* rather than on a result; removing a replacement leaves no
+stale claim state, since the gate iterates `replaceSigners`; and the free-wallet path never reaches
+any of it.
+
+Two things deliberately left alone:
+
+- **`createNewSoftware()` in `SignerIntroActivity` ignores `replacedXfp`** and picks
+  `KeyFlow.REPLACE_KEY_IN_FREE_WALLET` whenever a `walletId` is present. Unreachable today — the
+  off-chain inheritance list carries no software key, by design ("an inheritance key must live
+  outside the owner's phone") — but it would misfire the day the server advertises one.
+- **The replacement `verify` endpoint is called with two different fallbacks**: `userKeyId` of the
+  new key from the replace screen, `replacedXfp` (the slot) from `CheckBackUpBySelfFragment`. Both
+  pre-date this branch and the server evidently accepts both; now that claim-options is confirmed
+  to want the new key's XFP, these are worth aligning on the same rule.
+
+### Not covered
+
+- **On-chain replace is untouched.** `OnChainReplaceKeysFragment` is a separate screen for
+  `MINISCRIPT` wallets and keeps its own dispatcher.
+- **Free (non-assisted) wallets** have no inheritance key, so nothing on that path changed.
+
+
 ## 5. Not done
 
 1. **Screen 16 has no QR import — deferred by the owner.** The design draws QR / file / Desktop;
@@ -369,6 +516,10 @@ backup.
   The review plan can be the first screen of the flow, so a seed-only plan briefly shows the Backup
   Password card — and stays wrong if the call fails. Pre-existing for `walletType`; the new field
   joins it. Fix with one "loaded" flag covering both, not a nullable on one field.
+- **Legacy plans and the replace row.** A replacement key starts with no `claim_options`, which is
+  correctly read as "not chosen yet". But an inheritance key that has been in the wallet since
+  before this feature reports the same empty list, so the same *Sharing method not set* regression
+  flagged above for the key list applies here.
 - **`m/48h` message signing** is unconfirmed for BitBox, Trezor and Krux (Krux signs over SD card
   only). An inheritance key that cannot sign at the wallet's `m/48h` path leaves the Beneficiary
   unable to claim. The server list is the throttle: drop a device there rather than in the client.
