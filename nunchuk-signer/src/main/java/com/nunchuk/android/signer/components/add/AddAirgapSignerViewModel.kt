@@ -38,6 +38,7 @@ import com.nunchuk.android.core.signer.toSingleSigner
 import com.nunchuk.android.core.util.formattedName
 import com.nunchuk.android.core.util.getFileFromUri
 import com.nunchuk.android.core.util.isIdentical
+import com.nunchuk.android.core.util.isRecommendedMultiSigPath
 import com.nunchuk.android.core.util.isValidPathForAssistedWallet
 import com.nunchuk.android.core.util.nativeErrorCode
 import com.nunchuk.android.core.util.orUnknownError
@@ -439,7 +440,7 @@ internal class AddAirgapSignerViewModel @Inject constructor(
                         .flowOn(Main)
                         .collect {
                             Timber.tag(TAG).d("add passport signer successful::$it")
-                            event(ParseKeystoneAirgapSignerSuccess(it))
+                            emitParsedSigners(it)
                         }
                 } finally {
                     isProcessing = false
@@ -507,13 +508,7 @@ internal class AddAirgapSignerViewModel @Inject constructor(
                     ParseJsonSignerUseCase.Params(content, SignerType.AIRGAP)
                 )
                 if (result.isSuccess) {
-                    val signers = result.getOrThrow()
-                    validateAndUpdateSigners(signers)
-                    if (isMembershipFlow && chain == Chain.MAIN && _signers.any { isTestNetPath(it.derivationPath) }) {
-                        setEvent(ErrorMk4TestNet)
-                    } else {
-                        setEvent(ParseKeystoneAirgapSignerSuccess(_signers))
-                    }
+                    emitParsedSigners(result.getOrThrow())
                 } else {
                     setEvent(AddAirgapSignerErrorEvent("XPUBs file is invalid"))
                 }
@@ -522,11 +517,34 @@ internal class AddAirgapSignerViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Every parsed key set (file import, Passport/Keystone QR) goes through here so the
+     * assisted-wallet filtering and the testnet guard apply no matter how the keys arrived.
+     */
+    private fun emitParsedSigners(signers: List<SingleSigner>) {
+        validateAndUpdateSigners(signers)
+        if (isMembershipFlow && chain == Chain.MAIN && _signers.any { isTestNetPath(it.derivationPath) }) {
+            setEvent(ErrorMk4TestNet)
+        } else {
+            setEvent(ParseKeystoneAirgapSignerSuccess(_signers))
+        }
+    }
+
+    /**
+     * An assisted wallet always uses the recommended BIP48 native-segwit path, so when the
+     * device offers one we keep only that key and the screen binds it without asking the
+     * user to pick. The other BIP48 paths remain as a fallback for devices that don't
+     * export the recommended one.
+     */
     fun validateAndUpdateSigners(originalSigners: List<SingleSigner>): List<SingleSigner> {
         _signers.apply {
             clear()
             if (isMembershipFlow) {
-                addAll(originalSigners.filter { it.derivationPath.isValidPathForAssistedWallet })
+                val multisigSigners =
+                    originalSigners.filter { it.derivationPath.isValidPathForAssistedWallet }
+                val recommendedSigners =
+                    multisigSigners.filter { it.derivationPath.isRecommendedMultiSigPath }
+                addAll(recommendedSigners.ifEmpty { multisigSigners })
             } else {
                 addAll(originalSigners)
             }
