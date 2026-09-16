@@ -107,12 +107,12 @@ import com.nunchuk.android.main.membership.honey.distribution.openInheritanceSee
 import com.nunchuk.android.main.membership.honey.distribution.openInheritanceSeedPhraseVerified
 import com.nunchuk.android.main.membership.honey.distribution.openInheritanceSharingMethod
 import com.nunchuk.android.main.membership.honey.distribution.openInheritanceVerifyBackups
+import com.nunchuk.android.main.membership.honey.distribution.InheritanceClaimStatusRow
 import com.nunchuk.android.main.membership.honey.distribution.verifyClaimOptionRequest
 import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragment
 import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragmentArgs
 import com.nunchuk.android.main.membership.model.AddKeyData
 import com.nunchuk.android.main.membership.model.ClaimOptionState
-import com.nunchuk.android.main.membership.model.claimStatuses
 import com.nunchuk.android.main.membership.model.needsEncryptedBackupUpload
 import com.nunchuk.android.main.membership.model.InheritanceBackupBranch
 import com.nunchuk.android.main.membership.model.backupVendorTag
@@ -263,6 +263,7 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
                 ?: return@registerForActivityResult
             when (option) {
                 ClaimOption.SEED_PHRASE -> openInheritanceSeedPhraseBackup(
+                    navigator = navigator,
                     signer = signer,
                     groupId = membershipGroupId,
                     walletId = membershipWalletId,
@@ -623,6 +624,7 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
 
                 AddKeyListEvent.OnAddAllKey -> onAddAllKey()
                 is AddKeyListEvent.OnSeedPhraseBackupVerified -> openInheritanceSeedPhraseVerified(
+                    navigator = navigator,
                     signer = event.signer,
                     groupId = membershipGroupId,
                     walletId = membershipWalletId,
@@ -806,6 +808,7 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
         val signer = data.signer ?: return
         when (data.inheritanceBackupBranch()) {
             InheritanceBackupBranch.SEED_PHRASE -> openInheritanceSeedPhraseBackup(
+                navigator = navigator,
                 signer = signer,
                 groupId = membershipGroupId,
                 walletId = membershipWalletId,
@@ -835,6 +838,9 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
             onChainAddSignerParam = OnChainAddSignerParam(
                 flags = OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER or
                         OnChainAddSignerParam.FLAG_ADD_INHERITANCE_OFF_CHAIN_SIGNER,
+                // A key already on the wallet cannot fill this slot too, so keep it out of the
+                // "reuse an existing key" offer the picker makes.
+                existingSigners = viewModel.existingWalletSigners(),
             ),
         )
     }
@@ -973,50 +979,6 @@ fun AddKeyListContent(
     }
 }
 
-/**
- * The status line under an off-chain inheritance key: one entry per sharing method the owner chose,
- * or a prompt while the choice is still outstanding.
- */
-@Composable
-private fun InheritanceClaimStatus(item: AddKeyData) {
-    val statuses = item.claimStatuses()
-    val style = NunchukTheme.typography.bodySmall.copy(
-        color = MaterialTheme.colorScheme.textSecondary
-    )
-    if (statuses.isEmpty()) {
-        Text(
-            modifier = Modifier.padding(top = 4.dp),
-            text = stringResource(R.string.nc_sharing_method_not_set),
-            style = style
-        )
-        return
-    }
-    Row(
-        modifier = Modifier.padding(top = 4.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        statuses.forEach { status ->
-            Text(
-                text = stringResource(
-                    when (status.option) {
-                        ClaimOption.ENCRYPTED_BACKUP -> R.string.nc_claim_status_encrypted_backup
-                        ClaimOption.SEED_PHRASE -> R.string.nc_claim_status_seed_phrase
-                    },
-                    stringResource(
-                        when (status.state) {
-                            ClaimOptionState.NOT_UPLOADED -> R.string.nc_claim_status_not_uploaded
-                            ClaimOptionState.PENDING -> R.string.nc_claim_status_pending
-                            ClaimOptionState.SKIPPED -> R.string.nc_claim_status_skipped
-                            ClaimOptionState.VERIFIED -> R.string.nc_claim_status_verified
-                        }
-                    )
-                ),
-                style = style
-            )
-        }
-    }
-}
-
 @Composable
 fun AddKeyCard(
     item: AddKeyData,
@@ -1099,7 +1061,7 @@ fun AddKeyCard(
                                 style = NunchukTheme.typography.bodySmall
                             )
                             if (item.showsClaimStatus) {
-                                InheritanceClaimStatus(item = item)
+                                InheritanceClaimStatusRow(claimState = item.claimState)
                             }
                         }
                         if (item.needsClaimOptions) {

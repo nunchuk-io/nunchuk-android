@@ -222,6 +222,13 @@ class AddByzantineKeyListViewModel @Inject constructor(
         _state.update { it.copy(pendingClaimOptionsSigner = signer) }
     }
 
+    /**
+     * The keys already on this wallet, so the inheritance picker does not offer one of them for a
+     * second slot. Without it the owner can pick a key the draft already holds and the server
+     * answers with a duplicate-key error.
+     */
+    fun existingWalletSigners(): List<SignerModel> = _keys.value.mapNotNull { it.signer }
+
     /** Called by the add-key paths so the sharing-method choice opens once the key lands. */
     fun onInheritanceKeyAdded(xfp: String? = null) {
         pendingClaimOptionsXfp = xfp

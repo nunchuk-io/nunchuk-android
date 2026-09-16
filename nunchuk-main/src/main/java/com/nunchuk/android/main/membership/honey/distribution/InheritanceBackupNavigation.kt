@@ -2,10 +2,11 @@ package com.nunchuk.android.main.membership.honey.distribution
 
 import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
-import com.nunchuk.android.core.base.BaseFragment
+import androidx.fragment.app.Fragment
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.BackUpSeedPhraseType
 import com.nunchuk.android.model.inheritance.ClaimOption
+import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.nav.args.BackUpSeedPhraseArgs
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.type.WalletType
@@ -19,14 +20,21 @@ import com.nunchuk.android.utils.parcelable
  * ([com.nunchuk.android.main.membership.byzantine.addKey.AddByzantineKeyListFragment]) — drive the
  * identical flow and differ only in which view model they hand the work to, so the navigation
  * lives here rather than being mirrored in each.
+ *
+ * Replacing an inheritance key
+ * ([com.nunchuk.android.main.membership.replacekey.ReplaceKeysFragment]) runs the same screens
+ * against the wallet's replacement rather than the draft wallet; that is what a non-empty
+ * `walletId` selects, all the way down to which `claim-options` endpoint is written.
  */
 
 /** Back up the seed phrase, then prove it by restoring onto a device and re-adding the key. */
-internal fun BaseFragment<*>.openInheritanceSeedPhraseBackup(
+internal fun Fragment.openInheritanceSeedPhraseBackup(
+    navigator: NunchukNavigator,
     signer: SignerModel,
     groupId: String,
     walletId: String,
     launcher: ActivityResultLauncher<Intent>,
+    replacedXfp: String? = null,
 ) {
     navigator.openBackUpSeedPhraseActivity(
         activityContext = requireActivity(),
@@ -35,6 +43,7 @@ internal fun BaseFragment<*>.openInheritanceSeedPhraseBackup(
             signer = signer,
             groupId = groupId,
             walletId = walletId,
+            replacedXfp = replacedXfp,
             claimOption = ClaimOption.SEED_PHRASE,
             walletType = WalletType.MULTI_SIG,
         ),
@@ -43,7 +52,8 @@ internal fun BaseFragment<*>.openInheritanceSeedPhraseBackup(
 }
 
 /** The restored device matched, so the seed-phrase backup of [signer] is proven. */
-internal fun BaseFragment<*>.openInheritanceSeedPhraseVerified(
+internal fun Fragment.openInheritanceSeedPhraseVerified(
+    navigator: NunchukNavigator,
     signer: SignerModel?,
     groupId: String,
     walletId: String,
@@ -60,48 +70,54 @@ internal fun BaseFragment<*>.openInheritanceSeedPhraseVerified(
 }
 
 /** "Do both": the checklist that tracks the two artifacts separately. */
-internal fun BaseFragment<*>.openInheritanceVerifyBackups(
+internal fun Fragment.openInheritanceVerifyBackups(
     signer: SignerModel,
     groupId: String,
     launcher: ActivityResultLauncher<Intent>,
+    walletId: String = "",
 ) {
     launcher.launch(
         KeyDistributionActivity.buildIntent(
             activityContext = requireActivity(),
             signer = signer,
             groupId = groupId,
+            walletId = walletId,
             entry = KeyDistributionEntry.VERIFY_BACKUPS,
         )
     )
 }
 
 /** Straight after the key landed: confirm it, then pick how it reaches the Beneficiary. */
-internal fun BaseFragment<*>.openInheritanceKeyAdded(
+internal fun Fragment.openInheritanceKeyAdded(
     signer: SignerModel,
     groupId: String,
     launcher: ActivityResultLauncher<Intent>,
+    walletId: String = "",
 ) {
     launcher.launch(
         KeyDistributionActivity.buildIntent(
             activityContext = requireActivity(),
             signer = signer,
             groupId = groupId,
+            walletId = walletId,
             entry = KeyDistributionEntry.KEY_ADDED,
         )
     )
 }
 
 /** The sharing-method choice, entered from the key row rather than opening itself. */
-internal fun BaseFragment<*>.openInheritanceSharingMethod(
+internal fun Fragment.openInheritanceSharingMethod(
     signer: SignerModel,
     groupId: String,
     launcher: ActivityResultLauncher<Intent>,
+    walletId: String = "",
 ) {
     launcher.launch(
         KeyDistributionActivity.buildIntent(
             activityContext = requireActivity(),
             signer = signer,
             groupId = groupId,
+            walletId = walletId,
             entry = KeyDistributionEntry.SHARING_METHOD,
         )
     )

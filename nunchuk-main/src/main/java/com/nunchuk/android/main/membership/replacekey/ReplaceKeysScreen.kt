@@ -58,6 +58,8 @@ import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.toReadableDrawableResId
 import com.nunchuk.android.core.util.toReadableSignerType
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.membership.honey.distribution.InheritanceClaimStatusRow
+import com.nunchuk.android.main.membership.model.InheritanceClaimState
 import com.nunchuk.android.model.StateEvent
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
@@ -69,6 +71,8 @@ fun ReplaceKeysScreen(
     onReplaceInheritanceClicked: (SignerModel) -> Unit = {},
     onCreateNewWalletSuccess: (String) -> Unit = {},
     onVerifyClicked: (SignerModel) -> Unit = {},
+    onSetUpClaimOptionsClicked: (SignerModel) -> Unit = {},
+    onInheritanceBackupClicked: (SignerModel) -> Unit = {},
     onRemove: (String) -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -97,6 +101,8 @@ fun ReplaceKeysScreen(
         onCreateWalletClicked = viewModel::onCreateWallet,
         onCancelReplaceWallet = viewModel::onCancelReplaceWallet,
         onVerifyClicked = onVerifyClicked,
+        onSetUpClaimOptionsClicked = onSetUpClaimOptionsClicked,
+        onInheritanceBackupClicked = onInheritanceBackupClicked,
         onRemove = onRemove
     )
 }
@@ -113,6 +119,8 @@ private fun ReplaceKeysContent(
     onCreateWalletClicked: () -> Unit = {},
     onCancelReplaceWallet: () -> Unit = {},
     onVerifyClicked: (SignerModel) -> Unit = {},
+    onSetUpClaimOptionsClicked: (SignerModel) -> Unit = {},
+    onInheritanceBackupClicked: (SignerModel) -> Unit = {},
     onRemove: (String) -> Unit = {}
 ) {
     var showSheetOptions by rememberSaveable { mutableStateOf(false) }
@@ -174,12 +182,18 @@ private fun ReplaceKeysContent(
                     modifier = Modifier.fillMaxSize()
                 ) {
                     items(uiState.walletSigners) { item ->
+                        val isInheritanceSlot = uiState.isInheritanceSlot(item.fingerPrint)
+                        // An off-chain inheritance key is driven by the sharing method the owner
+                        // chose, not by the single verify flag every other key has: it can carry
+                        // two artifacts that are verified apart.
+                        val claimState = uiState.inheritanceClaimStates[item.fingerPrint]
+                            ?.takeIf { isInheritanceSlot }
                         ReplaceKeyCard(
                             modifier = Modifier.padding(top = 16.dp),
                             replacedSigner = uiState.replaceSigners[item.fingerPrint],
                             originalSigner = item,
                             onReplaceClicked = {
-                                if (uiState.inheritanceXfps.contains(it.fingerPrint) && uiState.isActiveAssistedWallet) {
+                                if (isInheritanceSlot) {
                                     selectedInheritanceSigner = it
                                 } else {
                                     onReplaceKeyClicked(it)
@@ -191,6 +205,9 @@ private fun ReplaceKeysContent(
                                     (uiState.replaceSigners[item.fingerPrint]?.type == SignerType.NFC || uiState.replaceSigners[item.fingerPrint]?.tags.orEmpty()
                                         .contains(SignerTag.INHERITANCE)),
                             onVerifyClicked = onVerifyClicked,
+                            claimState = claimState,
+                            onSetUpClaimOptionsClicked = onSetUpClaimOptionsClicked,
+                            onInheritanceBackupClicked = onInheritanceBackupClicked,
                             isMissingBackup = uiState.coldCardBackUpFileName[uiState.replaceSigners[item.fingerPrint]?.fingerPrint].isNullOrEmpty() &&
                                     uiState.replaceSigners[item.fingerPrint]?.type != SignerType.NFC,
                             isReplaced = uiState.replaceSigners.containsKey(item.fingerPrint),
@@ -270,11 +287,23 @@ fun ReplaceKeyCard(
     isReplaced: Boolean = false,
     isNeedVerify: Boolean = false,
     isMissingBackup: Boolean = false,
+    /**
+     * Set only for an off-chain inheritance slot that has a replacement on it. It outranks
+     * [isNeedVerify]: that flag reads the single verification the server keeps per key, which goes
+     * green after one artifact and would hide the second half of a "do both" key.
+     */
+    claimState: InheritanceClaimState? = null,
     onReplaceClicked: (data: SignerModel) -> Unit = {},
     onVerifyClicked: (data: SignerModel) -> Unit = {},
+    onSetUpClaimOptionsClicked: (data: SignerModel) -> Unit = {},
+    onInheritanceBackupClicked: (data: SignerModel) -> Unit = {},
     onRemoveClicked: (data: SignerModel) -> Unit = {},
 ) {
     val item = replacedSigner ?: originalSigner
+    val showsClaimStatus = claimState != null && replacedSigner != null
+    val needsClaimOptions = showsClaimStatus && claimState.isUnset
+    val needsClaimVerification =
+        showsClaimStatus && !claimState.isUnset && !claimState.isFullyVerified
     val modifier = if (isReplaced.not()) {
         modifier.border(
             BorderStroke(1.dp, colorResource(id = R.color.nc_stroke_primary)),
@@ -286,7 +315,7 @@ fun ReplaceKeyCard(
     Column {
         Box(
             modifier = modifier.background(
-                color = if (isReplaced && !isNeedVerify)
+                color = if (isReplaced && !(if (showsClaimStatus) needsClaimVerification else isNeedVerify))
                     MaterialTheme.colorScheme.fillSlimeT2
                 else
                     colorResource(id = R.color.nc_background),
@@ -331,9 +360,32 @@ fun ReplaceKeyCard(
                         text = item.getXfpOrCardIdLabel(),
                         style = NunchukTheme.typography.bodySmall
                     )
+                    if (showsClaimStatus) {
+                        InheritanceClaimStatusRow(claimState = claimState)
+                    }
                 }
                 if (isReplaced) {
-                    if (isNeedVerify) {
+                    if (needsClaimOptions) {
+                        NcOutlineButton(
+                            modifier = Modifier.height(36.dp),
+                            onClick = { onSetUpClaimOptionsClicked(item) },
+                        ) {
+                            Text(text = stringResource(R.string.nc_set_up))
+                        }
+                    } else if (needsClaimVerification) {
+                        NcOutlineButton(
+                            modifier = Modifier.height(36.dp),
+                            onClick = { onInheritanceBackupClicked(item) },
+                        ) {
+                            Text(
+                                text = if (claimState.needsEncryptedBackupUpload) {
+                                    stringResource(R.string.nc_upload_backup)
+                                } else {
+                                    stringResource(R.string.nc_verify_backup)
+                                }
+                            )
+                        }
+                    } else if (!showsClaimStatus && isNeedVerify) {
                         NcOutlineButton(
                             modifier = Modifier.height(36.dp),
                             onClick = { onVerifyClicked(item) },

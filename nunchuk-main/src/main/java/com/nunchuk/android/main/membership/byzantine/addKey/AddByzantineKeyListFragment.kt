@@ -117,6 +117,7 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
                 ?: return@registerForActivityResult
             when (option) {
                 ClaimOption.SEED_PHRASE -> openInheritanceSeedPhraseBackup(
+                    navigator = navigator,
                     signer = signer,
                     groupId = args.groupId,
                     walletId = membershipWalletId,
@@ -637,6 +638,7 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
                 }
                 AddKeyListEvent.OnAddAllKey -> onAddAllKey()
                 is AddKeyListEvent.OnSeedPhraseBackupVerified -> openInheritanceSeedPhraseVerified(
+                    navigator = navigator,
                     signer = event.signer,
                     groupId = args.groupId,
                     walletId = membershipWalletId,
@@ -798,6 +800,7 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
         val signer = data.signer ?: return
         when (data.inheritanceBackupBranch()) {
             InheritanceBackupBranch.SEED_PHRASE -> openInheritanceSeedPhraseBackup(
+                navigator = navigator,
                 signer = signer,
                 groupId = args.groupId,
                 walletId = membershipWalletId,
@@ -827,6 +830,9 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
             onChainAddSignerParam = OnChainAddSignerParam(
                 flags = OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER or
                         OnChainAddSignerParam.FLAG_ADD_INHERITANCE_OFF_CHAIN_SIGNER,
+                // A key already on the wallet cannot fill this slot too, so keep it out of the
+                // "reuse an existing key" offer the picker makes.
+                existingSigners = viewModel.existingWalletSigners(),
             ),
         )
     }

@@ -9,6 +9,7 @@ import com.nunchuk.android.model.inheritance.InheritanceKeyVerification
 import com.nunchuk.android.model.inheritance.isResolved
 import com.nunchuk.android.usecase.membership.SetInheritanceClaimOptionsUseCase
 import com.nunchuk.android.usecase.membership.SyncDraftWalletUseCase
+import com.nunchuk.android.usecase.replace.GetReplaceWalletStatusUseCase
 import com.nunchuk.android.usecase.GetUserWalletConfigsSetupFromCacheUseCase
 import com.nunchuk.android.usecase.GetUserWalletConfigsSetupUseCase
 import com.nunchuk.android.utils.onException
@@ -91,6 +92,7 @@ class KeyDistributionViewModel @Inject constructor(
     private val getUserWalletConfigsSetupUseCase: GetUserWalletConfigsSetupUseCase,
     private val setInheritanceClaimOptionsUseCase: SetInheritanceClaimOptionsUseCase,
     private val syncDraftWalletUseCase: SyncDraftWalletUseCase,
+    private val getReplaceWalletStatusUseCase: GetReplaceWalletStatusUseCase,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(KeyDistributionUiState())
@@ -131,19 +133,30 @@ class KeyDistributionViewModel @Inject constructor(
     fun refreshClaimState() {
         val xfp = _state.value.signer?.fingerPrint ?: return
         viewModelScope.launch {
-            syncDraftWalletUseCase(groupId).onSuccess { draft ->
-                val draftSigner = draft.signers.firstOrNull { it.xfp == xfp } ?: return@onSuccess
-                _state.update { current ->
-                    current.copy(
-                        claimOptions = draftSigner.claimOptions,
-                        verifications = draftSigner.verifications,
-                        // Coming back to change the method starts from the current one.
-                        selectedChoice = current.preselection(
-                            recorded = draftSigner.claimOptions,
-                            supported = current.supportedOptions,
-                        ),
-                    )
-                }
+            val signer = if (walletId.isEmpty()) {
+                syncDraftWalletUseCase(groupId).getOrNull()
+                    ?.signers
+                    ?.firstOrNull { it.xfp.equals(xfp, ignoreCase = true) }
+            } else {
+                // A replacement key never reaches the draft wallet; the server tracks it on the
+                // wallet's replacement, keyed by the slot it fills.
+                getReplaceWalletStatusUseCase(
+                    GetReplaceWalletStatusUseCase.Param(groupId = groupId, walletId = walletId)
+                ).getOrNull()
+                    ?.signers
+                    ?.values
+                    ?.firstOrNull { it.xfp.equals(xfp, ignoreCase = true) }
+            } ?: return@launch
+            _state.update { current ->
+                current.copy(
+                    claimOptions = signer.claimOptions,
+                    verifications = signer.verifications,
+                    // Coming back to change the method starts from the current one.
+                    selectedChoice = current.preselection(
+                        recorded = signer.claimOptions,
+                        supported = current.supportedOptions,
+                    ),
+                )
             }
         }
     }

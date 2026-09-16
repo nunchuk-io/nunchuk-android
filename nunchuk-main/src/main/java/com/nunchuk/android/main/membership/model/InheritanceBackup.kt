@@ -4,20 +4,130 @@ import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.model.SignerExtra
 import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.model.inheritance.ClaimOption
+import com.nunchuk.android.model.inheritance.InheritanceKeyVerification
 import com.nunchuk.android.model.isAddInheritanceKey
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 
 /**
+ * What the server records against one off-chain inheritance key: how the owner chose to pass it on,
+ * and how far each of those artifacts has got.
+ *
+ * It is held apart from [AddKeyData] because the same key can be tracked in two places — on the
+ * draft wallet while the wallet is being built, and on the wallet's replacement when the key is
+ * being swapped out — and both rows render and dispatch identically off this state.
+ */
+data class InheritanceClaimState(
+    /** The owner's selection. Empty means unset, or a legacy plan that predates the choice. */
+    val claimOptions: List<ClaimOption> = emptyList(),
+    /** One record per entry in [claimOptions]; empty on a legacy plan. */
+    val verifications: List<InheritanceKeyVerification> = emptyList(),
+    /**
+     * Whether the encrypted backup file has reached the server. The verification record alone
+     * cannot tell "no backup yet" from "backup uploaded, not verified yet", and the row
+     * distinguishes them: the first offers "Backup", the second "Verify backup".
+     */
+    val hasEncryptedBackupFile: Boolean = false,
+) {
+    /** Whether the owner has recorded a sharing method at all. */
+    val isUnset: Boolean
+        get() = claimOptions.isEmpty()
+
+    /**
+     * Whether [option] has been dealt with — verified or deliberately skipped. The server keeps one
+     * record per method and can still hold records for a method the owner has since dropped, so the
+     * chosen options — not [verifications] — decide what counts.
+     */
+    fun isResolved(option: ClaimOption): Boolean =
+        verifications.any { it.method == option && it.verifyType != VerifyType.NONE }
+
+    /** Whether [option] was actually checked. A skipped verification is resolved but not verified. */
+    fun isVerified(option: ClaimOption): Boolean = verifications.any {
+        it.method == option &&
+                (it.verifyType == VerifyType.APP_VERIFIED || it.verifyType == VerifyType.SELF_VERIFIED)
+    }
+
+    /** How many of the chosen sharing methods are verified (or deliberately skipped). */
+    val resolvedCount: Int
+        get() = claimOptions.count { isResolved(it) }
+
+    /** True once every chosen sharing method has been dealt with. */
+    val isSettled: Boolean
+        get() = claimOptions.isNotEmpty() && resolvedCount == claimOptions.size
+
+    /** True only once every chosen sharing method has actually been verified. */
+    val isFullyVerified: Boolean
+        get() = claimOptions.isNotEmpty() && claimOptions.all { isVerified(it) }
+
+    /**
+     * Still owes something the wizard insists on — a sharing method, or an untouched verification
+     * of one it chose. A deliberately skipped verification counts as settled, so the owner is
+     * never trapped; only silence blocks.
+     */
+    val isIncomplete: Boolean
+        get() = isUnset || !isSettled
+
+    /**
+     * True while the owner asked for an encrypted backup and none has been uploaded yet, which is
+     * what makes the row's action "Backup" rather than "Verify backup".
+     */
+    val needsEncryptedBackupUpload: Boolean
+        get() = ClaimOption.ENCRYPTED_BACKUP in claimOptions &&
+                state(ClaimOption.ENCRYPTED_BACKUP) == ClaimOptionState.NOT_UPLOADED
+
+    /**
+     * [ClaimOption.ENCRYPTED_BACKUP] when this key asked for one, otherwise null.
+     *
+     * The encrypted-backup screens of TAPSIGNER and Coldcard have no idea what a claim option is,
+     * so the caller names the artifact they are about to resolve. Null keeps the legacy behaviour,
+     * where the server infers a key's single verification.
+     */
+    fun encryptedBackupClaimOption(): ClaimOption? =
+        ClaimOption.ENCRYPTED_BACKUP.takeIf { it in claimOptions }
+
+    /**
+     * Which verification branch the row's action opens, or null when no sharing method is recorded
+     * — which keeps the legacy backup flow.
+     */
+    fun branch(): InheritanceBackupBranch? = when {
+        claimOptions.isEmpty() -> null
+        claimOptions.size > 1 -> InheritanceBackupBranch.BOTH
+        claimOptions.first() == ClaimOption.SEED_PHRASE -> InheritanceBackupBranch.SEED_PHRASE
+        else -> InheritanceBackupBranch.ENCRYPTED_BACKUP
+    }
+
+    /**
+     * The status line under an inheritance key: one entry per sharing method the owner chose, in
+     * the order the design lists them. Empty while the choice has not been made — the row shows
+     * "sharing method not set" instead.
+     */
+    fun statuses(): List<ClaimOptionStatus> = CLAIM_STATUS_ORDER.filter { it in claimOptions }
+        .map { ClaimOptionStatus(option = it, state = state(it)) }
+
+    /**
+     * How far [option] has got. The server records a verification only once there is something to
+     * verify, so an encrypted backup with no record splits by whether its file has been uploaded.
+     */
+    private fun state(option: ClaimOption): ClaimOptionState {
+        val verifyType =
+            verifications.firstOrNull { it.method == option }?.verifyType ?: VerifyType.NONE
+        return when {
+            verifyType == VerifyType.SKIPPED_VERIFICATION -> ClaimOptionState.SKIPPED
+            verifyType != VerifyType.NONE -> ClaimOptionState.VERIFIED
+            option == ClaimOption.ENCRYPTED_BACKUP && !hasEncryptedBackupFile ->
+                ClaimOptionState.NOT_UPLOADED
+
+            else -> ClaimOptionState.PENDING
+        }
+    }
+}
+
+/**
  * Which verification branch the inheritance key row's action opens. Null for anything that is not
  * an inheritance key with a sharing method recorded, which keeps the legacy backup flow.
  */
-fun AddKeyData.inheritanceBackupBranch(): InheritanceBackupBranch? = when {
-    !isInheritanceKey || signer == null || claimOptions.isEmpty() -> null
-    claimOptions.size > 1 -> InheritanceBackupBranch.BOTH
-    claimOptions.first() == ClaimOption.SEED_PHRASE -> InheritanceBackupBranch.SEED_PHRASE
-    else -> InheritanceBackupBranch.ENCRYPTED_BACKUP
-}
+fun AddKeyData.inheritanceBackupBranch(): InheritanceBackupBranch? =
+    if (!isInheritanceKey || signer == null) null else claimState.branch()
 
 /**
  * The vendor whose instructions the encrypted-backup screens should show.
@@ -81,49 +191,20 @@ data class ClaimOptionStatus(
 private val CLAIM_STATUS_ORDER = listOf(ClaimOption.ENCRYPTED_BACKUP, ClaimOption.SEED_PHRASE)
 
 /**
- * The status line under an inheritance key: one entry per sharing method the owner chose, in the
- * order the design lists them. Empty while the choice has not been made — the row shows "sharing
- * method not set" instead — and for every other key, which keeps its existing row.
+ * The status line under an inheritance key, or empty for every other key — which keeps its
+ * existing row.
  */
 fun AddKeyData.claimStatuses(): List<ClaimOptionStatus> {
     if (!showsClaimStatus) return emptyList()
-    return CLAIM_STATUS_ORDER.filter { it in claimOptions }
-        .map { ClaimOptionStatus(option = it, state = claimOptionState(it)) }
+    return claimState.statuses()
 }
 
-/**
- * True while the owner asked for an encrypted backup and none has been uploaded yet, which is what
- * makes the row's action "Backup" rather than "Verify backup".
- */
+/** @see InheritanceClaimState.needsEncryptedBackupUpload */
 val AddKeyData.needsEncryptedBackupUpload: Boolean
-    get() = ClaimOption.ENCRYPTED_BACKUP in claimOptions &&
-            claimOptionState(ClaimOption.ENCRYPTED_BACKUP) == ClaimOptionState.NOT_UPLOADED
+    get() = claimState.needsEncryptedBackupUpload
 
-/**
- * How far [option] has got. The server records a verification only once there is something to
- * verify, so an encrypted backup with no record splits by whether its file has been uploaded.
- */
-private fun AddKeyData.claimOptionState(option: ClaimOption): ClaimOptionState {
-    val verifyType = verifications.firstOrNull { it.method == option }?.verifyType ?: VerifyType.NONE
-    return when {
-        verifyType == VerifyType.SKIPPED_VERIFICATION -> ClaimOptionState.SKIPPED
-        verifyType != VerifyType.NONE -> ClaimOptionState.VERIFIED
-        option == ClaimOption.ENCRYPTED_BACKUP && !hasEncryptedBackupFile ->
-            ClaimOptionState.NOT_UPLOADED
-
-        else -> ClaimOptionState.PENDING
-    }
-}
-
-/**
- * [ClaimOption.ENCRYPTED_BACKUP] when this key asked for one, otherwise null.
- *
- * The encrypted-backup screens of TAPSIGNER and Coldcard have no idea what a claim option is, so
- * the key list names the artifact they are about to resolve. Null keeps the legacy behaviour,
- * where the server infers a key's single verification.
- */
-fun AddKeyData.encryptedBackupClaimOption(): ClaimOption? =
-    ClaimOption.ENCRYPTED_BACKUP.takeIf { it in claimOptions }
+/** @see InheritanceClaimState.encryptedBackupClaimOption */
+fun AddKeyData.encryptedBackupClaimOption(): ClaimOption? = claimState.encryptedBackupClaimOption()
 
 /**
  * The three tails of the off-chain inheritance flow, one per sharing method the owner can choose.

@@ -29,8 +29,6 @@ import com.nunchuk.android.model.TimelockExtra
 import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.model.inheritance.ClaimOption
 import com.nunchuk.android.model.inheritance.InheritanceKeyVerification
-import com.nunchuk.android.model.inheritance.isResolved
-import com.nunchuk.android.model.inheritance.isVerified
 import com.nunchuk.android.model.isAddInheritanceKey
 import com.nunchuk.android.model.isTimelockStep
 
@@ -65,37 +63,42 @@ data class AddKeyData(
     val isVerifyOrAddKey: Boolean
         get() = signer != null || verifyType != VerifyType.NONE
 
+    /**
+     * The claim-side state of this key, as the server records it. Shared with the replace-key row,
+     * which tracks the same key on the wallet's replacement rather than on the draft.
+     */
+    val claimState: InheritanceClaimState
+        get() = InheritanceClaimState(
+            claimOptions = claimOptions,
+            verifications = verifications,
+            hasEncryptedBackupFile = hasEncryptedBackupFile,
+        )
+
     /** Whether the row carries the inheritance status line at all. */
     val showsClaimStatus: Boolean
         get() = isInheritanceKey && signer != null
 
     /** An inheritance key that is in place but whose sharing method still has to be picked. */
     val needsClaimOptions: Boolean
-        get() = showsClaimStatus && claimOptions.isEmpty()
+        get() = showsClaimStatus && claimState.isUnset
 
-    /**
-     * Whether [option] has been dealt with — verified or deliberately skipped. The server keeps one
-     * record per method and can still hold records for a method the owner has since dropped, so the
-     * chosen options — not [verifications] — decide what counts.
-     */
-    fun isClaimOptionResolved(option: ClaimOption): Boolean =
-        verifications.any { it.method == option && it.isResolved }
+    /** @see InheritanceClaimState.isResolved */
+    fun isClaimOptionResolved(option: ClaimOption): Boolean = claimState.isResolved(option)
 
-    /** Whether [option] was actually checked. A skipped verification is resolved but not verified. */
-    fun isClaimOptionVerified(option: ClaimOption): Boolean =
-        verifications.any { it.method == option && it.isVerified }
+    /** @see InheritanceClaimState.isVerified */
+    fun isClaimOptionVerified(option: ClaimOption): Boolean = claimState.isVerified(option)
 
     /** How many of the chosen sharing methods are verified (or deliberately skipped). */
     val resolvedClaimOptionCount: Int
-        get() = claimOptions.count { isClaimOptionResolved(it) }
+        get() = claimState.resolvedCount
 
     /** True once every chosen sharing method has been dealt with. */
     val isClaimSettled: Boolean
-        get() = claimOptions.isNotEmpty() && resolvedClaimOptionCount == claimOptions.size
+        get() = claimState.isSettled
 
     /** True only once every chosen sharing method has actually been verified. */
     val isClaimVerified: Boolean
-        get() = claimOptions.isNotEmpty() && claimOptions.all { isClaimOptionVerified(it) }
+        get() = claimState.isFullyVerified
 
     /**
      * An off-chain inheritance key whose chosen sharing method still owes a backup or its
@@ -107,7 +110,7 @@ data class AddKeyData(
      * which is why skipping unblocks the wizard ([isInheritanceIncomplete]) without greening the row.
      */
     val needsClaimVerification: Boolean
-        get() = showsClaimStatus && claimOptions.isNotEmpty() && !isClaimVerified
+        get() = showsClaimStatus && !claimState.isUnset && !isClaimVerified
 
     /**
      * An off-chain inheritance key that still owes something the wizard insists on — a sharing
@@ -115,11 +118,11 @@ data class AddKeyData(
      * it is settled; a deliberately skipped verification counts as settled.
      */
     val isInheritanceIncomplete: Boolean
-        get() = needsClaimOptions || (showsClaimStatus && claimOptions.isNotEmpty() && !isClaimSettled)
+        get() = needsClaimOptions || (showsClaimStatus && !claimState.isUnset && !isClaimSettled)
 
     /** Whether the row is finished, i.e. renders green with a tick rather than an action. */
     val isRowComplete: Boolean
-        get() = if (isInheritanceKey && claimOptions.isNotEmpty()) {
+        get() = if (isInheritanceKey && !claimState.isUnset) {
             isClaimVerified
         } else {
             verifyType != VerifyType.NONE
