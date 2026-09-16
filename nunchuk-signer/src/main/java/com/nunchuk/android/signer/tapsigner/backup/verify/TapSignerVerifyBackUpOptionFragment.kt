@@ -124,6 +124,9 @@ class TapSignerVerifyBackUpOptionFragment : MembershipFragment() {
                                 groupId = nfcActivity.groupId,
                                 masterSignerId = args.masterSignerId,
                                 verificationMethod = nfcActivity.claimOption,
+                                replacedXfp = nfcActivity.replacedXfp,
+                                walletId = nfcActivity.walletId,
+                                keyId = nfcActivity.keyId,
                             )
                         } else {
                             requireActivity().finish()

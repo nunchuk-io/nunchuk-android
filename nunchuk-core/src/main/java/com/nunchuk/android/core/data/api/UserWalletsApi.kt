@@ -352,6 +352,7 @@ internal interface UserWalletsApi {
 
     @PUT("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/replacement/{xfp}/claim-options")
     suspend fun setReplacementClaimOptions(
+        @Header("Verify-token") verifyToken: String,
         @Path("wallet_id_or_local_id") walletId: String,
         @Path("xfp") xfp: String,
         @Body payload: ClaimOptionsRequest

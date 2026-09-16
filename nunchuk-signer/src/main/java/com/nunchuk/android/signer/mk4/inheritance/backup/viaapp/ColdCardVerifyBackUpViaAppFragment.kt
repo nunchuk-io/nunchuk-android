@@ -108,7 +108,8 @@ class ColdCardVerifyBackupViaAppFragment : MembershipFragment() {
                 if (keyId.isNotEmpty()) {
                     viewModel.onReplaceKeyVerified(
                         masterSignerId, keyId, filePath,
-                        groupId = groupId, walletId = walletId.orEmpty()
+                        groupId = groupId, walletId = walletId.orEmpty(),
+                        verificationMethod = (requireActivity() as Mk4Activity).claimOption,
                     )
                 } else {
                     viewModel.onContinueClicked(

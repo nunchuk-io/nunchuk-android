@@ -180,7 +180,8 @@ private fun CheckBackUpByAppScreen(
                 viewModel.onReplaceKeyVerified(
                     masterSignerId = masterSignerId, keyId = keyId,
                     groupId = groupId, walletId = walletId,
-                    isOnChainBackUp = isOnChainBackUp
+                    isOnChainBackUp = isOnChainBackUp,
+                    verificationMethod = claimOption,
                 )
             } else {
                 viewModel.onContinueClicked(

@@ -128,7 +128,8 @@ class CheckBackUpByAppViewModel @Inject constructor(
         keyId: String,
         groupId: String,
         walletId: String,
-        isOnChainBackUp: Boolean
+        isOnChainBackUp: Boolean,
+        verificationMethod: ClaimOption? = null,
     ) {
         viewModelScope.launch {
             val newFile = try {
@@ -159,7 +160,8 @@ class CheckBackUpByAppViewModel @Inject constructor(
                             checkSum = checkSum,
                             verifyType = VerifyType.APP_VERIFIED,
                             groupId = groupId,
-                            walletId = walletId
+                            walletId = walletId,
+                            verificationMethod = verificationMethod,
                         )
                     )
                 if (apiResult.isSuccess) {

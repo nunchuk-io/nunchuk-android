@@ -119,7 +119,11 @@ class BackingUpViewModel @Inject constructor(
                         replacedXfp = replacedXfp,
                         walletId = walletId,
                         existingColdCard = existingColdCard,
-                        isRequestReplaceKey = true,
+                        // The backup upload used to double as the replace request. With the
+                        // off-chain inheritance flow the key is replaced before the sharing
+                        // method is chosen, so asking again would replay a replacement the
+                        // server already holds; the caller says whether it is still needed.
+                        isRequestReplaceKey = isRequestAddOrReplaceKey,
                         isOnChainFlow = isOnChainFlow
                     )
                 )

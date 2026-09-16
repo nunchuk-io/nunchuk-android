@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.model.inheritance.ClaimOption
 import com.nunchuk.android.usecase.membership.SetKeyVerifiedUseCase
+import com.nunchuk.android.usecase.membership.SetReplaceKeyVerifiedUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -14,6 +15,7 @@ import javax.inject.Inject
 @HiltViewModel
 class ColdCardVerifyBackUpOptionViewModel @Inject constructor(
     private val setKeyVerifiedUseCase: SetKeyVerifiedUseCase,
+    private val setReplaceKeyVerifiedUseCase: SetReplaceKeyVerifiedUseCase,
 ) : ViewModel() {
 
     private val _event = MutableSharedFlow<ColdCardVerifyBackUpOptionEvent>()
@@ -30,16 +32,35 @@ class ColdCardVerifyBackUpOptionViewModel @Inject constructor(
         groupId: String,
         masterSignerId: String,
         verificationMethod: ClaimOption?,
+        replacedXfp: String = "",
+        walletId: String = "",
+        keyId: String = "",
     ) {
         viewModelScope.launch {
-            setKeyVerifiedUseCase(
-                SetKeyVerifiedUseCase.Param(
-                    groupId = groupId,
-                    masterSignerId = masterSignerId,
-                    verifyType = VerifyType.SKIPPED_VERIFICATION,
-                    verificationMethod = verificationMethod,
+            // A replacement key is not on the draft, so its verification is recorded against the
+            // wallet's replacement instead. Same skip, different endpoint. The claim option is
+            // what marks the off-chain inheritance flow, the only one routed this way.
+            if (verificationMethod != null && (replacedXfp.isNotEmpty() || keyId.isNotEmpty())) {
+                setReplaceKeyVerifiedUseCase(
+                    SetReplaceKeyVerifiedUseCase.Param(
+                        keyId = keyId.ifEmpty { masterSignerId },
+                        checkSum = "",
+                        verifyType = VerifyType.SKIPPED_VERIFICATION,
+                        groupId = groupId,
+                        walletId = walletId,
+                        verificationMethod = verificationMethod,
+                    )
                 )
-            )
+            } else {
+                setKeyVerifiedUseCase(
+                    SetKeyVerifiedUseCase.Param(
+                        groupId = groupId,
+                        masterSignerId = masterSignerId,
+                        verifyType = VerifyType.SKIPPED_VERIFICATION,
+                        verificationMethod = verificationMethod,
+                    )
+                )
+            }
             // Either way the flow is done; a failed write leaves the row asking again, which is
             // the honest outcome and better than trapping the owner on this screen.
             _event.emit(ColdCardVerifyBackUpOptionEvent.SkipVerificationHandled)

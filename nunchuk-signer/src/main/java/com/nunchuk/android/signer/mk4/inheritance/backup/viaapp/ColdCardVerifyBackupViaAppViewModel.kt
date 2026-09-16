@@ -87,7 +87,7 @@ class ColdCardVerifyBackupViaAppViewModel @Inject constructor(
 
     fun onReplaceKeyVerified(
         masterSignerId: String, keyId: String, filePath: String, groupId: String,
-        walletId: String
+        walletId: String, verificationMethod: ClaimOption? = null,
     ) {
         _state.update { it.copy(showVerifyError = false) }
         viewModelScope.launch {
@@ -107,7 +107,8 @@ class ColdCardVerifyBackupViaAppViewModel @Inject constructor(
                             checkSum = getChecksum(filePath),
                             verifyType = VerifyType.APP_VERIFIED,
                             groupId = groupId,
-                            walletId = walletId
+                            walletId = walletId,
+                            verificationMethod = verificationMethod,
                         )
                     )
                 if (apiResult.isSuccess) {

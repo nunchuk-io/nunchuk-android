@@ -21,6 +21,7 @@ package com.nunchuk.android.usecase.membership
 
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.VerifyType
+import com.nunchuk.android.model.inheritance.ClaimOption
 import com.nunchuk.android.repository.KeyRepository
 import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
@@ -36,7 +37,8 @@ class SetReplaceKeyVerifiedUseCase @Inject constructor(
             checkSum = parameters.checkSum,
             verifyType = parameters.verifyType,
             groupId = parameters.groupId,
-            walletId = parameters.walletId
+            walletId = parameters.walletId,
+            verificationMethod = parameters.verificationMethod,
         )
     }
 
@@ -45,6 +47,12 @@ class SetReplaceKeyVerifiedUseCase @Inject constructor(
         val checkSum: String,
         val verifyType: VerifyType,
         val groupId: String,
-        val walletId: String
+        val walletId: String,
+        /**
+         * Which sharing method of an off-chain inheritance key this verification covers. The two
+         * artifacts of a "do both" key are tracked apart server-side, so a verification that does
+         * not name its method would resolve the wrong one. Null everywhere else.
+         */
+        val verificationMethod: ClaimOption? = null,
     )
 }

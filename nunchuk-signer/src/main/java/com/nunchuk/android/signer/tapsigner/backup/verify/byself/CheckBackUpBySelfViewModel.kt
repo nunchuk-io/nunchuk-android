@@ -119,7 +119,13 @@ class CheckBackUpBySelfViewModel @Inject constructor(
         }
     }
 
-    fun setReplaceKeyVerified(keyId: String, groupId: String, walletId: String, isOnChainBackUp: Boolean) {
+    fun setReplaceKeyVerified(
+        keyId: String,
+        groupId: String,
+        walletId: String,
+        isOnChainBackUp: Boolean,
+        verificationMethod: ClaimOption? = null,
+    ) {
         viewModelScope.launch {
             val checkSum = if (isOnChainBackUp) {
                 ""
@@ -137,7 +143,8 @@ class CheckBackUpBySelfViewModel @Inject constructor(
                     checkSum = checkSum,
                     verifyType = VerifyType.SELF_VERIFIED,
                     groupId = groupId,
-                    walletId = walletId
+                    walletId = walletId,
+                    verificationMethod = verificationMethod,
                 )
             ).onSuccess {
                 _event.emit(OnExitSelfCheck)

@@ -52,7 +52,8 @@ class ColdCardVerifyRecoveredKeyViewModel @Inject constructor(
 
     fun setReplaceKeyVerified(
         keyId: String, filePath: String,
-        groupId: String, walletId: String
+        groupId: String, walletId: String,
+        verificationMethod: ClaimOption? = null,
     ) {
         viewModelScope.launch {
             setReplaceKeyVerifiedUseCase(
@@ -61,7 +62,8 @@ class ColdCardVerifyRecoveredKeyViewModel @Inject constructor(
                     checkSum = getChecksum(filePath),
                     verifyType = VerifyType.SELF_VERIFIED,
                     groupId = groupId,
-                    walletId = walletId
+                    walletId = walletId,
+                    verificationMethod = verificationMethod,
                 )
             ).onSuccess {
                 _event.emit(ColdCardVerifyRecoveredKeyEvent.OnExitSelfCheck)

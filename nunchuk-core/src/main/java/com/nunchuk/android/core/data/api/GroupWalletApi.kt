@@ -652,6 +652,7 @@ internal interface GroupWalletApi {
 
     @PUT("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/replacement/{xfp}/claim-options")
     suspend fun setReplacementClaimOptions(
+        @Header("Verify-token") verifyToken: String,
         @Path("group_id") groupId: String,
         @Path("wallet_id_or_local_id") walletId: String,
         @Path("xfp") xfp: String,

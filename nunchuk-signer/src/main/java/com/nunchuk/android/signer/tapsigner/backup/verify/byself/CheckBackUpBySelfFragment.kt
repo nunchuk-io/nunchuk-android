@@ -119,7 +119,8 @@ class CheckBackUpBySelfFragment : MembershipFragment() {
                                             keyId = keyId.ifEmpty { activity.replacedXfp },
                                             groupId = activity.groupId,
                                             walletId = activity.walletId,
-                                            isOnChainBackUp = isOnChainBackUp
+                                            isOnChainBackUp = isOnChainBackUp,
+                                            verificationMethod = activity.claimOption,
                                         )
                                     } else {
                                         viewModel.setKeyVerified(

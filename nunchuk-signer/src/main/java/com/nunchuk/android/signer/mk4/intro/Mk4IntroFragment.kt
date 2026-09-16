@@ -166,7 +166,8 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
                                         viewModel.setReplaceKeyVerified(
                                             keyId = it.signer.masterFingerprint,
                                             groupId = (activity as Mk4Activity).groupId,
-                                            walletId = (activity as Mk4Activity).walletId.orEmpty()
+                                            walletId = (activity as Mk4Activity).walletId.orEmpty(),
+                                            verificationMethod = onChainAddSignerParam.claimOption,
                                         )
                                     } else {
                                         viewModel.setKeyVerified(

@@ -81,6 +81,9 @@ class ColdCardVerifyBackUpOptionFragment : MembershipFragment() {
                                 groupId = mk4Activity.groupId,
                                 masterSignerId = mk4Activity.xfp,
                                 verificationMethod = claimOption,
+                                replacedXfp = mk4Activity.replacedXfp.orEmpty(),
+                                walletId = mk4Activity.walletId.orEmpty(),
+                                keyId = mk4Activity.keyId,
                             )
                         } else {
                             requireActivity().finish()

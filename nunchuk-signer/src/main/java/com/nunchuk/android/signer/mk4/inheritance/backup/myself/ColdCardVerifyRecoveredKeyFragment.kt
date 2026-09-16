@@ -77,7 +77,8 @@ class ColdCardVerifyRecoveredKeyFragment : MembershipFragment() {
                         keyId = keyId,
                         filePath = mk4ViewModel.coldCardBackUpParam.filePath,
                         groupId = (requireActivity() as? Mk4Activity)?.groupId.orEmpty(),
-                        walletId = (requireActivity() as? Mk4Activity)?.walletId.orEmpty()
+                        walletId = (requireActivity() as? Mk4Activity)?.walletId.orEmpty(),
+                        verificationMethod = (requireActivity() as? Mk4Activity)?.claimOption,
                     )
                 } else {
                     viewModel.setKeyVerified(
