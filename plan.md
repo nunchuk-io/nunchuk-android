@@ -453,6 +453,82 @@ Two things deliberately left alone:
 - **Free (non-assisted) wallets** have no inheritance key, so nothing on that path changed.
 
 
+## 4c. Set up inheritance plan — the backup-method flow
+
+Figma section *9. Set up inheritance plan — backup-method flow* (`1401:10027`, one key) and its
+two-key counterpart (`1424:5364`). The plan-setup wizard (`inheritanceplanning/`) assumed every
+inheritance key had an encrypted backup: it listed "A Backup Password" as a plan component, always
+showed the Backup Password step, and named COLDCARD in the copy for any key that was not a
+TAPSIGNER.
+
+Both Figma routes were rate-limited out on 2026-09-17 (MCP per-month seat limit; REST `429` with a
+~2-day `retry-after`), so the frames were read from PNG exports in `~/Downloads/inheritance`
+instead. That is the cheaper route in general — see §1.
+
+- **Per-key info replaces the bare type list.** `InheritancePlanningState.keyTypes:
+  List<InheritanceKeyType>` becomes `inheritanceKeys: List<InheritanceKeyInfo>` (type +
+  `claim_options`), which is what the two-key screens will need as well. `inheritanceClaimOptions`
+  is now derived from it rather than stored twice.
+- **`InheritanceKeyType` gains `OTHER`.** `updateKeyTypes` mapped every non-NFC key to `COLDCARD`,
+  so under BYOH a Ledger inheritance key was told its Backup Password "was displayed on the COLDCARD
+  device". COLDCARD is now matched the way the rest of the app matches it (`COLDCARD_NFC` or the
+  `COLDCARD` tag) and anything else takes the generic copy
+  (`nc_record_your_backup_password_generic_desc`, frame 05c). That frame also draws the app's
+  generic "Backup Password on the server" graphic — `nc_bg_backup_password_share_secret`, the one
+  the share-secrets explainer uses — not COLDCARD's device illustration. And 05a's copy moves to the
+  singular "the Beneficiary or Trustee", which is what all three frames say and what 05b's shipped
+  string already said.
+- **Each step is driven by which keys it applies to, not by a step counter.**
+  `backupPasswordKeyIndexes` and `seedPhraseKeyIndexes` (1-based positions in the plan) replace the
+  old "step 1, step 2" walk:
+  - one Backup Password screen per key that has an encrypted backup — a seed-only key has no
+    Backup Password to note down, so it has no screen, and if no key has one the step is skipped
+    entirely (the "No · Seed phrase only" edge);
+  - the inheritance-key screen appears only when a key travels as a seed phrase, and speaks about
+    exactly those keys;
+  - the "Inheritance Key x/y" label counts the key's **position in the plan**, not the screen's
+    position in the flow. A plan whose second key alone has an encrypted backup shows one Backup
+    Password screen, labelled 2/2 and reading "the second inheritance key" (confirmed with the
+    owner — the frames do not draw the mixed case).
+
+  `backupPasswordKeyIndexes` reads *no keys at all* as one key with an encrypted backup: the wallet
+  fetch has a known race (§7) and a legacy plan reports no `claim_options`, so a stale read must
+  never skip a step that applies.
+- **Two keys that both stop at a Backup Password never reach the inheritance-key screen** — there
+  is no 06a-2 frame, and it is what the app already did for `THREE_OF_FIVE_INHERITANCE`. Confirmed
+  with the owner rather than assumed from the gap.
+- **The two-key copy is the one-key copy with the key renamed.** The shipped `*_desc_2` strings
+  ("Additionally, you have designated another TAPSIGNER… also stored… the second TAPSIGNER") are
+  gone; each device paragraph now takes the key's name as its one argument
+  (`nc_designated_*_inheritance_key`, and `nc_backup_of_*_inheritance_key` for the generic body,
+  whose sentence needs the possessive). The title stays singular with two keys, so
+  `nc_find_backup_passwords` goes too. Rendering moved from `NcSpannedText` to `NcHighlightText`:
+  the body now has two bold spans and `NcSpannedText` styles only the first occurrence of each
+  indicator, which is why the old strings needed an `[A]`/`[B]` split.
+- **The inheritance-key screen has the seed-phrase variant** (frames 06b, 06b-1, 06b-2):
+  `nc_inheritance_key_tip_desc_seed_phrase` plus the "you can also give them the device" hint, which
+  is the plural the on-chain timelock flow already used — the exported frame matches that string
+  word for word. With one key of two the heading becomes "Inheritance Key 1/2" and both copies drop
+  to the singular; with both keys it is "Inheritance keys" and the plural. 06a and 06b share one
+  illustration (`bg_inheritance_key_illustration`), confirmed against the frames.
+- **Plan overview names the key, not a password**, whenever any key travels as a seed phrase —
+  in all three non-miniscript variants, including multi-beneficiary, which the frames do not draw
+  but which lists the same component for the same reason. The backup-only label loses its article
+  ("A Backup Password" → "Backup Password", frame 03a, confirmed with the owner), which leaves all
+  three variants on one string and retires `nc_a_backup_password`.
+- Both screens' CTAs moved into `Scaffold(bottomBar)`; they were `Spacer(weight(1f))` inside a
+  `verticalScroll` column, the same defect fixed on the add-key screens.
+
+### Still owed here
+
+- The 05c copy says "Nunchuk's server" where 05a/05b say "the server"; taken from the frames as-is.
+- **Key order is the wallet's signer order.** "First" and "second" come from the position of the
+  `INHERITANCE`-tagged signers on the server wallet, which is what the app already indexed by. If
+  the server ever reorders them the two screens would swap names; nothing pins it.
+- The frames bold the full stop in "**Make note of this Backup Password.**"; the shipped strings
+  leave it outside the span. Left alone — pre-existing and cosmetic.
+
+
 ## 5. Not done
 
 1. **Screen 16 has no QR import — deferred by the owner.** The design draws QR / file / Desktop;

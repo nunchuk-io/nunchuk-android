@@ -48,8 +48,20 @@ internal fun InheritanceKeyTipContent(
     remainTime: Int = 0,
     numberOfKey: Int = 1,
     isMiniscriptWallet: Boolean = false,
+    seedPhraseKeyIndexes: List<Int> = emptyList(),
     onContinueClicked: () -> Unit = {}
 ) {
+    // The seed phrase is what the Beneficiary will hold, so the copy is about backing it up and the
+    // hint about the device it came off. An on-chain timelock key is always handed over that way;
+    // off-chain it depends on the sharing method the owner chose.
+    val sharesSeedPhrase = seedPhraseKeyIndexes.isNotEmpty()
+    val explainsSeedPhrase = isMiniscriptWallet || sharesSeedPhrase
+    // The screen speaks about the keys it explains, which off-chain is only the ones the Beneficiary
+    // receives as a seed phrase — the others were covered by their Backup Password screen.
+    val keysExplained = if (isMiniscriptWallet) numberOfKey else seedPhraseKeyIndexes.size.coerceAtLeast(1)
+    // With one key out of several, the heading names which one instead of counting.
+    val singleKeyOfSeveral = seedPhraseKeyIndexes.singleOrNull()
+        ?.takeIf { !isMiniscriptWallet && numberOfKey > 1 }
     NunchukTheme {
         Scaffold(
             modifier = Modifier.navigationBarsPadding(),
@@ -61,15 +73,15 @@ internal fun InheritanceKeyTipContent(
             },
             bottomBar = {
                 Column {
-                    if (isMiniscriptWallet) {
+                    if (explainsSeedPhrase) {
                         NcHintMessage(
                             modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
                             messages = listOf(
                                 ClickAbleText(
                                     pluralStringResource(
                                         R.plurals.nc_inheritance_key_hardware_device_hint,
-                                        numberOfKey,
-                                        numberOfKey
+                                        keysExplained,
+                                        keysExplained
                                     )
                                 )
                             )
@@ -95,23 +107,37 @@ internal fun InheritanceKeyTipContent(
             ) {
                 Text(
                     modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
-                    text = pluralStringResource(
-                        R.plurals.nc_inheritance_key,
-                        numberOfKey,
-                        numberOfKey
-                    ),
+                    text = if (singleKeyOfSeveral != null) {
+                        stringResource(
+                            R.string.nc_inheritance_key_index,
+                            singleKeyOfSeveral,
+                            numberOfKey
+                        )
+                    } else {
+                        pluralStringResource(
+                            R.plurals.nc_inheritance_key,
+                            keysExplained,
+                            keysExplained
+                        )
+                    },
                     style = NunchukTheme.typography.heading
                 )
                 NcHighlightText(
                     modifier = Modifier.padding(16.dp),
-                    text = if (isMiniscriptWallet) {
-                        pluralStringResource(
+                    text = when {
+                        isMiniscriptWallet -> pluralStringResource(
                             R.plurals.nc_inheritance_key_tip_desc_miniscript,
                             numberOfKey,
                             numberOfKey
                         )
-                    } else {
-                        stringResource(R.string.nc_inheritance_key_tip_desc)
+
+                        sharesSeedPhrase -> pluralStringResource(
+                            R.plurals.nc_inheritance_key_tip_desc_seed_phrase,
+                            keysExplained,
+                            keysExplained
+                        )
+
+                        else -> stringResource(R.string.nc_inheritance_key_tip_desc)
                     },
                     style = NunchukTheme.typography.body
                 )
@@ -123,10 +149,32 @@ internal fun InheritanceKeyTipContent(
 @PreviewLightDark
 @Composable
 private fun InheritanceKeyTipScreenPreview() {
+    InheritanceKeyTipContent(remainTime = 5)
+}
+
+@PreviewLightDark
+@Composable
+private fun InheritanceKeyTipScreenSeedPhrasePreview() {
+    InheritanceKeyTipContent(remainTime = 5, seedPhraseKeyIndexes = listOf(1))
+}
+
+@PreviewLightDark
+@Composable
+private fun InheritanceKeyTipScreenOneOfTwoSeedPhrasePreview() {
     InheritanceKeyTipContent(
         remainTime = 5,
-        isMiniscriptWallet = false,
-        onContinueClicked = {}
+        numberOfKey = 2,
+        seedPhraseKeyIndexes = listOf(1),
+    )
+}
+
+@PreviewLightDark
+@Composable
+private fun InheritanceKeyTipScreenBothSeedPhrasePreview() {
+    InheritanceKeyTipContent(
+        remainTime = 5,
+        numberOfKey = 2,
+        seedPhraseKeyIndexes = listOf(1, 2),
     )
 }
 
@@ -137,7 +185,6 @@ private fun InheritanceKeyTipScreenMiniscriptPreview() {
         remainTime = 5,
         numberOfKey = 2,
         isMiniscriptWallet = true,
-        onContinueClicked = {}
     )
 }
 
@@ -148,6 +195,5 @@ private fun InheritanceKeyTipScreenMiniscriptSinglePreview() {
         remainTime = 5,
         numberOfKey = 1,
         isMiniscriptWallet = true,
-        onContinueClicked = {}
     )
 }

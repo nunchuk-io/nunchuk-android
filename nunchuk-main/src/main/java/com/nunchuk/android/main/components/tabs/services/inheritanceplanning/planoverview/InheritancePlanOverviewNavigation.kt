@@ -32,6 +32,7 @@ fun NavGraphBuilder.inheritancePlanOverview(
             viewModel = viewModel,
             groupWalletType = activityViewModel.getGroupWalletType(),
             isMiniscriptWallet = sharedState.isMiniscriptWallet,
+            sharesSeedPhrase = sharedState.sharesInheritanceSeedPhrase,
             setupFlowType = route.setupFlowType,
             onContinueClicked = { onContinueClicked(route.setupFlowType) },
         )

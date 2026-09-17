@@ -99,6 +99,7 @@ import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.sha
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.timelockinfo.inheritanceTimelockInfo
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.timelockinfo.navigateToInheritanceTimelockInfo
 import com.nunchuk.android.model.Period
+import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.model.inheritance.ClaimOption
 import com.nunchuk.android.model.inheritance.InheritanceNotificationSettings
 import com.nunchuk.android.nav.NunchukNavigator
@@ -282,23 +283,41 @@ fun InheritancePlanningGraph(
                         },
                     )
                 )
-                if (activityViewModel.isMiniscriptWallet()) {
-                    navController.navigateToInheritanceKeyTip()
-                } else {
-                    navController.navigateToFindBackupPassword()
+                val uiState = activityViewModel.state.value
+                val firstBackupPasswordKey = uiState.backupPasswordKeyIndexes.firstOrNull()
+                when {
+                    activityViewModel.isMiniscriptWallet() ->
+                        navController.navigateToInheritanceKeyTip()
+
+                    // A key whose only route is the seed phrase has no Backup Password to note
+                    // down, so it has no screen here; if no key has one, the step is skipped.
+                    firstBackupPasswordKey != null ->
+                        navController.navigateToFindBackupPassword(firstBackupPasswordKey)
+
+                    else -> navController.navigateToInheritanceKeyTip()
                 }
             },
         )
 
         findBackupPassword(
-            onContinueClicked = { stepNumber ->
+            onContinueClicked = { keyIndex ->
                 val uiState = activityViewModel.state.value
-                if (uiState.keyTypes.size == 2 && stepNumber == 1) {
-                    navController.navigateToFindBackupPassword(stepNumber = 2)
-                } else if (activityViewModel.getGroupWalletType() == com.nunchuk.android.model.byzantine.GroupWalletType.THREE_OF_FIVE_INHERITANCE) {
-                    navController.navigateToInheritanceActivationDate()
-                } else {
-                    navController.navigateToInheritanceKeyTip()
+                val nextBackupPasswordKey =
+                    uiState.backupPasswordKeyIndexes.firstOrNull { it > keyIndex }
+                when {
+                    nextBackupPasswordKey != null ->
+                        navController.navigateToFindBackupPassword(nextBackupPasswordKey)
+
+                    // The inheritance-key screen explains the seed phrase, so it only appears when
+                    // a key travels that way. Two keys that both stop at a Backup Password go
+                    // straight on, which is what the design draws and what the app already did.
+                    uiState.sharesInheritanceSeedPhrase ->
+                        navController.navigateToInheritanceKeyTip()
+
+                    activityViewModel.getGroupWalletType() == GroupWalletType.THREE_OF_FIVE_INHERITANCE ->
+                        navController.navigateToInheritanceActivationDate()
+
+                    else -> navController.navigateToInheritanceKeyTip()
                 }
             },
         )

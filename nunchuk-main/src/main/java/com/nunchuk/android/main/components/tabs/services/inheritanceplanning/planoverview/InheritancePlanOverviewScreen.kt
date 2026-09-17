@@ -20,6 +20,7 @@
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.planoverview
 
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.estimateRemainTimeTitle
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -54,12 +55,14 @@ internal fun InheritancePlanOverviewScreen(
     viewModel: InheritancePlanOverviewViewModel = viewModel(),
     groupWalletType: GroupWalletType? = null,
     isMiniscriptWallet: Boolean,
+    sharesSeedPhrase: Boolean = false,
     setupFlowType: InheritanceSetupFlowType = InheritanceSetupFlowType.OLD_FLOW,
     onContinueClicked: () -> Unit = {},
 ) {
     val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
     InheritancePlanOverviewContent(
         isMiniscriptWallet = isMiniscriptWallet,
+        sharesSeedPhrase = sharesSeedPhrase,
         remainTime = remainTime,
         groupWalletType = groupWalletType,
         setupFlowType = setupFlowType,
@@ -70,6 +73,7 @@ internal fun InheritancePlanOverviewScreen(
 @Composable
 private fun InheritancePlanOverviewContent(
     isMiniscriptWallet: Boolean,
+    sharesSeedPhrase: Boolean = false,
     remainTime: Int = 0,
     groupWalletType: GroupWalletType? = null,
     setupFlowType: InheritanceSetupFlowType = InheritanceSetupFlowType.OLD_FLOW,
@@ -85,6 +89,16 @@ private fun InheritancePlanOverviewContent(
                         Spacer(modifier = Modifier.size(LocalViewConfiguration.current.minimumTouchTargetSize))
                     }
                 )
+            },
+            bottomBar = {
+                NcPrimaryDarkButton(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    onClick = onContinueClicked,
+                ) {
+                    Text(text = stringResource(id = R.string.nc_text_continue))
+                }
             }
         ) { innerPadding ->
             Column(
@@ -110,22 +124,19 @@ private fun InheritancePlanOverviewContent(
                 if (isMiniscriptWallet) {
                     MiniscriptOverviewItems(groupWalletType = groupWalletType)
                 } else when (setupFlowType) {
-                    InheritanceSetupFlowType.OLD_FLOW -> OldFlowOverviewItems(groupWalletType = groupWalletType)
-                    InheritanceSetupFlowType.SINGLE_BENEFICIARY -> SingleBeneficiaryOverviewItems(
-                        groupWalletType = groupWalletType
+                    InheritanceSetupFlowType.OLD_FLOW -> OldFlowOverviewItems(
+                        groupWalletType = groupWalletType,
+                        sharesSeedPhrase = sharesSeedPhrase,
                     )
 
-                    InheritanceSetupFlowType.MULTI_BENEFICIARY -> MultiBeneficiaryOverviewItems()
-                }
+                    InheritanceSetupFlowType.SINGLE_BENEFICIARY -> SingleBeneficiaryOverviewItems(
+                        groupWalletType = groupWalletType,
+                        sharesSeedPhrase = sharesSeedPhrase,
+                    )
 
-                Spacer(modifier = Modifier.weight(1.0f))
-                NcPrimaryDarkButton(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    onClick = onContinueClicked,
-                ) {
-                    Text(text = stringResource(id = R.string.nc_text_continue))
+                    InheritanceSetupFlowType.MULTI_BENEFICIARY -> MultiBeneficiaryOverviewItems(
+                        sharesSeedPhrase = sharesSeedPhrase,
+                    )
                 }
             }
         }
@@ -161,7 +172,10 @@ private fun MiniscriptOverviewItems(groupWalletType: GroupWalletType? = null) {
 }
 
 @Composable
-private fun OldFlowOverviewItems(groupWalletType: GroupWalletType? = null) {
+private fun OldFlowOverviewItems(
+    groupWalletType: GroupWalletType? = null,
+    sharesSeedPhrase: Boolean = false,
+) {
     NCLabelWithIndex(
         modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
         index = 1,
@@ -170,11 +184,12 @@ private fun OldFlowOverviewItems(groupWalletType: GroupWalletType? = null) {
     NCLabelWithIndex(
         modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
         index = 2,
-        label = if (groupWalletType == GroupWalletType.THREE_OF_FIVE_INHERITANCE) {
-            stringResource(id = R.string.nc_two_backup_password)
-        } else {
-            stringResource(id = R.string.nc_a_backup_password)
-        },
+        label = stringResource(
+            id = inheritanceComponentLabelRes(
+                groupWalletType = groupWalletType,
+                sharesSeedPhrase = sharesSeedPhrase,
+            )
+        ),
     )
     NCLabelWithIndex(
         modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
@@ -189,7 +204,10 @@ private fun OldFlowOverviewItems(groupWalletType: GroupWalletType? = null) {
 }
 
 @Composable
-private fun SingleBeneficiaryOverviewItems(groupWalletType: GroupWalletType? = null) {
+private fun SingleBeneficiaryOverviewItems(
+    groupWalletType: GroupWalletType? = null,
+    sharesSeedPhrase: Boolean = false,
+) {
     NCLabelWithIndex(
         modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
         index = 1,
@@ -198,11 +216,12 @@ private fun SingleBeneficiaryOverviewItems(groupWalletType: GroupWalletType? = n
     NCLabelWithIndex(
         modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
         index = 2,
-        label = if (groupWalletType == GroupWalletType.THREE_OF_FIVE_INHERITANCE) {
-            stringResource(id = R.string.nc_two_backup_password)
-        } else {
-            stringResource(id = R.string.nc_plan_overview_backup_password)
-        },
+        label = stringResource(
+            id = inheritanceComponentLabelRes(
+                groupWalletType = groupWalletType,
+                sharesSeedPhrase = sharesSeedPhrase,
+            )
+        ),
     )
     NCLabelWithIndex(
         modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
@@ -212,7 +231,7 @@ private fun SingleBeneficiaryOverviewItems(groupWalletType: GroupWalletType? = n
 }
 
 @Composable
-private fun MultiBeneficiaryOverviewItems() {
+private fun MultiBeneficiaryOverviewItems(sharesSeedPhrase: Boolean = false) {
     NCLabelWithIndex(
         modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
         index = 1,
@@ -231,14 +250,64 @@ private fun MultiBeneficiaryOverviewItems() {
     NCLabelWithIndex(
         modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
         index = 4,
-        label = stringResource(R.string.nc_plan_overview_backup_password),
+        label = stringResource(
+            id = inheritanceComponentLabelRes(
+                groupWalletType = null,
+                sharesSeedPhrase = sharesSeedPhrase,
+            )
+        ),
     )
+}
+
+/**
+ * What the plan lists as the component the Beneficiary receives for the key itself.
+ *
+ * When the key reaches them as a seed phrase there is no Backup Password to hand over, so the
+ * component is the inheritance key.
+ */
+@StringRes
+private fun inheritanceComponentLabelRes(
+    groupWalletType: GroupWalletType?,
+    sharesSeedPhrase: Boolean,
+): Int {
+    val hasTwoKeys = groupWalletType == GroupWalletType.THREE_OF_FIVE_INHERITANCE
+    return when {
+        sharesSeedPhrase && hasTwoKeys -> R.string.nc_two_inheritance_keys
+        sharesSeedPhrase -> R.string.nc_an_inheritance_key
+        hasTwoKeys -> R.string.nc_two_backup_password
+        else -> R.string.nc_plan_overview_backup_password
+    }
 }
 
 @PreviewLightDark
 @Composable
 private fun InheritancePlanOverviewScreenPreview() {
     InheritancePlanOverviewContent(isMiniscriptWallet = false)
+}
+
+@PreviewLightDark
+@Composable
+private fun InheritancePlanOverviewScreenSeedPhrasePreview() {
+    InheritancePlanOverviewContent(isMiniscriptWallet = false, sharesSeedPhrase = true)
+}
+
+@PreviewLightDark
+@Composable
+private fun InheritancePlanOverviewScreenTwoKeysPreview() {
+    InheritancePlanOverviewContent(
+        isMiniscriptWallet = false,
+        groupWalletType = GroupWalletType.THREE_OF_FIVE_INHERITANCE,
+    )
+}
+
+@PreviewLightDark
+@Composable
+private fun InheritancePlanOverviewScreenTwoKeysSeedPhrasePreview() {
+    InheritancePlanOverviewContent(
+        isMiniscriptWallet = false,
+        sharesSeedPhrase = true,
+        groupWalletType = GroupWalletType.THREE_OF_FIVE_INHERITANCE,
+    )
 }
 
 @PreviewLightDark

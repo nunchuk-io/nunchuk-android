@@ -326,6 +326,10 @@
         <item quantity="one">The inheritance key is used to claim funds and spend from the wallet after the timelock.\n\n[B]Back up the seed phrase of the inheritance key on a steel plate or another durable, non-digital medium[/B]. You will need to share this seed phrase with your Beneficiary or Trustee so they can access the inheritance.</item>
         <item quantity="other">After the timelock, the Beneficiary holds two keys in a 2-of-4 multisig, referred to as \'inheritance keys.\'\n\n[B]Back up the seed phrases of the inheritance keys on separate steel plates or another durable, non-digital medium[/B]. You will need to share these seed phrases with your Beneficiary or Trustee so they can access the inheritance.</item>
     </plurals>
+    <plurals name="nc_inheritance_key_tip_desc_seed_phrase">
+        <item quantity="one">Your Beneficiary will use the inheritance key to claim the inheritance.\n\n[B]Back up the seed phrase of the inheritance key on a steel plate or another durable, non-digital medium.[/B] You will need to share this seed phrase with your Beneficiary or Trustee so they can access the inheritance.\n\nKeep the inheritance key in a safe place. Only use it for everyday transactions as a last resort.</item>
+        <item quantity="other">Your Beneficiary will use the inheritance keys to claim the inheritance.\n\n[B]Back up the seed phrases of the inheritance keys on separate steel plates or another durable, non-digital medium.[/B] You will need to share these seed phrases with your Beneficiary or Trustee so they can access the inheritance.\n\nKeep the inheritance keys in a safe place. Only use them for everyday transactions as a last resort.</item>
+    </plurals>
     <plurals name="nc_inheritance_key_hardware_device_hint">
         <item quantity="one">You can also give the Beneficiary the hardware device used to generate the inheritance key. However, because electronics can fail, it is essential to share the seed phrase in an analog format that can last many decades.</item>
         <item quantity="other">You can also give the Beneficiary the hardware devices used to generate the inheritance keys. However, because electronics can fail, it is essential to share the seed phrases in an analog format that can last many decades.</item>
@@ -358,7 +362,6 @@
     <string name="nc_magical_phrase_required_for_claiming">The Magic Phrase is required when claiming with the Nunchuk service.</string>
     <string name="nc_magical_phrase">Magic Phrase</string>
     <string name="nc_a_magical_phrase">A Magic Phrase</string>
-    <string name="nc_a_backup_password">A Backup Password</string>
     <string name="nc_two_backup_password">Two Backup Passwords</string>
     <string name="nc_give_app_permission">Please give app the permission to use this feature</string>
     <string name="nc_start">Start</string>

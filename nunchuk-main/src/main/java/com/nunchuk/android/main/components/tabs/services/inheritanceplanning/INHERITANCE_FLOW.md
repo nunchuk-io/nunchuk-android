@@ -95,7 +95,9 @@ what the review screen later diffs against to decide "has anything changed".
 On init the VM also:
 - resolves `groupWalletType` (`GetGroupUseCase`) so `MembershipStepManager` can init its steps,
 - syncs the server wallet (`SyncGroupWalletUseCase` / `GetServerWalletUseCase`) to derive
-  `keyTypes` (TAPSIGNER vs COLDCARD, from signers tagged `INHERITANCE`), `walletType`, and — for
+  `inheritanceKeys` (device type + `claim_options` per key, from signers tagged `INHERITANCE`;
+  `backupPasswordKeyIndexes` / `seedPhraseKeyIndexes` are what the setup screens branch on),
+  `walletType`, and — for
   `WalletType.MINISCRIPT` — the timelock-derived activation date/timezone.
 - owns BSMS export (`handleShareBsms` / `saveBSMSToLocal`), surfaced by
   `BaseShareSaveFileActivity`.
