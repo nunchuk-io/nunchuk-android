@@ -465,9 +465,20 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
 
     private fun handleColdCardSelection(navController: NavHostController) {
         val onChainAddSignerParam = onChainAddSignerParam
-        // Off-chain inheritance reaches here only after the reuse offer was declined, so it goes
-        // straight to the device. The Coldcard is added like any other key — no encrypted backup
-        // yet, because the owner has not chosen a sharing method at this point.
+        // A Beneficiary claiming an off-chain plan skips the setup picker's reuse offer in
+        // handleKeyTypePicked, so the Coldcard already in the key manager — its own type, or an
+        // air-gapped key carrying the tag when it was added via QR/file — is offered here before
+        // any device is read. An on-chain claim keeps its Miniscript firmware gate below.
+        if (onChainAddSignerParam != null &&
+            onChainAddSignerParam.isClaiming &&
+            onChainAddSignerParam.isAddInheritanceOffChainSigner()
+        ) {
+            viewModel.showExistingSignerOrCreateNew(SignerType.COLDCARD_NFC, SignerTag.COLDCARD)
+            return
+        }
+        // Off-chain inheritance setup reaches here only after the reuse offer was declined, so it
+        // goes straight to the device. The Coldcard is added like any other key — no encrypted
+        // backup yet, because the owner has not chosen a sharing method at this point.
         if (onChainAddSignerParam == null ||
             onChainAddSignerParam.isVerifyBackupSeedPhrase() ||
             onChainAddSignerParam.isAddInheritanceOffChainSigner()
