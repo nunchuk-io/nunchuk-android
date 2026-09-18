@@ -17,3 +17,7 @@ Build and run the app on your device.
 
 ## Reproducible builds 
 See [instructions](./reproducible-builds)
+
+# Releasing
+See the [release checklist](./RELEASE_CHECKLIST.md) — the JitPack-hosted AARs (native SDK prebuild,
+LibPortal) are pinned to commits rather than mutable tags, so bumping them has an extra step.

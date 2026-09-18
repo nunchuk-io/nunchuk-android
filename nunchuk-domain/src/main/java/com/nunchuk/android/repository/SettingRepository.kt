@@ -62,6 +62,9 @@ interface SettingRepository {
     suspend fun setWalletSecuritySetting(config: String)
     suspend fun setHomeDisplaySetting(config: String)
     suspend fun setBiometricConfig(config: String)
+
+    /** Removes the stored biometric configuration and rotates the key that wrapped it. */
+    suspend fun clearBiometricConfig()
     suspend fun setWalletPin(pin: String)
     suspend fun setLocalCurrency(currency: String)
     suspend fun setLocalMembershipPlan(plan: MembershipPlan)

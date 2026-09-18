@@ -714,4 +714,5 @@
     <string name="nc_remove">Remove</string>
     <string name="nc_warning_dummy_transaction">For security reasons, changes require a dummy transaction.</string>
     <string name="nc_warning_dummy_transaction_with_delay">For security reasons, changes require a dummy transaction and will only take effect after %1$s.</string>
+    <string name="nc_unsupported_verification_type">This request could not be verified. Please update the app and try again.</string>
 </resources>

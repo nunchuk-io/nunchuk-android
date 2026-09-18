@@ -19,7 +19,6 @@
 
 package com.nunchuk.android.signer.software.components.confirm
 
-import timber.log.Timber
 import kotlin.random.Random
 
 data class PhraseWordGroup(
@@ -35,8 +34,8 @@ data class PhraseWord(
     val selected: Boolean = false
 )
 
+// Never log the receiver of these helpers: it is the full BIP39 mnemonic.
 internal fun List<String>.random3LastPhraseWords(): List<PhraseWordGroup> {
-    Timber.d("random3LastPhraseWords($this)")
     val usedIndexes = ArrayList<Int>()
     val confirmWordIndexes = mutableSetOf<Int>()
     val result = ArrayList<PhraseWordGroup>(NUMBER_WORD_TO_CONFIRM)
@@ -83,13 +82,11 @@ internal fun List<String>.randomPhraseWordGroup(groupIndex: Int, usedIndexes: Ar
 }
 
 internal fun List<String>.randomNotDuplicatedNum(size: Int, usedIndexes: ArrayList<Int>): Int {
-    Timber.d("used(${this.filterIndexed { index, _ -> index in usedIndexes }})")
     var randomNum: Int
     do {
         randomNum = Random.nextInt(0, size - 1)
     } while (usedIndexes.contains(randomNum))
     usedIndexes.add(randomNum)
-    Timber.d("random(${this[randomNum]})")
     return randomNum
 }
 

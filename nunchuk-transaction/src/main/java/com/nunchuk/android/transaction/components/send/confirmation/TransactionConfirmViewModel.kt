@@ -225,9 +225,13 @@ class TransactionConfirmViewModel @Inject constructor(
     }
 
     private fun getOutputs(): Map<String, Amount> {
+        // Sum duplicate addresses; overwriting would pay less than the approved total.
         val outputs = mutableMapOf<String, Amount>()
         txReceipts.forEach {
-            outputs[it.address] = it.amount.toAmount()
+            val amount = it.amount.toAmount()
+            outputs[it.address] = outputs[it.address]?.let { existing ->
+                Amount(value = existing.value + amount.value)
+            } ?: amount
         }
         return outputs
     }
@@ -281,7 +285,11 @@ class TransactionConfirmViewModel @Inject constructor(
         return txReceipts
             .groupBy { it.tokenAssetId }
             .mapValues { (_, receipts) ->
-                receipts.associate { it.address to it.amount.toAmount() }
+                // Sum duplicate addresses rather than dropping all but the last receipt.
+                receipts.groupBy { it.address }
+                    .mapValues { (_, sameAddress) ->
+                        Amount(value = sameAddress.sumOf { it.amount.toAmount().value })
+                    }
             }
     }
 

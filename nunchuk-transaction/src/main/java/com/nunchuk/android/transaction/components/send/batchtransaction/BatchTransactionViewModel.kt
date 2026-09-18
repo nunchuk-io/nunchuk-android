@@ -46,6 +46,9 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.text.DecimalFormat
+import java.text.DecimalFormatSymbols
+import java.util.Locale
 import javax.inject.Inject
 
 @HiltViewModel
@@ -106,7 +109,9 @@ class BatchTransactionViewModel @Inject constructor(
                 if (btcUri.amount.value > 0) {
                     updateRecipient(
                         index = state.value.interactingIndex,
-                        amount = btcUri.amount.pureBTC().toString(),
+                        // Must be in the unit the row is read back in, or a BTC string gets
+                        // re-parsed as sats when the display unit is SAT.
+                        amount = formatBtcForInput(btcUri.amount.pureBTC()),
                         address = btcUri.address,
                         isBtc = true,
                         selectAddressType = SelectAddressType.NONE.ordinal,
@@ -174,13 +179,27 @@ class BatchTransactionViewModel @Inject constructor(
         }
     }
 
-    private fun getTotalAmount() = _state.value.recipients.sumOf {
-        if (it.isBtc) {
-            if (CURRENT_DISPLAY_UNIT_TYPE == SAT) it.amount.toSafeDoubleAmount()
-                .fromSATtoBTC() else it.amount.toSafeDoubleAmount()
+    private fun getTotalAmount() = _state.value.recipients.sumOf { it.amountInBtc() }
+
+    private fun BatchTransactionState.Recipient.amountInBtc(): Double = if (isBtc) {
+        if (CURRENT_DISPLAY_UNIT_TYPE == SAT) amount.toSafeDoubleAmount()
+            .fromSATtoBTC() else amount.toSafeDoubleAmount()
+    } else {
+        amount.toSafeDoubleAmount().fromCurrencyToBTC()
+    }
+
+    private fun formatBtcForInput(amountBtc: Double): String =
+        if (CURRENT_DISPLAY_UNIT_TYPE == SAT) {
+            amountBtc.fromBTCtoSAT().toLong().toString()
         } else {
-            it.amount.toSafeDoubleAmount().fromCurrencyToBTC()
+            rawDecimalFormat.format(amountBtc)
         }
+
+    private val rawDecimalFormat = DecimalFormat(
+        "0.########",
+        DecimalFormatSymbols(Locale.US),
+    ).apply {
+        isGroupingUsed = false
     }
 
     fun updateRecipient(
@@ -231,14 +250,7 @@ class BatchTransactionViewModel @Inject constructor(
     }
 
     fun getTxReceiptList() = _state.value.recipients.map {
-        TxReceipt(
-            address = it.address, amount = if (it.isBtc) {
-                if (CURRENT_DISPLAY_UNIT_TYPE == SAT) it.amount.toSafeDoubleAmount()
-                    .fromSATtoBTC() else it.amount.toSafeDoubleAmount()
-            } else {
-                it.amount.toSafeDoubleAmount().fromCurrencyToBTC()
-            }
-        )
+        TxReceipt(address = it.address, amount = it.amountInBtc())
     }
 
     fun getNote() = _state.value.note
@@ -273,7 +285,12 @@ class BatchTransactionViewModel @Inject constructor(
     fun getRecipients() = _state.value.recipients
 
     fun sendAllRemaining(availableAmount: Double, index: Int) = viewModelScope.launch {
-        val remainingAmount = availableAmount - getTotalAmount()
+        // Exclude the target row's own amount, or it stays unallocated and the wallet is
+        // never fully emptied.
+        val otherRecipientsAmount = _state.value.recipients
+            .filterIndexed { i, _ -> i != index }
+            .sumOf { it.amountInBtc() }
+        val remainingAmount = availableAmount - otherRecipientsAmount
         if (remainingAmount <= 0) return@launch
         if (remainingAmount > availableAmountWithoutUnlocked && !isFromSelectCoin) {
             _event.emit(BatchTransactionEvent.InsufficientFundsLockedCoinEvent)

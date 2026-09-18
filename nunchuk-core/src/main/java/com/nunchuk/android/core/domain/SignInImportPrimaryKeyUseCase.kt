@@ -28,7 +28,6 @@ import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.repository.SignerSoftwareRepository
 import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
-import timber.log.Timber
 import javax.inject.Inject
 
 class SignInImportPrimaryKeyUseCase @Inject constructor(
@@ -62,7 +61,6 @@ class SignInImportPrimaryKeyUseCase @Inject constructor(
             signature = resultSignLoginMessage
         )
 
-        Timber.tag("primary-key").e("primaryDecoyPin: ${accountManager.getAccount().decoyPin}")
         nunchukNativeSdk.createSoftwareSigner(
             name = parameters.signerName,
             mnemonic = parameters.mnemonic,

@@ -1,5 +1,35 @@
-What's news:
-- NUN-1606: Android - Message "Send failed"
-- NUN-1616: Android - Sometimes "Send failed" in chat room
-- Update libnunchuk f2d6ab3c3be8e680d41e1b7e2e16f7b721e1f121
-- NUN-1627: Android - Allow user to recover collab wallet
+Security audit fixes — focused QA build.
+
+Most changes should be invisible. The batch-send and BIP21 items below DO change behaviour.
+
+1. Seed / PIN logging removed
+   - Create a software key, view an unbacked-up seed. No functional change expected.
+
+2. Biometric login (storage format changed + migration)
+   - Existing users: biometric sign-in must still work WITHOUT re-enabling it.
+   - Turn biometric off, then on again.
+   - Sign out, then sign in with fingerprint from the sign-in screen.
+
+3. Account session / decoy PIN (moved to encrypted storage + migration)
+   - Upgrade over an existing install: must stay signed in, no forced re-login.
+   - Existing decoy space must still unlock with the same PIN.
+
+4. Batch transactions (bug fixes — behaviour changes)
+   - Display unit = SAT, batch send, scan a BIP21 QR with an amount: amount must be
+     correct (was off by 1e8).
+   - Two batch recipients with the SAME address: total sent must equal the approved
+     total (only the last amount was paid before).
+   - "Send all remaining" on a row that already has an amount: wallet must be emptied.
+
+5. Send flow — BIP21 on the receipt screen
+   - "Send all", then scan a QR for the full balance: must build (always failed with a
+     coin-selection error before).
+   - Enter an amount, then scan a QR with a different amount: QR amount wins, fee on top.
+
+6. Inheritance claim (new client-side check before signing)
+   - A normal claim must complete unchanged. If it fails, capture the exact error text —
+     this validation fails closed by design.
+
+7. Wallet authentication
+   - Key policy / email change / health check flows that ask for a signature must still
+     open the correct screen.

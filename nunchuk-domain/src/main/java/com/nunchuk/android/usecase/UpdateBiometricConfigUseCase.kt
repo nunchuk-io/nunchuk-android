@@ -22,8 +22,6 @@ package com.nunchuk.android.usecase
 import com.google.gson.Gson
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.setting.BiometricConfig
-import com.nunchuk.android.model.setting.HomeDisplaySetting
-import com.nunchuk.android.model.setting.WalletSecuritySetting
 import com.nunchuk.android.repository.SettingRepository
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
@@ -35,6 +33,10 @@ class UpdateBiometricConfigUseCase @Inject constructor(
 ) : UseCase<BiometricConfig, Unit>(ioDispatcher) {
 
     override suspend fun execute(parameters: BiometricConfig) {
-        settingRepository.setBiometricConfig(gson.toJson(parameters))
+        if (!parameters.enabled) {
+            settingRepository.clearBiometricConfig()
+        } else {
+            settingRepository.setBiometricConfig(gson.toJson(parameters))
+        }
     }
 }

@@ -33,6 +33,7 @@ import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.google.gson.Gson
 import com.nunchuk.android.core.account.AccountManager
+import com.nunchuk.android.core.biometric.BiometricSecretEncryption
 import com.nunchuk.android.core.util.USD_CURRENCY
 import com.nunchuk.android.model.BannerState
 import com.nunchuk.android.model.DEFAULT_SEED_PHRASE_DELAY_HOURS
@@ -55,6 +56,8 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 private const val NAME = "nc_data_store"
+private const val CUSTOM_PIN_CONFIG_PREFIX = "custom_pin_config_"
+private const val LEGACY_DECOY_PIN_PREFIX = "decoy_pin_"
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = NAME)
 
 @Singleton
@@ -62,6 +65,8 @@ class NcDataStore @Inject constructor(
     @ApplicationContext private val context: Context,
     private val gson: Gson,
     private val accountManager: AccountManager,
+    private val biometricSecretEncryption: BiometricSecretEncryption,
+    private val preferenceKeyHasher: PreferenceKeyHasher,
 ) {
     private val btcPriceKey = doublePreferencesKey("btc_price")
     private val usdtPriceKey = doublePreferencesKey("usdt_price")
@@ -232,13 +237,32 @@ class NcDataStore @Inject constructor(
             it[getLocalCurrencyKey()] ?: USD_CURRENCY
         }
 
+    /** Payload holds the mnemonic that signs the login challenge, so it is stored encrypted. */
     val biometricConfig: Flow<BiometricConfig>
-        get() = context.dataStore.data.map {
-            gson.fromJson(
-                it[biometricConfigKey],
-                BiometricConfig::class.java
-            ) ?: BiometricConfig.DEFAULT
+        get() = context.dataStore.data.map { preferences ->
+            val stored = preferences[biometricConfigKey] ?: return@map BiometricConfig.DEFAULT
+            val json = if (biometricSecretEncryption.isEncrypted(stored)) {
+                // Wrapping key gone: treat biometric login as not set up.
+                biometricSecretEncryption.decrypt(stored) ?: return@map BiometricConfig.DEFAULT
+            } else {
+                migrateBiometricConfigToEncrypted(stored)
+                stored
+            }
+            runCatching {
+                gson.fromJson(json, BiometricConfig::class.java)
+            }.getOrNull() ?: BiometricConfig.DEFAULT
         }
+
+    private suspend fun migrateBiometricConfigToEncrypted(cleartext: String) {
+        runCatching {
+            context.dataStore.edit {
+                // Re-read to avoid clobbering a concurrent write with a stale value.
+                if (it[biometricConfigKey] == cleartext) {
+                    it[biometricConfigKey] = biometricSecretEncryption.encrypt(cleartext)
+                }
+            }
+        }
+    }
 
     suspend fun setChain(chain: Chain) {
         context.dataStore.edit { settings ->
@@ -308,8 +332,15 @@ class NcDataStore @Inject constructor(
 
     suspend fun setBiometricConfig(config: String) {
         context.dataStore.edit {
-            it[biometricConfigKey] = config
+            it[biometricConfigKey] = biometricSecretEncryption.encrypt(config)
         }
+    }
+
+    suspend fun clearBiometricConfig() {
+        context.dataStore.edit {
+            it.remove(biometricConfigKey)
+        }
+        biometricSecretEncryption.deleteKey()
     }
 
     suspend fun setLocalCurrency(currency: String) {
@@ -512,15 +543,35 @@ class NcDataStore @Inject constructor(
         }
     }
 
+    /** Key names are stored verbatim in the file, so the decoy PIN must not appear in one. */
+    private fun customPinConfigKey(decoyPin: String) =
+        booleanPreferencesKey("$CUSTOM_PIN_CONFIG_PREFIX${preferenceKeyHasher.derive(decoyPin)}")
+
+    private fun legacyCustomPinConfigKey(decoyPin: String) =
+        booleanPreferencesKey("$LEGACY_DECOY_PIN_PREFIX$decoyPin")
+
     suspend fun setCustomPinConfig(decoyPin: String, isEnable: Boolean) {
         context.dataStore.edit {
-            it[booleanPreferencesKey("decoy_pin_${decoyPin}")] = isEnable
+            it.remove(legacyCustomPinConfigKey(decoyPin))
+            it[customPinConfigKey(decoyPin)] = isEnable
         }
     }
 
     fun getCustomPinConfig(decoyPin: String): Flow<Boolean> {
-        return context.dataStore.data.map {
-            it[booleanPreferencesKey("decoy_pin_${decoyPin}")] != false
+        return context.dataStore.data.map { preferences ->
+            val legacyKey = legacyCustomPinConfigKey(decoyPin)
+            val legacyValue = preferences[legacyKey]
+            if (legacyValue != null) {
+                // Rewrite under the opaque key name.
+                runCatching {
+                    context.dataStore.edit {
+                        it.remove(legacyKey)
+                        it[customPinConfigKey(decoyPin)] = legacyValue
+                    }
+                }
+                return@map legacyValue
+            }
+            preferences[customPinConfigKey(decoyPin)] != false
         }
     }
 
@@ -774,6 +825,8 @@ class NcDataStore @Inject constructor(
             it.remove(seedPhraseDelayHoursKey)
             it.remove(seedPhraseDecreaseStartElapsedKey)
             it.remove(seedPhraseDecreasePendingHoursKey)
+            // biometricConfigKey is deliberately kept: the signed-out sign-in screen needs it for
+            // fingerprint login. clearBiometricConfig() removes it when the user turns that off.
             val keysToRemove = it.asMap().keys.filter { key ->
                 key.name.startsWith("seed_phrase_view_timestamp_")
             }

@@ -31,7 +31,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -123,7 +122,6 @@ class UnlockPinViewModel @Inject constructor(
     }
 
     fun unlockPin(pin: String) {
-        Timber.d("Start unlockPin with pin: $pin")
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
             if (walletPin.isNotEmpty()) {

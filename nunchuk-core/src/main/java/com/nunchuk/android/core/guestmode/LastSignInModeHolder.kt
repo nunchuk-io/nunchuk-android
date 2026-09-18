@@ -1,6 +1,5 @@
 package com.nunchuk.android.core.guestmode
 
-import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -8,13 +7,12 @@ import javax.inject.Singleton
 class LastSignInModeHolder @Inject constructor() {
     private var lastLoginDecoyPin = ""
 
+    // Never log lastLoginDecoyPin: it is the user's decoy PIN in cleartext.
     fun getLastLoginDecoyPin(): String {
-        Timber.tag("LastSignInModeHolder").e("getLastLoginDecoyPin: $lastLoginDecoyPin")
         return lastLoginDecoyPin
     }
 
     fun setLastLoginDecoyPin(pin: String) {
-        Timber.tag("LastSignInModeHolder").e("setLastLoginDecoyPin: $pin")
         lastLoginDecoyPin = pin
     }
 

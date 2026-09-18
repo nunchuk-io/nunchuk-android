@@ -589,11 +589,8 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
                     event = event
                 )
             } else {
-                val amount = state.amount
                 val address = state.address
-                val finalAmount = if (amount.value > 0) amount.pureBTC() else args.outputAmount
-                val subtractFeeFromAmount =
-                    if (amount.value > 0) false else args.subtractFeeFromAmount
+                val (finalAmount, subtractFeeFromAmount) = resolveOutputAmount(state.amount)
                 handleCreateTransaction(
                     txReceipts = listOf(
                         TxReceipt(
@@ -704,6 +701,21 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
         }
     }
 
+    /**
+     * Amount and subtract-fee flag when a BIP21 URI scanned on this screen carries an amount.
+     * Hardcoding the flag to false broke send-all-by-URI: the draft asked for balance + fee and
+     * always failed with COIN_SELECTION_ERROR.
+     */
+    private fun resolveOutputAmount(uriAmount: Amount): Pair<Double, Boolean> =
+        if (uriAmount.value > 0) {
+            val finalAmount = uriAmount.pureBTC()
+            // Sweep only if the user asked to send all and the URI wants the whole balance;
+            // deriving it from the amount alone would silently underpay a matching invoice.
+            finalAmount to (args.subtractFeeFromAmount && finalAmount >= args.availableAmount)
+        } else {
+            args.outputAmount to args.subtractFeeFromAmount
+        }
+
     fun openEstimatedFeeScreen(
         signingPath: SigningPath? = null
     ) {
@@ -723,11 +735,9 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
             )
         } else {
             val state = viewModel.getAddReceiptState()
-            val amount = state.amount
             val address = state.address
             val privateNote = state.privateNote
-            val finalAmount = if (amount.value > 0) amount.pureBTC() else args.outputAmount
-            val subtractFeeFromAmount = if (amount.value > 0) false else args.subtractFeeFromAmount
+            val (finalAmount, subtractFeeFromAmount) = resolveOutputAmount(state.amount)
             navigator.openEstimatedFeeScreen(
                 activityContext = this,
                 walletId = args.walletId,

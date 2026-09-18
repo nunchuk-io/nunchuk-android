@@ -32,7 +32,8 @@ dependencies {
     implementation(libs.bundles.googleScanner)
 
     implementation(libs.moshi)
-    implementation("com.github.Nunchuk1:LibPortal:v5@aar")
+    // Commit, not tag — a tag is mutable and JitPack would serve whatever it points at.
+    implementation("com.github.Nunchuk1:LibPortal:97c9ef136ba17e65c773a9fc915cbd89cebccf84@aar") // v5
     implementation("net.java.dev.jna:jna:5.14.0@aar")
     implementation(libs.androidx.biometric)
     implementation(libs.kotlinx.serialization.json)

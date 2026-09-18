@@ -18,7 +18,8 @@ dependencies {
     implementation(project(":nunchuk-database"))
     implementation(project(":nunchuk-widget"))
     implementation(project(":nunchuk-signer-software"))
-    implementation("com.github.Nunchuk1:LibPortal:v5@aar")
+    // Commit, not tag — keep in sync with nunchuk-core.
+    implementation("com.github.Nunchuk1:LibPortal:97c9ef136ba17e65c773a9fc915cbd89cebccf84@aar") // v5
     implementation("net.java.dev.jna:jna:5.14.0@aar")
 
     implementation(libs.bundles.network)
