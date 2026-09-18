@@ -21,6 +21,7 @@ package com.nunchuk.android.core.base
 
 import android.content.Context
 import android.content.pm.ApplicationInfo
+import android.os.Build
 import android.os.Bundle
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
@@ -50,6 +51,12 @@ abstract class BaseComposeActivity : AppCompatActivity(), LoadingDialog {
 
     @Inject
     lateinit var pushEventManager: PushEventManager
+
+    private val isSecureScreenEnabled: Boolean
+        get() = applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE == 0
+
+    private val useSecureFlagFallback: Boolean
+        get() = isSecureScreenEnabled && Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU
 
     private val creator: NCLoadingDialogCreator by lazy(LazyThreadSafetyMode.NONE) {
         NCLoadingDialogCreator(this)
@@ -86,6 +93,9 @@ abstract class BaseComposeActivity : AppCompatActivity(), LoadingDialog {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (isSecureScreenEnabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            setRecentsScreenshotEnabled(false)
+        }
 
         flowObserver(pushEventManager.event.filterIsInstance<PushEvent.MessageEvent>()) {
             if (it.message.isNotEmpty()) NCToastMessage(this).showError(message = it.message)
@@ -104,6 +114,9 @@ abstract class BaseComposeActivity : AppCompatActivity(), LoadingDialog {
 
     override fun onResume() {
         super.onResume()
+        if (useSecureFlagFallback) {
+            window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        }
         UnauthorizedEventBus.instance().subscribe {
             if (accountManager.isAccountExisted()) {
                 accountManager.clearUserData()
@@ -115,22 +128,17 @@ abstract class BaseComposeActivity : AppCompatActivity(), LoadingDialog {
 
     override fun onPause() {
         super.onPause()
+        // Below Android 13 there is no setRecentsScreenshotEnabled, so hide the Recents
+        // thumbnail by securing the window while this activity is not in the foreground.
+        // Dialogs and bottom sheets do not pause the activity, so in-app screenshots still work.
+        if (useSecureFlagFallback) {
+            window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        }
         UnauthorizedEventBus.instance().unsubscribe()
     }
 
     override fun onDestroy() {
         super.onDestroy()
         creator.cancel()
-    }
-
-    override fun onWindowFocusChanged(hasFocus: Boolean) {
-        super.onWindowFocusChanged(hasFocus)
-        if (applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE == 0) {
-            if (hasFocus) {
-                window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
-            } else {
-                window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
-            }
-        }
     }
 }
