@@ -266,7 +266,7 @@ private fun InheritanceOffChainShareSecretInfoContent(
                         ""
                     }
                     NcImageAppBar(
-                        backgroundRes = R.drawable.nc_bg_backup_password_share_secret,
+                        backgroundRes = routes.shareSecretIllustrationRes,
                         title = title,
                     )
                 }
@@ -397,7 +397,7 @@ private fun InheritanceOffChainMultiBeneficiaryContent(
                         ""
                     }
                     NcImageAppBar(
-                        backgroundRes = R.drawable.nc_bg_backup_password_share_secret,
+                        backgroundRes = routes.shareSecretIllustrationRes,
                         title = title,
                     )
                 }

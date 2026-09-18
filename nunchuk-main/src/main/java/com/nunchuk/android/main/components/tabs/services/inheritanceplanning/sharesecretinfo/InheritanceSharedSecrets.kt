@@ -1,5 +1,6 @@
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.sharesecretinfo
 
+import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.sharesecret.InheritanceShareSecretType
@@ -33,6 +34,19 @@ private val ROUTE_DISPLAY_ORDER = listOf(ClaimOption.ENCRYPTED_BACKUP, ClaimOpti
 internal fun List<ClaimOption>.toInheritanceKeyRoutes(): List<ClaimOption> =
     if (isEmpty()) listOf(ClaimOption.ENCRYPTED_BACKUP)
     else ROUTE_DISPLAY_ORDER.filter { it in this }
+
+/**
+ * The header illustration, which follows the routes the key can be claimed through: the encrypted
+ * backup is a password in the cloud, the seed phrase is the key written out as words, and a plan
+ * that has both routes shows both.
+ */
+@get:DrawableRes
+internal val List<ClaimOption>.shareSecretIllustrationRes: Int
+    get() = when {
+        ClaimOption.SEED_PHRASE !in this -> R.drawable.nc_bg_backup_password_share_secret
+        ClaimOption.ENCRYPTED_BACKUP in this -> R.drawable.nc_bg_backup_password_seed_phrase_share_secret
+        else -> R.drawable.nc_bg_seed_phrase_share_secret
+    }
 
 @get:StringRes
 internal val ClaimOption.shareSecretLabelRes: Int
