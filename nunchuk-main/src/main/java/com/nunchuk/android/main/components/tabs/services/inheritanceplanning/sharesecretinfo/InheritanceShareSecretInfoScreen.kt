@@ -225,27 +225,11 @@ private fun InheritanceOffChainShareSecretInfoContent(
         Scaffold(
             modifier = Modifier
                 .navigationBarsPadding(),
-            topBar = {
-                val title = if (planFlow == InheritancePlanFlow.SETUP) {
-                    stringResource(
-                        id = R.string.nc_estimate_remain_time,
-                        remainTime
-                    )
-                } else {
-                    ""
-                }
-                NcImageAppBar(
-                    backgroundRes = R.drawable.nc_bg_backup_password_share_secret,
-                    title = title,
-                )
-            },
+            contentWindowInsets = ScaffoldDefaults.contentWindowInsets.exclude(
+                WindowInsets.statusBars
+            ),
             bottomBar = {
                 Column {
-                    ShareSecretWarningMessage(
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                        type = type,
-                        routes = routes,
-                    )
                     NcPrimaryDarkButton(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -272,6 +256,20 @@ private fun InheritanceOffChainShareSecretInfoContent(
                     .padding(innerPadding)
                     .fillMaxSize()
             ) {
+                item {
+                    val title = if (planFlow == InheritancePlanFlow.SETUP) {
+                        stringResource(
+                            id = R.string.nc_estimate_remain_time,
+                            remainTime
+                        )
+                    } else {
+                        ""
+                    }
+                    NcImageAppBar(
+                        backgroundRes = R.drawable.nc_bg_backup_password_share_secret,
+                        title = title,
+                    )
+                }
                 item {
                     NcHighlightText(
                         modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
@@ -327,6 +325,14 @@ private fun InheritanceOffChainShareSecretInfoContent(
                             )
                         }
                     }
+
+                    // Reads immediately above the buttons, where it did when it was pinned to
+                    // them — it just no longer costs the secrets their room.
+                    ShareSecretWarningMessage(
+                        modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
+                        type = type,
+                        routes = routes,
+                    )
 
                     Spacer(modifier = Modifier.height(20.dp))
                 }
