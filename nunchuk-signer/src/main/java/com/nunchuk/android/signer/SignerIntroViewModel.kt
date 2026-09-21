@@ -184,10 +184,10 @@ class SignerIntroViewModel @Inject constructor(
         state: SignerIntroState,
     ): Pair<List<SupportedSigner>, List<SupportedSigner>> = when {
         state.eligibleSupportedSigners.isNotEmpty() && onChainAddSignerParam != null -> {
-            state.eligibleSupportedSigners to state.eligibleSupportedSigners
+            state.eligibleSupportedSigners.inPickerOrder() to state.eligibleSupportedSigners
         }
         onChainAddSignerParam != null && state.supportedSigners.isNotEmpty() -> {
-            state.supportedSigners to state.supportedSigners
+            state.supportedSigners.inPickerOrder() to state.supportedSigners
         }
         state.supportedSigners.isNotEmpty() -> {
             val allowedSigners = state.supportedSigners.filter {
@@ -199,6 +199,22 @@ class SignerIntroViewModel @Inject constructor(
             defaultSupportedSigners to emptyList()
         }
     }
+
+    /**
+     * The BYOH picker's card order is fixed by the design, so neither the server's ordering of
+     * supported_signers nor the order the fallback list happens to be written in may decide it.
+     * Anything the design does not name keeps its relative position at the end. Every other flow
+     * is left in the order it was given.
+     */
+    private fun List<SupportedSigner>.inPickerOrder(): List<SupportedSigner> =
+        if (isAddInheritanceOffChainSetup) {
+            sortedBy { signer ->
+                offChainInheritanceCardOrder.indexOf(signer.toKeyType())
+                    .takeIf { it >= 0 } ?: Int.MAX_VALUE
+            }
+        } else {
+            this
+        }
 
     private fun mergeWithDefaultSigners(
         supportedSigners: List<SupportedSigner>,
@@ -429,19 +445,27 @@ private fun multiSigSigner(type: SignerType, tag: SignerTag? = null) = Supported
  */
 private val offChainInheritanceSetupKeyTypes = listOf(
     multiSigSigner(SignerType.NFC),
-    multiSigSigner(SignerType.COLDCARD_NFC),
-    multiSigSigner(SignerType.AIRGAP, SignerTag.JADE),
-    multiSigSigner(SignerType.AIRGAP, SignerTag.KEYSTONE),
-    multiSigSigner(SignerType.HARDWARE, SignerTag.LEDGER),
-    multiSigSigner(SignerType.AIRGAP, SignerTag.PASSPORT),
-    multiSigSigner(SignerType.AIRGAP, SignerTag.SEEDSIGNER),
     multiSigSigner(SignerType.HARDWARE, SignerTag.TREZOR),
+    multiSigSigner(SignerType.AIRGAP, SignerTag.JADE),
+    multiSigSigner(SignerType.AIRGAP, SignerTag.SEEDSIGNER),
+    multiSigSigner(SignerType.AIRGAP, SignerTag.KEYSTONE),
+    multiSigSigner(SignerType.AIRGAP, SignerTag.PASSPORT),
+    multiSigSigner(SignerType.COLDCARD_NFC),
     multiSigSigner(SignerType.HARDWARE, SignerTag.BITBOX),
+    multiSigSigner(SignerType.HARDWARE, SignerTag.LEDGER),
     multiSigSigner(SignerType.AIRGAP, SignerTag.KRUX),
     // Carries no card of its own (toDisplayInfo returns null for an untagged air-gap); it is what
     // enables the "Generic Airgap" row.
     multiSigSigner(SignerType.AIRGAP),
 )
+
+/**
+ * Card order of the BYOH picker, as laid out in the design. Derived from
+ * [offChainInheritanceSetupKeyTypes] so that list stays the one place the order is written down.
+ * The untagged air-gap entry drops out here (no card of its own), leaving only the grid items.
+ */
+private val offChainInheritanceCardOrder: List<KeyType> =
+    offChainInheritanceSetupKeyTypes.mapNotNull { it.toKeyType() }
 
 /**
  * Key types offered to a Beneficiary claiming an inheritance. The software key stays here — the
