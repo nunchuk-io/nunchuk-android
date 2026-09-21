@@ -48,9 +48,11 @@ fun SignerIntroScreen(
     onMoreClicked: () -> Unit = {}
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
     SignerIntroScreenContent(
         state = state,
         onChainAddSignerParam = onChainAddSignerParam,
+        remainTime = remainTime,
         onClick = onClick,
         onMoreClicked = onMoreClicked,
     )
@@ -60,12 +62,23 @@ fun SignerIntroScreen(
 fun SignerIntroScreenContent(
     state: SignerIntroState,
     onChainAddSignerParam: OnChainAddSignerParam? = null,
+    remainTime: Int = 0,
     onClick: (KeyType) -> Unit = {},
     onMoreClicked: () -> Unit = {},
 ) {
+    // Only the membership run of "Add inheritance key" is on the wizard clock. The Beneficiary's
+    // claim and the plain add-key entry points reuse this picker with no step timer behind them,
+    // so they keep the bare app bar rather than reporting a stale remaining time.
+    val showsRemainingTime = onChainAddSignerParam?.let {
+        it.isAddInheritanceSigner() && !it.isClaiming
+    } == true
     Scaffold(topBar = {
         NcTopAppBar(
-            title = "",
+            title = if (showsRemainingTime && remainTime > 0) {
+                stringResource(R.string.nc_estimate_remain_time, remainTime)
+            } else {
+                ""
+            },
             isBack = false,
             actions = {
                 if (onChainAddSignerParam != null && onChainAddSignerParam.isClaiming.not()) {
