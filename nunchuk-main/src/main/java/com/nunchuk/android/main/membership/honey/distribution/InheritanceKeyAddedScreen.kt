@@ -1,9 +1,6 @@
 package com.nunchuk.android.main.membership.honey.distribution
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.foundation.layout.Column
@@ -12,18 +9,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import com.nunchuk.android.compose.NcIcon
+import com.nunchuk.android.compose.NcCircleImage
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
@@ -68,24 +63,15 @@ fun InheritanceKeyAddedContent(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
             ) {
-                // Filled green disc with a white tick, per the design; nc_circle_checked draws its
-                // own outline so it is tinted white and sits on top of the disc.
-                Box(
-                    modifier = Modifier
-                        .size(96.dp)
-                        .background(
-                            color = colorResource(id = R.color.nc_slime_dark),
-                            shape = CircleShape,
-                        ),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    NcIcon(
-                        modifier = Modifier.size(56.dp),
-                        painter = painterResource(id = R.drawable.ic_check),
-                        contentDescription = "Success icon",
-                        tint = Color.White,
-                    )
-                }
+                // Filled green disc with a white tick, per the design; ic_check draws its own
+                // outline so it is tinted white and sits on top of the disc.
+                NcCircleImage(
+                    size = 96.dp,
+                    iconSize = 48.dp,
+                    iconTintColor = Color.White,
+                    color = colorResource(id = R.color.nc_slime_dark),
+                    resId = R.drawable.ic_check,
+                )
                 Text(
                     modifier = Modifier.padding(top = 24.dp),
                     text = stringResource(R.string.nc_inheritance_key_added),
