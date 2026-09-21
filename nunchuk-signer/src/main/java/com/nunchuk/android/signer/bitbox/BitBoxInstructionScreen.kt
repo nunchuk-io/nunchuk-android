@@ -19,8 +19,15 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLinkStyles
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withLink
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavGraphBuilder
@@ -30,11 +37,15 @@ import androidx.navigation.toRoute
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.core.util.openExternalLink
 import com.nunchuk.android.signer.R
 import kotlinx.serialization.Serializable
 
 @Serializable
 internal data class BitBoxInstructionRoute(val isUsb: Boolean = false)
+
+/** Where an unprepared BitBox has to be finished off; Nunchuk never drives first-time setup. */
+private const val BITBOX_APP_DOWNLOAD_URL = "https://bitbox.swiss/download/"
 
 /**
  * Design screens 02A / 02B — "prepare your BitBox", one variant per transport. It always comes
@@ -98,6 +109,29 @@ private fun BitBoxInstructionScreen(
             }
         }
     ) { innerPadding ->
+        val context = LocalContext.current
+        // Only the product name is a link, not the whole sentence. Keeping the name in its own
+        // resource means the span stays on the right words once the sentence is translated.
+        val appName = stringResource(id = R.string.nc_bitbox_app_name)
+        val sentence = stringResource(id = R.string.nc_bitbox_step_setup_desc, appName)
+        val setupDescription = buildAnnotatedString {
+            val start = sentence.indexOf(appName)
+            if (start < 0) {
+                append(sentence)
+            } else {
+                append(sentence.substring(0, start))
+                withLink(
+                    LinkAnnotation.Url(
+                        url = BITBOX_APP_DOWNLOAD_URL,
+                        styles = TextLinkStyles(
+                            SpanStyle(textDecoration = TextDecoration.Underline),
+                        ),
+                    ) { context.openExternalLink(BITBOX_APP_DOWNLOAD_URL) },
+                ) { append(appName) }
+                append(sentence.substring(start + appName.length))
+            }
+        }
+
         Column(
             modifier = Modifier
                 .padding(innerPadding)
@@ -124,7 +158,7 @@ private fun BitBoxInstructionScreen(
                 )
                 Text(
                     modifier = Modifier.padding(top = 8.dp),
-                    text = stringResource(id = R.string.nc_bitbox_step_setup_desc),
+                    text = setupDescription,
                     style = NunchukTheme.typography.body,
                 )
             }

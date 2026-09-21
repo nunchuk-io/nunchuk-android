@@ -257,7 +257,9 @@
     <string name="nc_add_your_bitbox">Add your BitBox</string>
     <string name="nc_bitbox_before_continuing">Before continuing:</string>
     <string name="nc_bitbox_step_setup_title">Set up your BitBox</string>
-    <string name="nc_bitbox_step_setup_desc">If it is new, finish setup using BitBoxApp.</string>
+    <!-- %1$s is nc_bitbox_app_name, rendered as a link to the BitBoxApp download page -->
+    <string name="nc_bitbox_step_setup_desc">If it is new, finish setup using %1$s.</string>
+    <string name="nc_bitbox_app_name">BitBoxApp</string>
     <string name="nc_bitbox_step_connect_bluetooth_title">Connect and enable Bluetooth</string>
     <string name="nc_bitbox_step_connect_bluetooth_desc">Connect your BitBox to your phone or a power source, then enable Bluetooth.</string>
     <string name="nc_bitbox_step_connect_usb_title">Plug into your phone</string>
