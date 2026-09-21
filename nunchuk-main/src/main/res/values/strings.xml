@@ -726,7 +726,7 @@
     <string name="nc_inheritance_key_intro_purpose">The inheritance key is used to claim funds and spend from the wallet after the timelock.</string>
     <string name="nc_inheritance_key_intro_seed_phrase_bold">If you do not already have a BIP39 seed phrase, view it on your device or generate a new one.</string>
     <string name="nc_inheritance_key_intro_seed_phrase">Either a 12-word or 24-word seed phrase is acceptable (12 words are sufficient). Keep it secret.</string>
-    <string name="nc_inheritance_key_intro_next_step">In the next step, you will choose how this key reaches your Beneficiary when it is time to claim.</string>
+    <string name="nc_inheritance_key_intro_share_backup">You will later share this seed phrase backup with your Beneficiary so they can access the inheritance.</string>
     <string name="nc_inheritance_key_intro_hint">Your device may use a different term for the seed phrase, such as \"recovery phrase\" or \"mnemonic.\"</string>
     <string name="nc_inheritance_key_added">Inheritance key added</string>
     <string name="nc_key_distribution_title">How will you pass the inheritance key to your Beneficiary?</string>

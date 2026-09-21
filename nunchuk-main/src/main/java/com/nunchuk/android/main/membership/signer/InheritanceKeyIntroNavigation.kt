@@ -141,7 +141,7 @@ private fun InheritanceKeyIntroContent(
                         append(" ")
                         append(stringResource(R.string.nc_inheritance_key_intro_seed_phrase))
                         append("\n\n")
-                        append(stringResource(R.string.nc_inheritance_key_intro_next_step))
+                        append(stringResource(R.string.nc_inheritance_key_intro_share_backup))
                     },
                     style = NunchukTheme.typography.body
                 )
