@@ -23,6 +23,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -39,6 +40,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -48,9 +50,12 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.fragment.findNavController
 import com.nunchuk.android.compose.LabelNumberAndDesc
+import com.nunchuk.android.compose.NcClickableText
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.core.util.ClickAbleText
+import com.nunchuk.android.core.util.openExternalLink
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.util.airgapAddKeyTitleRes
@@ -115,6 +120,8 @@ private fun AirgapIntroContent(
     }
 
     val title = stringResource(id = signerTag.airgapAddKeyTitleRes())
+    val copy = signerTag.airgapIntroCopy()
+    val context = LocalContext.current
     NunchukTheme {
         Scaffold(
             modifier = Modifier.navigationBarsPadding(),
@@ -161,30 +168,45 @@ private fun AirgapIntroContent(
                 )
                 Text(
                     modifier = Modifier.padding(16.dp),
-                    text = stringResource(R.string.nc_signer_before_start_note),
+                    text = stringResource(copy.note),
                     style = NunchukTheme.typography.body
                 )
                 LabelNumberAndDesc(
                     modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp),
                     index = 1,
-                    title = stringResource(id = R.string.nc_signer_before_start_initialize),
+                    title = stringResource(id = copy.initializeTitle),
                     titleStyle = NunchukTheme.typography.title
                 ) {
-                    Text(
-                        modifier = Modifier.padding(top = 8.dp, start = 36.dp),
-                        text = stringResource(id = R.string.nc_signer_before_start_initialize_content),
-                        style = NunchukTheme.typography.body
-                    )
+                    val guide = copy.initializeGuideLink
+                    if (guide == null) {
+                        Text(
+                            modifier = Modifier.padding(top = 8.dp, start = 36.dp),
+                            text = stringResource(id = copy.initializeDesc),
+                            style = NunchukTheme.typography.body
+                        )
+                    } else {
+                        val (labelRes, url) = guide
+                        NcClickableText(
+                            modifier = Modifier.padding(top = 8.dp, start = 36.dp),
+                            messages = listOf(
+                                ClickAbleText(content = stringResource(id = copy.initializeDesc)),
+                                ClickAbleText(content = stringResource(id = labelRes)) {
+                                    context.openExternalLink(url)
+                                },
+                            ),
+                            style = NunchukTheme.typography.body
+                        )
+                    }
                 }
                 LabelNumberAndDesc(
                     modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp),
                     index = 2,
-                    title = stringResource(id = R.string.nc_signer_before_start_device_unlock),
+                    title = stringResource(id = copy.unlockTitle),
                     titleStyle = NunchukTheme.typography.title
                 ) {
                     Text(
                         modifier = Modifier.padding(top = 8.dp, start = 36.dp),
-                        text = stringResource(id = R.string.nc_signer_before_start_device_unlock_content),
+                        text = stringResource(id = copy.unlockDesc),
                         style = NunchukTheme.typography.body
                     )
                 }
@@ -212,6 +234,47 @@ private fun AirgapIntroContent(
 @Composable
 private fun AirgapIntroScreenPreview() {
     AirgapIntroContent()
+}
+
+/** Blockstream's own setup guide, linked from step 1 of the Jade instructions. */
+private const val JADE_SETUP_GUIDE_URL =
+    "https://help.blockstream.com/blockstream-jade/set-up-transact-recover-your-wallet/set-up-jade"
+
+/** Wording of the first two steps, so a device can name itself instead of saying "the device". */
+private data class AirgapIntroCopy(
+    @StringRes val note: Int,
+    @StringRes val initializeTitle: Int,
+    @StringRes val initializeDesc: Int,
+    /** Linked phrase closing [initializeDesc]: its label and where it points. */
+    val initializeGuideLink: Pair<Int, String>? = null,
+    @StringRes val unlockTitle: Int,
+    @StringRes val unlockDesc: Int,
+)
+
+private val genericAirgapIntroCopy = AirgapIntroCopy(
+    note = R.string.nc_signer_before_start_note,
+    initializeTitle = R.string.nc_signer_before_start_initialize,
+    initializeDesc = R.string.nc_signer_before_start_initialize_content,
+    unlockTitle = R.string.nc_signer_before_start_device_unlock,
+    unlockDesc = R.string.nc_signer_before_start_device_unlock_content,
+)
+
+/**
+ * Jade reaches this screen only from the off-chain inheritance flow — every other Jade add-key run
+ * starts at airgapActionIntroFragment instead (see AddAirgapSignerActivity) — so naming the device
+ * here cannot leak into the ordinary flow. Every other device keeps the generic wording.
+ */
+private fun SignerTag?.airgapIntroCopy(): AirgapIntroCopy = when (this) {
+    SignerTag.JADE -> AirgapIntroCopy(
+        note = R.string.nc_jade_before_start_note,
+        initializeTitle = R.string.nc_jade_before_start_initialize,
+        initializeDesc = R.string.nc_jade_before_start_initialize_content,
+        initializeGuideLink = R.string.nc_jade_setup_guide_link to JADE_SETUP_GUIDE_URL,
+        unlockTitle = R.string.nc_jade_before_start_device_unlock,
+        unlockDesc = R.string.nc_jade_before_start_device_unlock_content,
+    )
+
+    else -> genericAirgapIntroCopy
 }
 
 /**
