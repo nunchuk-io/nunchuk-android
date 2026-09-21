@@ -142,9 +142,12 @@ class SignerIntroViewModel @Inject constructor(
     ): Boolean {
         val isDisableAll = keyFlow != KeyFlow.NONE
         // The BYOH picker is server-driven, so this row follows the server's inheritance-key list
-        // rather than the static fallback the state was seeded with.
+        // rather than the static fallback the state was seeded with. Until that list arrives the
+        // cards are drawn from the fallback, so this row reads it too: disabling on an empty list
+        // would leave Generic Airgap as the only greyed-out entry whenever the configs are not in
+        // yet (cold cache, a cache written by a build the server gated out, a failed refresh).
         val signers = if (isAddInheritanceOffChainSetup) {
-            _state.value.eligibleSupportedSigners.ifEmpty { return false }
+            _state.value.eligibleSupportedSigners.ifEmpty { supportedSigners }
         } else {
             supportedSigners
         }
