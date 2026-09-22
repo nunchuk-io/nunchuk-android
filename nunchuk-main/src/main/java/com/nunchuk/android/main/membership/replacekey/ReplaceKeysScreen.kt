@@ -323,94 +323,98 @@ fun ReplaceKeyCard(
             ),
             contentAlignment = Alignment.Center,
         ) {
-            Row(
-                modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically
-            ) {
-                NcCircleImage(
-                    resId = item.toReadableDrawableResId(),
-                )
-                Column(
-                    modifier = Modifier
-                        .weight(1.0f)
-                        .padding(start = 8.dp)
-                ) {
-                    Text(
-                        text = item.name,
-                        style = NunchukTheme.typography.body
+            Column(modifier = Modifier.padding(12.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    NcCircleImage(
+                        resId = item.toReadableDrawableResId(),
                     )
-                    Row(modifier = Modifier.padding(top = 4.dp)) {
-                        NcTag(
-                            label = item.toReadableSignerType(context = LocalContext.current),
-                            backgroundColor = colorResource(
-                                id = R.color.nc_bg_mid_gray
-                            ),
+                    Column(
+                        modifier = Modifier
+                            .weight(1.0f)
+                            .padding(start = 8.dp)
+                    ) {
+                        Text(
+                            text = item.name,
+                            style = NunchukTheme.typography.body
                         )
-                        if (item.isShowAcctX()) {
+                        Row(modifier = Modifier.padding(top = 4.dp)) {
                             NcTag(
-                                modifier = Modifier.padding(start = 4.dp),
-                                label = stringResource(R.string.nc_acct_x, item.index),
+                                label = item.toReadableSignerType(context = LocalContext.current),
                                 backgroundColor = colorResource(
                                     id = R.color.nc_bg_mid_gray
                                 ),
                             )
-                        }
-                    }
-                    Text(
-                        modifier = Modifier.padding(top = 4.dp),
-                        text = item.getXfpOrCardIdLabel(),
-                        style = NunchukTheme.typography.bodySmall
-                    )
-                    if (showsClaimStatus) {
-                        InheritanceClaimStatusRow(claimState = claimState)
-                    }
-                }
-                if (isReplaced) {
-                    if (needsClaimOptions) {
-                        NcOutlineButton(
-                            modifier = Modifier.height(36.dp),
-                            onClick = { onSetUpClaimOptionsClicked(item) },
-                        ) {
-                            Text(text = stringResource(R.string.nc_set_up))
-                        }
-                    } else if (needsClaimVerification) {
-                        NcOutlineButton(
-                            modifier = Modifier.height(36.dp),
-                            onClick = { onInheritanceBackupClicked(item) },
-                        ) {
-                            Text(
-                                text = if (claimState.needsEncryptedBackupUpload) {
-                                    stringResource(R.string.nc_upload_backup)
-                                } else {
-                                    stringResource(R.string.nc_verify_backup)
-                                }
-                            )
-                        }
-                    } else if (!showsClaimStatus && isNeedVerify) {
-                        NcOutlineButton(
-                            modifier = Modifier.height(36.dp),
-                            onClick = { onVerifyClicked(item) },
-                        ) {
-                            Text(
-                                text = if (isMissingBackup.not()) stringResource(R.string.nc_verify_backup) else stringResource(
-                                    R.string.nc_upload_backup
+                            if (item.isShowAcctX()) {
+                                NcTag(
+                                    modifier = Modifier.padding(start = 4.dp),
+                                    label = stringResource(R.string.nc_acct_x, item.index),
+                                    backgroundColor = colorResource(
+                                        id = R.color.nc_bg_mid_gray
+                                    ),
                                 )
-                            )
+                            }
+                        }
+                        Text(
+                            modifier = Modifier.padding(top = 4.dp),
+                            text = item.getXfpOrCardIdLabel(),
+                            style = NunchukTheme.typography.bodySmall
+                        )
+                    }
+                    if (isReplaced) {
+                        if (needsClaimOptions) {
+                            NcOutlineButton(
+                                modifier = Modifier.height(36.dp),
+                                onClick = { onSetUpClaimOptionsClicked(item) },
+                            ) {
+                                Text(text = stringResource(R.string.nc_set_up))
+                            }
+                        } else if (needsClaimVerification) {
+                            NcOutlineButton(
+                                modifier = Modifier.height(36.dp),
+                                onClick = { onInheritanceBackupClicked(item) },
+                            ) {
+                                Text(
+                                    text = if (claimState.needsEncryptedBackupUpload) {
+                                        stringResource(R.string.nc_upload_backup)
+                                    } else {
+                                        stringResource(R.string.nc_verify_backup)
+                                    }
+                                )
+                            }
+                        } else if (!showsClaimStatus && isNeedVerify) {
+                            NcOutlineButton(
+                                modifier = Modifier.height(36.dp),
+                                onClick = { onVerifyClicked(item) },
+                            ) {
+                                Text(
+                                    text = if (isMissingBackup.not()) stringResource(R.string.nc_verify_backup) else stringResource(
+                                        R.string.nc_upload_backup
+                                    )
+                                )
+                            }
+                        } else {
+                            NcOutlineButton(
+                                modifier = Modifier.height(36.dp),
+                                onClick = { onRemoveClicked(originalSigner) },
+                            ) {
+                                Text(text = stringResource(R.string.nc_remove))
+                            }
                         }
                     } else {
                         NcOutlineButton(
                             modifier = Modifier.height(36.dp),
-                            onClick = { onRemoveClicked(originalSigner) },
+                            onClick = { onReplaceClicked(item) },
                         ) {
-                            Text(text = stringResource(R.string.nc_remove))
+                            Text(text = stringResource(R.string.nc_replace))
                         }
                     }
-                } else {
-                    NcOutlineButton(
-                        modifier = Modifier.height(36.dp),
-                        onClick = { onReplaceClicked(item) },
-                    ) {
-                        Text(text = stringResource(R.string.nc_replace))
-                    }
+                }
+                if (showsClaimStatus) {
+                    // Full card width, lined up with the text column (48dp icon + 8dp gap).
+                    InheritanceClaimStatusRow(
+                        modifier = Modifier.padding(start = 56.dp),
+                        claimState = claimState,
+                    )
                 }
             }
         }

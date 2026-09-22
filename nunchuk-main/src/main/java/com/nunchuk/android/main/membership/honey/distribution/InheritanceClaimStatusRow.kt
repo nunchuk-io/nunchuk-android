@@ -23,23 +23,29 @@ import com.nunchuk.android.model.inheritance.ClaimOption
  * Shared by the two assisted key lists and the replace-key screen, which render the same key in
  * the same states — the only difference is whether the server tracks it on the draft wallet or on
  * the wallet's replacement.
+ *
+ * Sits under the whole card row, not inside the text column next to the action button: beside
+ * "Verify backup" that column is too narrow for two statuses and "Seed: Pending" wrapped.
  */
 @Composable
-internal fun InheritanceClaimStatusRow(claimState: InheritanceClaimState) {
+internal fun InheritanceClaimStatusRow(
+    claimState: InheritanceClaimState,
+    modifier: Modifier = Modifier,
+) {
     val statuses = claimState.statuses()
     val style = NunchukTheme.typography.bodySmall.copy(
         color = MaterialTheme.colorScheme.textSecondary
     )
     if (statuses.isEmpty()) {
         Text(
-            modifier = Modifier.padding(top = 4.dp),
+            modifier = modifier.padding(top = 4.dp),
             text = stringResource(R.string.nc_sharing_method_not_set),
             style = style
         )
         return
     }
     Row(
-        modifier = Modifier.padding(top = 4.dp),
+        modifier = modifier.padding(top = 4.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         statuses.forEach { status ->

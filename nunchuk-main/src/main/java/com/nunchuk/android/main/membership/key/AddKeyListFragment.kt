@@ -1019,100 +1019,103 @@ fun AddKeyCard(
                     ),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Row(
-                        modifier = Modifier.padding(12.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        NcCircleImage(
-                            resId = item.signer.toReadableDrawableResId(),
-                        )
-                        Column(
-                            modifier = Modifier
-                                .weight(1.0f)
-                                .padding(start = 8.dp)
-                        ) {
-                            Text(
-                                text = item.signer.name,
-                                style = NunchukTheme.typography.body
+                    Column(modifier = Modifier.padding(12.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            NcCircleImage(
+                                resId = item.signer.toReadableDrawableResId(),
                             )
-                            Row(modifier = Modifier.padding(top = 4.dp)) {
-                                NcTag(
-                                    label = item.signer.toReadableSignerType(context = LocalContext.current),
-                                    backgroundColor = colorResource(
-                                        id = R.color.nc_bg_mid_gray
-                                    ),
+                            Column(
+                                modifier = Modifier
+                                    .weight(1.0f)
+                                    .padding(start = 8.dp)
+                            ) {
+                                Text(
+                                    text = item.signer.name,
+                                    style = NunchukTheme.typography.body
                                 )
-                                if (item.signer.isShowAcctX()) {
+                                Row(modifier = Modifier.padding(top = 4.dp)) {
                                     NcTag(
-                                        modifier = Modifier.padding(start = 4.dp),
-                                        label = stringResource(
-                                            R.string.nc_acct_x,
-                                            item.signer.index
-                                        ),
+                                        label = item.signer.toReadableSignerType(context = LocalContext.current),
                                         backgroundColor = colorResource(
                                             id = R.color.nc_bg_mid_gray
                                         ),
                                     )
-                                }
-                            }
-                            Text(
-                                modifier = Modifier.padding(top = 4.dp),
-                                text = item.signer.getXfpOrCardIdLabel(),
-                                style = NunchukTheme.typography.bodySmall
-                            )
-                            if (item.showsClaimStatus) {
-                                InheritanceClaimStatusRow(claimState = item.claimState)
-                            }
-                        }
-                        if (item.needsClaimOptions) {
-                            NcOutlineButton(
-                                modifier = Modifier.height(36.dp),
-                                onClick = { onSetUpClaimOptionsClicked(item) },
-                            ) {
-                                Text(text = stringResource(R.string.nc_set_up))
-                            }
-                        } else if (item.needsClaimVerification) {
-                            // Ahead of the verifyType tick on purpose: a "do both" key is half
-                            // done after one artifact and still owes the other.
-                            NcOutlineButton(
-                                modifier = Modifier.height(36.dp),
-                                onClick = { onInheritanceBackupClicked(item) },
-                            ) {
-                                Text(
-                                    text = if (item.needsEncryptedBackupUpload) {
-                                        stringResource(R.string.nc_upload_backup)
-                                    } else {
-                                        stringResource(R.string.nc_verify_backup)
+                                    if (item.signer.isShowAcctX()) {
+                                        NcTag(
+                                            modifier = Modifier.padding(start = 4.dp),
+                                            label = stringResource(
+                                                R.string.nc_acct_x,
+                                                item.signer.index
+                                            ),
+                                            backgroundColor = colorResource(
+                                                id = R.color.nc_bg_mid_gray
+                                            ),
+                                        )
                                     }
+                                }
+                                Text(
+                                    modifier = Modifier.padding(top = 4.dp),
+                                    text = item.signer.getXfpOrCardIdLabel(),
+                                    style = NunchukTheme.typography.bodySmall
                                 )
                             }
-                        } else if (item.isRowComplete) {
-                            // The same rule the card's colour uses. Reading the local verifyType
-                            // here instead left a green row still offering "Verify backup": for an
-                            // inheritance key the server's per-method records decide, and the local
-                            // step carries a single flag that can lag behind them.
-                            Icon(
-                                painter = painterResource(id = R.drawable.nc_circle_checked),
-                                contentDescription = "Checked icon"
-                            )
-                            Text(
-                                modifier = Modifier.padding(start = 4.dp),
-                                style = NunchukTheme.typography.body,
-                                text = stringResource(
-                                    R.string.nc_added
+                            if (item.needsClaimOptions) {
+                                NcOutlineButton(
+                                    modifier = Modifier.height(36.dp),
+                                    onClick = { onSetUpClaimOptionsClicked(item) },
+                                ) {
+                                    Text(text = stringResource(R.string.nc_set_up))
+                                }
+                            } else if (item.needsClaimVerification) {
+                                // Ahead of the verifyType tick on purpose: a "do both" key is half
+                                // done after one artifact and still owes the other.
+                                NcOutlineButton(
+                                    modifier = Modifier.height(36.dp),
+                                    onClick = { onInheritanceBackupClicked(item) },
+                                ) {
+                                    Text(
+                                        text = if (item.needsEncryptedBackupUpload) {
+                                            stringResource(R.string.nc_upload_backup)
+                                        } else {
+                                            stringResource(R.string.nc_verify_backup)
+                                        }
+                                    )
+                                }
+                            } else if (item.isRowComplete) {
+                                // The same rule the card's colour uses. Reading the local verifyType
+                                // here instead left a green row still offering "Verify backup": for an
+                                // inheritance key the server's per-method records decide, and the local
+                                // step carries a single flag that can lag behind them.
+                                Icon(
+                                    painter = painterResource(id = R.drawable.nc_circle_checked),
+                                    contentDescription = "Checked icon"
                                 )
-                            )
-                        } else if (item.signer.isVisible) {
-                            NcOutlineButton(
-                                modifier = Modifier.height(36.dp),
-                                onClick = { onVerifyClicked(item) },
-                            ) {
                                 Text(
-                                    text = if (isMissingBackup.not()) stringResource(R.string.nc_verify_backup) else stringResource(
-                                        R.string.nc_upload_backup
+                                    modifier = Modifier.padding(start = 4.dp),
+                                    style = NunchukTheme.typography.body,
+                                    text = stringResource(
+                                        R.string.nc_added
                                     )
                                 )
+                            } else if (item.signer.isVisible) {
+                                NcOutlineButton(
+                                    modifier = Modifier.height(36.dp),
+                                    onClick = { onVerifyClicked(item) },
+                                ) {
+                                    Text(
+                                        text = if (isMissingBackup.not()) stringResource(R.string.nc_verify_backup) else stringResource(
+                                            R.string.nc_upload_backup
+                                        )
+                                    )
+                                }
                             }
+                        }
+                        if (item.showsClaimStatus) {
+                            // Full card width, lined up with the text column (48dp icon + 8dp gap).
+                            InheritanceClaimStatusRow(
+                                modifier = Modifier.padding(start = 56.dp),
+                                claimState = item.claimState,
+                            )
                         }
                     }
                 }
