@@ -138,6 +138,13 @@ internal fun ColdCardIntroScreen(
     val isClaiming =
         mk4Activity?.onChainAddSignerParam?.isClaiming == true
     val isAddInheritanceOffChainSigner = mk4Activity?.onChainAddSignerParam?.isAddInheritanceOffChainSigner() == true
+    // Only the on-chain timelock wallet adds each Coldcard twice (Acct X / Acct Y), so only it
+    // gets the "(n/2)" title and the two-keys copy. An off-chain inheritance key is a single
+    // ordinary add, the same as any other membership key.
+    val isOnChainTimelockKey = mk4Activity?.onChainAddSignerParam != null
+            && !isVerifyBackupSeedPhrase
+            && !isClaiming
+            && !isAddInheritanceOffChainSigner
     val onChainKeyIndex =
         if (mk4Activity?.onChainAddSignerParam != null && mk4Activity.onChainAddSignerParam!!.keyIndex >= 0) mk4Activity.onChainAddSignerParam!!.keyIndex else 0
     NunchukTheme {
@@ -163,8 +170,8 @@ internal fun ColdCardIntroScreen(
             ) {
                 Text(
                     modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
-                    text = if (mk4Activity?.onChainAddSignerParam != null && !isVerifyBackupSeedPhrase && isClaiming.not()) {
-                        "Add COLDCARD (${mk4Activity.onChainAddSignerParam!!.keyIndex + 1}/2)"
+                    text = if (isOnChainTimelockKey) {
+                        "Add COLDCARD (${onChainKeyIndex + 1}/2)"
                     } else {
                         stringResource(R.string.nc_add_coldcard_mk4)
                     },
@@ -185,8 +192,8 @@ internal fun ColdCardIntroScreen(
                                 }
                                 append(" for this spending path.")
                             }
-                        } else if (mk4Activity?.onChainAddSignerParam != null) {
-                            val keyIndex = mk4Activity.onChainAddSignerParam?.keyIndex ?: 0
+                        } else if (isOnChainTimelockKey) {
+                            val keyIndex = onChainKeyIndex
                             buildAnnotatedString {
                                 append("Each hardware device must be added twice, with both keys (before and after the timelock) coming from the same device but using different derivation paths.\n\n")
 
