@@ -35,6 +35,7 @@ import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.main.R
+import com.nunchuk.android.core.R as CoreR
 
 /**
  * "Do both": the two artifacts are verified separately, so the verify step is a checklist rather
@@ -48,6 +49,8 @@ import com.nunchuk.android.main.R
 @Composable
 fun VerifyBackupsContent(
     remainTime: Int = 0,
+    /** False until the encrypted backup file is uploaded; the card then offers "Backup" instead. */
+    isEncryptedBackupUploaded: Boolean = true,
     isEncryptedBackupVerified: Boolean = false,
     isSeedPhraseVerified: Boolean = false,
     onVerifyEncryptedBackup: () -> Unit = {},
@@ -97,7 +100,16 @@ fun VerifyBackupsContent(
 
                 BackupChecklistItem(
                     titleRes = R.string.nc_encrypted_backup,
-                    descRes = R.string.nc_encrypted_backup_verify_desc,
+                    descRes = if (isEncryptedBackupUploaded) {
+                        R.string.nc_encrypted_backup_verify_desc
+                    } else {
+                        R.string.nc_encrypted_backup_upload_desc
+                    },
+                    actionRes = if (isEncryptedBackupUploaded) {
+                        CoreR.string.nc_verify
+                    } else {
+                        CoreR.string.nc_upload_backup
+                    },
                     isVerified = isEncryptedBackupVerified,
                     onVerifyClicked = onVerifyEncryptedBackup,
                 )
@@ -135,6 +147,7 @@ private fun BackupChecklistItem(
     descRes: Int,
     isVerified: Boolean,
     onVerifyClicked: () -> Unit,
+    actionRes: Int = CoreR.string.nc_verify,
 ) {
     Column(
         modifier = Modifier
@@ -173,7 +186,7 @@ private fun BackupChecklistItem(
                     modifier = Modifier.height(36.dp),
                     onClick = onVerifyClicked,
                 ) {
-                    Text(text = stringResource(R.string.nc_verify))
+                    Text(text = stringResource(actionRes))
                 }
             }
         }
@@ -197,4 +210,10 @@ private fun VerifyBackupsContentPreview() {
 @Composable
 private fun VerifyBackupsContentPartialPreview() {
     VerifyBackupsContent(isEncryptedBackupVerified = true)
+}
+
+@PreviewLightDark
+@Composable
+private fun VerifyBackupsContentNotUploadedPreview() {
+    VerifyBackupsContent(isEncryptedBackupUploaded = false)
 }

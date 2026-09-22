@@ -752,6 +752,8 @@
     <string name="nc_verify_your_backups_desc">You chose to upload an encrypted backup and share the seed phrase. These are two independent ways for your Beneficiary to recover the key, so each is verified separately.</string>
     <string name="nc_encrypted_backup">Encrypted backup</string>
     <string name="nc_encrypted_backup_verify_desc">Checks that the backup on the server decrypts with the Backup Password you recorded.</string>
+    <!-- Shown on the same card before the encrypted backup file has been uploaded -->
+    <string name="nc_encrypted_backup_upload_desc">Next, please import the encrypted backup file.</string>
     <string name="nc_seed_phrase_backup">Seed phrase backup</string>
     <string name="nc_seed_phrase_backup_verify_desc">Restore the words onto a device \u2014 Nunchuk checks the public key matches the inheritance key.</string>
     <string name="nc_verify_your_backups_hint">Verifying both is recommended. Your Beneficiary only needs one to work, and you can return to this later.</string>

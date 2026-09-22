@@ -60,6 +60,11 @@ data class KeyDistributionUiState(
     val claimOptions: List<ClaimOption> = emptyList(),
     /** How far each recorded option has got; the two halves are verified independently. */
     val verifications: List<InheritanceKeyVerification> = emptyList(),
+    /**
+     * Whether the encrypted backup file is on the server yet. Until it is, the checklist has
+     * nothing to verify for that half and offers to make the backup instead.
+     */
+    val hasEncryptedBackupFile: Boolean = false,
     val isLoading: Boolean = false,
 ) {
     val canUseEncryptedBackup: Boolean
@@ -151,6 +156,7 @@ class KeyDistributionViewModel @Inject constructor(
                 current.copy(
                     claimOptions = signer.claimOptions,
                     verifications = signer.verifications,
+                    hasEncryptedBackupFile = !signer.userBackUpFileName.isNullOrEmpty(),
                     // Coming back to change the method starts from the current one.
                     selectedChoice = current.preselection(
                         recorded = signer.claimOptions,

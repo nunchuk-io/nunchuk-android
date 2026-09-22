@@ -169,6 +169,7 @@ class KeyDistributionActivity : BaseComposeActivity() {
                     composable<VerifyBackupsRoute> {
                         VerifyBackupsContent(
                             remainTime = remainTime,
+                            isEncryptedBackupUploaded = state.hasEncryptedBackupFile,
                             isEncryptedBackupVerified = state.isClaimOptionResolved(ClaimOption.ENCRYPTED_BACKUP),
                             isSeedPhraseVerified = state.isClaimOptionResolved(ClaimOption.SEED_PHRASE),
                             onVerifyEncryptedBackup = { finishWithResult(ClaimOption.ENCRYPTED_BACKUP) },
