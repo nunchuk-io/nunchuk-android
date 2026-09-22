@@ -18,6 +18,7 @@ import com.nunchuk.android.core.util.isRecommendedMultiSigPath
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.main.membership.key.TapSignerKeyResolver
 import com.nunchuk.android.main.membership.model.InheritanceClaimState
+import com.nunchuk.android.main.membership.model.toInheritanceClaimState
 import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.ByzantineMember
@@ -236,12 +237,7 @@ class ReplaceKeysViewModel @Inject constructor(
                         // The claim options and per-method verifications live on the replacement
                         // key the server holds, not on the key currently in the wallet.
                         inheritanceClaimStates = status.signers.mapValues { entry ->
-                            InheritanceClaimState(
-                                claimOptions = entry.value.claimOptions,
-                                verifications = entry.value.verifications,
-                                hasEncryptedBackupFile =
-                                    entry.value.userBackUpFileName.isNullOrEmpty().not(),
-                            )
+                            entry.value.toInheritanceClaimState()
                         },
                         verifiedSigners = verifiedSigners,
                         pendingReplaceXfps = status.pendingReplaceXfps,

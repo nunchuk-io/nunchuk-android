@@ -4,7 +4,6 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,12 +11,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -30,8 +26,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.HighlightMessageType
+import com.nunchuk.android.compose.NcCircleImage
 import com.nunchuk.android.compose.NcClickableText
 import com.nunchuk.android.compose.NcHintMessage
+import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
@@ -40,7 +38,6 @@ import com.nunchuk.android.compose.backgroundPrimary
 import com.nunchuk.android.compose.fillBeeswax
 import com.nunchuk.android.compose.fillSlimeT2
 import com.nunchuk.android.compose.strokePrimary
-import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.main.R
@@ -200,21 +197,11 @@ private fun BackupChecklistItem(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .background(
-                        color = MaterialTheme.colorScheme.backgroundPrimary,
-                        shape = CircleShape,
-                    ),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    painter = painterResource(id = iconRes),
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.textPrimary,
-                )
-            }
+            NcCircleImage(
+                size = 40.dp,
+                color = MaterialTheme.colorScheme.backgroundPrimary,
+                resId = iconRes,
+            )
             Text(
                 modifier = Modifier
                     .weight(1f)
@@ -224,10 +211,9 @@ private fun BackupChecklistItem(
             )
             if (state == ClaimOptionState.VERIFIED) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
+                    NcIcon(
                         painter = painterResource(id = R.drawable.nc_circle_checked),
                         contentDescription = "Verified icon",
-                        tint = MaterialTheme.colorScheme.textPrimary,
                     )
                     Text(
                         modifier = Modifier.padding(start = 4.dp),

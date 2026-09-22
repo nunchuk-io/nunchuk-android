@@ -6,6 +6,7 @@ import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.model.inheritance.ClaimOption
 import com.nunchuk.android.model.inheritance.InheritanceKeyVerification
 import com.nunchuk.android.model.isAddInheritanceKey
+import com.nunchuk.android.model.signer.SignerServer
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 
@@ -123,6 +124,18 @@ data class InheritanceClaimState(
         }
     }
 }
+
+/**
+ * The claim-side state the server records against this key, whether it sits on the draft wallet
+ * or on a wallet's replacement. [hasLocalBackupFile] lets a caller count a backup the local step
+ * already knows about before the server has caught up.
+ */
+fun SignerServer.toInheritanceClaimState(hasLocalBackupFile: Boolean = false) =
+    InheritanceClaimState(
+        claimOptions = claimOptions,
+        verifications = verifications,
+        hasEncryptedBackupFile = !userBackUpFileName.isNullOrEmpty() || hasLocalBackupFile,
+    )
 
 /**
  * Which verification branch the inheritance key row's action opens. Null for anything that is not

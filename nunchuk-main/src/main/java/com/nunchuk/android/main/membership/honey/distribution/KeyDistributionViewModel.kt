@@ -5,8 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.model.SupportedSignerConfig
 import com.nunchuk.android.model.inheritance.ClaimOption
-import com.nunchuk.android.model.inheritance.InheritanceKeyVerification
 import com.nunchuk.android.main.membership.model.InheritanceClaimState
+import com.nunchuk.android.main.membership.model.toInheritanceClaimState
 import com.nunchuk.android.usecase.membership.SetInheritanceClaimOptionsUseCase
 import com.nunchuk.android.usecase.membership.SyncDraftWalletUseCase
 import com.nunchuk.android.usecase.replace.GetReplaceWalletStatusUseCase
@@ -56,15 +56,12 @@ data class KeyDistributionUiState(
     val claimNote: String? = null,
     /** Null until the server has told us which options exist, so nothing is preselected blindly. */
     val selectedChoice: KeyDistributionChoice? = null,
-    /** The choice already recorded against this key, empty until the draft says otherwise. */
-    val claimOptions: List<ClaimOption> = emptyList(),
-    /** How far each recorded option has got; the two halves are verified independently. */
-    val verifications: List<InheritanceKeyVerification> = emptyList(),
     /**
-     * Whether the encrypted backup file is on the server yet. Until it is, the checklist has
-     * nothing to verify for that half and offers to make the backup instead.
+     * What the server records against this key — the sharing method chosen, how far each half has
+     * been verified, and whether the encrypted backup file has arrived. The same view the key list
+     * row renders, so the checklist and the row never disagree.
      */
-    val hasEncryptedBackupFile: Boolean = false,
+    val claimState: InheritanceClaimState = InheritanceClaimState(),
     val isLoading: Boolean = false,
 ) {
     val canUseEncryptedBackup: Boolean
@@ -75,25 +72,14 @@ data class KeyDistributionUiState(
         get() = supportedOptions.isEmpty()
 
     /**
-     * The same claim-side view of this key the key list row renders, so the checklist and the row
-     * never disagree on whether a half is pending, skipped or verified.
-     */
-    val claimState: InheritanceClaimState
-        get() = InheritanceClaimState(
-            claimOptions = claimOptions,
-            verifications = verifications,
-            hasEncryptedBackupFile = hasEncryptedBackupFile,
-        )
-
-    /**
      * Whether saving [selectedChoice] would delete the encrypted backup the server is already
      * holding. That is the one irreversible direction, so it needs confirming first.
      */
     val isDroppingEncryptedBackup: Boolean
-        get() = ClaimOption.ENCRYPTED_BACKUP in claimOptions &&
+        get() = ClaimOption.ENCRYPTED_BACKUP in claimState.claimOptions &&
                 // Chosen but never uploaded leaves nothing on the server to delete, so there is
                 // nothing to warn about.
-                hasEncryptedBackupFile &&
+                claimState.hasEncryptedBackupFile &&
                 selectedChoice?.toClaimOptions()?.contains(ClaimOption.ENCRYPTED_BACKUP) == false
 }
 
@@ -165,9 +151,7 @@ class KeyDistributionViewModel @Inject constructor(
             } ?: return@launch
             _state.update { current ->
                 current.copy(
-                    claimOptions = signer.claimOptions,
-                    verifications = signer.verifications,
-                    hasEncryptedBackupFile = !signer.userBackUpFileName.isNullOrEmpty(),
+                    claimState = signer.toInheritanceClaimState(),
                     // Coming back to change the method starts from the current one.
                     selectedChoice = current.preselection(
                         recorded = signer.claimOptions,
@@ -207,7 +191,7 @@ class KeyDistributionViewModel @Inject constructor(
                             supportedOptions = supported,
                             claimNote = config?.claimNote,
                             selectedChoice = current.preselection(
-                                recorded = current.claimOptions,
+                                recorded = current.claimState.claimOptions,
                                 supported = supported,
                             ),
                         )
