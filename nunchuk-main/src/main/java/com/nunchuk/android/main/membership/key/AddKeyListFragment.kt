@@ -229,8 +229,8 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
             // Every other key type is added inside the picker and comes back as a signer.
             data.parcelable<SignerModel>(GlobalResultKey.EXTRA_SIGNER)?.let { signer ->
                 // Raised here rather than left to the save below: the picker's own flows
-                // (Coldcard, air-gap) have already registered the key, so re-syncing it can
-                // legitimately be a no-op while the sharing-method choice is still owed.
+                // (Coldcard, air-gap) have already registered the key, so the save below skips
+                // it while the sharing-method choice is still owed.
                 viewModel.onInheritanceKeyAdded(signer.fingerPrint)
                 // A TAPSIGNER is a master signer: the key for the wallet still has to be derived
                 // from it, which the rest cannot do.

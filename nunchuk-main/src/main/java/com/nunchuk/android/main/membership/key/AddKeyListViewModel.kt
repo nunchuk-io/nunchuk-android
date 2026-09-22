@@ -315,6 +315,11 @@ class AddKeyListViewModel @Inject constructor(
     private suspend fun saveKeyForCurrentStep(signer: SingleSigner) {
         val step = membershipStepManager.currentStep
             ?: throw IllegalArgumentException("Current step empty")
+        // A key added inside the inheritance picker (Coldcard via NFC/QR/file, air-gap) was put on
+        // the draft and saved against this step by that flow already. Asking the server to add it
+        // again is what it answers with "Duplicate key xfp", and re-saving the step would also
+        // overwrite the flow's own verification state, so there is nothing left to do here.
+        if (membershipStepManager.isKeySavedForStep(step, signer.masterFingerprint)) return
         syncKeyUseCase(
             SyncKeyUseCase.Param(
                 step = step,

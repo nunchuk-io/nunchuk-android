@@ -339,6 +339,10 @@ class MembershipStepManager @Inject constructor(
     fun isKeyExisted(masterSignerId: String) =
         stepInfo.value.any { it.masterSignerId == masterSignerId }
 
+    /** Whether [step] has already been filled with this key, by whichever add-key flow saved it. */
+    fun isKeySavedForStep(step: MembershipStep, masterSignerId: String) =
+        stepInfo.value.any { it.step == step && it.masterSignerId == masterSignerId }
+
     private fun updateRemainTime() = synchronized(this) {
         _remainingTime.update {
             calculateRemainTime(steps.toMap().values)
