@@ -73,7 +73,7 @@ data class InheritanceClaimState(
      */
     val needsEncryptedBackupUpload: Boolean
         get() = ClaimOption.ENCRYPTED_BACKUP in claimOptions &&
-                state(ClaimOption.ENCRYPTED_BACKUP) == ClaimOptionState.NOT_UPLOADED
+                stateOf(ClaimOption.ENCRYPTED_BACKUP) == ClaimOptionState.NOT_UPLOADED
 
     /**
      * [ClaimOption.ENCRYPTED_BACKUP] when this key asked for one, otherwise null.
@@ -102,13 +102,15 @@ data class InheritanceClaimState(
      * "sharing method not set" instead.
      */
     fun statuses(): List<ClaimOptionStatus> = CLAIM_STATUS_ORDER.filter { it in claimOptions }
-        .map { ClaimOptionStatus(option = it, state = state(it)) }
+        .map { ClaimOptionStatus(option = it, state = stateOf(it)) }
 
     /**
      * How far [option] has got. The server records a verification only once there is something to
      * verify, so an encrypted backup with no record splits by whether its file has been uploaded.
+     * Shared by the key row's status line and the verify-backups checklist, so both read one key
+     * the same way.
      */
-    private fun state(option: ClaimOption): ClaimOptionState {
+    fun stateOf(option: ClaimOption): ClaimOptionState {
         val verifyType =
             verifications.firstOrNull { it.method == option }?.verifyType ?: VerifyType.NONE
         return when {

@@ -6,7 +6,7 @@ import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.model.SupportedSignerConfig
 import com.nunchuk.android.model.inheritance.ClaimOption
 import com.nunchuk.android.model.inheritance.InheritanceKeyVerification
-import com.nunchuk.android.model.inheritance.isResolved
+import com.nunchuk.android.main.membership.model.InheritanceClaimState
 import com.nunchuk.android.usecase.membership.SetInheritanceClaimOptionsUseCase
 import com.nunchuk.android.usecase.membership.SyncDraftWalletUseCase
 import com.nunchuk.android.usecase.replace.GetReplaceWalletStatusUseCase
@@ -74,8 +74,16 @@ data class KeyDistributionUiState(
     val isEmpty: Boolean
         get() = supportedOptions.isEmpty()
 
-    fun isClaimOptionResolved(option: ClaimOption): Boolean =
-        verifications.any { it.method == option && it.isResolved }
+    /**
+     * The same claim-side view of this key the key list row renders, so the checklist and the row
+     * never disagree on whether a half is pending, skipped or verified.
+     */
+    val claimState: InheritanceClaimState
+        get() = InheritanceClaimState(
+            claimOptions = claimOptions,
+            verifications = verifications,
+            hasEncryptedBackupFile = hasEncryptedBackupFile,
+        )
 
     /**
      * Whether saving [selectedChoice] would delete the encrypted backup the server is already
@@ -83,6 +91,9 @@ data class KeyDistributionUiState(
      */
     val isDroppingEncryptedBackup: Boolean
         get() = ClaimOption.ENCRYPTED_BACKUP in claimOptions &&
+                // Chosen but never uploaded leaves nothing on the server to delete, so there is
+                // nothing to warn about.
+                hasEncryptedBackupFile &&
                 selectedChoice?.toClaimOptions()?.contains(ClaimOption.ENCRYPTED_BACKUP) == false
 }
 

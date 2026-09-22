@@ -1,8 +1,10 @@
 package com.nunchuk.android.main.membership.honey.distribution
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,7 +12,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
@@ -20,6 +24,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
@@ -31,10 +36,15 @@ import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.backgroundPrimary
+import com.nunchuk.android.compose.fillBeeswax
+import com.nunchuk.android.compose.fillSlimeT2
 import com.nunchuk.android.compose.strokePrimary
+import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.membership.model.ClaimOptionState
 import com.nunchuk.android.core.R as CoreR
 
 /**
@@ -49,10 +59,10 @@ import com.nunchuk.android.core.R as CoreR
 @Composable
 fun VerifyBackupsContent(
     remainTime: Int = 0,
-    /** False until the encrypted backup file is uploaded; the card then offers "Backup" instead. */
-    isEncryptedBackupUploaded: Boolean = true,
-    isEncryptedBackupVerified: Boolean = false,
-    isSeedPhraseVerified: Boolean = false,
+    encryptedBackupState: ClaimOptionState = ClaimOptionState.PENDING,
+    seedPhraseState: ClaimOptionState = ClaimOptionState.PENDING,
+    /** Both halves dealt with — verified or deliberately skipped. Until then the owner stays here. */
+    isContinueEnabled: Boolean = false,
     onVerifyEncryptedBackup: () -> Unit = {},
     onVerifySeedPhrase: () -> Unit = {},
     onChangeSharingMethod: () -> Unit = {},
@@ -75,6 +85,7 @@ fun VerifyBackupsContent(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp),
+                    enabled = isContinueEnabled,
                     onClick = onContinueClicked,
                 ) {
                     Text(text = stringResource(R.string.nc_text_continue))
@@ -98,8 +109,12 @@ fun VerifyBackupsContent(
                     style = NunchukTheme.typography.body,
                 )
 
+                val isEncryptedBackupUploaded = encryptedBackupState != ClaimOptionState.NOT_UPLOADED
                 BackupChecklistItem(
+                    iconRes = R.drawable.ic_cloud_upload,
                     titleRes = R.string.nc_encrypted_backup,
+                    // Nothing to verify until the file is on the server, so the card first offers
+                    // to make the backup.
                     descRes = if (isEncryptedBackupUploaded) {
                         R.string.nc_encrypted_backup_verify_desc
                     } else {
@@ -110,14 +125,16 @@ fun VerifyBackupsContent(
                     } else {
                         CoreR.string.nc_upload_backup
                     },
-                    isVerified = isEncryptedBackupVerified,
-                    onVerifyClicked = onVerifyEncryptedBackup,
+                    state = encryptedBackupState,
+                    onActionClicked = onVerifyEncryptedBackup,
                 )
                 BackupChecklistItem(
+                    iconRes = CoreR.drawable.ic_key,
                     titleRes = R.string.nc_seed_phrase_backup,
                     descRes = R.string.nc_seed_phrase_backup_verify_desc,
-                    isVerified = isSeedPhraseVerified,
-                    onVerifyClicked = onVerifySeedPhrase,
+                    actionRes = CoreR.string.nc_verify,
+                    state = seedPhraseState,
+                    onActionClicked = onVerifySeedPhrase,
                 )
 
                 NcHintMessage(
@@ -141,21 +158,40 @@ fun VerifyBackupsContent(
     }
 }
 
+/**
+ * One half of the checklist. The card's fill says how far it has got — plain while something is
+ * still owed, green once verified, amber when the owner passed on the check — and only a verified
+ * half loses its action button: a skipped one can still be verified later.
+ */
 @Composable
 private fun BackupChecklistItem(
+    iconRes: Int,
     titleRes: Int,
     descRes: Int,
-    isVerified: Boolean,
-    onVerifyClicked: () -> Unit,
-    actionRes: Int = CoreR.string.nc_verify,
+    actionRes: Int,
+    state: ClaimOptionState,
+    onActionClicked: () -> Unit,
 ) {
+    val shape = RoundedCornerShape(12.dp)
+    val fill = when (state) {
+        ClaimOptionState.VERIFIED -> MaterialTheme.colorScheme.fillSlimeT2
+        ClaimOptionState.SKIPPED -> MaterialTheme.colorScheme.fillBeeswax
+        ClaimOptionState.NOT_UPLOADED, ClaimOptionState.PENDING -> Color.Transparent
+    }
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = 16.dp)
-            .border(
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.strokePrimary),
-                shape = RoundedCornerShape(12.dp),
+            .background(color = fill, shape = shape)
+            .then(
+                if (fill == Color.Transparent) {
+                    Modifier.border(
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.strokePrimary),
+                        shape = shape,
+                    )
+                } else {
+                    Modifier
+                }
             )
             .padding(12.dp),
     ) {
@@ -164,27 +200,45 @@ private fun BackupChecklistItem(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .background(
+                        color = MaterialTheme.colorScheme.backgroundPrimary,
+                        shape = CircleShape,
+                    ),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    painter = painterResource(id = iconRes),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.textPrimary,
+                )
+            }
             Text(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(horizontal = 12.dp),
                 text = stringResource(titleRes),
                 style = NunchukTheme.typography.title,
             )
-            if (isVerified) {
+            if (state == ClaimOptionState.VERIFIED) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         painter = painterResource(id = R.drawable.nc_circle_checked),
                         contentDescription = "Verified icon",
+                        tint = MaterialTheme.colorScheme.textPrimary,
                     )
                     Text(
                         modifier = Modifier.padding(start = 4.dp),
                         text = stringResource(R.string.nc_verified),
-                        style = NunchukTheme.typography.body,
+                        style = NunchukTheme.typography.title,
                     )
                 }
             } else {
                 NcOutlineButton(
                     modifier = Modifier.height(36.dp),
-                    onClick = onVerifyClicked,
+                    onClick = onActionClicked,
                 ) {
                     Text(text = stringResource(actionRes))
                 }
@@ -197,23 +251,46 @@ private fun BackupChecklistItem(
                 color = MaterialTheme.colorScheme.textSecondary
             ),
         )
+        if (state == ClaimOptionState.SKIPPED) {
+            Text(
+                modifier = Modifier.padding(top = 8.dp),
+                text = stringResource(R.string.nc_verification_skipped),
+                style = NunchukTheme.typography.bodySmall.copy(
+                    color = MaterialTheme.colorScheme.textSecondary
+                ),
+            )
+        }
     }
 }
 
 @PreviewLightDark
 @Composable
-private fun VerifyBackupsContentPreview() {
-    VerifyBackupsContent()
+private fun VerifyBackupsContentNotUploadedPreview() {
+    VerifyBackupsContent(encryptedBackupState = ClaimOptionState.NOT_UPLOADED)
 }
 
 @PreviewLightDark
 @Composable
 private fun VerifyBackupsContentPartialPreview() {
-    VerifyBackupsContent(isEncryptedBackupVerified = true)
+    VerifyBackupsContent(encryptedBackupState = ClaimOptionState.VERIFIED)
 }
 
 @PreviewLightDark
 @Composable
-private fun VerifyBackupsContentNotUploadedPreview() {
-    VerifyBackupsContent(isEncryptedBackupUploaded = false)
+private fun VerifyBackupsContentSkippedPreview() {
+    VerifyBackupsContent(
+        encryptedBackupState = ClaimOptionState.VERIFIED,
+        seedPhraseState = ClaimOptionState.SKIPPED,
+        isContinueEnabled = true,
+    )
+}
+
+@PreviewLightDark
+@Composable
+private fun VerifyBackupsContentBothVerifiedPreview() {
+    VerifyBackupsContent(
+        encryptedBackupState = ClaimOptionState.VERIFIED,
+        seedPhraseState = ClaimOptionState.VERIFIED,
+        isContinueEnabled = true,
+    )
 }

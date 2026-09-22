@@ -758,6 +758,8 @@
     <string name="nc_seed_phrase_backup_verify_desc">Restore the words onto a device \u2014 Nunchuk checks the public key matches the inheritance key.</string>
     <string name="nc_verify_your_backups_hint">Verifying both is recommended. Your Beneficiary only needs one to work, and you can return to this later.</string>
     <string name="nc_verified">Verified</string>
+    <!-- Under a checklist card whose verification the owner deliberately passed on -->
+    <string name="nc_verification_skipped">Verification skipped</string>
     <string name="nc_change_sharing_method">Change how you share this key</string>
     <string name="nc_remove_encrypted_backup_title">Remove the encrypted backup?</string>
     <string name="nc_remove_encrypted_backup_desc">Switching to \u201cShare the seed phrase directly\u201d deletes the encrypted backup from the server. Your Beneficiary will no longer be able to claim with a Backup Password, and the seed phrase backup becomes the only way to recover the inheritance key.</string>
