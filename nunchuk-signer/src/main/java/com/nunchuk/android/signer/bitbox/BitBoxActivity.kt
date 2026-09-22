@@ -31,12 +31,14 @@ import com.nunchuk.android.core.bitbox.isOperationError
 import com.nunchuk.android.core.bitbox.isSessionLost
 import com.nunchuk.android.core.bitbox.isUserCancellation
 import com.nunchuk.android.core.bitbox.statusText
+import com.nunchuk.android.core.signer.hardwareDeviceSignerModel
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.BitBoxErrorCode
 import com.nunchuk.android.type.BitBoxUserInteraction
+import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.ResultExistingKey
 import com.nunchuk.android.widget.NCToastMessage
@@ -207,7 +209,11 @@ class BitBoxActivity : BaseComposeActivity() {
                     // the wallet is built from a key the user never meant to add. In verify mode
                     // the same check is what proves the restored seed is the inheritance key.
                     if (expectedXfp.isNotEmpty() && !fingerprint.equals(expectedXfp, ignoreCase = true)) {
-                        viewModel.onError(xfpMismatchMessage(fingerprint))
+                        if (isVerifyXfpOnly) {
+                            returnMismatchedDevice(fingerprint)
+                            return
+                        }
+                        viewModel.onError(getString(R.string.nc_added_key_xfp_mismatch))
                         return
                     }
                     if (isVerifyXfpOnly) {
@@ -560,14 +566,22 @@ class BitBoxActivity : BaseComposeActivity() {
         if (isUsb) controller.refreshUsb() else ensurePermissionThenScan()
     }
 
-    private fun xfpMismatchMessage(actualXfp: String): String = if (isVerifyXfpOnly) {
-        getString(
-            R.string.nc_verify_key_xfp_not_match,
-            actualXfp.uppercase(Locale.getDefault()),
-            expectedXfp.uppercase(Locale.getDefault()),
+    /**
+     * Verify mode read a device other than the one the inheritance key came from. Hand it back as
+     * a stand-in key so the seed-phrase host can show "This key doesn't match" against the key
+     * being verified, the same way it does for a Coldcard or air-gapped key.
+     */
+    private fun returnMismatchedDevice(actualXfp: String) {
+        setResult(
+            RESULT_OK,
+            Intent().apply {
+                putExtra(
+                    GlobalResultKey.EXTRA_SIGNER,
+                    hardwareDeviceSignerModel(actualXfp, SignerTag.BITBOX),
+                )
+            }
         )
-    } else {
-        getString(R.string.nc_added_key_xfp_mismatch)
+        finish()
     }
 
     /**

@@ -25,6 +25,7 @@ import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.signer.SignerServer
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.core.util.formattedName
 import com.nunchuk.android.core.util.isPlatformKey
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
@@ -179,3 +180,18 @@ fun String.toSigner(): SignerInput {
     }
     throw InvalidSignerFormatException(this)
 }
+
+/**
+ * A hardware device that was only connected, never added as a key: all that is known about it is
+ * the fingerprint it reported and which vendor it is. Names the device a failed seed-phrase
+ * verification read, where there is no key to describe it.
+ */
+fun hardwareDeviceSignerModel(fingerPrint: String, tag: SignerTag) = SignerModel(
+    id = fingerPrint.lowercase(),
+    name = tag.formattedName,
+    derivationPath = "",
+    fingerPrint = fingerPrint.lowercase(),
+    type = SignerType.HARDWARE,
+    tags = listOf(tag),
+    isMasterSigner = false,
+)

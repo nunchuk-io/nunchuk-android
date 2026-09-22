@@ -254,11 +254,10 @@ class ColdcardRecoverViewModel @Inject constructor(
         val currentSigner = onChainAddSignerParam.currentSigner
         if (currentSigner != null) {
             if (signer.masterFingerprint != currentSigner.fingerPrint) {
-                emitErrorAndStopLoading(
-                    ColdcardRecoverEvent.ShowError(
-                        "The key you just added (XFP:${signer.masterFingerprint.uppercase()}) doesn't match the original inheritance key (XFP:${currentSigner.fingerPrint.uppercase()}). Please try again."
-                    )
-                )
+                // Not an error to show here: the fragment hands the key back and the
+                // seed-phrase host shows "This key doesn't match" for it.
+                _event.emit(ColdcardRecoverEvent.CreateSignerSuccess(signer))
+                _event.emit(ColdcardRecoverEvent.LoadingEvent(false))
                 return true
             }
             val newAccountIndex = getIndexFromPathUseCase(signer.derivationPath).getOrElse { 0 }

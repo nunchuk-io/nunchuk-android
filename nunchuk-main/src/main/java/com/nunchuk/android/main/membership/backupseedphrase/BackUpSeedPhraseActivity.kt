@@ -49,10 +49,11 @@ class BackUpSeedPhraseActivity : BaseComposeActivity(), BottomSheetOptionListene
      * The last step is re-adding the key from the restored device, which happens over in the
      * key-type screen. What comes back differs per device, so the comparison is settled here:
      *
-     * - Ledger and BitBox read the card against the expected fingerprint themselves and hand back
-     *   only [GlobalResultKey.EXTRA_VERIFIED_XFP], never a key.
+     * - Ledger and BitBox read the device against the expected fingerprint themselves and hand
+     *   back [GlobalResultKey.EXTRA_VERIFIED_XFP] on a match, or a stand-in key naming the device
+     *   on a mismatch — no key is ever created.
      * - Coldcard and air-gap compare too, and on a match mark the key verified on their own
-     *   screens; air-gap returns the key it read when it does *not* match.
+     *   screens; on a mismatch they return the key they read.
      * - TAPSIGNER does no comparison at all and returns whatever it read, match or not.
      *
      * So a returned key means nothing on its own — it has to be checked against the key being

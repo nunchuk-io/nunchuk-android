@@ -233,11 +233,9 @@ internal class AddAirgapSignerViewModel @Inject constructor(
                     val currentSigner = onChainAddSignerParam!!.currentSigner
                     if (currentSigner != null) {
                         if (signer.masterFingerprint != currentSigner.fingerPrint) {
-                            setEvent(
-                                AddAirgapSignerErrorEvent(
-                                    "The key you just added (XFP:${signer.masterFingerprint.uppercase()}) doesn't match the original inheritance key (XFP:${currentSigner.fingerPrint.uppercase()}). Please try again."
-                                )
-                            )
+                            // Not an error to show here: the fragment hands the key back and
+                            // the seed-phrase host shows "This key doesn't match" for it.
+                            setEvent(AddAirgapSignerSuccessEvent(signer))
                             setEvent(LoadingEventAirgap(false))
                             return@launch
                         }

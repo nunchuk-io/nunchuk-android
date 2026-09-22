@@ -166,11 +166,9 @@ class Mk4IntroViewModel @Inject constructor(
                         val currentSigner = onChainAddSignerParam.currentSigner
                         if (currentSigner != null) {
                             if (signer.masterFingerprint != currentSigner.fingerPrint) {
-                                _event.emit(
-                                    Mk4IntroViewEvent.ShowError(
-                                        "The key you just added (XFP:${signer.masterFingerprint.uppercase()}) doesn't match the original inheritance key (XFP:${currentSigner.fingerPrint.uppercase()}). Please try again."
-                                    )
-                                )
+                                // Not an error to show here: the fragment hands the key back and
+                                // the seed-phrase host shows "This key doesn't match" for it.
+                                _event.emit(Mk4IntroViewEvent.OnCreateSignerSuccess(signer))
                                 _event.emit(Mk4IntroViewEvent.Loading(false))
                                 return@launch
                             }
