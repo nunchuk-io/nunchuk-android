@@ -349,13 +349,20 @@ internal class AddAirgapSignerViewModel @Inject constructor(
                             return@launch
                         }
                     } else {
+                        // The param is also carried by the off-chain inheritance picker, whose
+                        // draft is a plain multisig: its inheritance step maps to key index 0,
+                        // while the same step on a Miniscript draft maps to index 1. Only the
+                        // on-chain params may force MINISCRIPT here.
+                        val param = onChainAddSignerParam
+                        val isOnChainFlow = param != null && !param.isAddInheritanceOffChainSigner()
+                        val draftWalletType = if (isOnChainFlow) WalletType.MINISCRIPT else walletType
                         syncKeyUseCase(
                             SyncKeyUseCase.Param(
                                 step = membershipStepManager.currentStep
                                     ?: throw IllegalArgumentException("Current step empty"),
                                 groupId = groupId,
                                 signer = airgap,
-                                walletType = if (onChainAddSignerParam != null) WalletType.MINISCRIPT else walletType
+                                walletType = draftWalletType
                             )
                         ).onSuccess {
                             saveMembershipStepUseCase(
