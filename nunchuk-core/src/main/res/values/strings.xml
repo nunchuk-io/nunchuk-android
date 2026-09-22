@@ -143,6 +143,10 @@
     <string name="nc_unlock_coldcard">Unlock COLDCARD</string>
     <string name="nc_add_coldcard_mk4">Add COLDCARD</string>
     <string name="nc_add_coldcard_mk4_desc">You can add COLDCARD via NFC, QR code or by importing a file.</string>
+    <!-- On-chain timelock wallet: each COLDCARD is added twice (Acct X / Acct Y). [B]…[/B] marks bold for NcHighlightText -->
+    <string name="nc_coldcard_onchain_verify_backup_desc">Please re-add the key for the spending path [B]after the timelock[/B] to verify. On your device, select [B]account 0[/B] for this spending path.</string>
+    <string name="nc_coldcard_onchain_first_key_desc">Each hardware device must be added twice, with both keys (before and after the timelock) coming from the same device but using different derivation paths.\n\nPlease add a key for the spending path [B]after the timelock.[/B] On your device, select [B]account 0[/B] for this spending path.</string>
+    <string name="nc_coldcard_onchain_second_key_desc">Each hardware device must be added twice, with both keys (before and after the timelock) coming from the same device but using different derivation paths.\n\nNow add the second key from the same COLDCARD for the spending path [B]before the timelock[/B]. On your device, select [B]account %1$d[/B] for this spending path.</string>
     <string name="nc_add_key">Add key</string>
     <string name="nc_add_inheritance_key">Add inheritance key</string>
     <string name="nc_re_add_restored_key">Re-add the restored key</string>

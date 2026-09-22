@@ -17,16 +17,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.fragment.compose.content
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.fragment.findNavController
 import com.nunchuk.android.compose.ActionItem
+import com.nunchuk.android.compose.NcHighlightText
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
@@ -178,51 +175,22 @@ internal fun ColdCardIntroScreen(
                     style = NunchukTheme.typography.heading
                 )
                 if (isClaiming.not()) {
-                    Text(
+                    NcHighlightText(
                         modifier = Modifier.padding(16.dp),
-                        text = if (isVerifyBackupSeedPhrase) {
-                            buildAnnotatedString {
-                                append("Please re-add the key for the spending path ")
-                                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                    append("after the timelock")
-                                }
-                                append(" to verify. On your device, select ")
-                                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                    append("account 0")
-                                }
-                                append(" for this spending path.")
-                            }
-                        } else if (isOnChainTimelockKey) {
-                            val keyIndex = onChainKeyIndex
-                            buildAnnotatedString {
-                                append("Each hardware device must be added twice, with both keys (before and after the timelock) coming from the same device but using different derivation paths.\n\n")
+                        text = when {
+                            isVerifyBackupSeedPhrase ->
+                                stringResource(R.string.nc_coldcard_onchain_verify_backup_desc)
 
-                                if (keyIndex == 0) {
-                                    append("Please add a key for the spending path ")
-                                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                        append("after the timelock.")
-                                    }
-                                    append(" On your device, select ")
-                                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                        append("account 0")
-                                    }
-                                    append(" for this spending path.")
-                                } else {
-                                    append("Now add the second key from the same COLDCARD for the spending path ")
-                                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                        append("before the timelock")
-                                    }
-                                    append(". On your device, select ")
-                                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                        append("account $onChainKeyIndex")
-                                    }
-                                    append(" for this spending path.")
-                                }
-                            }
-                        } else {
-                            buildAnnotatedString {
-                                append(stringResource(R.string.nc_add_coldcard_mk4_desc))
-                            }
+                            isOnChainTimelockKey && onChainKeyIndex == 0 ->
+                                stringResource(R.string.nc_coldcard_onchain_first_key_desc)
+
+                            isOnChainTimelockKey ->
+                                stringResource(
+                                    R.string.nc_coldcard_onchain_second_key_desc,
+                                    onChainKeyIndex
+                                )
+
+                            else -> stringResource(R.string.nc_add_coldcard_mk4_desc)
                         },
                         style = NunchukTheme.typography.body
                     )
