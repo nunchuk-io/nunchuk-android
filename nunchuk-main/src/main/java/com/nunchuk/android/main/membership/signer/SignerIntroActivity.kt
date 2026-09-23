@@ -498,8 +498,16 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
     private fun handleJadeSelection(navController: NavHostController) {
         // The firmware gate belongs to the Miniscript (on-chain) protocol. Off-chain, Jade is just
         // another air-gapped device and uses the generic air-gap intro.
-        if (onChainAddSignerParam == null
-            || onChainAddSignerParam?.isVerifyBackupSeedPhrase() == true
+        val param = onChainAddSignerParam
+        // A Beneficiary claiming an off-chain plan is offered the Jade already in the key manager
+        // first (same as the Coldcard in handleColdCardSelection); declining lands in
+        // OpenSetupSigner, which runs the Jade intro with the plan's account index.
+        if (param != null && param.isClaiming && param.isAddInheritanceOffChainSigner()) {
+            viewModel.showExistingSignerOrCreateNew(SignerType.AIRGAP, SignerTag.JADE)
+            return
+        }
+        if (param == null
+            || param.isVerifyBackupSeedPhrase()
             || isAddInheritanceKeyForSetup
         ) {
             handleSelectAddAirgapType(SignerTag.JADE)

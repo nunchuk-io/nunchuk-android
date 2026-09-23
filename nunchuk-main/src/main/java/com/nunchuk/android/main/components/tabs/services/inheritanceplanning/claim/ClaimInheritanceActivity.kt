@@ -223,7 +223,10 @@ private fun ClaimInheritanceGraph(
                                 activityContext = activity,
                                 onChainAddSignerParam = OnChainAddSignerParam(
                                     flags = flags,
-                                    magic = claimData.magic
+                                    magic = claimData.magic,
+                                    // The plan fixes which account each inheritance key sits at;
+                                    // the device intros name it so the heir exports the right XPUB.
+                                    keyIndex = claimData.nextKeyAccountIndex,
                                 )
                             )
                         }

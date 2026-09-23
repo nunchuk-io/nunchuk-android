@@ -123,6 +123,20 @@ val SignerTag.isAirgapTag: Boolean
 val SignerTag?.isInAppHardwareTag: Boolean
     get() = this == SignerTag.TREZOR || this == SignerTag.LEDGER || this == SignerTag.BITBOX
 
+/**
+ * A Jade added over QR/file. It has no in-app transport, so every signing step is "show it a QR,
+ * scan the QR it shows back"; the claim flow branches on this to offer only QR export/import.
+ */
+val SignerModel.isJadeAirgap: Boolean
+    get() = type == AIRGAP && tags.contains(SignerTag.JADE)
+
+/**
+ * Sign-message request in the Specter Desktop QR format, `signmessage <path> ascii:<message>`,
+ * which Jade, SeedSigner and Krux all scan and answer with a static QR of the base64 signature.
+ */
+fun specterSignMessageRequest(derivationPath: String, message: String): String =
+    "signmessage $derivationPath ascii:$message"
+
 val SignerTag?.formattedName: String
     get() = when (this) {
         SignerTag.TREZOR -> "Trezor"

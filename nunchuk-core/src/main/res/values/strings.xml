@@ -1198,6 +1198,9 @@
     <string name="nc_recover_key_via_xprv">Recover key via XPRV</string>
     <string name="nc_recover_key_via_seed">Recover key via seed</string>
     <string name="nc_export_message">Export message</string>
+    <!-- %1$s is the device name, e.g. "Jade" -->
+    <string name="nc_export_message_qr_desc">Scan this QR with your %1$s, sign the message on the device, then import the signature.</string>
+    <string name="nc_export_message_qr_desc_generic">Scan this QR with your signing device, sign the message on the device, then import the signature.</string>
     <string name="nc_retry">Retry</string>
     <string name="nc_jade_locked_qr_error">Jade is locked. Please unlock it first via Key info &gt; More &gt; QR Unlock.</string>
     <string name="nc_jade_qr_unlock_title">Scan to unlock Jade</string>

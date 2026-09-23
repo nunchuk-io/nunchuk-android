@@ -201,6 +201,16 @@ fun Context.getTextBtcUnit() = when (CURRENT_DISPLAY_UNIT_TYPE) {
 val String.isTestNetSigner: Boolean
     get() = split("/").getOrNull(2) == "1h"
 
+/**
+ * Account of a BIP-48 multisig path (`m/48h/0h/<account>h/2h`), or null when the path is not one
+ * ([isRecommendedMultiSigPath]) or carries no account. Accepts both the `h` and `'` hardened
+ * markers.
+ */
+val String.multiSigAccountIndex: Int?
+    get() = replace('\'', 'h')
+        .takeIf { it.isNotEmpty() && it.isRecommendedMultiSigPath }
+        ?.split("/")?.getOrNull(3)?.trimEnd('h')?.toIntOrNull()
+
 val String.isRecommendedMultiSigPath: Boolean
     get() = isEmpty() || this.startsWith("m/48h") && this.endsWith("2h")
 

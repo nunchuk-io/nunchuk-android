@@ -225,6 +225,8 @@
     <string name="nc_jade_before_start_device_unlock_content">You might need to enter a PIN and/or a PASSPHRASE directly on Jade.</string>
     <string name="nc_jade_export_xpub_title">Export XPUB from Jade</string>
     <string name="nc_jade_export_xpub_desc">Go to Options \u2192 Wallet \u2192 Export Xpub \u2192 Options \u2192 Wallet \u2192 Multisig \u2192 Enter \u2192 Account Index. Enter Account # (0 if first time)</string>
+    <!-- Claim variant of nc_jade_export_xpub_desc: the plan fixes the account, so it is named -->
+    <string name="nc_jade_export_xpub_desc_account">Go to Options \u2192 Wallet \u2192 Export Xpub \u2192 Options \u2192 Wallet \u2192 Multisig \u2192 Enter \u2192 Account Index. Enter Account %1$d</string>
     <string name="nc_add_foundation_passport">Add Foundation Passport</string>
     <string name="nc_add_keystone">Add Keystone</string>
     <string name="nc_desktop_only">Desktop only</string>

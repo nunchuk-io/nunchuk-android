@@ -20,6 +20,7 @@
 package com.nunchuk.android.transaction.components.imports
 
 import android.net.Uri
+import android.util.Base64
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.constants.NativeErrorCode
@@ -78,7 +79,7 @@ internal class ImportTransactionViewModel @Inject constructor(
                 importMutex.withLock {
                     analyzeQr()
                     if (isDummyFlow) {
-                        parseDummyTransaction()
+                        parseDummyTransaction(qrData)
                     } else {
                         parseNormalTransaction()
                     }
@@ -105,7 +106,7 @@ internal class ImportTransactionViewModel @Inject constructor(
         }
     }
 
-    private suspend fun parseDummyTransaction() {
+    private suspend fun parseDummyTransaction(qrData: String) {
         when (args.signFlowType) {
             is SignFlowType.ClaimDummy -> {
                 extractColdcardMessageSignatureFromQrUseCase(
@@ -113,6 +114,15 @@ internal class ImportTransactionViewModel @Inject constructor(
                 ).onSuccess {
                     setEvent(ImportTransactionSuccess(signature = it))
                 }
+            }
+
+            // The device answers a Specter-format request with one static QR holding the raw
+            // base64 signature, so the frame just scanned is the whole answer.
+            is SignFlowType.ClaimAirgapMessage -> runCatching {
+                require(Base64.decode(qrData.trim(), Base64.DEFAULT).size == MESSAGE_SIGNATURE_SIZE)
+                qrData.trim()
+            }.onSuccess {
+                setEvent(ImportTransactionSuccess(signature = it))
             }
 
             else -> {
@@ -124,7 +134,8 @@ internal class ImportTransactionViewModel @Inject constructor(
             val errorCode = e.nativeErrorCode()
             if (errorCode == NativeErrorCode.JADE_QR_PIN_UNLOCK) {
                 setEvent(ImportTransactionEvent.ImportTransactionError(e.message.orUnknownError(), errorCode))
-            } else if (_state.value.progress >= 100) {
+            } else if (_state.value.progress >= 100 || args.signFlowType is SignFlowType.ClaimAirgapMessage) {
+                // A static signature QR has no multi-frame progress to wait for.
                 setEvent(ImportTransactionEvent.ImportTransactionError("Invalid or unreadable QR code. Please try again."))
             }
         }
@@ -177,9 +188,15 @@ internal class ImportTransactionViewModel @Inject constructor(
     }
 
     private val isDummyFlow: Boolean
-        get() = args.signFlowType is SignFlowType.NormalDummy || 
-                args.signFlowType is SignFlowType.SignInDummy || 
-                args.signFlowType is SignFlowType.ClaimDummy
+        get() = args.signFlowType is SignFlowType.NormalDummy ||
+                args.signFlowType is SignFlowType.SignInDummy ||
+                args.signFlowType is SignFlowType.ClaimDummy ||
+                args.signFlowType is SignFlowType.ClaimAirgapMessage
+
+    companion object {
+        /** A Bitcoin signed-message signature: 1 recovery byte + 64-byte compact signature. */
+        private const val MESSAGE_SIGNATURE_SIZE = 65
+    }
 }
 
 data class ImportTransactionState(val progress: Double = 0.0)

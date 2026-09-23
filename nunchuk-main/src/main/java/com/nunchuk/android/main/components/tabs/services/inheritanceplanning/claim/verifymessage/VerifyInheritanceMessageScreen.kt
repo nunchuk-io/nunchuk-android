@@ -55,6 +55,8 @@ import com.nunchuk.android.core.nfc.NfcActionListener
 import com.nunchuk.android.core.nfc.NfcViewModel
 import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.util.formattedName
+import com.nunchuk.android.core.util.isJadeAirgap
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.ClaimData
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.ClaimInheritanceEvent
@@ -132,6 +134,7 @@ fun VerifyInheritanceMessageScreen(
     val nfcViewModel = hiltViewModel<NfcViewModel>(viewModelStoreOwner = activity)
     val coroutineScope = rememberCoroutineScope()
     var showColdCardOptionsSheet by remember { mutableStateOf(false) }
+    var showAirgapOptionsSheet by remember { mutableStateOf(false) }
 
     LaunchedEffect(sharedUiState.event) {
         val event = sharedUiState.event
@@ -275,9 +278,41 @@ fun VerifyInheritanceMessageScreen(
                 signer.type == SignerType.COLDCARD_NFC || signer.tags.contains(SignerTag.COLDCARD) -> {
                     showColdCardOptionsSheet = true
                 }
+                // Jade signs the challenge over QR only: it scans the request and shows the
+                // signature back as a QR.
+                signer.isJadeAirgap -> {
+                    showAirgapOptionsSheet = true
+                }
                 else -> Unit
             }
         },
+    )
+
+    ColdCardSigningBottomSheets(
+        isMessage = true,
+        isQrOnly = true,
+        showColdCardOptions = showAirgapOptionsSheet,
+        onDismissColdCardOptions = {
+            showAirgapOptionsSheet = false
+        },
+        callbacks = ColdCardSigningCallbacks(
+            onExportViaQr = {
+                navigator.openExportTransactionScreen(
+                    launcher = importOrExportTransactionLauncher,
+                    activityContext = activity,
+                    txToSign = viewModel.airgapSignMessageRequest(),
+                    signFlowType = SignFlowType.ClaimAirgapMessage,
+                    deviceName = SignerTag.JADE.formattedName,
+                )
+            },
+            onImportViaQr = {
+                navigator.openImportTransactionScreen(
+                    launcher = importOrExportTransactionLauncher,
+                    activityContext = activity,
+                    signFlowType = SignFlowType.ClaimAirgapMessage
+                )
+            },
+        )
     )
 
     ColdCardSigningBottomSheets(

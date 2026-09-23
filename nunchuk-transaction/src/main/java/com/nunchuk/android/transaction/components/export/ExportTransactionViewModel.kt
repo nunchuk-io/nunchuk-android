@@ -86,6 +86,8 @@ internal class ExportTransactionViewModel @Inject constructor(
     private fun handleExportTransactionQRs() {
         when (args.signFlowType) {
             SignFlowType.ClaimDummy -> exportClaimDummyTransaction()
+            // One static frame: the device reads the request as plain text, not BBQR/UR.
+            SignFlowType.ClaimAirgapMessage -> updateState { copy(qrStrings = listOf(args.txToSign)) }
             SignFlowType.Normal -> if (args.isBBQR) {
                 exportTransactionBBQR()
             } else {

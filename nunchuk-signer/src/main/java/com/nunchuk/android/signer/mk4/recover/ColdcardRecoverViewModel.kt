@@ -227,7 +227,9 @@ class ColdcardRecoverViewModel @Inject constructor(
         onChainAddSignerParam: OnChainAddSignerParam?,
         newIndex: Int
     ): Boolean {
-        if (onChainAddSignerParam != null &&
+        // Only meaningful with a first key to compare against; a claim sets keyIndex to the
+        // plan's account without a currentSigner.
+        if (onChainAddSignerParam?.currentSigner != null &&
             signer.masterFingerprint != onChainAddSignerParam.currentSigner?.fingerPrint &&
             onChainAddSignerParam.keyIndex > 0
         ) {

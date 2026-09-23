@@ -153,7 +153,9 @@ class Mk4IntroViewModel @Inject constructor(
                         _event.emit(Mk4IntroViewEvent.Loading(false))
                         return@launch
                     }
-                    if (onChainAddSignerParam != null && signer.masterFingerprint != onChainAddSignerParam.currentSigner?.fingerPrint && onChainAddSignerParam.keyIndex > 0) {
+                    // Only meaningful with a first key to compare against; a claim sets keyIndex
+                    // to the plan's account without a currentSigner.
+                    if (onChainAddSignerParam?.currentSigner != null && signer.masterFingerprint != onChainAddSignerParam.currentSigner?.fingerPrint && onChainAddSignerParam.keyIndex > 0) {
                         _event.emit(
                             Mk4IntroViewEvent.ShowError(
                                 "The added key has an XFP mismatch. Please use the same device for both keys."

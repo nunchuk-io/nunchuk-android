@@ -34,7 +34,9 @@ data class ExportTransactionArgs(
     val initEventId: String,
     val masterFingerPrint: String,
     val signFlowType: SignFlowType,
-    val isBBQR: Boolean
+    val isBBQR: Boolean,
+    /** Device named in the on-screen instructions ("Scan this QR with your Jade…"); blank for none. */
+    val deviceName: String = "",
 ) : ActivityArgs {
 
     override fun buildIntent(activityContext: Context) = Intent(activityContext, ExportTransactionActivity::class.java).apply {
@@ -45,6 +47,7 @@ data class ExportTransactionArgs(
         putExtra(EXTRA_MASTER_FINGERPRINT, masterFingerPrint)
         putExtra(EXTRA_SIGN_FLOW_TYPE, signFlowType)
         putExtra(EXTRA_IS_BBQR, isBBQR)
+        putExtra(EXTRA_DEVICE_NAME, deviceName)
     }
 
     companion object {
@@ -55,6 +58,7 @@ data class ExportTransactionArgs(
         private const val EXTRA_MASTER_FINGERPRINT = "EXTRA_MASTER_FINGERPRINT"
         private const val EXTRA_SIGN_FLOW_TYPE = "EXTRA_SIGN_FLOW_TYPE"
         private const val EXTRA_IS_BBQR = "EXTRA_IS_BBQR"
+        private const val EXTRA_DEVICE_NAME = "EXTRA_DEVICE_NAME"
 
         fun deserializeFrom(intent: Intent): ExportTransactionArgs {
             val extras = intent.extras
@@ -65,7 +69,8 @@ data class ExportTransactionArgs(
                 initEventId = extras.getStringValue(EXTRA_INIT_EVENT_ID),
                 masterFingerPrint = extras.getStringValue(EXTRA_MASTER_FINGERPRINT),
                 signFlowType = extras?.parcelable<SignFlowType>(EXTRA_SIGN_FLOW_TYPE) ?: SignFlowType.Normal,
-                isBBQR = extras.getBooleanValue(EXTRA_IS_BBQR, false)
+                isBBQR = extras.getBooleanValue(EXTRA_IS_BBQR, false),
+                deviceName = extras.getStringValue(EXTRA_DEVICE_NAME),
             )
         }
     }

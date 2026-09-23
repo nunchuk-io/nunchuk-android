@@ -155,7 +155,9 @@ interface TransactionNavigator {
         txId: String = "",
         txToSign: String = "",
         signFlowType: SignFlowType = SignFlowType.Normal,
-        isBBQR: Boolean = false
+        isBBQR: Boolean = false,
+        /** Device named in the export screen's instructions; only read by [SignFlowType.ClaimAirgapMessage]. */
+        deviceName: String = "",
     )
 
     fun openReplaceTransactionFee(

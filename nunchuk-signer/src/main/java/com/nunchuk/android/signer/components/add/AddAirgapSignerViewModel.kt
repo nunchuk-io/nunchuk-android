@@ -256,7 +256,10 @@ internal class AddAirgapSignerViewModel @Inject constructor(
                     setEvent(AddAirgapSignerSuccessEvent(signer))
                     setEvent(LoadingEventAirgap(false))
                     return@launch
-                } else if (onChainAddSignerParam != null && signer.masterFingerprint != onChainAddSignerParam!!.currentSigner?.fingerPrint && onChainAddSignerParam!!.keyIndex > 0) {
+                } else if (onChainAddSignerParam?.currentSigner != null && signer.masterFingerprint != onChainAddSignerParam!!.currentSigner?.fingerPrint && onChainAddSignerParam!!.keyIndex > 0) {
+                    // "Same device for both keys" needs a first key to compare against. A claim
+                    // carries the plan's account in keyIndex with no currentSigner, so the check
+                    // would otherwise fire on every key at account 1.
                     setEvent(
                         AddAirgapSignerErrorEvent(
                             "The added key has an XFP mismatch. Please use the same device for both keys."

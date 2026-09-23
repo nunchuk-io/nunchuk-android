@@ -16,6 +16,7 @@ import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.getFileContentFromUri
 import com.nunchuk.android.core.util.nativeErrorCode
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.core.util.specterSignMessageRequest
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.InheritanceAdditional
 import com.nunchuk.android.model.SignedMessage
@@ -160,6 +161,10 @@ class VerifyInheritanceMessageViewModel @AssistedInject constructor(
     }
 
     fun needPassphrase(): Boolean = _state.value.needPassphrase
+
+    /** The challenge as a Specter-format QR request for an air-gapped device (Jade). */
+    fun airgapSignMessageRequest(): String =
+        specterSignMessageRequest(derivationPath = signer.derivationPath, message = message)
 
     fun resetSignature() {
         _state.update { it.copy(signedMessage = null) }

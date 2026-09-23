@@ -17,6 +17,7 @@ import com.nunchuk.android.core.network.ApiErrorCode.INHERITANCE_PLAN_NOT_FOUND
 import com.nunchuk.android.core.network.NunchukApiException
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toSingleSigner
+import com.nunchuk.android.core.util.multiSigAccountIndex
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.preparerecover.InheritanceOption
 import com.nunchuk.android.model.InheritanceAdditional
@@ -442,5 +443,14 @@ data class ClaimData(
         get() = !bsms.isNullOrEmpty() || walletType == WalletType.MINISCRIPT
 
     val derivationPaths = keyOrigins.map { it.derivationPath }
+
+    /**
+     * Account the next inheritance key is expected at: taken from the first key of the plan not
+     * added yet. -1 when the plan does not say (no key origins, or all keys already added).
+     */
+    val nextKeyAccountIndex: Int
+        get() = keyOrigins
+            .firstOrNull { origin -> signers.none { it.fingerPrint == origin.xfp } }
+            ?.derivationPath?.multiSigAccountIndex ?: -1
 }
 

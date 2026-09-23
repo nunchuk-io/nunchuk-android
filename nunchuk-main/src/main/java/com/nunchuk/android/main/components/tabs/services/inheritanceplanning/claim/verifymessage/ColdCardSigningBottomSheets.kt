@@ -39,6 +39,11 @@ data class ColdCardSigningCallbacks(
 fun ColdCardSigningBottomSheets(
     showColdCardOptions: Boolean,
     isMessage: Boolean = false,
+    /**
+     * Skip the File/QR/NFC pickers and go straight to [ColdCardSigningCallbacks.onExportViaQr] /
+     * [ColdCardSigningCallbacks.onImportViaQr] — for a device that only speaks QR (Jade).
+     */
+    isQrOnly: Boolean = false,
     onDismissColdCardOptions: () -> Unit,
     callbacks: ColdCardSigningCallbacks,
 ) {
@@ -69,11 +74,11 @@ fun ColdCardSigningBottomSheets(
                 when (index) {
                     0 -> {
                         onDismissColdCardOptions()
-                        showExportOptionsSheet = true
+                        if (isQrOnly) callbacks.onExportViaQr() else showExportOptionsSheet = true
                     }
                     1 -> {
                         onDismissColdCardOptions()
-                        showImportOptionsSheet = true
+                        if (isQrOnly) callbacks.onImportViaQr() else showImportOptionsSheet = true
                     }
                 }
             },

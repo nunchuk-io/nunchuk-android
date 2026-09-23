@@ -468,12 +468,15 @@ private val offChainInheritanceCardOrder: List<KeyType> =
     offChainInheritanceSetupKeyTypes.mapNotNull { it.toKeyType() }
 
 /**
- * Key types offered to a Beneficiary claiming an inheritance. The software key stays here — the
- * Beneficiary may hold nothing but the seed phrase.
+ * Key types offered to a Beneficiary claiming an inheritance, in the picker order of the design.
+ * Only devices the claim flow can take a challenge signature from belong here: TAPSIGNER and
+ * Coldcard via NFC, Jade via plain-text QR (see VerifyInheritanceMessageScreen). The software key
+ * stays — the Beneficiary may hold nothing but the seed phrase.
  */
 private val offChainInheritanceClaimKeyTypes = listOf(
-    multiSigSigner(SignerType.COLDCARD_NFC),
     multiSigSigner(SignerType.NFC),
+    multiSigSigner(SignerType.COLDCARD_NFC),
+    multiSigSigner(SignerType.AIRGAP, SignerTag.JADE),
     multiSigSigner(SignerType.SOFTWARE),
 )
 

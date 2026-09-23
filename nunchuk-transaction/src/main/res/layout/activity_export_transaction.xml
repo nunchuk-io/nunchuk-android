@@ -112,6 +112,22 @@
         android:layout_height="wrap_content"
         app:constraint_referenced_ids="slider,tv_low,tv_medium,tv_high,tv_ultra_high,tv_density" />
 
+    <!-- Only for an air-gapped sign-message request: tells the user what to do with the QR. -->
+    <TextView
+        android:id="@+id/tvDescription"
+        style="@style/NCText.Body"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/nc_padding_16"
+        android:layout_marginTop="@dimen/nc_padding_16"
+        android:gravity="center"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/qrCode"
+        tools:text="Scan this QR with your Jade, sign the message on the device, then import the signature."
+        tools:visibility="visible" />
+
     <com.nunchuk.android.widget.NCFontButton
         android:id="@+id/btnImportSignature"
         style="@style/NCPrimaryButton.Light"
@@ -119,7 +135,20 @@
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/nc_padding_16"
         android:text="@string/nc_import_signature"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/btnCancel"
         app:layout_constraintStart_toStartOf="parent" />
+
+    <com.nunchuk.android.widget.NCFontButton
+        android:id="@+id/btnCancel"
+        style="@style/NCPrimaryButton.Light"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/nc_padding_16"
+        android:layout_marginBottom="@dimen/nc_padding_16"
+        android:text="@string/nc_cancel"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:visibility="visible" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

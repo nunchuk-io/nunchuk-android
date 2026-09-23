@@ -32,6 +32,7 @@ import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.NfcActionListener
 import com.nunchuk.android.core.nfc.NfcViewModel
 import com.nunchuk.android.core.share.IntentSharingController
+import com.nunchuk.android.core.util.isJadeAirgap
 import com.nunchuk.android.core.util.openExternalLink
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.ClaimTransactionViewModel.LoadingType
@@ -94,6 +95,7 @@ private fun ClaimTransactionScreen(
     val loadingType by viewModel.loadingType.collectAsStateWithLifecycle()
     val claimError by viewModel.claimError.collectAsStateWithLifecycle()
     var showColdCardOptionsSheet by remember { mutableStateOf(false) }
+    var showAirgapOptionsSheet by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(claimError) {
@@ -270,6 +272,11 @@ private fun ClaimTransactionScreen(
                     ) -> {
                         showColdCardOptionsSheet = true
                     }
+
+                    // Jade signs the PSBT over QR only (UR out, signed UR back in).
+                    signerModel.isJadeAirgap -> {
+                        showAirgapOptionsSheet = true
+                    }
                 }
             },
             onBroadcastClick = { /* Handle broadcast click */ },
@@ -280,6 +287,33 @@ private fun ClaimTransactionScreen(
             onCopyText = { /* Handle copy text */ },
             onPreimageSuccess = { /* Handle preimage success */ },
             onSetPendingSignNodeId = { /* Handle set pending sign node id */ }
+        )
+
+        ColdCardSigningBottomSheets(
+            isQrOnly = true,
+            showColdCardOptions = showAirgapOptionsSheet,
+            onDismissColdCardOptions = { showAirgapOptionsSheet = false },
+            callbacks = ColdCardSigningCallbacks(
+                onExportViaQr = {
+                    val psbt = state.transaction.psbt
+                    if (psbt.isNotEmpty()) {
+                        navigator.openExportTransactionScreen(
+                            launcher = importOrExportTransactionLauncher,
+                            activityContext = activity,
+                            txToSign = psbt,
+                            signFlowType = SignFlowType.NormalDummy,
+                            isBBQR = false
+                        )
+                    }
+                },
+                onImportViaQr = {
+                    navigator.openImportTransactionScreen(
+                        launcher = importOrExportTransactionLauncher,
+                        activityContext = activity,
+                        signFlowType = SignFlowType.NormalDummy
+                    )
+                },
+            )
         )
 
         ColdCardSigningBottomSheets(

@@ -272,7 +272,8 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         txId: String,
         txToSign: String,
         signFlowType: SignFlowType,
-        isBBQR: Boolean
+        isBBQR: Boolean,
+        deviceName: String,
     ) {
         val intent = ExportTransactionActivity.buildIntent(
             activityContext = activityContext,
@@ -280,7 +281,8 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
             txId = txId,
             txToSign = txToSign,
             signFlowType = signFlowType,
-            isBBQR = isBBQR
+            isBBQR = isBBQR,
+            deviceName = deviceName,
         )
         if (launcher != null) {
             launcher.launch(intent)

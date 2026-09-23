@@ -73,12 +73,14 @@ class AirgapIntroFragment : MembershipFragment() {
         val signerTag = (requireActivity() as AddAirgapSignerActivity).signerTag
         val replacedXfp = (requireActivity() as AddAirgapSignerActivity).replacedXfp.orEmpty()
         // Some devices export their XPUB from a menu the generic copy does not mention, so the
-        // off-chain inheritance guide carries a third step naming it. Scoped to that flow to
-        // leave the ordinary add-key and on-chain flows exactly as they are.
-        val isOffChainInheritanceSetup = (requireActivity() as AddAirgapSignerActivity)
-            .onChainAddSignerParam
-            ?.let { it.isAddInheritanceOffChainSigner() && !it.isClaiming } == true
-        val exportXpubStep = signerTag.exportXpubStepRes().takeIf { isOffChainInheritanceSetup }
+        // off-chain inheritance guide carries a third step naming it. Scoped to that flow (owner
+        // setup and Beneficiary claim) to leave the ordinary add-key and on-chain flows exactly
+        // as they are. On a claim the plan already fixes which account the key sits at, so the
+        // step names it instead of "0 if first time".
+        val param = (requireActivity() as AddAirgapSignerActivity).onChainAddSignerParam
+        val exportXpubStep = signerTag.exportXpubStepRes(
+            accountIndex = param?.takeIf { it.isClaiming }?.keyIndex?.takeIf { it >= 0 }
+        ).takeIf { param?.isAddInheritanceOffChainSigner() == true }
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
@@ -105,7 +107,7 @@ private fun AirgapIntroContent(
     isMembershipFlow: Boolean = true,
     isReplaceKey: Boolean = false,
     signerTag: SignerTag? = null,
-    exportXpubStep: Pair<Int, Int>? = null,
+    exportXpubStep: ExportXpubStep? = null,
     onMoreClicked: () -> Unit = {},
     onContinueClicked: () -> Unit = {},
 ) {
@@ -211,16 +213,15 @@ private fun AirgapIntroContent(
                     )
                 }
                 if (exportXpubStep != null) {
-                    val (titleRes, descRes) = exportXpubStep
                     LabelNumberAndDesc(
                         modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp),
                         index = 3,
-                        title = stringResource(id = titleRes),
+                        title = stringResource(id = exportXpubStep.titleRes),
                         titleStyle = NunchukTheme.typography.title
                     ) {
                         Text(
                             modifier = Modifier.padding(top = 8.dp, start = 36.dp),
-                            text = stringResource(id = descRes),
+                            text = exportXpubStep.description(),
                             style = NunchukTheme.typography.body
                         )
                     }
@@ -260,9 +261,10 @@ private val genericAirgapIntroCopy = AirgapIntroCopy(
 )
 
 /**
- * Jade reaches this screen only from the off-chain inheritance flow — every other Jade add-key run
- * starts at airgapActionIntroFragment instead (see AddAirgapSignerActivity) — so naming the device
- * here cannot leak into the ordinary flow. Every other device keeps the generic wording.
+ * Jade reaches this screen only from the off-chain inheritance flows (owner setup and Beneficiary
+ * claim) — every other Jade add-key run starts at airgapActionIntroFragment instead (see
+ * AddAirgapSignerActivity) — so naming the device here cannot leak into the ordinary flow. Every
+ * other device keeps the generic wording.
  */
 private fun SignerTag?.airgapIntroCopy(): AirgapIntroCopy = when (this) {
     SignerTag.JADE -> AirgapIntroCopy(
@@ -278,11 +280,39 @@ private fun SignerTag?.airgapIntroCopy(): AirgapIntroCopy = when (this) {
 }
 
 /**
- * Title and body of the third step for a device whose XPUB export lives somewhere the generic
- * copy does not mention. Null for the devices the two generic steps already cover.
+ * Third step of the guide for a device whose XPUB export lives somewhere the generic copy does
+ * not mention. [accountIndex] is the account the plan expects the key at; when known, the body
+ * names it instead of leaving the owner to guess.
  */
-private fun SignerTag?.exportXpubStepRes(): Pair<Int, Int>? = when (this) {
-    SignerTag.KRUX -> R.string.nc_krux_export_xpub_title to R.string.nc_krux_export_xpub_desc
-    SignerTag.JADE -> R.string.nc_jade_export_xpub_title to R.string.nc_jade_export_xpub_desc
-    else -> null
+private data class ExportXpubStep(
+    @StringRes val titleRes: Int,
+    @StringRes val descRes: Int,
+    @StringRes val descWithAccountRes: Int? = null,
+    val accountIndex: Int? = null,
+) {
+    @Composable
+    fun description(): String =
+        if (accountIndex != null && descWithAccountRes != null) {
+            stringResource(id = descWithAccountRes, accountIndex)
+        } else {
+            stringResource(id = descRes)
+        }
 }
+
+/** Null for the devices the two generic steps already cover. */
+private fun SignerTag?.exportXpubStepRes(accountIndex: Int? = null): ExportXpubStep? =
+    when (this) {
+        SignerTag.KRUX -> ExportXpubStep(
+            titleRes = R.string.nc_krux_export_xpub_title,
+            descRes = R.string.nc_krux_export_xpub_desc,
+        )
+
+        SignerTag.JADE -> ExportXpubStep(
+            titleRes = R.string.nc_jade_export_xpub_title,
+            descRes = R.string.nc_jade_export_xpub_desc,
+            descWithAccountRes = R.string.nc_jade_export_xpub_desc_account,
+            accountIndex = accountIndex,
+        )
+
+        else -> null
+    }
