@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.reviewplan
 
+import android.os.Build
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -229,7 +230,9 @@ fun InheritanceReviewPlanScreenContent(
     val onCopyMagicPhrase: ((String) -> Unit)? = if (BuildConfig.DEBUG) {
         { phrase ->
             context.copyToClipboard(label = "Magical phrase", text = phrase)
-            coroutineScope.launch { snackState.showNunchukSnackbar(message = copiedMessage) }
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+                coroutineScope.launch { snackState.showNunchukSnackbar(message = copiedMessage) }
+            }
         }
     } else {
         null
