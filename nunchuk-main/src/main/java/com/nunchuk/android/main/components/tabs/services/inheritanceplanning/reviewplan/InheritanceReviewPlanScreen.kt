@@ -41,14 +41,17 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
@@ -61,6 +64,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
+import com.nunchuk.android.compose.NcScaffold
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.fillDenim
@@ -69,6 +73,10 @@ import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.compose.whisper
 import com.nunchuk.android.core.util.InheritancePlanFlow
+import com.nunchuk.android.compose.showNunchukSnackbar
+import com.nunchuk.android.core.util.copyToClipboard
+import kotlinx.coroutines.launch
+import com.nunchuk.android.main.BuildConfig
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceBeneficiaryAllocation
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceBufferPeriodApplyType
@@ -214,13 +222,26 @@ fun InheritanceReviewPlanScreenContent(
     } else {
         magicalPhrase.ifBlank { stringResource(id = R.string.nc_no_listed) }
     }
+    val context = LocalContext.current
+    val snackState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
+    val copiedMessage = stringResource(id = R.string.nc_copied_to_clipboard)
+    val onCopyMagicPhrase: ((String) -> Unit)? = if (BuildConfig.DEBUG) {
+        { phrase ->
+            context.copyToClipboard(label = "Magical phrase", text = phrase)
+            coroutineScope.launch { snackState.showNunchukSnackbar(message = copiedMessage) }
+        }
+    } else {
+        null
+    }
     val changeHighlightColor = Color(0xFFCF4018)
     val shouldHighlightChangedSection = planFlow == InheritancePlanFlow.VIEW
     val highlights = state.changeHighlights
 
     NunchukTheme {
-        Scaffold(
+        NcScaffold(
             modifier = Modifier.navigationBarsPadding(),
+            snackState = snackState,
             topBar = {
                 val title = if (planFlow == InheritancePlanFlow.SETUP) stringResource(
                     id = R.string.nc_estimate_remain_time,
@@ -365,14 +386,20 @@ fun InheritanceReviewPlanScreenContent(
                                 )
                                 if (isMultiBeneficiaryFlow && setupOrReviewParam.beneficiaryAllocations.isNotEmpty()) {
                                     MultiBeneficiaryMagicPhrasesPlanItem(
-                                        beneficiaryAllocations = setupOrReviewParam.beneficiaryAllocations
+                                        beneficiaryAllocations = setupOrReviewParam.beneficiaryAllocations,
+                                        onCopyMagicPhrase = onCopyMagicPhrase,
                                     )
                                 } else {
                                     SpecialDetailPlanItem(
                                         iconId = R.drawable.ic_star_light,
                                         title = stringResource(R.string.nc_magical_phrase),
                                         content = magicalPhraseMask,
-                                        editable = false
+                                        editable = false,
+                                        onContentClick = if (onCopyMagicPhrase != null && magicalPhrase.isNotBlank()) {
+                                            { onCopyMagicPhrase(magicalPhrase) }
+                                        } else {
+                                            null
+                                        },
                                     )
                                 }
                                 if (isMiniscriptWallet) {
@@ -810,6 +837,7 @@ private fun SingleBeneficiaryReleaseScheduleSection(
 @Composable
 private fun MultiBeneficiaryMagicPhrasesPlanItem(
     beneficiaryAllocations: List<InheritanceBeneficiaryAllocation>,
+    onCopyMagicPhrase: ((String) -> Unit)? = null,
 ) {
     Column(
         modifier = Modifier
@@ -846,7 +874,11 @@ private fun MultiBeneficiaryMagicPhrasesPlanItem(
                     color = colorResource(id = R.color.nc_grey_g7),
                 )
                 Text(
-                    modifier = Modifier.padding(top = 2.dp),
+                    modifier = Modifier
+                        .padding(top = 2.dp)
+                        .clickable(enabled = onCopyMagicPhrase != null && allocation.magic.isNotBlank()) {
+                            onCopyMagicPhrase?.invoke(allocation.magic)
+                        },
                     text = allocation.magic.ifBlank { stringResource(id = R.string.nc_no_listed) },
                     style = NunchukTheme.typography.body,
                     color = colorResource(id = R.color.nc_grey_g7),
@@ -1254,7 +1286,8 @@ fun SpecialDetailPlanItem(
     content: String = "dolphin concert apple",
     editable: Boolean = false,
     actionText: String = stringResource(id = R.string.nc_edit),
-    onClick: () -> Unit = {}
+    onClick: () -> Unit = {},
+    onContentClick: (() -> Unit)? = null,
 ) {
     Column(
         modifier = Modifier
@@ -1313,6 +1346,7 @@ fun SpecialDetailPlanItem(
             modifier = Modifier
                 .padding(start = 32.dp)
                 .fillMaxWidth()
+                .clickable(enabled = onContentClick != null) { onContentClick?.invoke() }
         )
     }
 }
