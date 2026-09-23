@@ -41,6 +41,7 @@ class TrezorActivity : BaseComposeActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         val isMembershipFlow = intent.getBooleanExtra(EXTRA_IS_MEMBERSHIP_FLOW, false)
+        val accountIndex = intent.getIntExtra(EXTRA_ACCOUNT_INDEX, 0)
         deeplinkViewModel.setMembershipFlow(isMembershipFlow)
 
         setContent {
@@ -123,15 +124,16 @@ class TrezorActivity : BaseComposeActivity() {
                     trezorSuiteIntro(
                         onBack = { navController.popBackStack() },
                         // Add-key-to-assisted-wallet uses a fixed config (multisig / native segwit
-                        // / account 0), so confirm and open Trezor Suite directly. Other flows let
-                        // the user choose on the select-wallet-type screen.
+                        // / the account the caller names, 0 unless a claim says otherwise), so
+                        // confirm and open Trezor Suite directly. Other flows let the user choose
+                        // on the select-wallet-type screen.
                         confirmBeforeContinue = isMembershipFlow,
                         onContinue = {
                             if (isMembershipFlow) {
                                 deeplinkViewModel.openTrezorSuiteDeeplink(
                                     walletType = WalletType.MULTI_SIG,
                                     addressType = AddressType.NATIVE_SEGWIT,
-                                    index = 0
+                                    index = accountIndex
                                 )
                             } else {
                                 navController.navigateToTrezorSelectWalletType()
@@ -193,15 +195,18 @@ class TrezorActivity : BaseComposeActivity() {
 
     companion object {
         const val EXTRA_IS_MEMBERSHIP_FLOW = "extra_is_membership_flow"
+        const val EXTRA_ACCOUNT_INDEX = "extra_account_index"
         const val EXTRA_RESULT_ACTION = "extra_result_action"
         const val RESULT_ACTION_OPEN_USB_FLOW = "result_action_open_usb_flow"
 
         fun buildIntent(
             activityContext: Context,
-            isMembershipFlow: Boolean = false
+            isMembershipFlow: Boolean = false,
+            accountIndex: Int = 0,
         ): Intent {
             return Intent(activityContext, TrezorActivity::class.java).apply {
                 putExtra(EXTRA_IS_MEMBERSHIP_FLOW, isMembershipFlow)
+                putExtra(EXTRA_ACCOUNT_INDEX, accountIndex)
             }
         }
     }

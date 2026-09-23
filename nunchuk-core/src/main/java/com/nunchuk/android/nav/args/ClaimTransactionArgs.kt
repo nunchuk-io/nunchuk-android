@@ -11,6 +11,8 @@ data class ClaimTransactionArgs(
     val masterSignerIds: List<String>,
     val derivationPaths: List<String>,
     val magic: String,
+    /** Descriptor a Ledger/BitBox registers before signing; blank when no key needs it. */
+    val registrationBsms: String = "",
 ) : ActivityArgs {
 
     override fun buildIntent(activityContext: Context): Intent {
@@ -19,6 +21,7 @@ data class ClaimTransactionArgs(
             putStringArrayListExtra(EXTRA_MASTER_SIGNER_IDS, ArrayList(masterSignerIds))
             putStringArrayListExtra(EXTRA_DERIVATION_PATHS, ArrayList(derivationPaths))
             putExtra(EXTRA_MAGIC, magic)
+            putExtra(EXTRA_REGISTRATION_BSMS, registrationBsms)
         }
     }
 
@@ -28,6 +31,7 @@ data class ClaimTransactionArgs(
         const val EXTRA_DERIVATION_PATHS = "EXTRA_DERIVATION_PATHS"
         const val EXTRA_WALLET_ID = "EXTRA_WALLET_ID"
         const val EXTRA_MAGIC = "EXTRA_MAGIC"
+        const val EXTRA_REGISTRATION_BSMS = "EXTRA_REGISTRATION_BSMS"
 
         fun deserializeFrom(intent: Intent): ClaimTransactionArgs {
             val extras = intent.extras
@@ -37,6 +41,7 @@ data class ClaimTransactionArgs(
                 masterSignerIds = extras.getStringArrayList(EXTRA_MASTER_SIGNER_IDS).orEmpty(),
                 derivationPaths = extras.getStringArrayList(EXTRA_DERIVATION_PATHS).orEmpty(),
                 magic = extras.getString(EXTRA_MAGIC).orEmpty(),
+                registrationBsms = extras.getString(EXTRA_REGISTRATION_BSMS).orEmpty(),
             )
         }
     }

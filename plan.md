@@ -150,7 +150,7 @@ what is left is the **claim (Beneficiary) side**, which this branch scoped out.
 | `POST .../replacement/{xfp}/verify` (+ group) | `verification_method` | done |
 | `GET/POST/PUT /v1.1/user-wallets/inheritance` | `inheritance_keys[].claim_options` | **not parsed** |
 | `POST inheritance/claiming/init` | `key_origins[].claim_options` | **not parsed** |
-| `POST inheritance/claiming/status` | `inheritance_keys[].claim_options`, `requires_wallet_registration`, `bsms` | **not parsed** |
+| `POST inheritance/claiming/status` | `inheritance_keys[].claim_options`, `requires_wallet_registration`, `bsms` | `bsms` parsed (`InheritanceAdditional.registrationBsms`); the two per-key fields **not parsed** |
 | Removed: `user-keys/upload-backup`, `user-keys/{id}`, `user-keys/{id}/verify` | must not be called | none are called |
 
 **`inheritance_keys[].claim_options`** (`InheritanceKeyDto` carries only `xfp`). The owner-facing
@@ -528,6 +528,75 @@ instead. That is the cheaper route in general — see §1.
 - The frames bold the full stop in "**Make note of this Backup Password.**"; the shipped strings
   leave it outside the span. Left alone — pre-existing and cosmetic.
 
+
+## 4d. Claim — sign with the in-app hardware keys (Ledger, BitBox, Trezor)
+
+The Beneficiary's picker offered TAPSIGNER, Coldcard, Jade and a software key. Ledger and BitBox
+already paired in-app for a claim (`addLedgerForClaimLauncher`, `addBitBoxForClaimLauncher`) but
+were not in `offChainInheritanceClaimKeyTypes`, so nobody could reach them; Trezor went to the
+desktop hand-off; and none of the three could sign either the challenge or the claiming PSBT — the
+`onSignClick` dispatchers fell through to `else -> Unit`.
+
+- **Picker**: the three join `offChainInheritanceClaimKeyTypes` in the setup picker's relative
+  order (TAPSIGNER, Trezor, Jade, Coldcard, BitBox, Ledger, software).
+- **Add key**: Trezor pairs like Ledger/BitBox — `addTrezorForClaimLauncher` →
+  `TrezorActivity(isMembershipFlow, accountIndex = claimAccountIndex)`, whose Suite intro now
+  reads the account from the intent instead of hard-coding 0; "Add via USB" stays the desktop
+  hand-off (`RESULT_ACTION_OPEN_USB_FLOW` → `openAddDesktopKeyForClaim`).
+- **Challenge** (`VerifyInheritanceMessageViewModel`): Ledger via `LedgerSignMessageSheet` at the
+  signer's path; BitBox via `BitBoxSignMessageSheet` at the path the SDK resolves
+  (`GetBitBoxSignMessagePathUseCase`); Trezor via `GetTrezorSignMessageDeeplinkUseCase` → Trezor
+  Suite → `TrezorCallbackHolder`, which the VM collects itself, filtering on `signMessage` so the
+  add-key (`getPublicKey`) and PSBT (`signTransaction`) replies pass it by. All three land in the
+  existing `importSignature`, so the rest of the flow is unchanged. Mirrors
+  `SignMessageFragment`, the app's one existing sign-message host for these devices.
+- **PSBT** (`ClaimTransactionViewModel`): the sign-in dummy-tx model
+  (`WalletAuthenticationViewModel.requestSignTransactionInApp` / `requestSignTransactionByTrezor`)
+  transplanted. The wallet comes from the claim status — Jira NUN-10192: *"BSMS is returned only
+  after successful challenge-message authorization and when registration is required. DO NOT
+  CREATE WALLET WITH THAT BSMS"*, and the mobile note *"ParseWalletDescriptor(status bsms) …
+  register it if need Ledger/Bitbox"*. It travels as a **separate** field end to end
+  (`InheritanceClaimStatusResponse.bsms` → `InheritanceAdditional.registrationBsms` →
+  `ClaimInheritanceTxParam.registrationBsms` → `ClaimTransactionArgs.registrationBsms`) because
+  `ClaimInheritanceTxParam.bsms` being non-null is what `isOffChainClaim()` reads as *on-chain*.
+  `decodeSignedPsbt` is the one decode path for file, Ledger/BitBox sheet and Trezor callback.
+
+### Open on this piece
+
+- **Whether the server accepts a BitBox or Trezor challenge signature.** Both sign at a leaf
+  below the signer's `m/48h/…/2h` (the SDK-resolved path for BitBox; `trezorGetSignMessagePath`,
+  falling back to `…/0/0`, for Trezor), while `SignMessageFlow` in the ticket signs "Wired"
+  keys with `SignMessage(single, message)` at the signer's own path. If the claim endpoint
+  verifies against the key origin only, those two signatures will not verify — Ledger, which
+  signs at the signer's path, is the one certain case. Needs a device + BE run; §7 already lists
+  `m/48h` message signing as unconfirmed for BitBox and Trezor.
+- **The descriptor arrives only when a key `requires_wallet_registration`.** If the server does
+  not flag Trezor keys, `registrationBsms` is null and Trezor cannot build its deeplink; the user
+  sees "Cannot load wallet for Trezor signing". Confirm the flag covers all three devices.
+- `requires_wallet_registration` itself is still not parsed; the sheets register on their own.
+
+### Two-key claims (3-of-5, two inheritance keys) — what the review found
+
+The claim collects the keys one at a time — magic phrase → add key 1 → sign challenge → add key 2
+→ sign challenge → one `claiming/status` call with both signatures → claiming PSBT signed by both.
+Both signer-added paths (`signerIntroLauncher` and `PushEvent.ClaimSignerAdded`) pop back to the
+magic phrase before adding, so only one verify screen is ever alive. Three things did not hold up:
+
+- **`ClaimData.derivationPaths` was `keyOrigins.map { path }`** while `masterSignerIds` was the
+  signers *in the order the heir added them*. `ClaimTransactionViewModel.loadSigners` pairs the two
+  lists by index, so adding key 2 before key 1 paired each key with the other's path whenever the
+  paths differed. It is now one path per added signer, taken from that signer's own origin.
+- **`nextKeyAccountIndex` treated an origin as added by XFP alone.** Two keys of one device share
+  an XFP, so after adding account 0 both origins read as added and the second Ledger/Trezor/Jade
+  intro said "account 0" again. A remote signer now has to sit at the origin's path as well.
+- **A Trezor Suite reply was accepted by any live VM of the right method.** Both claim VMs now
+  handle a reply only while they have a request outstanding (`awaitingTrezorSignature`;
+  `KEY_TREZOR_XFP`, cleared on handling), so a reply cannot be booked against the wrong key.
+
+Still true: a **master** signer (software, TAPSIGNER) cannot be added twice for two accounts —
+`addSigner` de-duplicates it by XFP + the model's single path — so "two inheritance keys on one
+TAPSIGNER" is not a supported claim; and the two `ClaimInheritanceTxParam` lists still rely on
+their shared order, which `derivationPaths` now guarantees.
 
 ## 5. Not done
 

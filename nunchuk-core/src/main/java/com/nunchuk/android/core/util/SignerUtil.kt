@@ -130,6 +130,18 @@ val SignerTag?.isInAppHardwareTag: Boolean
 val SignerModel.isJadeAirgap: Boolean
     get() = type == AIRGAP && tags.contains(SignerTag.JADE)
 
+/** Ledger, paired in-app over BLE/USB; signs messages and PSBTs through [LedgerSheet]. */
+val SignerModel.isLedger: Boolean
+    get() = type == HARDWARE && tags.contains(SignerTag.LEDGER)
+
+/** BitBox, paired in-app over BLE/USB; signs messages and PSBTs through [BitBoxSheet]. */
+val SignerModel.isBitBox: Boolean
+    get() = type == HARDWARE && tags.contains(SignerTag.BITBOX)
+
+/** Trezor; signs out of the app through a Trezor Suite deeplink and its callback. */
+val SignerModel.isTrezor: Boolean
+    get() = type == HARDWARE && tags.contains(SignerTag.TREZOR)
+
 /**
  * Sign-message request in the Specter Desktop QR format, `signmessage <path> ascii:<message>`,
  * which Jade, SeedSigner and Krux all scan and answer with a static QR of the base64 signature.

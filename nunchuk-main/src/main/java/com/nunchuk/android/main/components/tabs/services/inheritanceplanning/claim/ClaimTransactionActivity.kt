@@ -20,20 +20,28 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.stringResource
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.viewbinding.ViewBinding
 import com.nunchuk.android.compose.NcToastType
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.dialog.NcConfirmationDialog
 import com.nunchuk.android.compose.dialog.NcLoadingDialog
 import com.nunchuk.android.compose.showNunchukSnackbar
+import com.nunchuk.android.core.bitbox.BitBoxSignPsbtSheet
+import com.nunchuk.android.core.ledger.LedgerSignPsbtSheet
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.NfcActionListener
 import com.nunchuk.android.core.nfc.NfcViewModel
 import com.nunchuk.android.core.share.IntentSharingController
+import com.nunchuk.android.core.util.isBitBox
 import com.nunchuk.android.core.util.isJadeAirgap
+import com.nunchuk.android.core.util.isLedger
+import com.nunchuk.android.core.util.isTrezor
 import com.nunchuk.android.core.util.openExternalLink
+import com.nunchuk.android.core.util.openTrezorSuiteLink
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.ClaimTransactionViewModel.LoadingType
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.verifymessage.ColdCardSigningBottomSheets
@@ -94,6 +102,8 @@ private fun ClaimTransactionScreen(
     val needPassphrase by viewModel.needPassphrase.collectAsStateWithLifecycle()
     val loadingType by viewModel.loadingType.collectAsStateWithLifecycle()
     val claimError by viewModel.claimError.collectAsStateWithLifecycle()
+    val hardwareSignRequest by viewModel.hardwareSignRequest.collectAsStateWithLifecycle()
+    val trezorSuiteDeeplink by viewModel.trezorSuiteDeeplink.collectAsStateWithLifecycle()
     var showColdCardOptionsSheet by remember { mutableStateOf(false) }
     var showAirgapOptionsSheet by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
@@ -277,6 +287,12 @@ private fun ClaimTransactionScreen(
                     signerModel.isJadeAirgap -> {
                         showAirgapOptionsSheet = true
                     }
+
+                    // Ledger and BitBox sign in-app after registering the wallet policy; Trezor
+                    // signs in Trezor Suite. All three need the wallet the claim status returned.
+                    signerModel.isLedger -> viewModel.requestSignByHardware(signerModel, SignerTag.LEDGER)
+                    signerModel.isBitBox -> viewModel.requestSignByHardware(signerModel, SignerTag.BITBOX)
+                    signerModel.isTrezor -> viewModel.requestSignByTrezor(signerModel)
                 }
             },
             onBroadcastClick = { /* Handle broadcast click */ },
@@ -288,6 +304,43 @@ private fun ClaimTransactionScreen(
             onPreimageSuccess = { /* Handle preimage success */ },
             onSetPendingSignNodeId = { /* Handle set pending sign node id */ }
         )
+
+        hardwareSignRequest?.let { request ->
+            val onDismiss = viewModel::dismissHardwareSignRequest
+            val onSignSuccess = viewModel::handleSignedPsbt
+            when (request.tag) {
+                SignerTag.BITBOX -> BitBoxSignPsbtSheet(
+                    wallet = request.wallet,
+                    psbt = request.psbt,
+                    masterFingerprint = request.fingerprint,
+                    onDismiss = onDismiss,
+                    onSignSuccess = onSignSuccess,
+                )
+
+                else -> LedgerSignPsbtSheet(
+                    wallet = request.wallet,
+                    psbt = request.psbt,
+                    masterFingerprint = request.fingerprint,
+                    onDismiss = onDismiss,
+                    onSignSuccess = onSignSuccess,
+                )
+            }
+        }
+
+        trezorSuiteDeeplink?.let { deeplink ->
+            NcConfirmationDialog(
+                title = stringResource(id = CoreR.string.nc_confirmation),
+                message = stringResource(id = com.nunchuk.android.transaction.R.string.nc_open_trezor_suite_continue_signing_message),
+                positiveButtonText = stringResource(id = com.nunchuk.android.transaction.R.string.nc_open_trezor_suite),
+                negativeButtonText = stringResource(id = CoreR.string.nc_cancel),
+                isPositiveButtonWrapContent = true,
+                onPositiveClick = {
+                    activity.openTrezorSuiteLink(deeplink)
+                    viewModel.dismissTrezorSuiteDialog()
+                },
+                onDismiss = viewModel::dismissTrezorSuiteDialog,
+            )
+        }
 
         ColdCardSigningBottomSheets(
             isQrOnly = true,

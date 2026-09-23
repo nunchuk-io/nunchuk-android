@@ -36,6 +36,13 @@ class InheritanceClaimStatusResponse(
     val currentInstallmentIndex: Int? = null,
     @SerializedName("stages")
     val stages: List<InheritanceStageDto>? = null,
+    /**
+     * Wallet descriptor for a device that has to register the wallet policy before it can sign
+     * (Ledger, BitBox). Present only after the challenge is authorised and only when a key needs it.
+     * Never used to create a wallet.
+     */
+    @SerializedName("bsms")
+    val bsms: String? = null,
 )
 
 class BufferPeriodCountdownResponse(

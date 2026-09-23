@@ -189,6 +189,7 @@ class SelectWalletFragment : BaseFragment<FragmentSelectWalletSweepBinding>() {
                     masterSignerIds = args.claimParam?.masterSignerIds.orEmpty(),
                     derivationPaths = args.claimParam?.derivationPaths.orEmpty(),
                     magic = args.claimParam?.magicalPhrase.orEmpty(),
+                    registrationBsms = args.claimParam?.registrationBsms.orEmpty(),
                 )
             )
         } else if (extendTransaction.walletId.isNullOrEmpty()) {

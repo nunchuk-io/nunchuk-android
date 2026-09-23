@@ -635,6 +635,7 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
                                 masterSignerIds = args.claimInheritanceTxParam?.masterSignerIds.orEmpty(),
                                 derivationPaths = args.claimInheritanceTxParam?.derivationPaths.orEmpty(),
                                 magic = args.claimInheritanceTxParam?.magicalPhrase.orEmpty(),
+                                registrationBsms = args.claimInheritanceTxParam?.registrationBsms.orEmpty(),
                             )
                         )
                     } else if (event.walletId.isNullOrEmpty()) {

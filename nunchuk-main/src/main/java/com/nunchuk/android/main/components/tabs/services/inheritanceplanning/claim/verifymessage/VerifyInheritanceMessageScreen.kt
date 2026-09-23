@@ -44,11 +44,14 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcScaffold
 import com.nunchuk.android.compose.NcToastType
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.dialog.NcConfirmationDialog
 import com.nunchuk.android.compose.dialog.NcLoadingDialog
 import com.nunchuk.android.compose.provider.SignerModelProvider
 import com.nunchuk.android.compose.showNunchukSnackbar
 import com.nunchuk.android.compose.signer.TransactionSignerView
 import com.nunchuk.android.core.R
+import com.nunchuk.android.core.bitbox.BitBoxSignMessageSheet
+import com.nunchuk.android.core.ledger.LedgerSignMessageSheet
 import com.nunchuk.android.core.data.model.membership.SigningChallengeMessage
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.NfcActionListener
@@ -56,7 +59,11 @@ import com.nunchuk.android.core.nfc.NfcViewModel
 import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.formattedName
+import com.nunchuk.android.core.util.isBitBox
 import com.nunchuk.android.core.util.isJadeAirgap
+import com.nunchuk.android.core.util.isLedger
+import com.nunchuk.android.core.util.isTrezor
+import com.nunchuk.android.core.util.openTrezorSuiteLink
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.ClaimData
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.ClaimInheritanceEvent
@@ -135,6 +142,7 @@ fun VerifyInheritanceMessageScreen(
     val coroutineScope = rememberCoroutineScope()
     var showColdCardOptionsSheet by remember { mutableStateOf(false) }
     var showAirgapOptionsSheet by remember { mutableStateOf(false) }
+    var showLedgerSheet by remember { mutableStateOf(false) }
 
     LaunchedEffect(sharedUiState.event) {
         val event = sharedUiState.event
@@ -283,10 +291,50 @@ fun VerifyInheritanceMessageScreen(
                 signer.isJadeAirgap -> {
                     showAirgapOptionsSheet = true
                 }
+                // Ledger and BitBox sign in-app over BLE/USB; Trezor through Trezor Suite. All
+                // three hand back a bare signature, like a Coldcard's QR does.
+                signer.isLedger -> showLedgerSheet = true
+                signer.isBitBox -> viewModel.requestSignMessageByBitBox()
+                signer.isTrezor -> viewModel.requestSignMessageByTrezor()
                 else -> Unit
             }
         },
     )
+
+    if (showLedgerSheet) {
+        LedgerSignMessageSheet(
+            masterFingerprint = signer.fingerPrint,
+            derivationPath = signer.derivationPath,
+            message = signingChallengeMessage.message.orEmpty(),
+            onDismiss = { showLedgerSheet = false },
+            onSignature = viewModel::importSignature,
+        )
+    }
+
+    uiState.bitBoxSignMessagePath?.let { path ->
+        BitBoxSignMessageSheet(
+            masterFingerprint = signer.fingerPrint,
+            derivationPath = path,
+            message = signingChallengeMessage.message.orEmpty(),
+            onDismiss = viewModel::dismissBitBoxSheet,
+            onSignature = viewModel::importSignature,
+        )
+    }
+
+    uiState.trezorSuiteDeeplink?.let { deeplink ->
+        NcConfirmationDialog(
+            title = stringResource(id = R.string.nc_confirmation),
+            message = stringResource(id = TransactionR.string.nc_open_trezor_suite_continue_signing_message),
+            positiveButtonText = stringResource(id = TransactionR.string.nc_open_trezor_suite),
+            negativeButtonText = stringResource(id = R.string.nc_cancel),
+            isPositiveButtonWrapContent = true,
+            onPositiveClick = {
+                activity.openTrezorSuiteLink(deeplink)
+                viewModel.dismissTrezorSuiteDialog()
+            },
+            onDismiss = viewModel::dismissTrezorSuiteDialog,
+        )
+    }
 
     ColdCardSigningBottomSheets(
         isMessage = true,

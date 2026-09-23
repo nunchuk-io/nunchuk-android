@@ -483,7 +483,8 @@ private fun ClaimInheritanceGraph(
                                 customAmount = customAmount,
                                 bsms = claimData.bsms,
                                 signatures = claimData.signatures,
-                                messageId = claimData.challenge?.id
+                                messageId = claimData.challenge?.id,
+                                registrationBsms = claimData.inheritanceAdditional?.registrationBsms,
                             )
                         )
                     }
@@ -502,7 +503,8 @@ private fun ClaimInheritanceGraph(
                                 isUseWallet = true,
                                 bsms = claimData.bsms,
                                 signatures = claimData.signatures,
-                                messageId = claimData.challenge?.id
+                                messageId = claimData.challenge?.id,
+                                registrationBsms = claimData.inheritanceAdditional?.registrationBsms,
                             )
                         )
                     }
@@ -520,7 +522,8 @@ private fun ClaimInheritanceGraph(
                                     isUseWallet = true,
                                     bsms = claimData.bsms,
                                     signatures = claimData.signatures,
-                                    messageId = claimData.challenge?.id
+                                    messageId = claimData.challenge?.id,
+                                    registrationBsms = claimData.inheritanceAdditional?.registrationBsms,
                                 ),
                                 type = SelectWalletType.TYPE_INHERITANCE_WALLET
                             )
@@ -547,7 +550,8 @@ private fun ClaimInheritanceGraph(
                                 isUseWallet = false,
                                 bsms = claimData.bsms,
                                 signatures = claimData.signatures,
-                                messageId = claimData.challenge?.id
+                                messageId = claimData.challenge?.id,
+                                registrationBsms = claimData.inheritanceAdditional?.registrationBsms,
                             )
                         )
                     }

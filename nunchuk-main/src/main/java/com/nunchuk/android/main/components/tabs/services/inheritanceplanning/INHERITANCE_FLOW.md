@@ -272,8 +272,22 @@ Key details:
   off-chain claims only.
 - `verifymessage/VerifyInheritanceMessageViewModel` signs that challenge with TAPSIGNER
   (`SignMessageByTapSignerUseCase`), a software key (`SignMessageBySoftwareKeyUseCase`, with
-  passphrase), or COLDCARD (NFC `SendDataToMk4UseCase` / exported file →
-  `ExtractColdcardMessageSignatureUseCase`, with `exportComplete` as the file hand-off screen).
+  passphrase), COLDCARD (NFC `SendDataToMk4UseCase` / exported file →
+  `ExtractColdcardMessageSignatureUseCase`, with `exportComplete` as the file hand-off screen),
+  Jade (one Specter-format QR out, the base64 signature QR back —
+  `SignFlowType.ClaimAirgapMessage`), Ledger (`LedgerSignMessageSheet` at the signer's path),
+  BitBox (`BitBoxSignMessageSheet` at the path `GetBitBoxSignMessagePathUseCase` resolves) and
+  Trezor (`GetTrezorSignMessageDeeplinkUseCase` → Trezor Suite → `TrezorCallbackHolder` →
+  `ParseTrezorSignMessageResponseUseCase`; the VM collects the holder itself and only takes
+  `signMessage` replies). Every route ends in one bare `signature` string on the state.
+- **The claiming PSBT** (`ClaimTransactionViewModel`) is signed by software / TAPSIGNER / COLDCARD
+  (NFC or file) / Jade (UR QR) as before, and by Ledger, BitBox and Trezor against the wallet the
+  claim status returned: `InheritanceAdditional.registrationBsms` → `ClaimInheritanceTxParam` →
+  `ClaimTransactionArgs.registrationBsms` → `ParseWalletDescriptorUseCase`, kept in memory only
+  (the ticket forbids creating a wallet from it). Ledger/BitBox register that policy inside their
+  `*SignPsbtSheet(wallet, …)`; Trezor builds its deeplink from it. Without the descriptor —
+  the server sends it only when a key `requires_wallet_registration` — those three report
+  "Cannot load wallet for … signing" and cannot sign.
 
 ### 2.4 Withdrawing
 

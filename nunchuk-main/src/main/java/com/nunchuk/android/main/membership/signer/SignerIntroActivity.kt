@@ -147,6 +147,21 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
         }
     }
 
+    /**
+     * Trezor mirror of [addLedgerForClaimLauncher]: the key comes back from Trezor Suite, and
+     * "Add via USB" on its intro is the desktop hand-off.
+     */
+    private val addTrezorForClaimLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val data = result.data
+        if (result.resultCode != RESULT_OK || data == null) return@registerForActivityResult
+        if (relayClaimHardwareSigner(data)) return@registerForActivityResult
+        if (data.getStringExtra(TrezorActivity.EXTRA_RESULT_ACTION) == TrezorActivity.RESULT_ACTION_OPEN_USB_FLOW) {
+            openAddDesktopKeyForClaim(SignerTag.TREZOR)
+        }
+    }
+
     /** BitBox mirror of [addLedgerForClaimLauncher]. */
     private val addBitBoxForClaimLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -660,6 +675,18 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
     }
 
     private fun openTrezorScreen() {
+        // Claiming reads the key through Trezor Suite the same way adding a key does, at the
+        // account the plan expects; the intro's USB row keeps the desktop hand-off.
+        if (onChainAddSignerParam?.isClaiming == true) {
+            addTrezorForClaimLauncher.launch(
+                TrezorActivity.buildIntent(
+                    activityContext = this,
+                    isMembershipFlow = true,
+                    accountIndex = claimAccountIndex,
+                )
+            )
+            return
+        }
         if (onChainAddSignerParam != null) {
             handleHardwareSignerSelection(SignerTag.TREZOR)
             return
