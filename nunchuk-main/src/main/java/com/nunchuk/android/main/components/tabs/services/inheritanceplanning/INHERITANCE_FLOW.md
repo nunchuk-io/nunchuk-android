@@ -275,11 +275,15 @@ Key details:
   passphrase), COLDCARD (NFC `SendDataToMk4UseCase` / exported file →
   `ExtractColdcardMessageSignatureUseCase`, with `exportComplete` as the file hand-off screen),
   Jade (one Specter-format QR out, the base64 signature QR back —
-  `SignFlowType.ClaimAirgapMessage`), Ledger (`LedgerSignMessageSheet` at the signer's path),
+  `SignFlowType.ClaimAirgapMessage`), Passport (the request as a `.txt` for its microSD card —
+  `GeneratePassportMessageSigningUseCase` — and the `-signed` file back through the picker, with the
+  per-device "Export completed" screen in between), Ledger (`LedgerSignMessageSheet` at the signer's path),
   BitBox (`BitBoxSignMessageSheet` at the path `GetBitBoxSignMessagePathUseCase` resolves) and
   Trezor (`GetTrezorSignMessageDeeplinkUseCase` → Trezor Suite → `TrezorCallbackHolder` →
   `ParseTrezorSignMessageResponseUseCase`; the VM collects the holder itself and only takes
-  `signMessage` replies). Every route ends in one bare `signature` string on the state.
+  `signMessage` replies). Every route ends in one bare `signature` string on the state. Files
+  from any device are parsed by `ExtractMessageSignatureUseCase` (libnunchuk's generic
+  `ExtractMessageSignature`: armored signed-message file or bare base64).
 - **The claiming PSBT** (`ClaimTransactionViewModel`) is signed by software / TAPSIGNER / COLDCARD
   (NFC or file) / Jade (UR QR) as before, and by Ledger, BitBox and Trezor against the wallet the
   claim status returned: `InheritanceAdditional.registrationBsms` → `ClaimInheritanceTxParam` →

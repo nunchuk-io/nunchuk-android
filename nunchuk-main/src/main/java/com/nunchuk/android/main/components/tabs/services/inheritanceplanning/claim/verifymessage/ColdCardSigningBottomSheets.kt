@@ -44,6 +44,14 @@ fun ColdCardSigningBottomSheets(
      * [ColdCardSigningCallbacks.onImportViaQr] — for a device that only speaks QR (Jade).
      */
     isQrOnly: Boolean = false,
+    /**
+     * Skip the pickers and go straight to the save/share sheet on export and
+     * [ColdCardSigningCallbacks.onImportViaFile] on import — for a device that signs from a
+     * memory card only (Passport's message signing).
+     */
+    isFileOnly: Boolean = false,
+    /** Whether the File/QR/NFC pickers offer NFC; false for a device without it (Passport). */
+    supportsNfc: Boolean = true,
     onDismissColdCardOptions: () -> Unit,
     callbacks: ColdCardSigningCallbacks,
 ) {
@@ -74,11 +82,19 @@ fun ColdCardSigningBottomSheets(
                 when (index) {
                     0 -> {
                         onDismissColdCardOptions()
-                        if (isQrOnly) callbacks.onExportViaQr() else showExportOptionsSheet = true
+                        when {
+                            isQrOnly -> callbacks.onExportViaQr()
+                            isFileOnly -> showSaveShareSheet = true
+                            else -> showExportOptionsSheet = true
+                        }
                     }
                     1 -> {
                         onDismissColdCardOptions()
-                        if (isQrOnly) callbacks.onImportViaQr() else showImportOptionsSheet = true
+                        when {
+                            isQrOnly -> callbacks.onImportViaQr()
+                            isFileOnly -> callbacks.onImportViaFile()
+                            else -> showImportOptionsSheet = true
+                        }
                     }
                 }
             },
@@ -90,7 +106,7 @@ fun ColdCardSigningBottomSheets(
     if (showExportOptionsSheet) {
         NcSelectableBottomSheetWithIcon(
             sheetState = exportOptionsSheetState,
-            items = listOf(
+            items = listOfNotNull(
                 SelectableItem(
                     resId = WidgetR.drawable.ic_export,
                     text = stringResource(R.string.nc_export_via_file)
@@ -102,7 +118,7 @@ fun ColdCardSigningBottomSheets(
                 SelectableItem(
                     resId = WidgetR.drawable.ic_nfc,
                     text = stringResource(R.string.nc_export_via_nfc)
-                )
+                ).takeIf { supportsNfc }
             ),
             onSelected = { index ->
                 showExportOptionsSheet = false
@@ -122,7 +138,7 @@ fun ColdCardSigningBottomSheets(
     if (showImportOptionsSheet) {
         NcSelectableBottomSheetWithIcon(
             sheetState = importOptionsSheetState,
-            items = listOf(
+            items = listOfNotNull(
                 SelectableItem(
                     resId = WidgetR.drawable.ic_import,
                     text = stringResource(R.string.nc_import_via_file)
@@ -134,7 +150,7 @@ fun ColdCardSigningBottomSheets(
                 SelectableItem(
                     resId = WidgetR.drawable.ic_nfc,
                     text = stringResource(R.string.nc_import_via_nfc)
-                )
+                ).takeIf { supportsNfc }
             ),
             onSelected = { index ->
                 showImportOptionsSheet = false

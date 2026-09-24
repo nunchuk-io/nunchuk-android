@@ -37,14 +37,12 @@ import javax.inject.Inject
  *
  * The address is **not** the signer's own. BitBox signs with the compact-signature key below it
  * ([GetBitBoxSignMessagePathUseCase]), and `GetBitBoxSignMessageAddress` is the address of that
- * key — the one a verifier has to check the signature against. [GetSignedMessageUseCase] derives
- * the address from the signer instead, which is right for Ledger (it signs at the signer's own
- * path) and would name the wrong address here, producing a block that verifies nowhere.
+ * key — the one a verifier has to check the signature against.
  *
- * The RFC2440 block is assembled here rather than natively because no binding takes an explicit
- * address — `getSignedMessage` only takes a signer. The delimiters are the ones libnunchuk itself
- * emits, so the output matches what every other signer produces; if an
- * `ExportBitcoinSignedMessage` binding is ever added, this should call it and drop the assembly.
+ * The block itself comes from libnunchuk's `ExportBitcoinSignedMessage`, through the binding that
+ * takes an explicit address — `getSignedMessage` resolves the address from the signer instead,
+ * which is right for Ledger (it signs at the signer's own path) and would name the wrong address
+ * here, producing a block that verifies nowhere.
  */
 class GetBitBoxSignedMessageUseCase @Inject constructor(
     @IoDispatcher dispatcher: CoroutineDispatcher,
@@ -57,7 +55,7 @@ class GetBitBoxSignedMessageUseCase @Inject constructor(
         return SignedMessage(
             address = address,
             signature = parameters.signature,
-            rfc2440 = rfc2440(
+            rfc2440 = nunchukNativeSdk.exportBitcoinSignedMessage(
                 message = parameters.message,
                 address = address,
                 signature = parameters.signature,
@@ -65,24 +63,9 @@ class GetBitBoxSignedMessageUseCase @Inject constructor(
         )
     }
 
-    private fun rfc2440(message: String, address: String, signature: String): String = buildString {
-        appendLine(BEGIN_MESSAGE)
-        appendLine(message)
-        appendLine(BEGIN_SIGNATURE)
-        appendLine(address)
-        appendLine(signature)
-        append(END_SIGNATURE)
-    }
-
     data class Param(
         val signer: SingleSigner,
         val message: String,
         val signature: String,
     )
-
-    private companion object {
-        private const val BEGIN_MESSAGE = "-----BEGIN BITCOIN SIGNED MESSAGE-----"
-        private const val BEGIN_SIGNATURE = "-----BEGIN BITCOIN SIGNATURE-----"
-        private const val END_SIGNATURE = "-----END BITCOIN SIGNATURE-----"
-    }
 }

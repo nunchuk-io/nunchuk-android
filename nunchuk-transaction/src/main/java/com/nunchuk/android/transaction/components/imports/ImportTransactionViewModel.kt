@@ -20,7 +20,6 @@
 package com.nunchuk.android.transaction.components.imports
 
 import android.net.Uri
-import android.util.Base64
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.constants.NativeErrorCode
@@ -35,6 +34,7 @@ import com.nunchuk.android.usecase.membership.ParseKeystoneDummyTransaction
 import com.nunchuk.android.usecase.membership.ParseKeystoneDummyTransactionSignIn
 import com.nunchuk.android.usecase.qr.AnalyzeQrUseCase
 import com.nunchuk.android.usecase.signer.ExtractColdcardMessageSignatureFromQrUseCase
+import com.nunchuk.android.usecase.signer.ExtractMessageSignatureFromQrUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers.IO
@@ -56,7 +56,8 @@ internal class ImportTransactionViewModel @Inject constructor(
     private val parseKeystoneDummyTransactionSignIn: ParseKeystoneDummyTransactionSignIn,
     private val analyzeQrUseCase: AnalyzeQrUseCase,
     private val parseQRCodeFromPhotoUseCase: ParseQRCodeFromPhotoUseCase,
-    private val extractColdcardMessageSignatureFromQrUseCase: ExtractColdcardMessageSignatureFromQrUseCase
+    private val extractColdcardMessageSignatureFromQrUseCase: ExtractColdcardMessageSignatureFromQrUseCase,
+    private val extractMessageSignatureFromQrUseCase: ExtractMessageSignatureFromQrUseCase,
 ) : NunchukViewModel<Unit, ImportTransactionEvent>() {
     private val _state = MutableStateFlow(ImportTransactionState())
     val uiState = _state.asStateFlow()
@@ -116,12 +117,11 @@ internal class ImportTransactionViewModel @Inject constructor(
                 }
             }
 
-            // The device answers a Specter-format request with one static QR holding the raw
-            // base64 signature, so the frame just scanned is the whole answer.
-            is SignFlowType.ClaimAirgapMessage -> runCatching {
-                require(Base64.decode(qrData.trim(), Base64.DEFAULT).size == MESSAGE_SIGNATURE_SIZE)
-                qrData.trim()
-            }.onSuccess {
+            // The device answers a Specter-format request with one static QR holding the
+            // signature, so the frame just scanned is the whole answer.
+            is SignFlowType.ClaimAirgapMessage -> extractMessageSignatureFromQrUseCase(
+                listOf(qrData)
+            ).onSuccess {
                 setEvent(ImportTransactionSuccess(signature = it))
             }
 
@@ -192,11 +192,6 @@ internal class ImportTransactionViewModel @Inject constructor(
                 args.signFlowType is SignFlowType.SignInDummy ||
                 args.signFlowType is SignFlowType.ClaimDummy ||
                 args.signFlowType is SignFlowType.ClaimAirgapMessage
-
-    companion object {
-        /** A Bitcoin signed-message signature: 1 recovery byte + 64-byte compact signature. */
-        private const val MESSAGE_SIGNATURE_SIZE = 65
-    }
 }
 
 data class ImportTransactionState(val progress: Double = 0.0)

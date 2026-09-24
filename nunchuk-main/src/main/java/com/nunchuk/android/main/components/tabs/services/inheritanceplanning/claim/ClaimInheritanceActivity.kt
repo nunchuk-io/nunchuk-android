@@ -447,7 +447,9 @@ private fun ClaimInheritanceGraph(
                     )
                 },
                 onNavigateToExportComplete = {
-                    navController.navigateToExportComplete()
+                    navController.navigateToExportComplete(
+                        signerTag = claimData.signers.lastOrNull()?.tags?.firstOrNull()
+                    )
                 }
             )
             exportComplete(

@@ -79,6 +79,7 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 import com.nunchuk.android.main.R as MainR
 import com.nunchuk.android.transaction.R as TransactionR
+import com.nunchuk.android.core.util.isPassportAirgap
 
 @Composable
 fun VerifyInheritanceMessageScreen(
@@ -132,7 +133,7 @@ fun VerifyInheritanceMessageScreen(
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         if (isGranted) {
-            val data = uiState.coldcardSignedData.orEmpty()
+            val data = uiState.messageFile.orEmpty()
             if (data.isNotEmpty()) {
                 viewModel.saveLocalFile(data)
             }
@@ -143,6 +144,7 @@ fun VerifyInheritanceMessageScreen(
     var showColdCardOptionsSheet by remember { mutableStateOf(false) }
     var showAirgapOptionsSheet by remember { mutableStateOf(false) }
     var showLedgerSheet by remember { mutableStateOf(false) }
+    var showPassportOptionsSheet by remember { mutableStateOf(false) }
 
     LaunchedEffect(sharedUiState.event) {
         val event = sharedUiState.event
@@ -296,6 +298,9 @@ fun VerifyInheritanceMessageScreen(
                 signer.isLedger -> showLedgerSheet = true
                 signer.isBitBox -> viewModel.requestSignMessageByBitBox()
                 signer.isTrezor -> viewModel.requestSignMessageByTrezor()
+                // Passport signs from its microSD card: the request goes out as a file and the
+                // "-signed" file comes back through the picker.
+                signer.isPassportAirgap -> showPassportOptionsSheet = true
                 else -> Unit
             }
         },
@@ -336,6 +341,40 @@ fun VerifyInheritanceMessageScreen(
         )
     }
 
+    // The message as a file, for every device that signs from a memory card (Coldcard, Passport):
+    // save or share the request, then pick the signed file back.
+    val fileSigningCallbacks = ColdCardSigningCallbacks(
+        onImportViaFile = { importFileLauncher.launch("*/*") },
+        onSaveFile = {
+            coroutineScope.launch {
+                val data = viewModel.generateMessageFileIfNeeded()
+                if (data.isNotEmpty()) {
+                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+                        if (ContextCompat.checkSelfPermission(
+                                activity,
+                                Manifest.permission.WRITE_EXTERNAL_STORAGE
+                            ) != PackageManager.PERMISSION_GRANTED
+                        ) {
+                            requestPermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                        } else {
+                            viewModel.saveLocalFile(data)
+                        }
+                    } else {
+                        viewModel.saveLocalFile(data)
+                    }
+                }
+            }
+        },
+        onShareFile = {
+            coroutineScope.launch {
+                val data = viewModel.generateMessageFileIfNeeded()
+                if (data.isNotEmpty()) {
+                    viewModel.exportTransactionToFile(data)
+                }
+            }
+        },
+    )
+
     ColdCardSigningBottomSheets(
         isMessage = true,
         isQrOnly = true,
@@ -345,13 +384,18 @@ fun VerifyInheritanceMessageScreen(
         },
         callbacks = ColdCardSigningCallbacks(
             onExportViaQr = {
-                navigator.openExportTransactionScreen(
-                    launcher = importOrExportTransactionLauncher,
-                    activityContext = activity,
-                    txToSign = viewModel.airgapSignMessageRequest(),
-                    signFlowType = SignFlowType.ClaimAirgapMessage,
-                    deviceName = SignerTag.JADE.formattedName,
-                )
+                coroutineScope.launch {
+                    val request = viewModel.airgapSignMessageRequest()
+                    if (request.isNotEmpty()) {
+                        navigator.openExportTransactionScreen(
+                            launcher = importOrExportTransactionLauncher,
+                            activityContext = activity,
+                            txToSign = request,
+                            signFlowType = SignFlowType.ClaimAirgapMessage,
+                            deviceName = SignerTag.JADE.formattedName,
+                        )
+                    }
+                }
             },
             onImportViaQr = {
                 navigator.openImportTransactionScreen(
@@ -365,14 +409,22 @@ fun VerifyInheritanceMessageScreen(
 
     ColdCardSigningBottomSheets(
         isMessage = true,
+        isFileOnly = true,
+        showColdCardOptions = showPassportOptionsSheet,
+        onDismissColdCardOptions = { showPassportOptionsSheet = false },
+        callbacks = fileSigningCallbacks,
+    )
+
+    ColdCardSigningBottomSheets(
+        isMessage = true,
         showColdCardOptions = showColdCardOptionsSheet,
         onDismissColdCardOptions = {
             showColdCardOptionsSheet = false
         },
-        callbacks = ColdCardSigningCallbacks(
+        callbacks = fileSigningCallbacks.copy(
             onExportViaQr = {
                 coroutineScope.launch {
-                    val data = viewModel.generateColdCardSignedDataIfNeeded()
+                    val data = viewModel.generateMessageFileIfNeeded()
                     if (data.isNotEmpty()) {
                         navigator.openExportTransactionScreen(
                             launcher = importOrExportTransactionLauncher,
@@ -385,13 +437,12 @@ fun VerifyInheritanceMessageScreen(
             },
             onExportViaNfc = {
                 coroutineScope.launch {
-                    val data = viewModel.generateColdCardSignedDataIfNeeded()
+                    val data = viewModel.generateMessageFileIfNeeded()
                     if (data.isNotEmpty()) {
                         (activity as NfcActionListener).startNfcFlow(BaseNfcActivity.REQUEST_GENERATE_HEAL_CHECK_MSG)
                     }
                 }
             },
-            onImportViaFile = { importFileLauncher.launch("*/*") },
             onImportViaQr = {
                 navigator.openImportTransactionScreen(
                     launcher = importOrExportTransactionLauncher,
@@ -401,34 +452,6 @@ fun VerifyInheritanceMessageScreen(
             },
             onImportViaNfc = {
                 (activity as NfcActionListener).startNfcFlow(BaseNfcActivity.REQUEST_MK4_IMPORT_SIGNATURE)
-            },
-            onSaveFile = {
-                coroutineScope.launch {
-                    val data = viewModel.generateColdCardSignedDataIfNeeded()
-                    if (data.isNotEmpty()) {
-                        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-                            if (ContextCompat.checkSelfPermission(
-                                    activity,
-                                    Manifest.permission.WRITE_EXTERNAL_STORAGE
-                                ) != PackageManager.PERMISSION_GRANTED
-                            ) {
-                                requestPermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                            } else {
-                                viewModel.saveLocalFile(data)
-                            }
-                        } else {
-                            viewModel.saveLocalFile(data)
-                        }
-                    }
-                }
-            },
-            onShareFile = {
-                coroutineScope.launch {
-                    val data = viewModel.generateColdCardSignedDataIfNeeded()
-                    if (data.isNotEmpty()) {
-                        viewModel.exportTransactionToFile(data)
-                    }
-                }
             },
         )
     )

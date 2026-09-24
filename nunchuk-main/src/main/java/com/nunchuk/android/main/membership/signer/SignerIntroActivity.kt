@@ -455,7 +455,7 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
             KeyType.PORTAL -> openPortalScreen()
             KeyType.SEEDSIGNER -> handleSelectAddAirgapType(SignerTag.SEEDSIGNER)
             KeyType.KEYSTONE -> handleSelectAddAirgapType(SignerTag.KEYSTONE)
-            KeyType.FOUNDATION -> handleSelectAddAirgapType(SignerTag.PASSPORT)
+            KeyType.FOUNDATION -> handlePassportSelection()
             KeyType.KRUX -> handleSelectAddAirgapType(SignerTag.KRUX)
             KeyType.SOFTWARE -> showSoftwareSigners()
             KeyType.PLATFORM_KEY -> returnPlatformKeyResult()
@@ -535,6 +535,19 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
                 )
             )
         }
+    }
+
+    /**
+     * Passport is an ordinary air-gapped key everywhere except a claim, where — as with the Jade —
+     * the Beneficiary is offered the Passport already in the key manager before the add guide.
+     */
+    private fun handlePassportSelection() {
+        val param = onChainAddSignerParam
+        if (param != null && param.isClaiming && param.isAddInheritanceOffChainSigner()) {
+            viewModel.showExistingSignerOrCreateNew(SignerType.AIRGAP, SignerTag.PASSPORT)
+            return
+        }
+        handleSelectAddAirgapType(SignerTag.PASSPORT)
     }
 
     private fun openAddAirSignerForJade() {

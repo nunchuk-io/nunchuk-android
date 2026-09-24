@@ -22,7 +22,6 @@ import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.TrezorCallbackHolder
 import com.nunchuk.android.core.util.TrezorCallbackMethod
 import com.nunchuk.android.core.util.parseTrezorCallback
-import com.nunchuk.android.core.util.specterSignMessageRequest
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.InheritanceAdditional
 import com.nunchuk.android.model.SignedMessage
@@ -33,9 +32,11 @@ import com.nunchuk.android.usecase.CreateShareFileUseCase
 import com.nunchuk.android.usecase.GetMasterSignerUseCase
 import com.nunchuk.android.usecase.SaveLocalFileUseCase
 import com.nunchuk.android.usecase.SendSignerPassphraseUseCase
-import com.nunchuk.android.usecase.signer.ExtractColdcardMessageSignatureUseCase
+import com.nunchuk.android.usecase.signer.ExtractMessageSignatureUseCase
 import com.nunchuk.android.usecase.signer.ExtractColdcardSignatureFromRecordsUseCase
 import com.nunchuk.android.usecase.signer.GenerateColdCardHealthCheckMessageStringUseCase
+import com.nunchuk.android.usecase.signer.GenerateMessageSigningQrUseCase
+import com.nunchuk.android.usecase.signer.GeneratePassportMessageSigningUseCase
 import com.nunchuk.android.usecase.signer.GetRemoteOrMasterSignerUseCase
 import com.nunchuk.android.usecase.signer.SignMessageBySoftwareKeyUseCase
 import dagger.assisted.Assisted
@@ -53,6 +54,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.FileOutputStream
+import com.nunchuk.android.core.util.isPassportAirgap
 
 @HiltViewModel(assistedFactory = VerifyInheritanceMessageViewModel.Factory::class)
 class VerifyInheritanceMessageViewModel @AssistedInject constructor(
@@ -65,7 +67,9 @@ class VerifyInheritanceMessageViewModel @AssistedInject constructor(
     private val createShareFileUseCase: CreateShareFileUseCase,
     private val saveLocalFileUseCase: SaveLocalFileUseCase,
     private val sendDataToMk4UseCase: SendDataToMk4UseCase,
-    private val extractColdcardMessageSignatureUseCase: ExtractColdcardMessageSignatureUseCase,
+    private val extractMessageSignatureUseCase: ExtractMessageSignatureUseCase,
+    private val generatePassportMessageSigningUseCase: GeneratePassportMessageSigningUseCase,
+    private val generateMessageSigningQrUseCase: GenerateMessageSigningQrUseCase,
     private val extractColdcardSignatureFromRecordsUseCase: ExtractColdcardSignatureFromRecordsUseCase,
     private val getRemoteOrMasterSignerUseCase: GetRemoteOrMasterSignerUseCase,
     private val getBitBoxSignMessagePathUseCase: GetBitBoxSignMessagePathUseCase,
@@ -190,8 +194,17 @@ class VerifyInheritanceMessageViewModel @AssistedInject constructor(
     fun needPassphrase(): Boolean = _state.value.needPassphrase
 
     /** The challenge as a Specter-format QR request for an air-gapped device (Jade). */
-    fun airgapSignMessageRequest(): String =
-        specterSignMessageRequest(derivationPath = signer.derivationPath, message = message)
+    suspend fun airgapSignMessageRequest(): String =
+        generateMessageSigningQrUseCase(
+            GenerateMessageSigningQrUseCase.Param(
+                derivationPath = signer.derivationPath,
+                message = message,
+            )
+        ).getOrElse { error ->
+            Timber.e(error, "Failed to build the air-gap sign-message request")
+            _event.emit(VerifyInheritanceMessageEvent.ShowError(error.message.orUnknownError()))
+            ""
+        }
 
     /** The challenge for the device's own transport, as the [SingleSigner] the use cases take. */
     private suspend fun singleSigner(): SingleSigner? =
@@ -283,22 +296,44 @@ class VerifyInheritanceMessageViewModel @AssistedInject constructor(
         _state.update { it.copy(signedMessage = null) }
     }
 
-    suspend fun generateColdCardSignedDataIfNeeded(): String {
+    /**
+     * The message-signing request in the format the signer reads from a memory card, built once.
+     * Each device has its own file format, all owned by libnunchuk.
+     */
+    suspend fun generateMessageFileIfNeeded(): String {
         val currentState = _state.value
-        if (!currentState.coldcardSignedData.isNullOrEmpty()) return currentState.coldcardSignedData
-        return generateColdCardHealthCheckMessageStringUseCase(
-            GenerateColdCardHealthCheckMessageStringUseCase.Param(
-                derivationPath = signer.derivationPath,
-                message = message,
-                addressType = AddressType.LEGACY
-            )
-        ).onSuccess { coldcardSignedData ->
-            _state.update { it.copy(coldcardSignedData = coldcardSignedData) }
+        if (!currentState.messageFile.isNullOrEmpty()) return currentState.messageFile
+        return buildMessageFile().onSuccess { messageFile ->
+            _state.update { it.copy(messageFile = messageFile) }
         }.getOrElse { error ->
             _event.emit(VerifyInheritanceMessageEvent.ShowError(error.message.orUnknownError()))
             ""
         }
     }
+
+    private suspend fun buildMessageFile(): Result<String> = when {
+        signer.isPassportAirgap -> generatePassportMessageSigningUseCase(
+            GeneratePassportMessageSigningUseCase.Param(
+                derivationPath = signer.derivationPath,
+                message = message,
+            )
+        )
+
+        else -> generateColdCardHealthCheckMessageStringUseCase(
+            GenerateColdCardHealthCheckMessageStringUseCase.Param(
+                derivationPath = signer.derivationPath,
+                message = message,
+                addressType = AddressType.LEGACY
+            )
+        )
+    }
+
+    /** Name the request file is saved or shared under; Passport lists `.txt` files from its card. */
+    private val messageFileName: String
+        get() = when {
+            signer.isPassportAirgap -> "passport_message.txt"
+            else -> "coldcard_message.txt"
+        }
 
     fun getInheritanceClaimState(
         magic: String,
@@ -340,7 +375,7 @@ class VerifyInheritanceMessageViewModel @AssistedInject constructor(
     fun exportTransactionToFile(dataToSign: String) {
         viewModelScope.launch {
             _state.update { it.copy(loadingType = LoadingType.Normal) }
-            createShareFileUseCase("coldcard_message.txt").onSuccess { filePath ->
+            createShareFileUseCase(messageFileName).onSuccess { filePath ->
                 exportTransaction(filePath, dataToSign)
             }.onFailure {
                 _event.emit(VerifyInheritanceMessageEvent.ShowError(it.message.orUnknownError()))
@@ -370,7 +405,7 @@ class VerifyInheritanceMessageViewModel @AssistedInject constructor(
             _state.update { it.copy(loadingType = LoadingType.Normal) }
             val result = saveLocalFileUseCase(
                 SaveLocalFileUseCase.Params(
-                    fileName = "coldcard_message.txt",
+                    fileName = messageFileName,
                     fileContent = dataToSign
                 )
             )
@@ -381,10 +416,10 @@ class VerifyInheritanceMessageViewModel @AssistedInject constructor(
 
     fun handleExportTransactionToMk4(ndef: Ndef) {
         viewModelScope.launch {
-            generateColdCardSignedDataIfNeeded()
-            val coldcardSignedData = _state.value.coldcardSignedData
-            if (!coldcardSignedData.isNullOrEmpty()) {
-                exportToMk4(coldcardSignedData, ndef)
+            generateMessageFileIfNeeded()
+            val messageFile = _state.value.messageFile
+            if (!messageFile.isNullOrEmpty()) {
+                exportToMk4(messageFile, ndef)
             }
         }
     }
@@ -412,7 +447,7 @@ class VerifyInheritanceMessageViewModel @AssistedInject constructor(
                     getFileContentFromUri(applicationContext.contentResolver, uri)
                 } ?: throw Exception("Failed to read file content")
 
-                val signature = extractColdcardMessageSignatureUseCase(fileContent).getOrThrow()
+                val signature = extractMessageSignatureUseCase(fileContent).getOrThrow()
                 _state.update {
                     it.copy(
                         signedMessage = SignedMessage(
@@ -486,7 +521,7 @@ data class VerifyInheritanceMessageUiState(
     val signedMessage: SignedMessage? = null,
     val needPassphrase: Boolean = false,
     val loadingType: LoadingType? = null,
-    val coldcardSignedData: String? = null,
+    val messageFile: String? = null,
     /** Path the BitBox sheet signs at; the sheet is shown while this is set. */
     val bitBoxSignMessagePath: String? = null,
     /** Trezor Suite deeplink awaiting the user's confirmation; the dialog is shown while set. */

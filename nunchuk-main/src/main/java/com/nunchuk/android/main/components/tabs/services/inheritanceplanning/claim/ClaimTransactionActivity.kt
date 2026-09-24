@@ -60,6 +60,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 import com.nunchuk.android.core.R as CoreR
+import com.nunchuk.android.core.util.isPassportAirgap
 
 @AndroidEntryPoint
 class ClaimTransactionActivity : BaseNfcActivity<ViewBinding>() {
@@ -106,6 +107,7 @@ private fun ClaimTransactionScreen(
     val trezorSuiteDeeplink by viewModel.trezorSuiteDeeplink.collectAsStateWithLifecycle()
     var showColdCardOptionsSheet by remember { mutableStateOf(false) }
     var showAirgapOptionsSheet by remember { mutableStateOf(false) }
+    var showPassportOptionsSheet by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(claimError) {
@@ -290,6 +292,9 @@ private fun ClaimTransactionScreen(
 
                     // Ledger and BitBox sign in-app after registering the wallet policy; Trezor
                     // signs in Trezor Suite. All three need the wallet the claim status returned.
+                    // Passport takes the PSBT over QR (UR) or from its microSD card; no NFC.
+                    signerModel.isPassportAirgap -> showPassportOptionsSheet = true
+
                     signerModel.isLedger -> viewModel.requestSignByHardware(signerModel, SignerTag.LEDGER)
                     signerModel.isBitBox -> viewModel.requestSignByHardware(signerModel, SignerTag.BITBOX)
                     signerModel.isTrezor -> viewModel.requestSignByTrezor(signerModel)
@@ -369,10 +374,69 @@ private fun ClaimTransactionScreen(
             )
         )
 
+        // The PSBT as a file, for every device that signs from a memory card (Coldcard, Passport):
+        // save or share it, then pick the signed file back.
+        val psbtFileCallbacks = ColdCardSigningCallbacks(
+            onImportViaFile = { importFileLauncher.launch("*/*") },
+            onSaveFile = {
+                val psbt = state.transaction.psbt
+                if (psbt.isNotEmpty()) {
+                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+                        if (ContextCompat.checkSelfPermission(
+                                activity,
+                                Manifest.permission.WRITE_EXTERNAL_STORAGE
+                            ) != PackageManager.PERMISSION_GRANTED
+                        ) {
+                            requestPermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                        } else {
+                            viewModel.saveLocalFile(psbt)
+                        }
+                    } else {
+                        viewModel.saveLocalFile(psbt)
+                    }
+                }
+            },
+            onShareFile = {
+                val psbt = state.transaction.psbt
+                if (psbt.isNotEmpty()) {
+                    coroutineScope.launch {
+                        viewModel.exportTransactionToFile(psbt)
+                    }
+                }
+            },
+        )
+
+        ColdCardSigningBottomSheets(
+            supportsNfc = false,
+            showColdCardOptions = showPassportOptionsSheet,
+            onDismissColdCardOptions = { showPassportOptionsSheet = false },
+            callbacks = psbtFileCallbacks.copy(
+                onExportViaQr = {
+                    val psbt = state.transaction.psbt
+                    if (psbt.isNotEmpty()) {
+                        navigator.openExportTransactionScreen(
+                            launcher = importOrExportTransactionLauncher,
+                            activityContext = activity,
+                            txToSign = psbt,
+                            signFlowType = SignFlowType.NormalDummy,
+                            isBBQR = false
+                        )
+                    }
+                },
+                onImportViaQr = {
+                    navigator.openImportTransactionScreen(
+                        launcher = importOrExportTransactionLauncher,
+                        activityContext = activity,
+                        signFlowType = SignFlowType.NormalDummy
+                    )
+                },
+            )
+        )
+
         ColdCardSigningBottomSheets(
             showColdCardOptions = showColdCardOptionsSheet,
             onDismissColdCardOptions = { showColdCardOptionsSheet = false },
-            callbacks = ColdCardSigningCallbacks(
+            callbacks = psbtFileCallbacks.copy(
                 onExportViaQr = {
                     coroutineScope.launch {
                         val psbt = state.transaction.psbt
@@ -386,9 +450,6 @@ private fun ClaimTransactionScreen(
                             )
                         }
                     }
-                },
-                onImportViaFile = {
-                    importFileLauncher.launch("*/*")
                 },
                 onImportViaQr = {
                     navigator.openImportTransactionScreen(
@@ -412,32 +473,6 @@ private fun ClaimTransactionScreen(
                         BaseNfcActivity.REQUEST_MK4_IMPORT_SIGNATURE
                     )
                 },
-                onSaveFile = {
-                    val psbt = state.transaction.psbt
-                    if (psbt.isNotEmpty()) {
-                        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-                            if (ContextCompat.checkSelfPermission(
-                                    activity,
-                                    Manifest.permission.WRITE_EXTERNAL_STORAGE
-                                ) != PackageManager.PERMISSION_GRANTED
-                            ) {
-                                requestPermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                            } else {
-                                viewModel.saveLocalFile(psbt)
-                            }
-                        } else {
-                            viewModel.saveLocalFile(psbt)
-                        }
-                    }
-                },
-                onShareFile = {
-                    val psbt = state.transaction.psbt
-                    if (psbt.isNotEmpty()) {
-                        coroutineScope.launch {
-                            viewModel.exportTransactionToFile(psbt)
-                        }
-                    }
-                }
             )
         )
     }

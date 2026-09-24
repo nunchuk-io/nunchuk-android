@@ -598,6 +598,46 @@ Still true: a **master** signer (software, TAPSIGNER) cannot be added twice for 
 TAPSIGNER" is not a supported claim; and the two `ClaimInheritanceTxParam` lists still rely on
 their shared order, which `derivationPaths` now guarantees.
 
+## 4e. Claim with a Passport — file-based message signing
+
+Frames "Passport – existing or new inheritance key" → "Verify inheritance key" → "Sign actions
+(Export message / Import signature)" → share/save sheet → "Export completed (on-device signing)" →
+"Inheritance key verified". The Beneficiary's picker gains Passport; on a claim it is offered the
+Passport already in the key manager first (as the Jade is), otherwise the generic air-gap guide.
+
+- **Sign actions are file-only.** `ColdCardSigningBottomSheets(isFileOnly = true)`: Export goes
+  straight to the save/share sheet, Import straight to the file picker. The PSBT step keeps QR (UR)
+  and file but drops NFC (`supportsNfc = false`), which the Passport does not have.
+- **The message file is per device and its format lives in libnunchuk.** Coldcard's is a JSON
+  `{"msg","subpath","addr_fmt"}`; Passport's is three text lines (`message`, `m/…` path, address
+  format only when not legacy), ≤ 240 bytes — `Utils::GeneratePassportMessageSigning` on
+  libnunchuk `message-signing` (54e0e7f). The app only carries arguments:
+  `GeneratePassportMessageSigningUseCase` → `nativeSdk.generatePassportMessageSigning`.
+  `VerifyInheritanceMessageViewModel.buildMessageFile()` picks the generator by signer; the file
+  is `passport_message.txt` / `coldcard_message.txt`.
+- **Import uses libnunchuk's generic `Utils::ExtractMessageSignature`** for every device: an
+  armored `-----BEGIN BITCOIN SIGNED MESSAGE-----` file (Coldcard, Passport's `-signed.txt`) or a
+  bare base64, validated as a 65-byte compact signature. Coldcard's import moved onto it too.
+- **"Export completed" is one screen, instructions per device** — `ExportCompleteRoute(signerTag)`
+  and `SignerTag?.exportCompletedInstructionsRes`. Coldcard is the default (a `COLDCARD_NFC`
+  signer carries no tag). **Krux signs from an SD card as well and belongs here once design
+  provides its copy**; nothing is guessed for it.
+- **Native SDK (`nunchuk-android-nativesdk`), bindings only:** libnunchuk submodule fast-forwarded
+  from `bitbox` (ceef4be) to `message-signing` (54e0e7f, +6 commits, no contrib changes); JNI +
+  Kotlin for `generatePassportMessageSigning`, `generateKruxMessageSigning`,
+  `extractMessageSignature`, `extractMessageSignatureFromQr`, `generateMessageSigningQR` and
+  `exportBitcoinSignedMessage`, each a straight call into `Utils::…` / `rfc2440.hpp`. Republished
+  as 1.2.23 per the rebuild skill (no bump). The SDK's Gradle 8.7 + kapt does not run on JDK 25
+  (`javacOptions … 25.0.3`) — build it with JDK 17.
+- **Nothing the library already owns is written twice** (SDK team's review of a6c05602c). The
+  Specter QR request is `Utils::GenerateMessageSigningQR` (which also normalises the path to
+  `m/48'/0'/0'/2'` and rejects non-ASCII), not a string template in `SignerUtil`; the QR reply is
+  parsed by `ExtractMessageSignatureFromQrUseCase`, not a local 65-byte base64 check in
+  `ImportTransactionViewModel`; BitBox's RFC2440 block comes from `ExportBitcoinSignedMessage`
+  through the new address-taking binding, not from delimiters retyped in
+  `GetBitBoxSignedMessageUseCase`. The two remaining app-side formats — Coldcard's JSON request
+  and its QR signature — already went through libnunchuk.
+
 ## 5. Not done
 
 1. **Screen 16 has no QR import — deferred by the owner.** The design draws QR / file / Desktop;
