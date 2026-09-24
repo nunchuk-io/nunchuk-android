@@ -40,6 +40,7 @@ import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
 import timber.log.Timber
 import javax.inject.Inject
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.verifymessage.ImportSignatureVia
 
 @HiltViewModel
 class ClaimInheritanceViewModel @Inject constructor(
@@ -315,10 +316,14 @@ class ClaimInheritanceViewModel @Inject constructor(
         }
     }
 
-    fun showImportFile() {
+    /**
+     * "Import signature" pressed on the export-completed screen; the verify screen, which owns the
+     * launchers, performs the import over [via].
+     */
+    fun requestImportSignature(via: ImportSignatureVia) {
         _uiState.update {
             it.copy(
-                event = ClaimInheritanceEvent.ImportFile,
+                event = ClaimInheritanceEvent.ImportSignature(via),
             )
         }
     }
@@ -421,7 +426,7 @@ sealed class ClaimInheritanceEvent {
     data object SignerAdded : ClaimInheritanceEvent()
     data class SignMessage(val signer: SignerModel) : ClaimInheritanceEvent()
     data class GenerateChallengeSuccess(val option: InheritanceOption) : ClaimInheritanceEvent()
-    data object ImportFile : ClaimInheritanceEvent()
+    data class ImportSignature(val via: ImportSignatureVia) : ClaimInheritanceEvent()
 }
 
 @Parcelize

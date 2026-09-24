@@ -6,13 +6,14 @@ import androidx.navigation.compose.composable
 import kotlinx.serialization.Serializable
 import androidx.navigation.toRoute
 import com.nunchuk.android.type.SignerTag
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.verifymessage.ImportSignatureVia
 
 /** @param signerTag [SignerTag.name] of the device the file is for; null reads as a Coldcard. */
 @Serializable
 data class ExportCompleteRoute(val signerTag: String? = null)
 
 fun NavGraphBuilder.exportComplete(
-    onImportSignature: () -> Unit = {},
+    onImportSignature: (ImportSignatureVia) -> Unit = {},
     onCancel: () -> Unit = {},
 ) {
     composable<ExportCompleteRoute> { backStackEntry ->

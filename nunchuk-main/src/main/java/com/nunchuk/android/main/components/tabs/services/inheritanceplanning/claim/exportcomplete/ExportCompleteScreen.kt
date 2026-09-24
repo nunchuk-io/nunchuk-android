@@ -26,6 +26,12 @@ import com.nunchuk.android.core.R
 import com.nunchuk.android.main.R as MainR
 import androidx.annotation.StringRes
 import com.nunchuk.android.type.SignerTag
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.verifymessage.ImportSignatureOptionsSheet
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.verifymessage.ImportSignatureVia
 
 /**
  * "Export completed" after the message request was saved or shared: what to do on the device,
@@ -35,7 +41,7 @@ import com.nunchuk.android.type.SignerTag
 @Composable
 fun ExportCompleteScreen(
     signerTag: SignerTag? = null,
-    onImportSignature: () -> Unit = {},
+    onImportSignature: (ImportSignatureVia) -> Unit = {},
     onCancel: () -> Unit = {},
 ) {
     ExportCompleteContent(
@@ -48,9 +54,12 @@ fun ExportCompleteScreen(
 @Composable
 fun ExportCompleteContent(
     signerTag: SignerTag? = null,
-    onImportSignature: () -> Unit = {},
+    onImportSignature: (ImportSignatureVia) -> Unit = {},
     onCancel: () -> Unit = {},
 ) {
+    // A device that answers one way goes straight there; one that answers by QR or file asks.
+    val importRoutes = signerTag.importSignatureRoutes
+    var showImportOptions by remember { mutableStateOf(false) }
     NunchukTheme {
         Scaffold(
             modifier = Modifier.navigationBarsPadding(),
@@ -68,7 +77,11 @@ fun ExportCompleteContent(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(bottom = 12.dp),
-                        onClick = onImportSignature
+                        onClick = {
+                            importRoutes.singleOrNull()
+                                ?.let(onImportSignature)
+                                ?: run { showImportOptions = true }
+                        }
                     ) {
                         Text(text = stringResource(R.string.nc_import_signature))
                     }
@@ -112,18 +125,39 @@ fun ExportCompleteContent(
                 )
             }
         }
+
+        if (showImportOptions) {
+            ImportSignatureOptionsSheet(
+                routes = importRoutes,
+                onSelected = { route ->
+                    showImportOptions = false
+                    onImportSignature(route)
+                },
+                onDismiss = { showImportOptions = false }
+            )
+        }
     }
 }
 
 /**
+ * Ways each device hands the signed message back, in the order the sheet lists them. Passport and
+ * Coldcard write a file; Krux can also show the signature as a QR ("Sign to QR code").
+ */
+private val SignerTag?.importSignatureRoutes: List<ImportSignatureVia>
+    get() = when (this) {
+        SignerTag.KRUX -> listOf(ImportSignatureVia.QR, ImportSignatureVia.FILE)
+        else -> listOf(ImportSignatureVia.FILE)
+    }
+
+/**
  * On-device steps per signer. A Coldcard is the default because it is the only device this
- * screen served before, and a `COLDCARD_NFC` signer carries no tag. Krux signs from an SD card
- * too and will take its own copy here once design provides it.
+ * screen served before, and a `COLDCARD_NFC` signer carries no tag.
  */
 @get:StringRes
 private val SignerTag?.exportCompletedInstructionsRes: Int
     get() = when (this) {
         SignerTag.PASSPORT -> MainR.string.nc_export_completed_instructions_passport
+        SignerTag.KRUX -> MainR.string.nc_export_completed_instructions_krux
         else -> MainR.string.nc_export_completed_instructions
     }
 
@@ -137,4 +171,10 @@ private fun ExportCompleteContentPreview() {
 @Composable
 private fun ExportCompleteContentPassportPreview() {
     ExportCompleteContent(signerTag = SignerTag.PASSPORT)
+}
+
+@Preview
+@Composable
+private fun ExportCompleteContentKruxPreview() {
+    ExportCompleteContent(signerTag = SignerTag.KRUX)
 }

@@ -240,7 +240,7 @@ private fun ClaimInheritanceGraph(
                     }
                 }
 
-                ClaimInheritanceEvent.ImportFile -> return@LaunchedEffect
+                is ClaimInheritanceEvent.ImportSignature -> return@LaunchedEffect
             }
             activityViewModel.onEventHandled()
         }
@@ -453,9 +453,9 @@ private fun ClaimInheritanceGraph(
                 }
             )
             exportComplete(
-                onImportSignature = {
+                onImportSignature = { via ->
                     navController.popBackStack()
-                    activityViewModel.showImportFile()
+                    activityViewModel.requestImportSignature(via)
                 },
                 onCancel = {
                     navController.popBackStack()

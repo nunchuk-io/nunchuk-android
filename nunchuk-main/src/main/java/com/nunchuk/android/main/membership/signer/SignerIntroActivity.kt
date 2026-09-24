@@ -455,8 +455,8 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
             KeyType.PORTAL -> openPortalScreen()
             KeyType.SEEDSIGNER -> handleSelectAddAirgapType(SignerTag.SEEDSIGNER)
             KeyType.KEYSTONE -> handleSelectAddAirgapType(SignerTag.KEYSTONE)
-            KeyType.FOUNDATION -> handlePassportSelection()
-            KeyType.KRUX -> handleSelectAddAirgapType(SignerTag.KRUX)
+            KeyType.FOUNDATION -> handleClaimableAirgapSelection(SignerTag.PASSPORT)
+            KeyType.KRUX -> handleClaimableAirgapSelection(SignerTag.KRUX)
             KeyType.SOFTWARE -> showSoftwareSigners()
             KeyType.PLATFORM_KEY -> returnPlatformKeyResult()
             KeyType.GENERIC_AIRGAP -> if (isAddInheritanceKeyForSetup) {
@@ -538,16 +538,16 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
     }
 
     /**
-     * Passport is an ordinary air-gapped key everywhere except a claim, where — as with the Jade —
-     * the Beneficiary is offered the Passport already in the key manager before the add guide.
+     * Passport and Krux are ordinary air-gapped keys everywhere except a claim, where — as with the
+     * Jade — the Beneficiary is offered the device already in the key manager before the add guide.
      */
-    private fun handlePassportSelection() {
+    private fun handleClaimableAirgapSelection(tag: SignerTag) {
         val param = onChainAddSignerParam
         if (param != null && param.isClaiming && param.isAddInheritanceOffChainSigner()) {
-            viewModel.showExistingSignerOrCreateNew(SignerType.AIRGAP, SignerTag.PASSPORT)
+            viewModel.showExistingSignerOrCreateNew(SignerType.AIRGAP, tag)
             return
         }
-        handleSelectAddAirgapType(SignerTag.PASSPORT)
+        handleSelectAddAirgapType(tag)
     }
 
     private fun openAddAirSignerForJade() {

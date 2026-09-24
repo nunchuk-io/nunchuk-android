@@ -60,7 +60,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 import com.nunchuk.android.core.R as CoreR
-import com.nunchuk.android.core.util.isPassportAirgap
+import com.nunchuk.android.core.util.isSdCardAirgap
 
 @AndroidEntryPoint
 class ClaimTransactionActivity : BaseNfcActivity<ViewBinding>() {
@@ -107,7 +107,7 @@ private fun ClaimTransactionScreen(
     val trezorSuiteDeeplink by viewModel.trezorSuiteDeeplink.collectAsStateWithLifecycle()
     var showColdCardOptionsSheet by remember { mutableStateOf(false) }
     var showAirgapOptionsSheet by remember { mutableStateOf(false) }
-    var showPassportOptionsSheet by remember { mutableStateOf(false) }
+    var showSdCardAirgapOptionsSheet by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(claimError) {
@@ -292,8 +292,8 @@ private fun ClaimTransactionScreen(
 
                     // Ledger and BitBox sign in-app after registering the wallet policy; Trezor
                     // signs in Trezor Suite. All three need the wallet the claim status returned.
-                    // Passport takes the PSBT over QR (UR) or from its microSD card; no NFC.
-                    signerModel.isPassportAirgap -> showPassportOptionsSheet = true
+                    // Passport and Krux take the PSBT over QR (UR) or from a memory card; no NFC.
+                    signerModel.isSdCardAirgap -> showSdCardAirgapOptionsSheet = true
 
                     signerModel.isLedger -> viewModel.requestSignByHardware(signerModel, SignerTag.LEDGER)
                     signerModel.isBitBox -> viewModel.requestSignByHardware(signerModel, SignerTag.BITBOX)
@@ -408,8 +408,8 @@ private fun ClaimTransactionScreen(
 
         ColdCardSigningBottomSheets(
             supportsNfc = false,
-            showColdCardOptions = showPassportOptionsSheet,
-            onDismissColdCardOptions = { showPassportOptionsSheet = false },
+            showColdCardOptions = showSdCardAirgapOptionsSheet,
+            onDismissColdCardOptions = { showSdCardAirgapOptionsSheet = false },
             callbacks = psbtFileCallbacks.copy(
                 onExportViaQr = {
                     val psbt = state.transaction.psbt

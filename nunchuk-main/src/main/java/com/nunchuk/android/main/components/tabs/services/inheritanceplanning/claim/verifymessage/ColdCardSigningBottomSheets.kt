@@ -16,6 +16,9 @@ import com.nunchuk.android.widget.R as WidgetR
 /**
  * Callbacks for ColdCard signing actions
  */
+/** How a signed message or PSBT comes back into the app. */
+enum class ImportSignatureVia { FILE, QR, NFC }
+
 data class ColdCardSigningCallbacks(
     val onExportViaQr: () -> Unit = {},
     val onExportViaNfc: () -> Unit = {},
@@ -24,7 +27,46 @@ data class ColdCardSigningCallbacks(
     val onImportViaNfc: () -> Unit = {},
     val onSaveFile: () -> Unit = {},
     val onShareFile: () -> Unit = {},
-)
+) {
+    fun onImport(via: ImportSignatureVia) = when (via) {
+        ImportSignatureVia.FILE -> onImportViaFile()
+        ImportSignatureVia.QR -> onImportViaQr()
+        ImportSignatureVia.NFC -> onImportViaNfc()
+    }
+}
+
+/** "Import signature" picker: one row per route, in the order given. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ImportSignatureOptionsSheet(
+    routes: List<ImportSignatureVia>,
+    onSelected: (ImportSignatureVia) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    NcSelectableBottomSheetWithIcon(
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+        items = routes.map { route ->
+            when (route) {
+                ImportSignatureVia.FILE -> SelectableItem(
+                    resId = WidgetR.drawable.ic_import,
+                    text = stringResource(R.string.nc_import_via_file)
+                )
+
+                ImportSignatureVia.QR -> SelectableItem(
+                    resId = WidgetR.drawable.ic_qr,
+                    text = stringResource(R.string.nc_import_via_qr)
+                )
+
+                ImportSignatureVia.NFC -> SelectableItem(
+                    resId = WidgetR.drawable.ic_nfc,
+                    text = stringResource(R.string.nc_import_via_nfc)
+                )
+            }
+        },
+        onSelected = { index -> onSelected(routes[index]) },
+        onDismiss = onDismiss
+    )
+}
 
 /**
  * Reusable component that manages all bottom sheets for ColdCard signing flow.
@@ -61,7 +103,6 @@ fun ColdCardSigningBottomSheets(
     
     val coldCardOptionsSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val exportOptionsSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val importOptionsSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val saveShareSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     // ColdCard Options Sheet (Export/Import)
@@ -136,33 +177,17 @@ fun ColdCardSigningBottomSheets(
 
     // Import Options Sheet (File/QR/NFC)
     if (showImportOptionsSheet) {
-        NcSelectableBottomSheetWithIcon(
-            sheetState = importOptionsSheetState,
-            items = listOfNotNull(
-                SelectableItem(
-                    resId = WidgetR.drawable.ic_import,
-                    text = stringResource(R.string.nc_import_via_file)
-                ),
-                SelectableItem(
-                    resId = WidgetR.drawable.ic_qr,
-                    text = stringResource(R.string.nc_import_via_qr)
-                ),
-                SelectableItem(
-                    resId = WidgetR.drawable.ic_nfc,
-                    text = stringResource(R.string.nc_import_via_nfc)
-                ).takeIf { supportsNfc }
+        ImportSignatureOptionsSheet(
+            routes = listOfNotNull(
+                ImportSignatureVia.FILE,
+                ImportSignatureVia.QR,
+                ImportSignatureVia.NFC.takeIf { supportsNfc },
             ),
-            onSelected = { index ->
+            onSelected = { route ->
                 showImportOptionsSheet = false
-                when (index) {
-                    0 -> callbacks.onImportViaFile()
-                    1 -> callbacks.onImportViaQr()
-                    2 -> callbacks.onImportViaNfc()
-                }
+                callbacks.onImport(route)
             },
-            onDismiss = {
-                showImportOptionsSheet = false
-            }
+            onDismiss = { showImportOptionsSheet = false }
         )
     }
 

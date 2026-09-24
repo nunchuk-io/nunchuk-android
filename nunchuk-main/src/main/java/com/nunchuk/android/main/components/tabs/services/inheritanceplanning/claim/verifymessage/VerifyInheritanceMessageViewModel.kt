@@ -36,6 +36,7 @@ import com.nunchuk.android.usecase.signer.ExtractMessageSignatureUseCase
 import com.nunchuk.android.usecase.signer.ExtractColdcardSignatureFromRecordsUseCase
 import com.nunchuk.android.usecase.signer.GenerateColdCardHealthCheckMessageStringUseCase
 import com.nunchuk.android.usecase.signer.GenerateMessageSigningQrUseCase
+import com.nunchuk.android.usecase.signer.GenerateKruxMessageSigningUseCase
 import com.nunchuk.android.usecase.signer.GeneratePassportMessageSigningUseCase
 import com.nunchuk.android.usecase.signer.GetRemoteOrMasterSignerUseCase
 import com.nunchuk.android.usecase.signer.SignMessageBySoftwareKeyUseCase
@@ -55,6 +56,7 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.FileOutputStream
 import com.nunchuk.android.core.util.isPassportAirgap
+import com.nunchuk.android.core.util.isKruxAirgap
 
 @HiltViewModel(assistedFactory = VerifyInheritanceMessageViewModel.Factory::class)
 class VerifyInheritanceMessageViewModel @AssistedInject constructor(
@@ -69,6 +71,7 @@ class VerifyInheritanceMessageViewModel @AssistedInject constructor(
     private val sendDataToMk4UseCase: SendDataToMk4UseCase,
     private val extractMessageSignatureUseCase: ExtractMessageSignatureUseCase,
     private val generatePassportMessageSigningUseCase: GeneratePassportMessageSigningUseCase,
+    private val generateKruxMessageSigningUseCase: GenerateKruxMessageSigningUseCase,
     private val generateMessageSigningQrUseCase: GenerateMessageSigningQrUseCase,
     private val extractColdcardSignatureFromRecordsUseCase: ExtractColdcardSignatureFromRecordsUseCase,
     private val getRemoteOrMasterSignerUseCase: GetRemoteOrMasterSignerUseCase,
@@ -319,6 +322,13 @@ class VerifyInheritanceMessageViewModel @AssistedInject constructor(
             )
         )
 
+        signer.isKruxAirgap -> generateKruxMessageSigningUseCase(
+            GenerateKruxMessageSigningUseCase.Param(
+                derivationPath = signer.derivationPath,
+                message = message,
+            )
+        )
+
         else -> generateColdCardHealthCheckMessageStringUseCase(
             GenerateColdCardHealthCheckMessageStringUseCase.Param(
                 derivationPath = signer.derivationPath,
@@ -332,6 +342,7 @@ class VerifyInheritanceMessageViewModel @AssistedInject constructor(
     private val messageFileName: String
         get() = when {
             signer.isPassportAirgap -> "passport_message.txt"
+            signer.isKruxAirgap -> "krux_message.txt"
             else -> "coldcard_message.txt"
         }
 

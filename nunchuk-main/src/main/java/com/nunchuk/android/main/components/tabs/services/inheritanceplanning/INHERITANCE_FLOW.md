@@ -277,7 +277,9 @@ Key details:
   Jade (one Specter-format QR out, the base64 signature QR back —
   `SignFlowType.ClaimAirgapMessage`), Passport (the request as a `.txt` for its microSD card —
   `GeneratePassportMessageSigningUseCase` — and the `-signed` file back through the picker, with the
-  per-device "Export completed" screen in between), Ledger (`LedgerSignMessageSheet` at the signer's path),
+  per-device "Export completed" screen in between), Krux (file like Passport —
+  `GenerateKruxMessageSigningUseCase` — or QR like Jade, and the signature back either way; the
+  "Export completed" screen asks QR / file), Ledger (`LedgerSignMessageSheet` at the signer's path),
   BitBox (`BitBoxSignMessageSheet` at the path `GetBitBoxSignMessagePathUseCase` resolves) and
   Trezor (`GetTrezorSignMessageDeeplinkUseCase` → Trezor Suite → `TrezorCallbackHolder` →
   `ParseTrezorSignMessageResponseUseCase`; the VM collects the holder itself and only takes

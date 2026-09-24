@@ -618,10 +618,23 @@ Passport already in the key manager first (as the Jade is), otherwise the generi
 - **Import uses libnunchuk's generic `Utils::ExtractMessageSignature`** for every device: an
   armored `-----BEGIN BITCOIN SIGNED MESSAGE-----` file (Coldcard, Passport's `-signed.txt`) or a
   bare base64, validated as a 65-byte compact signature. Coldcard's import moved onto it too.
-- **"Export completed" is one screen, instructions per device** — `ExportCompleteRoute(signerTag)`
-  and `SignerTag?.exportCompletedInstructionsRes`. Coldcard is the default (a `COLDCARD_NFC`
-  signer carries no tag). **Krux signs from an SD card as well and belongs here once design
-  provides its copy**; nothing is guessed for it.
+- **"Export completed" is one screen, instructions and import routes per device** —
+  `ExportCompleteRoute(signerTag)`, `SignerTag?.exportCompletedInstructionsRes` and
+  `SignerTag?.importSignatureRoutes`. Coldcard is the default (a `COLDCARD_NFC` signer carries no
+  tag). Passport/Coldcard hand the signed file back, so "Import signature" opens the picker
+  directly; Krux can also show the signature as a QR ("Sign to QR code"), so it first asks
+  QR / file through `ImportSignatureOptionsSheet` — the same picker the sign sheet uses — and the
+  choice travels back to the verify screen as `ClaimInheritanceEvent.ImportSignature(via)`, which
+  owns the launchers and performs it through that device's `signingCallbacks.onImport(via)`.
+- **Krux** (frames "Krux – Export completed / Import signature"): file *and* QR both ways, no NFC.
+  Request file from `Utils::GenerateKruxMessageSigning` (`GenerateKruxMessageSigningUseCase`,
+  `krux_message.txt`), QR request from the same `GenerateMessageSigningQR` Jade uses; both replies
+  through the generic `ExtractMessageSignature`. Krux itself appends `/0/0` to a hardened account
+  path in the file request ("Krux requires a child path") — libnunchuk's rule, not ours.
+- **One sign sheet on the verify screen.** Coldcard, Jade, Passport and Krux share
+  `ColdCardSigningBottomSheets`; `signingCallbacks` picks the device's routes (Jade `isQrOnly`,
+  Passport `isFileOnly`, Krux QR+file, Coldcard QR+file+NFC via `supportsNfc`) and the file
+  save/share/pick lambdas are written once. The four per-device sheets that grew here are gone.
 - **Native SDK (`nunchuk-android-nativesdk`), bindings only:** libnunchuk submodule fast-forwarded
   from `bitbox` (ceef4be) to `message-signing` (54e0e7f, +6 commits, no contrib changes); JNI +
   Kotlin for `generatePassportMessageSigning`, `generateKruxMessageSigning`,

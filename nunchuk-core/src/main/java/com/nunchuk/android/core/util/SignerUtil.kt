@@ -137,6 +137,21 @@ val SignerModel.isJadeAirgap: Boolean
 val SignerModel.isPassportAirgap: Boolean
     get() = type == AIRGAP && tags.contains(SignerTag.PASSPORT)
 
+/** A Krux. Signs from its SD card or over QR; a message request can go either way too. */
+val SignerModel.isKruxAirgap: Boolean
+    get() = type == AIRGAP && tags.contains(SignerTag.KRUX)
+
+/** Air-gapped devices that take a PSBT over QR or from a memory card and have no NFC. */
+val SignerModel.isSdCardAirgap: Boolean
+    get() = isPassportAirgap || isKruxAirgap
+
+/**
+ * Signers that sign a message by taking a request out of the app (file / QR / NFC) and handing a
+ * signature back the same way, so they share the Export / Import options sheet.
+ */
+val SignerModel.signsByExportImport: Boolean
+    get() = isColdCard || isJadeAirgap || isSdCardAirgap
+
 /** Ledger, paired in-app over BLE/USB; signs messages and PSBTs through [LedgerSheet]. */
 val SignerModel.isLedger: Boolean
     get() = type == HARDWARE && tags.contains(SignerTag.LEDGER)

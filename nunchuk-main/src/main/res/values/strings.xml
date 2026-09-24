@@ -640,6 +640,7 @@
     <string name="nc_verify_inheritance_key">Verify Inheritance Key</string>
     <string name="nc_export_completed">Export completed</string>
     <string name="nc_export_completed_instructions_passport">On Passport, open the account that contains your inheritance key.\n\nGo to Account Tools \u2192 Sign a Message \u2192 Sign with microSD and select the file saved by Nunchuk.\n\nReview the message and approve signing.\n\nReturn to Nunchuk, tap [B]Import signature[/B], and select the \u201c-signed\u201d file from the microSD card.</string>
+    <string name="nc_export_completed_instructions_krux">Load the intended seed on Krux, then insert the SD card containing the file saved by Nunchuk.\n\nGo to Sign \u2192 Message \u2192 Load from SD card and select the file.\n\nReview and approve the request. Choose Sign to SD card or Sign to QR code.\n\nReturn to Nunchuk and tap [B]Import signature[/B].</string>
     <string name="nc_export_completed_instructions">Continue on COLDCARD via:\nAdvanced/Tools > File Management > Sign Text File.\n\nOnce signing is done, select [B]Import signature[/B].</string>
     <string name="nc_sign_message">Sign Message</string>
     
