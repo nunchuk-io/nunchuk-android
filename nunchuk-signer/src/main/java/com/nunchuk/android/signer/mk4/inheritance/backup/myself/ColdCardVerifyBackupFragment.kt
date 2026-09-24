@@ -201,22 +201,25 @@ internal fun ColdCardVerifyBackupScreen(
                             style = NunchukTheme.typography.titleSmall.copy(fontWeight = FontWeight.W900)
                         )
                     }
-                    Text(
+                    // One tap target for the label and the icon: the icon alone used to do nothing.
+                    Row(
                         modifier = Modifier
                             .padding(start = 12.dp)
-                            .clickable {
-                                onDownloadFile()
-                            },
-                        text = "Download the encrypted backup file",
-                        style = NunchukTheme.typography.title,
-                        textDecoration = TextDecoration.Underline
-                    )
+                            .clickable { onDownloadFile() },
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Download the encrypted backup file",
+                            style = NunchukTheme.typography.title,
+                            textDecoration = TextDecoration.Underline
+                        )
 
-                    NcIcon(
-                        painter = painterResource(id = R.drawable.ic_download),
-                        contentDescription = "",
-                        modifier = Modifier.size(24.dp),
-                    )
+                        NcIcon(
+                            painter = painterResource(id = R.drawable.ic_download),
+                            contentDescription = "Download the encrypted backup file",
+                            modifier = Modifier.size(24.dp),
+                        )
+                    }
                 }
 
                 NCLabelWithIndex(
