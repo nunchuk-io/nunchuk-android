@@ -14,10 +14,40 @@ Investigate and fix the Jira ticket: **$ARGUMENTS**
 Use `mcp__jira__jira_get` on `/rest/api/3/issue/<KEY>` with this `jq` to pull only what you need:
 
 ```
-{key: key, summary: fields.summary, status: fields.status.name, description: fields.description, attachments: fields.attachment[*].{filename: filename, url: content}}
+{key: key, summary: fields.summary, status: fields.status.name, description: fields.description, attachments: fields.attachment}
 ```
 
+(The filter is JMESPath, not real `jq` — a multiselect-hash inside a projection like
+`fields.attachment[*].{filename: filename, url: content}` is rejected, so take the whole
+`fields.attachment` array.)
+
 Read the summary, Steps to Reproduce, Expected vs Actual sections, and the Tested Environment build (e.g. `2.5.2.PHASED_ROLL_OUT(329)`).
+
+### Step 1b: Download and LOOK AT every attachment
+
+**MANDATORY — never skip, never guess.** QA tickets are usually a screenshot with the broken
+area circled in red plus one line of Vietnamese ("sai chỗ khoanh đỏ"). The description alone does
+not say which text/button/screen is wrong; the image does. Do not start grepping, do not form a
+theory, and never say what the screenshot "probably" shows — download it and read it first.
+
+Download each `content` URL with the Atlassian credentials from `.mcp.json`
+(`ATLASSIAN_USER_EMAIL` + `ATLASSIAN_API_TOKEN` under `mcpServers.jira.env`) into the scratchpad,
+then open it with the Read tool so you actually see it:
+
+```bash
+EMAIL=$(python3 -c "import json;print(json.load(open('.mcp.json'))['mcpServers']['jira']['env']['ATLASSIAN_USER_EMAIL'])")
+TOKEN=$(python3 -c "import json;print(json.load(open('.mcp.json'))['mcpServers']['jira']['env']['ATLASSIAN_API_TOKEN'])")
+curl -s -u "$EMAIL:$TOKEN" -L \
+  "https://nunchuck.atlassian.net/rest/api/3/attachment/content/<ATTACHMENT_ID>" \
+  -o "<SCRATCHPAD>/<filename>"
+```
+
+Then `Read` the downloaded file. Videos/`.mp4` can't be read — say so and ask the user to describe
+the relevant frame rather than guessing.
+
+Transcribe the exact on-screen copy from the circled region and grep **that** string in Step 2 —
+it is the shortest path from the screenshot to the `strings.xml` entry and the composable that
+picks it.
 
 ### Step 2: Locate the affected code
 
