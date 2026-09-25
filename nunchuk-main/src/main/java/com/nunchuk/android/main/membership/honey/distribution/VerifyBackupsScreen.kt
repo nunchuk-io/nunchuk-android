@@ -138,6 +138,8 @@ fun VerifyBackupsContent(
                     modifier = Modifier.padding(top = 16.dp),
                     messages = listOf(ClickAbleText(content = stringResource(R.string.nc_verify_your_backups_hint))),
                     type = HighlightMessageType.HINT,
+                    textStyle = NunchukTheme.typography.bodySmall,
+                    iconSize = 16.dp,
                 )
 
                 NcClickableText(
@@ -149,6 +151,7 @@ fun VerifyBackupsContent(
                         )
                     ),
                     style = NunchukTheme.typography.title,
+                    linkDecoration = null,
                 )
             }
         }
@@ -199,6 +202,7 @@ private fun BackupChecklistItem(
         ) {
             NcCircleImage(
                 size = 40.dp,
+                iconSize = 24.dp,
                 color = MaterialTheme.colorScheme.backgroundPrimary,
                 resId = iconRes,
             )

@@ -33,12 +33,14 @@ import com.nunchuk.android.core.util.ClickAbleText
 fun NcClickableText(
     modifier: Modifier,
     messages: List<ClickAbleText>,
-    style: TextStyle = NunchukTheme.typography.titleSmall
+    style: TextStyle = NunchukTheme.typography.titleSmall,
+    /** How the clickable parts stand out from the rest; null draws them as plain text. */
+    linkDecoration: TextDecoration? = TextDecoration.Underline,
 ) {
     val annotatedString = buildAnnotatedString {
         messages.forEachIndexed { index, message ->
             if (message.onClick != null) {
-                withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline)) {
+                withStyle(style = SpanStyle(textDecoration = linkDecoration)) {
                     append(message.content)
                 }
             } else {

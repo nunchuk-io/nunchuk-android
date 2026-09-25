@@ -33,6 +33,7 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.core.R
 import com.nunchuk.android.core.util.ClickAbleText
@@ -42,7 +43,8 @@ fun NcHintMessage(
     modifier: Modifier = Modifier,
     textStyle: TextStyle = NunchukTheme.typography.titleSmall,
     messages: List<ClickAbleText>,
-    type: HighlightMessageType = HighlightMessageType.HINT
+    type: HighlightMessageType = HighlightMessageType.HINT,
+    iconSize: Dp = 36.dp,
 ) {
     val backgroundColor = when(type) {
         HighlightMessageType.WARNING -> colorResource(id = R.color.nc_beeswax_tint)
@@ -68,7 +70,7 @@ fun NcHintMessage(
             modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically
         ) {
             NcIcon(
-                modifier = Modifier.size(36.dp),
+                modifier = Modifier.size(iconSize),
                 painter = icon,
                 contentDescription = "Info icon",
                 tint = contentColor
@@ -86,6 +88,7 @@ fun NcHintMessage(
 fun NcHintMessage(
     modifier: Modifier = Modifier,
     type: HighlightMessageType = HighlightMessageType.HINT,
+    iconSize: Dp = 36.dp,
     content: @Composable () -> Unit,
 ) {
     val backgroundColor = when(type) {
@@ -114,7 +117,7 @@ fun NcHintMessage(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             NcIcon(
-                modifier = Modifier.size(36.dp),
+                modifier = Modifier.size(iconSize),
                 painter = icon,
                 contentDescription = "Info icon",
                 tint = contentColor
