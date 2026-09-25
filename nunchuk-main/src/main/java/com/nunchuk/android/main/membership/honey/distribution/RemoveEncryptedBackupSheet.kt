@@ -14,6 +14,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.HighlightMessageType
 import com.nunchuk.android.compose.NcHintMessage
@@ -52,8 +53,10 @@ fun RemoveEncryptedBackupSheet(
                 .padding(bottom = 16.dp),
         ) {
             Text(
+                modifier = Modifier.fillMaxWidth(),
                 text = stringResource(R.string.nc_remove_encrypted_backup_title),
                 style = NunchukTheme.typography.title,
+                textAlign = TextAlign.Center,
             )
             Text(
                 modifier = Modifier.padding(top = 12.dp),
