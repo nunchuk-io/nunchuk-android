@@ -60,6 +60,25 @@ Apply the fix in-place. **Reuse, don't repeat (DRY)**: before adding a formatter
 - **Small + confident** = single-file or tightly localized change, follows existing conventions, you understand why it works, and a manual repro would clearly resolve the bug.
 - Anything else (multi-module, behavior change beyond the reported bug, new dependencies, uncertainty about side-effects, failing build/tests, missing repro path) → stop and summarize the diff + questions for the user.
 
+### Step 3b: Review the diff before committing — MANDATORY
+
+**Never commit or push a diff you have not reviewed end to end.** Writing the fix is not the
+same as checking it; bugs slip in during the edit itself.
+
+1. `git --no-pager diff` and read every hunk, not just the lines you remember writing. Any hunk
+   you did not author (another session, the user) is not part of this ticket — leave it unstaged.
+2. For each changed branch, walk the concrete paths the bug touches and the ones next to it:
+   every key type / flag / result code the `when` or `if` now handles differently, the back-press
+   and cancel paths, recreate / process death, and what the caller does with the new result.
+3. Check ordering and lifecycle hazards: a `MutableSharedFlow()` with no replay drops events
+   emitted before a collector subscribes; `LaunchedEffect`s start in declaration order; an
+   activity that finishes without `setResult` reports `RESULT_CANCELED` to its caller.
+4. Remove dead code and stale comments the change left behind.
+5. Compile the touched modules (`./gradlew :<module>:compileDebugKotlin`) and, when tests exist
+   for the code, run them. A failing build or test sends you back to Step 3's "stop" path.
+
+List what the review found and fixed in the final report. Only then move to Step 4.
+
 ### Step 4: Commit (small + confident path only)
 
 Stage **only** the files you touched for this ticket — never `git add -A` / `git add .`. Inspect `git status` for unrelated dirty files (e.g. `configs/dependencies.gradle`, `.mcp.json`) and leave them alone.
