@@ -60,7 +60,8 @@ import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.formattedName
 import com.nunchuk.android.core.util.isBitBox
-import com.nunchuk.android.core.util.isJadeAirgap
+import com.nunchuk.android.core.util.isQrOnlyAirgap
+import com.nunchuk.android.core.util.qrOnlyAirgapTag
 import com.nunchuk.android.core.util.isLedger
 import com.nunchuk.android.core.util.isTrezor
 import com.nunchuk.android.core.util.openTrezorSuiteLink
@@ -181,8 +182,8 @@ fun VerifyInheritanceMessageScreen(
             }
         },
     )
-    // One plain-text QR out, the signature QR back — Jade and Krux. [deviceTag] only names the
-    // device on the export screen.
+    // One plain-text QR out, the signature QR back — Jade, Keystone, SeedSigner and Krux.
+    // [deviceTag] only names the device on the export screen.
     val airgapQrSigningCallbacks = { deviceTag: SignerTag ->
         ColdCardSigningCallbacks(
             onExportViaQr = {
@@ -194,7 +195,12 @@ fun VerifyInheritanceMessageScreen(
                             activityContext = activity,
                             txToSign = request,
                             signFlowType = SignFlowType.ClaimAirgapMessage,
-                            deviceName = deviceTag.formattedName,
+                            // formattedName shortens SeedSigner to the "Seed" it names new keys with.
+                            deviceName = if (deviceTag == SignerTag.SEEDSIGNER) {
+                                activity.getString(R.string.nc_seedsigner)
+                            } else {
+                                deviceTag.formattedName
+                            },
                         )
                     }
                 }
@@ -209,7 +215,7 @@ fun VerifyInheritanceMessageScreen(
         )
     }
     val signingCallbacks = when {
-        signer.isJadeAirgap -> airgapQrSigningCallbacks(SignerTag.JADE)
+        signer.isQrOnlyAirgap -> airgapQrSigningCallbacks(signer.qrOnlyAirgapTag ?: SignerTag.JADE)
         signer.isPassportAirgap -> fileSigningCallbacks
         signer.isKruxAirgap -> airgapQrSigningCallbacks(SignerTag.KRUX).let { qr ->
             fileSigningCallbacks.copy(onExportViaQr = qr.onExportViaQr, onImportViaQr = qr.onImportViaQr)
@@ -389,8 +395,9 @@ fun VerifyInheritanceMessageScreen(
                         viewModel.signMessageBySoftware()
                     }
                 }
-                // Coldcard, Jade, Passport, Krux: export the request, import the signature. Which
-                // routes the sheet offers and what they do follow the device (signingCallbacks).
+                // Coldcard, Jade, Keystone, SeedSigner, Passport, Krux: export the request, import
+                // the signature. Which routes the sheet offers and what they do follow the device
+                // (signingCallbacks).
                 signer.signsByExportImport -> showSigningOptionsSheet = true
                 // Ledger and BitBox sign in-app over BLE/USB; Trezor through Trezor Suite. All
                 // three hand back a bare signature, like a Coldcard's QR does.
@@ -404,7 +411,7 @@ fun VerifyInheritanceMessageScreen(
 
     ColdCardSigningBottomSheets(
         isMessage = true,
-        isQrOnly = signer.isJadeAirgap,
+        isQrOnly = signer.isQrOnlyAirgap,
         isFileOnly = signer.isPassportAirgap,
         supportsNfc = signer.isColdCard,
         showColdCardOptions = showSigningOptionsSheet,

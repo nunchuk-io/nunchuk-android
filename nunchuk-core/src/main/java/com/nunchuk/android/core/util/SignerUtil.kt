@@ -124,11 +124,21 @@ val SignerTag?.isInAppHardwareTag: Boolean
     get() = this == SignerTag.TREZOR || this == SignerTag.LEDGER || this == SignerTag.BITBOX
 
 /**
- * A Jade added over QR/file. It has no in-app transport, so every signing step is "show it a QR,
- * scan the QR it shows back"; the claim flow branches on this to offer only QR export/import.
+ * The air-gapped device a QR-only signer ([isQrOnlyAirgap]) is tagged with, or null for any other
+ * signer.
  */
-val SignerModel.isJadeAirgap: Boolean
-    get() = type == AIRGAP && tags.contains(SignerTag.JADE)
+val SignerModel.qrOnlyAirgapTag: SignerTag?
+    get() = if (type == AIRGAP) tags.firstOrNull { it in qrOnlyAirgapTags } else null
+
+/**
+ * A Jade, Keystone or SeedSigner added over QR. None has an in-app transport, so every signing step
+ * is "show it a QR, scan the QR it shows back"; the claim flow branches on this to offer only QR
+ * export/import.
+ */
+val SignerModel.isQrOnlyAirgap: Boolean
+    get() = qrOnlyAirgapTag != null
+
+private val qrOnlyAirgapTags = setOf(SignerTag.JADE, SignerTag.KEYSTONE, SignerTag.SEEDSIGNER)
 
 /**
  * A Foundation Passport. It signs from its microSD card, so a message goes out as a file and the
@@ -150,7 +160,7 @@ val SignerModel.isSdCardAirgap: Boolean
  * signature back the same way, so they share the Export / Import options sheet.
  */
 val SignerModel.signsByExportImport: Boolean
-    get() = isColdCard || isJadeAirgap || isSdCardAirgap
+    get() = isColdCard || isQrOnlyAirgap || isSdCardAirgap
 
 /** Ledger, paired in-app over BLE/USB; signs messages and PSBTs through [LedgerSheet]. */
 val SignerModel.isLedger: Boolean

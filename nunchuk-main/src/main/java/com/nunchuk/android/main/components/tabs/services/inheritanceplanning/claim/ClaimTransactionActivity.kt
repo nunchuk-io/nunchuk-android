@@ -37,7 +37,7 @@ import com.nunchuk.android.core.nfc.NfcActionListener
 import com.nunchuk.android.core.nfc.NfcViewModel
 import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.util.isBitBox
-import com.nunchuk.android.core.util.isJadeAirgap
+import com.nunchuk.android.core.util.isQrOnlyAirgap
 import com.nunchuk.android.core.util.isLedger
 import com.nunchuk.android.core.util.isTrezor
 import com.nunchuk.android.core.util.openExternalLink
@@ -184,7 +184,7 @@ private fun ClaimTransactionScreen(
         if (result.resultCode == Activity.RESULT_OK) {
             val transaction =
                 result.data?.parcelable<Transaction>(GlobalResultKey.TRANSACTION_EXTRA)
-            transaction?.let { viewModel.updateTransaction(it) }
+            transaction?.let { viewModel.importSignedTransaction(it) }
         }
     }
 
@@ -285,8 +285,9 @@ private fun ClaimTransactionScreen(
                         showColdCardOptionsSheet = true
                     }
 
-                    // Jade signs the PSBT over QR only (UR out, signed UR back in).
-                    signerModel.isJadeAirgap -> {
+                    // Jade, Keystone and SeedSigner sign the PSBT over QR only (UR out, signed UR
+                    // back in).
+                    signerModel.isQrOnlyAirgap -> {
                         showAirgapOptionsSheet = true
                     }
 

@@ -490,8 +490,8 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
             KeyType.COLDCARD -> handleColdCardSelection(navController)
             KeyType.JADE -> handleJadeSelection(navController)
             KeyType.PORTAL -> openPortalScreen()
-            KeyType.SEEDSIGNER -> handleSelectAddAirgapType(SignerTag.SEEDSIGNER)
-            KeyType.KEYSTONE -> handleSelectAddAirgapType(SignerTag.KEYSTONE)
+            KeyType.SEEDSIGNER -> handleClaimableAirgapSelection(SignerTag.SEEDSIGNER)
+            KeyType.KEYSTONE -> handleClaimableAirgapSelection(SignerTag.KEYSTONE)
             KeyType.FOUNDATION -> handleClaimableAirgapSelection(SignerTag.PASSPORT)
             KeyType.KRUX -> handleClaimableAirgapSelection(SignerTag.KRUX)
             KeyType.SOFTWARE -> showSoftwareSigners()
@@ -576,8 +576,9 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
     }
 
     /**
-     * Passport and Krux are ordinary air-gapped keys everywhere except a claim, where — as with the
-     * Jade — the Beneficiary is offered the device already in the key manager before the add guide.
+     * Keystone, SeedSigner, Passport and Krux are ordinary air-gapped keys everywhere except a
+     * claim, where — as with the Jade — the Beneficiary is offered the device already in the key
+     * manager before the add guide.
      */
     private fun handleClaimableAirgapSelection(tag: SignerTag) {
         val param = onChainAddSignerParam

@@ -274,8 +274,9 @@ Key details:
   (`SignMessageByTapSignerUseCase`), a software key (`SignMessageBySoftwareKeyUseCase`, with
   passphrase), COLDCARD (NFC `SendDataToMk4UseCase` / exported file →
   `ExtractColdcardMessageSignatureUseCase`, with `exportComplete` as the file hand-off screen),
-  Jade (one Specter-format QR out, the base64 signature QR back —
-  `SignFlowType.ClaimAirgapMessage`), Passport (the request as a `.txt` for its microSD card —
+  Jade, Keystone and SeedSigner (one `GenerateMessageSigningQrUseCase` QR out, the signature QR
+  back — `SignFlowType.ClaimAirgapMessage`, branched on `SignerModel.isQrOnlyAirgap`), Passport
+  (the request as a `.txt` for its microSD card —
   `GeneratePassportMessageSigningUseCase` — and the `-signed` file back through the picker, with the
   per-device "Export completed" screen in between), Krux (file like Passport —
   `GenerateKruxMessageSigningUseCase` — or QR like Jade, and the signature back either way; the
@@ -287,10 +288,13 @@ Key details:
   from any device are parsed by `ExtractMessageSignatureUseCase` (libnunchuk's generic
   `ExtractMessageSignature`: armored signed-message file or bare base64).
 - **The claiming PSBT** (`ClaimTransactionViewModel`) is signed by software / TAPSIGNER / COLDCARD
-  (NFC or file) / Jade (UR QR) as before, and by Ledger, BitBox and Trezor against the wallet the
-  claim status returned: `InheritanceAdditional.registrationBsms` → `ClaimInheritanceTxParam` →
-  `ClaimTransactionArgs.registrationBsms` → `ParseWalletDescriptorUseCase`, kept in memory only
-  (the ticket forbids creating a wallet from it). Ledger/BitBox register that policy inside their
+  (NFC or file) / Jade, Keystone, SeedSigner (UR QR) as before, and by Ledger, BitBox and Trezor
+  against the wallet the claim status returned: `InheritanceAdditional.registrationBsms` →
+  `ClaimInheritanceTxParam` → `ClaimTransactionArgs.registrationBsms` →
+  `ParseWalletDescriptorUseCase`, kept in memory only (the ticket forbids creating a wallet from
+  it). A PSBT scanned back over QR is decoded again against the claim's signers
+  (`importSignedTransaction`), as a file is — SeedSigner and Krux strip the metadata the
+  wallet-less QR decode needs. Ledger/BitBox register that policy inside their
   `*SignPsbtSheet(wallet, …)`; Trezor builds its deeplink from it. Without the descriptor —
   the server sends it only when a key `requires_wallet_registration` — those three report
   "Cannot load wallet for … signing" and cannot sign.

@@ -320,6 +320,24 @@ class ClaimTransactionViewModel @AssistedInject constructor(
         checkAndClaimIfAllSigned(transaction)
     }
 
+    /**
+     * A PSBT scanned back over QR. The import screen decodes it with no wallet, which only finds the
+     * signature when the device kept the PSBT metadata; SeedSigner and Krux strip it, so the same
+     * PSBT would come back unsigned. Decode it again against the claim's signers, as a file is.
+     */
+    fun importSignedTransaction(transaction: Transaction) {
+        viewModelScope.launch {
+            _loadingType.update { LoadingType.Normal }
+            try {
+                decodeSignedPsbt(transaction.psbt)
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to decode the imported PSBT against the claim signers")
+                updateTransaction(transaction)
+            }
+            _loadingType.update { null }
+        }
+    }
+
     fun importPsbtFromFile(uri: Uri) {
         viewModelScope.launch {
             _loadingType.update { LoadingType.Normal }
