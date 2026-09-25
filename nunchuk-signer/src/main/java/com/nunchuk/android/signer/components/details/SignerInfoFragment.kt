@@ -143,7 +143,7 @@ class SignerInfoFragment : BaseShareSaveFileFragment<ViewBinding>(),
                             onViewSeedPhraseClicked = { passphrase ->
                                 if (uiState.seedPhraseViewTimestamp == null) {
                                     viewModel.saveSeedPhraseViewTimestamp(args.id)
-                                } else {
+                                } else if (viewModel.isSeedPhraseWaitElapsed()) {
                                     viewModel.removeSeedPhraseViewTimestamp(args.id)
                                     if (uiState.hasXprv) {
                                         navigator.openAddSoftwareSignerScreen(
@@ -161,6 +161,7 @@ class SignerInfoFragment : BaseShareSaveFileFragment<ViewBinding>(),
                                 }
                             },
                             onViewSeedPhraseRequested = viewModel::onViewSeedPhraseRequested,
+                            onSeedPhraseRequestHandled = viewModel::onSeedPhraseRequestHandled,
                             onPassphraseSubmitted = { passphrase ->
                                 viewModel.checkPassphrase(
                                     masterSignerId = args.id,
