@@ -27,6 +27,8 @@ import com.nunchuk.android.compose.NcHighlightText
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
+import com.nunchuk.android.core.signer.isOnChainTimelockKey
+import com.nunchuk.android.core.signer.isVerifyOnChainTimelockBackup
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.signer.R
@@ -130,20 +132,19 @@ internal fun ColdCardIntroScreen(
     mk4Activity: Mk4Activity? = null,
     onColdCardAction: (ColdCardAction) -> Unit = {}
 ) {
-    val isVerifyBackupSeedPhrase =
-        mk4Activity?.onChainAddSignerParam?.isVerifyBackupSeedPhrase() == true
-    val isClaiming =
-        mk4Activity?.onChainAddSignerParam?.isClaiming == true
-    val isAddInheritanceOffChainSigner = mk4Activity?.onChainAddSignerParam?.isAddInheritanceOffChainSigner() == true
+    val onChainAddSignerParam = mk4Activity?.onChainAddSignerParam
+    // Only the verification of an on-chain timelock key may name a spending path and an account;
+    // an off-chain inheritance key is re-added like any other key.
+    val isVerifyOnChainTimelockBackup = onChainAddSignerParam.isVerifyOnChainTimelockBackup()
+    val isVerifyBackupSeedPhrase = onChainAddSignerParam?.isVerifyBackupSeedPhrase() == true
+    val isClaiming = onChainAddSignerParam?.isClaiming == true
+    val isAddInheritanceOffChainSigner =
+        onChainAddSignerParam?.isAddInheritanceOffChainSigner() == true
     // Only the on-chain timelock wallet adds each Coldcard twice (Acct X / Acct Y), so only it
     // gets the "(n/2)" title and the two-keys copy. An off-chain inheritance key is a single
     // ordinary add, the same as any other membership key.
-    val isOnChainTimelockKey = mk4Activity?.onChainAddSignerParam != null
-            && !isVerifyBackupSeedPhrase
-            && !isClaiming
-            && !isAddInheritanceOffChainSigner
-    val onChainKeyIndex =
-        if (mk4Activity?.onChainAddSignerParam != null && mk4Activity.onChainAddSignerParam!!.keyIndex >= 0) mk4Activity.onChainAddSignerParam!!.keyIndex else 0
+    val isOnChainTimelockKey = onChainAddSignerParam.isOnChainTimelockKey()
+    val onChainKeyIndex = onChainAddSignerParam?.keyIndex?.takeIf { it >= 0 } ?: 0
     NunchukTheme {
         Scaffold(topBar = {
             NcImageAppBar(
@@ -178,7 +179,7 @@ internal fun ColdCardIntroScreen(
                     NcHighlightText(
                         modifier = Modifier.padding(16.dp),
                         text = when {
-                            isVerifyBackupSeedPhrase ->
+                            isVerifyOnChainTimelockBackup ->
                                 stringResource(R.string.nc_coldcard_onchain_verify_backup_desc)
 
                             isOnChainTimelockKey && onChainKeyIndex == 0 ->
@@ -222,7 +223,7 @@ internal fun ColdCardIntroScreen(
                         title = stringResource(R.string.nc_add_coldcard_via_usb),
                         iconId = R.drawable.ic_usb,
                         onClick = { onColdCardAction(ColdCardAction.USB) },
-                        isEnable = isFromAddKey.not() || (mk4Activity?.onChainAddSignerParam != null && !isVerifyBackupSeedPhrase),
+                        isEnable = isFromAddKey.not() || (onChainAddSignerParam != null && !isVerifyBackupSeedPhrase),
                         subtitle = if (isFromAddKey) stringResource(R.string.nc_desktop_only) else ""
                     )
                 }

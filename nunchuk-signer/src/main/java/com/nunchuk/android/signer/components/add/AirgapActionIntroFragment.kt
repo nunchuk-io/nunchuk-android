@@ -30,6 +30,8 @@ import com.nunchuk.android.compose.ActionItem
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.signer.OnChainAddSignerParam
+import com.nunchuk.android.core.signer.isOnChainTimelockKey
+import com.nunchuk.android.core.signer.isVerifyOnChainTimelockBackup
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.type.SignerTag
@@ -107,7 +109,6 @@ internal fun AirgapActionIntroScreen(
     onChainAddSignerParam: OnChainAddSignerParam? = null,
     onAction: (JADEAction) -> Unit = {}
 ) {
-    val isClaiming = onChainAddSignerParam?.isClaiming == true
     NunchukTheme {
         Scaffold(topBar = {
             NcImageAppBar(
@@ -125,22 +126,25 @@ internal fun AirgapActionIntroScreen(
                     .navigationBarsPadding()
                     .verticalScroll(rememberScrollState())
             ) {
-                val onChainKeyIndex =
-                    if (onChainAddSignerParam != null && onChainAddSignerParam.keyIndex >= 0) onChainAddSignerParam.keyIndex else 0
+                val onChainKeyIndex = onChainAddSignerParam?.keyIndex?.takeIf { it >= 0 } ?: 0
+                // Only the on-chain timelock wallet adds each Jade twice (Acct X / Acct Y), so
+                // only it gets the "(n/2)" title and the spending-path copy. An off-chain
+                // inheritance key is a single ordinary add, the same as any other membership key.
+                val isOnChainTimelockKey = onChainAddSignerParam.isOnChainTimelockKey()
                 Text(
                     modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
-                    text = if (onChainAddSignerParam != null && onChainAddSignerParam.isVerifyBackupSeedPhrase().not() && !isClaiming) {
+                    text = if (isOnChainTimelockKey) {
                         "${stringResource(R.string.nc_add_jade)} (${onChainKeyIndex + 1}/2)"
                     } else {
                         stringResource(R.string.nc_add_jade)
                     },
                     style = NunchukTheme.typography.heading
                 )
-                if (onChainAddSignerParam != null && !isClaiming) {
+                if (isOnChainTimelockKey || onChainAddSignerParam.isVerifyOnChainTimelockBackup()) {
                     Spacer(modifier = Modifier.padding(top = 16.dp))
                     Text(
                         modifier = Modifier.padding(horizontal = 16.dp),
-                        text = if (onChainAddSignerParam.isVerifyBackupSeedPhrase()) {
+                        text = if (!isOnChainTimelockKey) {
                             buildAnnotatedString {
                                 append("Please re-add the key for the spending path ")
                                 withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
@@ -152,7 +156,7 @@ internal fun AirgapActionIntroScreen(
                                 }
                                 append(" for this spending path.")
                             }
-                        } else if (onChainAddSignerParam.keyIndex == 0) {
+                        } else if (onChainKeyIndex == 0) {
                             buildAnnotatedString {
                                 append("Each hardware device must be added twice, with both keys (before and after the timelock) coming from the same device but using different derivation paths.\n\n")
                                 append("Please add a key for the spending path ")
