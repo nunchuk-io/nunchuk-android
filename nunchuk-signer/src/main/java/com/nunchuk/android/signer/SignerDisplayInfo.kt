@@ -5,6 +5,7 @@ import androidx.annotation.StringRes
 import com.nunchuk.android.core.signer.KeyFlow
 import com.nunchuk.android.core.signer.KeyFlow.isPrimaryKeyFlow
 import com.nunchuk.android.core.signer.OnChainAddSignerParam
+import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.isInAppHardwareTag
 import com.nunchuk.android.model.signer.SupportedSigner
 import com.nunchuk.android.type.SignerTag
@@ -43,6 +44,33 @@ fun SupportedSigner.toKeyType(): KeyType? = when (type) {
         SignerTag.LEDGER -> KeyType.LEDGER
         SignerTag.TREZOR -> KeyType.TREZOR
         SignerTag.BITBOX -> KeyType.BITBOX
+        else -> null
+    }
+    else -> null
+}
+
+/**
+ * The add-key flow that reads [this] key off its device again — what verifying a seed-phrase backup
+ * re-runs, so the owner is not asked to pick a device the app already knows. A Coldcard is one flow
+ * however it was added: its own type, or an air-gapped / USB key carrying the tag. Null for a key
+ * with no device to re-read (software, server) or an unrecognised hardware tag.
+ */
+fun SignerModel.toReAddKeyType(): KeyType? = when {
+    type == SignerType.COLDCARD_NFC || tags.contains(SignerTag.COLDCARD) -> KeyType.COLDCARD
+    type == SignerType.NFC -> KeyType.TAPSIGNER
+    type == SignerType.PORTAL_NFC -> KeyType.PORTAL
+    type == SignerType.AIRGAP -> when {
+        tags.contains(SignerTag.JADE) -> KeyType.JADE
+        tags.contains(SignerTag.SEEDSIGNER) -> KeyType.SEEDSIGNER
+        tags.contains(SignerTag.KEYSTONE) -> KeyType.KEYSTONE
+        tags.contains(SignerTag.PASSPORT) -> KeyType.FOUNDATION
+        tags.contains(SignerTag.KRUX) -> KeyType.KRUX
+        else -> KeyType.GENERIC_AIRGAP
+    }
+    type == SignerType.HARDWARE -> when {
+        tags.contains(SignerTag.LEDGER) -> KeyType.LEDGER
+        tags.contains(SignerTag.TREZOR) -> KeyType.TREZOR
+        tags.contains(SignerTag.BITBOX) -> KeyType.BITBOX
         else -> null
     }
     else -> null

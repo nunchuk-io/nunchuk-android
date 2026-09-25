@@ -46,8 +46,9 @@ class BackUpSeedPhraseActivity : BaseComposeActivity(), BottomSheetOptionListene
     }
 
     /**
-     * The last step is re-adding the key from the restored device, which happens over in the
-     * key-type screen. What comes back differs per device, so the comparison is settled here:
+     * The last step is re-adding the key from the restored device, which opens that device's own
+     * add-key flow directly — the key being verified already says which device it is.
+     * What comes back differs per device, so the comparison is settled here:
      *
      * - Ledger and BitBox read the device against the expected fingerprint themselves and hand
      *   back [GlobalResultKey.EXTRA_VERIFIED_XFP] on a match, or a stand-in key naming the device
@@ -65,6 +66,9 @@ class BackUpSeedPhraseActivity : BaseComposeActivity(), BottomSheetOptionListene
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
         val data = result.data
+        // The device's add-key flow opens straight from the steps screen, with no key-type picker
+        // in between, so backing out of it lands back on the steps rather than leaving the flow.
+        if (result.resultCode == Activity.RESULT_CANCELED) return@registerForActivityResult
         if (result.resultCode != Activity.RESULT_OK) {
             setResult(result.resultCode, data)
             finish()
@@ -93,7 +97,7 @@ class BackUpSeedPhraseActivity : BaseComposeActivity(), BottomSheetOptionListene
         finish()
     }
 
-    /** Runs the re-add, so the owner can put the words on the device again. */
+    /** Runs the re-add on the restored device; the key type comes from [BackUpSeedPhraseArgs.signer]. */
     private fun openReAddKeyForVerification() {
         navigator.openSignerIntroScreen(
             launcher = signerIntroLauncher,
@@ -115,7 +119,7 @@ class BackUpSeedPhraseActivity : BaseComposeActivity(), BottomSheetOptionListene
                 claimOption = args.claimOption,
             )
         )
-        // Stay alive: the key-type screen reports back through signerIntroLauncher.
+        // Stay alive: the device flow reports back through signerIntroLauncher.
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

@@ -31,6 +31,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
@@ -65,6 +66,7 @@ import com.nunchuk.android.nav.args.SetupMk4Args
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.signer.KeyType
+import com.nunchuk.android.signer.toReAddKeyType
 import com.nunchuk.android.signer.toSignerTypeAndTag
 import com.nunchuk.android.signer.SignerIntroEvent
 import com.nunchuk.android.signer.SignerIntroViewModel
@@ -118,16 +120,39 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
     private val claimAccountIndex: Int
         get() = onChainAddSignerParam?.keyIndex?.takeIf { it >= 0 } ?: 0
 
+    /**
+     * The device a seed-phrase-backup verification has to re-read. The key being verified already
+     * names it, so its add-key flow opens straight away and the key-type picker never shows. Null
+     * outside verification, or for a key with no device flow, which keeps the picker as a fallback.
+     */
+    private val verifyingKeyType: KeyType? by lazy {
+        onChainAddSignerParam
+            ?.takeIf { it.isVerifyBackupSeedPhrase() }
+            ?.currentSigner
+            ?.toReAddKeyType()
+    }
+
+    /**
+     * With no picker behind the device screen, leaving it has to leave this screen too: a key goes
+     * up as usual, anything else (a back press, or Coldcard / air-gap reporting a verified key they
+     * already marked) is relayed as-is so the verification steps decide what comes next.
+     */
+    private fun relayResult(resultCode: Int, data: Intent?) {
+        setResult(resultCode, data)
+        finish()
+    }
+
     private val viewModel: SignerIntroViewModel by viewModels()
 
     private val signerResultLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        if (result.resultCode == RESULT_OK && result.data != null) {
-            val signer = result.data?.parcelable<SignerModel>(GlobalResultKey.EXTRA_SIGNER)
-            if (signer != null) {
-                returnSigner(signer)
-            }
+        val signer = result.data
+            ?.takeIf { result.resultCode == RESULT_OK }
+            ?.parcelable<SignerModel>(GlobalResultKey.EXTRA_SIGNER)
+        when {
+            signer != null -> returnSigner(signer)
+            verifyingKeyType != null -> relayResult(result.resultCode, result.data)
         }
     }
 
@@ -182,11 +207,10 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
     private val verifyHardwareBackupLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        // Backing out of the Ledger/BitBox screen leaves the user here to pick a key type, the
-        // same as backing out of the Coldcard or air-gap screens does.
-        if (result.resultCode != RESULT_OK) return@registerForActivityResult
-        setResult(RESULT_OK, result.data)
-        finish()
+        // Backing out stays on the key-type picker when one was shown; opened straight from the
+        // verification steps, it returns there.
+        if (result.resultCode != RESULT_OK && verifyingKeyType == null) return@registerForActivityResult
+        relayResult(result.resultCode, result.data)
     }
 
     private val recoverSeedLauncher = registerForActivityResult(
@@ -283,8 +307,21 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
                     }
                 }
 
+                // Saved so that coming back from the device screen, or a recreate, never reopens it.
+                var hasOpenedVerifyingKey by rememberSaveable { mutableStateOf(false) }
+
+                // Declared after the event collector on purpose: effects start in order, and a
+                // TAPSIGNER opens through a view-model event that is dropped with no subscriber.
+                LaunchedEffect(Unit) {
+                    val keyType = verifyingKeyType ?: return@LaunchedEffect
+                    if (hasOpenedVerifyingKey) return@LaunchedEffect
+                    hasOpenedVerifyingKey = true
+                    handleKeyTypeSelection(keyType, navHostController)
+                }
+
                 NunchukTheme {
-                    NavHost(
+                    // The picker is skipped when verifying: the device is already known and opened above.
+                    if (verifyingKeyType == null) NavHost(
                         navController = navHostController,
                         startDestination = if (isAddInheritanceKeyForSetup) {
                             InheritanceKeyIntroDestination
@@ -459,7 +496,8 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
             KeyType.KRUX -> handleClaimableAirgapSelection(SignerTag.KRUX)
             KeyType.SOFTWARE -> showSoftwareSigners()
             KeyType.PLATFORM_KEY -> returnPlatformKeyResult()
-            KeyType.GENERIC_AIRGAP -> if (isAddInheritanceKeyForSetup) {
+            // Verifying has to come back here with the re-read key, like the tagged air-gap keys.
+            KeyType.GENERIC_AIRGAP -> if (isAddInheritanceKeyForSetup || verifyingKeyType != null) {
                 handleSelectAddAirgapType(tag = null)
             } else {
                 openAddAirSignerIntroScreen()
