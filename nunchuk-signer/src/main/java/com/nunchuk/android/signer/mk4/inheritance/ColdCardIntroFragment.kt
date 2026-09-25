@@ -175,24 +175,35 @@ internal fun ColdCardIntroScreen(
                     },
                     style = NunchukTheme.typography.heading
                 )
-                if (isClaiming.not()) {
+                // Every description here is on-chain copy: it names a spending path and the
+                // account to pick for it. Off the on-chain timelock flow there is no such path,
+                // so the screen carries no description at all rather than a stand-in.
+                val description = when {
+                    isClaiming -> null
+
+                    isVerifyOnChainTimelockBackup ->
+                        stringResource(R.string.nc_coldcard_onchain_verify_backup_desc)
+
+                    isOnChainTimelockKey && onChainKeyIndex == 0 ->
+                        stringResource(R.string.nc_coldcard_onchain_first_key_desc)
+
+                    isOnChainTimelockKey ->
+                        stringResource(
+                            R.string.nc_coldcard_onchain_second_key_desc,
+                            onChainKeyIndex
+                        )
+
+                    // An off-chain inheritance key — added, or having its backup verified — is an
+                    // ordinary single add, and the generic "you can add via NFC, QR or file" line
+                    // only repeats the actions listed right below it.
+                    isVerifyBackupSeedPhrase || isAddInheritanceOffChainSigner -> null
+
+                    else -> stringResource(R.string.nc_add_coldcard_mk4_desc)
+                }
+                if (description != null) {
                     NcHighlightText(
                         modifier = Modifier.padding(16.dp),
-                        text = when {
-                            isVerifyOnChainTimelockBackup ->
-                                stringResource(R.string.nc_coldcard_onchain_verify_backup_desc)
-
-                            isOnChainTimelockKey && onChainKeyIndex == 0 ->
-                                stringResource(R.string.nc_coldcard_onchain_first_key_desc)
-
-                            isOnChainTimelockKey ->
-                                stringResource(
-                                    R.string.nc_coldcard_onchain_second_key_desc,
-                                    onChainKeyIndex
-                                )
-
-                            else -> stringResource(R.string.nc_add_coldcard_mk4_desc)
-                        },
+                        text = description,
                         style = NunchukTheme.typography.body
                     )
                 }
