@@ -35,32 +35,33 @@ import com.nunchuk.android.core.ledger.LedgerSignPsbtSheet
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.NfcActionListener
 import com.nunchuk.android.core.nfc.NfcViewModel
+import com.nunchuk.android.core.signing.ExportRoute
+import com.nunchuk.android.core.signing.InAppSigningDevice
+import com.nunchuk.android.core.signing.SigningDevice
+import com.nunchuk.android.core.signing.SigningMethod
+import com.nunchuk.android.core.signing.SigningTransport
+import com.nunchuk.android.core.signing.navigation
+import com.nunchuk.android.core.signing.profile
+import com.nunchuk.android.core.signing.signingDevice
 import com.nunchuk.android.core.share.IntentSharingController
-import com.nunchuk.android.core.util.isBitBox
-import com.nunchuk.android.core.util.isQrOnlyAirgap
-import com.nunchuk.android.core.util.isLedger
-import com.nunchuk.android.core.util.isTrezor
 import com.nunchuk.android.core.util.openExternalLink
 import com.nunchuk.android.core.util.openTrezorSuiteLink
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.ClaimTransactionViewModel.LoadingType
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.verifymessage.ColdCardSigningBottomSheets
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.verifymessage.ColdCardSigningCallbacks
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.verifymessage.ExportImportSheets
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.verifymessage.ExportImportCallbacks
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.nav.args.ClaimTransactionArgs
-import com.nunchuk.android.share.model.SignFlowType
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.transaction.components.details.TransactionDetailView
 import com.nunchuk.android.type.SignerTag
-import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.widget.NCInputDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 import com.nunchuk.android.core.R as CoreR
-import com.nunchuk.android.core.util.isSdCardAirgap
 
 @AndroidEntryPoint
 class ClaimTransactionActivity : BaseNfcActivity<ViewBinding>() {
@@ -105,9 +106,10 @@ private fun ClaimTransactionScreen(
     val claimError by viewModel.claimError.collectAsStateWithLifecycle()
     val hardwareSignRequest by viewModel.hardwareSignRequest.collectAsStateWithLifecycle()
     val trezorSuiteDeeplink by viewModel.trezorSuiteDeeplink.collectAsStateWithLifecycle()
-    var showColdCardOptionsSheet by remember { mutableStateOf(false) }
-    var showAirgapOptionsSheet by remember { mutableStateOf(false) }
-    var showSdCardAirgapOptionsSheet by remember { mutableStateOf(false) }
+    var exportImportMethod by remember { mutableStateOf<SigningMethod.ExportImport?>(null) }
+    var showSigningOptions by remember { mutableStateOf(false) }
+    /** The file route a Save waits on while the storage permission is asked (Android 9 and below). */
+    var pendingSaveFile by remember { mutableStateOf<ExportRoute.File?>(null) }
     val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(claimError) {
@@ -123,11 +125,11 @@ private fun ClaimTransactionScreen(
     val requestPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
-        if (isGranted) {
-            val psbt = state.transaction.psbt
-            if (psbt.isNotEmpty()) {
-                viewModel.saveLocalFile(psbt)
-            }
+        val fileRoute = pendingSaveFile
+        pendingSaveFile = null
+        val psbt = state.transaction.psbt
+        if (isGranted && fileRoute != null && psbt.isNotEmpty()) {
+            viewModel.saveLocalFile(psbt, fileRoute.fileName)
         }
     }
 
@@ -266,39 +268,31 @@ private fun ClaimTransactionScreen(
             snackbarHostState = snackbarHostState,
             isShowRetryButton = claimError != null,
             onRetryClick = { viewModel.checkAndClaimIfAllSigned(state.transaction) },
-            onShowMore = { showColdCardOptionsSheet = true },
+            onShowMore = {
+                // The generic More action keeps offering the Coldcard export options, as before.
+                (SigningDevice.COLDCARD.profile().psbt as? SigningMethod.ExportImport)?.let {
+                    exportImportMethod = it
+                    showSigningOptions = true
+                }
+            },
             onSignClick = { signerModel ->
-                when {
-                    signerModel.type == SignerType.NFC -> {
-                        (activity as NfcActionListener).startNfcFlow(
-                            BaseNfcActivity.REQUEST_NFC_SIGN_TRANSACTION
-                        )
+                when (val method = signerModel.signingDevice().profile().psbt) {
+                    SigningMethod.TapSigner -> (activity as NfcActionListener)
+                        .startNfcFlow(BaseNfcActivity.REQUEST_NFC_SIGN_TRANSACTION)
+                    SigningMethod.Software -> viewModel.checkSoftwarePassphrase(signerModel)
+                    is SigningMethod.ExportImport -> {
+                        exportImportMethod = method
+                        showSigningOptions = true
                     }
-
-                    signerModel.type == SignerType.SOFTWARE -> {
-                        viewModel.checkSoftwarePassphrase(signerModel)
-                    }
-
-                    signerModel.type == SignerType.COLDCARD_NFC || signerModel.tags.contains(
-                        SignerTag.COLDCARD
-                    ) -> {
-                        showColdCardOptionsSheet = true
-                    }
-
-                    // Jade, Keystone and SeedSigner sign the PSBT over QR only (UR out, signed UR
-                    // back in).
-                    signerModel.isQrOnlyAirgap -> {
-                        showAirgapOptionsSheet = true
-                    }
-
-                    // Ledger and BitBox sign in-app after registering the wallet policy; Trezor
-                    // signs in Trezor Suite. All three need the wallet the claim status returned.
-                    // Passport and Krux take the PSBT over QR (UR) or from a memory card; no NFC.
-                    signerModel.isSdCardAirgap -> showSdCardAirgapOptionsSheet = true
-
-                    signerModel.isLedger -> viewModel.requestSignByHardware(signerModel, SignerTag.LEDGER)
-                    signerModel.isBitBox -> viewModel.requestSignByHardware(signerModel, SignerTag.BITBOX)
-                    signerModel.isTrezor -> viewModel.requestSignByTrezor(signerModel)
+                    is SigningMethod.InApp -> viewModel.requestSignByHardware(
+                        signerModel,
+                        when (method.device) {
+                            InAppSigningDevice.LEDGER -> SignerTag.LEDGER
+                            InAppSigningDevice.BITBOX -> SignerTag.BITBOX
+                        },
+                    )
+                    SigningMethod.TrezorSuite -> viewModel.requestSignByTrezor(signerModel)
+                    SigningMethod.Unsupported -> Unit
                 }
             },
             onBroadcastClick = { /* Handle broadcast click */ },
@@ -348,133 +342,70 @@ private fun ClaimTransactionScreen(
             )
         }
 
-        ColdCardSigningBottomSheets(
-            isQrOnly = true,
-            showColdCardOptions = showAirgapOptionsSheet,
-            onDismissColdCardOptions = { showAirgapOptionsSheet = false },
-            callbacks = ColdCardSigningCallbacks(
-                onExportViaQr = {
-                    val psbt = state.transaction.psbt
-                    if (psbt.isNotEmpty()) {
-                        navigator.openExportTransactionScreen(
-                            launcher = importOrExportTransactionLauncher,
-                            activityContext = activity,
-                            txToSign = psbt,
-                            signFlowType = SignFlowType.NormalDummy,
-                            isBBQR = false
-                        )
-                    }
-                },
-                onImportViaQr = {
-                    navigator.openImportTransactionScreen(
-                        launcher = importOrExportTransactionLauncher,
-                        activityContext = activity,
-                        signFlowType = SignFlowType.NormalDummy
-                    )
-                },
-            )
-        )
-
-        // The PSBT as a file, for every device that signs from a memory card (Coldcard, Passport):
-        // save or share it, then pick the signed file back.
-        val psbtFileCallbacks = ColdCardSigningCallbacks(
-            onImportViaFile = { importFileLauncher.launch("*/*") },
-            onSaveFile = {
-                val psbt = state.transaction.psbt
-                if (psbt.isNotEmpty()) {
-                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-                        if (ContextCompat.checkSelfPermission(
-                                activity,
-                                Manifest.permission.WRITE_EXTERNAL_STORAGE
-                            ) != PackageManager.PERMISSION_GRANTED
-                        ) {
-                            requestPermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                        } else {
-                            viewModel.saveLocalFile(psbt)
-                        }
-                    } else {
-                        viewModel.saveLocalFile(psbt)
-                    }
-                }
-            },
-            onShareFile = {
-                val psbt = state.transaction.psbt
-                if (psbt.isNotEmpty()) {
-                    coroutineScope.launch {
-                        viewModel.exportTransactionToFile(psbt)
-                    }
-                }
-            },
-        )
-
-        ColdCardSigningBottomSheets(
-            supportsNfc = false,
-            showColdCardOptions = showSdCardAirgapOptionsSheet,
-            onDismissColdCardOptions = { showSdCardAirgapOptionsSheet = false },
-            callbacks = psbtFileCallbacks.copy(
-                onExportViaQr = {
-                    val psbt = state.transaction.psbt
-                    if (psbt.isNotEmpty()) {
-                        navigator.openExportTransactionScreen(
-                            launcher = importOrExportTransactionLauncher,
-                            activityContext = activity,
-                            txToSign = psbt,
-                            signFlowType = SignFlowType.NormalDummy,
-                            isBBQR = false
-                        )
-                    }
-                },
-                onImportViaQr = {
-                    navigator.openImportTransactionScreen(
-                        launcher = importOrExportTransactionLauncher,
-                        activityContext = activity,
-                        signFlowType = SignFlowType.NormalDummy
-                    )
-                },
-            )
-        )
-
-        ColdCardSigningBottomSheets(
-            showColdCardOptions = showColdCardOptionsSheet,
-            onDismissColdCardOptions = { showColdCardOptionsSheet = false },
-            callbacks = psbtFileCallbacks.copy(
-                onExportViaQr = {
-                    coroutineScope.launch {
+        exportImportMethod?.let { method ->
+            ExportImportSheets(
+                method = method,
+                showOptions = showSigningOptions,
+                onDismissOptions = { showSigningOptions = false },
+                callbacks = ExportImportCallbacks(
+                    onExportQr = { route ->
                         val psbt = state.transaction.psbt
                         if (psbt.isNotEmpty()) {
+                            val navigation = route.navigation()
                             navigator.openExportTransactionScreen(
                                 launcher = importOrExportTransactionLauncher,
                                 activityContext = activity,
                                 txToSign = psbt,
-                                signFlowType = SignFlowType.NormalDummy,
-                                isBBQR = true
+                                signFlowType = navigation.flow,
+                                isBBQR = navigation.isBBQR,
                             )
                         }
-                    }
-                },
-                onImportViaQr = {
-                    navigator.openImportTransactionScreen(
-                        launcher = importOrExportTransactionLauncher,
-                        activityContext = activity,
-                        signFlowType = SignFlowType.NormalDummy
-                    )
-                },
-                onExportViaNfc = {
-                    coroutineScope.launch {
+                    },
+                    onExportNfc = {
+                        if (state.transaction.psbt.isNotEmpty()) {
+                            (activity as NfcActionListener)
+                                .startNfcFlow(BaseNfcActivity.REQUEST_MK4_EXPORT_TRANSACTION)
+                        }
+                    },
+                    onImport = { transport ->
+                        when (transport) {
+                            SigningTransport.FILE -> importFileLauncher.launch("*/*")
+                            // A QR import always answers a QR export, so the export route names its flow.
+                            SigningTransport.QR -> method.qrRoute?.let { route ->
+                                navigator.openImportTransactionScreen(
+                                    launcher = importOrExportTransactionLauncher,
+                                    activityContext = activity,
+                                    signFlowType = route.navigation().flow,
+                                )
+                            }
+                            SigningTransport.NFC -> (activity as NfcActionListener)
+                                .startNfcFlow(BaseNfcActivity.REQUEST_MK4_IMPORT_SIGNATURE)
+                        }
+                    },
+                    onSaveFile = { route ->
                         val psbt = state.transaction.psbt
                         if (psbt.isNotEmpty()) {
-                            (activity as NfcActionListener).startNfcFlow(
-                                BaseNfcActivity.REQUEST_MK4_EXPORT_TRANSACTION
-                            )
+                            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q &&
+                                ContextCompat.checkSelfPermission(
+                                    activity,
+                                    Manifest.permission.WRITE_EXTERNAL_STORAGE
+                                ) != PackageManager.PERMISSION_GRANTED
+                            ) {
+                                pendingSaveFile = route
+                                requestPermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                            } else {
+                                viewModel.saveLocalFile(psbt, route.fileName)
+                            }
                         }
-                    }
-                },
-                onImportViaNfc = {
-                    (activity as NfcActionListener).startNfcFlow(
-                        BaseNfcActivity.REQUEST_MK4_IMPORT_SIGNATURE
-                    )
-                },
+                    },
+                    onShareFile = { route ->
+                        val psbt = state.transaction.psbt
+                        if (psbt.isNotEmpty()) {
+                            viewModel.exportTransactionToFile(psbt, route.fileName)
+                        }
+                    },
+                ),
             )
-        )
+        }
     }
 }

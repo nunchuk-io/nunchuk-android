@@ -123,45 +123,6 @@ val SignerTag.isAirgapTag: Boolean
 val SignerTag?.isInAppHardwareTag: Boolean
     get() = this == SignerTag.TREZOR || this == SignerTag.LEDGER || this == SignerTag.BITBOX
 
-/**
- * The air-gapped device a QR-only signer ([isQrOnlyAirgap]) is tagged with, or null for any other
- * signer.
- */
-val SignerModel.qrOnlyAirgapTag: SignerTag?
-    get() = if (type == AIRGAP) tags.firstOrNull { it in qrOnlyAirgapTags } else null
-
-/**
- * A Jade, Keystone or SeedSigner added over QR. None has an in-app transport, so every signing step
- * is "show it a QR, scan the QR it shows back"; the claim flow branches on this to offer only QR
- * export/import.
- */
-val SignerModel.isQrOnlyAirgap: Boolean
-    get() = qrOnlyAirgapTag != null
-
-private val qrOnlyAirgapTags = setOf(SignerTag.JADE, SignerTag.KEYSTONE, SignerTag.SEEDSIGNER)
-
-/**
- * A Foundation Passport. It signs from its microSD card, so a message goes out as a file and the
- * signature comes back as one; PSBTs it also takes over QR.
- */
-val SignerModel.isPassportAirgap: Boolean
-    get() = type == AIRGAP && tags.contains(SignerTag.PASSPORT)
-
-/** A Krux. Signs from its SD card or over QR; a message request can go either way too. */
-val SignerModel.isKruxAirgap: Boolean
-    get() = type == AIRGAP && tags.contains(SignerTag.KRUX)
-
-/** Air-gapped devices that take a PSBT over QR or from a memory card and have no NFC. */
-val SignerModel.isSdCardAirgap: Boolean
-    get() = isPassportAirgap || isKruxAirgap
-
-/**
- * Signers that sign a message by taking a request out of the app (file / QR / NFC) and handing a
- * signature back the same way, so they share the Export / Import options sheet.
- */
-val SignerModel.signsByExportImport: Boolean
-    get() = isColdCard || isQrOnlyAirgap || isSdCardAirgap
-
 /** Ledger, paired in-app over BLE/USB; signs messages and PSBTs through [LedgerSheet]. */
 val SignerModel.isLedger: Boolean
     get() = type == HARDWARE && tags.contains(SignerTag.LEDGER)

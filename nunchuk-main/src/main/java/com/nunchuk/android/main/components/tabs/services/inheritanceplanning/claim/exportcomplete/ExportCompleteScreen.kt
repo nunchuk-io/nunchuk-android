@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -24,8 +25,11 @@ import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.R
 import com.nunchuk.android.main.R as MainR
-import androidx.annotation.StringRes
-import com.nunchuk.android.type.SignerTag
+import timber.log.Timber
+import com.nunchuk.android.core.signing.FileSigningInstructions
+import com.nunchuk.android.core.signing.SigningDevice
+import com.nunchuk.android.core.signing.SigningMethod
+import com.nunchuk.android.core.signing.profile
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -40,12 +44,12 @@ import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.cla
  */
 @Composable
 fun ExportCompleteScreen(
-    signerTag: SignerTag? = null,
+    device: SigningDevice = SigningDevice.COLDCARD,
     onImportSignature: (ImportSignatureVia) -> Unit = {},
     onCancel: () -> Unit = {},
 ) {
     ExportCompleteContent(
-        signerTag = signerTag,
+        device = device,
         onImportSignature = onImportSignature,
         onCancel = onCancel,
     )
@@ -53,12 +57,26 @@ fun ExportCompleteScreen(
 
 @Composable
 fun ExportCompleteContent(
-    signerTag: SignerTag? = null,
+    device: SigningDevice = SigningDevice.COLDCARD,
     onImportSignature: (ImportSignatureVia) -> Unit = {},
     onCancel: () -> Unit = {},
 ) {
+    // Reached only after a message file export, so the device's file route says what comes next.
+    val afterExport = (device.profile().message as? SigningMethod.ExportImport)?.fileRoute?.afterExport
+    if (afterExport == null) {
+        LaunchedEffect(device) {
+            Timber.e("Export completed opened for %s, which exports no message file", device)
+            onCancel()
+        }
+        return
+    }
     // A device that answers one way goes straight there; one that answers by QR or file asks.
-    val importRoutes = signerTag.importSignatureRoutes
+    val importRoutes = afterExport.imports
+    val instructions = when (afterExport.instructions) {
+        FileSigningInstructions.COLDCARD -> MainR.string.nc_export_completed_instructions
+        FileSigningInstructions.PASSPORT -> MainR.string.nc_export_completed_instructions_passport
+        FileSigningInstructions.KRUX -> MainR.string.nc_export_completed_instructions_krux
+    }
     var showImportOptions by remember { mutableStateOf(false) }
     NunchukTheme {
         Scaffold(
@@ -120,7 +138,7 @@ fun ExportCompleteContent(
 
                 NcHighlightText(
                     modifier = Modifier.padding(top = 16.dp),
-                    text = stringResource(signerTag.exportCompletedInstructionsRes),
+                    text = stringResource(instructions),
                     style = NunchukTheme.typography.body,
                 )
             }
@@ -139,28 +157,6 @@ fun ExportCompleteContent(
     }
 }
 
-/**
- * Ways each device hands the signed message back, in the order the sheet lists them. Passport and
- * Coldcard write a file; Krux can also show the signature as a QR ("Sign to QR code").
- */
-private val SignerTag?.importSignatureRoutes: List<ImportSignatureVia>
-    get() = when (this) {
-        SignerTag.KRUX -> listOf(ImportSignatureVia.QR, ImportSignatureVia.FILE)
-        else -> listOf(ImportSignatureVia.FILE)
-    }
-
-/**
- * On-device steps per signer. A Coldcard is the default because it is the only device this
- * screen served before, and a `COLDCARD_NFC` signer carries no tag.
- */
-@get:StringRes
-private val SignerTag?.exportCompletedInstructionsRes: Int
-    get() = when (this) {
-        SignerTag.PASSPORT -> MainR.string.nc_export_completed_instructions_passport
-        SignerTag.KRUX -> MainR.string.nc_export_completed_instructions_krux
-        else -> MainR.string.nc_export_completed_instructions
-    }
-
 @Preview
 @Composable
 private fun ExportCompleteContentPreview() {
@@ -170,11 +166,11 @@ private fun ExportCompleteContentPreview() {
 @Preview
 @Composable
 private fun ExportCompleteContentPassportPreview() {
-    ExportCompleteContent(signerTag = SignerTag.PASSPORT)
+    ExportCompleteContent(device = SigningDevice.PASSPORT)
 }
 
 @Preview
 @Composable
 private fun ExportCompleteContentKruxPreview() {
-    ExportCompleteContent(signerTag = SignerTag.KRUX)
+    ExportCompleteContent(device = SigningDevice.KRUX)
 }

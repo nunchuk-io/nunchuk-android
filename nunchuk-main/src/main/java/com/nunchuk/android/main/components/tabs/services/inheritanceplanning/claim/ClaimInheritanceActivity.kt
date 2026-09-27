@@ -1,6 +1,7 @@
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim
 
 import android.app.Activity
+import com.nunchuk.android.core.signing.signingDevice
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
@@ -448,7 +449,7 @@ private fun ClaimInheritanceGraph(
                 },
                 onNavigateToExportComplete = {
                     navController.navigateToExportComplete(
-                        signerTag = claimData.signers.lastOrNull()?.tags?.firstOrNull()
+                        device = claimData.signers.last().signingDevice()
                     )
                 }
             )

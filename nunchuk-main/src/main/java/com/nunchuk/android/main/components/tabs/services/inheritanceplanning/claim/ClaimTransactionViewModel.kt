@@ -482,12 +482,13 @@ class ClaimTransactionViewModel @AssistedInject constructor(
         }
     }
 
-    fun saveLocalFile(psbt: String) {
+    /** [fileName] comes from the signer's FILE route. */
+    fun saveLocalFile(psbt: String, fileName: String) {
         viewModelScope.launch {
             _loadingType.update { LoadingType.Normal }
             val result = saveLocalFileUseCase(
                 SaveLocalFileUseCase.Params(
-                    fileName = "transaction.psbt",
+                    fileName = fileName,
                     fileContent = psbt
                 )
             )
@@ -496,10 +497,10 @@ class ClaimTransactionViewModel @AssistedInject constructor(
         }
     }
 
-    fun exportTransactionToFile(psbt: String) {
+    fun exportTransactionToFile(psbt: String, fileName: String) {
         viewModelScope.launch {
             _loadingType.update { LoadingType.Normal }
-            createShareFileUseCase("transaction.psbt").onSuccess { filePath ->
+            createShareFileUseCase(fileName).onSuccess { filePath ->
                 writePsbtToFile(filePath, psbt)
             }.onFailure {
                 _event.emit(ClaimTransactionEvent.ShowError(it.message.orUnknownError()))
@@ -543,18 +544,7 @@ class ClaimTransactionViewModel @AssistedInject constructor(
         viewModelScope.launch {
             _loadingType.update { LoadingType.ColdCard }
             getPsbtFromMk4UseCase(records.toTypedArray()).onSuccess { importedPsbt ->
-                val currentTx = _state.value.transaction
-                decodeTxUseCase(
-                    DecodeTxUseCase.Param(
-                        signers = _singleSigners,
-                        psbt = importedPsbt,
-                        subAmount = valueFromAmountUseCase(currentTx.subAmount).getOrThrow(),
-                        feeRate = valueFromAmountUseCase(currentTx.feeRate).getOrThrow(),
-                        fee = valueFromAmountUseCase(currentTx.fee).getOrThrow(),
-                        subtractFeeFromAmount = currentTx.subtractFeeFromAmount
-                    )
-                ).onSuccess { transaction ->
-                    updateTransaction(transaction)
+                runCatching { decodeSignedPsbt(importedPsbt) }.onSuccess {
                     _event.emit(ClaimTransactionEvent.ImportTransactionFromMk4Success)
                 }.onFailure {
                     _event.emit(ClaimTransactionEvent.ShowError(it.message.orUnknownError()))

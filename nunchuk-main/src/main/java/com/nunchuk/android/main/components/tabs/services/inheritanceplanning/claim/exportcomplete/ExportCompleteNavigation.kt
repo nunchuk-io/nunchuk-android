@@ -5,12 +5,12 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import kotlinx.serialization.Serializable
 import androidx.navigation.toRoute
-import com.nunchuk.android.type.SignerTag
+import com.nunchuk.android.core.signing.SigningDevice
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.verifymessage.ImportSignatureVia
 
-/** @param signerTag [SignerTag.name] of the device the file is for; null reads as a Coldcard. */
+/** Carries the classified device, not an arbitrary first signer tag. */
 @Serializable
-data class ExportCompleteRoute(val signerTag: String? = null)
+data class ExportCompleteRoute(val device: SigningDevice = SigningDevice.COLDCARD)
 
 fun NavGraphBuilder.exportComplete(
     onImportSignature: (ImportSignatureVia) -> Unit = {},
@@ -19,13 +19,13 @@ fun NavGraphBuilder.exportComplete(
     composable<ExportCompleteRoute> { backStackEntry ->
         val route = backStackEntry.toRoute<ExportCompleteRoute>()
         ExportCompleteScreen(
-            signerTag = route.signerTag?.let { SignerTag.valueOf(it) },
+            device = route.device,
             onImportSignature = onImportSignature,
             onCancel = onCancel,
         )
     }
 }
 
-fun NavController.navigateToExportComplete(signerTag: SignerTag? = null) {
-    navigate(ExportCompleteRoute(signerTag = signerTag?.name))
+fun NavController.navigateToExportComplete(device: SigningDevice = SigningDevice.COLDCARD) {
+    navigate(ExportCompleteRoute(device = device))
 }

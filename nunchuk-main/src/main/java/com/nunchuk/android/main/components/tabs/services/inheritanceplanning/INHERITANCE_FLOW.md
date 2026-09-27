@@ -275,8 +275,8 @@ Key details:
   passphrase), COLDCARD (NFC `SendDataToMk4UseCase` / exported file →
   `ExtractColdcardMessageSignatureUseCase`, with `exportComplete` as the file hand-off screen),
   Jade, Keystone and SeedSigner (one `GenerateMessageSigningQrUseCase` QR out, the signature QR
-  back — `SignFlowType.ClaimAirgapMessage`, branched on `SignerModel.isQrOnlyAirgap`), Passport
-  (the request as a `.txt` for its microSD card —
+  back — `SignFlowType.ClaimAirgapMessage`; every device's routes come from
+  `SignerModel.signingDevice().profile()` in `core/signing`), Passport (the request as a `.txt` for its microSD card —
   `GeneratePassportMessageSigningUseCase` — and the `-signed` file back through the picker, with the
   per-device "Export completed" screen in between), Krux (file like Passport —
   `GenerateKruxMessageSigningUseCase` — or QR like Jade, and the signature back either way; the

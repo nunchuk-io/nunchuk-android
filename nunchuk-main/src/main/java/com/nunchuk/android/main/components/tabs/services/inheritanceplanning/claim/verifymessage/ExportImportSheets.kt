@@ -11,29 +11,26 @@ import androidx.compose.ui.res.stringResource
 import com.nunchuk.android.compose.NcSelectableBottomSheetWithIcon
 import com.nunchuk.android.compose.SelectableItem
 import com.nunchuk.android.core.R
+import com.nunchuk.android.core.signing.ExportRoute
+import com.nunchuk.android.core.signing.SigningMethod
+import com.nunchuk.android.core.signing.SigningTransport
 import com.nunchuk.android.widget.R as WidgetR
 
-/**
- * Callbacks for ColdCard signing actions
- */
-/** How a signed message or PSBT comes back into the app. */
-enum class ImportSignatureVia { FILE, QR, NFC }
+/** Shared transport identity, retained as an alias for claim navigation events. */
+typealias ImportSignatureVia = SigningTransport
 
-data class ColdCardSigningCallbacks(
-    val onExportViaQr: () -> Unit = {},
-    val onExportViaNfc: () -> Unit = {},
-    val onImportViaFile: () -> Unit = {},
-    val onImportViaQr: () -> Unit = {},
-    val onImportViaNfc: () -> Unit = {},
-    val onSaveFile: () -> Unit = {},
-    val onShareFile: () -> Unit = {},
-) {
-    fun onImport(via: ImportSignatureVia) = when (via) {
-        ImportSignatureVia.FILE -> onImportViaFile()
-        ImportSignatureVia.QR -> onImportViaQr()
-        ImportSignatureVia.NFC -> onImportViaNfc()
-    }
-}
+/**
+ * Required handlers, one per route kind, so a configured route cannot fall through to a no-op. A
+ * FILE export never reaches a handler directly: it opens the Save/Share sheet, whose two choices
+ * receive the route and with it the file name.
+ */
+data class ExportImportCallbacks(
+    val onExportQr: (ExportRoute.Qr) -> Unit,
+    val onExportNfc: (ExportRoute.Nfc) -> Unit,
+    val onImport: (SigningTransport) -> Unit,
+    val onSaveFile: (ExportRoute.File) -> Unit,
+    val onShareFile: (ExportRoute.File) -> Unit,
+)
 
 /** "Import signature" picker: one row per route, in the order given. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -69,46 +66,38 @@ fun ImportSignatureOptionsSheet(
 }
 
 /**
- * Reusable component that manages all bottom sheets for ColdCard signing flow.
- * Handles the navigation between different option sheets:
- * - ColdCard options (Export/Import)
- * - Export options (File/QR/NFC)
- * - Import options (File/QR/NFC)
- * - Save/Share options (Save/Share)
+ * Transport pickers shared by message and PSBT claim signing. A single export or import route skips
+ * its picker; a FILE export still asks Save or Share.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ColdCardSigningBottomSheets(
-    showColdCardOptions: Boolean,
+fun ExportImportSheets(
+    method: SigningMethod.ExportImport,
+    showOptions: Boolean,
     isMessage: Boolean = false,
-    /**
-     * Skip the File/QR/NFC pickers and go straight to [ColdCardSigningCallbacks.onExportViaQr] /
-     * [ColdCardSigningCallbacks.onImportViaQr] — for a device that only speaks QR (Jade).
-     */
-    isQrOnly: Boolean = false,
-    /**
-     * Skip the pickers and go straight to the save/share sheet on export and
-     * [ColdCardSigningCallbacks.onImportViaFile] on import — for a device that signs from a
-     * memory card only (Passport's message signing).
-     */
-    isFileOnly: Boolean = false,
-    /** Whether the File/QR/NFC pickers offer NFC; false for a device without it (Passport). */
-    supportsNfc: Boolean = true,
-    onDismissColdCardOptions: () -> Unit,
-    callbacks: ColdCardSigningCallbacks,
+    onDismissOptions: () -> Unit,
+    callbacks: ExportImportCallbacks,
 ) {
     var showExportOptionsSheet by remember { mutableStateOf(false) }
     var showImportOptionsSheet by remember { mutableStateOf(false) }
-    var showSaveShareSheet by remember { mutableStateOf(false) }
-    
-    val coldCardOptionsSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    var saveShareFileRoute by remember { mutableStateOf<ExportRoute.File?>(null) }
+
+    val optionsSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val exportOptionsSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val saveShareSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    // ColdCard Options Sheet (Export/Import)
-    if (showColdCardOptions) {
+    val export: (ExportRoute) -> Unit = { route ->
+        when (route) {
+            is ExportRoute.File -> saveShareFileRoute = route
+            is ExportRoute.Qr -> callbacks.onExportQr(route)
+            is ExportRoute.Nfc -> callbacks.onExportNfc(route)
+        }
+    }
+
+    // Export / Import
+    if (showOptions) {
         NcSelectableBottomSheetWithIcon(
-            sheetState = coldCardOptionsSheetState,
+            sheetState = optionsSheetState,
             items = listOf(
                 SelectableItem(
                     resId = WidgetR.drawable.ic_export,
@@ -120,54 +109,39 @@ fun ColdCardSigningBottomSheets(
                 )
             ),
             onSelected = { index ->
+                onDismissOptions()
                 when (index) {
-                    0 -> {
-                        onDismissColdCardOptions()
-                        when {
-                            isQrOnly -> callbacks.onExportViaQr()
-                            isFileOnly -> showSaveShareSheet = true
-                            else -> showExportOptionsSheet = true
-                        }
-                    }
-                    1 -> {
-                        onDismissColdCardOptions()
-                        when {
-                            isQrOnly -> callbacks.onImportViaQr()
-                            isFileOnly -> callbacks.onImportViaFile()
-                            else -> showImportOptionsSheet = true
-                        }
-                    }
+                    0 -> method.export.singleOrNull()?.let(export) ?: run { showExportOptionsSheet = true }
+                    1 -> method.imports.singleOrNull()?.let(callbacks.onImport) ?: run { showImportOptionsSheet = true }
                 }
             },
-            onDismiss = onDismissColdCardOptions
+            onDismiss = onDismissOptions
         )
     }
 
-    // Export Options Sheet (File/QR/NFC)
+    // Export via File / QR / NFC
     if (showExportOptionsSheet) {
         NcSelectableBottomSheetWithIcon(
             sheetState = exportOptionsSheetState,
-            items = listOfNotNull(
-                SelectableItem(
-                    resId = WidgetR.drawable.ic_export,
-                    text = stringResource(R.string.nc_export_via_file)
-                ),
-                SelectableItem(
-                    resId = WidgetR.drawable.ic_qr,
-                    text = stringResource(R.string.nc_export_via_qr)
-                ),
-                SelectableItem(
-                    resId = WidgetR.drawable.ic_nfc,
-                    text = stringResource(R.string.nc_export_via_nfc)
-                ).takeIf { supportsNfc }
-            ),
+            items = method.export.map { route ->
+                when (route.transport) {
+                    SigningTransport.FILE -> SelectableItem(
+                        resId = WidgetR.drawable.ic_export,
+                        text = stringResource(R.string.nc_export_via_file),
+                    )
+                    SigningTransport.QR -> SelectableItem(
+                        resId = WidgetR.drawable.ic_qr,
+                        text = stringResource(R.string.nc_export_via_qr),
+                    )
+                    SigningTransport.NFC -> SelectableItem(
+                        resId = WidgetR.drawable.ic_nfc,
+                        text = stringResource(R.string.nc_export_via_nfc),
+                    )
+                }
+            },
             onSelected = { index ->
                 showExportOptionsSheet = false
-                when (index) {
-                    0 -> showSaveShareSheet = true
-                    1 -> callbacks.onExportViaQr()
-                    2 -> callbacks.onExportViaNfc()
-                }
+                export(method.export[index])
             },
             onDismiss = {
                 showExportOptionsSheet = false
@@ -175,14 +149,10 @@ fun ColdCardSigningBottomSheets(
         )
     }
 
-    // Import Options Sheet (File/QR/NFC)
+    // Import via File / QR / NFC
     if (showImportOptionsSheet) {
         ImportSignatureOptionsSheet(
-            routes = listOfNotNull(
-                ImportSignatureVia.FILE,
-                ImportSignatureVia.QR,
-                ImportSignatureVia.NFC.takeIf { supportsNfc },
-            ),
+            routes = method.imports,
             onSelected = { route ->
                 showImportOptionsSheet = false
                 callbacks.onImport(route)
@@ -191,8 +161,8 @@ fun ColdCardSigningBottomSheets(
         )
     }
 
-    // Save/Share Options Sheet
-    if (showSaveShareSheet) {
+    // Save / Share the exported file
+    saveShareFileRoute?.let { fileRoute ->
         NcSelectableBottomSheetWithIcon(
             sheetState = saveShareSheetState,
             items = listOf(
@@ -206,14 +176,14 @@ fun ColdCardSigningBottomSheets(
                 )
             ),
             onSelected = { index ->
-                showSaveShareSheet = false
+                saveShareFileRoute = null
                 when (index) {
-                    0 -> callbacks.onSaveFile()
-                    1 -> callbacks.onShareFile()
+                    0 -> callbacks.onSaveFile(fileRoute)
+                    1 -> callbacks.onShareFile(fileRoute)
                 }
             },
             onDismiss = {
-                showSaveShareSheet = false
+                saveShareFileRoute = null
             }
         )
     }

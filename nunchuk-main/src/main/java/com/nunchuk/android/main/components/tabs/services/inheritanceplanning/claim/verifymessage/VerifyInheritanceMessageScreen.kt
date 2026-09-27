@@ -58,12 +58,12 @@ import com.nunchuk.android.core.nfc.NfcActionListener
 import com.nunchuk.android.core.nfc.NfcViewModel
 import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.signer.SignerModel
-import com.nunchuk.android.core.util.formattedName
-import com.nunchuk.android.core.util.isBitBox
-import com.nunchuk.android.core.util.isQrOnlyAirgap
-import com.nunchuk.android.core.util.qrOnlyAirgapTag
-import com.nunchuk.android.core.util.isLedger
-import com.nunchuk.android.core.util.isTrezor
+import com.nunchuk.android.core.signing.InAppSigningDevice
+import com.nunchuk.android.core.signing.SigningMethod
+import com.nunchuk.android.core.signing.SigningTransport
+import com.nunchuk.android.core.signing.navigation
+import com.nunchuk.android.core.signing.profile
+import com.nunchuk.android.core.signing.signingDevice
 import com.nunchuk.android.core.util.openTrezorSuiteLink
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.ClaimData
@@ -71,19 +71,12 @@ import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.cla
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.ClaimUiState
 import com.nunchuk.android.model.InheritanceAdditional
 import com.nunchuk.android.nav.NunchukNavigator
-import com.nunchuk.android.share.model.SignFlowType
 import com.nunchuk.android.share.result.GlobalResultKey
-import com.nunchuk.android.type.SignerTag
-import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.widget.NCInputDialog
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 import com.nunchuk.android.main.R as MainR
 import com.nunchuk.android.transaction.R as TransactionR
-import com.nunchuk.android.core.util.isPassportAirgap
-import com.nunchuk.android.core.util.isKruxAirgap
-import com.nunchuk.android.core.util.signsByExportImport
-import com.nunchuk.android.core.util.isColdCard
 
 @Composable
 fun VerifyInheritanceMessageScreen(
@@ -104,6 +97,8 @@ fun VerifyInheritanceMessageScreen(
         claimData.keyOrigins.find { it.xfp == localSigner.fingerPrint }?.derivationPath.orEmpty()
     val signer =
         if (localSigner.isMasterSigner) localSigner.copy(derivationPath = path) else localSigner
+    val profile = signer.signingDevice().profile()
+    val method = profile.message
     val challenge = claimData.challenge
     val signingChallengeMessage = SigningChallengeMessage(
         id = challenge?.id,
@@ -148,14 +143,50 @@ fun VerifyInheritanceMessageScreen(
     var showSigningOptionsSheet by remember { mutableStateOf(false) }
     var showLedgerSheet by remember { mutableStateOf(false) }
 
-    // Everything the Export / Import options sheet can do for this signer. Saving, sharing and
-    // picking a file are the same for every device that signs from a memory card; QR and NFC are
-    // where they differ, and Ledger/BitBox/Trezor never come here at all.
-    val fileSigningCallbacks = ColdCardSigningCallbacks(
-        onImportViaFile = { importFileLauncher.launch("*/*") },
-        onSaveFile = {
+    val exportImport = method as? SigningMethod.ExportImport
+    val signingCallbacks = ExportImportCallbacks(
+        onExportQr = { route ->
             coroutineScope.launch {
-                val data = viewModel.generateMessageFileIfNeeded()
+                val data = viewModel.exportMessage(route)
+                if (data.isNotEmpty()) {
+                    val navigation = route.navigation()
+                    navigator.openExportTransactionScreen(
+                        launcher = importOrExportTransactionLauncher,
+                        activityContext = activity,
+                        txToSign = data,
+                        signFlowType = navigation.flow,
+                        isBBQR = navigation.isBBQR,
+                        deviceName = profile.qrDeviceName,
+                    )
+                }
+            }
+        },
+        onExportNfc = { route ->
+            coroutineScope.launch {
+                // Built now so a failure shows before the tap; the NFC handler reuses it.
+                if (viewModel.exportMessage(route).isNotEmpty()) {
+                    (activity as NfcActionListener).startNfcFlow(BaseNfcActivity.REQUEST_GENERATE_HEAL_CHECK_MSG)
+                }
+            }
+        },
+        onImport = { transport ->
+            when (transport) {
+                SigningTransport.FILE -> importFileLauncher.launch("*/*")
+                // A QR import always answers a QR export, so the export route names its flow.
+                SigningTransport.QR -> exportImport?.qrRoute?.let { route ->
+                    navigator.openImportTransactionScreen(
+                        launcher = importOrExportTransactionLauncher,
+                        activityContext = activity,
+                        signFlowType = route.navigation().flow,
+                    )
+                }
+                SigningTransport.NFC -> (activity as NfcActionListener)
+                    .startNfcFlow(BaseNfcActivity.REQUEST_MK4_IMPORT_SIGNATURE)
+            }
+        },
+        onSaveFile = { route ->
+            coroutineScope.launch {
+                val data = viewModel.exportMessage(route)
                 if (data.isNotEmpty()) {
                     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
                         if (ContextCompat.checkSelfPermission(
@@ -173,94 +204,23 @@ fun VerifyInheritanceMessageScreen(
                 }
             }
         },
-        onShareFile = {
+        onShareFile = { route ->
             coroutineScope.launch {
-                val data = viewModel.generateMessageFileIfNeeded()
+                val data = viewModel.exportMessage(route)
                 if (data.isNotEmpty()) {
                     viewModel.exportTransactionToFile(data)
                 }
             }
         },
     )
-    // One plain-text QR out, the signature QR back — Jade, Keystone, SeedSigner and Krux.
-    // [deviceTag] only names the device on the export screen.
-    val airgapQrSigningCallbacks = { deviceTag: SignerTag ->
-        ColdCardSigningCallbacks(
-            onExportViaQr = {
-                coroutineScope.launch {
-                    val request = viewModel.airgapSignMessageRequest()
-                    if (request.isNotEmpty()) {
-                        navigator.openExportTransactionScreen(
-                            launcher = importOrExportTransactionLauncher,
-                            activityContext = activity,
-                            txToSign = request,
-                            signFlowType = SignFlowType.ClaimAirgapMessage,
-                            // formattedName shortens SeedSigner to the "Seed" it names new keys with.
-                            deviceName = if (deviceTag == SignerTag.SEEDSIGNER) {
-                                activity.getString(R.string.nc_seedsigner)
-                            } else {
-                                deviceTag.formattedName
-                            },
-                        )
-                    }
-                }
-            },
-            onImportViaQr = {
-                navigator.openImportTransactionScreen(
-                    launcher = importOrExportTransactionLauncher,
-                    activityContext = activity,
-                    signFlowType = SignFlowType.ClaimAirgapMessage
-                )
-            },
-        )
-    }
-    val signingCallbacks = when {
-        signer.isQrOnlyAirgap -> airgapQrSigningCallbacks(signer.qrOnlyAirgapTag ?: SignerTag.JADE)
-        signer.isPassportAirgap -> fileSigningCallbacks
-        signer.isKruxAirgap -> airgapQrSigningCallbacks(SignerTag.KRUX).let { qr ->
-            fileSigningCallbacks.copy(onExportViaQr = qr.onExportViaQr, onImportViaQr = qr.onImportViaQr)
-        }
-        // Coldcard: BBQR and NFC on top of the file.
-        else -> fileSigningCallbacks.copy(
-            onExportViaQr = {
-                coroutineScope.launch {
-                    val data = viewModel.generateMessageFileIfNeeded()
-                    if (data.isNotEmpty()) {
-                        navigator.openExportTransactionScreen(
-                            launcher = importOrExportTransactionLauncher,
-                            activityContext = activity,
-                            txToSign = data,
-                            signFlowType = SignFlowType.ClaimDummy,
-                        )
-                    }
-                }
-            },
-            onExportViaNfc = {
-                coroutineScope.launch {
-                    val data = viewModel.generateMessageFileIfNeeded()
-                    if (data.isNotEmpty()) {
-                        (activity as NfcActionListener).startNfcFlow(BaseNfcActivity.REQUEST_GENERATE_HEAL_CHECK_MSG)
-                    }
-                }
-            },
-            onImportViaQr = {
-                navigator.openImportTransactionScreen(
-                    launcher = importOrExportTransactionLauncher,
-                    activityContext = activity,
-                    signFlowType = SignFlowType.ClaimDummy
-                )
-            },
-            onImportViaNfc = {
-                (activity as NfcActionListener).startNfcFlow(BaseNfcActivity.REQUEST_MK4_IMPORT_SIGNATURE)
-            },
-        )
-    }
 
     LaunchedEffect(sharedUiState.event) {
         val event = sharedUiState.event
         when (event) {
             is ClaimInheritanceEvent.ImportSignature -> {
-                signingCallbacks.onImport(event.via)
+                if (method is SigningMethod.ExportImport && event.via in method.imports) {
+                    signingCallbacks.onImport(event.via)
+                }
                 onEventHandled()
             }
 
@@ -378,12 +338,12 @@ fun VerifyInheritanceMessageScreen(
                 )
             }
         },
-        onSignClick = { messageToSign ->
-            when {
-                signer.type == SignerType.NFC -> {
+        onSignClick = {
+            when (method) {
+                SigningMethod.TapSigner -> {
                     (activity as NfcActionListener).startNfcFlow(BaseNfcActivity.REQUEST_NFC_HEALTH_CHECK)
                 }
-                signer.type == SignerType.SOFTWARE -> {
+                SigningMethod.Software -> {
                     if (viewModel.needPassphrase()) {
                         NCInputDialog(activity).showDialog(
                             title = activity.getString(TransactionR.string.nc_transaction_enter_passphrase),
@@ -395,29 +355,26 @@ fun VerifyInheritanceMessageScreen(
                         viewModel.signMessageBySoftware()
                     }
                 }
-                // Coldcard, Jade, Keystone, SeedSigner, Passport, Krux: export the request, import
-                // the signature. Which routes the sheet offers and what they do follow the device
-                // (signingCallbacks).
-                signer.signsByExportImport -> showSigningOptionsSheet = true
-                // Ledger and BitBox sign in-app over BLE/USB; Trezor through Trezor Suite. All
-                // three hand back a bare signature, like a Coldcard's QR does.
-                signer.isLedger -> showLedgerSheet = true
-                signer.isBitBox -> viewModel.requestSignMessageByBitBox()
-                signer.isTrezor -> viewModel.requestSignMessageByTrezor()
-                else -> Unit
+                is SigningMethod.ExportImport -> showSigningOptionsSheet = true
+                is SigningMethod.InApp -> when (method.device) {
+                    InAppSigningDevice.LEDGER -> showLedgerSheet = true
+                    InAppSigningDevice.BITBOX -> viewModel.requestSignMessageByBitBox()
+                }
+                SigningMethod.TrezorSuite -> viewModel.requestSignMessageByTrezor()
+                SigningMethod.Unsupported -> Unit
             }
         },
     )
 
-    ColdCardSigningBottomSheets(
-        isMessage = true,
-        isQrOnly = signer.isQrOnlyAirgap,
-        isFileOnly = signer.isPassportAirgap,
-        supportsNfc = signer.isColdCard,
-        showColdCardOptions = showSigningOptionsSheet,
-        onDismissColdCardOptions = { showSigningOptionsSheet = false },
-        callbacks = signingCallbacks,
-    )
+    if (method is SigningMethod.ExportImport) {
+        ExportImportSheets(
+            method = method,
+            isMessage = true,
+            showOptions = showSigningOptionsSheet,
+            onDismissOptions = { showSigningOptionsSheet = false },
+            callbacks = signingCallbacks,
+        )
+    }
 
     if (showLedgerSheet) {
         LedgerSignMessageSheet(

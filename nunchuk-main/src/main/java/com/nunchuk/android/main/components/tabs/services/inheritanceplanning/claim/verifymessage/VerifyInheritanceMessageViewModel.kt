@@ -16,6 +16,12 @@ import com.nunchuk.android.core.domain.utils.GetTrezorSignMessageDeeplinkUseCase
 import com.nunchuk.android.core.domain.utils.ParseTrezorSignMessageResponseUseCase
 import com.nunchuk.android.core.domain.signer.SignMessageByTapSignerUseCase
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.signing.ExportRoute
+import com.nunchuk.android.core.signing.SigningMethod
+import com.nunchuk.android.core.signing.SigningPayloadCodec
+import com.nunchuk.android.core.signing.SigningTransport
+import com.nunchuk.android.core.signing.profile
+import com.nunchuk.android.core.signing.signingDevice
 import com.nunchuk.android.core.util.getFileContentFromUri
 import com.nunchuk.android.core.util.nativeErrorCode
 import com.nunchuk.android.core.util.orUnknownError
@@ -26,7 +32,6 @@ import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.InheritanceAdditional
 import com.nunchuk.android.model.SignedMessage
 import com.nunchuk.android.model.SingleSigner
-import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.CreateShareFileUseCase
 import com.nunchuk.android.usecase.GetMasterSignerUseCase
@@ -34,10 +39,6 @@ import com.nunchuk.android.usecase.SaveLocalFileUseCase
 import com.nunchuk.android.usecase.SendSignerPassphraseUseCase
 import com.nunchuk.android.usecase.signer.ExtractMessageSignatureUseCase
 import com.nunchuk.android.usecase.signer.ExtractColdcardSignatureFromRecordsUseCase
-import com.nunchuk.android.usecase.signer.GenerateColdCardHealthCheckMessageStringUseCase
-import com.nunchuk.android.usecase.signer.GenerateMessageSigningQrUseCase
-import com.nunchuk.android.usecase.signer.GenerateKruxMessageSigningUseCase
-import com.nunchuk.android.usecase.signer.GeneratePassportMessageSigningUseCase
 import com.nunchuk.android.usecase.signer.GetRemoteOrMasterSignerUseCase
 import com.nunchuk.android.usecase.signer.SignMessageBySoftwareKeyUseCase
 import dagger.assisted.Assisted
@@ -55,8 +56,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.FileOutputStream
-import com.nunchuk.android.core.util.isPassportAirgap
-import com.nunchuk.android.core.util.isKruxAirgap
 
 @HiltViewModel(assistedFactory = VerifyInheritanceMessageViewModel.Factory::class)
 class VerifyInheritanceMessageViewModel @AssistedInject constructor(
@@ -65,14 +64,11 @@ class VerifyInheritanceMessageViewModel @AssistedInject constructor(
     private val getMasterSignerUseCase: GetMasterSignerUseCase,
     private val sendSignerPassphraseUseCase: SendSignerPassphraseUseCase,
     private val getInheritanceClaimStateUseCase: GetInheritanceClaimStateUseCase,
-    private val generateColdCardHealthCheckMessageStringUseCase: GenerateColdCardHealthCheckMessageStringUseCase,
+    private val payloadCodec: SigningPayloadCodec,
     private val createShareFileUseCase: CreateShareFileUseCase,
     private val saveLocalFileUseCase: SaveLocalFileUseCase,
     private val sendDataToMk4UseCase: SendDataToMk4UseCase,
     private val extractMessageSignatureUseCase: ExtractMessageSignatureUseCase,
-    private val generatePassportMessageSigningUseCase: GeneratePassportMessageSigningUseCase,
-    private val generateKruxMessageSigningUseCase: GenerateKruxMessageSigningUseCase,
-    private val generateMessageSigningQrUseCase: GenerateMessageSigningQrUseCase,
     private val extractColdcardSignatureFromRecordsUseCase: ExtractColdcardSignatureFromRecordsUseCase,
     private val getRemoteOrMasterSignerUseCase: GetRemoteOrMasterSignerUseCase,
     private val getBitBoxSignMessagePathUseCase: GetBitBoxSignMessagePathUseCase,
@@ -84,6 +80,11 @@ class VerifyInheritanceMessageViewModel @AssistedInject constructor(
     @Assisted private val signer: SignerModel,
     @Assisted private val challenge: SigningChallengeMessage
 ) : ViewModel() {
+    /** The device's message routes; null for a signer that does not export a request. */
+    private val exportImport = signer.signingDevice().profile().message as? SigningMethod.ExportImport
+
+    /** Each route's request, built once: NFC is tapped after the payload is checked, and a file is saved or shared. */
+    private val exportPayloads = mutableMapOf<SigningTransport, String>()
     private val message: String = challenge.message.orEmpty()
     private val messageId: String = challenge.id.orEmpty()
 
@@ -196,18 +197,22 @@ class VerifyInheritanceMessageViewModel @AssistedInject constructor(
 
     fun needPassphrase(): Boolean = _state.value.needPassphrase
 
-    /** The challenge as a Specter-format QR request for an air-gapped device (Jade). */
-    suspend fun airgapSignMessageRequest(): String =
-        generateMessageSigningQrUseCase(
-            GenerateMessageSigningQrUseCase.Param(
-                derivationPath = signer.derivationPath,
-                message = message,
-            )
-        ).getOrElse { error ->
-            Timber.e(error, "Failed to build the air-gap sign-message request")
+    /** The challenge in [route]'s format (libnunchuk owns every format). Empty after reporting a failure. */
+    suspend fun exportMessage(route: ExportRoute): String {
+        exportPayloads[route.transport]?.let { return it }
+        return payloadCodec.build(route.codec, signer.derivationPath, message).onSuccess { payload ->
+            exportPayloads[route.transport] = payload
+            if (route is ExportRoute.File) _state.update { it.copy(messageFile = payload) }
+        }.getOrElse { error ->
             _event.emit(VerifyInheritanceMessageEvent.ShowError(error.message.orUnknownError()))
             ""
         }
+    }
+
+    private suspend fun reportUnsupportedRoute(): String {
+        _event.emit(VerifyInheritanceMessageEvent.ShowError("This key cannot sign that way"))
+        return ""
+    }
 
     /** The challenge for the device's own transport, as the [SingleSigner] the use cases take. */
     private suspend fun singleSigner(): SingleSigner? =
@@ -299,52 +304,8 @@ class VerifyInheritanceMessageViewModel @AssistedInject constructor(
         _state.update { it.copy(signedMessage = null) }
     }
 
-    /**
-     * The message-signing request in the format the signer reads from a memory card, built once.
-     * Each device has its own file format, all owned by libnunchuk.
-     */
-    suspend fun generateMessageFileIfNeeded(): String {
-        val currentState = _state.value
-        if (!currentState.messageFile.isNullOrEmpty()) return currentState.messageFile
-        return buildMessageFile().onSuccess { messageFile ->
-            _state.update { it.copy(messageFile = messageFile) }
-        }.getOrElse { error ->
-            _event.emit(VerifyInheritanceMessageEvent.ShowError(error.message.orUnknownError()))
-            ""
-        }
-    }
-
-    private suspend fun buildMessageFile(): Result<String> = when {
-        signer.isPassportAirgap -> generatePassportMessageSigningUseCase(
-            GeneratePassportMessageSigningUseCase.Param(
-                derivationPath = signer.derivationPath,
-                message = message,
-            )
-        )
-
-        signer.isKruxAirgap -> generateKruxMessageSigningUseCase(
-            GenerateKruxMessageSigningUseCase.Param(
-                derivationPath = signer.derivationPath,
-                message = message,
-            )
-        )
-
-        else -> generateColdCardHealthCheckMessageStringUseCase(
-            GenerateColdCardHealthCheckMessageStringUseCase.Param(
-                derivationPath = signer.derivationPath,
-                message = message,
-                addressType = AddressType.LEGACY
-            )
-        )
-    }
-
     /** Name the request file is saved or shared under; Passport lists `.txt` files from its card. */
-    private val messageFileName: String
-        get() = when {
-            signer.isPassportAirgap -> "passport_message.txt"
-            signer.isKruxAirgap -> "krux_message.txt"
-            else -> "coldcard_message.txt"
-        }
+    private val messageFileName: String? = exportImport?.fileRoute?.fileName
 
     fun getInheritanceClaimState(
         magic: String,
@@ -386,7 +347,12 @@ class VerifyInheritanceMessageViewModel @AssistedInject constructor(
     fun exportTransactionToFile(dataToSign: String) {
         viewModelScope.launch {
             _state.update { it.copy(loadingType = LoadingType.Normal) }
-            createShareFileUseCase(messageFileName).onSuccess { filePath ->
+            val fileName = messageFileName ?: run {
+                reportUnsupportedRoute()
+                _state.update { it.copy(loadingType = null) }
+                return@launch
+            }
+            createShareFileUseCase(fileName).onSuccess { filePath ->
                 exportTransaction(filePath, dataToSign)
             }.onFailure {
                 _event.emit(VerifyInheritanceMessageEvent.ShowError(it.message.orUnknownError()))
@@ -413,10 +379,14 @@ class VerifyInheritanceMessageViewModel @AssistedInject constructor(
 
     fun saveLocalFile(dataToSign: String) {
         viewModelScope.launch {
+            val fileName = messageFileName ?: run {
+                reportUnsupportedRoute()
+                return@launch
+            }
             _state.update { it.copy(loadingType = LoadingType.Normal) }
             val result = saveLocalFileUseCase(
                 SaveLocalFileUseCase.Params(
-                    fileName = messageFileName,
+                    fileName = fileName,
                     fileContent = dataToSign
                 )
             )
@@ -427,10 +397,13 @@ class VerifyInheritanceMessageViewModel @AssistedInject constructor(
 
     fun handleExportTransactionToMk4(ndef: Ndef) {
         viewModelScope.launch {
-            generateMessageFileIfNeeded()
-            val messageFile = _state.value.messageFile
-            if (!messageFile.isNullOrEmpty()) {
-                exportToMk4(messageFile, ndef)
+            val route = exportImport?.nfcRoute ?: run {
+                reportUnsupportedRoute()
+                return@launch
+            }
+            val payload = exportMessage(route)
+            if (payload.isNotEmpty()) {
+                exportToMk4(payload, ndef)
             }
         }
     }
