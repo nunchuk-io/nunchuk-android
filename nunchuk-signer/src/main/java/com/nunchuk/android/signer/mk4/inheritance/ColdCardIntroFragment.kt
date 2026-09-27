@@ -229,7 +229,15 @@ internal fun ColdCardIntroScreen(
                     thickness = 0.5.dp
                 )
 
-                if (!isAddInheritanceOffChainSigner) {
+                // The desktop hand-off asks the server for the key and waits for the desktop app to
+                // add it, which is how the inheritance slot of a wallet being set up has always
+                // been fillable from a Coldcard over USB. It is hidden for the two off-chain runs
+                // that have no such request: a Beneficiary's claim, where the key the desktop app
+                // returns does not match the plan (NUN-9558), and an inheritance replace, whose
+                // dispatcher has no desktop path at all.
+                val canRequestKeyFromDesktop = !isAddInheritanceOffChainSigner ||
+                        (!isClaiming && onChainAddSignerParam?.isReplaceKeyFlow() != true)
+                if (canRequestKeyFromDesktop) {
                     ActionItem(
                         title = stringResource(R.string.nc_add_coldcard_via_usb),
                         iconId = R.drawable.ic_usb,
