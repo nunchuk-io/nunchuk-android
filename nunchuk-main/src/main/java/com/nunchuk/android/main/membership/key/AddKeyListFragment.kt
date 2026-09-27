@@ -114,9 +114,8 @@ import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFrag
 import com.nunchuk.android.main.membership.model.AddKeyData
 import com.nunchuk.android.main.membership.model.ClaimOptionState
 import com.nunchuk.android.main.membership.model.needsEncryptedBackupUpload
-import com.nunchuk.android.main.membership.model.InheritanceBackupBranch
 import com.nunchuk.android.main.membership.model.backupVendorTag
-import com.nunchuk.android.main.membership.model.inheritanceBackupBranch
+import com.nunchuk.android.main.membership.model.opensVerifyBackups
 import com.nunchuk.android.main.membership.model.getButtonText
 import com.nunchuk.android.main.membership.model.getLabel
 import com.nunchuk.android.main.membership.model.resId
@@ -799,32 +798,22 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
     }
 
     /**
-     * The Backup / Verify action on the inheritance key row. The branch is the owner's sharing
-     * method, not the device: a Coldcard whose owner chose the seed phrase goes down the
-     * seed-phrase branch rather than its own encrypted-backup flow, and "do both" opens the
-     * checklist that tracks the two artifacts apart.
+     * The Backup / Verify action on the inheritance key row. Once the owner has recorded a sharing
+     * method the row opens the checklist of what they chose — one card per method, and the way to
+     * change the choice — whether that is one method or two. A legacy plan records no method and
+     * keeps the encrypted-backup flow the key list has always run.
      */
     private fun openInheritanceBackup(data: AddKeyData) {
         val signer = data.signer ?: return
-        when (data.inheritanceBackupBranch()) {
-            InheritanceBackupBranch.SEED_PHRASE -> openInheritanceSeedPhraseBackup(
-                navigator = navigator,
-                signer = signer,
-                groupId = membershipGroupId,
-                walletId = membershipWalletId,
-                launcher = verifySeedPhraseBackupLauncher,
-            )
-
-            InheritanceBackupBranch.BOTH -> openInheritanceVerifyBackups(
+        if (data.opensVerifyBackups()) {
+            openInheritanceVerifyBackups(
                 signer = signer,
                 groupId = membershipGroupId,
                 launcher = keyDistributionLauncher,
+                claimOptions = data.claimState.claimOptions,
             )
-
-            // The encrypted backup runs the flow the key list already owns: make the file on
-            // the device, import it, upload it, verify it. A legacy plan carries no sharing
-            // method at all and lands here too.
-            InheritanceBackupBranch.ENCRYPTED_BACKUP, null -> viewModel.onVerifyClicked(data)
+        } else {
+            viewModel.onVerifyClicked(data)
         }
     }
 

@@ -69,11 +69,16 @@ internal fun Fragment.openInheritanceSeedPhraseVerified(
     )
 }
 
-/** "Do both": the checklist that tracks the two artifacts separately. */
+/**
+ * The checklist of what the owner chose: one card per sharing method, each verified on its own,
+ * plus the way back to the choice itself. [claimOptions] is what the row already records, so the
+ * screen draws the right cards before the server has been re-read.
+ */
 internal fun Fragment.openInheritanceVerifyBackups(
     signer: SignerModel,
     groupId: String,
     launcher: ActivityResultLauncher<Intent>,
+    claimOptions: List<ClaimOption>,
     walletId: String = "",
 ) {
     launcher.launch(
@@ -83,6 +88,7 @@ internal fun Fragment.openInheritanceVerifyBackups(
             groupId = groupId,
             walletId = walletId,
             entry = KeyDistributionEntry.VERIFY_BACKUPS,
+            claimOptions = claimOptions,
         )
     )
 }

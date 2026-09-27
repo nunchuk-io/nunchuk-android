@@ -81,6 +81,16 @@ class KeyDistributionActivity : BaseComposeActivity() {
             ?: KeyDistributionEntry.KEY_ADDED
     }
 
+    /**
+     * What the caller already knows the key records, so the checklist draws the right cards on its
+     * first frame instead of an empty one while the server is re-read.
+     */
+    private val claimOptions by lazy {
+        intent.getStringArrayListExtra(EXTRA_CLAIM_OPTIONS)
+            .orEmpty()
+            .mapNotNull { name -> ClaimOption.entries.firstOrNull { it.name == name } }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -88,7 +98,12 @@ class KeyDistributionActivity : BaseComposeActivity() {
             finish()
             return
         }
-        viewModel.init(signer = signer, groupId = groupId, walletId = walletId)
+        viewModel.init(
+            signer = signer,
+            groupId = groupId,
+            walletId = walletId,
+            claimOptions = claimOptions,
+        )
 
         setContent {
             val navController = rememberNavController()
@@ -99,21 +114,18 @@ class KeyDistributionActivity : BaseComposeActivity() {
             LaunchedEffect(Unit) {
                 viewModel.event.collect { event ->
                     when (event) {
-                        is KeyDistributionEvent.Saved -> when {
-                            event.choice == KeyDistributionChoice.BOTH -> {
-                                viewModel.refreshClaimState()
-                                // Coming from the checklist, it is still on the stack behind the
-                                // choice screen the owner just used to change their mind.
-                                if (entry == KeyDistributionEntry.VERIFY_BACKUPS) {
-                                    if (!navController.popBackStack()) finishWithResult()
-                                } else {
-                                    navController.navigate(VerifyBackupsRoute)
-                                }
+                        // Every choice lands on the checklist, whether it asked for one artifact
+                        // or two: that is where the owner verifies what they chose, and where
+                        // they can change their mind about it.
+                        is KeyDistributionEvent.Saved -> {
+                            viewModel.refreshClaimState()
+                            // Coming from the checklist, it is still on the stack behind the
+                            // choice screen the owner just used to change their mind.
+                            if (entry == KeyDistributionEntry.VERIFY_BACKUPS) {
+                                if (!navController.popBackStack()) finishWithResult()
+                            } else {
+                                navController.navigate(VerifyBackupsRoute)
                             }
-
-                            // One artifact to produce, and the flow that produces it needs step
-                            // state the key list owns, so hand the work back with the choice.
-                            else -> finishWithResult(event.choice.singleClaimOption())
                         }
 
                         is KeyDistributionEvent.Error -> NCToastMessage(this@KeyDistributionActivity)
@@ -169,8 +181,7 @@ class KeyDistributionActivity : BaseComposeActivity() {
                     composable<VerifyBackupsRoute> {
                         VerifyBackupsContent(
                             remainTime = remainTime,
-                            encryptedBackupState = state.claimState.stateOf(ClaimOption.ENCRYPTED_BACKUP),
-                            seedPhraseState = state.claimState.stateOf(ClaimOption.SEED_PHRASE),
+                            statuses = state.claimState.statuses(),
                             isContinueEnabled = state.claimState.isSettled,
                             onVerifyEncryptedBackup = { finishWithResult(ClaimOption.ENCRYPTED_BACKUP) },
                             onVerifySeedPhrase = { finishWithResult(ClaimOption.SEED_PHRASE) },
@@ -204,22 +215,32 @@ class KeyDistributionActivity : BaseComposeActivity() {
         private const val EXTRA_GROUP_ID = "group_id"
         private const val EXTRA_WALLET_ID = "wallet_id"
         private const val EXTRA_ENTRY = "entry"
+        private const val EXTRA_CLAIM_OPTIONS = "claim_options"
 
         /** Which claim option the owner asked to verify, when the flow ended on that tap. */
         const val EXTRA_VERIFY_CLAIM_OPTION = "verify_claim_option"
 
-        /** [walletId] empty targets the draft wallet, otherwise the replacement on that wallet. */
+        /**
+         * [walletId] empty targets the draft wallet, otherwise the replacement on that wallet.
+         * [claimOptions] is what the caller already records for the key; it only spares the
+         * checklist an empty first frame, and the server's answer replaces it.
+         */
         fun buildIntent(
             activityContext: Context,
             signer: SignerModel,
             groupId: String = "",
             walletId: String = "",
             entry: KeyDistributionEntry = KeyDistributionEntry.KEY_ADDED,
+            claimOptions: List<ClaimOption> = emptyList(),
         ) = Intent(activityContext, KeyDistributionActivity::class.java).apply {
             putExtra(EXTRA_SIGNER, signer)
             putExtra(EXTRA_GROUP_ID, groupId)
             putExtra(EXTRA_WALLET_ID, walletId)
             putExtra(EXTRA_ENTRY, entry.name)
+            putStringArrayListExtra(
+                EXTRA_CLAIM_OPTIONS,
+                ArrayList(claimOptions.map { it.name }),
+            )
         }
     }
 }

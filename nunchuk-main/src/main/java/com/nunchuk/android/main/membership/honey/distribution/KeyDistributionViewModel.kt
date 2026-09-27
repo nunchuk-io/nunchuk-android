@@ -40,9 +40,6 @@ enum class KeyDistributionChoice {
         ENCRYPTED_BACKUP_ONLY -> listOf(ClaimOption.ENCRYPTED_BACKUP)
         BOTH -> listOf(ClaimOption.SEED_PHRASE, ClaimOption.ENCRYPTED_BACKUP)
     }
-
-    /** The single artifact this choice asks for, or null for [BOTH], which asks for two. */
-    fun singleClaimOption(): ClaimOption? = toClaimOptions().singleOrNull()
 }
 
 data class KeyDistributionUiState(
@@ -84,7 +81,7 @@ data class KeyDistributionUiState(
 }
 
 sealed interface KeyDistributionEvent {
-    data class Saved(val choice: KeyDistributionChoice) : KeyDistributionEvent
+    data object Saved : KeyDistributionEvent
     data class Error(val message: String) : KeyDistributionEvent
 }
 
@@ -115,14 +112,26 @@ class KeyDistributionViewModel @Inject constructor(
      */
     private var hasUserChosen: Boolean = false
 
-    fun init(signer: SignerModel, groupId: String, walletId: String) {
+    fun init(
+        signer: SignerModel,
+        groupId: String,
+        walletId: String,
+        claimOptions: List<ClaimOption> = emptyList(),
+    ) {
         // The activity re-runs this on every recreation; the cache flow never completes, so a second
         // collector would just pile up writing to the same state.
         if (isInitialized) return
         isInitialized = true
         this.groupId = groupId
         this.walletId = walletId
-        _state.update { it.copy(signer = signer) }
+        _state.update {
+            it.copy(
+                signer = signer,
+                // What the caller records for the key, until the server answers with the same
+                // plus how far each method has got.
+                claimState = it.claimState.copy(claimOptions = claimOptions),
+            )
+        }
         loadSupportedOptions(signer)
         refreshClaimState()
     }
@@ -227,7 +236,12 @@ class KeyDistributionViewModel @Inject constructor(
                     walletId = walletId,
                 )
             ).onSuccess {
-                _event.emit(KeyDistributionEvent.Saved(choice))
+                // The checklist opens on this, and it has to show the methods just saved rather
+                // than the ones the last refresh knew about.
+                _state.update {
+                    it.copy(claimState = it.claimState.copy(claimOptions = choice.toClaimOptions()))
+                }
+                _event.emit(KeyDistributionEvent.Saved)
             }.onFailure {
                 _event.emit(KeyDistributionEvent.Error(it.message.orUnknownError()))
             }

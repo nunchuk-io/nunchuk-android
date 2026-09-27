@@ -42,23 +42,26 @@ import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.model.ClaimOptionState
+import com.nunchuk.android.main.membership.model.ClaimOptionStatus
+import com.nunchuk.android.model.inheritance.ClaimOption
 import com.nunchuk.android.core.R as CoreR
 
 /**
- * "Do both": the two artifacts are verified separately, so the verify step is a checklist rather
- * than the single verify/skip question the one-option branches ask.
+ * Where an inheritance key lands once its sharing method is recorded: one card per method the
+ * owner chose, plus the way back to that choice.
  *
- * A seed phrase backup fails from a transcription error and an encrypted backup from a
- * mis-recorded Backup Password — verifying one proves nothing about the other. Continue stays
- * enabled throughout: at claim time the Beneficiary only needs one route to work, so neither
- * check is mandatory.
+ * A key that asked for both artifacts gets two cards, because they are verified independently — a
+ * seed phrase backup fails from a transcription error and an encrypted backup from a mis-recorded
+ * Backup Password, so verifying one proves nothing about the other. Continue is enabled once every
+ * card is dealt with; skipping counts, since at claim time the Beneficiary only needs one route to
+ * work.
  */
 @Composable
 fun VerifyBackupsContent(
     remainTime: Int = 0,
-    encryptedBackupState: ClaimOptionState = ClaimOptionState.PENDING,
-    seedPhraseState: ClaimOptionState = ClaimOptionState.PENDING,
-    /** Both halves dealt with — verified or deliberately skipped. Until then the owner stays here. */
+    /** The sharing methods the owner chose and how far each has got — one card each. */
+    statuses: List<ClaimOptionStatus> = emptyList(),
+    /** Every card dealt with — verified or deliberately skipped. Until then the owner stays here. */
     isContinueEnabled: Boolean = false,
     onVerifyEncryptedBackup: () -> Unit = {},
     onVerifySeedPhrase: () -> Unit = {},
@@ -66,6 +69,7 @@ fun VerifyBackupsContent(
     onContinueClicked: () -> Unit = {},
     onBackPressed: () -> Unit = {},
 ) {
+    val isBothMethods = statuses.size > 1
     NunchukTheme {
         Scaffold(
             modifier = Modifier.navigationBarsPadding(),
@@ -97,46 +101,71 @@ fun VerifyBackupsContent(
                     .padding(horizontal = 16.dp),
             ) {
                 Text(
-                    text = stringResource(R.string.nc_verify_your_backups),
+                    text = stringResource(
+                        if (isBothMethods) R.string.nc_verify_your_backups
+                        else R.string.nc_verify_your_backup
+                    ),
                     style = NunchukTheme.typography.heading,
                 )
                 Text(
                     modifier = Modifier.padding(top = 8.dp),
-                    text = stringResource(R.string.nc_verify_your_backups_desc),
+                    text = stringResource(
+                        when {
+                            isBothMethods -> R.string.nc_verify_your_backups_desc
+                            statuses.firstOrNull()?.option == ClaimOption.ENCRYPTED_BACKUP ->
+                                R.string.nc_verify_your_backup_encrypted_desc
+
+                            else -> R.string.nc_verify_your_backup_seed_phrase_desc
+                        }
+                    ),
                     style = NunchukTheme.typography.body,
                 )
 
-                val isEncryptedBackupUploaded = encryptedBackupState != ClaimOptionState.NOT_UPLOADED
-                BackupChecklistItem(
-                    iconRes = R.drawable.ic_cloud_upload,
-                    titleRes = R.string.nc_encrypted_backup,
-                    // Nothing to verify until the file is on the server, so the card first offers
-                    // to make the backup.
-                    descRes = if (isEncryptedBackupUploaded) {
-                        R.string.nc_encrypted_backup_verify_desc
-                    } else {
-                        R.string.nc_encrypted_backup_upload_desc
-                    },
-                    actionRes = if (isEncryptedBackupUploaded) {
-                        CoreR.string.nc_verify
-                    } else {
-                        CoreR.string.nc_upload_backup
-                    },
-                    state = encryptedBackupState,
-                    onActionClicked = onVerifyEncryptedBackup,
-                )
-                BackupChecklistItem(
-                    iconRes = CoreR.drawable.ic_key,
-                    titleRes = R.string.nc_seed_phrase_backup,
-                    descRes = R.string.nc_seed_phrase_backup_verify_desc,
-                    actionRes = CoreR.string.nc_verify,
-                    state = seedPhraseState,
-                    onActionClicked = onVerifySeedPhrase,
-                )
+                statuses.forEach { status ->
+                    when (status.option) {
+                        ClaimOption.ENCRYPTED_BACKUP -> {
+                            val isUploaded = status.state != ClaimOptionState.NOT_UPLOADED
+                            BackupChecklistItem(
+                                iconRes = R.drawable.ic_cloud_upload,
+                                titleRes = R.string.nc_encrypted_backup,
+                                // Nothing to verify until the file is on the server, so the card
+                                // first offers to make the backup.
+                                descRes = if (isUploaded) {
+                                    R.string.nc_encrypted_backup_verify_desc
+                                } else {
+                                    R.string.nc_encrypted_backup_upload_desc
+                                },
+                                actionRes = if (isUploaded) {
+                                    CoreR.string.nc_verify
+                                } else {
+                                    CoreR.string.nc_upload_backup
+                                },
+                                state = status.state,
+                                onActionClicked = onVerifyEncryptedBackup,
+                            )
+                        }
+
+                        ClaimOption.SEED_PHRASE -> BackupChecklistItem(
+                            iconRes = CoreR.drawable.ic_key,
+                            titleRes = R.string.nc_seed_phrase_backup,
+                            descRes = R.string.nc_seed_phrase_backup_verify_desc,
+                            actionRes = CoreR.string.nc_verify,
+                            state = status.state,
+                            onActionClicked = onVerifySeedPhrase,
+                        )
+                    }
+                }
 
                 NcHintMessage(
                     modifier = Modifier.padding(top = 16.dp),
-                    messages = listOf(ClickAbleText(content = stringResource(R.string.nc_verify_your_backups_hint))),
+                    messages = listOf(
+                        ClickAbleText(
+                            content = stringResource(
+                                if (isBothMethods) R.string.nc_verify_your_backups_hint
+                                else R.string.nc_verify_your_backup_hint
+                            )
+                        )
+                    ),
                     type = HighlightMessageType.HINT,
                     textStyle = NunchukTheme.typography.bodySmall,
                     iconSize = 16.dp,
@@ -253,24 +282,35 @@ private fun BackupChecklistItem(
     }
 }
 
+private fun bothMethods(
+    encryptedBackupState: ClaimOptionState,
+    seedPhraseState: ClaimOptionState,
+) = listOf(
+    ClaimOptionStatus(ClaimOption.ENCRYPTED_BACKUP, encryptedBackupState),
+    ClaimOptionStatus(ClaimOption.SEED_PHRASE, seedPhraseState),
+)
+
 @PreviewLightDark
 @Composable
 private fun VerifyBackupsContentNotUploadedPreview() {
-    VerifyBackupsContent(encryptedBackupState = ClaimOptionState.NOT_UPLOADED)
+    VerifyBackupsContent(
+        statuses = bothMethods(ClaimOptionState.NOT_UPLOADED, ClaimOptionState.PENDING)
+    )
 }
 
 @PreviewLightDark
 @Composable
 private fun VerifyBackupsContentPartialPreview() {
-    VerifyBackupsContent(encryptedBackupState = ClaimOptionState.VERIFIED)
+    VerifyBackupsContent(
+        statuses = bothMethods(ClaimOptionState.VERIFIED, ClaimOptionState.PENDING)
+    )
 }
 
 @PreviewLightDark
 @Composable
 private fun VerifyBackupsContentSkippedPreview() {
     VerifyBackupsContent(
-        encryptedBackupState = ClaimOptionState.VERIFIED,
-        seedPhraseState = ClaimOptionState.SKIPPED,
+        statuses = bothMethods(ClaimOptionState.VERIFIED, ClaimOptionState.SKIPPED),
         isContinueEnabled = true,
     )
 }
@@ -279,8 +319,25 @@ private fun VerifyBackupsContentSkippedPreview() {
 @Composable
 private fun VerifyBackupsContentBothVerifiedPreview() {
     VerifyBackupsContent(
-        encryptedBackupState = ClaimOptionState.VERIFIED,
-        seedPhraseState = ClaimOptionState.VERIFIED,
+        statuses = bothMethods(ClaimOptionState.VERIFIED, ClaimOptionState.VERIFIED),
         isContinueEnabled = true,
+    )
+}
+
+@PreviewLightDark
+@Composable
+private fun VerifyBackupsContentSeedPhraseOnlyPreview() {
+    VerifyBackupsContent(
+        statuses = listOf(ClaimOptionStatus(ClaimOption.SEED_PHRASE, ClaimOptionState.PENDING))
+    )
+}
+
+@PreviewLightDark
+@Composable
+private fun VerifyBackupsContentEncryptedOnlyPreview() {
+    VerifyBackupsContent(
+        statuses = listOf(
+            ClaimOptionStatus(ClaimOption.ENCRYPTED_BACKUP, ClaimOptionState.NOT_UPLOADED)
+        )
     )
 }

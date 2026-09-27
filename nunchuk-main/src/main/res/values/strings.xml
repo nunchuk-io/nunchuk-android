@@ -752,6 +752,11 @@
     <!-- Off-chain inheritance key (BYOH) — verify the backups -->
     <string name="nc_verify_your_backups">Verify your backups</string>
     <string name="nc_verify_your_backups_desc">You chose to upload an encrypted backup and share the seed phrase. These are two independent ways for your Beneficiary to recover the key, so each is verified separately.</string>
+    <!-- Same screen for a key whose owner chose a single sharing method -->
+    <string name="nc_verify_your_backup">Verify your backup</string>
+    <string name="nc_verify_your_backup_seed_phrase_desc">You chose to share the seed phrase with your Beneficiary. Verify it so you know the backup works.</string>
+    <string name="nc_verify_your_backup_encrypted_desc">You chose to upload an encrypted backup. Verify it so you know the backup works.</string>
+    <string name="nc_verify_your_backup_hint">Verifying is recommended, and you can return to this later.</string>
     <string name="nc_encrypted_backup">Encrypted backup</string>
     <string name="nc_encrypted_backup_verify_desc">Checks that the backup on the server decrypts with the Backup Password you recorded.</string>
     <!-- Shown on the same card before the encrypted backup file has been uploaded -->

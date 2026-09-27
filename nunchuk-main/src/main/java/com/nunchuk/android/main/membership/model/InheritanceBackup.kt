@@ -87,17 +87,6 @@ data class InheritanceClaimState(
         ClaimOption.ENCRYPTED_BACKUP.takeIf { it in claimOptions }
 
     /**
-     * Which verification branch the row's action opens, or null when no sharing method is recorded
-     * — which keeps the legacy backup flow.
-     */
-    fun branch(): InheritanceBackupBranch? = when {
-        claimOptions.isEmpty() -> null
-        claimOptions.size > 1 -> InheritanceBackupBranch.BOTH
-        claimOptions.first() == ClaimOption.SEED_PHRASE -> InheritanceBackupBranch.SEED_PHRASE
-        else -> InheritanceBackupBranch.ENCRYPTED_BACKUP
-    }
-
-    /**
      * The status line under an inheritance key: one entry per sharing method the owner chose, in
      * the order the design lists them. Empty while the choice has not been made — the row shows
      * "sharing method not set" instead.
@@ -138,11 +127,13 @@ fun SignerServer.toInheritanceClaimState(hasLocalBackupFile: Boolean = false) =
     )
 
 /**
- * Which verification branch the inheritance key row's action opens. Null for anything that is not
- * an inheritance key with a sharing method recorded, which keeps the legacy backup flow.
+ * Whether the inheritance key row's action opens the verify-backups checklist. It does as soon as
+ * the owner has recorded a sharing method — that screen is where they verify what they chose, and
+ * where they can change their mind about it. A legacy plan records no method and keeps the backup
+ * flow the key list has always run.
  */
-fun AddKeyData.inheritanceBackupBranch(): InheritanceBackupBranch? =
-    if (!isInheritanceKey || signer == null) null else claimState.branch()
+fun AddKeyData.opensVerifyBackups(): Boolean =
+    isInheritanceKey && signer != null && !claimState.isUnset
 
 /**
  * The vendor whose instructions the encrypted-backup screens should show.
@@ -196,7 +187,7 @@ enum class ClaimOptionState {
     VERIFIED,
 }
 
-/** One sharing method of an inheritance key and how far it has got, as the key row renders it. */
+/** One sharing method of an inheritance key and how far it has got, as the row and checklist render it. */
 data class ClaimOptionStatus(
     val option: ClaimOption,
     val state: ClaimOptionState,
@@ -220,19 +211,3 @@ val AddKeyData.needsEncryptedBackupUpload: Boolean
 
 /** @see InheritanceClaimState.encryptedBackupClaimOption */
 fun AddKeyData.encryptedBackupClaimOption(): ClaimOption? = claimState.encryptedBackupClaimOption()
-
-/**
- * The three tails of the off-chain inheritance flow, one per sharing method the owner can choose.
- * The device does not decide this — a Coldcard whose owner chose the seed phrase goes down
- * [SEED_PHRASE], not down its own encrypted-backup flow.
- */
-enum class InheritanceBackupBranch {
-    /** Back up the seed phrase, then restore it onto a device and match the public key. */
-    SEED_PHRASE,
-
-    /** Create an encrypted backup on the device, upload it, then verify it. */
-    ENCRYPTED_BACKUP,
-
-    /** Both artifacts, tracked separately on a checklist. */
-    BOTH,
-}
