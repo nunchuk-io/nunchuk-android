@@ -727,6 +727,21 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
     }
 
     private fun openTrezorScreen() {
+        val verifyingKeyXfp = onChainAddSignerParam?.currentSigner?.fingerPrint.orEmpty()
+        // Without a key to check the device against there is nothing to verify, so fall through
+        // rather than accept whatever device Trezor Suite reports.
+        if (onChainAddSignerParam?.isVerifyBackupSeedPhrase() == true && verifyingKeyXfp.isNotEmpty()) {
+            // Re-read the restored device instead of adding a second copy of the key.
+            verifyHardwareBackupLauncher.launch(
+                TrezorActivity.buildIntent(
+                    activityContext = this,
+                    isMembershipFlow = true,
+                    expectedXfp = verifyingKeyXfp,
+                    verifyXfpOnly = true,
+                )
+            )
+            return
+        }
         // Claiming reads the key through Trezor Suite the same way adding a key does, at the
         // account the plan expects; the intro's USB row keeps the desktop hand-off.
         if (onChainAddSignerParam?.isClaiming == true) {
