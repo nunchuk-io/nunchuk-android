@@ -16,6 +16,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
@@ -108,8 +109,8 @@ private fun ClaimTransactionScreen(
     val trezorSuiteDeeplink by viewModel.trezorSuiteDeeplink.collectAsStateWithLifecycle()
     var exportImportMethod by remember { mutableStateOf<SigningMethod.ExportImport?>(null) }
     var showSigningOptions by remember { mutableStateOf(false) }
-    /** The file route a Save waits on while the storage permission is asked (Android 9 and below). */
-    var pendingSaveFile by remember { mutableStateOf<ExportRoute.File?>(null) }
+    /** Keep the pending filename across recreation while storage permission is requested (Android 9 and below). */
+    var pendingFileName by rememberSaveable { mutableStateOf<String?>(null) }
     val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(claimError) {
@@ -125,11 +126,11 @@ private fun ClaimTransactionScreen(
     val requestPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
-        val fileRoute = pendingSaveFile
-        pendingSaveFile = null
+        val fileName = pendingFileName
+        pendingFileName = null
         val psbt = state.transaction.psbt
-        if (isGranted && fileRoute != null && psbt.isNotEmpty()) {
-            viewModel.saveLocalFile(psbt, fileRoute.fileName)
+        if (isGranted && fileName != null && psbt.isNotEmpty()) {
+            viewModel.saveLocalFile(psbt, fileName)
         }
     }
 
@@ -391,7 +392,7 @@ private fun ClaimTransactionScreen(
                                     Manifest.permission.WRITE_EXTERNAL_STORAGE
                                 ) != PackageManager.PERMISSION_GRANTED
                             ) {
-                                pendingSaveFile = route
+                                pendingFileName = route.fileName
                                 requestPermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
                             } else {
                                 viewModel.saveLocalFile(psbt, route.fileName)
