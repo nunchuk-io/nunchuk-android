@@ -21,6 +21,8 @@ import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.signer.SignerIntroFlow
+import com.nunchuk.android.core.signer.SignerIntroRequest
 import com.nunchuk.android.core.util.BackUpSeedPhraseType
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.model.MembershipStage
@@ -106,22 +108,23 @@ class BackUpSeedPhraseActivity : BaseComposeActivity(), BottomSheetOptionListene
         navigator.openSignerIntroScreen(
             launcher = signerIntroLauncher,
             activityContext = this,
-            walletId = args.walletId,
-            groupId = args.groupId,
-            // Scopes the key types to the wallet being built; without it the server's
-            // inheritance list contributes one card per wallet type and vendors repeat.
-            walletType = args.walletType,
-            onChainAddSignerParam = OnChainAddSignerParam(
-                flags = OnChainAddSignerParam.FLAG_VERIFY_BACKUP_SEED_PHRASE,
-                currentSigner = args.signer,
-                replaceInfo = OnChainAddSignerParam.ReplaceInfo(
-                    replacedXfp = args.replacedXfp.orEmpty(),
-                    step = null
+            request = SignerIntroRequest(
+                walletId = args.walletId,
+                groupId = args.groupId,
+                // Scopes the key types to the wallet being built; without it the server's
+                // inheritance list contributes one card per wallet type and vendors repeat.
+                walletType = args.walletType,
+                flow = SignerIntroFlow.VerifyBackup(
+                    currentSigner = args.signer,
+                    replaceInfo = OnChainAddSignerParam.ReplaceInfo(
+                        replacedXfp = args.replacedXfp.orEmpty(),
+                        step = null
+                    ),
+                    // Coldcard and air-gap mark the key verified on their own screens, so the method
+                    // has to travel with the request.
+                    claimOption = args.claimOption,
                 ),
-                // Coldcard and air-gap mark the key verified on their own screens, so the method
-                // has to travel with the request.
-                claimOption = args.claimOption,
-            )
+            ),
         )
         // Stay alive: the device flow reports back through signerIntroLauncher.
     }

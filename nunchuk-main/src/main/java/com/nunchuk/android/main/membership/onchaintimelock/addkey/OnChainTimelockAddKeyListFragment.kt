@@ -90,6 +90,8 @@ import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toSingleSigner
+import com.nunchuk.android.core.signer.SignerIntroFlow
+import com.nunchuk.android.core.signer.SignerIntroRequest
 import com.nunchuk.android.core.util.BackUpSeedPhraseType
 import com.nunchuk.android.core.util.InheritancePlanType
 import com.nunchuk.android.core.util.flowObserver
@@ -563,16 +565,16 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
             navigator.openSignerIntroScreen(
                 launcher = signerIntroLauncher,
                 activityContext = requireActivity(),
-                walletId = (activity as MembershipActivity).walletId,
-                groupId = groupId,
-                supportedSigners = null,
-                onChainAddSignerParam = OnChainAddSignerParam(
-                    flags = OnChainAddSignerParam.FLAG_ADD_SIGNER,
-                    keyIndex = allSigners.size,
-                    currentSigner = allSigners.firstOrNull(),
-                    existingSigners = getAllExistingSigners()
+                request = SignerIntroRequest(
+                    walletId = (activity as MembershipActivity).walletId,
+                    groupId = groupId,
+                    flow = SignerIntroFlow.OnChainTimelockKey(
+                        keyIndex = allSigners.size,
+                        currentSigner = allSigners.firstOrNull(),
+                        existingSigners = getAllExistingSigners()
+                    ),
+                    walletType = WalletType.MINISCRIPT,
                 ),
-                walletType = WalletType.MINISCRIPT
             )
             return
         }
@@ -590,16 +592,16 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                 navigator.openSignerIntroScreen(
                     launcher = signerIntroLauncher,
                     activityContext = requireActivity(),
-                    walletId = (activity as MembershipActivity).walletId,
-                    groupId = groupId,
-                    supportedSigners = null,
-                    onChainAddSignerParam = OnChainAddSignerParam(
-                        flags = OnChainAddSignerParam.FLAG_ADD_SIGNER,
-                        keyIndex = allSigners.size,
-                        currentSigner = allSigners.firstOrNull(),
-                        existingSigners = getAllExistingSigners()
+                    request = SignerIntroRequest(
+                        walletId = (activity as MembershipActivity).walletId,
+                        groupId = groupId,
+                        flow = SignerIntroFlow.OnChainTimelockKey(
+                            keyIndex = allSigners.size,
+                            currentSigner = allSigners.firstOrNull(),
+                            existingSigners = getAllExistingSigners()
+                        ),
+                        walletType = WalletType.MINISCRIPT,
                     ),
-                    walletType = WalletType.MINISCRIPT
                 )
             }
         } else {

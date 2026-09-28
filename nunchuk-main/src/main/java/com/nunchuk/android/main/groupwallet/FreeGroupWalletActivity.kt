@@ -32,6 +32,8 @@ import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.core.util.navigateToSelectWallet
 import com.nunchuk.android.core.util.pureBTC
+import com.nunchuk.android.core.signer.SignerIntroFlow
+import com.nunchuk.android.core.signer.SignerIntroRequest
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.groupwallet.join.CommonQRCodeActivity
 import com.nunchuk.android.main.groupwallet.keypolicies.FreeGroupKeyPoliciesRoute
@@ -489,8 +491,11 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
         navigator.openSignerIntroScreen(
             launcher = signerIntroLauncher,
             activityContext = this,
-            groupId = groupId,
-            supportedSigners = newSupportedSigners
+            request = SignerIntroRequest(
+                flow = SignerIntroFlow.AddWalletKey,
+                groupId = groupId,
+                supportedSigners = newSupportedSigners,
+            ),
         )
     }
 

@@ -32,9 +32,10 @@ import com.nunchuk.android.core.nfc.SweepType
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.signer.KeyFlow
-import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
+import com.nunchuk.android.core.signer.SignerIntroFlow
+import com.nunchuk.android.core.signer.SignerIntroRequest
 import com.nunchuk.android.core.util.BTC_SATOSHI_EXCHANGE_RATE
 import com.nunchuk.android.core.util.SelectWalletType
 import com.nunchuk.android.core.util.pureBTC
@@ -214,21 +215,18 @@ private fun ClaimInheritanceGraph(
                 is ClaimInheritanceEvent.GenerateChallengeSuccess -> {
                     when(event.option) {
                         InheritanceOption.HARDWARE_DEVICE -> {
-                            val flags = if (claimData.isOnChainClaim) {
-                                OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER
-                            } else {
-                                OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER or OnChainAddSignerParam.FLAG_ADD_INHERITANCE_OFF_CHAIN_SIGNER
-                            }
                             navigator.openSignerIntroScreen(
                                 launcher = signerIntroLauncher,
                                 activityContext = activity,
-                                onChainAddSignerParam = OnChainAddSignerParam(
-                                    flags = flags,
-                                    magic = claimData.magic,
-                                    // The plan fixes which account each inheritance key sits at;
-                                    // the device intros name it so the heir exports the right XPUB.
-                                    keyIndex = claimData.nextKeyAccountIndex,
-                                )
+                                request = SignerIntroRequest(
+                                    flow = SignerIntroFlow.ClaimInheritance(
+                                        isOnChain = claimData.isOnChainClaim,
+                                        magic = claimData.magic,
+                                        // The plan fixes which account each inheritance key sits at;
+                                        // the device intros name it so the heir exports the right XPUB.
+                                        keyIndex = claimData.nextKeyAccountIndex,
+                                    ),
+                                ),
                             )
                         }
                         InheritanceOption.SEED_PHRASE -> {
@@ -318,10 +316,12 @@ private fun ClaimInheritanceGraph(
                     navigator.openSignerIntroScreen(
                         launcher = signerIntroLauncher,
                         activityContext = activity,
-                        onChainAddSignerParam = OnChainAddSignerParam(
-                            flags = OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER,
-                            magic = claimData.magic
-                        )
+                        request = SignerIntroRequest(
+                            flow = SignerIntroFlow.ClaimInheritance(
+                                isOnChain = true,
+                                magic = claimData.magic
+                            ),
+                        ),
                     )
                 },
             )

@@ -85,6 +85,8 @@ import com.nunchuk.android.compose.showNunchukSnackbar
 import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toSingleSigner
+import com.nunchuk.android.core.signer.SignerIntroFlow
+import com.nunchuk.android.core.signer.SignerIntroRequest
 import com.nunchuk.android.core.util.BackUpSeedPhraseType
 import com.nunchuk.android.core.util.InheritancePlanType
 import com.nunchuk.android.core.util.flowObserver
@@ -584,21 +586,21 @@ class OnChainReplaceKeysFragment : Fragment() {
                 navigator.openSignerIntroScreen(
                     launcher = signerIntroLauncher,
                     activityContext = requireActivity(),
-                    walletId = (activity as MembershipActivity).walletId,
-                    groupId = args.groupId,
-                    supportedSigners = null,
-                    onChainAddSignerParam = OnChainAddSignerParam(
-                        flags = OnChainAddSignerParam.FLAG_ADD_SIGNER,
-                        keyIndex = allSigners.size,
-                        currentSigner = allSigners.firstOrNull(),
-                        replaceInfo = currentStep?.let {
-                            OnChainAddSignerParam.ReplaceInfo(
-                                replacedXfp = viewModel.replacedXfp,
-                                step = it
-                            )
-                        }
+                    request = SignerIntroRequest(
+                        walletId = (activity as MembershipActivity).walletId,
+                        groupId = args.groupId,
+                        flow = SignerIntroFlow.OnChainTimelockKey(
+                            keyIndex = allSigners.size,
+                            currentSigner = allSigners.firstOrNull(),
+                            replaceInfo = currentStep?.let {
+                                OnChainAddSignerParam.ReplaceInfo(
+                                    replacedXfp = viewModel.replacedXfp,
+                                    step = it
+                                )
+                            }
+                        ),
+                        walletType = WalletType.MINISCRIPT,
                     ),
-                    walletType = WalletType.MINISCRIPT,
                 )
             }
         } else {

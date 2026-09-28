@@ -25,6 +25,8 @@ import android.os.Bundle
 import com.nunchuk.android.core.R
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.signer.KeyFlow
+import com.nunchuk.android.core.signer.SignerIntroFlow
+import com.nunchuk.android.core.signer.SignerIntroRequest
 import com.nunchuk.android.signer.software.databinding.ActivityPkeySignUpIntroBinding
 import com.nunchuk.android.usecase.network.IsNetworkConnectedUseCase
 import com.nunchuk.android.widget.NCInfoDialog
@@ -53,7 +55,10 @@ class PKeySignUpIntroActivity : BaseActivity<ActivityPkeySignUpIntroBinding>() {
             if (isNetworkConnectedUseCase()) {
                 navigator.openSignerIntroScreen(
                     activityContext = this,
-                    keyFlow = KeyFlow.SIGN_UP
+                    request = SignerIntroRequest(
+                        flow = SignerIntroFlow.AddKey,
+                        keyFlow = KeyFlow.SIGN_UP,
+                    ),
                 )
                 finish()
             } else {

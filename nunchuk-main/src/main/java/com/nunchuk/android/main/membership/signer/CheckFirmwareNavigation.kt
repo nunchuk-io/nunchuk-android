@@ -49,13 +49,14 @@ import com.nunchuk.android.core.signer.SelectSignerBottomSheet
 import com.nunchuk.android.main.membership.onchaintimelock.checkfirmware.CheckFirmwareEvent
 import com.nunchuk.android.main.membership.onchaintimelock.checkfirmware.CheckFirmwareViewModel
 import com.nunchuk.android.nav.args.CheckFirmwareArgs
+import com.nunchuk.android.signer.SignerFirmwareDevice
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class CheckFirmwareDestination(
-    val signerTagName: String,
+    val deviceName: String,
     val walletId: String = "",
     val groupId: String = ""
 )
@@ -64,11 +65,12 @@ fun NavGraphBuilder.checkFirmwareDestination(
     onChainAddSignerParam: OnChainAddSignerParam?,
     onMoreClicked: () -> Unit = {},
     onFilteredSignersReady: (SignerModel) -> Unit = {},
-    onOpenNextScreen: (SignerTag) -> Unit = {}
+    onOpenNextScreen: (SignerFirmwareDevice) -> Unit = {}
 ) {
     composable<CheckFirmwareDestination> { backStackEntry ->
         val destination = backStackEntry.toRoute<CheckFirmwareDestination>()
-        val signerTag = SignerTag.valueOf(destination.signerTagName)
+        val device = SignerFirmwareDevice.valueOf(destination.deviceName)
+        val signerTag = device.tag
         val args = CheckFirmwareArgs(
             signerTag = signerTag,
             onChainAddSignerParam = onChainAddSignerParam,
@@ -79,7 +81,7 @@ fun NavGraphBuilder.checkFirmwareDestination(
             args = args,
             onMoreClicked = onMoreClicked,
             onFilteredSignersReady = onFilteredSignersReady,
-            onOpenNextScreen = { onOpenNextScreen(signerTag) }
+            onOpenNextScreen = { onOpenNextScreen(device) }
         )
     }
 }

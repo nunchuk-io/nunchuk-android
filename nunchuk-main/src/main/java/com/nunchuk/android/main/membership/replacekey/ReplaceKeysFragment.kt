@@ -28,6 +28,8 @@ import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.core.signer.toSingleSigner
+import com.nunchuk.android.core.signer.SignerIntroFlow
+import com.nunchuk.android.core.signer.SignerIntroRequest
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.isAirgapTag
 import com.nunchuk.android.main.R
@@ -306,19 +308,19 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
         navigator.openSignerIntroScreen(
             launcher = inheritanceKeyPickerLauncher,
             activityContext = requireActivity(),
-            groupId = args.groupId,
-            walletId = args.walletId,
-            walletType = WalletType.MULTI_SIG,
-            onChainAddSignerParam = OnChainAddSignerParam(
-                flags = OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER or
-                        OnChainAddSignerParam.FLAG_ADD_INHERITANCE_OFF_CHAIN_SIGNER,
-                replaceInfo = OnChainAddSignerParam.ReplaceInfo(
-                    replacedXfp = viewModel.replacedXfp,
-                    step = null,
+            request = SignerIntroRequest(
+                groupId = args.groupId,
+                walletId = args.walletId,
+                walletType = WalletType.MULTI_SIG,
+                flow = SignerIntroFlow.OffChainInheritanceKey(
+                    replaceInfo = OnChainAddSignerParam.ReplaceInfo(
+                        replacedXfp = viewModel.replacedXfp,
+                        step = null,
+                    ),
+                    // A key already in the wallet cannot fill the slot, so keep it out of the
+                    // "reuse an existing key" offer the picker makes.
+                    existingSigners = viewModel.existingWalletSigners(),
                 ),
-                // A key already in the wallet cannot fill the slot, so keep it out of the
-                // "reuse an existing key" offer the picker makes.
-                existingSigners = viewModel.existingWalletSigners(),
             ),
         )
     }
@@ -495,8 +497,11 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
     private fun openSignerIntro() {
         navigator.openSignerIntroScreen(
             activityContext = requireActivity(),
-            walletId = args.walletId,
-            supportedSigners = activityViewModel.getSupportedSigners()
+            request = SignerIntroRequest(
+                flow = SignerIntroFlow.ReplaceWalletKey,
+                walletId = args.walletId,
+                supportedSigners = activityViewModel.getSupportedSigners(),
+            ),
         )
     }
 

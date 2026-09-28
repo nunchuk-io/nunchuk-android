@@ -25,8 +25,7 @@ import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
 import com.nunchuk.android.core.data.model.QuickWalletParam
 import com.nunchuk.android.core.referral.ReferralArgs
-import com.nunchuk.android.core.signer.KeyFlow
-import com.nunchuk.android.core.signer.OnChainAddSignerParam
+import com.nunchuk.android.core.signer.SignerIntroRequest
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.InheritanceSourceFlow
 import com.nunchuk.android.core.util.PrimaryOwnerFlow
@@ -39,7 +38,6 @@ import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.SignatureFlowType
 import com.nunchuk.android.model.SigningPath
 import com.nunchuk.android.model.byzantine.GroupWalletType
-import com.nunchuk.android.model.signer.SupportedSigner
 import com.nunchuk.android.nav.args.BackUpSeedPhraseArgs
 import com.nunchuk.android.nav.args.ClaimArgs
 import com.nunchuk.android.nav.args.ClaimTransactionArgs
@@ -210,13 +208,7 @@ interface AppNavigator {
     fun openSignerIntroScreen(
         launcher: ActivityResultLauncher<Intent>? = null,
         activityContext: Context,
-        walletId: String = "",
-        groupId: String? = null,
-        supportedSigners: List<SupportedSigner>? = null,
-        @KeyFlow.PrimaryFlowInfo keyFlow: Int = KeyFlow.NONE,
-        onChainAddSignerParam: OnChainAddSignerParam? = null,
-        walletType: WalletType? = null,
-        accountCount: Int = 1,
+        request: SignerIntroRequest = SignerIntroRequest(),
     )
 
     fun returnMembershipScreen()

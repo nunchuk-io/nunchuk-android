@@ -89,11 +89,12 @@ import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
-import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toSingleSigner
+import com.nunchuk.android.core.signer.SignerIntroFlow
+import com.nunchuk.android.core.signer.SignerIntroRequest
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.toReadableDrawableResId
@@ -688,8 +689,11 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
         navigator.openSignerIntroScreen(
             launcher = signerIntroLauncher,
             activityContext = requireActivity(),
-            groupId = "",
-            walletType = WalletType.MULTI_SIG,
+            request = SignerIntroRequest(
+                flow = SignerIntroFlow.AddAssistedWalletKey,
+                groupId = "",
+                walletType = WalletType.MULTI_SIG,
+            ),
         )
     }
 
@@ -824,15 +828,15 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
         navigator.openSignerIntroScreen(
             launcher = inheritanceKeyPickerLauncher,
             activityContext = requireActivity(),
-            groupId = (activity as MembershipActivity).groupId,
-            walletId = (activity as MembershipActivity).walletId,
-            walletType = WalletType.MULTI_SIG,
-            onChainAddSignerParam = OnChainAddSignerParam(
-                flags = OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER or
-                        OnChainAddSignerParam.FLAG_ADD_INHERITANCE_OFF_CHAIN_SIGNER,
-                // A key already on the wallet cannot fill this slot too, so keep it out of the
-                // "reuse an existing key" offer the picker makes.
-                existingSigners = viewModel.existingWalletSigners(),
+            request = SignerIntroRequest(
+                groupId = (activity as MembershipActivity).groupId,
+                walletId = (activity as MembershipActivity).walletId,
+                walletType = WalletType.MULTI_SIG,
+                flow = SignerIntroFlow.OffChainInheritanceKey(
+                    // A key already on the wallet cannot fill this slot too, so keep it out of the
+                    // "reuse an existing key" offer the picker makes.
+                    existingSigners = viewModel.existingWalletSigners(),
+                ),
             ),
         )
     }

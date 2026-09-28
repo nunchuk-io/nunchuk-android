@@ -76,7 +76,8 @@ import com.nunchuk.android.model.byzantine.isFacilitatorAdmin
 import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.nav.args.AddAirSignerArgs
 import com.nunchuk.android.nav.args.SetupMk4Args
-import com.nunchuk.android.core.signer.OnChainAddSignerParam
+import com.nunchuk.android.core.signer.SignerIntroFlow
+import com.nunchuk.android.core.signer.SignerIntroRequest
 import com.nunchuk.android.share.ColdcardAction
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.membership.MembershipStepManager
@@ -816,15 +817,15 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
         navigator.openSignerIntroScreen(
             launcher = inheritanceKeyPickerLauncher,
             activityContext = requireActivity(),
-            groupId = (activity as MembershipActivity).groupId,
-            walletId = (activity as MembershipActivity).walletId,
-            walletType = WalletType.MULTI_SIG,
-            onChainAddSignerParam = OnChainAddSignerParam(
-                flags = OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER or
-                        OnChainAddSignerParam.FLAG_ADD_INHERITANCE_OFF_CHAIN_SIGNER,
-                // A key already on the wallet cannot fill this slot too, so keep it out of the
-                // "reuse an existing key" offer the picker makes.
-                existingSigners = viewModel.existingWalletSigners(),
+            request = SignerIntroRequest(
+                groupId = (activity as MembershipActivity).groupId,
+                walletId = (activity as MembershipActivity).walletId,
+                walletType = WalletType.MULTI_SIG,
+                flow = SignerIntroFlow.OffChainInheritanceKey(
+                    // A key already on the wallet cannot fill this slot too, so keep it out of the
+                    // "reuse an existing key" offer the picker makes.
+                    existingSigners = viewModel.existingWalletSigners(),
+                ),
             ),
         )
     }

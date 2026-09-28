@@ -27,6 +27,8 @@ import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.miniscript.MultisignType
 import com.nunchuk.android.core.nfc.BaseComposeNfcActivity
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.signer.SignerIntroFlow
+import com.nunchuk.android.core.signer.SignerIntroRequest
 import com.nunchuk.android.nav.args.MiniscriptArgs
 import com.nunchuk.android.wallet.InputBipPathBottomSheet
 import com.nunchuk.android.wallet.InputBipPathBottomSheetListener
@@ -135,12 +137,15 @@ class MiniscriptActivity : BaseComposeNfcActivity(), InputBipPathBottomSheetList
                             onAddNewKey = { supportedSigners ->
                                 navigator.openSignerIntroScreen(
                                     activityContext = this@MiniscriptActivity,
-                                    groupId = "-1",
-                                    supportedSigners = supportedSigners,
-                                    // A slot that reuses one key across policies needs an xpub per
-                                    // policy. Ledger and BitBox read them all in one session so the
-                                    // user pairs the device once; the other flows add one key.
-                                    accountCount = sharedWalletViewModel.getRequiredAccountCount(),
+                                    request = SignerIntroRequest(
+                                        flow = SignerIntroFlow.AddWalletKey,
+                                        groupId = "-1",
+                                        supportedSigners = supportedSigners,
+                                        // A slot that reuses one key across policies needs an xpub per
+                                        // policy. Ledger and BitBox read them all in one session so the
+                                        // user pairs the device once; the other flows add one key.
+                                        accountCount = sharedWalletViewModel.getRequiredAccountCount(),
+                                    ),
                                 )
                             },
                             onContinue = {
