@@ -24,6 +24,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.BaseNfcUseCase
 import com.nunchuk.android.core.domain.GetTapSignerStatusUseCase
+import com.nunchuk.android.core.domain.signer.GetSignerFromTapsignerMasterSignerUseCase
 import com.nunchuk.android.core.helper.CheckAssistedSignerExistenceHelper
 import com.nunchuk.android.core.mapper.SingleSignerMapper
 import com.nunchuk.android.core.signer.SignerModel
@@ -52,6 +53,7 @@ class AddTapSignerIntroViewModel @Inject constructor(
     private val checkAssistedSignerExistenceHelper: CheckAssistedSignerExistenceHelper,
     private val getReplaceSignerNameUseCase: GetReplaceSignerNameUseCase,
     private val getSignerFromMasterSignerByIndexUseCase: GetSignerFromMasterSignerByIndexUseCase,
+    private val getSignerFromTapsignerMasterSignerUseCase: GetSignerFromTapsignerMasterSignerUseCase,
     private val singleSignerMapper: SingleSignerMapper,
 ) : ViewModel() {
     private val _event = MutableSharedFlow<AddTapSignerIntroEvent>()
@@ -116,6 +118,32 @@ class AddTapSignerIntroViewModel @Inject constructor(
     fun isInAssistedWallet(masterSignerId: String) =
         checkAssistedSignerExistenceHelper.isInAssistedWallet(masterSignerId)
 
+    /**
+     * The TAPSIGNER a Beneficiary is claiming with is already in the key manager: read the key the
+     * plan expects straight off the card (CVC entered), rather than stopping on "already existed".
+     */
+    var existingClaimMasterSignerId: String = ""
+
+    fun getExistingSignerForClaim(isoDep: IsoDep, cvc: String, signerIndex: Int) = viewModelScope.launch {
+        _event.emit(AddTapSignerIntroEvent.Loading(true))
+        getSignerFromTapsignerMasterSignerUseCase(
+            GetSignerFromTapsignerMasterSignerUseCase.Data(
+                isoDep = isoDep,
+                cvc = cvc,
+                masterSignerId = existingClaimMasterSignerId,
+                index = signerIndex,
+                walletType = WalletType.MULTI_SIG
+            )
+        ).onSuccess { singleSigner ->
+            singleSigner?.let {
+                _event.emit(AddTapSignerIntroEvent.ReturnSignerModel(singleSignerMapper(it)))
+            } ?: _event.emit(AddTapSignerIntroEvent.ClaimSignerError(Exception("Signer not found")))
+        }.onFailure {
+            _event.emit(AddTapSignerIntroEvent.ClaimSignerError(it))
+        }
+        _event.emit(AddTapSignerIntroEvent.Loading(false))
+    }
+
     fun getSignerModel(masterSignerId: String, signerIndex: Int) = viewModelScope.launch {
         if (masterSignerId.isEmpty()) return@launch
         getSignerFromMasterSignerByIndexUseCase(
@@ -147,4 +175,7 @@ sealed class AddTapSignerIntroEvent {
     data object ContinueEventAddTapSigner : AddTapSignerIntroEvent()
     data class GetMasterSignerSuccess(val masterSigner: MasterSigner) : AddTapSignerIntroEvent()
     data class ReturnSignerModel(val signerModel: SignerModel) : AddTapSignerIntroEvent()
+
+    /** Reading a claim's existing card failed; NFC errors (wrong CVC, card lost) get the usual handling. */
+    data class ClaimSignerError(val e: Throwable) : AddTapSignerIntroEvent()
 }

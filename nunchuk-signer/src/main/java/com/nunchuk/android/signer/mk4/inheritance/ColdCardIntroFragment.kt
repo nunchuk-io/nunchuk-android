@@ -149,7 +149,8 @@ internal fun ColdCardIntroScreen(
         Scaffold(topBar = {
             NcImageAppBar(
                 backgroundRes = R.drawable.bg_add_coldcard_view_nfc_intro,
-                title = if (isMembershipFlow && remainTime > 0) {
+                // A claim adds its key here too, but it is not the setup wizard: no time remaining.
+                title = if (isMembershipFlow && !isClaiming && remainTime > 0) {
                     stringResource(
                         id = R.string.nc_estimate_remain_time,
                         remainTime

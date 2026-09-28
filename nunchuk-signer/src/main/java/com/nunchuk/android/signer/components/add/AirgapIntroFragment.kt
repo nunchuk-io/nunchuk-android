@@ -87,7 +87,8 @@ class AirgapIntroFragment : MembershipFragment() {
             setContent {
                 val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
                 AirgapIntroContent(
-                    remainTime = remainTime,
+                    // A claim adds its key through this flow but is not the setup wizard: no time remaining.
+                    remainTime = if (param?.isClaiming == true) 0 else remainTime,
                     isMembershipFlow = isMembershipFlow,
                     isReplaceKey = replacedXfp.isNotEmpty(),
                     signerTag = signerTag,

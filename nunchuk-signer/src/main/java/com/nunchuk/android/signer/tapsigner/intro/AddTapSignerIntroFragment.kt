@@ -59,6 +59,8 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.NfcActionListener
 import com.nunchuk.android.core.signer.toModel
+import com.nunchuk.android.exception.NCNativeException
+import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.showError
@@ -101,7 +103,9 @@ class AddTapSignerIntroFragment : BaseChangeTapSignerNameFragment() {
                 AddTapSignerIntroScreen(
                     viewModel = viewModel,
                     membershipStepManager = membershipStepManager,
-                    isMembershipFlow = args.isMembershipFlow,
+                    // A claim adds the key through this flow too, but it is not the setup wizard: no
+                    // time remaining, no wizard menu.
+                    isMembershipFlow = args.isMembershipFlow && !isClaiming,
                     isReplaceKey = replacedXfp.isNotEmpty(),
                     onMoreClicked = ::handleShowMore
                 )
@@ -137,6 +141,20 @@ class AddTapSignerIntroFragment : BaseChangeTapSignerNameFragment() {
     override val isMembershipFlow: Boolean
         get() = args.isMembershipFlow
 
+    private val isClaiming: Boolean
+        get() = (activity as NfcSetupActivity).onChainAddSignerParam?.isClaiming == true
+
+    override val shouldCreateBackUp: Boolean
+        get() = isMembershipFlow && !isClaiming
+
+    /** Without a backup, a claim's new card ends here: hand its key back to the claim. */
+    override fun onUpdateNameSuccess(signer: MasterSigner) {
+        if (isClaiming) {
+            nfcViewModel.updateMasterSigner(signer)
+            viewModel.getSignerModel(signer.id, (activity as NfcSetupActivity).signerIndex)
+        }
+    }
+
     private fun observer() {
         flowObserver(viewModel.event) {
             when (it) {
@@ -147,6 +165,17 @@ class AddTapSignerIntroFragment : BaseChangeTapSignerNameFragment() {
                 }
 
                 is AddTapSignerIntroEvent.GetTapSignerStatusError -> showError(it.e?.message.orUnknownError())
+                // Same handling "Yes, use this TAPSIGNER" gives it on the screen a claim now skips.
+                is AddTapSignerIntroEvent.ClaimSignerError -> if (nfcViewModel.handleNfcError(it.e).not()) {
+                    val e = it.e
+                    showError(
+                        if (e is NCNativeException && e.message.contains("-6100")) {
+                            getString(R.string.nc_card_id_does_not_match)
+                        } else {
+                            e.message.orUnknownError()
+                        }
+                    )
+                }
                 is AddTapSignerIntroEvent.GetTapSignerStatusSuccess -> requireActivity().handleTapSignerStatus(
                     it.status,
                     onCreateSigner = {
@@ -154,6 +183,15 @@ class AddTapSignerIntroFragment : BaseChangeTapSignerNameFragment() {
                     },
                     onSetupNfc = ::handleSetupTapSigner,
                     onSignerExisted = {
+                        // Claiming with a TAPSIGNER already in the key manager: take its key off the card
+                        // (CVC, then tap) and hand it back, as for a new card.
+                        if (isClaiming) {
+                            viewModel.existingClaimMasterSignerId = it.status.masterSignerId.orEmpty()
+                            (requireActivity() as NfcActionListener).startNfcFlow(
+                                BaseNfcActivity.REQUEST_NFC_VIEW_BACKUP_KEY
+                            )
+                            return@handleTapSignerStatus
+                        }
                         // replace key case
                         val walletId = (activity as NfcSetupActivity).walletId
                         // free group wallet case
@@ -229,6 +267,20 @@ class AddTapSignerIntroFragment : BaseChangeTapSignerNameFragment() {
                 nfcViewModel.nfcScanInfo.filter { it.requestCode == BaseNfcActivity.REQUEST_NFC_STATUS }
                     .collect {
                         viewModel.getTapSignerStatus(IsoDep.get(it.tag))
+                        nfcViewModel.clearScanInfo()
+                    }
+            }
+        }
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                nfcViewModel.nfcScanInfo.filter { isClaiming && it.requestCode == BaseNfcActivity.REQUEST_NFC_VIEW_BACKUP_KEY }
+                    .collect {
+                        viewModel.getExistingSignerForClaim(
+                            isoDep = IsoDep.get(it.tag) ?: return@collect,
+                            cvc = nfcViewModel.inputCvc.orEmpty(),
+                            signerIndex = (activity as NfcSetupActivity).signerIndex,
+                        )
                         nfcViewModel.clearScanInfo()
                     }
             }

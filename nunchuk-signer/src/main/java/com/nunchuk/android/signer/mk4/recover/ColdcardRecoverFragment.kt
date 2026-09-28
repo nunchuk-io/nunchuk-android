@@ -351,9 +351,10 @@ private fun ColdcardRecoverScreen(
     onChainAddSignerParam: OnChainAddSignerParam? = null,
     onMoreClicked: () -> Unit = {}
 ) {
+    // A claim adds its key through this flow but is not the setup wizard: no time remaining.
     val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
     ColdcardRecoverContent(
-        remainTime = remainTime,
+        remainTime = if (onChainAddSignerParam?.isClaiming == true) 0 else remainTime,
         onContinueClicked = viewModel::onContinueClicked,
         onOpenGuideClicked = viewModel::onOpenGuideClicked,
         isMembershipFlow = isMembershipFlow,

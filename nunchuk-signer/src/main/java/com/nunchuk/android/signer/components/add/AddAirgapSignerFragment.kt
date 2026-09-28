@@ -134,8 +134,10 @@ class AddAirgapSignerFragment : BaseCameraFragment<ViewBinding>(),
             setContent {
                 val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
                 val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+                val isClaiming = (requireActivity() as AddAirgapSignerActivity).onChainAddSignerParam?.isClaiming == true
                 AddAirgapSignerContent(
-                    remainTime = remainTime, uiState = uiState,
+                    // A claim adds its key through this flow but is not the setup wizard: no time remaining.
+                    remainTime = if (isClaiming) 0 else remainTime, uiState = uiState,
                     isMembershipFlow = (requireActivity() as AddAirgapSignerActivity).isMembershipFlow,
                     signerTag = (requireActivity() as AddAirgapSignerActivity).signerTag,
                     onKeyNameChange = { viewModel.updateKeyName(it) },

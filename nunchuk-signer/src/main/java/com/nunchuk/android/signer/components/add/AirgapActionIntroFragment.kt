@@ -57,7 +57,9 @@ class AirgapActionIntroFragment : MembershipFragment() {
         AirgapActionIntroScreen(
             isMembershipFlow = isMembershipFlow,
             onChainAddSignerParam = onChainAddSignerParam,
+            // A claim adds its key through this flow but is not the setup wizard: no time remaining.
             remainTime = membershipStepManager.remainingTime.collectAsState().value
+                .takeUnless { onChainAddSignerParam?.isClaiming == true } ?: 0
         ) { jadeAction ->
             when (jadeAction) {
                 JADEAction.QR -> {

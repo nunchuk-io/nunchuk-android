@@ -100,6 +100,8 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
     ): View {
         val replacedXfp = (activity as Mk4Activity).replacedXfp.orEmpty()
+        // A claim adds its key through this flow but is not the setup wizard: no time remaining.
+        val isClaiming = (activity as Mk4Activity).onChainAddSignerParam?.isClaiming == true
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
@@ -107,6 +109,7 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
                 Mk4IntroScreen(
                     viewModel = viewModel,
                     isMembershipFlow = args.isMembershipFlow,
+                    isClaiming = isClaiming,
                     isReplaceKey = replacedXfp.isNotEmpty(),
                     onMoreClicked = ::handleShowMore
                 )
@@ -408,12 +411,13 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
 private fun Mk4IntroScreen(
     viewModel: Mk4IntroViewModel = viewModel(),
     isMembershipFlow: Boolean,
+    isClaiming: Boolean = false,
     isReplaceKey: Boolean,
     onMoreClicked: () -> Unit = {},
 ) {
     val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
     Mk4IntroContent(
-        remainTime = remainTime,
+        remainTime = if (isClaiming) 0 else remainTime,
         isMembershipFlow = isMembershipFlow,
         onMoreClicked = onMoreClicked,
         isReplaceKey = isReplaceKey,
