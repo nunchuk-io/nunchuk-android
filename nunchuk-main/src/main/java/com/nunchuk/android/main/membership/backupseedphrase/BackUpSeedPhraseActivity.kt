@@ -91,6 +91,10 @@ class BackUpSeedPhraseActivity : BaseComposeActivity(), BottomSheetOptionListene
             data?.apply {
                 if (!verifiedXfp.isNullOrEmpty()) {
                     putExtra(GlobalResultKey.EXTRA_VERIFIED_XFP, verifiedXfp)
+                    // The key that was verified, so the confirmation can name it even when the
+                    // caller's key list has not been reloaded yet.
+                    args.signer?.takeIf { it.fingerPrint.equals(verifiedXfp, ignoreCase = true) }
+                        ?.let { putExtra(GlobalResultKey.EXTRA_SIGNER, it) }
                 }
             }
         )

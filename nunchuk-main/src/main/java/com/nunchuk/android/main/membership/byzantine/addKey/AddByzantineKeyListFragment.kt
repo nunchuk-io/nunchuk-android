@@ -138,7 +138,10 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             val verifiedXfp = result.data?.getStringExtra(GlobalResultKey.EXTRA_VERIFIED_XFP)
             if (result.resultCode == Activity.RESULT_OK && !verifiedXfp.isNullOrEmpty()) {
-                viewModel.onSeedPhraseBackupVerified(verifiedXfp)
+                viewModel.onSeedPhraseBackupVerified(
+                    masterSignerId = verifiedXfp,
+                    verifiedSigner = result.data?.parcelable(GlobalResultKey.EXTRA_SIGNER),
+                )
             } else {
                 viewModel.refresh()
             }

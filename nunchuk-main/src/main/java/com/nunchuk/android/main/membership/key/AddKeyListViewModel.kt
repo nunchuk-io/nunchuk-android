@@ -409,7 +409,7 @@ class AddKeyListViewModel @Inject constructor(
      * Only the keys that pair in-app (Ledger, BitBox) come back here — Coldcard and air-gap mark
      * themselves verified inside their own add-key screens and never return a fingerprint.
      */
-    fun onSeedPhraseBackupVerified(masterSignerId: String) {
+    fun onSeedPhraseBackupVerified(masterSignerId: String, verifiedSigner: SignerModel? = null) {
         viewModelScope.launch {
             setKeyVerifiedUseCase(
                 SetKeyVerifiedUseCase.Param(
@@ -424,7 +424,7 @@ class AddKeyListViewModel @Inject constructor(
                     AddKeyListEvent.OnSeedPhraseBackupVerified(
                         signer = _keys.value.firstOrNull {
                             it.signer?.fingerPrint.equals(masterSignerId, ignoreCase = true)
-                        }?.signer
+                        }?.signer ?: verifiedSigner
                     )
                 )
             }.onFailure {

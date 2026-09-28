@@ -176,10 +176,17 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
      * the fingerprint they saw, which is what proves the backup; Coldcard and air-gap finish
      * inside their own screens and come back empty, so the refresh is all this does for them.
      */
+    /**
+     * The key [verifySeedPhraseBackupLauncher] reported verified, for the confirmation screen when
+     * the replacement list has not been reloaded by the time it opens.
+     */
+    private var seedPhraseVerifiedSigner: SignerModel? = null
+
     private val verifySeedPhraseBackupLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             val verifiedXfp = result.data?.getStringExtra(GlobalResultKey.EXTRA_VERIFIED_XFP)
             if (result.resultCode == Activity.RESULT_OK && !verifiedXfp.isNullOrEmpty()) {
+                seedPhraseVerifiedSigner = result.data?.parcelable(GlobalResultKey.EXTRA_SIGNER)
                 viewModel.onSeedPhraseBackupVerified(verifiedXfp)
             } else {
                 viewModel.getReplaceWalletStatus()
@@ -470,7 +477,8 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
                 openInheritanceSeedPhraseVerified(
                     navigator = navigator,
                     signer = viewModel.uiState.value.replaceSigners.values
-                        .firstOrNull { it.fingerPrint.equals(event.data, ignoreCase = true) },
+                        .firstOrNull { it.fingerPrint.equals(event.data, ignoreCase = true) }
+                        ?: seedPhraseVerifiedSigner?.takeIf { it.fingerPrint.equals(event.data, ignoreCase = true) },
                     groupId = args.groupId,
                     walletId = args.walletId,
                 )
