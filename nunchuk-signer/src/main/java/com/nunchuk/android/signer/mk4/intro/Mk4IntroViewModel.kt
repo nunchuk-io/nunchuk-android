@@ -30,9 +30,7 @@ import com.nunchuk.android.core.domain.ImportWalletFromMk4UseCase
 import com.nunchuk.android.core.domain.coldcard.ExtractWalletsFromColdCard
 import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
 import com.nunchuk.android.core.domain.wallet.ParseMk4WalletUseCase
-import com.nunchuk.android.core.helper.CheckAssistedSignerExistenceHelper
 import com.nunchuk.android.core.signer.OnChainAddSignerParam
-import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.signer.toSingleSigner
 import com.nunchuk.android.core.util.DEFAULT_COLDCARD_WALLET_NAME
 import com.nunchuk.android.core.util.gson
@@ -53,7 +51,6 @@ import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.CheckExistingKeyUseCase
 import com.nunchuk.android.usecase.GetIndexFromPathUseCase
-import com.nunchuk.android.usecase.ResultExistingKey
 import com.nunchuk.android.usecase.byzantine.GetReplaceSignerNameUseCase
 import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
 import com.nunchuk.android.usecase.membership.SetKeyVerifiedUseCase
@@ -87,7 +84,6 @@ class Mk4IntroViewModel @Inject constructor(
     private val syncDraftWalletUseCase: SyncDraftWalletUseCase,
     private val setKeyVerifiedUseCase: SetKeyVerifiedUseCase,
     private val setReplaceKeyVerifiedUseCase: SetReplaceKeyVerifiedUseCase,
-    private val checkAssistedSignerExistenceHelper: CheckAssistedSignerExistenceHelper,
     private val checkExistingKeyUseCase: CheckExistingKeyUseCase,
     private val replaceKeyUseCase: ReplaceKeyUseCase,
     private val getReplaceSignerNameUseCase: GetReplaceSignerNameUseCase,
@@ -111,7 +107,6 @@ class Mk4IntroViewModel @Inject constructor(
         viewModelScope.launch {
             chain = getChainSettingFlowUseCase(Unit).map { it.getOrElse { Chain.MAIN } }.first()
         }
-        checkAssistedSignerExistenceHelper.init(viewModelScope)
     }
 
     val mk4Signers: List<SingleSigner>
@@ -304,17 +299,13 @@ class Mk4IntroViewModel @Inject constructor(
     fun checkExistingKey(signer: SingleSigner) {
         _state.update { it.copy(signer = signer) }
         viewModelScope.launch {
-            if (checkAssistedSignerExistenceHelper.isInAssistedWallet(signer.toModel())) {
-                checkExistingKeyUseCase(CheckExistingKeyUseCase.Params(signer))
-                    .onSuccess {
-                        _event.emit(Mk4IntroViewEvent.CheckExistingKey(it, signer))
-                    }
-                    .onFailure {
-                        _event.emit(Mk4IntroViewEvent.ShowError(it.message.orUnknownError()))
-                    }
-            } else {
-                _event.emit(Mk4IntroViewEvent.CheckExistingKey(ResultExistingKey.None, signer))
-            }
+            checkExistingKeyUseCase(CheckExistingKeyUseCase.Params(signer))
+                .onSuccess {
+                    _event.emit(Mk4IntroViewEvent.CheckExistingKey(it, signer))
+                }
+                .onFailure {
+                    _event.emit(Mk4IntroViewEvent.ShowError(it.message.orUnknownError()))
+                }
         }
     }
 

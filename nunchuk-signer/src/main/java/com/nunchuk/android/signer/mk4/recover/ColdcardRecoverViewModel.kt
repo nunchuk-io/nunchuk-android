@@ -25,9 +25,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
-import com.nunchuk.android.core.helper.CheckAssistedSignerExistenceHelper
 import com.nunchuk.android.core.signer.OnChainAddSignerParam
-import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.signer.toSingleSigner
 import com.nunchuk.android.core.util.COLDCARD_DEFAULT_KEY_NAME
 import com.nunchuk.android.core.util.getFileFromUri
@@ -86,7 +84,6 @@ class ColdcardRecoverViewModel @Inject constructor(
     private val replaceKeyUseCase: ReplaceKeyUseCase,
     private val getReplaceSignerNameUseCase: GetReplaceSignerNameUseCase,
     savedStateHandle: SavedStateHandle,
-    private val checkAssistedSignerExistenceHelper: CheckAssistedSignerExistenceHelper,
     private val checkExistingKeyUseCase: CheckExistingKeyUseCase,
     private val getIndexFromPathUseCase: GetIndexFromPathUseCase,
 ) : ViewModel() {
@@ -465,17 +462,13 @@ class ColdcardRecoverViewModel @Inject constructor(
 
     fun checkExistingKey(signer: SingleSigner) {
         viewModelScope.launch {
-            if (checkAssistedSignerExistenceHelper.isInAssistedWallet(signer.toModel())) {
-                checkExistingKeyUseCase(CheckExistingKeyUseCase.Params(signer))
-                    .onSuccess {
-                        _event.emit(ColdcardRecoverEvent.CheckExistingKey(it, signer))
-                    }
-                    .onFailure {
-                        _event.emit(ColdcardRecoverEvent.ShowError(it.message.orUnknownError()))
-                    }
-            } else {
-                _event.emit(ColdcardRecoverEvent.CheckExistingKey(ResultExistingKey.None, signer))
-            }
+            checkExistingKeyUseCase(CheckExistingKeyUseCase.Params(signer))
+                .onSuccess {
+                    _event.emit(ColdcardRecoverEvent.CheckExistingKey(it, signer))
+                }
+                .onFailure {
+                    _event.emit(ColdcardRecoverEvent.ShowError(it.message.orUnknownError()))
+                }
         }
     }
 }

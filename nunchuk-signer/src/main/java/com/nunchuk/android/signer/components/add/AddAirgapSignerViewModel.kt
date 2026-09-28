@@ -26,13 +26,11 @@ import com.google.gson.Gson
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.constants.NativeErrorCode
 import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
-import com.nunchuk.android.core.helper.CheckAssistedSignerExistenceHelper
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.signer.InvalidSignerFormatException
 import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.core.signer.SignerInput
-import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.signer.toSigner
 import com.nunchuk.android.core.signer.toSingleSigner
 import com.nunchuk.android.core.util.formattedName
@@ -113,7 +111,6 @@ internal class AddAirgapSignerViewModel @Inject constructor(
     private val setKeyVerifiedUseCase: SetKeyVerifiedUseCase,
     private val setReplaceKeyVerifiedUseCase: SetReplaceKeyVerifiedUseCase,
     private val checkExistingKeyUseCase: CheckExistingKeyUseCase,
-    private val checkAssistedSignerExistenceHelper: CheckAssistedSignerExistenceHelper,
     private val changeKeyTypeUseCase: ChangeKeyTypeUseCase,
     private val replaceKeyUseCase: ReplaceKeyUseCase,
     private val getReplaceSignerNameUseCase: GetReplaceSignerNameUseCase,
@@ -140,7 +137,6 @@ internal class AddAirgapSignerViewModel @Inject constructor(
         viewModelScope.launch {
             chain = getChainSettingFlowUseCase(Unit).map { it.getOrElse { Chain.MAIN } }.first()
         }
-        checkAssistedSignerExistenceHelper.init(viewModelScope)
     }
 
     val remainTime = membershipStepManager.remainingTime
@@ -305,10 +301,7 @@ internal class AddAirgapSignerViewModel @Inject constructor(
             }
             setEvent(LoadingEventAirgap(true))
             val signer = signerInput.toSingleSigner(newSignerName, signerTag)
-            if (isMembershipFlow.not() && checkAssistedSignerExistenceHelper.isInAssistedWallet(
-                    signer.toModel()
-                )
-            ) {
+            if (isMembershipFlow.not()) {
                 _state.update { it.copy(airgap = signer.copy(derivationPath = signerInput.derivationPath)) }
                 val resultKey = checkExistingKeyUseCase(CheckExistingKeyUseCase.Params(signer))
                 setEvent(LoadingEventAirgap(false))
