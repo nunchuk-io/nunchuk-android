@@ -1205,7 +1205,7 @@ private fun ConfigItem(
             ) {
                 Text(
                     text = item.type.getButtonText(LocalContext.current),
-                    style = NunchukTheme.typography.caption,
+                    style = NunchukTheme.typography.titleSmall,
                 )
             }
         } else {

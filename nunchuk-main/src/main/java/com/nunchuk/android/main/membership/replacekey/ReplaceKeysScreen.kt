@@ -6,6 +6,8 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -279,6 +281,7 @@ private fun ReplaceKeysContent(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ReplaceKeyCard(
     replacedSigner: SignerModel?,
@@ -337,7 +340,11 @@ fun ReplaceKeyCard(
                             text = item.name,
                             style = NunchukTheme.typography.body
                         )
-                        Row(modifier = Modifier.padding(top = 4.dp)) {
+                        FlowRow(
+                            modifier = Modifier.padding(top = 4.dp),
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
                             NcTag(
                                 label = item.toReadableSignerType(context = LocalContext.current),
                                 backgroundColor = colorResource(
@@ -346,7 +353,6 @@ fun ReplaceKeyCard(
                             )
                             if (item.isShowAcctX()) {
                                 NcTag(
-                                    modifier = Modifier.padding(start = 4.dp),
                                     label = stringResource(R.string.nc_acct_x, item.index),
                                     backgroundColor = colorResource(
                                         id = R.color.nc_bg_mid_gray
@@ -366,7 +372,10 @@ fun ReplaceKeyCard(
                                 modifier = Modifier.height(36.dp),
                                 onClick = { onSetUpClaimOptionsClicked(item) },
                             ) {
-                                Text(text = stringResource(R.string.nc_set_up))
+                                Text(
+                                    text = stringResource(R.string.nc_set_up),
+                                    style = NunchukTheme.typography.titleSmall,
+                                )
                             }
                         } else if (needsClaimVerification) {
                             NcOutlineButton(
@@ -378,7 +387,8 @@ fun ReplaceKeyCard(
                                         stringResource(R.string.nc_upload_backup)
                                     } else {
                                         stringResource(R.string.nc_verify_backup)
-                                    }
+                                    },
+                                    style = NunchukTheme.typography.titleSmall,
                                 )
                             }
                         } else if (!showsClaimStatus && isNeedVerify) {
@@ -389,7 +399,8 @@ fun ReplaceKeyCard(
                                 Text(
                                     text = if (isMissingBackup.not()) stringResource(R.string.nc_verify_backup) else stringResource(
                                         R.string.nc_upload_backup
-                                    )
+                                    ),
+                                    style = NunchukTheme.typography.titleSmall,
                                 )
                             }
                         } else {
@@ -397,7 +408,10 @@ fun ReplaceKeyCard(
                                 modifier = Modifier.height(36.dp),
                                 onClick = { onRemoveClicked(originalSigner) },
                             ) {
-                                Text(text = stringResource(R.string.nc_remove))
+                                Text(
+                                    text = stringResource(R.string.nc_remove),
+                                    style = NunchukTheme.typography.titleSmall,
+                                )
                             }
                         }
                     } else {
@@ -405,7 +419,10 @@ fun ReplaceKeyCard(
                             modifier = Modifier.height(36.dp),
                             onClick = { onReplaceClicked(item) },
                         ) {
-                            Text(text = stringResource(R.string.nc_replace))
+                            Text(
+                                text = stringResource(R.string.nc_replace),
+                                style = NunchukTheme.typography.titleSmall,
+                            )
                         }
                     }
                 }
