@@ -32,6 +32,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -975,6 +977,7 @@ fun AddKeyListContent(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun AddKeyCard(
     item: AddKeyData,
@@ -1029,7 +1032,11 @@ fun AddKeyCard(
                                     text = item.signer.name,
                                     style = NunchukTheme.typography.body
                                 )
-                                Row(modifier = Modifier.padding(top = 4.dp)) {
+                                FlowRow(
+                                    modifier = Modifier.padding(top = 4.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                                ) {
                                     NcTag(
                                         label = item.signer.toReadableSignerType(context = LocalContext.current),
                                         backgroundColor = colorResource(
@@ -1038,7 +1045,6 @@ fun AddKeyCard(
                                     )
                                     if (item.signer.isShowAcctX()) {
                                         NcTag(
-                                            modifier = Modifier.padding(start = 4.dp),
                                             label = stringResource(
                                                 R.string.nc_acct_x,
                                                 item.signer.index
@@ -1060,7 +1066,10 @@ fun AddKeyCard(
                                     modifier = Modifier.height(36.dp),
                                     onClick = { onSetUpClaimOptionsClicked(item) },
                                 ) {
-                                    Text(text = stringResource(R.string.nc_set_up))
+                                    Text(
+                                        text = stringResource(R.string.nc_set_up),
+                                        style = NunchukTheme.typography.titleSmall,
+                                    )
                                 }
                             } else if (item.needsClaimVerification) {
                                 // Ahead of the verifyType tick on purpose: a "do both" key is half
@@ -1074,7 +1083,8 @@ fun AddKeyCard(
                                             stringResource(R.string.nc_upload_backup)
                                         } else {
                                             stringResource(R.string.nc_verify_backup)
-                                        }
+                                        },
+                                        style = NunchukTheme.typography.titleSmall,
                                     )
                                 }
                             } else if (item.isRowComplete) {
@@ -1101,7 +1111,8 @@ fun AddKeyCard(
                                     Text(
                                         text = if (isMissingBackup.not()) stringResource(R.string.nc_verify_backup) else stringResource(
                                             R.string.nc_upload_backup
-                                        )
+                                        ),
+                                        style = NunchukTheme.typography.titleSmall,
                                     )
                                 }
                             }
