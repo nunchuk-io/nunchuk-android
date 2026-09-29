@@ -226,6 +226,8 @@ private fun ClaimInheritanceGraph(
                                         // the device intros name it so the heir exports the right XPUB.
                                         keyIndex = claimData.nextKeyAccountIndex,
                                     ),
+                                    // Scopes the server's inheritance-key list to the claimed wallet.
+                                    walletType = claimData.walletType,
                                 ),
                             )
                         }
@@ -321,6 +323,7 @@ private fun ClaimInheritanceGraph(
                                 isOnChain = true,
                                 magic = claimData.magic
                             ),
+                            walletType = claimData.walletType,
                         ),
                     )
                 },

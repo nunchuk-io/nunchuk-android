@@ -44,7 +44,8 @@ internal val offChainInheritanceCardOrder: List<KeyType> =
     offChainInheritanceSetupKeyTypes.mapNotNull { it.toKeyType() }
 
 /**
- * Key types offered to a Beneficiary claiming an inheritance, in the picker order of the design.
+ * Fallback key types offered to a Beneficiary claiming an off-chain inheritance, in the picker order
+ * of the design, until the server's inheritance-key list for the wallet type is available.
  * Only devices the claim flow can take a challenge signature from belong here: TAPSIGNER and
  * Coldcard via NFC, Jade, Keystone and SeedSigner via plain-text QR, Passport via a microSD file,
  * Krux via SD card or QR, Ledger and BitBox in-app over BLE/USB, Trezor through Trezor Suite (see
@@ -64,6 +65,10 @@ internal val offChainInheritanceClaimKeyTypes = listOf(
     multiSigSigner(SignerType.AIRGAP, SignerTag.KRUX),
     multiSigSigner(SignerType.SOFTWARE),
 )
+
+/** Card order of the claim picker, derived like [offChainInheritanceCardOrder]. */
+internal val offChainInheritanceClaimCardOrder: List<KeyType> =
+    offChainInheritanceClaimKeyTypes.mapNotNull { it.toKeyType() }
 
 val defaultSupportedSigners = listOf(
     SupportedSigner(

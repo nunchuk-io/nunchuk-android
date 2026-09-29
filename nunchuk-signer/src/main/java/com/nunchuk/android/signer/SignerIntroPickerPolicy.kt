@@ -26,7 +26,13 @@ internal class SignerIntroPickerPolicy(private val request: SignerIntroRequest) 
         SignerIntroFlow.AddAssistedWalletKey, SignerIntroFlow.ReplaceWalletKey -> false
     }
 
-    val usesWalletConfigs = onChainAddSignerParam != null && !isOffChainClaim
+    /**
+     * Owner setup and the off-chain claim draw their cards from the server's inheritance-key list
+     * for [walletType]; the static catalog only stands in until that list is available.
+     */
+    private val isServerDrivenInheritancePicker = isAddInheritanceOffChainSetup || isOffChainClaim
+
+    val usesWalletConfigs = onChainAddSignerParam != null
     val loadsExistingSigners = onChainAddSignerParam != null
     val initialSigners: List<SupportedSigner> = when {
         isOffChainClaim -> offChainInheritanceClaimKeyTypes
@@ -37,14 +43,25 @@ internal class SignerIntroPickerPolicy(private val request: SignerIntroRequest) 
     fun applyConfigs(state: SignerIntroState, configs: List<SupportedSignerConfig>): SignerIntroState {
         val relevant = filterConfigsByWalletType(configs, walletType)
         return state.copy(
-            // Owner setup keeps its fallback until a matching inheritance list is available.
-            supportedSigners = if (isAddInheritanceOffChainSetup) state.supportedSigners
+            // A server-driven picker keeps its fallback until a matching inheritance list arrives.
+            supportedSigners = if (isServerDrivenInheritancePicker) state.supportedSigners
                 else convertToSupportedSigners(relevant),
             eligibleSupportedSigners = convertToSupportedSigners(
                 relevant.filter { it.isInheritanceKey == isInheritanceSlot }
-            ),
+            ).withClaimSoftwareKey(),
         )
     }
+
+    /**
+     * The Beneficiary may hold nothing but the seed phrase, so the claim keeps the software key
+     * even though an inheritance-key list (made for the owner's setup) never names one.
+     */
+    private fun List<SupportedSigner>.withClaimSoftwareKey(): List<SupportedSigner> =
+        if (isOffChainClaim && isNotEmpty() && none { it.type == SignerType.SOFTWARE }) {
+            this + offChainInheritanceClaimKeyTypes.filter { it.type == SignerType.SOFTWARE }
+        } else {
+            this
+        }
 
     private fun calculateIsGenericAirgapEnable(
         state: SignerIntroState,
@@ -56,7 +73,7 @@ internal class SignerIntroPickerPolicy(private val request: SignerIntroRequest) 
         // cards are drawn from the fallback, so this row reads it too: disabling on an empty list
         // would leave Generic Airgap as the only greyed-out entry whenever the configs are not in
         // yet (cold cache, a cache written by a build the server gated out, a failed refresh).
-        val signers = if (isAddInheritanceOffChainSetup) {
+        val signers = if (isServerDrivenInheritancePicker) {
             state.eligibleSupportedSigners.ifEmpty { supportedSigners }
         } else {
             supportedSigners
@@ -109,20 +126,19 @@ internal class SignerIntroPickerPolicy(private val request: SignerIntroRequest) 
     }
 
     /**
-     * The BYOH picker's card order is fixed by the design, so neither the server's ordering of
-     * supported_signers nor the order the fallback list happens to be written in may decide it.
+     * The BYOH and claim pickers' card order is fixed by the design, so neither the server's
+     * ordering of supported_signers nor the order the fallback list is written in may decide it.
      * Anything the design does not name keeps its relative position at the end. Every other flow
      * is left in the order it was given.
      */
-    private fun List<SupportedSigner>.inPickerOrder(): List<SupportedSigner> =
-        if (isAddInheritanceOffChainSetup) {
-            sortedBy { signer ->
-                offChainInheritanceCardOrder.indexOf(signer.toKeyType())
-                    .takeIf { it >= 0 } ?: Int.MAX_VALUE
-            }
-        } else {
-            this
+    private fun List<SupportedSigner>.inPickerOrder(): List<SupportedSigner> {
+        val order = when {
+            isAddInheritanceOffChainSetup -> offChainInheritanceCardOrder
+            isOffChainClaim -> offChainInheritanceClaimCardOrder
+            else -> return this
         }
+        return sortedBy { signer -> order.indexOf(signer.toKeyType()).takeIf { it >= 0 } ?: Int.MAX_VALUE }
+    }
 
     private fun mergeWithDefaultSigners(
         supportedSigners: List<SupportedSigner>,

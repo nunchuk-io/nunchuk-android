@@ -75,13 +75,39 @@ class SignerIntroPickerPolicyTest {
         assertTrue(policy.displayInfos(afterEmpty).none { it.keyType == KeyType.SOFTWARE })
     }
 
-    @Test fun `off-chain claim uses claim catalog including software independently of setup configs`() {
-        val policy = SignerIntroPickerPolicy(SignerIntroRequest(flow = SignerIntroFlow.ClaimInheritance("claim", false)))
-        assertFalse(policy.usesWalletConfigs)
-        val cards = policy.displayInfos(SignerIntroState(supportedSigners = policy.initialSigners))
+    @Test fun `off-chain claim follows the server inheritance list for the claimed wallet type`() {
+        val policy = SignerIntroPickerPolicy(SignerIntroRequest(
+            flow = SignerIntroFlow.ClaimInheritance("claim", false), walletType = WalletType.MULTI_SIG,
+        ))
+        assertTrue(policy.usesWalletConfigs)
+        val state = policy.applyConfigs(SignerIntroState(supportedSigners = policy.initialSigners), listOf(
+            config(WalletType.MULTI_SIG, true, SignerType.AIRGAP, SignerTag.KRUX),
+            config(WalletType.MULTI_SIG, true, SignerType.AIRGAP),
+            config(WalletType.MULTI_SIG, true, SignerType.NFC),
+            // Not an inheritance key, and another wallet type: neither may add a card.
+            config(WalletType.MULTI_SIG, false, SignerType.AIRGAP, SignerTag.SEEDSIGNER),
+            config(WalletType.MINISCRIPT, true, SignerType.AIRGAP, SignerTag.SEEDSIGNER),
+        ))
+        val cards = policy.displayInfos(state)
+        assertEquals(
+            listOf(KeyType.TAPSIGNER, KeyType.KRUX, KeyType.SOFTWARE, KeyType.GENERIC_AIRGAP),
+            cards.map { it.keyType },
+        )
+        assertTrue(cards.none { it.isDisabled })
+    }
+
+    @Test fun `off-chain claim keeps its fallback catalog until matching server configs arrive`() {
+        val policy = SignerIntroPickerPolicy(SignerIntroRequest(
+            flow = SignerIntroFlow.ClaimInheritance("claim", false), walletType = WalletType.MULTI_SIG,
+        ))
+        val initial = SignerIntroState(supportedSigners = policy.initialSigners)
+        val afterOtherWallet = policy.applyConfigs(initial, listOf(
+            config(WalletType.MINISCRIPT, true, SignerType.AIRGAP, SignerTag.JADE),
+        ))
+        assertEquals(policy.displayInfos(initial), policy.displayInfos(afterOtherWallet))
+        val cards = policy.displayInfos(afterOtherWallet)
         assertTrue(cards.any { it.keyType == KeyType.SOFTWARE && !it.isDisabled })
         assertTrue(cards.none { it.keyType == KeyType.PORTAL })
-        assertTrue(cards.single { it.keyType == KeyType.GENERIC_AIRGAP }.isDisabled)
     }
 
     @Test fun `taproot caller restrictions retain address type and disable unsupported devices`() {
