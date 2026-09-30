@@ -4,10 +4,10 @@ RUN set -ex; \
     apt-get update; \
     DEBIAN_FRONTEND=noninteractive apt-get install --yes -o APT::Install-Suggests=false --no-install-recommends \
         bzip2 make automake ninja-build g++-multilib libtool binutils-gold \
-        bsdextrautils pkg-config python3 patch bison curl unzip git openjdk-21-jdk disorderfs; \
+        bsdextrautils pkg-config python3 patch bison curl unzip git openjdk-25-jdk disorderfs; \
     rm -rf /var/lib/apt/lists/*;
 
-ENV JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
+ENV JAVA_HOME=/usr/lib/jvm/java-25-openjdk-amd64
 ENV PATH=${JAVA_HOME}/bin:${PATH}
 ENV ANDROID_SDK_ROOT=/sdk
 ENV ANDROID_SDK=/sdk
