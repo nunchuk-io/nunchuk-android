@@ -109,9 +109,6 @@ class LedgerBleController(
     private var scanning = false
     private val foundDevices = linkedMapOf<String, LedgerDevice>()
 
-    /** BLE addresses seen advertising in the current scan (vs. only seeded from bonds). */
-    private val advertisingBleIds = mutableSetOf<String>()
-
     private var connection: LedgerConnection? = null
     private var pendingReadyAction: (() -> Unit)? = null
 
@@ -159,10 +156,9 @@ class LedgerBleController(
     fun startScan() {
         registerUsbReceiver()
         foundDevices.clear()
-        advertisingBleIds.clear()
         // USB Ledgers are already attached (no scan needed); list them up front.
         enumerateUsbDevices()
-        // Already-paired BLE Ledgers may not advertise; seed them too.
+        // BLE Ledgers are listed only as the scan finds them (see seedCurrentBleConnection).
         val adapter = bluetoothManager?.adapter
         if (adapter == null || !adapter.isEnabled) {
             // Keep USB devices visible; ask the host to prompt the user to enable BT.
@@ -170,7 +166,7 @@ class LedgerBleController(
             listener.onBluetoothDisabled()
             return
         }
-        seedBondedDevices(adapter)
+        seedCurrentBleConnection()
         val scanner = adapter.bluetoothLeScanner
         if (scanner == null) {
             if (foundDevices.isNotEmpty()) listener.onScanResults(foundDevices.values.toList())
@@ -183,20 +179,9 @@ class LedgerBleController(
                 if (!isLedgerBleScanResult(result)) return
                 val name = result.scanRecord?.deviceName
                     ?: runCatching { result.device.name }.getOrNull()
-                val address = result.device.address
-                val displayName = name?.takeIf { it.isNotBlank() } ?: address
-                // A re-paired Ledger advertises from a new address while the old bond
-                // lingers; drop same-named bonded entries that aren't advertising.
-                if (advertisingBleIds.add(address)) {
-                    foundDevices.entries.removeAll { (id, device) ->
-                        device.transport == LedgerTransportKind.BLE &&
-                            device.name == displayName &&
-                            id !in advertisingBleIds
-                    }
-                }
-                foundDevices[address] = LedgerDevice(
-                    id = address,
-                    name = displayName,
+                foundDevices[result.device.address] = LedgerDevice(
+                    id = result.device.address,
+                    name = name?.takeIf { it.isNotBlank() } ?: result.device.address,
                     transport = LedgerTransportKind.BLE,
                 )
                 listener.onScanResults(foundDevices.values.toList())
@@ -231,20 +216,21 @@ class LedgerBleController(
         }, BLE_SCAN_TIMEOUT_MS)
     }
 
-    private fun seedBondedDevices(adapter: BluetoothAdapter) {
-        val bonded = runCatching { adapter.bondedDevices }.getOrNull().orEmpty()
-        bonded.forEach { device ->
-            val name = runCatching { device.name }.getOrNull()
-            // Stale bonds of a re-paired Ledger share its name; list only one of them.
-            val alreadyListed = foundDevices.values.any {
-                it.transport == LedgerTransportKind.BLE && it.name == name
-            }
-            if (name != null && !alreadyListed && LEDGER_BLE_NAME_PATTERN.matcher(name).matches()) {
-                foundDevices[device.address] =
-                    LedgerDevice(device.address, name, LedgerTransportKind.BLE)
-            }
-        }
-        if (foundDevices.isNotEmpty()) listener.onScanResults(foundDevices.values.toList())
+    /**
+     * Keeps the Ledger this controller is connected to on a rescan — it stops advertising
+     * while connected. Bonded devices are deliberately not listed: a forgotten and re-paired
+     * Ledger comes back on a new address while the old entry lingers, showing it twice.
+     */
+    private fun seedCurrentBleConnection() {
+        val device = connection?.takeIf { it.transport == LedgerTransportKind.BLE }?.bleDevice
+            ?: return
+        val name = runCatching { device.name }.getOrNull()
+        foundDevices[device.address] = LedgerDevice(
+            id = device.address,
+            name = name?.takeIf { it.isNotBlank() } ?: device.address,
+            transport = LedgerTransportKind.BLE,
+        )
+        listener.onScanResults(foundDevices.values.toList())
     }
 
     /**
