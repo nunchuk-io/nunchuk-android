@@ -267,6 +267,7 @@
     <string name="nc_verify_backup">Verify backup</string>
     <string name="nc_verify">Verify</string>
     <string name="nc_upload_backup">Backup</string>
+    <string name="nc_back_up">Back up</string>
     <string name="nc_un_verify_backup">Unverified backup</string>
     <string name="nc_try_again">Try again</string>
     <string name="nc_sign_in_using_password">Sign in using password</string>
@@ -460,7 +461,7 @@
     <string name="nc_optional">(optional)</string>
     <string name="nc_inheritance_notify_pref_desc">After the timelock expires, would you like us to notify the Beneficiary or Trustee of the inheritance plan? If so, please provide an email address.</string>
     <string name="nc_notify_them_today">Also notify them today</string>
-    <string name="nc_inheritance_notify_pref_warning">You are still personally responsible for sharing the Magic Phrase and Backup Password with the Beneficiary or Trustee. The notification emails won’t include these information.</string>
+    <string name="nc_inheritance_notify_pref_warning">You are responsible for sharing the Magic Phrase and the inheritance key with the Beneficiary or Trustee. Notification emails do not include these secrets.</string>
     <string name="nc_update_notification_preferences">Update notification preferences</string>
     <string name="nc_dont_want_any_notifications">I don’t want any notifications</string>
     <string name="nc_policy_updated">The platform key policies have been updated</string>
@@ -540,7 +541,6 @@
     <string name="nc_indirect_inheritance_desc">A Trustee has full control. After the timelock, the Trustee claims the funds on the Beneficiary’s behalf.</string>
     <string name="nc_joint_control">Joint control</string>
     <string name="nc_joint_control_desc">The Beneficiary and Trustee share control. After the timelock, they must combine their secrets to claim the funds.</string>
-    <string name="nc_plan_magical_phrase">The plan’s Magic Phrase.</string>
     <string name="nc_inheritance_share_secret_info_warning">You are solely responsible for sharing the Magic Phrase and Backup Password with the %s. Failure to share will result in the inheritance being unclaimable.</string>
     <string name="nc_inheritance_share_secret_info_2">The Backup Password for the encrypted backup.</string>
     <string name="nc_learn_more">Learn more</string>
@@ -577,7 +577,10 @@
     <string name="nc_inheritance_key_backup_or_seed_desc">Backup Password, or the seed phrase you backed up earlier</string>
     <string name="nc_multi_beneficiary_share_secret_title_direct">Please share the following secrets with each Beneficiary.</string>
     <string name="nc_multi_beneficiary_share_secret_title_indirect">Each Beneficiary has two secrets. Please share the following secrets with the Trustee:</string>
-    <string name="nc_multi_beneficiary_share_secret_title_joint_control">For each beneficiary, share the Magic Phrase with the beneficiary and the Backup Password with a trustee, [B]ensuring that no individual has access to both secrets.[/B]</string>
+    <string name="nc_multi_beneficiary_share_secret_title_joint_control">For each Beneficiary, share their Magic Phrase with them and the inheritance key with a Trustee. No individual should have both secrets.</string>
+    <string name="nc_multi_beneficiary_secret_magic_phrase">1. The Magic Phrase</string>
+    <string name="nc_multi_beneficiary_secret_inheritance_key">2. The inheritance key</string>
+    <string name="nc_multi_beneficiary_routes_same_trustee">Give both the Backup Password and seed phrase to the same Trustee.</string>
     <string name="nc_continue_to_finalize_changes">Continue to finalize changes</string>
     <string name="nc_inheritance_share_secret_info_dialog_desc">You can review these information again by navigating to Services → View inheritance plan.</string>
     <string name="nc_claim_inheritance">Claim inheritance</string>

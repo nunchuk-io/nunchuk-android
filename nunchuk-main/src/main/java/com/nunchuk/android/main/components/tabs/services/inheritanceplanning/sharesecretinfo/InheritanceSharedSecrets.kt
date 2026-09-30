@@ -85,10 +85,21 @@ internal fun shareSecretPartyRes(type: Int): Int = when (type) {
  * The warning under the list. The shipped copy names the Magic Phrase and the Backup Password, so it
  * only stays correct while those are the two secrets; the other cases get copy that matches what is
  * actually on screen. `null` [party] means the string takes no argument.
+ *
+ * With several Beneficiaries under joint control the secrets are split per Beneficiary, so the
+ * seed-phrase-only case gets the generic joint warning instead of the single-plan explanation.
  */
 internal data class ShareSecretWarning(@StringRes val textRes: Int, @StringRes val partyRes: Int?)
 
-internal fun shareSecretWarning(type: Int, routes: List<ClaimOption>): ShareSecretWarning = when {
+internal fun shareSecretWarning(
+    type: Int,
+    routes: List<ClaimOption>,
+    isMultiBeneficiary: Boolean = false,
+): ShareSecretWarning = when {
+    isMultiBeneficiary && type == InheritanceShareSecretType.JOINT_CONTROL.ordinal &&
+        ClaimOption.SEED_PHRASE in routes ->
+        ShareSecretWarning(R.string.nc_inheritance_share_secret_warning_joint, null)
+
     routes == listOf(ClaimOption.SEED_PHRASE) ->
         ShareSecretWarning(R.string.nc_inheritance_share_secret_warning_seed_only, null)
 

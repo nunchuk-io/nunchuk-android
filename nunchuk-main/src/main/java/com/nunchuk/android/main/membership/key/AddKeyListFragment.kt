@@ -1080,9 +1080,9 @@ fun AddKeyCard(
                                 ) {
                                     Text(
                                         text = if (item.needsEncryptedBackupUpload) {
-                                            stringResource(R.string.nc_upload_backup)
+                                            stringResource(R.string.nc_back_up)
                                         } else {
-                                            stringResource(R.string.nc_verify_backup)
+                                            stringResource(R.string.nc_verify)
                                         },
                                         style = NunchukTheme.typography.titleSmall,
                                     )
