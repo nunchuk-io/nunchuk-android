@@ -29,6 +29,7 @@ import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.nav.args.SetupMk4Args
 import com.nunchuk.android.share.ColdcardAction
 import com.nunchuk.android.signer.R
+import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.widget.databinding.ActivityNavigationBinding
 import dagger.hilt.android.AndroidEntryPoint
@@ -55,6 +56,10 @@ class Mk4Activity : BaseNfcActivity<ActivityNavigationBinding>() {
     val isMembershipFlow by lazy { args.fromMembershipFlow }
     val quickWalletParam by lazy { args.quickWalletParam }
     val onChainAddSignerParam by lazy { args.onChainAddSignerParam }
+    val claimOption by lazy { args.claimOption }
+
+    /** The device the backup screens name. Coldcard when nothing else was passed. */
+    val signerTag: SignerTag by lazy { args.signerTag ?: SignerTag.COLDCARD }
 
     override fun initializeBinding(): ActivityNavigationBinding {
         return ActivityNavigationBinding.inflate(layoutInflater).also {

@@ -25,6 +25,7 @@ import com.nunchuk.android.core.data.model.UserWalletConfigsSetupResponse
 import com.nunchuk.android.model.MiniscriptSupportedFirmware as DomainMiniscriptSupportedFirmware
 import com.nunchuk.android.model.SupportedSignerConfig as DomainSupportedSignerConfig
 import com.nunchuk.android.model.UserWalletConfigsSetup
+import com.nunchuk.android.model.inheritance.toClaimOptions
 
 fun UserWalletConfigsSetupResponse.toDomain(): UserWalletConfigsSetup {
     return UserWalletConfigsSetup(
@@ -40,7 +41,9 @@ fun SupportedSignerConfig.toDomain(): DomainSupportedSignerConfig {
         walletType = walletType,
         isInheritanceKey = isInheritanceKey,
         signerType = signerType,
-        signerTag = signerTag
+        signerTag = signerTag,
+        claimOptions = claimOptions.toClaimOptions(),
+        claimNote = claimNote
     )
 }
 

@@ -25,9 +25,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
-import com.nunchuk.android.core.helper.CheckAssistedSignerExistenceHelper
 import com.nunchuk.android.core.signer.OnChainAddSignerParam
-import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.signer.toSingleSigner
 import com.nunchuk.android.core.util.COLDCARD_DEFAULT_KEY_NAME
 import com.nunchuk.android.core.util.getFileFromUri
@@ -40,6 +38,7 @@ import com.nunchuk.android.model.MembershipStepInfo
 import com.nunchuk.android.model.SignerExtra
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.VerifyType
+import com.nunchuk.android.model.inheritance.ClaimOption
 import com.nunchuk.android.model.toIndex
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.signer.util.isTestNetPath
@@ -85,7 +84,6 @@ class ColdcardRecoverViewModel @Inject constructor(
     private val replaceKeyUseCase: ReplaceKeyUseCase,
     private val getReplaceSignerNameUseCase: GetReplaceSignerNameUseCase,
     savedStateHandle: SavedStateHandle,
-    private val checkAssistedSignerExistenceHelper: CheckAssistedSignerExistenceHelper,
     private val checkExistingKeyUseCase: CheckExistingKeyUseCase,
     private val getIndexFromPathUseCase: GetIndexFromPathUseCase,
 ) : ViewModel() {
@@ -226,7 +224,9 @@ class ColdcardRecoverViewModel @Inject constructor(
         onChainAddSignerParam: OnChainAddSignerParam?,
         newIndex: Int
     ): Boolean {
-        if (onChainAddSignerParam != null &&
+        // Only meaningful with a first key to compare against; a claim sets keyIndex to the
+        // plan's account without a currentSigner.
+        if (onChainAddSignerParam?.currentSigner != null &&
             signer.masterFingerprint != onChainAddSignerParam.currentSigner?.fingerPrint &&
             onChainAddSignerParam.keyIndex > 0
         ) {
@@ -253,11 +253,10 @@ class ColdcardRecoverViewModel @Inject constructor(
         val currentSigner = onChainAddSignerParam.currentSigner
         if (currentSigner != null) {
             if (signer.masterFingerprint != currentSigner.fingerPrint) {
-                emitErrorAndStopLoading(
-                    ColdcardRecoverEvent.ShowError(
-                        "The key you just added (XFP:${signer.masterFingerprint.uppercase()}) doesn't match the original inheritance key (XFP:${currentSigner.fingerPrint.uppercase()}). Please try again."
-                    )
-                )
+                // Not an error to show here: the fragment hands the key back and the
+                // seed-phrase host shows "This key doesn't match" for it.
+                _event.emit(ColdcardRecoverEvent.CreateSignerSuccess(signer))
+                _event.emit(ColdcardRecoverEvent.LoadingEvent(false))
                 return true
             }
             val newAccountIndex = getIndexFromPathUseCase(signer.derivationPath).getOrElse { 0 }
@@ -416,13 +415,18 @@ class ColdcardRecoverViewModel @Inject constructor(
         )
     }
 
-    fun setKeyVerified(groupId: String, masterSignerId: String) {
+    fun setKeyVerified(
+        groupId: String,
+        masterSignerId: String,
+        verificationMethod: ClaimOption? = null,
+    ) {
         viewModelScope.launch {
             setKeyVerifiedUseCase(
                 SetKeyVerifiedUseCase.Param(
                     groupId = groupId,
                     masterSignerId = masterSignerId,
-                    verifyType = VerifyType.APP_VERIFIED
+                    verifyType = VerifyType.APP_VERIFIED,
+                    verificationMethod = verificationMethod,
                 )
             ).onSuccess {
                 _event.emit(ColdcardRecoverEvent.KeyVerifiedSuccess)
@@ -432,7 +436,12 @@ class ColdcardRecoverViewModel @Inject constructor(
         }
     }
 
-    fun setReplaceKeyVerified(keyId: String, groupId: String, walletId: String) {
+    fun setReplaceKeyVerified(
+        keyId: String,
+        groupId: String,
+        walletId: String,
+        verificationMethod: ClaimOption? = null,
+    ) {
         viewModelScope.launch {
             setReplaceKeyVerifiedUseCase(
                 SetReplaceKeyVerifiedUseCase.Param(
@@ -440,7 +449,8 @@ class ColdcardRecoverViewModel @Inject constructor(
                     checkSum = "",
                     verifyType = VerifyType.SELF_VERIFIED,
                     groupId = groupId,
-                    walletId = walletId
+                    walletId = walletId,
+                    verificationMethod = verificationMethod,
                 )
             ).onSuccess {
                 _event.emit(ColdcardRecoverEvent.KeyVerifiedSuccess)
@@ -452,17 +462,13 @@ class ColdcardRecoverViewModel @Inject constructor(
 
     fun checkExistingKey(signer: SingleSigner) {
         viewModelScope.launch {
-            if (checkAssistedSignerExistenceHelper.isInAssistedWallet(signer.toModel())) {
-                checkExistingKeyUseCase(CheckExistingKeyUseCase.Params(signer))
-                    .onSuccess {
-                        _event.emit(ColdcardRecoverEvent.CheckExistingKey(it, signer))
-                    }
-                    .onFailure {
-                        _event.emit(ColdcardRecoverEvent.ShowError(it.message.orUnknownError()))
-                    }
-            } else {
-                _event.emit(ColdcardRecoverEvent.CheckExistingKey(ResultExistingKey.None, signer))
-            }
+            checkExistingKeyUseCase(CheckExistingKeyUseCase.Params(signer))
+                .onSuccess {
+                    _event.emit(ColdcardRecoverEvent.CheckExistingKey(it, signer))
+                }
+                .onFailure {
+                    _event.emit(ColdcardRecoverEvent.ShowError(it.message.orUnknownError()))
+                }
         }
     }
 }

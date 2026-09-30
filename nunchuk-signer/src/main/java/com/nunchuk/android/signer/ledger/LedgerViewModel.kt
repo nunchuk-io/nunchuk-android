@@ -15,6 +15,7 @@ import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.CheckExistingKeyUseCase
+import com.nunchuk.android.signer.util.createDeviceAccountKeys
 import com.nunchuk.android.usecase.CreateSignerUseCase
 import com.nunchuk.android.usecase.GetCompoundSignersUseCase
 import com.nunchuk.android.usecase.ResultExistingKey
@@ -38,6 +39,13 @@ data class LedgerScanUiState(
     val walletType: WalletType = WalletType.SINGLE_SIG,
     val addressType: AddressType = AddressType.NATIVE_SEGWIT,
     val accountIndex: Int = 0,
+    /**
+     * Consecutive accounts to read in this one session, starting at [accountIndex]. A miniscript
+     * "Reuse keys across policies" slot holds one xpub per policy, and Ledger hands them all over
+     * in the same connection (only the unlock / open-Bitcoin-app prompts are per session), so the
+     * user pairs the device once. 1 for every other caller.
+     */
+    val accountCount: Int = 1,
     // Set once the xpub is fetched: the signer waits on the name step (standalone flow) and/or
     // the replace-key confirmation before being persisted.
     val pendingSigner: SingleSigner? = null,
@@ -52,6 +60,9 @@ data class LedgerScanUiState(
 
 sealed class LedgerScanEvent {
     data object NavigateToSetKeyName : LedgerScanEvent()
+
+    /** Another account is still needed — read the xpub at [index] over the open session. */
+    data class FetchXpub(val index: Int) : LedgerScanEvent()
 
     data class OpenSignerInfo(val signer: SingleSigner) : LedgerScanEvent()
 
@@ -79,6 +90,9 @@ class LedgerViewModel @Inject constructor(
     /** Assisted/group membership flows auto-name the key; standalone lets the user name it. */
     private var isMembershipFlow: Boolean = false
 
+    /** Accounts read from the connected device so far, in account-index order. */
+    private var collectedSigners: List<SingleSigner> = emptyList()
+
     fun setMembershipFlow(value: Boolean) {
         isMembershipFlow = value
     }
@@ -101,6 +115,8 @@ class LedgerViewModel @Inject constructor(
         it.copy(walletType = walletType, addressType = addressType, accountIndex = index)
     }
 
+    fun setAccountCount(count: Int) = _state.update { it.copy(accountCount = count.coerceAtLeast(1)) }
+
     fun onError(message: String) = viewModelScope.launch {
         _state.update { it.copy(isProcessing = false) }
         _event.emit(LedgerScanEvent.Error(message))
@@ -112,16 +128,21 @@ class LedgerViewModel @Inject constructor(
      * straight away under the auto-generated name; standalone add-key sends the user to the
      * "Name your key" step first. Either way, a key already in the app has to clear the replace
      * confirmation.
+     *
+     * When the caller asked for more than one account ([LedgerScanUiState.accountCount]) this is
+     * one lap of a loop: the signer is collected and the next account is requested over the same
+     * session, so all of them are created together once the last xpub is in.
      */
     fun onXpubReceived(
         masterFingerprint: String,
         xpub: String,
     ) = viewModelScope.launch {
         val config = _state.value
+        val index = config.accountIndex + collectedSigners.size
         _state.update { it.copy(isProcessing = true) }
         getBip32PathUseCase(
             GetBip32PathUseCase.Param(
-                index = config.accountIndex,
+                index = index,
                 walletType = config.walletType,
                 addressType = config.addressType,
             )
@@ -134,7 +155,15 @@ class LedgerViewModel @Inject constructor(
                 type = SignerType.HARDWARE,
                 tags = listOf(SignerTag.LEDGER),
             )
-            checkExistingKeyUseCase(CheckExistingKeyUseCase.Params(singleSigner = signer))
+            collectedSigners = collectedSigners + signer
+            if (collectedSigners.size < config.accountCount) {
+                _event.emit(LedgerScanEvent.FetchXpub(config.accountIndex + collectedSigners.size))
+                return@launch
+            }
+            // The replace confirmation is about the device, not one of its accounts, so it is
+            // asked once — for the first account — and applies to every key created below.
+            val firstSigner = collectedSigners.first()
+            checkExistingKeyUseCase(CheckExistingKeyUseCase.Params(singleSigner = firstSigner))
                 .onSuccess { existingKeyType ->
                     // Read the names before either naming path needs them, so a slow signer
                     // load can't hand out a name that is already taken.
@@ -142,7 +171,7 @@ class LedgerViewModel @Inject constructor(
                     _state.update {
                         it.copy(
                             isProcessing = false,
-                            pendingSigner = signer,
+                            pendingSigner = firstSigner,
                             existingKeyType = existingKeyType.takeIf { type -> type != ResultExistingKey.None },
                             replaceExistingKey = false,
                             // Spec names the key after the connected bluetooth/usb device.
@@ -165,8 +194,11 @@ class LedgerViewModel @Inject constructor(
         viewModelScope.launch { continueToNaming() }
     }
 
-    fun dismissExistingKeyDialog() = _state.update {
-        it.copy(pendingSigner = null, existingKeyType = null, replaceExistingKey = false)
+    fun dismissExistingKeyDialog() {
+        collectedSigners = emptyList()
+        _state.update {
+            it.copy(pendingSigner = null, existingKeyType = null, replaceExistingKey = false)
+        }
     }
 
     /**
@@ -199,21 +231,18 @@ class LedgerViewModel @Inject constructor(
     }
 
     private suspend fun createSigner(name: String) {
-        val signer = _state.value.pendingSigner ?: return
-        val replace = _state.value.replaceExistingKey
+        val accounts = collectedSigners
+        if (accounts.isEmpty()) return
         _state.update { it.copy(isProcessing = true) }
-        createSignerUseCase(
-            CreateSignerUseCase.Params(
-                name = name,
-                xpub = signer.xpub,
-                type = signer.type,
-                derivationPath = signer.derivationPath,
-                masterFingerprint = signer.masterFingerprint,
-                tags = signer.tags,
-                replace = replace,
-            )
-        ).onSuccess { createdSigner ->
-            pushEventManager.push(PushEvent.LocalUserSignerAdded(createdSigner))
+        createDeviceAccountKeys(
+            accounts = accounts,
+            name = name,
+            replace = _state.value.replaceExistingKey,
+            takenNames = existingSignerNames,
+            createSignerUseCase = createSignerUseCase,
+            onCreated = { pushEventManager.push(PushEvent.LocalUserSignerAdded(it)) },
+        ).onSuccess { firstCreated ->
+            collectedSigners = emptyList()
             _state.update {
                 it.copy(
                     isProcessing = false,
@@ -222,7 +251,7 @@ class LedgerViewModel @Inject constructor(
                     replaceExistingKey = false,
                 )
             }
-            _event.emit(LedgerScanEvent.OpenSignerInfo(createdSigner))
+            _event.emit(LedgerScanEvent.OpenSignerInfo(firstCreated))
         }.onFailure { e ->
             _state.update { it.copy(isProcessing = false) }
             _event.emit(LedgerScanEvent.Error(e.message.orUnknownError()))

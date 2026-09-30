@@ -284,9 +284,13 @@ class EstimatedFeeViewModel @Inject constructor(
     }
 
     private fun getOutputs(): Map<String, Amount> {
+        // Sum duplicate addresses, to match getOutputAmount which sums all receipts.
         val outputs = mutableMapOf<String, Amount>()
         txReceipts.forEach {
-            outputs[it.address] = it.amount.toAmount()
+            val amount = it.amount.toAmount()
+            outputs[it.address] = outputs[it.address]?.let { existing ->
+                Amount(value = existing.value + amount.value)
+            } ?: amount
         }
         return outputs
     }

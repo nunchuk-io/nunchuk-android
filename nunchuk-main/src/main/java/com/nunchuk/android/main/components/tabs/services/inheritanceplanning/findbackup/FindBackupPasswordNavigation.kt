@@ -8,17 +8,21 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceKeyType
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningActivity
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.MembershipStepEffect
 import kotlinx.serialization.Serializable
 
+/**
+ * @param keyIndex which inheritance key this screen is about, 1-based within the plan. It is the
+ * key's own position, not a step counter: a plan whose first key has no encrypted backup shows this
+ * screen once, for key 2.
+ */
 @Serializable
-data class FindBackupPasswordRoute(val stepNumber: Int = 1)
+data class FindBackupPasswordRoute(val keyIndex: Int = 1)
 
 fun NavGraphBuilder.findBackupPassword(
-    onContinueClicked: (stepNumber: Int) -> Unit,
+    onContinueClicked: (keyIndex: Int) -> Unit,
 ) {
     composable<FindBackupPasswordRoute> { backStackEntry ->
         val activity = LocalActivity.current as InheritancePlanningActivity
@@ -32,20 +36,15 @@ fun NavGraphBuilder.findBackupPassword(
 
         FindBackupPasswordContent(
             remainTime = remainTime,
-            inheritanceKeyType = if (uiState.keyTypes.isNotEmpty()) {
-                uiState.keyTypes[route.stepNumber - 1]
-            } else {
-                InheritanceKeyType.TAPSIGNER
-            },
-            numOfKeys = uiState.keyTypes.size,
-            keyTypes = uiState.keyTypes,
-            stepNumber = route.stepNumber,
+            inheritanceKeyType = uiState.inheritanceKeyTypeAt(route.keyIndex),
+            keyIndex = route.keyIndex,
+            numOfKeys = uiState.inheritanceKeyCount,
         ) {
-            onContinueClicked(route.stepNumber)
+            onContinueClicked(route.keyIndex)
         }
     }
 }
 
-fun NavController.navigateToFindBackupPassword(stepNumber: Int = 1) {
-    navigate(FindBackupPasswordRoute(stepNumber = stepNumber))
+fun NavController.navigateToFindBackupPassword(keyIndex: Int = 1) {
+    navigate(FindBackupPasswordRoute(keyIndex = keyIndex))
 }

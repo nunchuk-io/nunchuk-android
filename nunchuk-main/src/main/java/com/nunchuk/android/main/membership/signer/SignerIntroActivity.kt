@@ -19,64 +19,30 @@
 
 package com.nunchuk.android.main.membership.signer
 
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
-import androidx.compose.ui.res.stringResource
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.rememberNavController
-import com.nunchuk.android.compose.NcSelectableBottomSheet
-import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.R
 import com.nunchuk.android.core.base.BaseComposeActivity
-import com.nunchuk.android.core.portal.PortalDeviceArgs
-import com.nunchuk.android.core.portal.PortalDeviceFlow
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.signer.KeyFlow
-import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.core.signer.SignerModel
-import com.nunchuk.android.core.signer.toModel
-import com.nunchuk.android.core.util.flowObserver
-import com.nunchuk.android.core.signer.SelectSignerArgs
-import com.nunchuk.android.core.signer.SelectSignerBottomSheet
+import com.nunchuk.android.core.signer.SignerIntroRequest
 import com.nunchuk.android.model.MembershipStage
-import com.nunchuk.android.model.MembershipStep
-import com.nunchuk.android.model.SingleSigner
-import com.nunchuk.android.model.signer.SupportedSigner
-import com.nunchuk.android.nav.args.AddAirSignerArgs
-import com.nunchuk.android.nav.args.SetupMk4Args
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.share.result.GlobalResultKey
-import com.nunchuk.android.signer.KeyType
+import com.nunchuk.android.signer.SignerIntroHostEvent
 import com.nunchuk.android.signer.SignerIntroEvent
 import com.nunchuk.android.signer.SignerIntroViewModel
-import com.nunchuk.android.signer.bitbox.BitBoxActivity
-import com.nunchuk.android.signer.ledger.LedgerActivity
-import com.nunchuk.android.signer.mk4.Mk4Activity
-import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
-import com.nunchuk.android.signer.trezor.TrezorActivity
-import com.nunchuk.android.type.SignerTag
-import com.nunchuk.android.type.SignerType
-import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.utils.parcelable
-import com.nunchuk.android.utils.parcelableArrayList
-import com.nunchuk.android.utils.serializable
 import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningDialog
@@ -85,85 +51,13 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
+    @Inject lateinit var membershipStepManager: MembershipStepManager
 
-    @Inject
-    lateinit var membershipStepManager: MembershipStepManager
-
-    private val supportedSigners: List<SupportedSigner> by lazy {
-        intent.parcelableArrayList<SupportedSigner>(EXTRA_SUPPORTED_SIGNERS).orEmpty()
+    private val request by lazy {
+        requireNotNull(intent.parcelable<SignerIntroRequest>(EXTRA_REQUEST))
     }
-    private val keyFlow by lazy { intent.getIntExtra(EXTRA_KEY_FLOW, KeyFlow.NONE) }
-    private val walletType by lazy { intent.serializable<WalletType>(EXTRA_WALLET_TYPE) }
-    private val onChainAddSignerParam by lazy {
-        intent.parcelable<OnChainAddSignerParam>(EXTRA_ONCHAIN_ADD_SIGNER_PARAM)
-    }
-    private val isClaiming by lazy {
-        onChainAddSignerParam?.isClaiming == true
-    }
-
-    /**
-     * Account to read the inheritance key from when pairing a Ledger/BitBox in-app for a claim.
-     * Same source the Coldcard claim uses, and the same default (account 0) when the caller
-     * doesn't name one.
-     */
-    private val claimAccountIndex: Int
-        get() = onChainAddSignerParam?.keyIndex?.takeIf { it >= 0 } ?: 0
-
     private val viewModel: SignerIntroViewModel by viewModels()
-
-    private val signerResultLauncher = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        if (result.resultCode == RESULT_OK && result.data != null) {
-            val signer = result.data?.parcelable<SignerModel>(GlobalResultKey.EXTRA_SIGNER)
-            if (signer != null) {
-                returnSigner(signer)
-            }
-        }
-    }
-
-    /**
-     * Ledger paired in-app while claiming an inheritance: the device screen either hands back the
-     * key it read, or reports that the user picked "Add via desktop app" on its intro — the
-     * hand-off this flow used to be hard-wired to.
-     */
-    private val addLedgerForClaimLauncher = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        val data = result.data
-        if (result.resultCode != RESULT_OK || data == null) return@registerForActivityResult
-        if (relayClaimHardwareSigner(data)) return@registerForActivityResult
-        if (data.getStringExtra(LedgerActivity.EXTRA_RESULT_ACTION) == LedgerActivity.RESULT_ACTION_OPEN_DESKTOP_FLOW) {
-            openAddDesktopKeyForClaim(SignerTag.LEDGER)
-        }
-    }
-
-    /** BitBox mirror of [addLedgerForClaimLauncher]. */
-    private val addBitBoxForClaimLauncher = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        val data = result.data
-        if (result.resultCode != RESULT_OK || data == null) return@registerForActivityResult
-        if (relayClaimHardwareSigner(data)) return@registerForActivityResult
-        if (data.getStringExtra(BitBoxActivity.EXTRA_RESULT_ACTION) == BitBoxActivity.RESULT_ACTION_OPEN_DESKTOP_FLOW) {
-            openAddDesktopKeyForClaim(SignerTag.BITBOX)
-        }
-    }
-
-    /**
-     * Seed-phrase-backup verification for a Ledger: the device only has to prove which key it
-     * holds. Hand the fingerprint back to whoever started this flow — the key list marks the key
-     * verified, the same way it owns every other step of that card.
-     */
-    private val verifyHardwareBackupLauncher = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        // Backing out of the Ledger/BitBox screen leaves the user here to pick a key type, the
-        // same as backing out of the Coldcard or air-gap screens does.
-        if (result.resultCode != RESULT_OK) return@registerForActivityResult
-        setResult(RESULT_OK, result.data)
-        finish()
-    }
+    private lateinit var deviceLauncher: SignerDeviceLauncher
 
     private val recoverSeedLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -192,162 +86,68 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
         }
     }
 
-    @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        observeEvent()
-
-        viewModel.init(
-            onChainAddSignerParam = onChainAddSignerParam,
-            supportedSigners = supportedSigners,
-            keyFlow = keyFlow,
-            walletType = walletType
+        viewModel.init(request)
+        deviceLauncher = SignerDeviceLauncher(
+            activity = this,
+            navigator = navigator,
+            request = request,
+            membershipStep = { membershipStepManager.currentStep },
+            skipPicker = viewModel.verifyingKeyType != null,
+            onSigner = ::returnSigner,
+            onResult = ::relayResult,
         )
-
         setContentView(ComposeView(this).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-
             setContent {
-                val navHostController = rememberNavController()
-                var showSignerBottomSheet by remember { mutableStateOf(false) }
-                var filteredSigners by remember { mutableStateOf<List<SignerModel>>(emptyList()) }
-                var signerType by remember { mutableStateOf<SignerType?>(null) }
-                var signerTag by remember { mutableStateOf<SignerTag?>(null) }
-                var showRecoverSheet by remember { mutableStateOf(false) }
-
-                LaunchedEffect(Unit) {
-                    viewModel.event.collect { event ->
-                        when (event) {
-                            is SignerIntroEvent.ShowFilteredSigners -> {
-                                filteredSigners = event.signers
-                                signerType = event.type
-                                signerTag = event.tag
-                                showSignerBottomSheet = true
-                            }
-
-                            is SignerIntroEvent.OpenSetupSigner -> {
-                                when (event.type) {
-                                    SignerType.NFC -> navigateToSetupTapSigner()
-                                    SignerType.COLDCARD_NFC -> openSetupMk4()
-                                    SignerType.SOFTWARE -> {
-                                        if (isClaiming) {
-                                            showRecoverSheet = true
-                                        } else {
-                                            createNewSoftware()
-                                        }
-                                    }
-
-                                    SignerType.AIRGAP -> {
-                                        when (event.tag) {
-                                            SignerTag.JADE -> openAddAirSignerForJade()
-                                            else -> handleSelectAddAirgapType(event.tag)
-                                        }
-                                    }
-
-                                    else -> { /* no-op */
-                                    }
-                                }
-                            }
-
-                            else -> {}
-                        }
-                    }
-                }
-
-                NunchukTheme {
-                    NavHost(
-                        navController = navHostController,
-                        startDestination = SignerIntroDestination
-                    ) {
-                        signerIntroDestination(
-                            viewModel = viewModel,
-                            onChainAddSignerParam = onChainAddSignerParam,
-                            onClick = { keyType: KeyType ->
-                                when (keyType) {
-                                    KeyType.TAPSIGNER -> handleTapSignerSelection()
-                                    KeyType.COLDCARD -> handleColdCardSelection(navHostController)
-                                    KeyType.JADE -> handleJadeSelection(navHostController)
-                                    KeyType.PORTAL -> openPortalScreen()
-                                    KeyType.SEEDSIGNER -> handleSelectAddAirgapType(SignerTag.SEEDSIGNER)
-                                    KeyType.KEYSTONE -> handleSelectAddAirgapType(SignerTag.KEYSTONE)
-                                    KeyType.FOUNDATION -> handleSelectAddAirgapType(SignerTag.PASSPORT)
-                                    KeyType.KRUX -> handleSelectAddAirgapType(SignerTag.KRUX)
-                                    KeyType.SOFTWARE -> showSoftwareSigners()
-                                    KeyType.PLATFORM_KEY -> returnPlatformKeyResult()
-                                    KeyType.GENERIC_AIRGAP -> openAddAirSignerIntroScreen()
-                                    KeyType.LEDGER -> openLedgerScreen()
-                                    KeyType.BITBOX -> openBitBoxScreen()
-                                    KeyType.TREZOR -> openTrezorScreen()
-                                }
-                            },
-                            onMoreClicked = ::handleShowMore,
-                        )
-
-                        checkFirmwareDestination(
-                            onChainAddSignerParam = onChainAddSignerParam,
-                            onMoreClicked = ::handleShowMore,
-                            onFilteredSignersReady = { signer ->
-                                returnSigner(signer)
-                            },
-                            onOpenNextScreen = { signerTag ->
-                                when (signerTag) {
-                                    SignerTag.COLDCARD -> openSetupMk4()
-                                    SignerTag.JADE -> openAddAirSignerForJade()
-                                    else -> {}
-                                }
-                            }
-                        )
-                    }
-
-                    if (showSignerBottomSheet && filteredSigners.isNotEmpty()) {
-                        SelectSignerBottomSheet(
-                            args = SelectSignerArgs(
-                                signers = filteredSigners,
-                                type = signerType ?: SignerType.UNKNOWN,
-                                description = "",
-                                ignoreIndexCheckForAcctX = true,
-                            ),
-                            onDismiss = {
-                                showSignerBottomSheet = false
-                            },
-                            onAddExistKey = { signer ->
-                                showSignerBottomSheet = false
-                                returnSigner(signer)
-                            },
-                            onAddNewKey = {
-                                showSignerBottomSheet = false
-                                signerType?.let { signerType ->
-                                    viewModel.createNewSigner(signerType, signerTag)
-                                }
-                            }
-                        )
-                    }
-
-                    if (showRecoverSheet) {
-                        NcSelectableBottomSheet(
-                            options = listOf(
-                                stringResource(R.string.nc_recover_key_via_seed),
-                                stringResource(R.string.nc_recover_key_via_xprv),
-                                stringResource(R.string.nc_recover_tapsigner_key_from_backup),
-                            ),
-                            onSelected = {
-                                when (it) {
-                                    0 -> onRecoverSeedClicked()
-                                    1 -> onRecoverXprvClicked()
-                                    2 -> onRecoverTapSignerClicked()
-                                }
-                                showRecoverSheet = false
-                            },
-                            onDismiss = {
-                                showRecoverSheet = false
-                            },
-                        )
-                    }
-                }
+                SignerIntroRoute(
+                    request = request,
+                    viewModel = viewModel,
+                    onEvent = ::handleEvent,
+                    onSigner = ::returnSigner,
+                    onMore = ::handleShowMore,
+                    onRecoverSeed = ::onRecoverSeedClicked,
+                    onRecoverXprv = ::onRecoverXprvClicked,
+                    onRecoverTapsigner = deviceLauncher::recoverTapsigner,
+                )
             }
         })
     }
+
+    private fun handleEvent(event: SignerIntroHostEvent) {
+        when (event) {
+            is SignerIntroEvent.OpenDevice -> deviceLauncher.launch(event.action)
+            is SignerIntroEvent.ReturnHardwareTag -> relayResult(RESULT_OK, Intent().apply {
+                putExtra(GlobalResultKey.EXTRA_SIGNER_TAG, event.tag)
+            })
+            SignerIntroEvent.ReturnPlatformKey -> relayResult(RESULT_OK, Intent().apply {
+                putExtra(EXTRA_PLATFORM_KEY_SELECTED, true)
+            })
+            SignerIntroEvent.RestartWizardSuccess -> {
+                navigator.openMembershipActivity(
+                    activityContext = this,
+                    groupStep = MembershipStage.NONE,
+                    isPersonalWallet = membershipStepManager.isPersonalWallet(),
+                    isClearTop = true,
+                    quickWalletParam = null,
+                )
+                relayResult(RESULT_OK, null)
+            }
+            is SignerIntroEvent.CreateSoftwareSignerSuccess -> returnSigner(event.signer)
+            is SignerIntroEvent.Error -> NCToastMessage(this).showError(event.message)
+        }
+    }
+
+    private fun relayResult(resultCode: Int, data: Intent?) {
+        setResult(resultCode, data)
+        finish()
+    }
+
+    private fun returnSigner(signer: SignerModel) = relayResult(RESULT_OK, Intent().apply {
+        putExtra(GlobalResultKey.EXTRA_SIGNER, signer)
+    })
 
     private fun onRecoverSeedClicked() {
         navigator.openRecoverSeedScreen(
@@ -364,367 +164,6 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
             launcher = xprvLauncher,
             masterSignerId = ""
         )
-    }
-
-    private fun onRecoverTapSignerClicked() {
-        navigator.openRecoverTapSigner(
-            launcher = signerResultLauncher,
-            activity = this,
-            fromMembershipFlow = true
-        )
-    }
-
-    private fun handleTapSignerSelection() {
-        if (onChainAddSignerParam != null) {
-            viewModel.showExistingSignerOrCreateNew(SignerType.NFC)
-        } else {
-            navigateToSetupTapSigner()
-        }
-    }
-
-    private fun handleColdCardSelection(navController: NavHostController) {
-        val onChainAddSignerParam = onChainAddSignerParam
-        if (onChainAddSignerParam == null || onChainAddSignerParam.isVerifyBackupSeedPhrase()) {
-            openSetupMk4()
-        } else if (onChainAddSignerParam.isAddInheritanceOffChainSigner()) {
-            viewModel.showExistingSignerOrCreateNew(SignerType.COLDCARD_NFC, SignerTag.COLDCARD)
-        } else {
-            navController.navigate(
-                CheckFirmwareDestination(
-                    signerTagName = SignerTag.COLDCARD.name,
-                    walletId = walletId,
-                    groupId = groupId
-                )
-            )
-        }
-    }
-
-    private fun handleJadeSelection(navController: NavHostController) {
-        if (onChainAddSignerParam == null || onChainAddSignerParam?.isVerifyBackupSeedPhrase() == true) {
-            handleSelectAddAirgapType(SignerTag.JADE)
-        } else {
-            navController.navigate(
-                CheckFirmwareDestination(
-                    signerTagName = SignerTag.JADE.name,
-                    walletId = walletId,
-                    groupId = groupId
-                )
-            )
-        }
-    }
-
-    private fun openAddAirSignerForJade() {
-        navigator.openAddAirSignerScreen(
-            activityContext = this,
-            args = AddAirSignerArgs(
-                isMembershipFlow = onChainAddSignerParam != null,
-                tag = SignerTag.JADE,
-                groupId = groupId,
-                walletId = walletId,
-                replacedXfp = onChainAddSignerParam?.replaceInfo?.replacedXfp,
-                onChainAddSignerParam = onChainAddSignerParam,
-                step = membershipStepManager.currentStep
-            )
-        )
-        finish()
-    }
-
-    private fun handleHardwareSignerSelection(tag: SignerTag) {
-        if (onChainAddSignerParam != null && onChainAddSignerParam?.isClaiming == false) {
-            val intent = Intent().apply {
-                putExtra(GlobalResultKey.EXTRA_SIGNER_TAG, tag)
-            }
-            setResult(Activity.RESULT_OK, intent)
-            finish()
-        } else if (onChainAddSignerParam?.isClaiming == true) {
-            openAddDesktopKeyForClaim(tag)
-        }
-    }
-
-    /**
-     * Claim the inheritance key from the desktop app: the key is added there and arrives back over
-     * [com.nunchuk.android.core.push.PushEvent.ClaimSignerAdded]. Ledger and BitBox reach this
-     * from their own intro's desktop row; every other hardware tag has no in-app flow and comes
-     * straight here.
-     */
-    private fun openAddDesktopKeyForClaim(tag: SignerTag) {
-        navigator.openAddDesktopKey(
-            this,
-            signerTag = tag,
-            step = MembershipStep.SETUP_INHERITANCE,
-            isInheritanceKey = true,
-            magic = onChainAddSignerParam?.magic.orEmpty()
-        )
-    }
-
-    /**
-     * Hands a key just paired over BLE/USB back to whoever started this flow (the claim adds it to
-     * its key list). The device screens return a [SingleSigner]; everything upstream works in
-     * [SignerModel]. Returns false when the result carries no key, i.e. it is the desktop hand-off.
-     */
-    private fun relayClaimHardwareSigner(data: Intent): Boolean {
-        val signer = data.parcelable<SingleSigner>(GlobalResultKey.EXTRA_SIGNER) ?: return false
-        returnSigner(signer.toModel())
-        return true
-    }
-
-    /**
-     * XFP of the key an on-chain replace is swapping out. The air-gap add-key screen performs the
-     * replace itself, and without this it falls through to syncKey instead and the replace fails
-     * with "Unknown error". Verify-backup hands its key back without replacing anything, so it
-     * stays a plain add.
-     */
-    private val airgapReplacedXfp: String?
-        get() = onChainAddSignerParam
-            ?.takeIf { it.isReplaceKeyFlow() && !it.isVerifyBackupSeedPhrase() }
-            ?.replaceInfo?.replacedXfp
-
-    private fun buildAddAirSignerArgs(tag: SignerTag?) = AddAirSignerArgs(
-        isMembershipFlow = onChainAddSignerParam != null,
-        tag = tag,
-        groupId = groupId,
-        replacedXfp = airgapReplacedXfp,
-        walletId = walletId,
-        onChainAddSignerParam = onChainAddSignerParam,
-        step = membershipStepManager.currentStep
-    )
-
-    private fun handleSelectAddAirgapType(tag: SignerTag?) {
-        // A replace is finished inside the air-gap screen, so there is no signer to relay back —
-        // relaying one would have the key list replace a second time.
-        if (onChainAddSignerParam != null && airgapReplacedXfp == null) {
-            navigator.openAddAirSignerScreenForResult(
-                launcher = signerResultLauncher,
-                activityContext = this,
-                args = buildAddAirSignerArgs(tag)
-            )
-        } else {
-            openAddAirSignerScreen(tag)
-        }
-    }
-
-    private fun openAddAirSignerScreen(tag: SignerTag?) {
-        navigator.openAddAirSignerScreen(
-            activityContext = this,
-            args = buildAddAirSignerArgs(tag)
-        )
-        finish()
-    }
-
-    private fun openSetupMk4() {
-        val args = SetupMk4Args(
-            fromMembershipFlow = onChainAddSignerParam != null,
-            isFromAddKey = onChainAddSignerParam == null,
-            groupId = groupId,
-            walletId = walletId,
-            replacedXfp = onChainAddSignerParam?.replaceInfo?.replacedXfp,
-            onChainAddSignerParam = onChainAddSignerParam,
-        )
-
-        if (onChainAddSignerParam != null) {
-            signerResultLauncher.launch(
-                Mk4Activity.buildIntent(
-                    activity = this,
-                    args = args
-                )
-            )
-        } else {
-            navigator.openSetupMk4(
-                activity = this,
-                args = args
-            )
-            finish()
-        }
-    }
-
-    private fun openPortalScreen() {
-        navigator.openPortalScreen(
-            activity = this,
-            args = PortalDeviceArgs(
-                type = PortalDeviceFlow.SETUP,
-                isMembershipFlow = walletId.isNotEmpty() || onChainAddSignerParam != null,
-                walletId = walletId,
-                groupId = groupId,
-            )
-        )
-        finish()
-    }
-
-    private fun openTrezorScreen() {
-        if (onChainAddSignerParam != null) {
-            handleHardwareSignerSelection(SignerTag.TREZOR)
-            return
-        }
-        startActivity(TrezorActivity.buildIntent(this))
-        finish()
-    }
-
-    private fun openLedgerScreen() {
-        val onChainAddSignerParam = onChainAddSignerParam
-        val verifyingKeyXfp = onChainAddSignerParam?.currentSigner?.fingerPrint.orEmpty()
-        // Without a key to check the device against there is nothing to verify, so fall through
-        // rather than accept whatever device is connected.
-        if (onChainAddSignerParam?.isVerifyBackupSeedPhrase() == true && verifyingKeyXfp.isNotEmpty()) {
-            // Re-read the restored device instead of adding a second copy of the key.
-            verifyHardwareBackupLauncher.launch(
-                LedgerActivity.buildIntent(
-                    activityContext = this,
-                    isMembershipFlow = true,
-                    expectedXfp = verifyingKeyXfp,
-                    verifyXfpOnly = true,
-                )
-            )
-            return
-        }
-        // Claiming pairs the device in-app the same way adding a key does; the intro's desktop row
-        // keeps the old hand-off for a device that won't pair here.
-        if (onChainAddSignerParam?.isClaiming == true) {
-            addLedgerForClaimLauncher.launch(
-                LedgerActivity.buildIntent(
-                    activityContext = this,
-                    isMembershipFlow = true,
-                    accountIndex = claimAccountIndex,
-                )
-            )
-            return
-        }
-        if (onChainAddSignerParam != null) {
-            handleHardwareSignerSelection(SignerTag.LEDGER)
-            return
-        }
-        startActivity(LedgerActivity.buildIntent(this))
-        finish()
-    }
-
-    /**
-     * BitBox mirror of [openLedgerScreen] — BitBox pairs in-app over BLE/USB, so it goes to
-     * [BitBoxActivity] rather than the desktop-app hand-off.
-     */
-    private fun openBitBoxScreen() {
-        val onChainAddSignerParam = onChainAddSignerParam
-        val verifyingKeyXfp = onChainAddSignerParam?.currentSigner?.fingerPrint.orEmpty()
-        // Without a key to check the device against there is nothing to verify, so fall through
-        // rather than accept whatever device is connected.
-        if (onChainAddSignerParam?.isVerifyBackupSeedPhrase() == true && verifyingKeyXfp.isNotEmpty()) {
-            // Re-read the restored device instead of adding a second copy of the key.
-            verifyHardwareBackupLauncher.launch(
-                BitBoxActivity.buildIntent(
-                    activityContext = this,
-                    isMembershipFlow = true,
-                    expectedXfp = verifyingKeyXfp,
-                    verifyXfpOnly = true,
-                )
-            )
-            return
-        }
-        if (onChainAddSignerParam?.isClaiming == true) {
-            addBitBoxForClaimLauncher.launch(
-                BitBoxActivity.buildIntent(
-                    activityContext = this,
-                    isMembershipFlow = true,
-                    accountIndex = claimAccountIndex,
-                )
-            )
-            return
-        }
-        if (onChainAddSignerParam != null) {
-            handleHardwareSignerSelection(SignerTag.BITBOX)
-            return
-        }
-        startActivity(BitBoxActivity.buildIntent(this))
-        finish()
-    }
-
-    private fun openAddAirSignerIntroScreen() = openAddAirSignerScreen(tag = null)
-
-    private fun showSoftwareSigners() {
-        if (onChainAddSignerParam != null && onChainAddSignerParam?.isClaiming == true) {
-            viewModel.showExistingSignerOrCreateNew(SignerType.SOFTWARE)
-        } else {
-            createNewSoftware()
-        }
-    }
-
-    private fun createNewSoftware() {
-        val primaryKeyFlow =
-            if (walletId.isNotEmpty()) KeyFlow.REPLACE_KEY_IN_FREE_WALLET else keyFlow
-        navigator.openAddSoftwareSignerScreen(
-            activityContext = this,
-            keyFlow = primaryKeyFlow,
-            groupId = groupId,
-            walletId = walletId,
-        )
-        finish()
-    }
-
-    private fun navigateToSetupTapSigner() {
-        val onChainAddSignerParam = onChainAddSignerParam
-        if (onChainAddSignerParam != null) {
-            signerResultLauncher.launch(
-                NfcSetupActivity.buildIntent(
-                    activity = this,
-                    setUpAction = NfcSetupActivity.SETUP_TAP_SIGNER,
-                    walletId = walletId,
-                    groupId = groupId,
-                    fromMembershipFlow = true,
-                    onChainAddSignerParam = onChainAddSignerParam
-                )
-            )
-        } else {
-            startActivity(
-                NfcSetupActivity.buildIntent(
-                    activity = this,
-                    setUpAction = NfcSetupActivity.SETUP_TAP_SIGNER,
-                    walletId = walletId,
-                    groupId = groupId,
-                )
-            )
-            finish()
-        }
-    }
-
-    private fun observeEvent() {
-        flowObserver(viewModel.event) { event ->
-            when (event) {
-                is SignerIntroEvent.RestartWizardSuccess -> {
-                    navigator.openMembershipActivity(
-                        activityContext = this,
-                        groupStep = MembershipStage.NONE,
-                        isPersonalWallet = membershipStepManager.isPersonalWallet(),
-                        isClearTop = true,
-                        quickWalletParam = null
-                    )
-                    setResult(RESULT_OK)
-                    finish()
-                }
-
-                is SignerIntroEvent.CreateSoftwareSignerSuccess -> {
-                    returnSigner(event.signer)
-                }
-
-                is SignerIntroEvent.Error -> {
-                    NCToastMessage(this).showError(event.message)
-                }
-
-                else -> {}
-            }
-        }
-    }
-
-    private fun returnSigner(signer: SignerModel) {
-        val intent = Intent().apply {
-            putExtra(GlobalResultKey.EXTRA_SIGNER, signer)
-        }
-        setResult(RESULT_OK, intent)
-        finish()
-    }
-
-    private fun returnPlatformKeyResult() {
-        val intent = Intent().apply {
-            putExtra(EXTRA_PLATFORM_KEY_SELECTED, true)
-        }
-        setResult(RESULT_OK, intent)
-        finish()
     }
 
     private fun handleShowMore() {
@@ -750,7 +189,7 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
                 title = getString(R.string.nc_confirmation),
                 message = getString(R.string.nc_confirm_restart_wizard),
                 onYesClick = {
-                    viewModel.resetWizard(membershipStepManager.localMembershipPlan, groupId)
+                    viewModel.resetWizard(membershipStepManager.localMembershipPlan, request.groupId)
                 }
             )
         } else if (option.type == SheetOptionType.TYPE_EXIT_WIZARD) {
@@ -763,62 +202,11 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
         }
     }
 
-    // replace key in free wallet
-    private val walletId by lazy { intent.getStringExtra(EXTRA_WALLET_ID).orEmpty() }
-
-    // group sandbox id
-    private val groupId by lazy { intent.getStringExtra(EXTRA_GROUP_ID).orEmpty() }
-
     companion object {
         const val EXTRA_PLATFORM_KEY_SELECTED = "platform_key_selected"
-        private const val EXTRA_WALLET_ID = "wallet_id"
-        private const val EXTRA_GROUP_ID = "group_id"
-        private const val EXTRA_SUPPORTED_SIGNERS = "supported_signers"
-        private const val EXTRA_KEY_FLOW = "key_flow"
-        private const val EXTRA_ONCHAIN_ADD_SIGNER_PARAM = "onchain_add_signer_param"
-        private const val EXTRA_WALLET_TYPE = "wallet_type"
+        private const val EXTRA_REQUEST = "signer_intro_request"
 
-        fun start(
-            activityContext: Context,
-            walletId: String? = null,
-            groupId: String? = null,
-            supportedSigners: List<SupportedSigner>? = null,
-            @KeyFlow.PrimaryFlowInfo keyFlow: Int = KeyFlow.NONE,
-            onChainAddSignerParam: OnChainAddSignerParam? = null,
-            walletType: WalletType? = null,
-        ) {
-            activityContext.startActivity(
-                buildIntent(
-                    activityContext,
-                    walletId,
-                    groupId,
-                    supportedSigners,
-                    keyFlow,
-                    onChainAddSignerParam,
-                    walletType
-                )
-            )
-        }
-
-        fun buildIntent(
-            activityContext: Context,
-            walletId: String? = null,
-            groupId: String? = null,
-            supportedSigners: List<SupportedSigner>? = null,
-            @KeyFlow.PrimaryFlowInfo keyFlow: Int = KeyFlow.NONE,
-            onChainAddSignerParam: OnChainAddSignerParam? = null,
-            walletType: WalletType? = null,
-        ): Intent {
-            return Intent(activityContext, SignerIntroActivity::class.java).apply {
-                putExtra(EXTRA_WALLET_ID, walletId)
-                putExtra(EXTRA_GROUP_ID, groupId)
-                putExtra(EXTRA_KEY_FLOW, keyFlow)
-                putExtra(EXTRA_ONCHAIN_ADD_SIGNER_PARAM, onChainAddSignerParam)
-                putExtra(EXTRA_WALLET_TYPE, walletType)
-                supportedSigners?.let {
-                    putParcelableArrayListExtra(EXTRA_SUPPORTED_SIGNERS, ArrayList(it))
-                }
-            }
-        }
+        fun buildIntent(context: Context, request: SignerIntroRequest): Intent =
+            Intent(context, SignerIntroActivity::class.java).putExtra(EXTRA_REQUEST, request)
     }
 }

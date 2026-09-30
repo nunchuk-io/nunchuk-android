@@ -58,11 +58,20 @@ class WalletAuthenticationActivity : BasePortalActivity<ActivityNavigationBindin
         val inflater = navHostFragment.navController.navInflater
         val graph = inflater.inflate(R.navigation.check_sign_message_navigation)
 
+        // args.type comes from the server, so fail closed rather than falling through to the
+        // graph's default destination on a value we don't recognise.
         when (args.type) {
             VerificationType.SIGN_TEMP_MESSAGE -> graph.setStartDestination(R.id.checkSignMessageFragment)
             VerificationType.SIGN_DUMMY_TX -> graph.setStartDestination(R.id.dummyTransactionIntroFragment)
-            VerificationType.SECURITY_QUESTION -> graph.setStartDestination(R.id.answerSecurityQuestionFragment2)
+            VerificationType.SECURITY_QUESTION,
+            VerificationType.SECURITY_QUESTION_AND_SIGN_DUMMY_TX ->
+                graph.setStartDestination(R.id.answerSecurityQuestionFragment2)
             VerificationType.CONFIRMATION_CODE -> graph.setStartDestination(R.id.confirmationCodeFragment)
+            else -> {
+                NCToastMessage(this).showError(getString(R.string.nc_unsupported_verification_type))
+                finish()
+                return
+            }
         }
         navHostFragment.navController.setGraph(graph, intent.extras)
     }

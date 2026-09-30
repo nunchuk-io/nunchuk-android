@@ -955,6 +955,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             currentStageIndex = response.currentStageIndex ?: 0,
             currentInstallmentIndex = response.currentInstallmentIndex ?: 0,
             stages = response.stages?.map { it.toInheritancePlanStage() }.orEmpty(),
+            registrationBsms = response.bsms?.takeIf { it.isNotBlank() },
         )
     }
 

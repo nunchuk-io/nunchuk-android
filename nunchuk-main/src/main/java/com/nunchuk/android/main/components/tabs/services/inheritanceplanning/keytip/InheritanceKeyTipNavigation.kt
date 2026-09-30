@@ -27,8 +27,9 @@ fun NavGraphBuilder.inheritanceKeyTip(
         val sharedState by activityViewModel.state.collectAsStateWithLifecycle()
         InheritanceKeyTipContent(
             remainTime = remainTime,
-            numberOfKey = sharedState.keyTypes.size,
+            numberOfKey = sharedState.inheritanceKeyCount,
             isMiniscriptWallet = sharedState.isMiniscriptWallet,
+            seedPhraseKeyIndexes = sharedState.seedPhraseKeyIndexes,
             onContinueClicked = onContinueClicked,
         )
     }

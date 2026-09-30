@@ -8,20 +8,29 @@ import android.nfc.tech.Ndef
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.domain.ParseWalletDescriptorUseCase
 import com.nunchuk.android.core.domain.SignTapSignerPsbtUseCase
+import com.nunchuk.android.core.domain.utils.GetTrezorSignTransactionDeeplinkUseCase
+import com.nunchuk.android.core.domain.utils.ParseTrezorSignTransactionResponseUseCase
 import com.nunchuk.android.core.domain.coldcard.ExportRawPsbtToMk4UseCase
 import com.nunchuk.android.core.mapper.SingleSignerMapper
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.util.TrezorCallbackHolder
+import com.nunchuk.android.core.util.TrezorCallbackMethod
+import com.nunchuk.android.core.util.formattedName
 import com.nunchuk.android.core.util.getFileContentFromUri
 import com.nunchuk.android.core.util.isNoInternetException
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.core.util.parseTrezorCallback
 import com.nunchuk.android.core.util.readableMessage
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Transaction
+import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.nav.args.ClaimTransactionArgs
 import com.nunchuk.android.transaction.components.details.TransactionDetailsState
 import com.nunchuk.android.transaction.components.details.TransactionMiniscriptUiState
+import com.nunchuk.android.transaction.usecase.GetBlockchainExplorerUrlUseCase
 import com.nunchuk.android.usecase.CreateShareFileUseCase
 import com.nunchuk.android.usecase.GetMasterSignerUseCase
 import com.nunchuk.android.usecase.SaveLocalFileUseCase
@@ -32,6 +41,7 @@ import com.nunchuk.android.usecase.signer.GetPsbtFromMk4UseCase
 import com.nunchuk.android.usecase.signer.GetRemoteOrMasterSignerUseCase
 import com.nunchuk.android.usecase.signer.SignSoftwarePsbtUseCase
 import com.nunchuk.android.usecase.transaction.DecodeTxUseCase
+import com.nunchuk.android.type.SignerTag
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -43,6 +53,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -64,6 +75,11 @@ class ClaimTransactionViewModel @AssistedInject constructor(
     private val getPsbtFromMk4UseCase: GetPsbtFromMk4UseCase,
     private val decodeTxUseCase: DecodeTxUseCase,
     private val valueFromAmountUseCase: ValueFromAmountUseCase,
+    private val getBlockchainExplorerUrlUseCase: GetBlockchainExplorerUrlUseCase,
+    private val parseWalletDescriptorUseCase: ParseWalletDescriptorUseCase,
+    private val getTrezorSignTransactionDeeplinkUseCase: GetTrezorSignTransactionDeeplinkUseCase,
+    private val parseTrezorSignTransactionResponseUseCase: ParseTrezorSignTransactionResponseUseCase,
+    private val trezorCallbackHolder: TrezorCallbackHolder,
     @ApplicationContext private val applicationContext: Context,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val savedStateHandle: SavedStateHandle,
@@ -91,8 +107,31 @@ class ClaimTransactionViewModel @AssistedInject constructor(
     private val _claimError = MutableStateFlow<String?>(null)
     val claimError: StateFlow<String?> = _claimError.asStateFlow()
 
+    /** Ledger/BitBox sheet to show; the sheet signs the PSBT and hands it to [handleSignedPsbt]. */
+    private val _hardwareSignRequest = MutableStateFlow<HardwareSignRequest?>(null)
+    val hardwareSignRequest: StateFlow<HardwareSignRequest?> = _hardwareSignRequest.asStateFlow()
+
+    /** Trezor Suite deeplink awaiting the user's confirmation. */
+    private val _trezorSuiteDeeplink = MutableStateFlow<String?>(null)
+    val trezorSuiteDeeplink: StateFlow<String?> = _trezorSuiteDeeplink.asStateFlow()
+
+    /**
+     * The wallet being claimed, parsed from the descriptor the claim status handed back — the
+     * devices below register its policy before signing. There is deliberately no local wallet
+     * behind an off-chain claim, so this is the only place it lives.
+     */
+    private var registrationWallet: Wallet? = null
+    private var lastHandledTrezorCallback: String = ""
+
     init {
         loadSigners()
+        viewModelScope.launch {
+            trezorCallbackHolder.callbackUri.filterNotNull().collect { callbackUri ->
+                if (handleTrezorCallback(callbackUri)) {
+                    trezorCallbackHolder.clear(callbackUri)
+                }
+            }
+        }
     }
 
     private fun loadSigners() {
@@ -281,6 +320,24 @@ class ClaimTransactionViewModel @AssistedInject constructor(
         checkAndClaimIfAllSigned(transaction)
     }
 
+    /**
+     * A PSBT scanned back over QR. The import screen decodes it with no wallet, which only finds the
+     * signature when the device kept the PSBT metadata; SeedSigner and Krux strip it, so the same
+     * PSBT would come back unsigned. Decode it again against the claim's signers, as a file is.
+     */
+    fun importSignedTransaction(transaction: Transaction) {
+        viewModelScope.launch {
+            _loadingType.update { LoadingType.Normal }
+            try {
+                decodeSignedPsbt(transaction.psbt)
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to decode the imported PSBT against the claim signers")
+                updateTransaction(transaction)
+            }
+            _loadingType.update { null }
+        }
+    }
+
     fun importPsbtFromFile(uri: Uri) {
         viewModelScope.launch {
             _loadingType.update { LoadingType.Normal }
@@ -288,19 +345,7 @@ class ClaimTransactionViewModel @AssistedInject constructor(
                 val fileContent = withContext(ioDispatcher) {
                     getFileContentFromUri(applicationContext.contentResolver, uri)
                 } ?: throw Exception("Failed to read file content")
-
-                val currentTx = _state.value.transaction
-                val transaction = decodeTxUseCase(
-                    DecodeTxUseCase.Param(
-                        signers = _singleSigners,
-                        psbt = fileContent,
-                        subAmount = valueFromAmountUseCase(currentTx.subAmount).getOrThrow(),
-                        feeRate = valueFromAmountUseCase(currentTx.feeRate).getOrThrow(),
-                        fee = valueFromAmountUseCase(currentTx.fee).getOrThrow(),
-                        subtractFeeFromAmount = currentTx.subtractFeeFromAmount
-                    )
-                ).getOrThrow()
-                updateTransaction(transaction)
+                decodeSignedPsbt(fileContent)
             } catch (_: Exception) {
                 _event.emit(ClaimTransactionEvent.ShowError("Invalid signature. Please try again."))
             }
@@ -308,12 +353,142 @@ class ClaimTransactionViewModel @AssistedInject constructor(
         }
     }
 
-    fun saveLocalFile(psbt: String) {
+    /** A signed PSBT from any signer, decoded against the claim's signers and taken as the tx. */
+    private suspend fun decodeSignedPsbt(psbt: String) {
+        val currentTx = _state.value.transaction
+        val transaction = decodeTxUseCase(
+            DecodeTxUseCase.Param(
+                signers = _singleSigners,
+                psbt = psbt,
+                subAmount = valueFromAmountUseCase(currentTx.subAmount).getOrThrow(),
+                feeRate = valueFromAmountUseCase(currentTx.feeRate).getOrThrow(),
+                fee = valueFromAmountUseCase(currentTx.fee).getOrThrow(),
+                subtractFeeFromAmount = currentTx.subtractFeeFromAmount
+            )
+        ).getOrThrow()
+        updateTransaction(transaction)
+    }
+
+    /**
+     * The wallet a Ledger/BitBox/Trezor needs, from the descriptor the claim status returned.
+     * The server only sends it when a key requires registration; without it these devices have
+     * nothing to register or build a deeplink from, and the user is told so.
+     */
+    private suspend fun resolveRegistrationWallet(tag: SignerTag): Wallet? =
+        registrationWallet
+            ?: args.registrationBsms.takeIf { it.isNotBlank() }
+                ?.let { bsms -> parseWalletDescriptorUseCase(bsms).getOrNull() }
+                ?.also { registrationWallet = it }
+            ?: run {
+                _event.emit(ClaimTransactionEvent.ShowError("Cannot load wallet for ${tag.formattedName} signing"))
+                null
+            }
+
+    /** Ledger and BitBox sign in-app; [tag] only decides which sheet the screen puts up. */
+    fun requestSignByHardware(signer: SignerModel, tag: SignerTag) {
+        viewModelScope.launch {
+            _loadingType.update { LoadingType.Normal }
+            resolveRegistrationWallet(tag)?.let { wallet ->
+                _hardwareSignRequest.update {
+                    HardwareSignRequest(
+                        tag = tag,
+                        fingerprint = signer.fingerPrint,
+                        psbt = _state.value.transaction.psbt,
+                        wallet = wallet,
+                    )
+                }
+            }
+            _loadingType.update { null }
+        }
+    }
+
+    fun dismissHardwareSignRequest() = _hardwareSignRequest.update { null }
+
+    /** The in-app sheet signed the PSBT. */
+    fun handleSignedPsbt(signedPsbt: String) {
+        viewModelScope.launch {
+            _loadingType.update { LoadingType.Normal }
+            runCatching { decodeSignedPsbt(signedPsbt) }.onFailure {
+                _event.emit(ClaimTransactionEvent.ShowError("Invalid signature. Please try again."))
+            }
+            _loadingType.update { null }
+        }
+    }
+
+    /** Trezor signs out of the app: build the Trezor Suite deeplink, the screen confirms it. */
+    fun requestSignByTrezor(signer: SignerModel) {
+        viewModelScope.launch {
+            _loadingType.update { LoadingType.Normal }
+            resolveRegistrationWallet(SignerTag.TREZOR)?.let { wallet ->
+                savedStateHandle[KEY_TREZOR_XFP] = signer.fingerPrint
+                getTrezorSignTransactionDeeplinkUseCase(
+                    GetTrezorSignTransactionDeeplinkUseCase.Param(
+                        wallet = wallet,
+                        psbt = _state.value.transaction.psbt,
+                        xfp = signer.fingerPrint,
+                    )
+                ).onSuccess { deeplink -> _trezorSuiteDeeplink.update { deeplink } }
+                    .onFailure { _event.emit(ClaimTransactionEvent.ShowError(it.message.orUnknownError())) }
+            }
+            _loadingType.update { null }
+        }
+    }
+
+    fun dismissTrezorSuiteDialog() = _trezorSuiteDeeplink.update { null }
+
+    /**
+     * Same guards as the other Trezor callback handlers: not ours unless it is a sign-transaction
+     * reply, handled once per URI, and only when Suite actually returned something.
+     */
+    private fun handleTrezorCallback(callbackUri: String): Boolean {
+        // The key this screen sent to Suite; absent means the reply is not ours.
+        val requestedXfp = savedStateHandle.get<String>(KEY_TREZOR_XFP) ?: return false
+        val callback = parseTrezorCallback(callbackUri)
+            ?.takeIf { it.method == TrezorCallbackMethod.SIGN_TRANSACTION }
+            ?: return false
+        if (lastHandledTrezorCallback == callback.rawUri) return true
+        lastHandledTrezorCallback = callback.rawUri
+        savedStateHandle.remove<String>(KEY_TREZOR_XFP)
+        val xfp = callback.xfp.ifBlank { requestedXfp }
+        if (callback.response.isBlank()) return true
+
+        viewModelScope.launch {
+            _loadingType.update { LoadingType.Normal }
+            resolveRegistrationWallet(SignerTag.TREZOR)?.let { wallet ->
+                parseTrezorSignTransactionResponseUseCase(
+                    ParseTrezorSignTransactionResponseUseCase.Param(
+                        wallet = wallet,
+                        psbt = _state.value.transaction.psbt,
+                        xfp = xfp,
+                        response = callback.response,
+                    )
+                ).mapCatching { signedPsbt -> decodeSignedPsbt(signedPsbt) }
+                    .onFailure { _event.emit(ClaimTransactionEvent.ShowError(it.message.orUnknownError())) }
+            }
+            _loadingType.update { null }
+        }
+        return true
+    }
+
+    fun viewOnBlockExplorer() {
+        viewModelScope.launch {
+            getBlockchainExplorerUrlUseCase(
+                GetBlockchainExplorerUrlUseCase.Params(txId = _state.value.transaction.txId)
+            ).onSuccess { url ->
+                _event.emit(ClaimTransactionEvent.OpenBlockExplorer(url))
+            }.onFailure {
+                _event.emit(ClaimTransactionEvent.ShowError(it.message.orUnknownError()))
+            }
+        }
+    }
+
+    /** [fileName] comes from the signer's FILE route. */
+    fun saveLocalFile(psbt: String, fileName: String) {
         viewModelScope.launch {
             _loadingType.update { LoadingType.Normal }
             val result = saveLocalFileUseCase(
                 SaveLocalFileUseCase.Params(
-                    fileName = "transaction.psbt",
+                    fileName = fileName,
                     fileContent = psbt
                 )
             )
@@ -322,10 +497,10 @@ class ClaimTransactionViewModel @AssistedInject constructor(
         }
     }
 
-    fun exportTransactionToFile(psbt: String) {
+    fun exportTransactionToFile(psbt: String, fileName: String) {
         viewModelScope.launch {
             _loadingType.update { LoadingType.Normal }
-            createShareFileUseCase("transaction.psbt").onSuccess { filePath ->
+            createShareFileUseCase(fileName).onSuccess { filePath ->
                 writePsbtToFile(filePath, psbt)
             }.onFailure {
                 _event.emit(ClaimTransactionEvent.ShowError(it.message.orUnknownError()))
@@ -369,18 +544,7 @@ class ClaimTransactionViewModel @AssistedInject constructor(
         viewModelScope.launch {
             _loadingType.update { LoadingType.ColdCard }
             getPsbtFromMk4UseCase(records.toTypedArray()).onSuccess { importedPsbt ->
-                val currentTx = _state.value.transaction
-                decodeTxUseCase(
-                    DecodeTxUseCase.Param(
-                        signers = _singleSigners,
-                        psbt = importedPsbt,
-                        subAmount = valueFromAmountUseCase(currentTx.subAmount).getOrThrow(),
-                        feeRate = valueFromAmountUseCase(currentTx.feeRate).getOrThrow(),
-                        fee = valueFromAmountUseCase(currentTx.fee).getOrThrow(),
-                        subtractFeeFromAmount = currentTx.subtractFeeFromAmount
-                    )
-                ).onSuccess { transaction ->
-                    updateTransaction(transaction)
+                runCatching { decodeSignedPsbt(importedPsbt) }.onSuccess {
                     _event.emit(ClaimTransactionEvent.ImportTransactionFromMk4Success)
                 }.onFailure {
                     _event.emit(ClaimTransactionEvent.ShowError(it.message.orUnknownError()))
@@ -398,6 +562,7 @@ class ClaimTransactionViewModel @AssistedInject constructor(
 
     companion object {
         private const val KEY_SAVED_TRANSACTION = "saved_transaction"
+        private const val KEY_TREZOR_XFP = "claim_trezor_xfp"
     }
 
     @AssistedFactory
@@ -408,10 +573,19 @@ class ClaimTransactionViewModel @AssistedInject constructor(
     }
 }
 
+/** What the Ledger/BitBox sheet needs to sign the claiming PSBT for one key. */
+data class HardwareSignRequest(
+    val tag: SignerTag,
+    val fingerprint: String,
+    val psbt: String,
+    val wallet: Wallet,
+)
+
 sealed class ClaimTransactionEvent {
     data class SaveLocalFile(val isSuccess: Boolean) : ClaimTransactionEvent()
     data class ExportToFileSuccess(val filePath: String) : ClaimTransactionEvent()
     data class ShowError(val message: String) : ClaimTransactionEvent()
+    data class OpenBlockExplorer(val url: String) : ClaimTransactionEvent()
     data object ExportTransactionToMk4Success : ClaimTransactionEvent()
     data object ImportTransactionFromMk4Success : ClaimTransactionEvent()
 }

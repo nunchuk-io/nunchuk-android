@@ -48,13 +48,15 @@ class Mk4InfoFragment : MembershipFragment() {
         savedInstanceState: Bundle?
     ): View {
         val replacedXfp = (activity as Mk4Activity).replacedXfp.orEmpty()
+        // A claim adds its key through this flow but is not the setup wizard: no time remaining.
+        val isClaiming = (activity as Mk4Activity).onChainAddSignerParam?.isClaiming == true
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
                 val remainTime by membershipStepManager.remainingTime.collectAsStateWithLifecycle()
                 Mk4InfoContent(
-                    remainTime = remainTime,
+                    remainTime = if (isClaiming) 0 else remainTime,
                     onContinueClicked = {
                         findNavController().navigate(
                             Mk4InfoFragmentDirections.actionMk4InfoFragmentToMk4IntroFragment(

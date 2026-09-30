@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.activityViewModels
@@ -26,6 +27,8 @@ import com.nunchuk.android.signer.components.backup.BackingUpEvent
 import com.nunchuk.android.signer.components.backup.BackingUpState
 import com.nunchuk.android.signer.components.backup.BackingUpViewModel
 import com.nunchuk.android.signer.mk4.Mk4Activity
+import com.nunchuk.android.core.util.formattedName
+import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.mk4.Mk4ViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -42,7 +45,11 @@ class ColdCardBackingUpFragment : MembershipFragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
-                ColdCardBackingUpScreen(viewModel, membershipStepManager)
+                ColdCardBackingUpScreen(
+                    viewModel = viewModel,
+                    membershipStepManager = membershipStepManager,
+                    deviceName = (requireActivity() as Mk4Activity).signerTag.formattedName,
+                )
             }
         }
     }
@@ -104,7 +111,8 @@ class ColdCardBackingUpFragment : MembershipFragment() {
 @Composable
 private fun ColdCardBackingUpScreen(
     viewModel: BackingUpViewModel = viewModel(),
-    membershipStepManager: MembershipStepManager
+    membershipStepManager: MembershipStepManager,
+    deviceName: String,
 ) {
     val state: BackingUpState by viewModel.state.collectAsStateWithLifecycle()
     val remainTime by membershipStepManager.remainingTime.collectAsStateWithLifecycle()
@@ -113,7 +121,7 @@ private fun ColdCardBackingUpScreen(
         percentage = state.percent,
         isError = state.isError,
         remainTime = remainTime,
-        title = "Backing up COLDCARD",
-        description = "An encrypted backup for the COLDCARD will be stored on the server. "
+        title = stringResource(R.string.nc_backing_up_device, deviceName),
+        description = stringResource(R.string.nc_backing_up_device_desc, deviceName),
     )
 }

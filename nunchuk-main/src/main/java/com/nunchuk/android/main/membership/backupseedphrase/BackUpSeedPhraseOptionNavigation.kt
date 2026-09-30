@@ -1,4 +1,4 @@
-package com.nunchuk.android.main.membership.onchaintimelock.backupseedphrase
+package com.nunchuk.android.main.membership.backupseedphrase
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -33,6 +33,7 @@ import com.nunchuk.android.compose.NcTag
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.main.R
+import com.nunchuk.android.model.inheritance.ClaimOption
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -43,6 +44,7 @@ fun NavGraphBuilder.backUpSeedPhraseOptionDestination(
     groupId: String = "",
     masterSignerId: String = "",
     replacedXfp: String = "",
+    claimOption: ClaimOption? = null,
     onContinue: () -> Unit = {},
     onSkip: () -> Unit = {},
     onMoreClicked: () -> Unit = {}
@@ -53,6 +55,7 @@ fun NavGraphBuilder.backUpSeedPhraseOptionDestination(
             groupId = groupId,
             masterSignerId = masterSignerId,
             replacedXfp = replacedXfp,
+            claimOption = claimOption,
             onContinue = onContinue,
             onSkip = onSkip,
             onMoreClicked = onMoreClicked
@@ -66,6 +69,7 @@ private fun BackUpSeedPhraseOptionScreen(
     groupId: String = "",
     masterSignerId: String = "",
     replacedXfp: String = "",
+    claimOption: ClaimOption? = null,
     viewModel: BackUpSeedPhraseSharedViewModel = hiltViewModel(),
     onContinue: () -> Unit = {},
     onSkip: () -> Unit = {},
@@ -91,7 +95,15 @@ private fun BackUpSeedPhraseOptionScreen(
     
     BackUpSeedPhraseOptionContent(
         onContinueClicked = onContinue,
-        onSkipClicked = { viewModel.skipVerification(groupId = groupId, masterSignerId = masterSignerId, replacedXfp = replacedXfp, walletId = walletId) },
+        onSkipClicked = {
+            viewModel.skipVerification(
+                groupId = groupId,
+                masterSignerId = masterSignerId,
+                replacedXfp = replacedXfp,
+                walletId = walletId,
+                verificationMethod = claimOption,
+            )
+        },
         remainTime = remainTime,
         onMoreClicked = onMoreClicked
     )

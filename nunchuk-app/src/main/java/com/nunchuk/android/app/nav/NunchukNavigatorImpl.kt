@@ -33,7 +33,7 @@ import com.nunchuk.android.contact.nav.ContactNavigatorDelegate
 import com.nunchuk.android.core.data.model.QuickWalletParam
 import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.referral.ReferralArgs
-import com.nunchuk.android.core.signer.OnChainAddSignerParam
+import com.nunchuk.android.core.signer.SignerIntroRequest
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.InheritanceSourceFlow
 import com.nunchuk.android.core.util.PrimaryOwnerFlow
@@ -52,7 +52,7 @@ import com.nunchuk.android.main.membership.authentication.WalletAuthenticationAc
 import com.nunchuk.android.main.membership.byzantine.groupdashboard.GroupDashboardActivity
 import com.nunchuk.android.main.membership.byzantine.primaryowner.PrimaryOwnerActivity
 import com.nunchuk.android.main.membership.key.desktop.AddDesktopKeyActivity
-import com.nunchuk.android.main.membership.onchaintimelock.backupseedphrase.BackUpSeedPhraseActivity
+import com.nunchuk.android.main.membership.backupseedphrase.BackUpSeedPhraseActivity
 import com.nunchuk.android.main.membership.policy.ConfigServerKeyActivity
 import com.nunchuk.android.main.membership.signer.SignerIntroActivity
 import com.nunchuk.android.main.rollover.RollOverWalletActivity
@@ -67,7 +67,6 @@ import com.nunchuk.android.model.SignatureFlowType
 import com.nunchuk.android.model.SigningPath
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.model.byzantine.GroupWalletType
-import com.nunchuk.android.model.signer.SupportedSigner
 import com.nunchuk.android.nav.AppNavigator
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.nav.args.BackUpSeedPhraseArgs
@@ -522,32 +521,10 @@ interface AppNavigatorDelegate : AppNavigator {
     override fun openSignerIntroScreen(
         launcher: ActivityResultLauncher<Intent>?,
         activityContext: Context,
-        walletId: String,
-        groupId: String?,
-        supportedSigners: List<SupportedSigner>?,
-        keyFlow: Int,
-        onChainAddSignerParam: OnChainAddSignerParam?,
-        walletType: WalletType?
+        request: SignerIntroRequest,
     ) {
-        launcher?.launch(
-            SignerIntroActivity.buildIntent(
-                activityContext = activityContext,
-                walletId = walletId,
-                groupId = groupId,
-                supportedSigners = supportedSigners,
-                keyFlow = keyFlow,
-                onChainAddSignerParam = onChainAddSignerParam,
-                walletType = walletType
-            )
-        ) ?: SignerIntroActivity.start(
-            activityContext = activityContext,
-            walletId = walletId,
-            groupId = groupId,
-            supportedSigners = supportedSigners,
-            keyFlow = keyFlow,
-            onChainAddSignerParam = onChainAddSignerParam,
-            walletType = walletType
-        )
+        val intent = SignerIntroActivity.buildIntent(activityContext, request)
+        if (launcher != null) launcher.launch(intent) else activityContext.startActivity(intent)
     }
 
     override fun returnMembershipScreen() {

@@ -45,6 +45,8 @@ import com.nunchuk.android.core.base.BaseComposeActivity
 import com.nunchuk.android.core.signer.KeyFlow
 import com.nunchuk.android.core.signer.SelectSignerArgs
 import com.nunchuk.android.core.signer.SelectSignerBottomSheet
+import com.nunchuk.android.core.signer.SignerIntroFlow
+import com.nunchuk.android.core.signer.SignerIntroRequest
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.model.signer.SupportedSigner
 import com.nunchuk.android.type.SignerType
@@ -141,9 +143,11 @@ class StablecoinWalletActivity : BaseComposeActivity() {
         navigator.openSignerIntroScreen(
             launcher = signerIntroLauncher,
             activityContext = this,
-            groupId = null,
-            supportedSigners = supportedSigners,
-            keyFlow = KeyFlow.ADD_AND_PUSH,
+            request = SignerIntroRequest(
+                flow = SignerIntroFlow.AddWalletKey,
+                supportedSigners = supportedSigners,
+                keyFlow = KeyFlow.ADD_AND_PUSH,
+            ),
         )
     }
 

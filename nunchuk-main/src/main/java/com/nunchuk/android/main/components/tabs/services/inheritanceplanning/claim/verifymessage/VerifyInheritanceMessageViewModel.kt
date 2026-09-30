@@ -11,23 +11,35 @@ import com.nunchuk.android.core.constants.NativeErrorCode
 import com.nunchuk.android.core.data.model.membership.SigningChallengeMessage
 import com.nunchuk.android.core.domain.coldcard.SendDataToMk4UseCase
 import com.nunchuk.android.core.domain.membership.GetInheritanceClaimStateUseCase
+import com.nunchuk.android.core.domain.utils.GetBitBoxSignMessagePathUseCase
+import com.nunchuk.android.core.domain.utils.GetTrezorSignMessageDeeplinkUseCase
+import com.nunchuk.android.core.domain.utils.ParseTrezorSignMessageResponseUseCase
 import com.nunchuk.android.core.domain.signer.SignMessageByTapSignerUseCase
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.signing.ExportRoute
+import com.nunchuk.android.core.signing.SigningMethod
+import com.nunchuk.android.core.signing.SigningPayloadCodec
+import com.nunchuk.android.core.signing.SigningTransport
+import com.nunchuk.android.core.signing.profile
+import com.nunchuk.android.core.signing.signingDevice
 import com.nunchuk.android.core.util.getFileContentFromUri
 import com.nunchuk.android.core.util.nativeErrorCode
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.core.util.TrezorCallbackHolder
+import com.nunchuk.android.core.util.TrezorCallbackMethod
+import com.nunchuk.android.core.util.parseTrezorCallback
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.InheritanceAdditional
 import com.nunchuk.android.model.SignedMessage
-import com.nunchuk.android.type.AddressType
+import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.CreateShareFileUseCase
 import com.nunchuk.android.usecase.GetMasterSignerUseCase
 import com.nunchuk.android.usecase.SaveLocalFileUseCase
 import com.nunchuk.android.usecase.SendSignerPassphraseUseCase
-import com.nunchuk.android.usecase.signer.ExtractColdcardMessageSignatureUseCase
+import com.nunchuk.android.usecase.signer.ExtractMessageSignatureUseCase
 import com.nunchuk.android.usecase.signer.ExtractColdcardSignatureFromRecordsUseCase
-import com.nunchuk.android.usecase.signer.GenerateColdCardHealthCheckMessageStringUseCase
+import com.nunchuk.android.usecase.signer.GetRemoteOrMasterSignerUseCase
 import com.nunchuk.android.usecase.signer.SignMessageBySoftwareKeyUseCase
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -38,6 +50,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -51,17 +64,27 @@ class VerifyInheritanceMessageViewModel @AssistedInject constructor(
     private val getMasterSignerUseCase: GetMasterSignerUseCase,
     private val sendSignerPassphraseUseCase: SendSignerPassphraseUseCase,
     private val getInheritanceClaimStateUseCase: GetInheritanceClaimStateUseCase,
-    private val generateColdCardHealthCheckMessageStringUseCase: GenerateColdCardHealthCheckMessageStringUseCase,
+    private val payloadCodec: SigningPayloadCodec,
     private val createShareFileUseCase: CreateShareFileUseCase,
     private val saveLocalFileUseCase: SaveLocalFileUseCase,
     private val sendDataToMk4UseCase: SendDataToMk4UseCase,
-    private val extractColdcardMessageSignatureUseCase: ExtractColdcardMessageSignatureUseCase,
+    private val extractMessageSignatureUseCase: ExtractMessageSignatureUseCase,
     private val extractColdcardSignatureFromRecordsUseCase: ExtractColdcardSignatureFromRecordsUseCase,
+    private val getRemoteOrMasterSignerUseCase: GetRemoteOrMasterSignerUseCase,
+    private val getBitBoxSignMessagePathUseCase: GetBitBoxSignMessagePathUseCase,
+    private val getTrezorSignMessageDeeplinkUseCase: GetTrezorSignMessageDeeplinkUseCase,
+    private val parseTrezorSignMessageResponseUseCase: ParseTrezorSignMessageResponseUseCase,
+    private val trezorCallbackHolder: TrezorCallbackHolder,
     @ApplicationContext private val applicationContext: Context,
     @IoDispatcher private val ioDispatcher: kotlinx.coroutines.CoroutineDispatcher,
     @Assisted private val signer: SignerModel,
     @Assisted private val challenge: SigningChallengeMessage
 ) : ViewModel() {
+    /** The device's message routes; null for a signer that does not export a request. */
+    private val exportImport = signer.signingDevice().profile().message as? SigningMethod.ExportImport
+
+    /** Each route's request, built once: NFC is tapped after the payload is checked, and a file is saved or shared. */
+    private val exportPayloads = mutableMapOf<SigningTransport, String>()
     private val message: String = challenge.message.orEmpty()
     private val messageId: String = challenge.id.orEmpty()
 
@@ -71,7 +94,20 @@ class VerifyInheritanceMessageViewModel @AssistedInject constructor(
     private val _event = MutableSharedFlow<VerifyInheritanceMessageEvent>()
     val event = _event.asSharedFlow()
 
+    private var lastHandledTrezorCallback: String = ""
+    /** Set while a Trezor Suite sign-message request from this screen is outstanding. */
+    private var awaitingTrezorSignature: Boolean = false
+
     init {
+        // Trezor Suite answers over a deeplink that lands in TrezorCallbackHolder; only a
+        // sign-message reply is ours (the add-key and sign-transaction screens filter theirs).
+        viewModelScope.launch {
+            trezorCallbackHolder.callbackUri.filterNotNull().collect { callbackUri ->
+                if (handleTrezorCallback(callbackUri)) {
+                    trezorCallbackHolder.clear(callbackUri)
+                }
+            }
+        }
         if (signer.type == SignerType.SOFTWARE) {
             viewModelScope.launch {
                 getMasterSignerUseCase.invoke(signer.id)
@@ -161,26 +197,115 @@ class VerifyInheritanceMessageViewModel @AssistedInject constructor(
 
     fun needPassphrase(): Boolean = _state.value.needPassphrase
 
-    fun resetSignature() {
-        _state.update { it.copy(signedMessage = null) }
-    }
-
-    suspend fun generateColdCardSignedDataIfNeeded(): String {
-        val currentState = _state.value
-        if (!currentState.coldcardSignedData.isNullOrEmpty()) return currentState.coldcardSignedData
-        return generateColdCardHealthCheckMessageStringUseCase(
-            GenerateColdCardHealthCheckMessageStringUseCase.Param(
-                derivationPath = signer.derivationPath,
-                message = message,
-                addressType = AddressType.LEGACY
-            )
-        ).onSuccess { coldcardSignedData ->
-            _state.update { it.copy(coldcardSignedData = coldcardSignedData) }
+    /** The challenge in [route]'s format (libnunchuk owns every format). Empty after reporting a failure. */
+    suspend fun exportMessage(route: ExportRoute): String {
+        exportPayloads[route.transport]?.let { return it }
+        return payloadCodec.build(route.codec, signer.derivationPath, message).onSuccess { payload ->
+            exportPayloads[route.transport] = payload
+            if (route is ExportRoute.File) _state.update { it.copy(messageFile = payload) }
         }.getOrElse { error ->
             _event.emit(VerifyInheritanceMessageEvent.ShowError(error.message.orUnknownError()))
             ""
         }
     }
+
+    private suspend fun reportUnsupportedRoute(): String {
+        _event.emit(VerifyInheritanceMessageEvent.ShowError("This key cannot sign that way"))
+        return ""
+    }
+
+    /** The challenge for the device's own transport, as the [SingleSigner] the use cases take. */
+    private suspend fun singleSigner(): SingleSigner? =
+        getRemoteOrMasterSignerUseCase(
+            GetRemoteOrMasterSignerUseCase.Data(
+                id = signer.fingerPrint,
+                derivationPath = signer.derivationPath,
+            )
+        ).onFailure { error ->
+            Timber.e(error, "Failed to load signer for hardware signing")
+            _event.emit(VerifyInheritanceMessageEvent.ShowError(error.message.orUnknownError()))
+        }.getOrNull()
+
+    /**
+     * BitBox signs in-app, but not at the signer's own path: the SDK resolves the key it can sign
+     * with from the signer's descriptor (see GetBitBoxSignMessagePathUseCase). The sheet opens once
+     * that path is known.
+     */
+    fun requestSignMessageByBitBox() {
+        viewModelScope.launch {
+            _state.update { it.copy(loadingType = LoadingType.Normal) }
+            singleSigner()?.let { single ->
+                getBitBoxSignMessagePathUseCase(GetBitBoxSignMessagePathUseCase.Param(single))
+                    .onSuccess { path -> _state.update { it.copy(bitBoxSignMessagePath = path) } }
+                    .onFailure { error ->
+                        _event.emit(VerifyInheritanceMessageEvent.ShowError(error.message.orUnknownError()))
+                    }
+            }
+            _state.update { it.copy(loadingType = null) }
+        }
+    }
+
+    fun dismissBitBoxSheet() = _state.update { it.copy(bitBoxSignMessagePath = null) }
+
+    /** Trezor signs out of the app: build the Trezor Suite deeplink and let the screen confirm it. */
+    fun requestSignMessageByTrezor() {
+        viewModelScope.launch {
+            _state.update { it.copy(loadingType = LoadingType.Normal) }
+            singleSigner()?.let { single ->
+                getTrezorSignMessageDeeplinkUseCase(
+                    GetTrezorSignMessageDeeplinkUseCase.Param(signer = single, message = message)
+                ).onSuccess { deeplink ->
+                    awaitingTrezorSignature = true
+                    _state.update { it.copy(trezorSuiteDeeplink = deeplink) }
+                }.onFailure { error ->
+                    _event.emit(VerifyInheritanceMessageEvent.ShowError(error.message.orUnknownError()))
+                }
+            }
+            _state.update { it.copy(loadingType = null) }
+        }
+    }
+
+    fun dismissTrezorSuiteDialog() = _state.update { it.copy(trezorSuiteDeeplink = null) }
+
+    /**
+     * Same guards as the other Trezor callback handlers: not ours unless it is a sign-message
+     * reply this screen asked for, handled once per URI, and only when Suite actually returned
+     * something. The "asked for" guard is what keeps a two-key claim straight: a reply belongs
+     * to the key whose screen requested it.
+     */
+    private fun handleTrezorCallback(callbackUri: String): Boolean {
+        val callback = parseTrezorCallback(callbackUri)
+            ?.takeIf { it.method == TrezorCallbackMethod.SIGN_MESSAGE && awaitingTrezorSignature }
+            ?: return false
+        if (lastHandledTrezorCallback == callback.rawUri) return true
+        lastHandledTrezorCallback = callback.rawUri
+        awaitingTrezorSignature = false
+        if (callback.response.isBlank()) return true
+
+        viewModelScope.launch {
+            _state.update { it.copy(loadingType = LoadingType.Normal) }
+            parseTrezorSignMessageResponseUseCase(
+                ParseTrezorSignMessageResponseUseCase.Param(
+                    response = callback.response,
+                    message = callback.message.ifBlank { message },
+                )
+            ).onSuccess { signedMessage ->
+                _state.update { it.copy(signedMessage = signedMessage) }
+                signedMessage.signature.ifBlank { _event.emit(VerifyInheritanceMessageEvent.NoSignatureDetected) }
+            }.onFailure { error ->
+                _event.emit(VerifyInheritanceMessageEvent.ShowError(error.message.orUnknownError()))
+            }
+            _state.update { it.copy(loadingType = null) }
+        }
+        return true
+    }
+
+    fun resetSignature() {
+        _state.update { it.copy(signedMessage = null) }
+    }
+
+    /** Name the request file is saved or shared under; Passport lists `.txt` files from its card. */
+    private val messageFileName: String? = exportImport?.fileRoute?.fileName
 
     fun getInheritanceClaimState(
         magic: String,
@@ -222,7 +347,12 @@ class VerifyInheritanceMessageViewModel @AssistedInject constructor(
     fun exportTransactionToFile(dataToSign: String) {
         viewModelScope.launch {
             _state.update { it.copy(loadingType = LoadingType.Normal) }
-            createShareFileUseCase("coldcard_message.txt").onSuccess { filePath ->
+            val fileName = messageFileName ?: run {
+                reportUnsupportedRoute()
+                _state.update { it.copy(loadingType = null) }
+                return@launch
+            }
+            createShareFileUseCase(fileName).onSuccess { filePath ->
                 exportTransaction(filePath, dataToSign)
             }.onFailure {
                 _event.emit(VerifyInheritanceMessageEvent.ShowError(it.message.orUnknownError()))
@@ -249,10 +379,14 @@ class VerifyInheritanceMessageViewModel @AssistedInject constructor(
 
     fun saveLocalFile(dataToSign: String) {
         viewModelScope.launch {
+            val fileName = messageFileName ?: run {
+                reportUnsupportedRoute()
+                return@launch
+            }
             _state.update { it.copy(loadingType = LoadingType.Normal) }
             val result = saveLocalFileUseCase(
                 SaveLocalFileUseCase.Params(
-                    fileName = "coldcard_message.txt",
+                    fileName = fileName,
                     fileContent = dataToSign
                 )
             )
@@ -263,10 +397,13 @@ class VerifyInheritanceMessageViewModel @AssistedInject constructor(
 
     fun handleExportTransactionToMk4(ndef: Ndef) {
         viewModelScope.launch {
-            generateColdCardSignedDataIfNeeded()
-            val coldcardSignedData = _state.value.coldcardSignedData
-            if (!coldcardSignedData.isNullOrEmpty()) {
-                exportToMk4(coldcardSignedData, ndef)
+            val route = exportImport?.nfcRoute ?: run {
+                reportUnsupportedRoute()
+                return@launch
+            }
+            val payload = exportMessage(route)
+            if (payload.isNotEmpty()) {
+                exportToMk4(payload, ndef)
             }
         }
     }
@@ -294,7 +431,7 @@ class VerifyInheritanceMessageViewModel @AssistedInject constructor(
                     getFileContentFromUri(applicationContext.contentResolver, uri)
                 } ?: throw Exception("Failed to read file content")
 
-                val signature = extractColdcardMessageSignatureUseCase(fileContent).getOrThrow()
+                val signature = extractMessageSignatureUseCase(fileContent).getOrThrow()
                 _state.update {
                     it.copy(
                         signedMessage = SignedMessage(
@@ -368,7 +505,11 @@ data class VerifyInheritanceMessageUiState(
     val signedMessage: SignedMessage? = null,
     val needPassphrase: Boolean = false,
     val loadingType: LoadingType? = null,
-    val coldcardSignedData: String? = null
+    val messageFile: String? = null,
+    /** Path the BitBox sheet signs at; the sheet is shown while this is set. */
+    val bitBoxSignMessagePath: String? = null,
+    /** Trezor Suite deeplink awaiting the user's confirmation; the dialog is shown while set. */
+    val trezorSuiteDeeplink: String? = null,
 )
 
 enum class LoadingType {

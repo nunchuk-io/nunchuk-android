@@ -63,7 +63,7 @@ abstract class BaseChangeTapSignerNameFragment : MembershipFragment() {
                             isoDep = IsoDep.get(it.tag),
                             cvc = nfcViewModel.inputCvc.orEmpty(),
                             name = signerName,
-                            shouldCreateBackUp = isMembershipFlow,
+                            shouldCreateBackUp = shouldCreateBackUp,
                             index = index,
                             walletId = walletId,
                             groupId = groupId,
@@ -113,4 +113,8 @@ abstract class BaseChangeTapSignerNameFragment : MembershipFragment() {
     open fun onUpdateNameSuccess(signer: MasterSigner) {}
     abstract val signerName: String
     abstract val isMembershipFlow: Boolean
+
+    /** The membership flows upload an encrypted backup of the new card; a claim has no use for one. */
+    open val shouldCreateBackUp: Boolean
+        get() = isMembershipFlow
 }

@@ -22,15 +22,48 @@ package com.nunchuk.android.core.account
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKey
 import com.google.gson.Gson
 import javax.inject.Inject
 
+/**
+ * Stores the account record: session token, account metadata and the decoy PIN. Encrypted at rest
+ * because a plaintext copy would hand a forensic image both a live session token and proof that a
+ * decoy space exists.
+ */
 internal class AccountSharedPref @Inject constructor(
     context: Context,
     private val gson: Gson
 ) {
-    private val sharedPreferences: SharedPreferences =
+    private val legacyPreferences: SharedPreferences =
         context.getSharedPreferences(ACCOUNT_PREFERENCE, Context.MODE_PRIVATE)
+
+    private val sharedPreferences: SharedPreferences = EncryptedSharedPreferences.create(
+        context,
+        ENCRYPTED_ACCOUNT_PREFERENCE,
+        MasterKey.Builder(context)
+            .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+            .build(),
+        EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+        EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+    )
+
+    init {
+        migrateFromLegacyPreferences()
+    }
+
+    private fun migrateFromLegacyPreferences() {
+        if (legacyPreferences.all.isEmpty()) return
+        sharedPreferences.edit(commit = true) {
+            legacyPreferences.getString(ACCOUNT_KEY, null)?.let { putString(ACCOUNT_KEY, it) }
+            legacyPreferences.getString(ACCOUNT_BACKUP_KEY, null)
+                ?.let { putString(ACCOUNT_BACKUP_KEY, it) }
+            legacyPreferences.getString(LAST_DECOY_PIN_KEY, null)
+                ?.let { putString(LAST_DECOY_PIN_KEY, it) }
+        }
+        legacyPreferences.edit(commit = true) { clear() }
+    }
 
     fun getAccountInfo(): AccountInfo {
         val accountJson = sharedPreferences.getString(ACCOUNT_KEY, null)
@@ -81,6 +114,7 @@ internal class AccountSharedPref @Inject constructor(
 
     companion object {
         private const val ACCOUNT_PREFERENCE = "ACCOUNT_PREFERENCE"
+        private const val ENCRYPTED_ACCOUNT_PREFERENCE = "ACCOUNT_PREFERENCE_ENCRYPTED"
         private const val ACCOUNT_KEY = "ACCOUNT_KEY"
         private const val ACCOUNT_BACKUP_KEY = "ACCOUNT_BACKUP_KEY"
         private const val LAST_DECOY_PIN_KEY = "LAST_DECOY_PIN"

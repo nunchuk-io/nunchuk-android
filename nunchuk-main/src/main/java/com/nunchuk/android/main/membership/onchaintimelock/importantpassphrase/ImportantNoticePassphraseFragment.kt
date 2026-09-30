@@ -10,6 +10,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -41,8 +42,9 @@ import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
-import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.signer.SignerIntroFlow
+import com.nunchuk.android.core.signer.SignerIntroRequest
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.share.membership.MembershipFragment
@@ -106,15 +108,16 @@ class ImportantNoticePassphraseFragment : MembershipFragment(), BottomSheetOptio
         navigator.openSignerIntroScreen(
             launcher = signerIntroLauncher,
             activityContext = activity,
-            walletId = activity.walletId,
-            groupId = activity.groupId,
-            supportedSigners = null,
-            onChainAddSignerParam = OnChainAddSignerParam(
-                flags = OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER,
-                keyIndex = 0,
-                replaceInfo = existingParam?.replaceInfo,
-                existingSigners = existingParam?.existingSigners ?: emptyList()
-            )
+            request = SignerIntroRequest(
+                walletId = activity.walletId,
+                groupId = activity.groupId,
+                flow = SignerIntroFlow.OnChainTimelockKey(
+                    isInheritanceKey = true,
+                    keyIndex = 0,
+                    replaceInfo = existingParam?.replaceInfo,
+                    existingSigners = existingParam?.existingSigners ?: emptyList()
+                ),
+            ),
         )
     }
 
@@ -138,13 +141,15 @@ private fun ImportantNoticePassphraseScreen(
 }
 
 @Composable
-private fun ImportantNoticePassphraseContent(
+internal fun ImportantNoticePassphraseContent(
     remainTime: Int = 0,
     onMoreClicked: () -> Unit = {},
     onContinueClicked: () -> Unit = {},
 ) {
     NunchukTheme {
-        Scaffold(topBar = {
+        Scaffold(
+            modifier = Modifier.navigationBarsPadding(),
+            topBar = {
             NcImageAppBar(
                 backgroundRes = R.drawable.bg_importance_passphrase_notice_illustration,
                 title = if (remainTime <= 0) "" else stringResource(
@@ -160,7 +165,18 @@ private fun ImportantNoticePassphraseContent(
                     }
                 }
             )
-        }) { innerPadding ->
+            },
+            bottomBar = {
+                NcPrimaryDarkButton(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    onClick = onContinueClicked,
+                ) {
+                    Text(text = stringResource(id = com.nunchuk.android.signer.R.string.nc_text_continue))
+                }
+            },
+        ) { innerPadding ->
             Column(
                 modifier = Modifier
                     .padding(innerPadding)
@@ -185,15 +201,6 @@ private fun ImportantNoticePassphraseContent(
                     },
                     style = NunchukTheme.typography.body
                 )
-                Spacer(modifier = Modifier.weight(1.0f))
-                NcPrimaryDarkButton(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    onClick = onContinueClicked,
-                ) {
-                    Text(text = stringResource(id = com.nunchuk.android.signer.R.string.nc_text_continue))
-                }
             }
         }
     }

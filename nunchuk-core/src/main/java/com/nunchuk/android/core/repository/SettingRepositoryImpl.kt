@@ -137,6 +137,10 @@ internal class SettingRepositoryImpl @Inject constructor(
         ncDataStore.setBiometricConfig(config)
     }
 
+    override suspend fun clearBiometricConfig() {
+        ncDataStore.clearBiometricConfig()
+    }
+
     override suspend fun setWalletPin(pin: String) {
         ncEncryptedPreferences.setWalletPin(pin)
     }

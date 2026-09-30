@@ -62,6 +62,7 @@ import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.ShowErrorEve
 import com.nunchuk.android.model.ConnectionStatusHelper
 import com.nunchuk.android.model.DEFAULT_FEE
 import com.nunchuk.android.model.FreeRateOption
+import com.nunchuk.android.model.GroupSandbox
 import com.nunchuk.android.model.InheritanceStatus
 import com.nunchuk.android.model.KeyPolicy
 import com.nunchuk.android.model.MembershipPlan
@@ -141,7 +142,9 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import org.matrix.android.sdk.api.session.room.model.Membership
+import timber.log.Timber
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 
@@ -223,6 +226,7 @@ internal class WalletsViewModel @Inject constructor(
     private fun getState() = state.value
 
     private var loadWalletJob: Job? = null
+    private var sharedWalletInvitationsJob: Job? = null
     private var insertWalletOrderJob: Job? = null
 
     private val _walletOrderMap = getWalletOrderListUseCase(Unit)
@@ -606,38 +610,42 @@ internal class WalletsViewModel @Inject constructor(
             if (getState().groupWalletUis.isEmpty()) {
                 _state.update { it.copy(isWalletLoading = true) }
             }
-            val walletsDeferred = async { getAllWalletsUseCase(Unit) }
-            val pendingWalletsDeferred = async { getPendingGroupsSandboxUseCase(Unit) }
-            val groupSandboxWalletsDeferred = async { getFreeGroupWalletsUseCase(Unit) }
-            val deprecatedGroupWalletsDeferred = async { getDeprecatedGroupWalletsUseCase(Unit) }
-            val sharedWalletInvitationsDeferred = async {
-                if (signInModeHolder.getCurrentMode().isGuestMode()) {
-                    Result.success(emptyList<Invitation>())
-                } else {
-                    getSharedWalletInvitationsUseCase(Unit)
-                }
+            // Only local (native SDK) reads here. The wallet list must never wait on the network,
+            // otherwise a slow/unreachable server keeps the home screen on the loading indicator.
+            val localWallets = withTimeoutOrNull(LOCAL_WALLETS_TIMEOUT_MS) {
+                val walletsDeferred = async { getAllWalletsUseCase(Unit) }
+                val pendingWalletsDeferred = async { getPendingGroupsSandboxUseCase(Unit) }
+                val groupSandboxWalletsDeferred = async { getFreeGroupWalletsUseCase(Unit) }
+                val deprecatedGroupWalletsDeferred =
+                    async { getDeprecatedGroupWalletsUseCase(Unit) }
+                LocalWallets(
+                    wallets = walletsDeferred.await().getOrElse { emptyList() },
+                    pendingGroupSandboxes = pendingWalletsDeferred.await().getOrElse { emptyList() }
+                        .filter { wallet -> !wallet.finalized },
+                    groupSandboxWalletIds = groupSandboxWalletsDeferred.await()
+                        .getOrElse { emptyList() }.map { it.id }.toSet(),
+                    deprecatedGroupWalletIds = deprecatedGroupWalletsDeferred.await()
+                        .getOrElse { emptyList() }.toSet(),
+                )
             }
 
-            val wallets = walletsDeferred.await().getOrElse { emptyList() }
-            val pendingWallets = pendingWalletsDeferred.await().getOrElse { emptyList() }
-            val groupSandboxWallets =
-                groupSandboxWalletsDeferred.await().getOrElse { emptyList() }.map { it.id }.toSet()
-            val deprecatedGroupWalletIds =
-                deprecatedGroupWalletsDeferred.await().getOrElse { emptyList() }.toSet()
-            val fetchedSharedWalletInvitations =
-                sharedWalletInvitationsDeferred.await().getOrElse { emptyList() }
-            val (sharedWalletInvitations, hasAutoAcceptedInvitation) =
-                autoAcceptSharedWalletInvitationsIfNeeded(fetchedSharedWalletInvitations)
+            if (localWallets == null) {
+                // Keep whatever is already on screen instead of leaving the spinner up forever.
+                Timber.e("Loading wallets timed out after $LOCAL_WALLETS_TIMEOUT_MS ms")
+                _state.update { it.copy(isWalletLoading = false) }
+                retrieveSharedWalletInvitations()
+                return@launch
+            }
+
             if (signInModeHolder.getCurrentMode().isGuestMode()) {
-                setHasWalletInGuestModeUseCase(wallets.isNotEmpty())
+                setHasWalletInGuestModeUseCase(localWallets.wallets.isNotEmpty())
             }
             _state.update {
                 it.copy(
-                    pendingGroupSandboxes = pendingWallets.filter { wallet -> !wallet.finalized },
-                    groupSandboxWalletIds = groupSandboxWallets,
-                    deprecatedGroupWalletIds = deprecatedGroupWalletIds,
-                    wallets = wallets,
-                    sharedWalletInvitations = sharedWalletInvitations,
+                    pendingGroupSandboxes = localWallets.pendingGroupSandboxes,
+                    groupSandboxWalletIds = localWallets.groupSandboxWalletIds,
+                    deprecatedGroupWalletIds = localWallets.deprecatedGroupWalletIds,
+                    wallets = localWallets.wallets,
                     isWalletLoading = false,
                 )
             }
@@ -645,11 +653,46 @@ internal class WalletsViewModel @Inject constructor(
             updateBadge()
             mapGroupWalletUi()
             getCampaign()
+            retrieveSharedWalletInvitations()
+        }
+    }
+
+    private fun retrieveSharedWalletInvitations() {
+        sharedWalletInvitationsJob?.cancel()
+        sharedWalletInvitationsJob = viewModelScope.launch {
+            if (signInModeHolder.getCurrentMode().isGuestMode()) {
+                if (getState().sharedWalletInvitations.isNotEmpty()) {
+                    _state.update { it.copy(sharedWalletInvitations = emptyList()) }
+                    mapGroupWalletUi()
+                }
+                return@launch
+            }
+            val fetchedSharedWalletInvitations =
+                withTimeoutOrNull(SHARED_WALLET_INVITATIONS_TIMEOUT_MS) {
+                    getSharedWalletInvitationsUseCase(Unit).getOrNull()
+                }
+            if (fetchedSharedWalletInvitations == null) {
+                // Timed out or failed: keep the invitations we already have, the next
+                // onResume/push event retries.
+                Timber.e("Loading shared wallet invitations timed out or failed")
+                return@launch
+            }
+            val (sharedWalletInvitations, hasAutoAcceptedInvitation) =
+                autoAcceptSharedWalletInvitationsIfNeeded(fetchedSharedWalletInvitations)
+            _state.update { it.copy(sharedWalletInvitations = sharedWalletInvitations) }
+            mapGroupWalletUi()
             if (hasAutoAcceptedInvitation) {
                 syncGroup()
             }
         }
     }
+
+    private data class LocalWallets(
+        val wallets: List<WalletExtended>,
+        val pendingGroupSandboxes: List<GroupSandbox>,
+        val groupSandboxWalletIds: Set<String>,
+        val deprecatedGroupWalletIds: Set<String>,
+    )
 
     private suspend fun autoAcceptSharedWalletInvitationsIfNeeded(
         invitations: List<Invitation>
@@ -942,12 +985,14 @@ internal class WalletsViewModel @Inject constructor(
         _event.emit(Loading(true))
         joinFreeGroupWalletByIdUseCase(invitation.groupId)
             .onSuccess {
+                removeSharedWalletInvitation(invitation.id)
                 retrieveData()
                 _event.emit(WalletsEvent.JoinFreeGroupWalletSuccess(it.id))
             }
             .onFailure {
                 val errorCode = it.nativeErrorCode()
                 if (errorCode == NativeErrorCode.GROUP_WALLET_JOINED) {
+                    removeSharedWalletInvitation(invitation.id)
                     retrieveData()
                     _event.emit(WalletsEvent.JoinFreeGroupWalletSuccess(invitation.groupId))
                 } else {
@@ -1006,12 +1051,27 @@ internal class WalletsViewModel @Inject constructor(
         denySharedWalletInvitationUseCase(
             DenySharedWalletInvitationUseCase.Param(invitationId = invitationId)
         ).onSuccess {
+            removeSharedWalletInvitation(invitationId)
             retrieveData()
             _event.emit(WalletsEvent.DenyWalletInvitationSuccess)
         }.onFailure {
             _event.emit(ShowErrorEvent(it))
         }
         _event.emit(Loading(false))
+    }
+
+    /**
+     * Drop a handled invitation right away. [retrieveSharedWalletInvitations] runs off the
+     * critical path now, so without this the card stays on screen until the refetch lands.
+     */
+    private fun removeSharedWalletInvitation(invitationId: String) {
+        if (getState().sharedWalletInvitations.none { it.id == invitationId }) return
+        _state.update { state ->
+            state.copy(
+                sharedWalletInvitations = state.sharedWalletInvitations
+                    .filter { it.id != invitationId }
+            )
+        }
     }
 
     fun getPersonalSteps() = getState().personalSteps.orEmpty()
@@ -1067,5 +1127,10 @@ internal class WalletsViewModel @Inject constructor(
 
             _state.update { it.copy(claimWallet = claimWallet) }
         }
+    }
+
+    companion object {
+        private const val LOCAL_WALLETS_TIMEOUT_MS = 30_000L
+        private const val SHARED_WALLET_INVITATIONS_TIMEOUT_MS = 15_000L
     }
 }

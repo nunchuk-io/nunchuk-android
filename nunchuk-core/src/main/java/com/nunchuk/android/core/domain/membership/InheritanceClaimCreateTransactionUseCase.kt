@@ -23,6 +23,7 @@ import com.nunchuk.android.core.util.toAmount
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.repository.PremiumWalletRepository
 import com.nunchuk.android.share.model.ExtendTransaction
@@ -83,23 +84,37 @@ class InheritanceClaimCreateTransactionUseCase @Inject constructor(
             masterFingerprints = singleSigners.map { it.masterFingerprint },
             signatures = signatures,
         )
-        val transaction = nunchukNativeSdk.createInheritanceClaimTransaction(
-            signers = singleSigners,
-            psbt = transactionResponse.psbt,
-            subAmount = transactionResponse.subAmount.toString(),
-            fee = transactionResponse.fee.toString(),
-            feeRate = transactionResponse.feeRate.toString(),
-            isDraft = isDraft,
-            bsms = parameters.bsms,
-            subtractFeeFromAmount = transactionResponse.subtractFeeFromAmount
-        )
+
+        // Decode (isDraft = true) or decode + sign (isDraft = false) the server PSBT, always
+        // through the same native call and therefore the same wallet the signing step uses.
+        fun buildClaimTransaction(sign: Boolean): Transaction =
+            nunchukNativeSdk.createInheritanceClaimTransaction(
+                signers = singleSigners,
+                psbt = transactionResponse.psbt,
+                subAmount = transactionResponse.subAmount.toString(),
+                fee = transactionResponse.fee.toString(),
+                feeRate = transactionResponse.feeRate.toString(),
+                isDraft = !sign,
+                bsms = parameters.bsms,
+                subtractFeeFromAmount = transactionResponse.subtractFeeFromAmount
+            )
+
         if (isDraft) {
+            val transaction = buildClaimTransaction(sign = false)
             return if (parameters.bsms.isNullOrEmpty() || !parameters.messageId.isNullOrEmpty()) {
                 ExtendTransaction(transaction.copy(changeIndex = transactionResponse.changePos))
             } else {
                 ExtendTransaction(transaction)
             }
         }
+
+        // The heir's keys are about to sign a PSBT built entirely by the server. Look at it first.
+        verifyClaimPaysRequestedDestination(
+            parameters = parameters,
+            decoded = buildClaimTransaction(sign = false)
+        )
+        val transaction = buildClaimTransaction(sign = true)
+
         if (parameters.bsms.isNullOrEmpty()) {
             val transactionAdditional = userWalletRepository.inheritanceClaimingClaim(
                 magic = parameters.magic,
@@ -126,6 +141,34 @@ class InheritanceClaimCreateTransactionUseCase @Inject constructor(
         }
     }
 
+    /**
+     * The one claim input that originates on this device is the destination address the heir
+     * entered, so that is the one thing the server-built PSBT is checked against before any key
+     * signs it: it must pay that address. [decoded] comes from the same native decode the signing
+     * call performs, and the confirm screen already renders "Send to address" from it.
+     *
+     * Nothing else is checked on purpose. Output count, change position, the subtract-fee flag and
+     * the amounts all come from the server or depend on the plan's shape (a release-schedule claim
+     * re-locks the unreleased share), and every rule built on them has rejected legitimate claims.
+     */
+    private fun verifyClaimPaysRequestedDestination(parameters: Param, decoded: Transaction) {
+        val expectedAddress = parameters.address.trim()
+        if (expectedAddress.isEmpty()) {
+            throw InheritanceClaimPsbtMismatchException(
+                "The claim transaction has no destination address to verify against."
+            )
+        }
+        // Bech32 addresses are case-insensitive; base58 ones differing only in case fail checksum.
+        val paysDestination = decoded.outputs.any {
+            it.first.equals(expectedAddress, ignoreCase = true)
+        }
+        if (!paysDestination) {
+            throw InheritanceClaimPsbtMismatchException(
+                "The claim transaction does not pay the destination address you entered."
+            )
+        }
+    }
+
     data class Param(
         val isDraft: Boolean,
         val masterSignerIds: List<String>,
@@ -141,3 +184,9 @@ class InheritanceClaimCreateTransactionUseCase @Inject constructor(
         val signatures: List<String> = emptyList()
     )
 }
+
+/**
+ * Raised when the claim PSBT returned by the server does not pay what the heir asked to send.
+ * The heir's keys have not signed anything at this point.
+ */
+class InheritanceClaimPsbtMismatchException(message: String) : Exception(message)

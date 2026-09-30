@@ -97,7 +97,7 @@ class WalletSecurityCreatePinViewModel @Inject constructor(
             if (_state.value.createPinFlow) {
                 val newPin = inputValue[0]!!.value
                 if (isPinTaken(newPin)) {
-                    createDecoyPinSuccess()
+                    _event.emit(WalletSecurityCreatePinEvent.Error(context.getString(R.string.nc_pin_exist)))
                 } else if (inputValue[0]?.value == inputValue[1]?.value) {
                     createDecoyPin(inputValue)
                 } else {
@@ -118,7 +118,7 @@ class WalletSecurityCreatePinViewModel @Inject constructor(
                     )
                     _state.update { it.copy(attemptCount = it.attemptCount.inc()) }
                 } else if (isPinTaken(newPin)) {
-                    createDecoyPinSuccess()
+                    _event.emit(WalletSecurityCreatePinEvent.Error(context.getString(R.string.nc_pin_exist)))
                 } else if (inputValue[1] != inputValue[2]) {
                     updateInputValue(
                         2,
@@ -135,8 +135,7 @@ class WalletSecurityCreatePinViewModel @Inject constructor(
     /**
      * A PIN already owned by the main space or by another decoy space can never become a decoy PIN:
      * the decoy space is unlocked first, so it would shadow that space and hide its wallets for good.
-     * Callers silently report success instead of showing an error, otherwise the decoy space would
-     * disclose the existence of the main space (or of another decoy space) to whoever is holding it.
+     * Callers show the same "PIN already exists" error the main space shows, matching iOS.
      */
     private suspend fun isPinTaken(pin: String): Boolean =
         checkWalletPinUseCase(pin).getOrDefault(false) || decoyPinExistUseCase(pin).getOrDefault(false)

@@ -31,6 +31,7 @@ fun NavGraphBuilder.inheritanceShareSecretInfo(
     navigator: NunchukNavigator,
     onNavigateToHowItWorks: (type: Int) -> Unit,
     onNavigateToBackUpDownload: () -> Unit,
+    onNavigateToSeedPhraseBackupInfo: () -> Unit,
 ) {
     composable<InheritanceShareSecretInfoRoute> { backStackEntry ->
         val activity = LocalActivity.current as InheritancePlanningActivity
@@ -71,7 +72,8 @@ fun NavGraphBuilder.inheritanceShareSecretInfo(
                     )
                 }
             },
-            onLearnMoreClicked = onNavigateToBackUpDownload,
+            onLearnMoreBackupPasswordClicked = onNavigateToBackUpDownload,
+            onLearnMoreSeedPhraseClicked = onNavigateToSeedPhraseBackupInfo,
             onSaveBsms = {
                 activity.showSaveShareOption()
             },

@@ -32,7 +32,9 @@ import com.nunchuk.android.core.util.COLDCARD_DEFAULT_KEY_NAME
 import com.nunchuk.android.core.util.formattedName
 import com.nunchuk.android.core.util.toSignerType
 import com.nunchuk.android.model.KeyUpload
+import com.nunchuk.android.model.ClaimOptionsRequest
 import com.nunchuk.android.model.KeyVerifiedRequest
+import com.nunchuk.android.model.inheritance.ClaimOption
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.SignerExtra
@@ -357,57 +359,61 @@ internal class KeyRepositoryImpl @Inject constructor(
             if (result.isSuccess.not() && result.error.code != ALREADY_VERIFIED_CODE) {
                 throw result.error
             }
-            val signer = exisingColdCard ?: nativeSdk.getSignerByIndex(
-                xfp,
-                WalletType.MULTI_SIG.ordinal,
-                AddressType.NATIVE_SEGWIT.ordinal,
-                0
-            ) ?: throw NullPointerException("Can not get signer by index 0")
-            val status =
-                if (keyType == SignerType.NFC.name) nativeSdk.getTapSignerStatusFromMasterSigner(xfp) else null
-            val wallet = if (groupId.isNotEmpty()) {
-                userWalletApiManager.groupWalletApi.getGroupWallet(groupId)
-            } else {
-                userWalletApiManager.walletApi.getWallet(walletId)
-            }.data.wallet ?: throw NullPointerException("Can not get wallet $walletId")
-            val isInheritance =
-                wallet.signerServerDtos?.find { it.xfp == replacedXfp }?.tags?.contains(
-                    SignerTag.INHERITANCE.name
-                ) == true
-            val tags = if (isInheritance) {
-                when (keyType) {
-                    SignerType.NFC.name -> {
-                        listOf(SignerTag.INHERITANCE.name)
-                    }
-
-                    SignerType.COLDCARD_NFC.name, SignerType.AIRGAP.name, SignerType.HARDWARE.name -> {
-                        listOf(SignerTag.INHERITANCE.name, SignerTag.COLDCARD.name)
-                    }
-
-                    else -> {
-                        listOf(SignerTag.INHERITANCE.name)
-                    }
-                }
-            } else null
-            val payload = SignerServerDto(
-                name = signer.name,
-                xfp = signer.masterFingerprint,
-                derivationPath = signer.derivationPath,
-                xpub = signer.xpub,
-                pubkey = signer.publicKey,
-                type = keyType,
-                tapsigner = if (keyType == SignerType.NFC.name) {
-                    TapSignerDto(
-                        cardId = status!!.ident.toString(),
-                        version = status.version.orEmpty(),
-                        birthHeight = status.birthHeight,
-                        isTestnet = status.isTestNet,
-                        isInheritance = isInheritance
-                    )
-                } else null,
-                tags = tags,
-            )
+            // Everything below only feeds the replace request. Under the off-chain inheritance
+            // flow the key is already on the replacement before its backup is made, so none of it
+            // is needed — and reading the signer back at account 0 would fail outright for a key
+            // that lives at another account.
             if (isRequestReplaceKey) {
+                val signer = exisingColdCard ?: nativeSdk.getSignerByIndex(
+                    xfp,
+                    WalletType.MULTI_SIG.ordinal,
+                    AddressType.NATIVE_SEGWIT.ordinal,
+                    0
+                ) ?: throw NullPointerException("Can not get signer by index 0")
+                val status =
+                    if (keyType == SignerType.NFC.name) nativeSdk.getTapSignerStatusFromMasterSigner(xfp) else null
+                val wallet = if (groupId.isNotEmpty()) {
+                    userWalletApiManager.groupWalletApi.getGroupWallet(groupId)
+                } else {
+                    userWalletApiManager.walletApi.getWallet(walletId)
+                }.data.wallet ?: throw NullPointerException("Can not get wallet $walletId")
+                val isInheritance =
+                    wallet.signerServerDtos?.find { it.xfp == replacedXfp }?.tags?.contains(
+                        SignerTag.INHERITANCE.name
+                    ) == true
+                val tags = if (isInheritance) {
+                    when (keyType) {
+                        SignerType.NFC.name -> {
+                            listOf(SignerTag.INHERITANCE.name)
+                        }
+
+                        SignerType.COLDCARD_NFC.name, SignerType.AIRGAP.name, SignerType.HARDWARE.name -> {
+                            listOf(SignerTag.INHERITANCE.name, SignerTag.COLDCARD.name)
+                        }
+
+                        else -> {
+                            listOf(SignerTag.INHERITANCE.name)
+                        }
+                    }
+                } else null
+                val payload = SignerServerDto(
+                    name = signer.name,
+                    xfp = signer.masterFingerprint,
+                    derivationPath = signer.derivationPath,
+                    xpub = signer.xpub,
+                    pubkey = signer.publicKey,
+                    type = keyType,
+                    tapsigner = if (keyType == SignerType.NFC.name) {
+                        TapSignerDto(
+                            cardId = status!!.ident.toString(),
+                            version = status.version.orEmpty(),
+                            birthHeight = status.birthHeight,
+                            isTestnet = status.isTestNet,
+                            isInheritance = isInheritance
+                        )
+                    } else null,
+                    tags = tags,
+                )
                 val replaceResponse = if (groupId.isNotEmpty()) {
                     userWalletApiManager.groupWalletApi.replaceKey(
                         verifyToken = verifyToken,
@@ -456,7 +462,8 @@ internal class KeyRepositoryImpl @Inject constructor(
     override suspend fun setKeyVerified(
         groupId: String,
         masterSignerId: String,
-        verifyType: VerifyType
+        verifyType: VerifyType,
+        verificationMethod: ClaimOption?,
     ) {
         val stepInfo =
             membershipDao.getStepByMasterSignerId(
@@ -477,7 +484,8 @@ internal class KeyRepositoryImpl @Inject constructor(
                 stepInfo.keyIdInServer.ifEmpty { stepInfo.masterSignerId },
                 KeyVerifiedRequest(
                     stepInfo.checkSum,
-                    verifyTypeString
+                    verifyTypeString,
+                    verificationMethod?.name
                 )
             )
         } else {
@@ -486,7 +494,8 @@ internal class KeyRepositoryImpl @Inject constructor(
                 stepInfo.keyIdInServer.ifEmpty { stepInfo.masterSignerId },
                 KeyVerifiedRequest(
                     stepInfo.checkSum,
-                    verifyTypeString
+                    verifyTypeString,
+                    verificationMethod?.name
                 )
             )
         }
@@ -497,12 +506,50 @@ internal class KeyRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun setInheritanceClaimOptions(
+        groupId: String,
+        walletId: String,
+        xfp: String,
+        claimOptions: List<ClaimOption>
+    ) {
+        // The server rejects an empty list; an unset choice is simply never sent.
+        require(claimOptions.isNotEmpty()) { "claimOptions must not be empty" }
+        val payload = ClaimOptionsRequest(claimOptions.distinct().map { it.name })
+        val response = when {
+            groupId.isEmpty() && walletId.isEmpty() ->
+                userWalletApiManager.walletApi.setDraftClaimOptions(xfp, payload)
+
+            groupId.isEmpty() ->
+                userWalletApiManager.walletApi.setReplacementClaimOptions(
+                    verifyToken = ncDataStore.passwordToken.first(),
+                    walletId = walletId,
+                    xfp = xfp,
+                    payload = payload,
+                )
+
+            walletId.isEmpty() ->
+                userWalletApiManager.groupWalletApi.setDraftClaimOptions(groupId, xfp, payload)
+
+            // Every mutating endpoint on a wallet's replacement is gated on the verify token; only
+            // the draft ones are not.
+            else -> userWalletApiManager.groupWalletApi.setReplacementClaimOptions(
+                verifyToken = ncDataStore.passwordToken.first(),
+                groupId = groupId,
+                walletId = walletId,
+                xfp = xfp,
+                payload = payload,
+            )
+        }
+        if (response.isSuccess.not()) throw response.error
+    }
+
     override suspend fun setReplaceKeyVerified(
         checkSum: String,
         keyId: String,
         verifyType: VerifyType,
         groupId: String,
-        walletId: String
+        walletId: String,
+        verificationMethod: ClaimOption?,
     ) {
         val verifyToken = ncDataStore.passwordToken.first()
         val verifyTypeString = when (verifyType) {
@@ -518,7 +565,8 @@ internal class KeyRepositoryImpl @Inject constructor(
                 walletId = walletId,
                 KeyVerifiedRequest(
                     checkSum,
-                    verifyTypeString
+                    verifyTypeString,
+                    verificationMethod?.name
                 )
             )
         } else {
@@ -529,7 +577,8 @@ internal class KeyRepositoryImpl @Inject constructor(
                 walletId = walletId,
                 payload = KeyVerifiedRequest(
                     checkSum,
-                    verifyTypeString
+                    verifyTypeString,
+                    verificationMethod?.name
                 )
             )
         }
@@ -741,7 +790,28 @@ internal class KeyRepositoryImpl @Inject constructor(
             response.data.keyId,
             response.data.keyBackUpBase64
         )
+        saveBackUpCheckSum(xfp = xfp, groupId = groupId, checkSum = response.data.keyCheckSum)
         return serverKeyFilePath
+    }
+
+    /**
+     * Keeps the local step's checksum in sync with the backup the server actually holds.
+     *
+     * [setKeyVerified] echoes this value back and the server rejects a mismatch with
+     * "Invalid backup checksum". It is otherwise written only while uploading, so verifying at any
+     * later point — the off-chain inheritance key's "Verify backup" action, a reinstall, any run
+     * where the step row outlived the upload — sent an empty checksum and could never succeed.
+     */
+    private suspend fun saveBackUpCheckSum(xfp: String, groupId: String, checkSum: String) {
+        if (checkSum.isEmpty()) return
+        val stepInfo = membershipDao.getStepByMasterSignerId(
+            email = accountManager.getAccount().chatId,
+            chain = chain.value,
+            masterSignerId = xfp,
+            groupId = groupId,
+        ) ?: return
+        if (stepInfo.checkSum == checkSum) return
+        membershipDao.update(stepInfo.copy(checkSum = checkSum))
     }
 
     override suspend fun getBackUpKeyReplacement(

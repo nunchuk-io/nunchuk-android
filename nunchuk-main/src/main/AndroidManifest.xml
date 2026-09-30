@@ -92,9 +92,15 @@
             android:theme="@style/NunchukNoActionBar.Light" />
 
         <activity
-            android:name=".membership.onchaintimelock.backupseedphrase.BackUpSeedPhraseActivity"
+            android:name=".membership.backupseedphrase.BackUpSeedPhraseActivity"
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Light" />
+
+        <activity
+            android:name=".membership.honey.distribution.KeyDistributionActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light" />
+
         <activity
             android:name="com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.ClaimInheritanceActivity"
             android:screenOrientation="portrait"

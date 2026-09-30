@@ -1,6 +1,9 @@
-package com.nunchuk.android.main.membership.onchaintimelock.backupseedphrase
+package com.nunchuk.android.main.membership.backupseedphrase
 
 import android.app.Activity
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -17,11 +20,16 @@ import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.signer.OnChainAddSignerParam
+import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.signer.SignerIntroFlow
+import com.nunchuk.android.core.signer.SignerIntroRequest
 import com.nunchuk.android.core.util.BackUpSeedPhraseType
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.nav.args.BackUpSeedPhraseArgs
 import com.nunchuk.android.share.membership.MembershipStepManager
+import com.nunchuk.android.share.result.GlobalResultKey
+import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
@@ -40,15 +48,85 @@ class BackUpSeedPhraseActivity : BaseComposeActivity(), BottomSheetOptionListene
     }
 
     /**
-     * The last step is re-adding the key from the restored device, which happens over in the
-     * key-type screen. Whatever it reports back belongs to whoever started this flow, so pass it
-     * straight up instead of acting on it here.
+     * The last step is re-adding the key from the restored device, which opens that device's own
+     * add-key flow directly — the key being verified already says which device it is.
+     * What comes back differs per device, so the comparison is settled here:
+     *
+     * - Ledger and BitBox read the device against the expected fingerprint themselves and hand
+     *   back [GlobalResultKey.EXTRA_VERIFIED_XFP] on a match, or a stand-in key naming the device
+     *   on a mismatch — no key is ever created.
+     * - Coldcard and air-gap compare too, and on a match mark the key verified on their own
+     *   screens; on a mismatch they return the key they read.
+     * - TAPSIGNER does no comparison at all and returns whatever it read, match or not.
+     *
+     * So a returned key means nothing on its own — it has to be checked against the key being
+     * verified. A match is relayed up as a verified fingerprint, because marking the key verified
+     * belongs to whoever started this flow; a mismatch is answered here, since nobody upstream
+     * acts on a failed verification and the way out is to enter the words again.
      */
     private val signerIntroLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        setResult(result.resultCode, result.data)
+        val data = result.data
+        // The device's add-key flow opens straight from the steps screen, with no key-type picker
+        // in between, so backing out of it lands back on the steps rather than leaving the flow.
+        if (result.resultCode == Activity.RESULT_CANCELED) return@registerForActivityResult
+        if (result.resultCode != Activity.RESULT_OK) {
+            setResult(result.resultCode, data)
+            finish()
+            return@registerForActivityResult
+        }
+        val expectedXfp = args.signer?.fingerPrint
+        val reAdded = data?.parcelable<SignerModel>(GlobalResultKey.EXTRA_SIGNER)
+        val isMatch = !expectedXfp.isNullOrEmpty() &&
+                reAdded?.fingerPrint?.equals(expectedXfp, ignoreCase = true) == true
+        val verifiedXfp = data?.getStringExtra(GlobalResultKey.EXTRA_VERIFIED_XFP)
+            ?: expectedXfp.takeIf { isMatch }
+
+        // Only claim a mismatch when there was something to compare against.
+        if (verifiedXfp.isNullOrEmpty() && reAdded != null && !expectedXfp.isNullOrEmpty()) {
+            viewModel.onReAddedKeyMismatched(reAdded)
+            return@registerForActivityResult
+        }
+        setResult(
+            Activity.RESULT_OK,
+            data?.apply {
+                if (!verifiedXfp.isNullOrEmpty()) {
+                    putExtra(GlobalResultKey.EXTRA_VERIFIED_XFP, verifiedXfp)
+                    // The key that was verified, so the confirmation can name it even when the
+                    // caller's key list has not been reloaded yet.
+                    args.signer?.takeIf { it.fingerPrint.equals(verifiedXfp, ignoreCase = true) }
+                        ?.let { putExtra(GlobalResultKey.EXTRA_SIGNER, it) }
+                }
+            }
+        )
         finish()
+    }
+
+    /** Runs the re-add on the restored device; the key type comes from [BackUpSeedPhraseArgs.signer]. */
+    private fun openReAddKeyForVerification() {
+        navigator.openSignerIntroScreen(
+            launcher = signerIntroLauncher,
+            activityContext = this,
+            request = SignerIntroRequest(
+                walletId = args.walletId,
+                groupId = args.groupId,
+                // Scopes the key types to the wallet being built; without it the server's
+                // inheritance list contributes one card per wallet type and vendors repeat.
+                walletType = args.walletType,
+                flow = SignerIntroFlow.VerifyBackup(
+                    currentSigner = args.signer,
+                    replaceInfo = OnChainAddSignerParam.ReplaceInfo(
+                        replacedXfp = args.replacedXfp.orEmpty(),
+                        step = null
+                    ),
+                    // Coldcard and air-gap mark the key verified on their own screens, so the method
+                    // has to travel with the request.
+                    claimOption = args.claimOption,
+                ),
+            ),
+        )
+        // Stay alive: the device flow reports back through signerIntroLauncher.
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -60,11 +138,22 @@ class BackUpSeedPhraseActivity : BaseComposeActivity(), BottomSheetOptionListene
             ComposeView(this).apply {
                 setContent {
                     val navHostController = rememberNavController()
+                    val state by viewModel.state.collectAsStateWithLifecycle()
+
+                    LaunchedEffect(state.mismatchedSigner) {
+                        if (state.mismatchedSigner != null) {
+                            // "Try again" leaves this screen on the stack, so a second mismatch
+                            // would otherwise pile another copy on top of it.
+                            navHostController.navigate(BackUpSeedPhraseVerifyMismatch) {
+                                launchSingleTop = true
+                            }
+                        }
+                    }
 
                     val startDestination = when (args.type) {
                         BackUpSeedPhraseType.INTRO -> BackUpSeedPhraseIntro
                         BackUpSeedPhraseType.SUCCESS -> BackUpSeedPhraseVerifySuccess
-                        else -> {}
+                        BackUpSeedPhraseType.INHERITANCE_VERIFIED -> InheritanceSeedPhraseVerified
                     }
 
                     NavHost(
@@ -83,6 +172,7 @@ class BackUpSeedPhraseActivity : BaseComposeActivity(), BottomSheetOptionListene
                             groupId = args.groupId,
                             masterSignerId = args.signer?.fingerPrint.orEmpty(),
                             replacedXfp = args.replacedXfp.orEmpty(),
+                            claimOption = args.claimOption,
                             onContinue = {
                                 navHostController.navigate(BackUpSeedPhraseVerify)
                             },
@@ -93,24 +183,7 @@ class BackUpSeedPhraseActivity : BaseComposeActivity(), BottomSheetOptionListene
                         )
 
                         backUpSeedPhraseVerifyDestination(
-                            onContinue = {
-                                navigator.openSignerIntroScreen(
-                                    launcher = signerIntroLauncher,
-                                    activityContext = this@BackUpSeedPhraseActivity,
-                                    walletId = args.walletId,
-                                    groupId = args.groupId,
-                                    onChainAddSignerParam = OnChainAddSignerParam(
-                                        flags = OnChainAddSignerParam.FLAG_VERIFY_BACKUP_SEED_PHRASE,
-                                        currentSigner = args.signer,
-                                        replaceInfo = OnChainAddSignerParam.ReplaceInfo(
-                                            replacedXfp = args.replacedXfp.orEmpty(),
-                                            step = null
-                                        )
-                                    )
-                                )
-                                // Stay alive: the key-type screen reports back through
-                                // signerIntroLauncher.
-                            },
+                            onContinue = ::openReAddKeyForVerification,
                             onMoreClicked = ::handleShowMore
                         )
 
@@ -119,6 +192,26 @@ class BackUpSeedPhraseActivity : BaseComposeActivity(), BottomSheetOptionListene
                                 navigator.returnMembershipScreen()
                             },
                             onMoreClicked = ::handleShowMore
+                        )
+
+                        inheritanceSeedPhraseVerifiedDestination(
+                            signer = args.signer,
+                            onContinue = {
+                                navigator.returnMembershipScreen()
+                            },
+                        )
+
+                        backUpSeedPhraseVerifyMismatchDestination(
+                            reAddedSigner = state.mismatchedSigner,
+                            expectedXfp = args.signer?.fingerPrint.orEmpty(),
+                            onTryAgain = {
+                                viewModel.onMismatchHandled()
+                                openReAddKeyForVerification()
+                            },
+                            onBackToSteps = {
+                                viewModel.onMismatchHandled()
+                                navHostController.popBackStack()
+                            },
                         )
                     }
                 }

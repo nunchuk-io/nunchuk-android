@@ -15,11 +15,14 @@ import com.nunchuk.android.compose.dialog.NcConfirmationDialog
 import com.nunchuk.android.compose.dialog.NcLoadingDialog
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.base.BaseComposeActivity
+import com.nunchuk.android.core.signer.hardwareDeviceSignerModel
 import com.nunchuk.android.core.util.TrezorCallbackHolder
 import com.nunchuk.android.core.util.openTrezorSuiteLink
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.signer.R
+import com.nunchuk.android.signer.components.HardwareTaprootSupportViewModel
 import com.nunchuk.android.type.AddressType
+import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.ResultExistingKey
 import com.nunchuk.android.widget.NCToastMessage
@@ -30,17 +33,28 @@ import kotlinx.coroutines.flow.collectLatest
 
 @AndroidEntryPoint
 class TrezorActivity : BaseComposeActivity() {
-    private val taprootSupportViewModel: TrezorTaprootSupportViewModel by viewModels()
+    private val taprootSupportViewModel: HardwareTaprootSupportViewModel by viewModels()
     private val deeplinkViewModel: TrezorDeeplinkViewModel by viewModels()
 
     @Inject
     lateinit var trezorCallbackHolder: TrezorCallbackHolder
 
+    /**
+     * Read here rather than lazily: the callback from Trezor Suite can replace [getIntent], and
+     * that intent carries neither extra.
+     */
+    private var expectedXfp: String = ""
+    private var isVerifyXfpOnly: Boolean = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         val isMembershipFlow = intent.getBooleanExtra(EXTRA_IS_MEMBERSHIP_FLOW, false)
+        val accountIndex = intent.getIntExtra(EXTRA_ACCOUNT_INDEX, 0)
+        expectedXfp = intent.getStringExtra(EXTRA_EXPECTED_XFP).orEmpty()
+        isVerifyXfpOnly = intent.getBooleanExtra(EXTRA_VERIFY_XFP_ONLY, false)
         deeplinkViewModel.setMembershipFlow(isMembershipFlow)
+        deeplinkViewModel.setVerifyXfpOnly(isVerifyXfpOnly)
 
         setContent {
             NunchukTheme {
@@ -84,6 +98,10 @@ class TrezorActivity : BaseComposeActivity() {
                                 finish()
                             }
 
+                            is TrezorDeeplinkEvent.KeyReadForVerification -> {
+                                returnVerificationResult(event.masterFingerprint)
+                            }
+
                             is TrezorDeeplinkEvent.ShowError -> {
                                 NCToastMessage(this@TrezorActivity).showError(event.message)
                             }
@@ -117,20 +135,23 @@ class TrezorActivity : BaseComposeActivity() {
                                 finish()
                             }
                         },
-                        isAddViaUsbEnabled = isMembershipFlow
+                        // A key added from the desktop app proves nothing about the seed just
+                        // restored on the device, so verification keeps the Suite row only.
+                        isAddViaUsbEnabled = isMembershipFlow && !isVerifyXfpOnly
                     )
                     trezorSuiteIntro(
                         onBack = { navController.popBackStack() },
                         // Add-key-to-assisted-wallet uses a fixed config (multisig / native segwit
-                        // / account 0), so confirm and open Trezor Suite directly. Other flows let
-                        // the user choose on the select-wallet-type screen.
+                        // / the account the caller names, 0 unless a claim says otherwise), so
+                        // confirm and open Trezor Suite directly. Other flows let the user choose
+                        // on the select-wallet-type screen.
                         confirmBeforeContinue = isMembershipFlow,
                         onContinue = {
                             if (isMembershipFlow) {
                                 deeplinkViewModel.openTrezorSuiteDeeplink(
                                     walletType = WalletType.MULTI_SIG,
                                     addressType = AddressType.NATIVE_SEGWIT,
-                                    index = 0
+                                    index = accountIndex
                                 )
                             } else {
                                 navController.navigateToTrezorSelectWalletType()
@@ -185,6 +206,31 @@ class TrezorActivity : BaseComposeActivity() {
         }
     }
 
+    /**
+     * Answer for a seed-phrase-backup verification: the fingerprint itself on a match, or a
+     * stand-in key naming the device on a mismatch, which is what the verification steps show.
+     * Mirrors Ledger and BitBox — no key is created either way.
+     */
+    private fun returnVerificationResult(actualXfp: String) {
+        setResult(
+            RESULT_OK,
+            Intent().apply {
+                if (actualXfp.equals(expectedXfp, ignoreCase = true)) {
+                    putExtra(
+                        GlobalResultKey.EXTRA_VERIFIED_XFP,
+                        actualXfp.lowercase(Locale.getDefault())
+                    )
+                } else {
+                    putExtra(
+                        GlobalResultKey.EXTRA_SIGNER,
+                        hardwareDeviceSignerModel(actualXfp, SignerTag.TREZOR)
+                    )
+                }
+            }
+        )
+        finish()
+    }
+
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
@@ -192,15 +238,31 @@ class TrezorActivity : BaseComposeActivity() {
 
     companion object {
         const val EXTRA_IS_MEMBERSHIP_FLOW = "extra_is_membership_flow"
+        const val EXTRA_ACCOUNT_INDEX = "extra_account_index"
+        const val EXTRA_EXPECTED_XFP = "extra_expected_xfp"
+        const val EXTRA_VERIFY_XFP_ONLY = "extra_verify_xfp_only"
         const val EXTRA_RESULT_ACTION = "extra_result_action"
         const val RESULT_ACTION_OPEN_USB_FLOW = "result_action_open_usb_flow"
 
+        /**
+         * [verifyXfpOnly] turns the add-key flow into a "which device is this?" round trip used by
+         * the seed-phrase-backup verification: Trezor Suite is read as usual, but no key is
+         * created and [GlobalResultKey.EXTRA_VERIFIED_XFP] comes back on a match with
+         * [expectedXfp]. A device reporting anything else comes back as
+         * [GlobalResultKey.EXTRA_SIGNER], the stand-in the mismatch screen names.
+         */
         fun buildIntent(
             activityContext: Context,
-            isMembershipFlow: Boolean = false
+            isMembershipFlow: Boolean = false,
+            accountIndex: Int = 0,
+            expectedXfp: String = "",
+            verifyXfpOnly: Boolean = false,
         ): Intent {
             return Intent(activityContext, TrezorActivity::class.java).apply {
                 putExtra(EXTRA_IS_MEMBERSHIP_FLOW, isMembershipFlow)
+                putExtra(EXTRA_ACCOUNT_INDEX, accountIndex)
+                putExtra(EXTRA_EXPECTED_XFP, expectedXfp)
+                putExtra(EXTRA_VERIFY_XFP_ONLY, verifyXfpOnly)
             }
         }
     }

@@ -44,10 +44,13 @@ class CheckExistingKeyUseCase @Inject constructor(
                 }
             }
         }
+        val newSigner = parameters.singleSigner
         val remoteSigners = nativeSdk.getRemoteSigners()
         for (rs in remoteSigners) {
-            if (rs.masterFingerprint == parameters.singleSigner.masterFingerprint && rs.derivationPath == parameters.singleSigner.derivationPath) {
-                return ResultExistingKey.Hardware
+            if (rs.masterFingerprint == newSigner.masterFingerprint && rs.derivationPath == newSigner.derivationPath) {
+                // Re-adding the same device as the same key type isn't a type change, so no prompt.
+                val isSameKeyType = rs.type == newSigner.type && rs.tags.toSet() == newSigner.tags.toSet()
+                return if (isSameKeyType) ResultExistingKey.None else ResultExistingKey.Hardware
             }
         }
         return ResultExistingKey.None

@@ -22,7 +22,9 @@ package com.nunchuk.android.signer.tapsigner.backup.verify
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.model.VerifyType
+import com.nunchuk.android.model.inheritance.ClaimOption
 import com.nunchuk.android.usecase.membership.SetKeyVerifiedUseCase
+import com.nunchuk.android.usecase.membership.SetReplaceKeyVerifiedUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -31,13 +33,21 @@ import javax.inject.Inject
 
 @HiltViewModel
 class TapSignerVerifyBackUpOptionViewModel @Inject constructor(
-    private val setKeyVerifiedUseCase: SetKeyVerifiedUseCase
+    private val setKeyVerifiedUseCase: SetKeyVerifiedUseCase,
+    private val setReplaceKeyVerifiedUseCase: SetReplaceKeyVerifiedUseCase,
 ) : ViewModel() {
 
     private val _event = MutableSharedFlow<TapSignerVerifyBackUpOptionEvent>()
     val event = _event.asSharedFlow()
 
-    fun skipVerification(groupId: String, masterSignerId: String) {
+    fun skipVerification(
+        groupId: String,
+        masterSignerId: String,
+        verificationMethod: ClaimOption? = null,
+        replacedXfp: String = "",
+        walletId: String = "",
+        keyId: String = "",
+    ) {
         if (masterSignerId.isEmpty()) {
             viewModelScope.launch {
                 _event.emit(TapSignerVerifyBackUpOptionEvent.SkipVerificationError(Exception("Missing masterSignerId")))
@@ -46,13 +56,36 @@ class TapSignerVerifyBackUpOptionViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            val result = setKeyVerifiedUseCase(
-                SetKeyVerifiedUseCase.Param(
-                    groupId = groupId,
-                    masterSignerId = masterSignerId,
-                    verifyType = VerifyType.SKIPPED_VERIFICATION
+            // A replacement key is not on the draft, so its verification is recorded against the
+            // wallet's replacement instead. Same skip, different endpoint.
+            //
+            // Only the off-chain inheritance flow is routed this way, which is what the claim
+            // option marks: the on-chain timelock replace also lands here and keeps the path it
+            // has always used. (That path writes a replacement's skip to the draft endpoint,
+            // which looks wrong — but it is pre-existing and out of this branch's scope.)
+            val isOffChainInheritanceReplace = verificationMethod != null &&
+                    (replacedXfp.isNotEmpty() || keyId.isNotEmpty())
+            val result = if (isOffChainInheritanceReplace) {
+                setReplaceKeyVerifiedUseCase(
+                    SetReplaceKeyVerifiedUseCase.Param(
+                        keyId = keyId.ifEmpty { masterSignerId },
+                        checkSum = "",
+                        verifyType = VerifyType.SKIPPED_VERIFICATION,
+                        groupId = groupId,
+                        walletId = walletId,
+                        verificationMethod = verificationMethod,
+                    )
                 )
-            )
+            } else {
+                setKeyVerifiedUseCase(
+                    SetKeyVerifiedUseCase.Param(
+                        groupId = groupId,
+                        masterSignerId = masterSignerId,
+                        verifyType = VerifyType.SKIPPED_VERIFICATION,
+                        verificationMethod = verificationMethod,
+                    )
+                )
+            }
             if (result.isSuccess) {
                 _event.emit(TapSignerVerifyBackUpOptionEvent.SkipVerificationSuccess)
             } else {

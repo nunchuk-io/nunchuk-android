@@ -93,6 +93,7 @@ fun SignerInfoContent(
     onHistoryItemClick: (HealthCheckHistory) -> Unit = {},
     onViewSeedPhraseClicked: (String?) -> Unit = {},
     onViewSeedPhraseRequested: () -> Unit = {},
+    onSeedPhraseRequestHandled: () -> Unit = {},
     onPassphraseSubmitted: (String) -> Unit = {},
     onPassphraseConsume: () -> Unit = {},
 ) {
@@ -121,6 +122,8 @@ fun SignerInfoContent(
             uiState.seedPhraseViewTimestamp == null -> showSecurityTimeoutDialog = true
             else -> onViewSeedPhraseClicked(null)
         }
+        // Consume the tap so this composition - or a later one - never replays it.
+        onSeedPhraseRequestHandled()
     }
 
     LaunchedEffect(uiState.passphrase) {

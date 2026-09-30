@@ -26,6 +26,7 @@ import com.nunchuk.android.core.domain.GetTapSignerStatusByIdUseCase
 import com.nunchuk.android.core.domain.utils.NfcFileManager
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.VerifyType
+import com.nunchuk.android.model.inheritance.ClaimOption
 import com.nunchuk.android.usecase.GetDownloadBackUpKeyReplacementUseCase
 import com.nunchuk.android.usecase.GetDownloadBackUpKeyUseCase
 import com.nunchuk.android.usecase.SaveLocalFileUseCase
@@ -95,14 +96,19 @@ class CheckBackUpBySelfViewModel @Inject constructor(
         }
     }
 
-    fun setKeyVerified(groupId: String, isOnChainBackUp: Boolean) {
+    fun setKeyVerified(
+        groupId: String,
+        isOnChainBackUp: Boolean,
+        verificationMethod: ClaimOption? = null,
+    ) {
         viewModelScope.launch {
             val result =
                 setKeyVerifiedUseCase(
                     SetKeyVerifiedUseCase.Param(
-                        groupId,
-                        args.masterSignerId,
-                        verifyType = VerifyType.SELF_VERIFIED
+                        groupId = groupId,
+                        masterSignerId = args.masterSignerId,
+                        verifyType = VerifyType.SELF_VERIFIED,
+                        verificationMethod = verificationMethod,
                     )
                 )
             if (result.isSuccess) {
@@ -113,7 +119,13 @@ class CheckBackUpBySelfViewModel @Inject constructor(
         }
     }
 
-    fun setReplaceKeyVerified(keyId: String, groupId: String, walletId: String, isOnChainBackUp: Boolean) {
+    fun setReplaceKeyVerified(
+        keyId: String,
+        groupId: String,
+        walletId: String,
+        isOnChainBackUp: Boolean,
+        verificationMethod: ClaimOption? = null,
+    ) {
         viewModelScope.launch {
             val checkSum = if (isOnChainBackUp) {
                 ""
@@ -131,7 +143,8 @@ class CheckBackUpBySelfViewModel @Inject constructor(
                     checkSum = checkSum,
                     verifyType = VerifyType.SELF_VERIFIED,
                     groupId = groupId,
-                    walletId = walletId
+                    walletId = walletId,
+                    verificationMethod = verificationMethod,
                 )
             ).onSuccess {
                 _event.emit(OnExitSelfCheck)

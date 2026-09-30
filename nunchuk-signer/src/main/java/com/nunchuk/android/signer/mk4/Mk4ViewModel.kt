@@ -56,7 +56,8 @@ class Mk4ViewModel @Inject constructor(
     }
 
     private fun getColdcard(signers: List<SignerModel>) = signers.filter {
-        ((it.type == SignerType.COLDCARD_NFC && it.derivationPath.isRecommendedMultiSigPath)
+        it.derivationPath.isRecommendedMultiSigPath
+                && ((it.type == SignerType.COLDCARD_NFC)
                 || (it.type == SignerType.AIRGAP && (it.tags.isEmpty() || it.tags.contains(SignerTag.COLDCARD))))
     }
 

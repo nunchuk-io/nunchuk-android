@@ -77,6 +77,7 @@ private fun toReadableDrawableResId(
         type == AIRGAP && tags.contains(SignerTag.KEYSTONE) -> R.drawable.ic_air_gapped_keystone
         type == AIRGAP && tags.contains(SignerTag.KRUX) -> R.drawable.ic_air_gapped_krux
         type == AIRGAP && tags.contains(SignerTag.COLDCARD) -> R.drawable.ic_coldcard_small
+        type == HARDWARE && tags.contains(SignerTag.COLDCARD) -> R.drawable.ic_coldcard_small
         type == HARDWARE && tags.contains(SignerTag.JADE) -> R.drawable.ic_air_gapped_jade
         type == HARDWARE && tags.contains(SignerTag.TREZOR) -> R.drawable.ic_trezor_hardware
         type == HARDWARE && tags.contains(SignerTag.LEDGER) -> R.drawable.ic_ledger_hardware
@@ -121,6 +122,18 @@ val SignerTag.isAirgapTag: Boolean
  */
 val SignerTag?.isInAppHardwareTag: Boolean
     get() = this == SignerTag.TREZOR || this == SignerTag.LEDGER || this == SignerTag.BITBOX
+
+/** Ledger, paired in-app over BLE/USB; signs messages and PSBTs through [LedgerSheet]. */
+val SignerModel.isLedger: Boolean
+    get() = type == HARDWARE && tags.contains(SignerTag.LEDGER)
+
+/** BitBox, paired in-app over BLE/USB; signs messages and PSBTs through [BitBoxSheet]. */
+val SignerModel.isBitBox: Boolean
+    get() = type == HARDWARE && tags.contains(SignerTag.BITBOX)
+
+/** Trezor; signs out of the app through a Trezor Suite deeplink and its callback. */
+val SignerModel.isTrezor: Boolean
+    get() = type == HARDWARE && tags.contains(SignerTag.TREZOR)
 
 val SignerTag?.formattedName: String
     get() = when (this) {

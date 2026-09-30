@@ -17,19 +17,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.fragment.compose.content
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.fragment.findNavController
 import com.nunchuk.android.compose.ActionItem
+import com.nunchuk.android.compose.NcHighlightText
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
+import com.nunchuk.android.core.signer.isOnChainTimelockKey
+import com.nunchuk.android.core.signer.isVerifyOnChainTimelockBackup
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.signer.R
@@ -133,18 +132,25 @@ internal fun ColdCardIntroScreen(
     mk4Activity: Mk4Activity? = null,
     onColdCardAction: (ColdCardAction) -> Unit = {}
 ) {
-    val isVerifyBackupSeedPhrase =
-        mk4Activity?.onChainAddSignerParam?.isVerifyBackupSeedPhrase() == true
-    val isClaiming =
-        mk4Activity?.onChainAddSignerParam?.isClaiming == true
-    val isAddInheritanceOffChainSigner = mk4Activity?.onChainAddSignerParam?.isAddInheritanceOffChainSigner() == true
-    val onChainKeyIndex =
-        if (mk4Activity?.onChainAddSignerParam != null && mk4Activity.onChainAddSignerParam!!.keyIndex >= 0) mk4Activity.onChainAddSignerParam!!.keyIndex else 0
+    val onChainAddSignerParam = mk4Activity?.onChainAddSignerParam
+    // Only the verification of an on-chain timelock key may name a spending path and an account;
+    // an off-chain inheritance key is re-added like any other key.
+    val isVerifyOnChainTimelockBackup = onChainAddSignerParam.isVerifyOnChainTimelockBackup()
+    val isVerifyBackupSeedPhrase = onChainAddSignerParam?.isVerifyBackupSeedPhrase() == true
+    val isClaiming = onChainAddSignerParam?.isClaiming == true
+    val isAddInheritanceOffChainSigner =
+        onChainAddSignerParam?.isAddInheritanceOffChainSigner() == true
+    // Only the on-chain timelock wallet adds each Coldcard twice (Acct X / Acct Y), so only it
+    // gets the "(n/2)" title and the two-keys copy. An off-chain inheritance key is a single
+    // ordinary add, the same as any other membership key.
+    val isOnChainTimelockKey = onChainAddSignerParam.isOnChainTimelockKey()
+    val onChainKeyIndex = onChainAddSignerParam?.keyIndex?.takeIf { it >= 0 } ?: 0
     NunchukTheme {
         Scaffold(topBar = {
             NcImageAppBar(
                 backgroundRes = R.drawable.bg_add_coldcard_view_nfc_intro,
-                title = if (isMembershipFlow && remainTime > 0) {
+                // A claim adds its key here too, but it is not the setup wizard: no time remaining.
+                title = if (isMembershipFlow && !isClaiming && remainTime > 0) {
                     stringResource(
                         id = R.string.nc_estimate_remain_time,
                         remainTime
@@ -163,60 +169,42 @@ internal fun ColdCardIntroScreen(
             ) {
                 Text(
                     modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
-                    text = if (mk4Activity?.onChainAddSignerParam != null && !isVerifyBackupSeedPhrase && isClaiming.not()) {
-                        "Add COLDCARD (${mk4Activity.onChainAddSignerParam!!.keyIndex + 1}/2)"
+                    text = if (isOnChainTimelockKey) {
+                        "Add COLDCARD (${onChainKeyIndex + 1}/2)"
                     } else {
                         stringResource(R.string.nc_add_coldcard_mk4)
                     },
                     style = NunchukTheme.typography.heading
                 )
-                if (isClaiming.not()) {
-                    Text(
-                        modifier = Modifier.padding(16.dp),
-                        text = if (isVerifyBackupSeedPhrase) {
-                            buildAnnotatedString {
-                                append("Please re-add the key for the spending path ")
-                                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                    append("after the timelock")
-                                }
-                                append(" to verify. On your device, select ")
-                                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                    append("account 0")
-                                }
-                                append(" for this spending path.")
-                            }
-                        } else if (mk4Activity?.onChainAddSignerParam != null) {
-                            val keyIndex = mk4Activity.onChainAddSignerParam?.keyIndex ?: 0
-                            buildAnnotatedString {
-                                append("Each hardware device must be added twice, with both keys (before and after the timelock) coming from the same device but using different derivation paths.\n\n")
+                // Every description here is on-chain copy: it names a spending path and the
+                // account to pick for it. Off the on-chain timelock flow there is no such path,
+                // so the screen carries no description at all rather than a stand-in.
+                val description = when {
+                    isClaiming -> null
 
-                                if (keyIndex == 0) {
-                                    append("Please add a key for the spending path ")
-                                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                        append("after the timelock.")
-                                    }
-                                    append(" On your device, select ")
-                                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                        append("account 0")
-                                    }
-                                    append(" for this spending path.")
-                                } else {
-                                    append("Now add the second key from the same COLDCARD for the spending path ")
-                                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                        append("before the timelock")
-                                    }
-                                    append(". On your device, select ")
-                                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                        append("account $onChainKeyIndex")
-                                    }
-                                    append(" for this spending path.")
-                                }
-                            }
-                        } else {
-                            buildAnnotatedString {
-                                append(stringResource(R.string.nc_add_coldcard_mk4_desc))
-                            }
-                        },
+                    isVerifyOnChainTimelockBackup ->
+                        stringResource(R.string.nc_coldcard_onchain_verify_backup_desc)
+
+                    isOnChainTimelockKey && onChainKeyIndex == 0 ->
+                        stringResource(R.string.nc_coldcard_onchain_first_key_desc)
+
+                    isOnChainTimelockKey ->
+                        stringResource(
+                            R.string.nc_coldcard_onchain_second_key_desc,
+                            onChainKeyIndex
+                        )
+
+                    // An off-chain inheritance key — added, or having its backup verified — is an
+                    // ordinary single add, and the generic "you can add via NFC, QR or file" line
+                    // only repeats the actions listed right below it.
+                    isVerifyBackupSeedPhrase || isAddInheritanceOffChainSigner -> null
+
+                    else -> stringResource(R.string.nc_add_coldcard_mk4_desc)
+                }
+                if (description != null) {
+                    NcHighlightText(
+                        modifier = Modifier.padding(16.dp),
+                        text = description,
                         style = NunchukTheme.typography.body
                     )
                 }
@@ -242,12 +230,20 @@ internal fun ColdCardIntroScreen(
                     thickness = 0.5.dp
                 )
 
-                if (!isAddInheritanceOffChainSigner) {
+                // The desktop hand-off asks the server for the key and waits for the desktop app to
+                // add it, which is how the inheritance slot of a wallet being set up has always
+                // been fillable from a Coldcard over USB. It is hidden for the two off-chain runs
+                // that have no such request: a Beneficiary's claim, where the key the desktop app
+                // returns does not match the plan (NUN-9558), and an inheritance replace, whose
+                // dispatcher has no desktop path at all.
+                val canRequestKeyFromDesktop = !isAddInheritanceOffChainSigner ||
+                        (!isClaiming && onChainAddSignerParam?.isReplaceKeyFlow() != true)
+                if (canRequestKeyFromDesktop) {
                     ActionItem(
                         title = stringResource(R.string.nc_add_coldcard_via_usb),
                         iconId = R.drawable.ic_usb,
                         onClick = { onColdCardAction(ColdCardAction.USB) },
-                        isEnable = isFromAddKey.not() || (mk4Activity?.onChainAddSignerParam != null && !isVerifyBackupSeedPhrase),
+                        isEnable = isFromAddKey.not() || (onChainAddSignerParam != null && !isVerifyBackupSeedPhrase),
                         subtitle = if (isFromAddKey) stringResource(R.string.nc_desktop_only) else ""
                     )
                 }

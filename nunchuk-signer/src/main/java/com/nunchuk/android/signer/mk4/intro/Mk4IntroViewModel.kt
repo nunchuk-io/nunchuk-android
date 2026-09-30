@@ -30,9 +30,7 @@ import com.nunchuk.android.core.domain.ImportWalletFromMk4UseCase
 import com.nunchuk.android.core.domain.coldcard.ExtractWalletsFromColdCard
 import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
 import com.nunchuk.android.core.domain.wallet.ParseMk4WalletUseCase
-import com.nunchuk.android.core.helper.CheckAssistedSignerExistenceHelper
 import com.nunchuk.android.core.signer.OnChainAddSignerParam
-import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.signer.toSingleSigner
 import com.nunchuk.android.core.util.DEFAULT_COLDCARD_WALLET_NAME
 import com.nunchuk.android.core.util.gson
@@ -43,6 +41,7 @@ import com.nunchuk.android.model.MembershipStepInfo
 import com.nunchuk.android.model.SignerExtra
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.VerifyType
+import com.nunchuk.android.model.inheritance.ClaimOption
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.toIndex
 import com.nunchuk.android.share.membership.MembershipStepManager
@@ -52,7 +51,6 @@ import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.CheckExistingKeyUseCase
 import com.nunchuk.android.usecase.GetIndexFromPathUseCase
-import com.nunchuk.android.usecase.ResultExistingKey
 import com.nunchuk.android.usecase.byzantine.GetReplaceSignerNameUseCase
 import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
 import com.nunchuk.android.usecase.membership.SetKeyVerifiedUseCase
@@ -86,7 +84,6 @@ class Mk4IntroViewModel @Inject constructor(
     private val syncDraftWalletUseCase: SyncDraftWalletUseCase,
     private val setKeyVerifiedUseCase: SetKeyVerifiedUseCase,
     private val setReplaceKeyVerifiedUseCase: SetReplaceKeyVerifiedUseCase,
-    private val checkAssistedSignerExistenceHelper: CheckAssistedSignerExistenceHelper,
     private val checkExistingKeyUseCase: CheckExistingKeyUseCase,
     private val replaceKeyUseCase: ReplaceKeyUseCase,
     private val getReplaceSignerNameUseCase: GetReplaceSignerNameUseCase,
@@ -110,7 +107,6 @@ class Mk4IntroViewModel @Inject constructor(
         viewModelScope.launch {
             chain = getChainSettingFlowUseCase(Unit).map { it.getOrElse { Chain.MAIN } }.first()
         }
-        checkAssistedSignerExistenceHelper.init(viewModelScope)
     }
 
     val mk4Signers: List<SingleSigner>
@@ -152,7 +148,9 @@ class Mk4IntroViewModel @Inject constructor(
                         _event.emit(Mk4IntroViewEvent.Loading(false))
                         return@launch
                     }
-                    if (onChainAddSignerParam != null && signer.masterFingerprint != onChainAddSignerParam.currentSigner?.fingerPrint && onChainAddSignerParam.keyIndex > 0) {
+                    // Only meaningful with a first key to compare against; a claim sets keyIndex
+                    // to the plan's account without a currentSigner.
+                    if (onChainAddSignerParam?.currentSigner != null && signer.masterFingerprint != onChainAddSignerParam.currentSigner?.fingerPrint && onChainAddSignerParam.keyIndex > 0) {
                         _event.emit(
                             Mk4IntroViewEvent.ShowError(
                                 "The added key has an XFP mismatch. Please use the same device for both keys."
@@ -165,11 +163,9 @@ class Mk4IntroViewModel @Inject constructor(
                         val currentSigner = onChainAddSignerParam.currentSigner
                         if (currentSigner != null) {
                             if (signer.masterFingerprint != currentSigner.fingerPrint) {
-                                _event.emit(
-                                    Mk4IntroViewEvent.ShowError(
-                                        "The key you just added (XFP:${signer.masterFingerprint.uppercase()}) doesn't match the original inheritance key (XFP:${currentSigner.fingerPrint.uppercase()}). Please try again."
-                                    )
-                                )
+                                // Not an error to show here: the fragment hands the key back and
+                                // the seed-phrase host shows "This key doesn't match" for it.
+                                _event.emit(Mk4IntroViewEvent.OnCreateSignerSuccess(signer))
                                 _event.emit(Mk4IntroViewEvent.Loading(false))
                                 return@launch
                             }
@@ -303,17 +299,13 @@ class Mk4IntroViewModel @Inject constructor(
     fun checkExistingKey(signer: SingleSigner) {
         _state.update { it.copy(signer = signer) }
         viewModelScope.launch {
-            if (checkAssistedSignerExistenceHelper.isInAssistedWallet(signer.toModel())) {
-                checkExistingKeyUseCase(CheckExistingKeyUseCase.Params(signer))
-                    .onSuccess {
-                        _event.emit(Mk4IntroViewEvent.CheckExistingKey(it, signer))
-                    }
-                    .onFailure {
-                        _event.emit(Mk4IntroViewEvent.ShowError(it.message.orUnknownError()))
-                    }
-            } else {
-                _event.emit(Mk4IntroViewEvent.CheckExistingKey(ResultExistingKey.None, signer))
-            }
+            checkExistingKeyUseCase(CheckExistingKeyUseCase.Params(signer))
+                .onSuccess {
+                    _event.emit(Mk4IntroViewEvent.CheckExistingKey(it, signer))
+                }
+                .onFailure {
+                    _event.emit(Mk4IntroViewEvent.ShowError(it.message.orUnknownError()))
+                }
         }
     }
 
@@ -371,13 +363,18 @@ class Mk4IntroViewModel @Inject constructor(
         }
     }
 
-    fun setKeyVerified(groupId: String, masterSignerId: String) {
+    fun setKeyVerified(
+        groupId: String,
+        masterSignerId: String,
+        verificationMethod: ClaimOption? = null,
+    ) {
         viewModelScope.launch {
             setKeyVerifiedUseCase(
                 SetKeyVerifiedUseCase.Param(
                     groupId = groupId,
                     masterSignerId = masterSignerId,
-                    verifyType = VerifyType.APP_VERIFIED
+                    verifyType = VerifyType.APP_VERIFIED,
+                    verificationMethod = verificationMethod,
                 )
             ).onSuccess {
                 _event.emit(Mk4IntroViewEvent.KeyVerifiedSuccess)
@@ -387,7 +384,12 @@ class Mk4IntroViewModel @Inject constructor(
         }
     }
 
-    fun setReplaceKeyVerified(keyId: String, groupId: String, walletId: String) {
+    fun setReplaceKeyVerified(
+        keyId: String,
+        groupId: String,
+        walletId: String,
+        verificationMethod: ClaimOption? = null,
+    ) {
         viewModelScope.launch {
             setReplaceKeyVerifiedUseCase(
                 SetReplaceKeyVerifiedUseCase.Param(
@@ -395,7 +397,8 @@ class Mk4IntroViewModel @Inject constructor(
                     checkSum = "",
                     verifyType = VerifyType.SELF_VERIFIED,
                     groupId = groupId,
-                    walletId = walletId
+                    walletId = walletId,
+                    verificationMethod = verificationMethod,
                 )
             ).onSuccess {
                 _event.emit(Mk4IntroViewEvent.KeyVerifiedSuccess)

@@ -102,7 +102,9 @@ class UploadConfigurationActivity : BaseWalletConfigActivity<ActivityWalletUploa
                 shareConfigurationFile(event.filePath)
             }
             is UploadConfigurationEvent.DoneScanQr -> {
-                finish()
+                // In the on-chain create flow this screen is the last step before the wallet
+                // success screen, so finishing alone would drop the user back on the create step.
+                if (args.isOnChainFlow) handleRegisterDone() else finish()
             }
             else -> {}
         }
@@ -126,7 +128,7 @@ class UploadConfigurationActivity : BaseWalletConfigActivity<ActivityWalletUploa
         }
         super.onOptionClicked(option)
         when (option.type) {
-            SheetOptionType.TYPE_EXPORT_QR -> {
+            SheetOptionType.TYPE_EXPORT_QR, SheetOptionType.TYPE_EXPORT_AS_QR -> {
                 val isMiniscriptWallet = sharedViewModel.getIsMiniscriptWallet()
                 val wallet = sharedViewModel.getWallet()
                 if (wallet != null) {
@@ -178,6 +180,8 @@ class UploadConfigurationActivity : BaseWalletConfigActivity<ActivityWalletUploa
                 addressType == AddressType.NESTED_SEGWIT ||
                 addressType == AddressType.NATIVE_SEGWIT || addressType == AddressType.TAPROOT
 
+        val isMiniscript = sharedViewModel.getIsMiniscriptWallet()
+
         val options = mutableListOf<SheetOption>()
         options.add(SheetOption(SheetOptionType.TYPE_EXPORT_BSMS, stringId = R.string.nc_bsms))
         options.add(SheetOption(SheetOptionType.TYPE_EXPORT_DESCRIPTOR, stringId = R.string.nc_descriptor))
@@ -185,6 +189,17 @@ class UploadConfigurationActivity : BaseWalletConfigActivity<ActivityWalletUploa
         // Show COLDCARD only for multisig and supported address types
         if (isMultisig && isSupportedType) {
             options.add(SheetOption(SheetOptionType.TYPE_EXPORT_TO_COLD_CARD, stringId = R.string.nc_coldcard))
+        }
+
+        // Wallet QR (BC-UR2) — same rule as the wallet-config export sheet. Air-gapped devices
+        // such as Passport can only take the wallet this way, so it has to be offered here too.
+        if (!isMiniscript && addressType != AddressType.TAPROOT && isMultisig) {
+            options.add(
+                SheetOption(
+                    SheetOptionType.TYPE_EXPORT_AS_QR,
+                    stringId = R.string.nc_text_wallet_qr_code
+                )
+            )
         }
 
         BottomSheetOption.newInstance(

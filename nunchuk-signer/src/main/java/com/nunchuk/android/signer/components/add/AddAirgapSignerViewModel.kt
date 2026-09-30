@@ -26,18 +26,17 @@ import com.google.gson.Gson
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.constants.NativeErrorCode
 import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
-import com.nunchuk.android.core.helper.CheckAssistedSignerExistenceHelper
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.signer.InvalidSignerFormatException
 import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.core.signer.SignerInput
-import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.signer.toSigner
 import com.nunchuk.android.core.signer.toSingleSigner
 import com.nunchuk.android.core.util.formattedName
 import com.nunchuk.android.core.util.getFileFromUri
 import com.nunchuk.android.core.util.isIdentical
+import com.nunchuk.android.core.util.isRecommendedMultiSigPath
 import com.nunchuk.android.core.util.isValidPathForAssistedWallet
 import com.nunchuk.android.core.util.nativeErrorCode
 import com.nunchuk.android.core.util.orUnknownError
@@ -46,6 +45,7 @@ import com.nunchuk.android.model.MembershipStepInfo
 import com.nunchuk.android.model.SignerExtra
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.VerifyType
+import com.nunchuk.android.model.inheritance.ClaimOption
 import com.nunchuk.android.model.toIndex
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.AddAirgapSignerErrorEvent
@@ -111,7 +111,6 @@ internal class AddAirgapSignerViewModel @Inject constructor(
     private val setKeyVerifiedUseCase: SetKeyVerifiedUseCase,
     private val setReplaceKeyVerifiedUseCase: SetReplaceKeyVerifiedUseCase,
     private val checkExistingKeyUseCase: CheckExistingKeyUseCase,
-    private val checkAssistedSignerExistenceHelper: CheckAssistedSignerExistenceHelper,
     private val changeKeyTypeUseCase: ChangeKeyTypeUseCase,
     private val replaceKeyUseCase: ReplaceKeyUseCase,
     private val getReplaceSignerNameUseCase: GetReplaceSignerNameUseCase,
@@ -138,7 +137,6 @@ internal class AddAirgapSignerViewModel @Inject constructor(
         viewModelScope.launch {
             chain = getChainSettingFlowUseCase(Unit).map { it.getOrElse { Chain.MAIN } }.first()
         }
-        checkAssistedSignerExistenceHelper.init(viewModelScope)
     }
 
     val remainTime = membershipStepManager.remainingTime
@@ -231,11 +229,9 @@ internal class AddAirgapSignerViewModel @Inject constructor(
                     val currentSigner = onChainAddSignerParam!!.currentSigner
                     if (currentSigner != null) {
                         if (signer.masterFingerprint != currentSigner.fingerPrint) {
-                            setEvent(
-                                AddAirgapSignerErrorEvent(
-                                    "The key you just added (XFP:${signer.masterFingerprint.uppercase()}) doesn't match the original inheritance key (XFP:${currentSigner.fingerPrint.uppercase()}). Please try again."
-                                )
-                            )
+                            // Not an error to show here: the fragment hands the key back and
+                            // the seed-phrase host shows "This key doesn't match" for it.
+                            setEvent(AddAirgapSignerSuccessEvent(signer))
                             setEvent(LoadingEventAirgap(false))
                             return@launch
                         }
@@ -256,7 +252,10 @@ internal class AddAirgapSignerViewModel @Inject constructor(
                     setEvent(AddAirgapSignerSuccessEvent(signer))
                     setEvent(LoadingEventAirgap(false))
                     return@launch
-                } else if (onChainAddSignerParam != null && signer.masterFingerprint != onChainAddSignerParam!!.currentSigner?.fingerPrint && onChainAddSignerParam!!.keyIndex > 0) {
+                } else if (onChainAddSignerParam?.currentSigner != null && signer.masterFingerprint != onChainAddSignerParam!!.currentSigner?.fingerPrint && onChainAddSignerParam!!.keyIndex > 0) {
+                    // "Same device for both keys" needs a first key to compare against. A claim
+                    // carries the plan's account in keyIndex with no currentSigner, so the check
+                    // would otherwise fire on every key at account 1.
                     setEvent(
                         AddAirgapSignerErrorEvent(
                             "The added key has an XFP mismatch. Please use the same device for both keys."
@@ -302,10 +301,7 @@ internal class AddAirgapSignerViewModel @Inject constructor(
             }
             setEvent(LoadingEventAirgap(true))
             val signer = signerInput.toSingleSigner(newSignerName, signerTag)
-            if (isMembershipFlow.not() && checkAssistedSignerExistenceHelper.isInAssistedWallet(
-                    signer.toModel()
-                )
-            ) {
+            if (isMembershipFlow.not()) {
                 _state.update { it.copy(airgap = signer.copy(derivationPath = signerInput.derivationPath)) }
                 val resultKey = checkExistingKeyUseCase(CheckExistingKeyUseCase.Params(signer))
                 setEvent(LoadingEventAirgap(false))
@@ -349,13 +345,20 @@ internal class AddAirgapSignerViewModel @Inject constructor(
                             return@launch
                         }
                     } else {
+                        // The param is also carried by the off-chain inheritance picker, whose
+                        // draft is a plain multisig: its inheritance step maps to key index 0,
+                        // while the same step on a Miniscript draft maps to index 1. Only the
+                        // on-chain params may force MINISCRIPT here.
+                        val param = onChainAddSignerParam
+                        val isOnChainFlow = param != null && !param.isAddInheritanceOffChainSigner()
+                        val draftWalletType = if (isOnChainFlow) WalletType.MINISCRIPT else walletType
                         syncKeyUseCase(
                             SyncKeyUseCase.Param(
                                 step = membershipStepManager.currentStep
                                     ?: throw IllegalArgumentException("Current step empty"),
                                 groupId = groupId,
                                 signer = airgap,
-                                walletType = if (onChainAddSignerParam != null) WalletType.MINISCRIPT else walletType
+                                walletType = draftWalletType
                             )
                         ).onSuccess {
                             saveMembershipStepUseCase(
@@ -438,7 +441,7 @@ internal class AddAirgapSignerViewModel @Inject constructor(
                         .flowOn(Main)
                         .collect {
                             Timber.tag(TAG).d("add passport signer successful::$it")
-                            event(ParseKeystoneAirgapSignerSuccess(it))
+                            emitParsedSigners(it)
                         }
                 } finally {
                     isProcessing = false
@@ -506,13 +509,7 @@ internal class AddAirgapSignerViewModel @Inject constructor(
                     ParseJsonSignerUseCase.Params(content, SignerType.AIRGAP)
                 )
                 if (result.isSuccess) {
-                    val signers = result.getOrThrow()
-                    validateAndUpdateSigners(signers)
-                    if (isMembershipFlow && chain == Chain.MAIN && _signers.any { isTestNetPath(it.derivationPath) }) {
-                        setEvent(ErrorMk4TestNet)
-                    } else {
-                        setEvent(ParseKeystoneAirgapSignerSuccess(_signers))
-                    }
+                    emitParsedSigners(result.getOrThrow())
                 } else {
                     setEvent(AddAirgapSignerErrorEvent("XPUBs file is invalid"))
                 }
@@ -521,11 +518,34 @@ internal class AddAirgapSignerViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Every parsed key set (file import, Passport/Keystone QR) goes through here so the
+     * assisted-wallet filtering and the testnet guard apply no matter how the keys arrived.
+     */
+    private fun emitParsedSigners(signers: List<SingleSigner>) {
+        validateAndUpdateSigners(signers)
+        if (isMembershipFlow && chain == Chain.MAIN && _signers.any { isTestNetPath(it.derivationPath) }) {
+            setEvent(ErrorMk4TestNet)
+        } else {
+            setEvent(ParseKeystoneAirgapSignerSuccess(_signers))
+        }
+    }
+
+    /**
+     * An assisted wallet always uses the recommended BIP48 native-segwit path, so when the
+     * device offers one we keep only that key and the screen binds it without asking the
+     * user to pick. The other BIP48 paths remain as a fallback for devices that don't
+     * export the recommended one.
+     */
     fun validateAndUpdateSigners(originalSigners: List<SingleSigner>): List<SingleSigner> {
         _signers.apply {
             clear()
             if (isMembershipFlow) {
-                addAll(originalSigners.filter { it.derivationPath.isValidPathForAssistedWallet })
+                val multisigSigners =
+                    originalSigners.filter { it.derivationPath.isValidPathForAssistedWallet }
+                val recommendedSigners =
+                    multisigSigners.filter { it.derivationPath.isRecommendedMultiSigPath }
+                addAll(recommendedSigners.ifEmpty { multisigSigners })
             } else {
                 addAll(originalSigners)
             }
@@ -564,13 +584,18 @@ internal class AddAirgapSignerViewModel @Inject constructor(
         }
     }
 
-    fun setKeyVerified(groupId: String, masterSignerId: String) {
+    fun setKeyVerified(
+        groupId: String,
+        masterSignerId: String,
+        verificationMethod: ClaimOption? = null,
+    ) {
         viewModelScope.launch {
             setKeyVerifiedUseCase(
                 SetKeyVerifiedUseCase.Param(
                     groupId = groupId,
                     masterSignerId = masterSignerId,
-                    verifyType = VerifyType.APP_VERIFIED
+                    verifyType = VerifyType.APP_VERIFIED,
+                    verificationMethod = verificationMethod,
                 )
             ).onSuccess {
                 setEvent(KeyVerifiedSuccess)
@@ -580,7 +605,12 @@ internal class AddAirgapSignerViewModel @Inject constructor(
         }
     }
 
-    fun setReplaceKeyVerified(keyId: String, groupId: String, walletId: String) {
+    fun setReplaceKeyVerified(
+        keyId: String,
+        groupId: String,
+        walletId: String,
+        verificationMethod: ClaimOption? = null,
+    ) {
         viewModelScope.launch {
             setReplaceKeyVerifiedUseCase(
                 SetReplaceKeyVerifiedUseCase.Param(
@@ -588,7 +618,8 @@ internal class AddAirgapSignerViewModel @Inject constructor(
                     checkSum = "",
                     verifyType = VerifyType.SELF_VERIFIED,
                     groupId = groupId,
-                    walletId = walletId
+                    walletId = walletId,
+                    verificationMethod = verificationMethod,
                 )
             ).onSuccess {
                 setEvent(KeyVerifiedSuccess)

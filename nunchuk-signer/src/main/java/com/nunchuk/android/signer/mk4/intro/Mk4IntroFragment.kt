@@ -61,7 +61,6 @@ import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.signer.toModel
-import com.nunchuk.android.core.util.BackUpSeedPhraseType
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.isRecommendedMultiSigPath
 import com.nunchuk.android.core.util.isRecommendedSingleSigPath
@@ -101,6 +100,8 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
     ): View {
         val replacedXfp = (activity as Mk4Activity).replacedXfp.orEmpty()
+        // A claim adds its key through this flow but is not the setup wizard: no time remaining.
+        val isClaiming = (activity as Mk4Activity).onChainAddSignerParam?.isClaiming == true
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
@@ -108,6 +109,7 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
                 Mk4IntroScreen(
                     viewModel = viewModel,
                     isMembershipFlow = args.isMembershipFlow,
+                    isClaiming = isClaiming,
                     isReplaceKey = replacedXfp.isNotEmpty(),
                     onMoreClicked = ::handleShowMore
                 )
@@ -167,12 +169,14 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
                                         viewModel.setReplaceKeyVerified(
                                             keyId = it.signer.masterFingerprint,
                                             groupId = (activity as Mk4Activity).groupId,
-                                            walletId = (activity as Mk4Activity).walletId.orEmpty()
+                                            walletId = (activity as Mk4Activity).walletId.orEmpty(),
+                                            verificationMethod = onChainAddSignerParam.claimOption,
                                         )
                                     } else {
                                         viewModel.setKeyVerified(
                                             groupId = (activity as Mk4Activity).groupId,
-                                            masterSignerId = it.signer.masterFingerprint
+                                            masterSignerId = it.signer.masterFingerprint,
+                                            verificationMethod = onChainAddSignerParam.claimOption,
                                         )
                                     }
                                 } else {
@@ -276,13 +280,14 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
 
                 Mk4IntroViewEvent.KeyVerifiedSuccess -> {
                     requireActivity().setResult(Activity.RESULT_OK)
+                    val param = (activity as Mk4Activity).onChainAddSignerParam
                     navigator.openBackUpSeedPhraseActivity(
                         requireActivity(),
-                        BackUpSeedPhraseArgs(
-                            type = BackUpSeedPhraseType.SUCCESS,
-                            signer = null,
+                        BackUpSeedPhraseArgs.verified(
+                            signer = param?.currentSigner,
                             groupId = (activity as Mk4Activity).groupId,
-                            walletId = (activity as Mk4Activity).walletId.orEmpty()
+                            walletId = (activity as Mk4Activity).walletId.orEmpty(),
+                            claimOption = param?.claimOption,
                         )
                     )
                 }
@@ -406,12 +411,13 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
 private fun Mk4IntroScreen(
     viewModel: Mk4IntroViewModel = viewModel(),
     isMembershipFlow: Boolean,
+    isClaiming: Boolean = false,
     isReplaceKey: Boolean,
     onMoreClicked: () -> Unit = {},
 ) {
     val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
     Mk4IntroContent(
-        remainTime = remainTime,
+        remainTime = if (isClaiming) 0 else remainTime,
         isMembershipFlow = isMembershipFlow,
         onMoreClicked = onMoreClicked,
         isReplaceKey = isReplaceKey,

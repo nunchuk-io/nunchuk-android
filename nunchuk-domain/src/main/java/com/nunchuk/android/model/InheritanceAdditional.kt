@@ -32,6 +32,12 @@ data class InheritanceAdditional(
     val currentStageIndex: Int,
     val currentInstallmentIndex: Int,
     val stages: List<InheritancePlanStage> = emptyList(),
+    /**
+     * Descriptor of the wallet being claimed, for a device that registers the wallet policy before
+     * signing (Ledger, BitBox). Null unless a key needs it. Parsed in memory only — the ticket is
+     * emphatic that no wallet is created from it.
+     */
+    val registrationBsms: String? = null,
 ) : Parcelable {
     val isCustomizeDistribution
         get() = inheritance?.isCustomizeDistribution == true && stages.isNotEmpty()

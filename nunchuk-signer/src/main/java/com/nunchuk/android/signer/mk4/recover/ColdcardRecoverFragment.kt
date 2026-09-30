@@ -65,7 +65,6 @@ import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.core.signer.toModel
-import com.nunchuk.android.core.util.BackUpSeedPhraseType
 import com.nunchuk.android.core.util.COLDCARD_GUIDE_URL
 import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.core.util.isRecommendedMultiSigPath
@@ -174,12 +173,14 @@ class ColdcardRecoverFragment : MembershipFragment(), BottomSheetOptionListener 
                                                 viewModel.setReplaceKeyVerified(
                                                     keyId = event.signer.masterFingerprint,
                                                     groupId = (activity as Mk4Activity).groupId,
-                                                    walletId = (activity as Mk4Activity).walletId.orEmpty()
+                                                    walletId = (activity as Mk4Activity).walletId.orEmpty(),
+                                                    verificationMethod = onChainAddSignerParam.claimOption,
                                                 )
                                             } else {
                                                 viewModel.setKeyVerified(
                                                     groupId = (activity as Mk4Activity).groupId,
-                                                    masterSignerId = event.signer.masterFingerprint
+                                                    masterSignerId = event.signer.masterFingerprint,
+                                                    verificationMethod = onChainAddSignerParam.claimOption,
                                                 )
                                             }
                                         } else {
@@ -276,13 +277,14 @@ class ColdcardRecoverFragment : MembershipFragment(), BottomSheetOptionListener 
 
                         ColdcardRecoverEvent.KeyVerifiedSuccess -> {
                             requireActivity().setResult(RESULT_OK)
+                            val param = (activity as Mk4Activity).onChainAddSignerParam
                             navigator.openBackUpSeedPhraseActivity(
                                 requireActivity(),
-                                BackUpSeedPhraseArgs(
-                                    type = BackUpSeedPhraseType.SUCCESS,
-                                    signer = null,
+                                BackUpSeedPhraseArgs.verified(
+                                    signer = param?.currentSigner,
                                     groupId = (activity as Mk4Activity).groupId,
-                                    walletId = (activity as Mk4Activity).walletId.orEmpty()
+                                    walletId = (activity as Mk4Activity).walletId.orEmpty(),
+                                    claimOption = param?.claimOption,
                                 )
                             )
                         }
@@ -349,9 +351,10 @@ private fun ColdcardRecoverScreen(
     onChainAddSignerParam: OnChainAddSignerParam? = null,
     onMoreClicked: () -> Unit = {}
 ) {
+    // A claim adds its key through this flow but is not the setup wizard: no time remaining.
     val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
     ColdcardRecoverContent(
-        remainTime = remainTime,
+        remainTime = if (onChainAddSignerParam?.isClaiming == true) 0 else remainTime,
         onContinueClicked = viewModel::onContinueClicked,
         onOpenGuideClicked = viewModel::onOpenGuideClicked,
         isMembershipFlow = isMembershipFlow,

@@ -42,6 +42,12 @@ sealed class TrezorDeeplinkEvent {
     data object NavigateToSetKeyName : TrezorDeeplinkEvent()
     data class OpenSignerInfo(val signer: SingleSigner) : TrezorDeeplinkEvent()
     data class ShowError(val message: String) : TrezorDeeplinkEvent()
+
+    /**
+     * The fingerprint Trezor Suite reported for a seed-phrase-backup verification. No key is
+     * created; the caller compares it against the key being verified.
+     */
+    data class KeyReadForVerification(val masterFingerprint: String) : TrezorDeeplinkEvent()
 }
 
 @HiltViewModel
@@ -54,6 +60,12 @@ class TrezorDeeplinkViewModel @Inject constructor(
 ) : ViewModel() {
     private var isMembershipFlow: Boolean = false
 
+    /**
+     * Set while re-reading the device for a seed-phrase-backup verification. That key is already in
+     * the app, so the response is only reported back for comparison — never turned into a signer.
+     */
+    private var isVerifyXfpOnly: Boolean = false
+
     private val _state = MutableStateFlow(TrezorDeeplinkState())
     val state = _state.asStateFlow()
 
@@ -62,6 +74,10 @@ class TrezorDeeplinkViewModel @Inject constructor(
 
     fun setMembershipFlow(value: Boolean) {
         isMembershipFlow = value
+    }
+
+    fun setVerifyXfpOnly(value: Boolean) {
+        isVerifyXfpOnly = value
     }
 
     fun openTrezorSuiteDeeplink(
@@ -174,6 +190,14 @@ class TrezorDeeplinkViewModel @Inject constructor(
             val signer = parseTrezorPublicKeyResponseUseCase(response).getOrElse { e ->
                 _state.update { it.copy(isLoading = false) }
                 _event.emit(TrezorDeeplinkEvent.ShowError(e.message.orUnknownError()))
+                return@launch
+            }
+
+            // Verifying a backup only has to answer "which device is this?": the key is already in
+            // the app, so adding it again would hit the existing-key dialog instead of verifying.
+            if (isVerifyXfpOnly) {
+                _state.update { it.copy(isLoading = false) }
+                _event.emit(TrezorDeeplinkEvent.KeyReadForVerification(signer.masterFingerprint))
                 return@launch
             }
 

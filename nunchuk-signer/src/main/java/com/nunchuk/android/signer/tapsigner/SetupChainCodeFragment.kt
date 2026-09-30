@@ -88,7 +88,9 @@ class SetupChainCodeFragment : BaseFragment<FragmentSetupChainCodeBinding>() {
     private fun initViews() {
         binding.etChainCode.setMaxLength(CHAIN_CODE_LENGTH)
         binding.etChainCode.heightExtended(resources.getDimensionPixelSize(R.dimen.nc_height_120))
-        if ((activity as NfcSetupActivity).fromMembershipFlow) {
+        // A claim sets its card up through this flow but is not the setup wizard: no time remaining.
+        val isClaiming = (activity as NfcSetupActivity).onChainAddSignerParam?.isClaiming == true
+        if ((activity as NfcSetupActivity).fromMembershipFlow && !isClaiming) {
             binding.tvTitle.text = if (membershipStepManager.remainingTime.value <= 0) "" else
                 getString(
                     R.string.nc_estimate_remain_time,

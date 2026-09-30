@@ -28,6 +28,7 @@ import android.hardware.usb.UsbManager
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
 import androidx.core.content.ContextCompat
 import com.nunchuk.android.model.LedgerStep
 import com.nunchuk.android.model.Wallet
@@ -109,6 +110,17 @@ class LedgerBleController(
     private var scanning = false
     private val foundDevices = linkedMapOf<String, LedgerDevice>()
 
+    /** When each BLE address last advertised in the current scan (elapsedRealtime). */
+    private val bleLastSeenAt = mutableMapOf<String, Long>()
+
+    private val pruneStaleBle = object : Runnable {
+        override fun run() {
+            if (!scanning) return
+            pruneStaleBleDevices()
+            mainHandler.postDelayed(this, BLE_PRUNE_INTERVAL_MS)
+        }
+    }
+
     private var connection: LedgerConnection? = null
     private var pendingReadyAction: (() -> Unit)? = null
 
@@ -156,9 +168,10 @@ class LedgerBleController(
     fun startScan() {
         registerUsbReceiver()
         foundDevices.clear()
+        bleLastSeenAt.clear()
         // USB Ledgers are already attached (no scan needed); list them up front.
         enumerateUsbDevices()
-        // Already-paired BLE Ledgers may not advertise; seed them too.
+        // BLE Ledgers are listed only as the scan finds them (see seedCurrentBleConnection).
         val adapter = bluetoothManager?.adapter
         if (adapter == null || !adapter.isEnabled) {
             // Keep USB devices visible; ask the host to prompt the user to enable BT.
@@ -166,7 +179,7 @@ class LedgerBleController(
             listener.onBluetoothDisabled()
             return
         }
-        seedBondedDevices(adapter)
+        seedCurrentBleConnection()
         val scanner = adapter.bluetoothLeScanner
         if (scanner == null) {
             if (foundDevices.isNotEmpty()) listener.onScanResults(foundDevices.values.toList())
@@ -179,6 +192,7 @@ class LedgerBleController(
                 if (!isLedgerBleScanResult(result)) return
                 val name = result.scanRecord?.deviceName
                     ?: runCatching { result.device.name }.getOrNull()
+                bleLastSeenAt[result.device.address] = SystemClock.elapsedRealtime()
                 foundDevices[result.device.address] = LedgerDevice(
                     id = result.device.address,
                     name = name?.takeIf { it.isNotBlank() } ?: result.device.address,
@@ -208,6 +222,7 @@ class LedgerBleController(
             listener.onError("BLE scan failed: ${it.message ?: it.javaClass.simpleName}")
             return
         }
+        mainHandler.postDelayed(pruneStaleBle, BLE_PRUNE_INTERVAL_MS)
         mainHandler.postDelayed({
             if (scanning) {
                 stopScan()
@@ -216,16 +231,36 @@ class LedgerBleController(
         }, BLE_SCAN_TIMEOUT_MS)
     }
 
-    private fun seedBondedDevices(adapter: BluetoothAdapter) {
-        val bonded = runCatching { adapter.bondedDevices }.getOrNull().orEmpty()
-        bonded.forEach { device ->
-            val name = runCatching { device.name }.getOrNull()
-            if (name != null && LEDGER_BLE_NAME_PATTERN.matcher(name).matches()) {
-                foundDevices[device.address] =
-                    LedgerDevice(device.address, name, LedgerTransportKind.BLE)
-            }
+    /**
+     * Keeps the Ledger this controller is connected to on a rescan — it stops advertising
+     * while connected. Bonded devices are deliberately not listed: a forgotten and re-paired
+     * Ledger comes back on a new address while the old entry lingers, showing it twice.
+     */
+    private fun seedCurrentBleConnection() {
+        val device = connection?.takeIf { it.transport == LedgerTransportKind.BLE }?.bleDevice
+            ?: return
+        val name = runCatching { device.name }.getOrNull()
+        foundDevices[device.address] = LedgerDevice(
+            id = device.address,
+            name = name?.takeIf { it.isNotBlank() } ?: device.address,
+            transport = LedgerTransportKind.BLE,
+        )
+        listener.onScanResults(foundDevices.values.toList())
+    }
+
+    /**
+     * Drops BLE Ledgers that stopped advertising (turned off, out of range) while the scan
+     * runs, so the list shows only what is reachable now. The connected Ledger is kept: it
+     * doesn't advertise while connected.
+     */
+    private fun pruneStaleBleDevices() {
+        val now = SystemClock.elapsedRealtime()
+        val connectedId = connection?.takeIf { it.transport == LedgerTransportKind.BLE }?.bleDevice?.address
+        val removed = foundDevices.entries.removeAll { (id, device) ->
+            device.transport == LedgerTransportKind.BLE && id != connectedId &&
+                now - (bleLastSeenAt[id] ?: 0L) > BLE_DEVICE_STALE_MS
         }
-        if (foundDevices.isNotEmpty()) listener.onScanResults(foundDevices.values.toList())
+        if (removed) listener.onScanResults(foundDevices.values.toList())
     }
 
     /**
@@ -254,6 +289,7 @@ class LedgerBleController(
     fun stopScan() {
         if (!scanning) return
         scanning = false
+        mainHandler.removeCallbacks(pruneStaleBle)
         val adapter = bluetoothManager?.adapter
         scanCallback?.let { cb -> runCatching { adapter?.bluetoothLeScanner?.stopScan(cb) } }
         scanCallback = null
@@ -939,6 +975,8 @@ class LedgerBleController(
     companion object {
         private const val TAG = "LedgerBle"
         private const val BLE_SCAN_TIMEOUT_MS = 12_000L
+        private const val BLE_PRUNE_INTERVAL_MS = 1_000L
+        private const val BLE_DEVICE_STALE_MS = 5_000L
         private const val LEDGER_BLE_GATT_MTU = 156
         private const val BLE_WRITE_RETRY_ATTEMPTS = 8
         private const val BLE_WRITE_RETRY_DELAY_MS = 120L

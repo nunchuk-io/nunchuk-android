@@ -3,6 +3,7 @@ package com.nunchuk.android.core.signer
 import android.os.Parcelable
 import com.nunchuk.android.core.R
 import com.nunchuk.android.model.OnChainReplaceKeyStep
+import com.nunchuk.android.model.inheritance.ClaimOption
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
@@ -12,7 +13,14 @@ data class OnChainAddSignerParam(
     val currentSigner: SignerModel? = null,
     val magic: String = "",
     val replaceInfo: ReplaceInfo? = null,
-    val existingSigners: List<SignerModel> = emptyList()
+    val existingSigners: List<SignerModel> = emptyList(),
+    /**
+     * Which sharing method of an off-chain inheritance key a [FLAG_VERIFY_BACKUP_SEED_PHRASE] run
+     * is proving. The two artifacts of a "do both" key are verified independently server-side, so
+     * the screens that mark the key verified have to name the one they just checked. Null on the
+     * on-chain timelock flow, which keeps a single verification per key.
+     */
+    val claimOption: ClaimOption? = null,
 ) : Parcelable {
 
     val isClaiming: Boolean
@@ -48,10 +56,32 @@ data class OnChainAddSignerParam(
 }
 
 /**
+ * True only for a key of the on-chain timelock wallet, the one flow that adds each device twice
+ * (Acct X / Acct Y) around a timelocked spending path. That pair is what earns the "(n/2)" title
+ * and the "select account N for this spending path" copy on the add-key intro screens. An
+ * off-chain inheritance key is an ordinary single add and must not show either.
+ */
+fun OnChainAddSignerParam?.isOnChainTimelockKey(): Boolean =
+    this != null && !isVerifyBackupSeedPhrase() && !isClaiming && !isAddInheritanceOffChainSigner()
+
+/**
+ * True while verifying the seed-phrase backup of an on-chain timelock key — the only verification
+ * whose key sits on a timelocked spending path, so the only one that may ask for an account on it.
+ * [claimOption] is set by the off-chain inheritance flow alone, so a null one marks the on-chain
+ * run; the off-chain key is simply re-added like any other.
+ */
+fun OnChainAddSignerParam?.isVerifyOnChainTimelockBackup(): Boolean =
+    this != null && isVerifyBackupSeedPhrase() && claimOption == null
+
+/**
  * Returns the string resource id for the "select key type" subtitle on the signer intro screen.
  * Use with [androidx.compose.ui.res.stringResource] in Compose.
  */
 fun OnChainAddSignerParam?.getSelectKeyTypeSubtitleRes(): Int = when {
-    this?.isAddInheritanceOffChainSigner() == true -> R.string.nc_add_inheritance_key_to_nunchuk
+    // Only the Beneficiary is "adding the key to Nunchuk"; the owner setting the plan up is
+    // choosing which device the inheritance key will live on.
+    this?.isAddInheritanceOffChainSigner() == true && isClaiming ->
+        R.string.nc_add_inheritance_key_to_nunchuk
+
     else -> R.string.nc_select_your_key_type
 }

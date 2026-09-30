@@ -13,7 +13,12 @@ data class ClaimInheritanceTxParam(
     val bsms: String? = null,
     val isUseWallet: Boolean = true,
     val signatures: List<String> = emptyList(),
-    val messageId: String? = null
+    val messageId: String? = null,
+    /**
+     * Off-chain claim: descriptor a Ledger/BitBox registers before signing the claiming PSBT.
+     * Distinct from [bsms], whose presence is what marks a claim as on-chain.
+     */
+    val registrationBsms: String? = null,
 ) : Parcelable {
     companion object {
         fun empty() = ClaimInheritanceTxParam()

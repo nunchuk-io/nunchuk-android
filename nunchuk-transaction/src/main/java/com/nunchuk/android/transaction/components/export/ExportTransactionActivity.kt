@@ -39,6 +39,7 @@ import com.nunchuk.android.core.util.densityToLevel
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.share.model.SignFlowType
 import com.nunchuk.android.transaction.R
+import com.nunchuk.android.core.R as CoreR
 import com.nunchuk.android.transaction.components.export.ExportTransactionEvent.ExportTransactionError
 import com.nunchuk.android.transaction.components.export.ExportTransactionEvent.LoadingEvent
 import com.nunchuk.android.transaction.databinding.ActivityExportTransactionBinding
@@ -121,10 +122,24 @@ class ExportTransactionActivity : BaseActivity<ActivityExportTransactionBinding>
 
     private fun setupViews() {
         val densities = listOf(LOW_DENSITY, MEDIUM_DENSITY, HIGH_DENSITY, ULTRA_DENSITY)
-        binding.sliderGroup.isVisible = args.signFlowType != SignFlowType.ClaimDummy
-        if (args.signFlowType == SignFlowType.ClaimDummy) {
+        val isClaimMessage = args.signFlowType == SignFlowType.ClaimDummy
+                || args.signFlowType == SignFlowType.ClaimAirgapMessage
+        binding.sliderGroup.isVisible = !isClaimMessage
+        if (isClaimMessage) {
             binding.toolbarTitle.text = getString(R.string.nc_export_via_qr)
         }
+        // The air-gapped device shows its own QR back, so the screen says what to do with it.
+        val isAirgapMessage = args.signFlowType == SignFlowType.ClaimAirgapMessage
+        binding.tvDescription.isVisible = isAirgapMessage
+        binding.btnCancel.isVisible = isAirgapMessage
+        if (isAirgapMessage) {
+            binding.tvDescription.text = if (args.deviceName.isBlank()) {
+                getString(CoreR.string.nc_export_message_qr_desc_generic)
+            } else {
+                getString(CoreR.string.nc_export_message_qr_desc, args.deviceName)
+            }
+        }
+        binding.btnCancel.setOnDebounceClickListener { finish() }
         binding.slider.addOnChangeListener { _, value, fromUser ->
             if (fromUser) {
                 showQrJob?.cancel()
@@ -194,7 +209,8 @@ class ExportTransactionActivity : BaseActivity<ActivityExportTransactionBinding>
             initEventId: String = "",
             masterFingerPrint: String = "",
             signFlowType: SignFlowType = SignFlowType.Normal,
-            isBBQR: Boolean = false
+            isBBQR: Boolean = false,
+            deviceName: String = "",
         ): Intent {
             return ExportTransactionArgs(
                 walletId = walletId,
@@ -203,7 +219,8 @@ class ExportTransactionActivity : BaseActivity<ActivityExportTransactionBinding>
                 initEventId = initEventId,
                 masterFingerPrint = masterFingerPrint,
                 signFlowType = signFlowType,
-                isBBQR = isBBQR
+                isBBQR = isBBQR,
+                deviceName = deviceName,
             ).buildIntent(activityContext)
         }
     }

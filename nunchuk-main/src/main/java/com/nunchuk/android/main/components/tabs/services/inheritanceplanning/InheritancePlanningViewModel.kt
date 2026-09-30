@@ -12,12 +12,15 @@ import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.main.membership.model.toGroupWalletType
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.beneficiaryschedules.InheritanceBeneficiaryScheduleConfig
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.fallbacksettings.InheritanceFallbackSettingsValue
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.sharesecretinfo.toInheritanceKeyRoutes
 import com.nunchuk.android.model.Period
 import com.nunchuk.android.model.TimelockBased
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.WalletServer
 import com.nunchuk.android.model.byzantine.GroupWalletType
+import com.nunchuk.android.model.inheritance.ClaimOption
 import com.nunchuk.android.model.inheritance.InheritanceNotificationSettings
+import com.nunchuk.android.model.signer.SignerServer
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
@@ -102,19 +105,17 @@ class InheritancePlanningViewModel @Inject constructor(
     }
 
     private fun updateKeyTypes(wallet: WalletServer) {
-        val keyTypes = mutableListOf<InheritanceKeyType>()
-        wallet.signers.filter { it.tags.contains(SignerTag.INHERITANCE.name) }
+        val inheritanceKeys = wallet.signers.filter { it.tags.contains(SignerTag.INHERITANCE.name) }
             .distinctBy { it.xfp }
-            .forEach { key ->
-                if (key.type == SignerType.NFC) {
-                    keyTypes.add(InheritanceKeyType.TAPSIGNER)
-                } else {
-                    keyTypes.add(InheritanceKeyType.COLDCARD)
-                }
+            .map { key ->
+                InheritanceKeyInfo(
+                    type = key.toInheritanceKeyType(),
+                    claimOptions = key.claimOptions,
+                )
             }
         _state.update {
             it.copy(
-                keyTypes = keyTypes,
+                inheritanceKeys = inheritanceKeys,
                 walletType = wallet.walletType,
                 setupOrReviewParam = it.setupOrReviewParam.copy(
                     activationDate = if (wallet.walletType == WalletType.MINISCRIPT) wallet.timelock.timelockValue * 1000 else it.setupOrReviewParam.activationDate,
@@ -199,7 +200,8 @@ sealed class InheritancePlanningEvent {
 data class InheritancePlanningState(
     val groupId: String = "",
     val groupWalletType: GroupWalletType? = null,
-    val keyTypes: List<InheritanceKeyType> = emptyList(),
+    /** The plan's inheritance key(s) as the server reports them, in wallet order. */
+    val inheritanceKeys: List<InheritanceKeyInfo> = emptyList(),
     val walletType: WalletType = WalletType.MULTI_SIG,
     val userEmail: String = "",
     val setupOrReviewParam: InheritancePlanningParam.SetupOrReview,
@@ -208,6 +210,80 @@ data class InheritancePlanningState(
 ) {
     val isMiniscriptWallet: Boolean
         get() = walletType == WalletType.MINISCRIPT
+
+    /**
+     * How the plan's inheritance key(s) reach the Beneficiary, as recorded on the server. Empty on a
+     * legacy plan, which predates the choice — see `toInheritanceKeyRoutes()`.
+     *
+     * A plan may hold more than one inheritance key. Every route any of them uses has to be shared,
+     * so this is the **union** across keys — never the intersection. Screens that speak about one
+     * key at a time read [inheritanceKeys] instead.
+     */
+    val inheritanceClaimOptions: List<ClaimOption>
+        get() = inheritanceKeys.flatMap { it.claimOptions }.distinct()
+
+    /**
+     * How many inheritance keys the plan has. Never zero — the wallet may not have arrived yet, and
+     * every screen that counts keys would otherwise read that as a plural.
+     */
+    val inheritanceKeyCount: Int
+        get() = inheritanceKeys.size.coerceAtLeast(1)
+
+    /**
+     * The keys that have an encrypted backup, as 1-based positions in the plan — one Backup Password
+     * screen each, and the position is what the "Inheritance Key x/y" label counts.
+     *
+     * No keys at all means the wallet has not arrived yet (or this is a legacy plan); both read as a
+     * single key with an encrypted backup, the same way an empty `claim_options` does, so the step
+     * is never skipped on a stale read.
+     */
+    val backupPasswordKeyIndexes: List<Int>
+        get() = if (inheritanceKeys.isEmpty()) listOf(1)
+        else inheritanceKeys.mapIndexedNotNull { index, key -> (index + 1).takeIf { key.hasEncryptedBackup } }
+
+    /** The keys the Beneficiary receives as a seed phrase, as 1-based positions in the plan. */
+    val seedPhraseKeyIndexes: List<Int>
+        get() = inheritanceKeys.mapIndexedNotNull { index, key -> (index + 1).takeIf { key.sharesSeedPhrase } }
+
+    /**
+     * At least one inheritance key reaches the Beneficiary as a seed phrase, so the plan's copy has
+     * to talk about the key rather than about a Backup Password.
+     */
+    val sharesInheritanceSeedPhrase: Boolean
+        get() = seedPhraseKeyIndexes.isNotEmpty()
+
+    /** What kind of device the key at [keyIndex] (1-based) is. */
+    fun inheritanceKeyTypeAt(keyIndex: Int): InheritanceKeyType =
+        inheritanceKeys.getOrNull(keyIndex - 1)?.type ?: InheritanceKeyType.TAPSIGNER
+}
+
+/** One of the plan's inheritance keys: what device it is, and how it reaches the Beneficiary. */
+data class InheritanceKeyInfo(
+    val type: InheritanceKeyType,
+    val claimOptions: List<ClaimOption> = emptyList(),
+) {
+    /** The routes this key offers — a legacy plan's empty list reads as an encrypted backup. */
+    val routes: List<ClaimOption>
+        get() = claimOptions.toInheritanceKeyRoutes()
+
+    /** There is a Backup Password for the owner to note down, so that step applies to this key. */
+    val hasEncryptedBackup: Boolean
+        get() = ClaimOption.ENCRYPTED_BACKUP in routes
+
+    /** The Beneficiary receives this key's seed phrase, so the key screen has to say so. */
+    val sharesSeedPhrase: Boolean
+        get() = ClaimOption.SEED_PHRASE in routes
+}
+
+/**
+ * Which "Backup Password" copy a key gets. Under BYOH an inheritance key can be any supported
+ * device, so anything that is neither a TAPSIGNER nor a COLDCARD takes the generic wording rather
+ * than being mislabelled as a COLDCARD.
+ */
+private fun SignerServer.toInheritanceKeyType(): InheritanceKeyType = when {
+    type == SignerType.NFC -> InheritanceKeyType.TAPSIGNER
+    type == SignerType.COLDCARD_NFC || tags.contains(SignerTag.COLDCARD.name) -> InheritanceKeyType.COLDCARD
+    else -> InheritanceKeyType.OTHER
 }
 
 private fun InheritancePlanningParam.SetupOrReview.snapshot(): InheritancePlanningParam.SetupOrReview {
@@ -224,7 +300,7 @@ private fun InheritancePlanningParam.SetupOrReview.snapshot(): InheritancePlanni
 
 @Keep
 enum class InheritanceKeyType {
-    TAPSIGNER, COLDCARD
+    TAPSIGNER, COLDCARD, OTHER
 }
 
 @Keep

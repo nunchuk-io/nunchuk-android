@@ -220,6 +220,40 @@ private fun MyContent(
 private fun MyContentPreview() { MyContent() }
 ```
 
+**RULE — CTAs go in `Scaffold(bottomBar = ...)`, never in the scrolling content**: every screen's
+primary/secondary buttons MUST be declared in the Scaffold's `bottomBar`, and the Scaffold MUST
+carry `Modifier.navigationBarsPadding()` (or pass `innerPadding` into the content). Never push a
+button down with `Spacer(Modifier.weight(1f))` inside a `verticalScroll` column — the weight
+resolves to zero there, so the button sits under the navigation bar and long content pushes the
+title off-screen. Content keeps `.padding(innerPadding)` so it stops above the bar.
+
+```kotlin
+// RIGHT
+Scaffold(
+    modifier = Modifier.navigationBarsPadding(),
+    topBar = { NcTopAppBar(title = "...") },
+    bottomBar = {
+        NcPrimaryDarkButton(modifier = Modifier.fillMaxWidth().padding(16.dp), onClick = onContinue) {
+            Text(text = stringResource(R.string.nc_text_continue))
+        }
+    },
+) { innerPadding ->
+    Column(Modifier.padding(innerPadding).fillMaxSize().verticalScroll(rememberScrollState())) { /* ... */ }
+}
+
+// WRONG — weight() is zero inside a scrolling column, so the button lands under the nav bar
+Scaffold { innerPadding ->
+    Column(Modifier.padding(innerPadding).verticalScroll(rememberScrollState())) {
+        /* ... */
+        Spacer(Modifier.weight(1f))
+        NcPrimaryDarkButton(onClick = onContinue) { Text("Continue") }
+    }
+}
+```
+
+A bottom sheet has no Scaffold: put `Modifier.navigationBarsPadding()` on its content column
+instead, so its buttons clear the navigation bar too.
+
 ### Compose Navigation
 
 **RULE — type-safe routes only**: every Compose destination MUST be a `@Serializable`

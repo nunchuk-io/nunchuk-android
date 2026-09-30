@@ -16,6 +16,9 @@ import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.isRecommendedMultiSigPath
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.main.membership.key.TapSignerKeyResolver
+import com.nunchuk.android.main.membership.model.InheritanceClaimState
+import com.nunchuk.android.main.membership.model.toInheritanceClaimState
 import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.ByzantineMember
@@ -23,6 +26,7 @@ import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.StateEvent
 import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
+import com.nunchuk.android.model.inheritance.ClaimOption
 import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.model.signer.SignerServer
 import com.nunchuk.android.type.AddressType
@@ -34,6 +38,7 @@ import com.nunchuk.android.usecase.UpdateWalletUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
 import com.nunchuk.android.usecase.byzantine.SyncGroupWalletUseCase
 import com.nunchuk.android.usecase.byzantine.SyncGroupWalletsUseCase
+import com.nunchuk.android.usecase.membership.SetReplaceKeyVerifiedUseCase
 import com.nunchuk.android.usecase.replace.FinalizeReplaceKeyUseCase
 import com.nunchuk.android.usecase.replace.GetReplaceWalletStatusUseCase
 import com.nunchuk.android.usecase.replace.InitReplaceKeyUseCase
@@ -82,6 +87,8 @@ class ReplaceKeysViewModel @Inject constructor(
     private val updateWalletUseCase: UpdateWalletUseCase,
     private val ncDataStore: NcDataStore,
     private val removeKeyReplacementUseCase: RemoveKeyReplacementUseCase,
+    private val setReplaceKeyVerifiedUseCase: SetReplaceKeyVerifiedUseCase,
+    private val tapSignerKeyResolver: TapSignerKeyResolver,
 ) : ViewModel() {
     private val args = ReplaceKeysFragmentArgs.fromSavedStateHandle(savedStateHandle)
     val isActiveAssistedWallet: Boolean by lazy {
@@ -94,6 +101,19 @@ class ReplaceKeysViewModel @Inject constructor(
     private val replacedSigners = mutableListOf<SignerServer>()
 
     private var loadWalletStatusJob: Job? = null
+
+    /**
+     * The slot whose replacement inheritance key is waiting for its sharing method to be picked.
+     * Null once the prompt has been raised, or when nothing is pending.
+     */
+    private var promptClaimOptionsForSlot: String? = null
+
+    /**
+     * Whatever occupied that slot when the picker opened. Air-gap and Coldcard perform the replace
+     * inside their own screens and never hand a key back, so the prompt cannot wait for a result —
+     * it waits for the replacement status to show a key that was not there before.
+     */
+    private var promptClaimOptionsPreviousXfp: String? = null
 
     init {
         viewModelScope.launch {
@@ -213,10 +233,17 @@ class ReplaceKeysViewModel @Inject constructor(
                         }.map { entry ->
                             entry.value.xfp.orEmpty() to entry.value.userBackUpFileName.orEmpty()
                         }.toMap(),
+                        // Keyed by the slot being replaced, which is how every row here is keyed.
+                        // The claim options and per-method verifications live on the replacement
+                        // key the server holds, not on the key currently in the wallet.
+                        inheritanceClaimStates = status.signers.mapValues { entry ->
+                            entry.value.toInheritanceClaimState()
+                        },
                         verifiedSigners = verifiedSigners,
                         pendingReplaceXfps = status.pendingReplaceXfps,
                     )
                 }
+                raisePendingClaimOptionsPrompt()
             }.onFailure {
                 if (it !is CancellationException) {
                     _uiState.update { state -> state.copy(message = it.message.orUnknownError()) }
@@ -463,15 +490,18 @@ class ReplaceKeysViewModel @Inject constructor(
     fun getPortalSigners() =
         _uiState.value.signers.filter { it.type == SignerType.PORTAL_NFC && isSignerExist(it.fingerPrint).not() }
 
-    fun isInheritanceXfp(xfp: String) = _uiState.value.inheritanceXfps.contains(xfp)
-
     fun getReplaceSignerXfp(xfp: String): String {
         val replaceSigners = _uiState.value.replaceSigners
         return replaceSigners.entries.find { it.value.fingerPrint == xfp }?.key.orEmpty()
     }
 
     fun isEnableContinueButton(): Boolean {
-        return _uiState.value.replaceSigners.isNotEmpty()
+        val state = _uiState.value
+        if (state.replaceSigners.isEmpty()) return false
+        // A replacement inheritance key with no sharing method recorded, or one whose artifacts
+        // nobody has dealt with, cannot go into the wallet: the Beneficiary would have no way to
+        // reach it. Skipping a verification settles it, so this never traps the owner.
+        return state.inheritanceIncompleteSlots.isEmpty()
     }
 
     fun onRemoveKey(xfp: String) {
@@ -502,6 +532,116 @@ class ReplaceKeysViewModel @Inject constructor(
         }
     }
 
+    /**
+     * The keys the wallet already holds, so the inheritance picker does not offer one of them for
+     * the slot being replaced. It covers the pending replacements too — a key can only go into the
+     * wallet once.
+     */
+    fun existingWalletSigners(): List<SignerModel> =
+        _uiState.value.walletSigners + _uiState.value.replaceSigners.values
+
+    /**
+     * The off-chain inheritance key of [slotXfp] as the server records it: how the owner chose to
+     * pass it on, and how far each of those artifacts has got. Empty for every other slot, and
+     * while the replacement status has not landed.
+     */
+    fun inheritanceClaimState(slotXfp: String): InheritanceClaimState =
+        _uiState.value.inheritanceClaimStates[slotXfp] ?: InheritanceClaimState()
+
+    /**
+     * Called when the inheritance picker has put a key on the slot, so the sharing-method choice
+     * opens as soon as the replacement status confirms it.
+     *
+     * It is a flag rather than an immediate emission because the key is saved while the add-key
+     * screen is still on top: the status that carries it lands afterwards, and this screen is
+     * stopped in the meantime.
+     */
+    fun onInheritanceKeyAdded() {
+        val slot = savedStateHandle.get<String>(REPLACE_XFP).orEmpty()
+        if (slot.isEmpty()) return
+        promptClaimOptionsForSlot = slot
+        promptClaimOptionsPreviousXfp = _uiState.value.replaceSigners[slot]?.fingerPrint
+    }
+
+    fun onClaimOptionsPromptHandled() {
+        _uiState.update { it.copy(pendingClaimOptionsSigner = null) }
+    }
+
+    private fun raisePendingClaimOptionsPrompt() {
+        val slot = promptClaimOptionsForSlot ?: return
+        val signer = _uiState.value.replaceSigners[slot] ?: return
+        // Backing out of the picker leaves the slot as it was; only a key that actually landed
+        // owes a sharing method.
+        if (signer.fingerPrint == promptClaimOptionsPreviousXfp) return
+        promptClaimOptionsForSlot = null
+        promptClaimOptionsPreviousXfp = null
+        _uiState.update { it.copy(pendingClaimOptionsSigner = signer) }
+    }
+
+    /**
+     * A TAPSIGNER picked for the inheritance slot. It is a master signer, so the key for the
+     * wallet has to be derived from it, and reading that may need another tap on the card.
+     */
+    fun addExistingTapSignerKey(signerModel: SignerModel) {
+        viewModelScope.launch {
+            handleTapSignerOutcome(tapSignerKeyResolver.resolve(signerModel.fingerPrint))
+        }
+    }
+
+    /** The card was tapped for the xpub the resolver asked for. */
+    fun onTapSignerCardTapped(isoDep: android.nfc.tech.IsoDep?, cvc: String) {
+        isoDep ?: return
+        viewModelScope.launch {
+            handleTapSignerOutcome(tapSignerKeyResolver.resolveAfterCardTap(isoDep, cvc))
+        }
+    }
+
+    fun onTapSignerCardTapHandled() {
+        _uiState.update { it.copy(requestTapSignerCardTap = false) }
+    }
+
+    private suspend fun handleTapSignerOutcome(outcome: TapSignerKeyResolver.Outcome) {
+        when (outcome) {
+            is TapSignerKeyResolver.Outcome.Resolved -> onReplaceKey(outcome.signer)
+            TapSignerKeyResolver.Outcome.NeedsCardTap ->
+                _uiState.update { it.copy(requestTapSignerCardTap = true) }
+
+            is TapSignerKeyResolver.Outcome.Failed ->
+                _uiState.update { it.copy(message = outcome.message) }
+        }
+    }
+
+    /**
+     * Records that the seed-phrase backup of a replacement inheritance key was proven: the owner
+     * restored it onto a device and the device reported the fingerprint back.
+     *
+     * Only the keys that pair in-app (Ledger, BitBox) come back here — Coldcard and air-gap mark
+     * themselves verified inside their own add-key screens and never return a fingerprint.
+     */
+    fun onSeedPhraseBackupVerified(masterSignerId: String) {
+        viewModelScope.launch {
+            setReplaceKeyVerifiedUseCase(
+                SetReplaceKeyVerifiedUseCase.Param(
+                    keyId = masterSignerId,
+                    checkSum = "",
+                    verifyType = VerifyType.APP_VERIFIED,
+                    groupId = args.groupId,
+                    walletId = args.walletId,
+                    verificationMethod = ClaimOption.SEED_PHRASE,
+                )
+            ).onSuccess {
+                getReplaceWalletStatus()
+                _uiState.update { it.copy(seedPhraseVerifiedSigner = StateEvent.String(masterSignerId)) }
+            }.onFailure {
+                _uiState.update { state -> state.copy(message = it.message.orUnknownError()) }
+            }
+        }
+    }
+
+    fun onSeedPhraseVerifiedHandled() {
+        _uiState.update { it.copy(seedPhraseVerifiedSigner = StateEvent.None) }
+    }
+
     companion object {
         const val REPLACE_XFP = "REPLACE_XFP"
     }
@@ -524,5 +664,38 @@ data class ReplaceKeysUiState(
     val isActiveAssistedWallet: Boolean = false,
     val isMultiSig: Boolean = false,
     val coldCardBackUpFileName: Map<String, String> = emptyMap(),
+    /**
+     * Claim state of the replacement key on each slot, keyed by the slot being replaced. Only an
+     * off-chain inheritance slot carries anything; everything else stays empty.
+     */
+    val inheritanceClaimStates: Map<String, InheritanceClaimState> = emptyMap(),
+    /** Replacement inheritance key waiting for the owner to pick how it reaches the Beneficiary. */
+    val pendingClaimOptionsSigner: SignerModel? = null,
+    /** The TAPSIGNER picked for the inheritance slot needs another tap to read its xpub. */
+    val requestTapSignerCardTap: Boolean = false,
+    /** The seed-phrase backup of this key was just proven; the confirmation screen follows. */
+    val seedPhraseVerifiedSigner: StateEvent = StateEvent.None,
     val addressType: AddressType = AddressType.NATIVE_SEGWIT
-)
+) {
+    /**
+     * Whether [slotXfp] holds the wallet's inheritance key.
+     *
+     * [inheritanceXfps] is the server's answer but arrives from a network call of its own. The
+     * local wallet carries the same tag and is there immediately — it is what `replaceKey` itself
+     * reads to decide whether the replacement is an inheritance key — so neither the row nor the
+     * Continue gate hangs on that call, or silently opens up if it never lands.
+     */
+    fun isInheritanceSlot(slotXfp: String): Boolean = isActiveAssistedWallet &&
+            (inheritanceXfps.contains(slotXfp) || walletSigners.any {
+                it.fingerPrint == slotXfp && it.tags.contains(SignerTag.INHERITANCE)
+            })
+
+    /**
+     * Inheritance slots whose replacement key still owes a sharing method or a verification. Only
+     * an assisted wallet tracks any of this; a free wallet has no inheritance key.
+     */
+    val inheritanceIncompleteSlots: Set<String>
+        get() = replaceSigners.keys.filter { slot ->
+            isInheritanceSlot(slot) && inheritanceClaimStates[slot]?.isIncomplete == true
+        }.toSet()
+}

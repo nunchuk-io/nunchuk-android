@@ -97,6 +97,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.hours
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -690,6 +691,28 @@ internal class SignerInfoViewModel @Inject constructor(
 
     fun onPassphraseConsumed() {
         _state.update { it.copy(passphrase = null) }
+    }
+
+    /**
+     * Clears the pending "view seed phrase" request. The request lives in the view model, so
+     * without this a composition recreated later (coming back from Sign message, a rotation)
+     * would replay the last tap and open the seed phrase - or the passphrase prompt - on its own.
+     */
+    fun onSeedPhraseRequestHandled() {
+        _state.update { it.copy(seedPhraseRequest = 0) }
+    }
+
+    /**
+     * True once the waiting period started at [SignerInfoState.seedPhraseViewTimestamp] is over.
+     * The button's enabled state is only refreshed on a 30s tick, so the reveal itself re-checks
+     * the clock instead of trusting "a waiting period exists" as permission to show the seed.
+     */
+    fun isSeedPhraseWaitElapsed(): Boolean {
+        val state = getState()
+        val timestamp = state.seedPhraseViewTimestamp ?: return false
+        if (timestamp <= 0L) return false
+        val elapsed = SystemClock.elapsedRealtime() - timestamp
+        return elapsed >= state.activeDelayHours.hours.inWholeMilliseconds
     }
 
     companion object {

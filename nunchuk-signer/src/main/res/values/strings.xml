@@ -212,6 +212,21 @@
     <string name="nc_add_trezor">Add Trezor</string>
     <string name="nc_add_seedsigner">Add SeedSigner</string>
     <string name="nc_add_krux">Add Krux</string>
+    <string name="nc_krux_export_xpub_title">Export XPUB from Krux</string>
+    <string name="nc_krux_export_xpub_desc">Go to Wallet \u2192 Customize \u2192 Policy Type \u2192 Multisig Native Segwit - 48. Then go to Extended Public Key \u2192 XPUB.</string>
+    <!-- Jade only reaches the generic air-gap intro in the off-chain inheritance flow, where
+         the design names the device instead of talking about "the device" in the abstract -->
+    <string name="nc_jade_before_start_note">Please ensure to do the following on your Jade before proceeding.</string>
+    <string name="nc_jade_before_start_initialize">Initialize Jade</string>
+    <string name="nc_jade_before_start_initialize_content">If your Jade is new, follow</string>
+    <!-- Linked to Blockstream’s setup guide; follows nc_jade_before_start_initialize_content -->
+    <string name="nc_jade_setup_guide_link">Blockstream’s Set up Jade guide.</string>
+    <string name="nc_jade_before_start_device_unlock">Unlock Jade</string>
+    <string name="nc_jade_before_start_device_unlock_content">You might need to enter a PIN and/or a PASSPHRASE directly on Jade.</string>
+    <string name="nc_jade_export_xpub_title">Export XPUB from Jade</string>
+    <string name="nc_jade_export_xpub_desc">Go to Options \u2192 Wallet \u2192 Export Xpub \u2192 Options \u2192 Wallet \u2192 Multisig \u2192 Enter \u2192 Account Index. Enter Account # (0 if first time)</string>
+    <!-- Claim variant of nc_jade_export_xpub_desc: the plan fixes the account, so it is named -->
+    <string name="nc_jade_export_xpub_desc_account">Go to Options \u2192 Wallet \u2192 Export Xpub \u2192 Options \u2192 Wallet \u2192 Multisig \u2192 Enter \u2192 Account Index. Enter Account %1$d</string>
     <string name="nc_add_foundation_passport">Add Foundation Passport</string>
     <string name="nc_add_keystone">Add Keystone</string>
     <string name="nc_desktop_only">Desktop only</string>
@@ -237,7 +252,7 @@
     <string name="nc_add_your_ledger">Add your Ledger</string>
     <string name="nc_ensure_to_following_ledger">Please ensure to do the following on your Ledger before proceeding.</string>
     <string name="nc_ledger_step_setup_title">Set up your Ledger</string>
-    <string name="nc_ledger_step_setup_desc">If your Ledger is new, set it up using the Ledger Wallet app. Install the Bitcoin app on your Ledger if it isn\'t already installed.</string>
+    <string name="nc_ledger_step_setup_desc">If it is new, finish setup using the Ledger Wallet app. Install the Bitcoin app on your Ledger if it isn\'t already installed. Then fully quit the Ledger Wallet app.</string>
     <string name="nc_ledger_step_connect_title">Connect your Ledger</string>
     <string name="nc_ledger_step_connect_desc">Unlock your Ledger, then turn on Bluetooth or connect it with a USB cable.</string>
     <string name="nc_ledger_step_return_title">Return to Nunchuk and continue</string>
@@ -253,7 +268,9 @@
     <string name="nc_add_your_bitbox">Add your BitBox</string>
     <string name="nc_bitbox_before_continuing">Before continuing:</string>
     <string name="nc_bitbox_step_setup_title">Set up your BitBox</string>
-    <string name="nc_bitbox_step_setup_desc">If it is new, finish setup using BitBoxApp.</string>
+    <string name="nc_bitbox_step_setup_desc">If it is new, finish setup using</string>
+    <!-- Linked to the BitBoxApp download page; follows nc_bitbox_step_setup_desc -->
+    <string name="nc_bitbox_app_link">BitBoxApp.</string>
     <string name="nc_bitbox_step_connect_bluetooth_title">Connect and enable Bluetooth</string>
     <string name="nc_bitbox_step_connect_bluetooth_desc">Connect your BitBox to your phone or a power source, then enable Bluetooth.</string>
     <string name="nc_bitbox_step_connect_usb_title">Plug into your phone</string>
@@ -301,4 +318,15 @@
     <string name="nc_jade_qr_unlock_show_desc">Scan this QR code with your Jade to continue unlocking.</string>
     <string name="nc_jade_qr_unlock_scan_next">Scan next QR from Jade</string>
     <string name="nc_jade_qr_unlock_wrong_qr">That QR code is not a Jade unlock request. On Jade, choose to unlock via QR.</string>
+    <!-- Off-chain inheritance key (BYOH) — encrypted backup, per device -->
+    <string name="nc_back_up_device">Back up %1$s</string>
+    <string name="nc_back_up_device_desc">In the upcoming steps, you\u2019ll use your %1$s to back up the key and encrypt the backup file. Once encrypted, the file can be uploaded to our server.\n\nThe encrypted backup will later be used to recover the inheritance key on the Beneficiary\u2019s device when they claim the inheritance.</string>
+    <string name="nc_backing_up_device">Backing up %1$s</string>
+    <string name="nc_backing_up_device_desc">An encrypted backup for the %1$s will be stored on the server.</string>
+    <string name="nc_encrypt_backup_follow_on_device">Please follow the instructions below on your %1$s:</string>
+    <string name="nc_recovered_key_on_device">You should now have recovered the original key on %1$s. Please verify that the master key fingerprint (XFP) below matches the one on your device.</string>
+    <string name="nc_keystone_backup_step_password">On Keystone, go to Settings \u2192 Encrypted Backup and set a Backup Password</string>
+    <string name="nc_keystone_backup_step_create">Create the encrypted backup of this key on the device</string>
+    <string name="nc_keystone_backup_step_export">Export the backup file via QR code or microSD card</string>
+    <string name="nc_keystone_backup_hint">Menu names may differ by firmware version. Exact steps to be finalized with Keystone.</string>
 </resources>

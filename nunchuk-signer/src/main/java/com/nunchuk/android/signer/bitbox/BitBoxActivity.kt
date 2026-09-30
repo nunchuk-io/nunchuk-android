@@ -31,12 +31,14 @@ import com.nunchuk.android.core.bitbox.isOperationError
 import com.nunchuk.android.core.bitbox.isSessionLost
 import com.nunchuk.android.core.bitbox.isUserCancellation
 import com.nunchuk.android.core.bitbox.statusText
+import com.nunchuk.android.core.signer.hardwareDeviceSignerModel
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.BitBoxErrorCode
 import com.nunchuk.android.type.BitBoxUserInteraction
+import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.ResultExistingKey
 import com.nunchuk.android.widget.NCToastMessage
@@ -82,6 +84,15 @@ class BitBoxActivity : BaseComposeActivity() {
         intent.getIntExtra(EXTRA_ACCOUNT_INDEX, 0)
     }
 
+    /**
+     * How many consecutive accounts to read while the device is connected. A miniscript slot that
+     * reuses one key across policies needs an xpub per policy, and BitBox returns them all over
+     * the same session, so the user pairs the device once. 1 for every other caller.
+     */
+    private val accountCount: Int by lazy {
+        intent.getIntExtra(EXTRA_ACCOUNT_COUNT, 1)
+    }
+
     /** Set when the key has to come off a specific device — the other account of an on-chain pair,
      *  or, when verifying a seed-phrase backup, the key that backup belongs to. */
     private val expectedXfp: String by lazy {
@@ -95,6 +106,17 @@ class BitBoxActivity : BaseComposeActivity() {
      */
     private val isVerifyXfpOnly: Boolean by lazy {
         intent.getBooleanExtra(EXTRA_VERIFY_XFP_ONLY, false)
+    }
+
+    /**
+     * Set when the add-key was started from a flow that is building a wallet (the free group
+     * wallet and the miniscript create-wallet screens). Those screens pick the key up over
+     * [com.nunchuk.android.core.push.PushEvent.LocalUserSignerAdded], and key info's back button
+     * returns to the wallet list — so showing it here drops the user out of the flow they were in.
+     * The air-gap add-key screen skips the screen for the same reason.
+     */
+    private val isFromWalletFlow: Boolean by lazy {
+        intent.getBooleanExtra(EXTRA_FROM_WALLET_FLOW, false)
     }
 
     private val controller: BitBoxController by lazy {
@@ -187,7 +209,11 @@ class BitBoxActivity : BaseComposeActivity() {
                     // the wallet is built from a key the user never meant to add. In verify mode
                     // the same check is what proves the restored seed is the inheritance key.
                     if (expectedXfp.isNotEmpty() && !fingerprint.equals(expectedXfp, ignoreCase = true)) {
-                        viewModel.onError(xfpMismatchMessage(fingerprint))
+                        if (isVerifyXfpOnly) {
+                            returnMismatchedDevice(fingerprint)
+                            return
+                        }
+                        viewModel.onError(getString(R.string.nc_added_key_xfp_mismatch))
                         return
                     }
                     if (isVerifyXfpOnly) {
@@ -292,6 +318,7 @@ class BitBoxActivity : BaseComposeActivity() {
         enableEdgeToEdge()
 
         viewModel.setMembershipFlow(isMembershipFlow)
+        viewModel.setAccountCount(accountCount)
         if (isMembershipFlow) {
             // Assisted/group membership wallets take multisig keys only, so the config is fixed here
             // instead of on the (skipped) select-wallet-type step.
@@ -362,7 +389,7 @@ class BitBoxActivity : BaseComposeActivity() {
                                             putExtra(GlobalResultKey.EXTRA_SIGNER, signer)
                                         }
                                     )
-                                } else {
+                                } else if (!isFromWalletFlow) {
                                     navigator.openSignerInfoScreen(
                                         activityContext = this@BitBoxActivity,
                                         isMasterSigner = signer.hasMasterSigner,
@@ -539,14 +566,22 @@ class BitBoxActivity : BaseComposeActivity() {
         if (isUsb) controller.refreshUsb() else ensurePermissionThenScan()
     }
 
-    private fun xfpMismatchMessage(actualXfp: String): String = if (isVerifyXfpOnly) {
-        getString(
-            R.string.nc_verify_key_xfp_not_match,
-            actualXfp.uppercase(Locale.getDefault()),
-            expectedXfp.uppercase(Locale.getDefault()),
+    /**
+     * Verify mode read a device other than the one the inheritance key came from. Hand it back as
+     * a stand-in key so the seed-phrase host can show "This key doesn't match" against the key
+     * being verified, the same way it does for a Coldcard or air-gapped key.
+     */
+    private fun returnMismatchedDevice(actualXfp: String) {
+        setResult(
+            RESULT_OK,
+            Intent().apply {
+                putExtra(
+                    GlobalResultKey.EXTRA_SIGNER,
+                    hardwareDeviceSignerModel(actualXfp, SignerTag.BITBOX),
+                )
+            }
         )
-    } else {
-        getString(R.string.nc_added_key_xfp_mismatch)
+        finish()
     }
 
     /**
@@ -616,8 +651,10 @@ class BitBoxActivity : BaseComposeActivity() {
 
         const val EXTRA_IS_MEMBERSHIP_FLOW = "extra_is_membership_flow"
         const val EXTRA_ACCOUNT_INDEX = "extra_account_index"
+        const val EXTRA_ACCOUNT_COUNT = "extra_account_count"
         const val EXTRA_EXPECTED_XFP = "extra_expected_xfp"
         const val EXTRA_VERIFY_XFP_ONLY = "extra_verify_xfp_only"
+        const val EXTRA_FROM_WALLET_FLOW = "extra_from_wallet_flow"
         const val EXTRA_RESULT_ACTION = "extra_result_action"
 
         /** Lowercased fingerprint of the connected device, returned by [verifyXfpOnly]. */
@@ -634,6 +671,13 @@ class BitBoxActivity : BaseComposeActivity() {
          * seed-phrase-backup verification: no key is created and [EXTRA_VERIFIED_XFP] comes back
          * on RESULT_OK. Pass [expectedXfp] with it — a device reporting anything else is turned
          * away here rather than by the caller.
+         *
+         * [isFromWalletFlow] keeps the standalone config step but ends the flow without opening
+         * key info, for callers that are in the middle of building a wallet.
+         *
+         * [accountCount] reads that many consecutive accounts in the one session, starting at the
+         * account the flow settled on, and creates a key for each. Used by the miniscript "Reuse
+         * keys across policies" slots, which need one xpub per policy off the same device.
          */
         fun buildIntent(
             activityContext: Context,
@@ -641,11 +685,15 @@ class BitBoxActivity : BaseComposeActivity() {
             accountIndex: Int = 0,
             expectedXfp: String = "",
             verifyXfpOnly: Boolean = false,
+            isFromWalletFlow: Boolean = false,
+            accountCount: Int = 1,
         ): Intent = Intent(activityContext, BitBoxActivity::class.java).apply {
             putExtra(EXTRA_IS_MEMBERSHIP_FLOW, isMembershipFlow)
             putExtra(EXTRA_ACCOUNT_INDEX, accountIndex)
+            putExtra(EXTRA_ACCOUNT_COUNT, accountCount)
             putExtra(EXTRA_EXPECTED_XFP, expectedXfp)
             putExtra(EXTRA_VERIFY_XFP_ONLY, verifyXfpOnly)
+            putExtra(EXTRA_FROM_WALLET_FLOW, isFromWalletFlow)
         }
     }
 }

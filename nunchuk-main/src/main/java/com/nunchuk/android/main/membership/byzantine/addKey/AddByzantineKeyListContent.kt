@@ -47,6 +47,8 @@ import com.nunchuk.android.model.byzantine.isFacilitatorAdmin
 
 @Composable
 fun AddByzantineKeyListContent(
+    onSetUpClaimOptionsClicked: (data: AddKeyData) -> Unit = {},
+    onInheritanceBackupClicked: (data: AddKeyData) -> Unit = {},
     onAddClicked: (data: AddKeyData) -> Unit = {},
     onVerifyClicked: (data: AddKeyData) -> Unit = {},
     onContinueClicked: () -> Unit = {},
@@ -84,7 +86,8 @@ fun AddByzantineKeyListContent(
                             .fillMaxWidth()
                             .padding(16.dp),
                         onClick = onContinueClicked,
-                        enabled = keys.all { it.isVerifyOrAddKey } && missingBackupKeys.isEmpty()
+                        enabled = keys.all { it.isVerifyOrAddKey && !it.isInheritanceIncomplete }
+                        && missingBackupKeys.isEmpty()
                     ) {
                         Text(text = stringResource(id = R.string.nc_text_continue))
                     }
@@ -134,6 +137,8 @@ fun AddByzantineKeyListContent(
                             isBlur = (key.signer?.isVisible == false || key.type == MembershipStep.ADD_SEVER_KEY) && role == AssistedWalletRole.KEYHOLDER_LIMITED,
                         ) { modifier ->
                             AddKeyCard(
+                                onSetUpClaimOptionsClicked = onSetUpClaimOptionsClicked,
+                                onInheritanceBackupClicked = onInheritanceBackupClicked,
                                 modifier = modifier,
                                 item = key,
                                 onAddClicked = onAddClicked,

@@ -134,7 +134,8 @@ fun TransactionDetailView(
     val outputs = when {
         transaction.isReceive -> transaction.receiveOutputs
         // Inheritance-claim transactions carry no per-output change flag, only a change position.
-        inheritanceClaimTxDetailInfo != null ->
+        // The off-chain claim screen (isHideChangeIndex) carries it in transaction.changeIndex.
+        inheritanceClaimTxDetailInfo != null || isHideChangeIndex ->
             transaction.outputs.filterIndexed { index, _ -> index != transaction.changeIndex }
 
         else -> transaction.outputs.filter { !it.isChange }

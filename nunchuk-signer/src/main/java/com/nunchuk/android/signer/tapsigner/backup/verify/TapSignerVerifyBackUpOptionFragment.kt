@@ -115,10 +115,18 @@ class TapSignerVerifyBackUpOptionFragment : MembershipFragment() {
                     message = getString(R.string.nc_skip_back_up_desc),
                     onYesClick = {
                         val nfcActivity = requireActivity() as? NfcSetupActivity
-                        if (nfcActivity?.isOnChainBackUp == true) {
+                        // An off-chain inheritance key has to record the skip too, otherwise the
+                        // half it covers stays unresolved and the key list keeps asking for it.
+                        if (nfcActivity != null &&
+                            (nfcActivity.isOnChainBackUp || nfcActivity.claimOption != null)
+                        ) {
                             viewModel.skipVerification(
                                 groupId = nfcActivity.groupId,
-                                masterSignerId = args.masterSignerId
+                                masterSignerId = args.masterSignerId,
+                                verificationMethod = nfcActivity.claimOption,
+                                replacedXfp = nfcActivity.replacedXfp,
+                                walletId = nfcActivity.walletId,
+                                keyId = nfcActivity.keyId,
                             )
                         } else {
                             requireActivity().finish()

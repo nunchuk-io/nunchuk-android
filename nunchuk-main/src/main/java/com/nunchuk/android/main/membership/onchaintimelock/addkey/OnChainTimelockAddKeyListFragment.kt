@@ -90,6 +90,8 @@ import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toSingleSigner
+import com.nunchuk.android.core.signer.SignerIntroFlow
+import com.nunchuk.android.core.signer.SignerIntroRequest
 import com.nunchuk.android.core.util.BackUpSeedPhraseType
 import com.nunchuk.android.core.util.InheritancePlanType
 import com.nunchuk.android.core.util.flowObserver
@@ -563,16 +565,16 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
             navigator.openSignerIntroScreen(
                 launcher = signerIntroLauncher,
                 activityContext = requireActivity(),
-                walletId = (activity as MembershipActivity).walletId,
-                groupId = groupId,
-                supportedSigners = null,
-                onChainAddSignerParam = OnChainAddSignerParam(
-                    flags = OnChainAddSignerParam.FLAG_ADD_SIGNER,
-                    keyIndex = allSigners.size,
-                    currentSigner = allSigners.firstOrNull(),
-                    existingSigners = getAllExistingSigners()
+                request = SignerIntroRequest(
+                    walletId = (activity as MembershipActivity).walletId,
+                    groupId = groupId,
+                    flow = SignerIntroFlow.OnChainTimelockKey(
+                        keyIndex = allSigners.size,
+                        currentSigner = allSigners.firstOrNull(),
+                        existingSigners = getAllExistingSigners()
+                    ),
+                    walletType = WalletType.MINISCRIPT,
                 ),
-                walletType = WalletType.MINISCRIPT
             )
             return
         }
@@ -590,16 +592,16 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                 navigator.openSignerIntroScreen(
                     launcher = signerIntroLauncher,
                     activityContext = requireActivity(),
-                    walletId = (activity as MembershipActivity).walletId,
-                    groupId = groupId,
-                    supportedSigners = null,
-                    onChainAddSignerParam = OnChainAddSignerParam(
-                        flags = OnChainAddSignerParam.FLAG_ADD_SIGNER,
-                        keyIndex = allSigners.size,
-                        currentSigner = allSigners.firstOrNull(),
-                        existingSigners = getAllExistingSigners()
+                    request = SignerIntroRequest(
+                        walletId = (activity as MembershipActivity).walletId,
+                        groupId = groupId,
+                        flow = SignerIntroFlow.OnChainTimelockKey(
+                            keyIndex = allSigners.size,
+                            currentSigner = allSigners.firstOrNull(),
+                            existingSigners = getAllExistingSigners()
+                        ),
+                        walletType = WalletType.MINISCRIPT,
                     ),
-                    walletType = WalletType.MINISCRIPT
                 )
             }
         } else {
@@ -728,7 +730,11 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                 type = BackUpSeedPhraseType.INTRO,
                 signer = event.signer,
                 groupId = (activity as MembershipActivity).groupId,
-                walletId = (activity as MembershipActivity).walletId
+                walletId = (activity as MembershipActivity).walletId,
+                // Scopes the key types offered when the restored key is re-added. The server
+                // advertises an inheritance entry per wallet type, so without this the same
+                // device is listed once for each of them.
+                walletType = WalletType.MINISCRIPT,
             ),
             // Keys that re-add themselves in-app (Ledger, BitBox) report the restored device back
             // here; Coldcard and air-gap finish verification on their own screens and return nothing.

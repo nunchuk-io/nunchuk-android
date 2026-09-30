@@ -52,6 +52,13 @@ object GlobalResultKey {
      * Intent through [com.nunchuk.android.main] relays and can't tell which key type produced it.
      */
     const val EXTRA_VERIFIED_XFP = "extra_verified_xfp"
+
+    /**
+     * Name of the [com.nunchuk.android.signer.KeyType] the owner picked, handed back when the
+     * picker itself cannot run that key's flow. Used by the off-chain inheritance key (BYOH)
+     * setup for TAPSIGNER and COLDCARD, whose backup flow is owned by the key-list screen.
+     */
+    const val EXTRA_KEY_TYPE = "extra_key_type"
 }
 
 object GlobalResult {

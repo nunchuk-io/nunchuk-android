@@ -1,9 +1,9 @@
-package com.nunchuk.android.main.membership.onchaintimelock.backupseedphrase
+package com.nunchuk.android.main.membership.backupseedphrase
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -65,28 +65,42 @@ private fun BackUpSeedPhraseVerifyContent(
     onMoreClicked: () -> Unit = {},
 ) {
     NunchukTheme {
-        Scaffold(topBar = {
-            NcImageAppBar(
-                backgroundRes = R.drawable.bg_seed_phrase_verify_illustration,
-                title = if (remainTime <= 0) "" else stringResource(
-                    id = R.string.nc_estimate_remain_time,
-                    remainTime
-                ),
-                actions = {
-                    IconButton(onClick = onMoreClicked) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_more),
-                            contentDescription = "More icon"
-                        )
+        Scaffold(
+            modifier = Modifier.navigationBarsPadding(),
+            topBar = {
+                NcImageAppBar(
+                    backgroundRes = R.drawable.bg_seed_phrase_verify_illustration,
+                    title = if (remainTime <= 0) "" else stringResource(
+                        id = R.string.nc_estimate_remain_time,
+                        remainTime
+                    ),
+                    actions = {
+                        IconButton(onClick = onMoreClicked) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_more),
+                                contentDescription = "More icon"
+                            )
+                        }
                     }
+                )
+            },
+            bottomBar = {
+                NcPrimaryDarkButton(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    onClick = onContinueClicked,
+                ) {
+                    Text(text = stringResource(id = com.nunchuk.android.signer.R.string.nc_text_continue))
                 }
-            )
-        }) { innerPadding ->
+            },
+        ) { innerPadding ->
             Column(
                 modifier = Modifier
                     .padding(innerPadding)
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
+                    .padding(bottom = 16.dp)
             ) {
                 Text(
                     modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
@@ -114,17 +128,6 @@ private fun BackUpSeedPhraseVerifyContent(
                     index = 4,
                     label = "Once the device is loaded with the seed phrase, [B]re-add the restored key[/B] to the Nunchuk app to verify that its public key matches the public key of your inheritance key",
                 )
-
-
-                Spacer(modifier = Modifier.weight(1.0f))
-                NcPrimaryDarkButton(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    onClick = onContinueClicked,
-                ) {
-                    Text(text = stringResource(id = com.nunchuk.android.signer.R.string.nc_text_continue))
-                }
             }
         }
     }

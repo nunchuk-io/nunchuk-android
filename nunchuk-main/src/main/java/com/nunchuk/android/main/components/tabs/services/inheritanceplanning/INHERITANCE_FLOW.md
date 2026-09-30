@@ -95,7 +95,9 @@ what the review screen later diffs against to decide "has anything changed".
 On init the VM also:
 - resolves `groupWalletType` (`GetGroupUseCase`) so `MembershipStepManager` can init its steps,
 - syncs the server wallet (`SyncGroupWalletUseCase` / `GetServerWalletUseCase`) to derive
-  `keyTypes` (TAPSIGNER vs COLDCARD, from signers tagged `INHERITANCE`), `walletType`, and — for
+  `inheritanceKeys` (device type + `claim_options` per key, from signers tagged `INHERITANCE`;
+  `backupPasswordKeyIndexes` / `seedPhraseKeyIndexes` are what the setup screens branch on),
+  `walletType`, and — for
   `WalletType.MINISCRIPT` — the timelock-derived activation date/timezone.
 - owns BSMS export (`handleShareBsms` / `saveBSMSToLocal`), surfaced by
   `BaseShareSaveFileActivity`.
@@ -270,8 +272,32 @@ Key details:
   off-chain claims only.
 - `verifymessage/VerifyInheritanceMessageViewModel` signs that challenge with TAPSIGNER
   (`SignMessageByTapSignerUseCase`), a software key (`SignMessageBySoftwareKeyUseCase`, with
-  passphrase), or COLDCARD (NFC `SendDataToMk4UseCase` / exported file →
-  `ExtractColdcardMessageSignatureUseCase`, with `exportComplete` as the file hand-off screen).
+  passphrase), COLDCARD (NFC `SendDataToMk4UseCase` / exported file →
+  `ExtractColdcardMessageSignatureUseCase`, with `exportComplete` as the file hand-off screen),
+  Jade, Keystone and SeedSigner (one `GenerateMessageSigningQrUseCase` QR out, the signature QR
+  back — `SignFlowType.ClaimAirgapMessage`; every device's routes come from
+  `SignerModel.signingDevice().profile()` in `core/signing`), Passport (the request as a `.txt` for its microSD card —
+  `GeneratePassportMessageSigningUseCase` — and the `-signed` file back through the picker, with the
+  per-device "Export completed" screen in between), Krux (file like Passport —
+  `GenerateKruxMessageSigningUseCase` — or QR like Jade, and the signature back either way; the
+  "Export completed" screen asks QR / file), Ledger (`LedgerSignMessageSheet` at the signer's path),
+  BitBox (`BitBoxSignMessageSheet` at the path `GetBitBoxSignMessagePathUseCase` resolves) and
+  Trezor (`GetTrezorSignMessageDeeplinkUseCase` → Trezor Suite → `TrezorCallbackHolder` →
+  `ParseTrezorSignMessageResponseUseCase`; the VM collects the holder itself and only takes
+  `signMessage` replies). Every route ends in one bare `signature` string on the state. Files
+  from any device are parsed by `ExtractMessageSignatureUseCase` (libnunchuk's generic
+  `ExtractMessageSignature`: armored signed-message file or bare base64).
+- **The claiming PSBT** (`ClaimTransactionViewModel`) is signed by software / TAPSIGNER / COLDCARD
+  (NFC or file) / Jade, Keystone, SeedSigner (UR QR) as before, and by Ledger, BitBox and Trezor
+  against the wallet the claim status returned: `InheritanceAdditional.registrationBsms` →
+  `ClaimInheritanceTxParam` → `ClaimTransactionArgs.registrationBsms` →
+  `ParseWalletDescriptorUseCase`, kept in memory only (the ticket forbids creating a wallet from
+  it). A PSBT scanned back over QR is decoded again against the claim's signers
+  (`importSignedTransaction`), as a file is — SeedSigner and Krux strip the metadata the
+  wallet-less QR decode needs. Ledger/BitBox register that policy inside their
+  `*SignPsbtSheet(wallet, …)`; Trezor builds its deeplink from it. Without the descriptor —
+  the server sends it only when a key `requires_wallet_registration` — those three report
+  "Cannot load wallet for … signing" and cannot sign.
 
 ### 2.4 Withdrawing
 

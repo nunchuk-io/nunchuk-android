@@ -34,6 +34,7 @@ import com.nunchuk.android.usecase.membership.ParseKeystoneDummyTransaction
 import com.nunchuk.android.usecase.membership.ParseKeystoneDummyTransactionSignIn
 import com.nunchuk.android.usecase.qr.AnalyzeQrUseCase
 import com.nunchuk.android.usecase.signer.ExtractColdcardMessageSignatureFromQrUseCase
+import com.nunchuk.android.usecase.signer.ExtractMessageSignatureFromQrUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers.IO
@@ -55,7 +56,8 @@ internal class ImportTransactionViewModel @Inject constructor(
     private val parseKeystoneDummyTransactionSignIn: ParseKeystoneDummyTransactionSignIn,
     private val analyzeQrUseCase: AnalyzeQrUseCase,
     private val parseQRCodeFromPhotoUseCase: ParseQRCodeFromPhotoUseCase,
-    private val extractColdcardMessageSignatureFromQrUseCase: ExtractColdcardMessageSignatureFromQrUseCase
+    private val extractColdcardMessageSignatureFromQrUseCase: ExtractColdcardMessageSignatureFromQrUseCase,
+    private val extractMessageSignatureFromQrUseCase: ExtractMessageSignatureFromQrUseCase,
 ) : NunchukViewModel<Unit, ImportTransactionEvent>() {
     private val _state = MutableStateFlow(ImportTransactionState())
     val uiState = _state.asStateFlow()
@@ -78,7 +80,7 @@ internal class ImportTransactionViewModel @Inject constructor(
                 importMutex.withLock {
                     analyzeQr()
                     if (isDummyFlow) {
-                        parseDummyTransaction()
+                        parseDummyTransaction(qrData)
                     } else {
                         parseNormalTransaction()
                     }
@@ -105,7 +107,7 @@ internal class ImportTransactionViewModel @Inject constructor(
         }
     }
 
-    private suspend fun parseDummyTransaction() {
+    private suspend fun parseDummyTransaction(qrData: String) {
         when (args.signFlowType) {
             is SignFlowType.ClaimDummy -> {
                 extractColdcardMessageSignatureFromQrUseCase(
@@ -113,6 +115,14 @@ internal class ImportTransactionViewModel @Inject constructor(
                 ).onSuccess {
                     setEvent(ImportTransactionSuccess(signature = it))
                 }
+            }
+
+            // The device answers a Specter-format request with one static QR holding the
+            // signature, so the frame just scanned is the whole answer.
+            is SignFlowType.ClaimAirgapMessage -> extractMessageSignatureFromQrUseCase(
+                listOf(qrData)
+            ).onSuccess {
+                setEvent(ImportTransactionSuccess(signature = it))
             }
 
             else -> {
@@ -124,7 +134,8 @@ internal class ImportTransactionViewModel @Inject constructor(
             val errorCode = e.nativeErrorCode()
             if (errorCode == NativeErrorCode.JADE_QR_PIN_UNLOCK) {
                 setEvent(ImportTransactionEvent.ImportTransactionError(e.message.orUnknownError(), errorCode))
-            } else if (_state.value.progress >= 100) {
+            } else if (_state.value.progress >= 100 || args.signFlowType is SignFlowType.ClaimAirgapMessage) {
+                // A static signature QR has no multi-frame progress to wait for.
                 setEvent(ImportTransactionEvent.ImportTransactionError("Invalid or unreadable QR code. Please try again."))
             }
         }
@@ -177,9 +188,10 @@ internal class ImportTransactionViewModel @Inject constructor(
     }
 
     private val isDummyFlow: Boolean
-        get() = args.signFlowType is SignFlowType.NormalDummy || 
-                args.signFlowType is SignFlowType.SignInDummy || 
-                args.signFlowType is SignFlowType.ClaimDummy
+        get() = args.signFlowType is SignFlowType.NormalDummy ||
+                args.signFlowType is SignFlowType.SignInDummy ||
+                args.signFlowType is SignFlowType.ClaimDummy ||
+                args.signFlowType is SignFlowType.ClaimAirgapMessage
 }
 
 data class ImportTransactionState(val progress: Double = 0.0)

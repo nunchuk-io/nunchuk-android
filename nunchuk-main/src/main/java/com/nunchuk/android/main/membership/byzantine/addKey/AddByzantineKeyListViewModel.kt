@@ -32,7 +32,10 @@ import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.isRecommendedMultiSigPath
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.main.membership.key.TapSignerKeyResolver
 import com.nunchuk.android.main.membership.model.AddKeyData
+import com.nunchuk.android.main.membership.model.encryptedBackupClaimOption
+import com.nunchuk.android.main.membership.model.owesEncryptedBackup
 import com.nunchuk.android.main.membership.model.toGroupWalletType
 import com.nunchuk.android.main.membership.model.toSteps
 import com.nunchuk.android.model.MembershipPlan
@@ -41,6 +44,8 @@ import com.nunchuk.android.model.MembershipStepInfo
 import com.nunchuk.android.model.SignerExtra
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.VerifyType
+import com.nunchuk.android.model.inheritance.ClaimOption
+import com.nunchuk.android.model.signer.SignerServer
 import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.model.isAddInheritanceKey
 import com.nunchuk.android.share.membership.MembershipStepManager
@@ -51,6 +56,7 @@ import com.nunchuk.android.usecase.GetIndexFromPathUseCase
 import com.nunchuk.android.usecase.UpdateRemoteSignerUseCase
 import com.nunchuk.android.usecase.membership.GetMembershipStepUseCase
 import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
+import com.nunchuk.android.usecase.membership.SetKeyVerifiedUseCase
 import com.nunchuk.android.usecase.membership.SyncDraftWalletUseCase
 import com.nunchuk.android.usecase.membership.SyncKeyUseCase
 import com.nunchuk.android.usecase.signer.GetAllSignersUseCase
@@ -87,6 +93,8 @@ class AddByzantineKeyListViewModel @Inject constructor(
     private val getIndexFromPathUseCase: GetIndexFromPathUseCase,
     private val ncDataStore: NcDataStore,
     private val getWallets2UseCase: GetWallets2UseCase,
+    private val setKeyVerifiedUseCase: SetKeyVerifiedUseCase,
+    private val tapSignerKeyResolver: TapSignerKeyResolver,
 ) : ViewModel() {
     private val _state = MutableStateFlow(AddKeyListState())
     val state = _state.asStateFlow()
@@ -105,6 +113,15 @@ class AddByzantineKeyListViewModel @Inject constructor(
         )
     ).map { it.getOrElse { emptyList() } }
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+
+    /**
+     * xfp of the key being put into the inheritance slot, captured when the add starts. The draft
+     * wallet that carries the claim options lands later, so the request has to survive until the
+     * data is there. Null when the device has not produced a key yet (a brand-new TAPSIGNER or
+     * Coldcard), in which case the first inheritance slot still missing its choice is used.
+     */
+    private var pendingClaimOptionsXfp: String? = null
+    private var promptClaimOptionsOnNextData: Boolean = false
 
     private val _keys = MutableStateFlow(listOf<AddKeyData>())
     val key = _keys.asStateFlow()
@@ -158,30 +175,68 @@ class AddByzantineKeyListViewModel @Inject constructor(
             val info = getStepInfo(addKeyData.type)
             var signer =
                 if (info.masterSignerId.isNotEmpty()) signers.find { it.fingerPrint == info.masterSignerId } else null
-            var isColdCardMissingBackup = false
+            var extra: SignerExtra? = null
             if (signer != null) {
                 runCatching {
-                    val extra = gson.fromJson(info.extraData, SignerExtra::class.java)
-                    if (extra != null && extra.userKeyFileName.isEmpty() && info.step.isAddInheritanceKey && signer?.type != SignerType.NFC) {
-                        isColdCardMissingBackup = true
-                    }
+                    extra = gson.fromJson(info.extraData, SignerExtra::class.java)
                     signer = signer?.copy(
-                        index = getIndexFromPathUseCase(extra.derivationPath).getOrDefault(0)
+                        index = getIndexFromPathUseCase(extra!!.derivationPath).getOrDefault(0)
                     )
                 }
             }
+            val draftSigner = _state.value.draftSigners[info.masterSignerId]
             val newKeyData = addKeyData.copy(
                 signer = signer,
-                verifyType = info.verifyType
+                verifyType = info.verifyType,
+                claimOptions = draftSigner?.claimOptions.orEmpty(),
+                verifications = draftSigner?.verifications.orEmpty(),
+                // The local step carries the uploaded backup's file name before the draft catches up.
+                hasEncryptedBackupFile = draftSigner?.userBackUpFileName.isNullOrEmpty().not()
+                        || extra?.userKeyFileName.isNullOrEmpty().not(),
+                isInheritanceKey = addKeyData.type.isAddInheritanceKey || draftSigner?.isInheritanceKey == true,
             )
-            // Check if Coldcard Inheritance signer is missing backup key
-            if (isColdCardMissingBackup) {
+            if (newKeyData.owesEncryptedBackup(extra)) {
                 coldCardMissingBackupKeys.add(newKeyData)
             }
             return@map newKeyData
         }
         _state.update { it.copy(missingBackupKeys = coldCardMissingBackupKeys) }
         _keys.value = news
+        promptForClaimOptions(news)
+    }
+
+    /**
+     * Offers the distribution choice for [signer], at most once per key. This runs off
+     * [updateKeyData], a recomputation rather than a tap, and the key keeps needing the choice
+     * until the server records it — without the guard, backing out would immediately reopen it.
+     */
+    private fun promptForClaimOptions(rows: List<AddKeyData>) {
+        if (!promptClaimOptionsOnNextData) return
+        val wanted = pendingClaimOptionsXfp
+        // A group wallet can hold two inheritance keys, so never just take the first one.
+        val row = rows.firstOrNull { it.isInheritanceKey && it.signer?.fingerPrint == wanted }
+            ?: rows.firstOrNull { it.needsClaimOptions }.takeIf { wanted == null }
+        val signer = row?.signer ?: return
+        promptClaimOptionsOnNextData = false
+        pendingClaimOptionsXfp = null
+        _state.update { it.copy(pendingClaimOptionsSigner = signer) }
+    }
+
+    /**
+     * The keys already on this wallet, so the inheritance picker does not offer one of them for a
+     * second slot. Without it the owner can pick a key the draft already holds and the server
+     * answers with a duplicate-key error.
+     */
+    fun existingWalletSigners(): List<SignerModel> = _keys.value.mapNotNull { it.signer }
+
+    /** Called by the add-key paths so the sharing-method choice opens once the key lands. */
+    fun onInheritanceKeyAdded(xfp: String? = null) {
+        pendingClaimOptionsXfp = xfp
+        promptClaimOptionsOnNextData = true
+    }
+
+    fun onClaimOptionsPromptHandled() {
+        _state.update { it.copy(pendingClaimOptionsSigner = null) }
     }
 
     fun onUpdateSignerTag(signer: SignerModel, tag: SignerTag) {
@@ -209,7 +264,15 @@ class AddByzantineKeyListViewModel @Inject constructor(
     private fun isSignerExist(masterSignerId: String) =
         membershipStepManager.isKeyExisted(masterSignerId)
 
-    fun onVerifyClicked(data: AddKeyData) {
+    /**
+     * [claimOption] names the artifact being verified. It defaults to what the row knows, and is
+     * passed explicitly right after the owner picks a sharing method, when the row has not caught
+     * up with the server yet.
+     */
+    fun onVerifyClicked(
+        data: AddKeyData,
+        claimOption: ClaimOption? = data.encryptedBackupClaimOption(),
+    ) {
         data.signer?.let { signer ->
             savedStateHandle[KEY_CURRENT_STEP] = data.type
             viewModelScope.launch {
@@ -218,10 +281,75 @@ class AddByzantineKeyListViewModel @Inject constructor(
                     AddKeyListEvent.OnVerifySigner(
                         signer = signer,
                         filePath = nfcFileManager.buildFilePath(stepInfo.keyIdInServer.ifEmpty { signer.fingerPrint }),
-                        backUpFileName = getBackUpFileName(stepInfo.extraData)
+                        backUpFileName = getBackUpFileName(stepInfo.extraData),
+                        claimOption = claimOption,
                     )
                 )
             }
+        }
+    }
+
+    /**
+     * Records that the seed-phrase backup of the inheritance key was proven: the owner restored it
+     * onto a device and the device reported the fingerprint of the inheritance key back.
+     *
+     * Only the keys that pair in-app (Ledger, BitBox) come back here — Coldcard and air-gap mark
+     * themselves verified inside their own add-key screens and never return a fingerprint.
+     */
+    fun onSeedPhraseBackupVerified(masterSignerId: String, verifiedSigner: SignerModel? = null) {
+        viewModelScope.launch {
+            setKeyVerifiedUseCase(
+                SetKeyVerifiedUseCase.Param(
+                    groupId = args.groupId,
+                    masterSignerId = masterSignerId,
+                    verifyType = VerifyType.APP_VERIFIED,
+                    verificationMethod = ClaimOption.SEED_PHRASE,
+                )
+            ).onSuccess {
+                refresh()
+                _event.emit(
+                    AddKeyListEvent.OnSeedPhraseBackupVerified(
+                        signer = _keys.value.firstOrNull {
+                            it.signer?.fingerPrint.equals(masterSignerId, ignoreCase = true)
+                        }?.signer ?: verifiedSigner
+                    )
+                )
+            }.onFailure {
+                _event.emit(AddKeyListEvent.ShowError(it.message.orUnknownError()))
+            }
+        }
+    }
+
+    /**
+     * A TAPSIGNER picked for the inheritance slot. It is a master signer, so the key for the
+     * wallet has to be derived from it, and reading that may need another tap on the card.
+     */
+    fun addExistingTapSignerKey(signerModel: SignerModel) {
+        viewModelScope.launch {
+            handleTapSignerOutcome(tapSignerKeyResolver.resolve(signerModel.fingerPrint))
+        }
+    }
+
+    /** The card was tapped for the xpub the resolver asked for. */
+    fun onTapSignerCardTapped(isoDep: android.nfc.tech.IsoDep?, cvc: String) {
+        isoDep ?: return
+        viewModelScope.launch {
+            handleTapSignerOutcome(tapSignerKeyResolver.resolveAfterCardTap(isoDep, cvc))
+        }
+    }
+
+    fun onTapSignerCardTapHandled() {
+        _state.update { it.copy(requestTapSignerCardTap = false) }
+    }
+
+    private suspend fun handleTapSignerOutcome(outcome: TapSignerKeyResolver.Outcome) {
+        when (outcome) {
+            is TapSignerKeyResolver.Outcome.Resolved -> handleSignerNewIndex(outcome.signer)
+            TapSignerKeyResolver.Outcome.NeedsCardTap ->
+                _state.update { it.copy(requestTapSignerCardTap = true) }
+
+            is TapSignerKeyResolver.Outcome.Failed ->
+                _event.emit(AddKeyListEvent.ShowError(outcome.message))
         }
     }
 
@@ -270,8 +398,16 @@ class AddByzantineKeyListViewModel @Inject constructor(
         viewModelScope.launch {
             _state.update { it.copy(isRefreshing = true) }
             syncDraftWalletUseCase(args.groupId).onSuccess { draft ->
+                _state.update {
+                    it.copy(
+                        groupWalletType = draft.config.toGroupWalletType(),
+                        walletType = draft.walletType,
+                        draftSigners = draft.signers
+                            .mapNotNull { signer -> signer.xfp?.let { xfp -> xfp to signer } }
+                            .toMap(),
+                    )
+                }
                 loadSigners()
-                _state.update { it.copy(groupWalletType = draft.config.toGroupWalletType(), walletType = draft.walletType) }
                 draft.config.toGroupWalletType()?.let { type ->
                     if (_keys.value.isEmpty()) {
                         _keys.value = type.toSteps().map { step -> AddKeyData(type = step) }
@@ -318,6 +454,12 @@ class AddByzantineKeyListViewModel @Inject constructor(
                     groupId = args.groupId
                 )
             )
+            // Only an inheritance key needs the draft re-synced here: the claim options that decide
+            // what comes next live there, and the local step alone cannot tell us.
+            if (membershipStepManager.currentStep?.isAddInheritanceKey == true) {
+                onInheritanceKeyAdded(signer.masterFingerprint)
+                refresh()
+            }
         }
     }
 
@@ -351,19 +493,43 @@ class AddByzantineKeyListViewModel @Inject constructor(
 
 sealed class AddKeyListEvent {
     data class OnAddKey(val data: AddKeyData) : AddKeyListEvent()
-    data class OnVerifySigner(val signer: SignerModel, val filePath: String, val backUpFileName: String) : AddKeyListEvent()
+    data class OnVerifySigner(
+        val signer: SignerModel,
+        val filePath: String,
+        val backUpFileName: String,
+        /**
+         * Which sharing method this backup resolves, for an off-chain inheritance key. These
+         * screens only ever handle the encrypted backup, and a "do both" key needs the server
+         * told which of its two artifacts was verified.
+         */
+        val claimOption: ClaimOption? = null,
+    ) : AddKeyListEvent()
     data object OnAddAllKey : AddKeyListEvent()
+
+    /** The restored device matched, so the seed-phrase backup of [signer] is proven. */
+    data class OnSeedPhraseBackupVerified(val signer: SignerModel?) : AddKeyListEvent()
+
     data object SelectAirgapType : AddKeyListEvent()
     data class ShowError(val message: String) : AddKeyListEvent()
     data class UpdateSignerTag(val signer: SignerModel) : AddKeyListEvent()
 }
 
 data class AddKeyListState(
+    /** The resolver needs the TAPSIGNER tapped to read the xpub it could not find cached. */
+    val requestTapSignerCardTap: Boolean = false,
     val isRefreshing: Boolean = false,
     val signers: List<SignerModel> = emptyList(),
     val similarGroups: Map<String, String> = emptyMap(),
     val shouldShowKeyAdded: Boolean = false,
     val groupWalletType: GroupWalletType? = null,
     val walletType: WalletType? = null,
-    val missingBackupKeys: List<AddKeyData> = emptyList()
+    val missingBackupKeys: List<AddKeyData> = emptyList(),
+    /**
+     * Signers as the server sees them on the draft wallet, keyed by xfp. The local step only knows
+     * that a key was added; the claim options and per-method verifications of an inheritance key
+     * live here.
+     */
+    val draftSigners: Map<String, SignerServer> = emptyMap(),
+    /** Inheritance key waiting for the owner to pick how it reaches their Beneficiary. */
+    val pendingClaimOptionsSigner: SignerModel? = null
 )

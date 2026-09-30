@@ -43,9 +43,19 @@ class HeaderProviderImpl @Inject constructor(
 
     override fun getDeviceName(): String = android.os.Build.MODEL
 
-    override fun getAppVersion() = BuildConfig.VERSION_NAME
+    /**
+     * The numeric part of the version only. Debug builds carry a `.DEV` suffix that the server
+     * cannot parse, and an unparseable version silently drops the caller back to the legacy
+     * feature set — which is how a dev build ends up missing version-gated API data.
+     */
+    override fun getAppVersion() =
+        SEMANTIC_VERSION.find(BuildConfig.VERSION_NAME)?.value ?: BuildConfig.VERSION_NAME
 
     override fun getAccessToken() = accountManager.getAccount().token
     override fun getApplicationId(): String = BuildConfig.APPLICATION_ID
+
+    private companion object {
+        val SEMANTIC_VERSION = Regex("""^\d+(\.\d+)*""")
+    }
 
 }

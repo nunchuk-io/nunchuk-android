@@ -29,6 +29,7 @@ import com.nunchuk.android.nav.args.SetupMk4Args
 import com.nunchuk.android.share.ColdcardAction
 import com.nunchuk.android.signer.mk4.Mk4Activity
 import com.nunchuk.android.signer.portal.PortalDeviceActivity
+import com.nunchuk.android.model.inheritance.ClaimOption
 import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
 
 interface NfcNavigatorDelegate : NfcNavigator {
@@ -97,6 +98,7 @@ interface NfcNavigatorDelegate : NfcNavigator {
         walletId: String,
         isOnChainBackUp: Boolean,
         replacedXfp: String,
+        claimOption: ClaimOption?,
     ) {
         activity.startActivity(
             NfcSetupActivity.buildIntent(
@@ -109,7 +111,8 @@ interface NfcNavigatorDelegate : NfcNavigator {
                 keyId = keyId,
                 walletId = walletId,
                 isOnChainBackUp = isOnChainBackUp,
-                replacedXfp = replacedXfp
+                replacedXfp = replacedXfp,
+                claimOption = claimOption,
             )
         )
     }
@@ -122,7 +125,8 @@ interface NfcNavigatorDelegate : NfcNavigator {
         signerIndex: Int,
         replacedXfp: String,
         walletId: String,
-        isOnChainBackUp: Boolean
+        isOnChainBackUp: Boolean,
+        claimOption: ClaimOption?,
     ) {
         activity.startActivity(
             NfcSetupActivity.buildIntent(
@@ -135,6 +139,7 @@ interface NfcNavigatorDelegate : NfcNavigator {
                 replacedXfp = replacedXfp,
                 walletId = walletId,
                 isOnChainBackUp = isOnChainBackUp,
+                claimOption = claimOption,
             )
         )
     }

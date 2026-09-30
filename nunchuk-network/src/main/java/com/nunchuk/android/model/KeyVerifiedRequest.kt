@@ -26,4 +26,10 @@ data class KeyVerifiedRequest(
     val keyCheckSum: String,
     @SerializedName("verification_type")
     val verificationType: String,
+    /**
+     * Which claim option is being verified (`SEED_PHRASE` / `ENCRYPTED_BACKUP`). Null on the legacy
+     * one-verification-per-key flows, where the server infers it.
+     */
+    @SerializedName("verification_method")
+    val verificationMethod: String? = null,
 )

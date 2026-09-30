@@ -72,7 +72,11 @@ class UploadBackUpTapSignerFragment : MembershipFragment() {
             walletId = walletId,
             masterSignerId = args.masterSignerId,
             filePath = args.filePath,
-            isRequestAddOrReplaceKey = true,
+            // The off-chain inheritance backup runs after the owner has chosen how to share the
+            // key, by which point the key is already on the draft — asking to add it again is
+            // what the server answers with "Duplicate key xfp". Everywhere else the upload is
+            // still what puts the key there.
+            isRequestAddOrReplaceKey = activity.claimOption == null,
             isOnChainFlow = activity.isOnChainBackUp
         )
     }

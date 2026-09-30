@@ -1,9 +1,9 @@
-package com.nunchuk.android.main.membership.onchaintimelock.backupseedphrase
+package com.nunchuk.android.main.membership.backupseedphrase
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -69,28 +69,44 @@ private fun BackUpSeedPhraseIntroContent(
     onMoreClicked: () -> Unit = {},
 ) {
     NunchukTheme {
-        Scaffold(topBar = {
-            NcImageAppBar(
-                backgroundRes = R.drawable.bg_seed_phrase_intro_illustration,
-                title = if (remainTime <= 0) "" else stringResource(
-                    id = R.string.nc_estimate_remain_time,
-                    remainTime
-                ),
-                actions = {
-                    IconButton(onClick = onMoreClicked) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_more),
-                            contentDescription = "More icon"
-                        )
+        Scaffold(
+            modifier = Modifier.navigationBarsPadding(),
+            topBar = {
+                NcImageAppBar(
+                    // The seed-plate illustration the design asks for here is the numbered one —
+                    // "Seed phrase" over words 1-12 — which the claim flow already carries.
+                    backgroundRes = R.drawable.bg_inheritance_recover_seed_phrase,
+                    title = if (remainTime <= 0) "" else stringResource(
+                        id = R.string.nc_estimate_remain_time,
+                        remainTime
+                    ),
+                    actions = {
+                        IconButton(onClick = onMoreClicked) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_more),
+                                contentDescription = "More icon"
+                            )
+                        }
                     }
+                )
+            },
+            bottomBar = {
+                NcPrimaryDarkButton(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    onClick = onContinueClicked,
+                ) {
+                    Text(text = "I have backed it up")
                 }
-            )
-        }) { innerPadding ->
+            },
+        ) { innerPadding ->
             Column(
                 modifier = Modifier
                     .padding(innerPadding)
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
+                    .padding(bottom = 16.dp)
             ) {
                 Text(
                     modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
@@ -123,17 +139,6 @@ private fun BackUpSeedPhraseIntroContent(
                     index = 3,
                     label = "Write each word in the correct sequence and check the spelling carefully",
                 )
-
-
-                Spacer(modifier = Modifier.weight(1.0f))
-                NcPrimaryDarkButton(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    onClick = onContinueClicked,
-                ) {
-                    Text(text = "I have backed it up")
-                }
             }
         }
     }

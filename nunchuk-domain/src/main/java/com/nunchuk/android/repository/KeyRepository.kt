@@ -24,6 +24,7 @@ import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.VerifyType
+import com.nunchuk.android.model.inheritance.ClaimOption
 import com.nunchuk.android.model.signer.SupportedSigner
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
@@ -64,18 +65,43 @@ interface KeyRepository {
         isOnChainFlow: Boolean = false
     ): Flow<KeyUpload>
 
+    /**
+     * [verificationMethod] names which claim option of an off-chain inheritance key was just
+     * verified. Null on every other flow, where the server keeps one verification per key.
+     */
     suspend fun setKeyVerified(
         groupId: String,
         masterSignerId: String,
-        verifyType: VerifyType
+        verifyType: VerifyType,
+        verificationMethod: ClaimOption? = null,
     )
 
+    /**
+     * Records how the owner will pass an off-chain inheritance key to their Beneficiary.
+     *
+     * [walletId] empty targets the draft wallet, otherwise the replacement on that wallet. Dropping
+     * [ClaimOption.ENCRYPTED_BACKUP] deletes the pending backup and its verification server-side and
+     * cannot be undone, so confirm before calling.
+     */
+    suspend fun setInheritanceClaimOptions(
+        groupId: String,
+        walletId: String,
+        xfp: String,
+        claimOptions: List<ClaimOption>
+    )
+
+    /**
+     * [verificationMethod] names which claim option of an off-chain inheritance key was just
+     * verified, exactly as [setKeyVerified] does for the draft. Null on every other flow, where the
+     * server keeps one verification per key.
+     */
     suspend fun setReplaceKeyVerified(
         checkSum: String,
         keyId: String,
         verifyType: VerifyType,
         groupId: String,
-        walletId: String
+        walletId: String,
+        verificationMethod: ClaimOption? = null,
     )
 
     suspend fun initReplaceKey(

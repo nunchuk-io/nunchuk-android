@@ -27,16 +27,106 @@ import com.nunchuk.android.main.R
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.TimelockExtra
 import com.nunchuk.android.model.VerifyType
+import com.nunchuk.android.model.inheritance.ClaimOption
+import com.nunchuk.android.model.inheritance.InheritanceKeyVerification
 import com.nunchuk.android.model.isAddInheritanceKey
 import com.nunchuk.android.model.isTimelockStep
 
 data class AddKeyData(
     val type: MembershipStep,
     val signer: SignerModel? = null,
-    val verifyType: VerifyType = VerifyType.NONE
+    val verifyType: VerifyType = VerifyType.NONE,
+    /**
+     * Off-chain inheritance key only: how the owner chose to pass it to their Beneficiary. Read
+     * from the draft wallet rather than the local step, because the server tracks it per key.
+     * Empty means the choice has not been made yet — the design's "sharing method not set" state.
+     */
+    val claimOptions: List<ClaimOption> = emptyList(),
+    /** One record per entry in [claimOptions]; empty on a legacy plan. */
+    val verifications: List<InheritanceKeyVerification> = emptyList(),
+    /**
+     * Whether the encrypted backup file has been uploaded for this key. The verification record
+     * alone cannot tell "no backup yet" from "backup uploaded, not verified yet", and the row
+     * distinguishes them: the first offers "Backup", the second "Verify backup".
+     */
+    val hasEncryptedBackupFile: Boolean = false,
+    /**
+     * Whether this slot is the inheritance key.
+     *
+     * The membership step is the reliable signal here: a freshly created draft comes back with an
+     * empty `signers` list, so keying this off the draft alone left the row, its status line and
+     * the distribution flow silently dead. The draft still supplies [claimOptions] and
+     * [verifications] when it has the key.
+     */
+    val isInheritanceKey: Boolean = false,
 ) {
     val isVerifyOrAddKey: Boolean
         get() = signer != null || verifyType != VerifyType.NONE
+
+    /**
+     * The claim-side state of this key, as the server records it. Shared with the replace-key row,
+     * which tracks the same key on the wallet's replacement rather than on the draft.
+     */
+    val claimState: InheritanceClaimState
+        get() = InheritanceClaimState(
+            claimOptions = claimOptions,
+            verifications = verifications,
+            hasEncryptedBackupFile = hasEncryptedBackupFile,
+        )
+
+    /** Whether the row carries the inheritance status line at all. */
+    val showsClaimStatus: Boolean
+        get() = isInheritanceKey && signer != null
+
+    /** An inheritance key that is in place but whose sharing method still has to be picked. */
+    val needsClaimOptions: Boolean
+        get() = showsClaimStatus && claimState.isUnset
+
+    /** @see InheritanceClaimState.isResolved */
+    fun isClaimOptionResolved(option: ClaimOption): Boolean = claimState.isResolved(option)
+
+    /** @see InheritanceClaimState.isVerified */
+    fun isClaimOptionVerified(option: ClaimOption): Boolean = claimState.isVerified(option)
+
+    /** How many of the chosen sharing methods are verified (or deliberately skipped). */
+    val resolvedClaimOptionCount: Int
+        get() = claimState.resolvedCount
+
+    /** True once every chosen sharing method has been dealt with. */
+    val isClaimSettled: Boolean
+        get() = claimState.isSettled
+
+    /** True only once every chosen sharing method has actually been verified. */
+    val isClaimVerified: Boolean
+        get() = claimState.isFullyVerified
+
+    /**
+     * An off-chain inheritance key whose chosen sharing method still owes a backup or its
+     * verification — the state that keeps the row amber with an action on it.
+     *
+     * This outranks [verifyType]: the local step holds a single flag and goes green as soon as one
+     * artifact is done, which would hide the second half of a "do both" key behind an "Added" tick.
+     * A skipped verification does not satisfy it either; the owner can still come back and verify,
+     * which is why skipping unblocks the wizard ([isInheritanceIncomplete]) without greening the row.
+     */
+    val needsClaimVerification: Boolean
+        get() = showsClaimStatus && !claimState.isUnset && !isClaimVerified
+
+    /**
+     * An off-chain inheritance key that still owes something the wizard insists on — a sharing
+     * method, or an untouched verification of one it chose. The wallet cannot be configured until
+     * it is settled; a deliberately skipped verification counts as settled.
+     */
+    val isInheritanceIncomplete: Boolean
+        get() = needsClaimOptions || (showsClaimStatus && !claimState.isUnset && !isClaimSettled)
+
+    /** Whether the row is finished, i.e. renders green with a tick rather than an action. */
+    val isRowComplete: Boolean
+        get() = if (isInheritanceKey && !claimState.isUnset) {
+            isClaimVerified
+        } else {
+            verifyType != VerifyType.NONE
+        }
 }
 
 /**

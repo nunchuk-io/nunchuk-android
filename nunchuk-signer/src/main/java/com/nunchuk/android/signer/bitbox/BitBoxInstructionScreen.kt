@@ -19,6 +19,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.PreviewLightDark
@@ -27,14 +28,20 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
+import com.nunchuk.android.compose.NcClickableText
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.core.util.ClickAbleText
+import com.nunchuk.android.core.util.openExternalLink
 import com.nunchuk.android.signer.R
 import kotlinx.serialization.Serializable
 
 @Serializable
 internal data class BitBoxInstructionRoute(val isUsb: Boolean = false)
+
+/** Where an unprepared BitBox has to be finished off; Nunchuk never drives first-time setup. */
+private const val BITBOX_APP_DOWNLOAD_URL = "https://bitbox.swiss/download/"
 
 /**
  * Design screens 02A / 02B — "prepare your BitBox", one variant per transport. It always comes
@@ -98,6 +105,8 @@ private fun BitBoxInstructionScreen(
             }
         }
     ) { innerPadding ->
+        val context = LocalContext.current
+
         Column(
             modifier = Modifier
                 .padding(innerPadding)
@@ -122,9 +131,14 @@ private fun BitBoxInstructionScreen(
                     text = stringResource(id = R.string.nc_bitbox_step_setup_title),
                     style = NunchukTheme.typography.title,
                 )
-                Text(
+                NcClickableText(
                     modifier = Modifier.padding(top = 8.dp),
-                    text = stringResource(id = R.string.nc_bitbox_step_setup_desc),
+                    messages = listOf(
+                        ClickAbleText(content = stringResource(id = R.string.nc_bitbox_step_setup_desc)),
+                        ClickAbleText(content = stringResource(id = R.string.nc_bitbox_app_link)) {
+                            context.openExternalLink(BITBOX_APP_DOWNLOAD_URL)
+                        },
+                    ),
                     style = NunchukTheme.typography.body,
                 )
             }

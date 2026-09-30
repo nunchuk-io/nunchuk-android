@@ -1,27 +1,25 @@
 package com.nunchuk.android.signer
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
 import com.nunchuk.android.core.mapper.MasterSignerMapper
-import com.nunchuk.android.core.signer.KeyFlow
 import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
+import com.nunchuk.android.core.signer.SignerIntroFlow
+import com.nunchuk.android.core.signer.SignerIntroRequest
 import com.nunchuk.android.core.util.isRecommendedMultiSigPath
 import com.nunchuk.android.core.util.orUnknownError
-import com.nunchuk.android.core.util.toWalletTypeOrNull
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.SingleSigner
-import com.nunchuk.android.model.SupportedSignerConfig
 import com.nunchuk.android.model.signer.SupportedSigner
 import com.nunchuk.android.share.membership.MembershipStepManager
-import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
-import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.CreateSoftwareSignerUseCase
 import com.nunchuk.android.usecase.DeleteMasterSignerUseCase
 import com.nunchuk.android.usecase.GetMasterFingerprintUseCase
@@ -31,9 +29,9 @@ import com.nunchuk.android.usecase.membership.RestartWizardUseCase
 import com.nunchuk.android.usecase.signer.CreateSoftwareSignerByXprvUseCase
 import com.nunchuk.android.usecase.signer.GetAllSignersUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
@@ -42,6 +40,8 @@ import timber.log.Timber
 import javax.inject.Inject
 
 data class SignerIntroState(
+    val existingSelection: ExistingSignerSelection? = null,
+    val showRecoveryOptions: Boolean = false,
     /** The user's already-imported signers, used to offer "reuse existing" vs "set up new". */
     val allSigners: List<SignerModel> = emptyList(),
     /** All signer types supported for the wallet type being built. */
@@ -58,6 +58,7 @@ data class SignerIntroState(
 
 @HiltViewModel
 class SignerIntroViewModel @Inject constructor(
+    private val savedStateHandle: SavedStateHandle,
     private val membershipStepManager: MembershipStepManager,
     private val getAllSignersUseCase: GetAllSignersUseCase,
     private val masterSignerMapper: MasterSignerMapper,
@@ -74,16 +75,18 @@ class SignerIntroViewModel @Inject constructor(
     val remainTime = membershipStepManager.remainingTime
 
     private var onChainAddSignerParam: OnChainAddSignerParam? = null
-    private var keyFlow: Int = KeyFlow.NONE
-    private var walletType: WalletType? = null
     private var isTestNet: Boolean = false
-    private var isAddInheritanceSigner: Boolean = false
+    private var pickerPolicy: SignerIntroPickerPolicy? = null
 
     private val _state = MutableStateFlow(SignerIntroState())
     val state = _state.asStateFlow()
 
-    private val _event = MutableSharedFlow<SignerIntroEvent>()
-    val event = _event.asSharedFlow()
+    private val _event = Channel<SignerIntroEvent>(Channel.BUFFERED)
+    val event = _event.receiveAsFlow()
+    private var coordinator: SignerIntroCoordinator? = null
+    private val selectionState = SignerIntroSelectionState(savedStateHandle)
+    val verifyingKeyType: KeyType? get() = requireNotNull(coordinator).verifyingKeyType
+    val isInheritanceSetup: Boolean get() = requireNotNull(coordinator).isInheritanceSetup
 
     init {
         viewModelScope.launch {
@@ -95,110 +98,35 @@ class SignerIntroViewModel @Inject constructor(
         }
     }
 
-    fun init(
-        onChainAddSignerParam: OnChainAddSignerParam?,
-        supportedSigners: List<SupportedSigner> = emptyList(),
-        keyFlow: Int = KeyFlow.NONE,
-        walletType: WalletType? = null
-    ) {
-        this.onChainAddSignerParam = onChainAddSignerParam
-        this.keyFlow = keyFlow
-        this.walletType = walletType
-
-        if (supportedSigners.isNotEmpty()) {
-            _state.update { it.copy(supportedSigners = supportedSigners) }
-        }
-
-        if (onChainAddSignerParam != null) {
-            isAddInheritanceSigner =
-                onChainAddSignerParam.isAddInheritanceSigner() || onChainAddSignerParam.isVerifyBackupSeedPhrase()
-            if (onChainAddSignerParam.isAddInheritanceOffChainSigner()) {
-                _state.update { it.copy(supportedSigners = offChainInheritanceKeyTypes) }
-            } else {
-                fetchUserWalletConfigs()
-            }
-            loadAllSigners()
-        }
+    fun init(request: SignerIntroRequest) {
+        if (coordinator != null) return
+        val routing = SignerIntroCoordinator(request)
+        coordinator = routing
+        onChainAddSignerParam = request.deviceParams
+        val policy = SignerIntroPickerPolicy(request)
+        pickerPolicy = policy
+        _state.update { it.copy(supportedSigners = policy.initialSigners) }
+        if (policy.usesWalletConfigs) fetchUserWalletConfigs()
+        if (policy.loadsExistingSigners) loadAllSigners()
         updateSignerDisplayInfos()
-    }
-
-    private fun calculateIsGenericAirgapEnable(
-        supportedSigners: List<SupportedSigner>,
-    ): Boolean {
-        val isDisableAll = keyFlow != KeyFlow.NONE
-        return (supportedSigners.isEmpty()
-                || supportedSigners.any { it.type == SignerType.AIRGAP && it.tag == null }) && isDisableAll.not()
+        _state.update { it.copy(showRecoveryOptions = savedStateHandle[RECOVERY_VISIBLE] ?: false) }
+        if (routing.verifyingKeyType != null && savedStateHandle.get<Boolean>(VERIFICATION_OPENED) != true) {
+            savedStateHandle[VERIFICATION_OPENED] = true
+            onKeySelected(routing.verifyingKeyType)
+        }
     }
 
     private fun updateSignerDisplayInfos() {
-        val currentState = _state.value
-        val (signersToDisplay, allowedSigners) = resolveSignersToDisplay(currentState)
-        val isDisableAll = keyFlow != KeyFlow.NONE
-
-        val displayInfos = signersToDisplay.mapNotNull { signer ->
-            signer.toDisplayInfo()?.copy(
-                isDisabled = signer.isDisabledIn(
-                    allowedSigners = allowedSigners,
-                    isDisableAll = isDisableAll,
-                    onChainAddSignerParam = onChainAddSignerParam,
-                    keyFlow = keyFlow,
-                )
-            )
-        } + SignerDisplayInfo(
-            iconRes = R.drawable.ic_split,
-            titleRes = R.string.nc_generic_airgap,
-            keyType = KeyType.GENERIC_AIRGAP,
-            category = SignerDisplayCategory.ROW_SIMPLE,
-            isDisabled = !calculateIsGenericAirgapEnable(currentState.supportedSigners),
-        )
-
-        _state.update { it.copy(signerDisplayInfos = displayInfos) }
-    }
-
-    private fun resolveSignersToDisplay(
-        state: SignerIntroState,
-    ): Pair<List<SupportedSigner>, List<SupportedSigner>> = when {
-        state.eligibleSupportedSigners.isNotEmpty() && onChainAddSignerParam != null -> {
-            state.eligibleSupportedSigners to state.eligibleSupportedSigners
-        }
-        onChainAddSignerParam != null && state.supportedSigners.isNotEmpty() -> {
-            state.supportedSigners to state.supportedSigners
-        }
-        state.supportedSigners.isNotEmpty() -> {
-            val allowedSigners = state.supportedSigners.filter {
-                !(it.type == SignerType.AIRGAP && it.tag == null)
-            }
-            mergeWithDefaultSigners(state.supportedSigners) to allowedSigners
-        }
-        else -> {
-            defaultSupportedSigners to emptyList()
-        }
-    }
-
-    private fun mergeWithDefaultSigners(
-        supportedSigners: List<SupportedSigner>,
-    ): List<SupportedSigner> {
-        val result = defaultSupportedSigners.toMutableList()
-        supportedSigners.forEach { signer ->
-            if (signer.type == SignerType.AIRGAP && signer.tag == null) return@forEach
-            if (result.none { it.type == signer.type && it.tag == signer.tag }) {
-                result.add(signer)
-            }
-        }
-        return result
+        val policy = requireNotNull(pickerPolicy)
+        _state.update { it.copy(signerDisplayInfos = policy.displayInfos(it)) }
     }
 
     private fun fetchUserWalletConfigs() {
         viewModelScope.launch {
             getUserWalletConfigsSetupFromCacheUseCase(Unit).collect { result ->
                 result.getOrNull()?.let { walletConfigs ->
-                    val relevantConfigs = filterConfigsByWalletType(
-                        configs = walletConfigs.supportedSigners,
-                        walletType = walletType,
-                    )
-                    val supportedSigners = convertToSupportedSigners(relevantConfigs)
-                    _state.update { it.copy(supportedSigners = supportedSigners) }
-                    updateEligibleSupportedSigners(relevantConfigs)
+                    _state.update { requireNotNull(pickerPolicy).applyConfigs(it, walletConfigs.supportedSigners) }
+                    updateSignerDisplayInfos()
                 }
             }
         }
@@ -207,53 +135,13 @@ class SignerIntroViewModel @Inject constructor(
         }
     }
 
-    /**
-     * Keeps only the signer configs that match the wallet type this flow is building ([walletType]).
-     * The backend may return signers scoped to unrelated wallet types (e.g. a SOFTWARE signer for
-     * LIQUID), which must not be offered when building, say, a MINISCRIPT wallet. When no wallet
-     * type is provided, all configs are kept so flows that don't scope by wallet type are unaffected.
-     */
-    private fun filterConfigsByWalletType(
-        configs: List<SupportedSignerConfig>,
-        walletType: WalletType?,
-    ): List<SupportedSignerConfig> {
-        if (walletType == null) return configs
-        return configs.filter { it.walletType == walletType.name }
-    }
-
-    private fun convertToSupportedSigners(configs: List<SupportedSignerConfig>): List<SupportedSigner> {
-        return configs.mapNotNull { config ->
-            val signerType = runCatching { SignerType.valueOf(config.signerType) }.getOrNull()
-            val signerTag = config.signerTag
-                ?.takeIf { it.isNotBlank() }
-                ?.let { runCatching { SignerTag.valueOf(it) }.getOrNull() }
-            val walletType = config.walletType.toWalletTypeOrNull()
-
-            if (signerType == null) {
-                return@mapNotNull null
-            }
-
-            SupportedSigner(
-                type = signerType,
-                tag = signerTag,
-                walletType = walletType,
-                addressType = AddressType.NATIVE_SEGWIT
-            )
-        }
-    }
-
-    private fun updateEligibleSupportedSigners(configs: List<SupportedSignerConfig>) {
-        val eligibleConfigs = configs.filter {
-            it.isInheritanceKey == isAddInheritanceSigner
-        }
-        _state.update { it.copy(eligibleSupportedSigners = convertToSupportedSigners(eligibleConfigs)) }
-        updateSignerDisplayInfos()
-    }
-
     private fun loadAllSigners() {
         viewModelScope.launch {
             getAllSignersUseCase(true).onSuccess { (masterSigners, singleSigners) ->
                 _state.update { it.copy(allSigners = mapSigners(singleSigners, masterSigners)) }
+                // Restoration may reopen a sheet, but must never launch a new device flow.
+                val restored = selectionState.restore(::findExistingSigners)
+                _state.update { it.copy(existingSelection = restored) }
             }
         }
     }
@@ -268,22 +156,80 @@ class SignerIntroViewModel @Inject constructor(
 
     private fun filterSignerByType(type: SignerType, tag: SignerTag? = null): List<SignerModel> {
         return state.value.allSigners.filter { signer ->
-            signer.type == type || (tag != null && signer.tags.contains(tag))
+            when {
+                tag == null -> signer.type == type
+                // A Coldcard is either its own type or an air-gapped key carrying the tag, so here
+                // the tag widens the match.
+                tag == SignerTag.COLDCARD -> signer.type == type || signer.tags.contains(tag)
+                // Every other tag is what tells devices of the same type apart — Ledger/Trezor/
+                // BitBox all being HARDWARE, Jade/Keystone/Passport all being AIRGAP — so it has to
+                // narrow the match. Widening here offers a Trezor when the owner picked BitBox.
+                else -> signer.type == type && signer.tags.contains(tag)
+            }
         }
     }
 
-    fun showExistingSignerOrCreateNew(type: SignerType, tag: SignerTag? = null) {
-        viewModelScope.launch {
-            val signers = filterSignerByType(
-                type,
-                tag
-            ).filter { signer -> signer.derivationPath.isRecommendedMultiSigPath }
-                .let { filterExistingSigners(it) }
-            if (signers.isNotEmpty()) {
-                _event.emit(SignerIntroEvent.ShowFilteredSigners(type, tag, signers))
-            } else {
-                _event.emit(SignerIntroEvent.OpenSetupSigner(type, tag))
+    fun onKeySelected(keyType: KeyType) {
+        dispatch(requireNotNull(coordinator).select(keyType))
+    }
+
+    fun onFirmwareChecked(device: SignerFirmwareDevice) {
+        dispatch(requireNotNull(coordinator).firmwareChecked(device))
+    }
+
+    fun onCreateNewSigner() {
+        val keyType = state.value.existingSelection?.keyType ?: return
+        dismissExistingSigners()
+        dispatch(requireNotNull(coordinator).createNew(keyType))
+    }
+
+    fun dismissExistingSigners() {
+        selectionState.clear()
+        _state.update { it.copy(existingSelection = null) }
+    }
+
+    fun dismissRecoveryOptions() {
+        savedStateHandle[RECOVERY_VISIBLE] = false
+        _state.update { it.copy(showRecoveryOptions = false) }
+    }
+
+    private fun dispatch(action: SignerIntroAction) {
+        when (action) {
+            is SignerIntroAction.OfferExisting -> offerExisting(action.keyType)
+            SignerIntroAction.RecoverSoftware -> {
+                savedStateHandle[RECOVERY_VISIBLE] = true
+                _state.update { it.copy(showRecoveryOptions = true) }
             }
+            is SignerDeviceAction -> sendEvent(SignerIntroEvent.OpenDevice(action))
+            is SignerIntroAction.CheckFirmware -> sendEvent(SignerIntroEvent.CheckFirmware(action.device))
+            is SignerIntroAction.ReturnHardwareTag -> sendEvent(SignerIntroEvent.ReturnHardwareTag(action.tag))
+            SignerIntroAction.ReturnPlatformKey -> sendEvent(SignerIntroEvent.ReturnPlatformKey)
+        }
+    }
+
+    private fun sendEvent(event: SignerIntroEvent) {
+        viewModelScope.launch { _event.send(event) }
+    }
+
+    private fun findExistingSigners(keyType: KeyType): List<SignerModel> {
+        val (type, deviceTag) = keyType.toSignerTypeAndTag()
+        // Claims also accept a Coldcard previously imported through QR/file.
+        val tag = if (keyType == KeyType.COLDCARD &&
+            coordinator?.request?.flow is SignerIntroFlow.ClaimInheritance
+        ) SignerTag.COLDCARD else deviceTag
+        return filterExistingSigners(
+            filterSignerByType(type, tag).filter { it.derivationPath.isRecommendedMultiSigPath }
+        )
+    }
+
+    private fun offerExisting(keyType: KeyType) {
+        val signers = findExistingSigners(keyType)
+        if (signers.isEmpty()) {
+            dismissExistingSigners()
+            dispatch(requireNotNull(coordinator).createNew(keyType))
+        } else {
+            selectionState.save(keyType)
+            _state.update { it.copy(existingSelection = ExistingSignerSelection(keyType, signers)) }
         }
     }
 
@@ -312,16 +258,10 @@ class SignerIntroViewModel @Inject constructor(
             restartWizardUseCase(RestartWizardUseCase.Param(plan, groupId))
                 .onSuccess {
                     membershipStepManager.restart()
-                    _event.emit(SignerIntroEvent.RestartWizardSuccess)
+                    _event.send(SignerIntroEvent.RestartWizardSuccess)
                 }.onFailure {
-                    _event.emit(SignerIntroEvent.Error(it.message.orUnknownError()))
+                    _event.send(SignerIntroEvent.Error(it.message.orUnknownError()))
                 }
-        }
-    }
-
-    fun createNewSigner(type: SignerType, tag: SignerTag? = null) {
-        viewModelScope.launch {
-            _event.emit(SignerIntroEvent.OpenSetupSigner(type, tag))
         }
     }
 
@@ -345,10 +285,10 @@ class SignerIntroViewModel @Inject constructor(
                     replace = true
                 )
             ).onSuccess { signer ->
-                _event.emit(SignerIntroEvent.CreateSoftwareSignerSuccess(masterSignerMapper(signer)))
+                _event.send(SignerIntroEvent.CreateSoftwareSignerSuccess(masterSignerMapper(signer)))
             }.onFailure { e ->
                 Timber.e(e)
-                _event.emit(SignerIntroEvent.Error(e.message.orUnknownError()))
+                _event.send(SignerIntroEvent.Error(e.message.orUnknownError()))
             }
         }
     }
@@ -362,120 +302,29 @@ class SignerIntroViewModel @Inject constructor(
                     replace = true
                 )
             ).onSuccess { signer ->
-                _event.emit(SignerIntroEvent.CreateSoftwareSignerSuccess(masterSignerMapper(signer)))
+                _event.send(SignerIntroEvent.CreateSoftwareSignerSuccess(masterSignerMapper(signer)))
             }.onFailure { e ->
                 Timber.e(e)
-                _event.emit(SignerIntroEvent.Error(e.message.orUnknownError()))
+                _event.send(SignerIntroEvent.Error(e.message.orUnknownError()))
             }
         }
     }
+    private companion object {
+        const val RECOVERY_VISIBLE = "signer_intro_recovery_visible"
+        const val VERIFICATION_OPENED = "signer_intro_verification_opened"
+    }
+
 }
 
-private val offChainInheritanceKeyTypes = listOf(
-    SupportedSigner(
-        type = SignerType.COLDCARD_NFC,
-        tag = null,
-        walletType = WalletType.MULTI_SIG,
-        addressType = AddressType.NATIVE_SEGWIT
-    ),
-    SupportedSigner(
-        type = SignerType.NFC,
-        tag = null,
-        walletType = WalletType.MULTI_SIG,
-        addressType = AddressType.NATIVE_SEGWIT
-    ),
-    SupportedSigner(
-        type = SignerType.SOFTWARE,
-        tag = null,
-        walletType = WalletType.MULTI_SIG,
-        addressType = AddressType.NATIVE_SEGWIT
-    )
-)
-
-val defaultSupportedSigners = listOf(
-    SupportedSigner(
-        type = SignerType.NFC,
-        tag = null,
-        walletType = WalletType.MULTI_SIG,
-        addressType = AddressType.NATIVE_SEGWIT
-    ),
-    SupportedSigner(
-        type = SignerType.HARDWARE,
-        tag = SignerTag.TREZOR,
-        walletType = WalletType.MULTI_SIG,
-        addressType = AddressType.NATIVE_SEGWIT
-    ),
-    SupportedSigner(
-        type = SignerType.AIRGAP,
-        tag = SignerTag.JADE,
-        walletType = WalletType.MULTI_SIG,
-        addressType = AddressType.NATIVE_SEGWIT
-    ),
-    SupportedSigner(
-        type = SignerType.PORTAL_NFC,
-        tag = null,
-        walletType = WalletType.MULTI_SIG,
-        addressType = AddressType.NATIVE_SEGWIT
-    ),
-    SupportedSigner(
-        type = SignerType.AIRGAP,
-        tag = SignerTag.SEEDSIGNER,
-        walletType = WalletType.MULTI_SIG,
-        addressType = AddressType.NATIVE_SEGWIT
-    ),
-    SupportedSigner(
-        type = SignerType.AIRGAP,
-        tag = SignerTag.KEYSTONE,
-        walletType = WalletType.MULTI_SIG,
-        addressType = AddressType.NATIVE_SEGWIT
-    ),
-    SupportedSigner(
-        type = SignerType.AIRGAP,
-        tag = SignerTag.PASSPORT,
-        walletType = WalletType.MULTI_SIG,
-        addressType = AddressType.NATIVE_SEGWIT
-    ),
-    SupportedSigner(
-        type = SignerType.COLDCARD_NFC,
-        tag = null,
-        walletType = WalletType.MULTI_SIG,
-        addressType = AddressType.NATIVE_SEGWIT
-    ),
-    SupportedSigner(
-        type = SignerType.HARDWARE,
-        tag = SignerTag.BITBOX,
-        walletType = WalletType.MULTI_SIG,
-        addressType = AddressType.NATIVE_SEGWIT
-    ),
-    SupportedSigner(
-        type = SignerType.HARDWARE,
-        tag = SignerTag.LEDGER,
-        walletType = WalletType.MULTI_SIG,
-        addressType = AddressType.NATIVE_SEGWIT
-    ),
-    SupportedSigner(
-        type = SignerType.AIRGAP,
-        tag = SignerTag.KRUX,
-        walletType = WalletType.MULTI_SIG,
-        addressType = AddressType.NATIVE_SEGWIT
-    ),
-    SupportedSigner(
-        type = SignerType.SOFTWARE,
-        tag = null,
-        walletType = WalletType.MULTI_SIG,
-        addressType = AddressType.NATIVE_SEGWIT
-    )
-)
-
-sealed class SignerIntroEvent {
-    data class ShowFilteredSigners(
-        val type: SignerType,
-        val tag: SignerTag?,
-        val signers: List<SignerModel>
-    ) : SignerIntroEvent()
-
-    data class OpenSetupSigner(val type: SignerType, val tag: SignerTag?) : SignerIntroEvent()
-    data object RestartWizardSuccess : SignerIntroEvent()
-    data class Error(val message: String) : SignerIntroEvent()
-    data class CreateSoftwareSignerSuccess(val signer: SignerModel) : SignerIntroEvent()
+sealed interface SignerIntroEvent {
+    data class CheckFirmware(val device: SignerFirmwareDevice) : SignerIntroEvent
+    data class OpenDevice(val action: SignerDeviceAction) : SignerIntroHostEvent
+    data class ReturnHardwareTag(val tag: SignerTag) : SignerIntroHostEvent
+    data object ReturnPlatformKey : SignerIntroHostEvent
+    data object RestartWizardSuccess : SignerIntroHostEvent
+    data class Error(val message: String) : SignerIntroHostEvent
+    data class CreateSoftwareSignerSuccess(val signer: SignerModel) : SignerIntroHostEvent
 }
+
+/** The Activity cannot receive a Compose navigation or sheet action. */
+sealed interface SignerIntroHostEvent : SignerIntroEvent

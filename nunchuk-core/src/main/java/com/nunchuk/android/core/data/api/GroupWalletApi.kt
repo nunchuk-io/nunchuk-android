@@ -55,6 +55,7 @@ import com.nunchuk.android.core.data.model.payment.CreateRecurringPaymentRequest
 import com.nunchuk.android.core.data.model.replacement.WalletReplacementStatusResponse
 import com.nunchuk.android.core.network.Data
 import com.nunchuk.android.model.KeyResponse
+import com.nunchuk.android.model.ClaimOptionsRequest
 import com.nunchuk.android.model.KeyVerifiedRequest
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
@@ -640,6 +641,22 @@ internal interface GroupWalletApi {
     suspend fun setKeyVerified(
         @Path("group_id") groupId: String,
         @Path("xfp") keyId: String, @Body payload: KeyVerifiedRequest
+    ): Data<Unit>
+
+    @PUT("/v1.1/group-wallets/groups/{group_id}/draft-wallets/{xfp}/claim-options")
+    suspend fun setDraftClaimOptions(
+        @Path("group_id") groupId: String,
+        @Path("xfp") xfp: String,
+        @Body payload: ClaimOptionsRequest
+    ): Data<Unit>
+
+    @PUT("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/replacement/{xfp}/claim-options")
+    suspend fun setReplacementClaimOptions(
+        @Header("Verify-token") verifyToken: String,
+        @Path("group_id") groupId: String,
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Path("xfp") xfp: String,
+        @Body payload: ClaimOptionsRequest
     ): Data<Unit>
 
     @Multipart

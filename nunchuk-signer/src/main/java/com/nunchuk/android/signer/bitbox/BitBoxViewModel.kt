@@ -15,6 +15,7 @@ import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.CheckExistingKeyUseCase
+import com.nunchuk.android.signer.util.createDeviceAccountKeys
 import com.nunchuk.android.usecase.CreateSignerUseCase
 import com.nunchuk.android.usecase.GetCompoundSignersUseCase
 import com.nunchuk.android.usecase.ResultExistingKey
@@ -58,6 +59,9 @@ class BitBoxViewModel @Inject constructor(
     /** Assisted/group membership flows auto-name the key; standalone lets the user name it. */
     private var isMembershipFlow: Boolean = false
 
+    /** Accounts read from the connected device so far, in account-index order. */
+    private var collectedSigners: List<SingleSigner> = emptyList()
+
     fun setMembershipFlow(value: Boolean) {
         isMembershipFlow = value
     }
@@ -82,6 +86,8 @@ class BitBoxViewModel @Inject constructor(
         _state.update {
             it.copy(walletType = walletType, addressType = addressType, accountIndex = index)
         }
+
+    fun setAccountCount(count: Int) = _state.update { it.copy(accountCount = count.coerceAtLeast(1)) }
 
     fun onError(message: String) = viewModelScope.launch {
         _state.update { it.copy(isProcessing = false) }
@@ -178,7 +184,15 @@ class BitBoxViewModel @Inject constructor(
             type = SignerType.HARDWARE,
             tags = listOf(SignerTag.BITBOX),
         )
-        checkExistingKeyUseCase(CheckExistingKeyUseCase.Params(singleSigner = signer))
+        collectedSigners = collectedSigners + signer
+        if (collectedSigners.size < config.accountCount) {
+            requestNextAccount(config.accountIndex + collectedSigners.size)
+            return@launch
+        }
+        // The replace confirmation is about the device, not one of its accounts, so it is asked
+        // once — for the first account — and applies to every key created below.
+        val firstSigner = collectedSigners.first()
+        checkExistingKeyUseCase(CheckExistingKeyUseCase.Params(singleSigner = firstSigner))
             .onSuccess { existingKeyType ->
                 // Read the names before either naming path needs them, so a slow signer load
                 // can't hand out a name that is already taken.
@@ -186,7 +200,7 @@ class BitBoxViewModel @Inject constructor(
                 _state.update {
                     it.copy(
                         isProcessing = false,
-                        pendingSigner = signer,
+                        pendingSigner = firstSigner,
                         existingKeyType = existingKeyType.takeIf { type -> type != ResultExistingKey.None },
                         replaceExistingKey = false,
                         // Design names the key after the connected device.
@@ -202,14 +216,35 @@ class BitBoxViewModel @Inject constructor(
             }.onFailure { e -> onError(e.message.orUnknownError()) }
     }
 
+    /**
+     * Reads the next account over the session that is already open. Only the pairing/unlock steps
+     * are per-session, so this needs nothing further from the user.
+     */
+    private suspend fun requestNextAccount(index: Int) {
+        val config = _state.value
+        getBip32PathUseCase(
+            GetBip32PathUseCase.Param(
+                index = index,
+                walletType = config.walletType,
+                addressType = config.addressType,
+            )
+        ).onSuccess { path ->
+            _state.update { it.copy(derivationPath = path) }
+            _event.emit(BitBoxScanEvent.FetchXpub(path))
+        }.onFailure { e -> onError(e.message.orUnknownError()) }
+    }
+
     fun confirmExistingKeyDialog() {
         if (_state.value.pendingSigner == null) return
         _state.update { it.copy(existingKeyType = null, replaceExistingKey = true) }
         viewModelScope.launch { continueToNaming() }
     }
 
-    fun dismissExistingKeyDialog() = _state.update {
-        it.copy(pendingSigner = null, existingKeyType = null, replaceExistingKey = false)
+    fun dismissExistingKeyDialog() {
+        collectedSigners = emptyList()
+        _state.update {
+            it.copy(pendingSigner = null, existingKeyType = null, replaceExistingKey = false)
+        }
     }
 
     /**
@@ -241,21 +276,18 @@ class BitBoxViewModel @Inject constructor(
     }
 
     private suspend fun createSigner(name: String) {
-        val signer = _state.value.pendingSigner ?: return
-        val replace = _state.value.replaceExistingKey
+        val accounts = collectedSigners
+        if (accounts.isEmpty()) return
         _state.update { it.copy(isProcessing = true) }
-        createSignerUseCase(
-            CreateSignerUseCase.Params(
-                name = name,
-                xpub = signer.xpub,
-                type = signer.type,
-                derivationPath = signer.derivationPath,
-                masterFingerprint = signer.masterFingerprint,
-                tags = signer.tags,
-                replace = replace,
-            )
-        ).onSuccess { createdSigner ->
-            pushEventManager.push(PushEvent.LocalUserSignerAdded(createdSigner))
+        createDeviceAccountKeys(
+            accounts = accounts,
+            name = name,
+            replace = _state.value.replaceExistingKey,
+            takenNames = existingSignerNames,
+            createSignerUseCase = createSignerUseCase,
+            onCreated = { pushEventManager.push(PushEvent.LocalUserSignerAdded(it)) },
+        ).onSuccess { firstCreated ->
+            collectedSigners = emptyList()
             _state.update {
                 it.copy(
                     isProcessing = false,
@@ -264,7 +296,7 @@ class BitBoxViewModel @Inject constructor(
                     replaceExistingKey = false,
                 )
             }
-            _event.emit(BitBoxScanEvent.OpenSignerInfo(createdSigner))
+            _event.emit(BitBoxScanEvent.OpenSignerInfo(firstCreated))
         }.onFailure { e ->
             _state.update { it.copy(isProcessing = false) }
             _event.emit(BitBoxScanEvent.Error(e.message.orUnknownError()))

@@ -23,7 +23,9 @@ import android.content.Intent
 import android.os.Bundle
 import com.nunchuk.android.core.data.model.QuickWalletParam
 import com.nunchuk.android.core.signer.OnChainAddSignerParam
+import com.nunchuk.android.model.inheritance.ClaimOption
 import com.nunchuk.android.share.ColdcardAction
+import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.utils.parcelable
 
@@ -44,7 +46,19 @@ data class SetupMk4Args(
     val isFromAddKey: Boolean = false,
     val quickWalletParam: QuickWalletParam? = null,
     val onChainAddSignerParam: OnChainAddSignerParam? = null,
-    val magic: String? = null
+    val magic: String? = null,
+    /**
+     * Which sharing method of an off-chain inheritance key this run is dealing with. The Coldcard
+     * backup screens only ever produce or check the encrypted backup, so the server has to be told
+     * which half of a "do both" key they resolved. Null on every other flow, where the key carries
+     * a single verification.
+     */
+    val claimOption: ClaimOption? = null,
+    /**
+     * Which device the encrypted-backup screens are talking about. The flow is shared — Coldcard
+     * is simply its first user — so the vendor has to come in rather than be assumed.
+     */
+    val signerTag: SignerTag? = null,
 ) {
 
     fun buildBundle() = Bundle().apply {
@@ -65,6 +79,8 @@ data class SetupMk4Args(
         putParcelable(QUICK_WALLET_PARAM, quickWalletParam)
         putParcelable(ONCHAIN_ADD_SIGNER_PARAM, onChainAddSignerParam)
         putString(MAGIC, magic)
+        putString(CLAIM_OPTION, claimOption?.name)
+        putSerializable(SIGNER_TAG, signerTag)
     }
 
     companion object {
@@ -85,6 +101,8 @@ data class SetupMk4Args(
         private const val QUICK_WALLET_PARAM = "quick_wallet_param"
         private const val ONCHAIN_ADD_SIGNER_PARAM = "onchain_add_signer_param"
         private const val MAGIC = "magic"
+        private const val CLAIM_OPTION = "claim_option"
+        private const val SIGNER_TAG = "signer_tag"
 
         fun deserializeFrom(intent: Intent): SetupMk4Args = SetupMk4Args(
             fromMembershipFlow = intent.extras?.getBoolean(FROM_MEMBERSHIP_FLOW, false) == true,
@@ -103,7 +121,10 @@ data class SetupMk4Args(
             isFromAddKey = intent.extras?.getBoolean(IS_FROM_ADD_KEY, false) == true,
             quickWalletParam = intent.parcelable<QuickWalletParam>(QUICK_WALLET_PARAM),
             onChainAddSignerParam = intent.parcelable<OnChainAddSignerParam>(ONCHAIN_ADD_SIGNER_PARAM),
-            magic = intent.extras?.getString(MAGIC)
+            magic = intent.extras?.getString(MAGIC),
+            claimOption = intent.extras?.getString(CLAIM_OPTION)
+                ?.let { name -> ClaimOption.entries.firstOrNull { it.name == name } },
+            signerTag = intent.extras?.getSerializable(SIGNER_TAG) as? SignerTag,
         )
     }
 }

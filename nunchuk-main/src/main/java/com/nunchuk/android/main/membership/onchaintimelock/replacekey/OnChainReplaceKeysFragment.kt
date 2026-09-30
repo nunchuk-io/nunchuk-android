@@ -85,6 +85,8 @@ import com.nunchuk.android.compose.showNunchukSnackbar
 import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toSingleSigner
+import com.nunchuk.android.core.signer.SignerIntroFlow
+import com.nunchuk.android.core.signer.SignerIntroRequest
 import com.nunchuk.android.core.util.BackUpSeedPhraseType
 import com.nunchuk.android.core.util.InheritancePlanType
 import com.nunchuk.android.core.util.flowObserver
@@ -100,6 +102,7 @@ import com.nunchuk.android.main.membership.model.ReplaceStepData
 import com.nunchuk.android.main.membership.model.resId
 import com.nunchuk.android.main.membership.onchaintimelock.importantpassphrase.ImportantNoticePassphraseFragment
 import com.nunchuk.android.model.OnChainReplaceKeyStep
+import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.TimelockBased
 import com.nunchuk.android.model.TimelockExtra
 import com.nunchuk.android.model.VerifyType
@@ -110,13 +113,14 @@ import com.nunchuk.android.nav.args.AddAirSignerArgs
 import com.nunchuk.android.nav.args.BackUpSeedPhraseArgs
 import com.nunchuk.android.nav.args.SetupMk4Args
 import com.nunchuk.android.share.result.GlobalResultKey
+import com.nunchuk.android.signer.bitbox.BitBoxActivity
+import com.nunchuk.android.signer.ledger.LedgerActivity
 import com.nunchuk.android.signer.mk4.inheritance.ColdCardIntroFragment
 import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.utils.parcelable
-import com.nunchuk.android.utils.parcelableArrayList
 import com.nunchuk.android.widget.NCInfoDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -157,6 +161,53 @@ class OnChainReplaceKeysFragment : Fragment() {
                         (activity as MembershipActivity).walletId
                     )
                 }
+            }
+        }
+
+    /**
+     * Ledger paired in-app for this slot: the device hands back the key it read, or reports that
+     * the user picked "Add via desktop app" on its intro — which this flow can not do.
+     */
+    private val addLedgerLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            val data = result.data
+            if (result.resultCode == Activity.RESULT_OK && data != null) {
+                data.parcelable<SingleSigner>(GlobalResultKey.EXTRA_SIGNER)?.let { signer ->
+                    viewModel.handleSignerNewIndex(signer, currentKeyData)
+                    return@registerForActivityResult
+                }
+                if (data.getStringExtra(LedgerActivity.EXTRA_RESULT_ACTION) == LedgerActivity.RESULT_ACTION_OPEN_DESKTOP_FLOW) {
+                    openRequestAddDesktopKey(SignerTag.LEDGER)
+                }
+            }
+        }
+
+    /** BitBox mirror of [addLedgerLauncher]. */
+    private val addBitBoxLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            val data = result.data
+            if (result.resultCode == Activity.RESULT_OK && data != null) {
+                data.parcelable<SingleSigner>(GlobalResultKey.EXTRA_SIGNER)?.let { signer ->
+                    viewModel.handleSignerNewIndex(signer, currentKeyData)
+                    return@registerForActivityResult
+                }
+                if (data.getStringExtra(BitBoxActivity.EXTRA_RESULT_ACTION) == BitBoxActivity.RESULT_ACTION_OPEN_DESKTOP_FLOW) {
+                    openRequestAddDesktopKey(SignerTag.BITBOX)
+                }
+            }
+        }
+
+    /**
+     * Tail end of "verify your inheritance key seed phrase": the user restored the seed onto the
+     * device and re-added it, and the flow hands back the fingerprint it saw. Matching it against
+     * the key on the card is what the verification is, so mark the step verified from here — the
+     * same relay the add-key list runs, against the replacement key instead of the wizard step.
+     */
+    private val verifyBackUpSeedPhraseLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            val verifiedXfp = result.data?.getStringExtra(GlobalResultKey.EXTRA_VERIFIED_XFP)
+            if (result.resultCode == Activity.RESULT_OK && !verifiedXfp.isNullOrEmpty()) {
+                viewModel.setReplaceKeyVerified(verifiedXfp)
             }
         }
 
@@ -233,31 +284,16 @@ class OnChainReplaceKeysFragment : Fragment() {
             clearFragmentResult(TapSignerListBottomSheetFragment.REQUEST_KEY)
         }
 
+        // An inheritance key reaches the signer intro through ImportantNoticePassphraseFragment,
+        // which relays the intro's result back here as a fragment result instead of an activity
+        // result. It carries the same extras, so it takes the same dispatcher.
         setFragmentResultListener(ImportantNoticePassphraseFragment.REQUEST_KEY) { _, bundle ->
-            val filteredSigners =
-                bundle.parcelableArrayList<SignerModel>(GlobalResultKey.EXTRA_SIGNERS)
-            val signerTag = filteredSigners?.firstOrNull()?.tags?.firstOrNull { it != SignerTag.INHERITANCE }
-            selectedSignerTag = signerTag
-            if (!filteredSigners.isNullOrEmpty()) {
-                findNavController().navigate(
-                    OnChainReplaceKeysFragmentDirections.actionOnChainReplaceKeysFragmentToTapSignerListBottomSheetFragment(
-                        filteredSigners.toTypedArray(),
-                        if (filteredSigners.first().type == SignerType.COLDCARD_NFC || filteredSigners.first().tags.contains(
-                                SignerTag.COLDCARD
-                            )
-                        ) {
-                            SignerType.COLDCARD_NFC
-                        } else {
-                            SignerType.AIRGAP
-                        },
-                        "",
-                        true
-                    )
-                )
-            }
+            handleSignerIntroResult(
+                signerModel = bundle.parcelable<SignerModel>(GlobalResultKey.EXTRA_SIGNER),
+                requestDesktopSignerTag = bundle.getSerializable(GlobalResultKey.EXTRA_SIGNER_TAG) as? SignerTag,
+            )
             clearFragmentResult(ImportantNoticePassphraseFragment.REQUEST_KEY)
         }
-        // Removed: Fragment result listener replaced with signerIntroLauncher activity result
 
         setFragmentResultListener(ColdCardIntroFragment.REQUEST_KEY) { _, bundle ->
             val signerTag = bundle.getSerializable(GlobalResultKey.EXTRA_SIGNER_TAG) as? SignerTag
@@ -306,9 +342,16 @@ class OnChainReplaceKeysFragment : Fragment() {
     }
 
     private fun handleSignerIntroResult(data: Intent) {
-        val signerModel = data.parcelable<SignerModel>(GlobalResultKey.EXTRA_SIGNER)
-        val requestDesktopSignerTag =
-            data.getSerializableExtra(GlobalResultKey.EXTRA_SIGNER_TAG) as? SignerTag
+        handleSignerIntroResult(
+            signerModel = data.parcelable<SignerModel>(GlobalResultKey.EXTRA_SIGNER),
+            requestDesktopSignerTag = data.getSerializableExtra(GlobalResultKey.EXTRA_SIGNER_TAG) as? SignerTag,
+        )
+    }
+
+    private fun handleSignerIntroResult(
+        signerModel: SignerModel?,
+        requestDesktopSignerTag: SignerTag?,
+    ) {
         val signerTag =
             requestDesktopSignerTag ?: signerModel?.tags?.firstOrNull { it != SignerTag.INHERITANCE }
         selectedSignerTag = signerTag
@@ -359,10 +402,52 @@ class OnChainReplaceKeysFragment : Fragment() {
                 )
             )
         } else {
-            openRequestAddDesktopKey(tag)
+            openInAppHardwareOrDesktopFlow(tag)
         }
     }
 
+    /**
+     * Ledger and BitBox pair with the app over BLE/USB, the same as they do when the key is first
+     * added; every other hardware key has no in-app flow here.
+     */
+    private fun openInAppHardwareOrDesktopFlow(tag: SignerTag) {
+        when (tag) {
+            SignerTag.LEDGER -> openLedgerFlow()
+            SignerTag.BITBOX -> openBitBoxFlow()
+            else -> openRequestAddDesktopKey(tag)
+        }
+    }
+
+    /**
+     * A key slot here holds two accounts of the same device, so the account to read is however
+     * many signers the slot already has, and the second one has to come off the first one's device.
+     */
+    private fun openLedgerFlow() {
+        val signers = currentKeyData?.getAllSigners().orEmpty()
+        addLedgerLauncher.launch(
+            LedgerActivity.buildIntent(
+                activityContext = requireActivity(),
+                isMembershipFlow = true,
+                accountIndex = signers.size,
+                expectedXfp = signers.firstOrNull()?.fingerPrint.orEmpty(),
+            )
+        )
+    }
+
+    /** Same two-accounts-of-one-device rule as [openLedgerFlow]. */
+    private fun openBitBoxFlow() {
+        val signers = currentKeyData?.getAllSigners().orEmpty()
+        addBitBoxLauncher.launch(
+            BitBoxActivity.buildIntent(
+                activityContext = requireActivity(),
+                isMembershipFlow = true,
+                accountIndex = signers.size,
+                expectedXfp = signers.firstOrNull()?.fingerPrint.orEmpty(),
+            )
+        )
+    }
+
+    /** Replace has no desktop hand-off, so a desktop-only key can only be reported as such. */
     private fun openRequestAddDesktopKey(tag: SignerTag) {
         NCInfoDialog(requireActivity())
             .showDialog(
@@ -441,6 +526,8 @@ class OnChainReplaceKeysFragment : Fragment() {
                 is OnChainReplaceKeyEvent.HandleSignerTypeLogic -> {
                     handleSignerTypeLogic(event.type, event.tag)
                 }
+
+                OnChainReplaceKeyEvent.OnKeyVerified -> openVerifyBackUpSuccess()
             }
         }
     }
@@ -499,21 +586,21 @@ class OnChainReplaceKeysFragment : Fragment() {
                 navigator.openSignerIntroScreen(
                     launcher = signerIntroLauncher,
                     activityContext = requireActivity(),
-                    walletId = (activity as MembershipActivity).walletId,
-                    groupId = args.groupId,
-                    supportedSigners = null,
-                    onChainAddSignerParam = OnChainAddSignerParam(
-                        flags = OnChainAddSignerParam.FLAG_ADD_SIGNER,
-                        keyIndex = allSigners.size,
-                        currentSigner = allSigners.firstOrNull(),
-                        replaceInfo = currentStep?.let {
-                            OnChainAddSignerParam.ReplaceInfo(
-                                replacedXfp = viewModel.replacedXfp,
-                                step = it
-                            )
-                        }
+                    request = SignerIntroRequest(
+                        walletId = (activity as MembershipActivity).walletId,
+                        groupId = args.groupId,
+                        flow = SignerIntroFlow.OnChainTimelockKey(
+                            keyIndex = allSigners.size,
+                            currentSigner = allSigners.firstOrNull(),
+                            replaceInfo = currentStep?.let {
+                                OnChainAddSignerParam.ReplaceInfo(
+                                    replacedXfp = viewModel.replacedXfp,
+                                    step = it
+                                )
+                            }
+                        ),
+                        walletType = WalletType.MINISCRIPT,
                     ),
-                    walletType = WalletType.MINISCRIPT,
                 )
             }
         } else {
@@ -559,11 +646,13 @@ class OnChainReplaceKeysFragment : Fragment() {
             SignerType.HARDWARE -> {
                 selectedSignerTag = tag
                 when (tag) {
-                    SignerTag.LEDGER -> openRequestAddDesktopKey(SignerTag.LEDGER)
-                    SignerTag.TREZOR -> openRequestAddDesktopKey(SignerTag.TREZOR)
-                    SignerTag.BITBOX -> openRequestAddDesktopKey(SignerTag.BITBOX)
-                    SignerTag.COLDCARD -> openRequestAddDesktopKey(SignerTag.COLDCARD)
-                    SignerTag.JADE -> openRequestAddDesktopKey(SignerTag.JADE)
+                    SignerTag.LEDGER,
+                    SignerTag.TREZOR,
+                    SignerTag.BITBOX,
+                    SignerTag.COLDCARD,
+                    SignerTag.JADE,
+                        -> openInAppHardwareOrDesktopFlow(tag)
+
                     else -> {}
                 }
             }
@@ -631,7 +720,26 @@ class OnChainReplaceKeysFragment : Fragment() {
                 signer = event.signer,
                 groupId = (activity as MembershipActivity).groupId,
                 walletId = (activity as MembershipActivity).walletId,
-                replacedXfp = event.signer.fingerPrint
+                replacedXfp = event.signer.fingerPrint,
+                // Scopes the key types offered when the restored key is re-added. The server
+                // advertises an inheritance entry per wallet type, so without this the same
+                // device is listed once for each of them.
+                walletType = WalletType.MINISCRIPT,
+            ),
+            // Keys that re-add themselves in-app (Ledger, BitBox) report the restored device back
+            // here; Coldcard and air-gap finish verification on their own screens and return nothing.
+            launcher = verifyBackUpSeedPhraseLauncher,
+        )
+    }
+
+    private fun openVerifyBackUpSuccess() {
+        navigator.openBackUpSeedPhraseActivity(
+            requireActivity(),
+            BackUpSeedPhraseArgs(
+                type = BackUpSeedPhraseType.SUCCESS,
+                signer = null,
+                groupId = (activity as MembershipActivity).groupId,
+                walletId = (activity as MembershipActivity).walletId,
             )
         )
     }

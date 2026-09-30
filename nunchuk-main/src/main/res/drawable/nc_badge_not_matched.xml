@@ -1,0 +1,14 @@
+<!-- Verification failed: the filled badge the design puts above the result. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="96dp"
+    android:height="96dp"
+    android:viewportWidth="97"
+    android:viewportHeight="96">
+  <path
+      android:pathData="M48.5,48m-48,0a48,48 0,1 1,96 0a48,48 0,1 1,-96 0"
+      android:fillColor="#CF4018"/>
+  <path
+      android:pathData="M34.5,30.5L31,34L45,48L31,62L34.5,65.5L48.5,51.5L62.5,65.5L66,62L52,48L66,34L62.5,30.5L48.5,44.5Z"
+      android:fillColor="#FFFFFF"
+      android:fillType="evenOdd"/>
+</vector>

@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.reviewplan
 
+import android.os.Build
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -41,16 +42,20 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
@@ -60,6 +65,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
+import com.nunchuk.android.compose.NcScaffold
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.fillDenim
@@ -68,6 +74,10 @@ import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.compose.whisper
 import com.nunchuk.android.core.util.InheritancePlanFlow
+import com.nunchuk.android.compose.showNunchukSnackbar
+import com.nunchuk.android.core.util.copyToClipboard
+import kotlinx.coroutines.launch
+import com.nunchuk.android.main.BuildConfig
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceBeneficiaryAllocation
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceBufferPeriodApplyType
@@ -84,11 +94,13 @@ import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.rel
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasescheduledetail.ReleaseScheduleStage
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasescheduledetail.ReleaseScheduleSummaryProgress
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releasescheduledetail.ReleaseScheduleUiState
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.sharesecretinfo.toInheritanceKeyRoutes
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.view.AllocationDonutChart
 import com.nunchuk.android.model.Period
 import com.nunchuk.android.model.TimelockBased
 import com.nunchuk.android.model.byzantine.isMasterOrAdmin
 import com.nunchuk.android.model.byzantine.toRole
+import com.nunchuk.android.model.inheritance.ClaimOption
 import com.nunchuk.android.model.inheritance.EmailNotificationSettings
 import com.nunchuk.android.model.inheritance.InheritancePlanBeneficiary
 import com.nunchuk.android.utils.Utils
@@ -109,7 +121,7 @@ fun InheritanceReviewPlanScreen(
     onClose: () -> Unit = {},
     onViewClaimingInstruction: () -> Unit = {},
     onEditBufferPeriodClick: (bufferPeriod: Period?) -> Unit = {},
-    onBackUpPasswordInfoClick: () -> Unit = {},
+    onInheritanceKeyInfoClick: (routes: List<ClaimOption>) -> Unit = {},
     onEditAssetAllocationClick: () -> Unit = {},
     onEditReleaseMethodClick: () -> Unit = {},
     onEditBeneficiarySchedulesClick: () -> Unit = {},
@@ -140,6 +152,7 @@ fun InheritanceReviewPlanScreen(
         setupOrReviewParam = setupOrReviewParam,
         state = state,
         isContinueButtonEnabled = isContinueButtonEnabled,
+        claimOptions = sharedUiState.inheritanceClaimOptions,
         onContinueClicked = {
             viewModel.calculateRequiredSignatures(
                 flow = InheritanceReviewPlanViewModel.ReviewFlow.CREATE_OR_UPDATE,
@@ -161,7 +174,7 @@ fun InheritanceReviewPlanScreen(
         onClose = onClose,
         onViewClaimingInstruction = onViewClaimingInstruction,
         onEditBufferPeriodClick = onEditBufferPeriodClick,
-        onBackUpPasswordInfoClick = onBackUpPasswordInfoClick,
+        onInheritanceKeyInfoClick = onInheritanceKeyInfoClick,
         onEditAssetAllocationClick = onEditAssetAllocationClick,
         onEditReleaseMethodClick = onEditReleaseMethodClick,
         onEditBeneficiarySchedulesClick = onEditBeneficiarySchedulesClick,
@@ -183,6 +196,7 @@ fun InheritanceReviewPlanScreenContent(
         walletId = ""
     ),
     isContinueButtonEnabled: Boolean = true,
+    claimOptions: List<ClaimOption> = emptyList(),
     onContinueClicked: () -> Unit = {},
     onShareSecretClicked: () -> Unit = {},
     onDiscardChange: () -> Unit = {},
@@ -193,7 +207,7 @@ fun InheritanceReviewPlanScreenContent(
     onClose: () -> Unit = {},
     onViewClaimingInstruction: () -> Unit = {},
     onEditBufferPeriodClick: (bufferPeriod: Period?) -> Unit = {},
-    onBackUpPasswordInfoClick: () -> Unit = {},
+    onInheritanceKeyInfoClick: (routes: List<ClaimOption>) -> Unit = {},
     onEditAssetAllocationClick: () -> Unit = {},
     onEditReleaseMethodClick: () -> Unit = {},
     onEditBeneficiarySchedulesClick: () -> Unit = {},
@@ -209,13 +223,28 @@ fun InheritanceReviewPlanScreenContent(
     } else {
         magicalPhrase.ifBlank { stringResource(id = R.string.nc_no_listed) }
     }
+    val context = LocalContext.current
+    val snackState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
+    val copiedMessage = stringResource(id = R.string.nc_copied_to_clipboard)
+    val onCopyMagicPhrase: ((String) -> Unit)? = if (BuildConfig.DEBUG) {
+        { phrase ->
+            context.copyToClipboard(label = "Magical phrase", text = phrase)
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+                coroutineScope.launch { snackState.showNunchukSnackbar(message = copiedMessage) }
+            }
+        }
+    } else {
+        null
+    }
     val changeHighlightColor = Color(0xFFCF4018)
     val shouldHighlightChangedSection = planFlow == InheritancePlanFlow.VIEW
     val highlights = state.changeHighlights
 
     NunchukTheme {
-        Scaffold(
+        NcScaffold(
             modifier = Modifier.navigationBarsPadding(),
+            snackState = snackState,
             topBar = {
                 val title = if (planFlow == InheritancePlanFlow.SETUP) stringResource(
                     id = R.string.nc_estimate_remain_time,
@@ -360,14 +389,20 @@ fun InheritanceReviewPlanScreenContent(
                                 )
                                 if (isMultiBeneficiaryFlow && setupOrReviewParam.beneficiaryAllocations.isNotEmpty()) {
                                     MultiBeneficiaryMagicPhrasesPlanItem(
-                                        beneficiaryAllocations = setupOrReviewParam.beneficiaryAllocations
+                                        beneficiaryAllocations = setupOrReviewParam.beneficiaryAllocations,
+                                        onCopyMagicPhrase = onCopyMagicPhrase,
                                     )
                                 } else {
                                     SpecialDetailPlanItem(
                                         iconId = R.drawable.ic_star_light,
                                         title = stringResource(R.string.nc_magical_phrase),
                                         content = magicalPhraseMask,
-                                        editable = false
+                                        editable = false,
+                                        onContentClick = if (onCopyMagicPhrase != null && magicalPhrase.isNotBlank()) {
+                                            { onCopyMagicPhrase(magicalPhrase) }
+                                        } else {
+                                            null
+                                        },
                                     )
                                 }
                                 if (isMiniscriptWallet) {
@@ -382,20 +417,59 @@ fun InheritanceReviewPlanScreenContent(
                                         )
                                     }
                                 } else {
-                                    Spacer(modifier = Modifier.height(12.dp))
-                                    val isSingleKey = setupOrReviewParam.inheritanceKeys.size == 1
-                                    SpecialDetailPlanItem(
-                                        iconId = R.drawable.ic_password_light,
-                                        title = stringResource(if (isSingleKey) R.string.nc_backup_password else R.string.nc_two_backup_password),
-                                        actionText = stringResource(id = R.string.nc_text_info),
-                                        content = if (!isSingleKey) stringResource(
-                                            id = R.string.nc_backup_passwords_desc
-                                        ) else stringResource(id = R.string.nc_backup_password_desc),
-                                        editable = true,
-                                        onClick = {
-                                            onBackUpPasswordInfoClick()
+                                    // What the Beneficiary needs follows the distribution choice made
+                                    // during wallet setup, so a plan with no encrypted backup must not
+                                    // list a Backup Password it does not have.
+                                    val routes = claimOptions.toInheritanceKeyRoutes()
+                                    when {
+                                        // Both methods unlock the same key, so they are one thing to
+                                        // hand over: a single card per key, whose Info explains the
+                                        // Backup Password and the seed phrase back to back.
+                                        routes.size > 1 -> {
+                                            setupOrReviewParam.inheritanceKeys.forEach { key ->
+                                                Spacer(modifier = Modifier.height(12.dp))
+                                                SpecialDetailPlanItem(
+                                                    iconId = R.drawable.ic_key,
+                                                    title = pluralStringResource(R.plurals.nc_inheritance_key, 1),
+                                                    subTitle = "XFP: ${key.uppercase()}",
+                                                    content = stringResource(R.string.nc_inheritance_key_backup_or_seed_desc),
+                                                    actionText = stringResource(id = R.string.nc_text_info),
+                                                    editable = true,
+                                                    onClick = { onInheritanceKeyInfoClick(routes) }
+                                                )
+                                            }
                                         }
-                                    )
+
+                                        ClaimOption.SEED_PHRASE in routes -> {
+                                            setupOrReviewParam.inheritanceKeys.forEach { key ->
+                                                Spacer(modifier = Modifier.height(12.dp))
+                                                SpecialDetailPlanItem(
+                                                    iconId = R.drawable.ic_key,
+                                                    title = pluralStringResource(R.plurals.nc_inheritance_key, 1),
+                                                    subTitle = "XFP: ${key.uppercase()}",
+                                                    content = stringResource(R.string.nc_12_or_24_word_inheritance_key_backup),
+                                                    actionText = stringResource(id = R.string.nc_text_info),
+                                                    editable = true,
+                                                    onClick = { onInheritanceKeyInfoClick(routes) }
+                                                )
+                                            }
+                                        }
+
+                                        else -> {
+                                            Spacer(modifier = Modifier.height(12.dp))
+                                            val isSingleKey = setupOrReviewParam.inheritanceKeys.size == 1
+                                            SpecialDetailPlanItem(
+                                                iconId = R.drawable.ic_password_light,
+                                                title = stringResource(if (isSingleKey) R.string.nc_backup_password else R.string.nc_two_backup_password),
+                                                actionText = stringResource(id = R.string.nc_text_info),
+                                                content = if (!isSingleKey) stringResource(
+                                                    id = R.string.nc_backup_passwords_desc
+                                                ) else stringResource(id = R.string.nc_backup_password_desc),
+                                                editable = true,
+                                                onClick = { onInheritanceKeyInfoClick(routes) }
+                                            )
+                                        }
+                                    }
                                 }
                                 if (setupOrReviewParam.setupFlowType == InheritanceSetupFlowType.OLD_FLOW) {
                                     Text(
@@ -766,6 +840,7 @@ private fun SingleBeneficiaryReleaseScheduleSection(
 @Composable
 private fun MultiBeneficiaryMagicPhrasesPlanItem(
     beneficiaryAllocations: List<InheritanceBeneficiaryAllocation>,
+    onCopyMagicPhrase: ((String) -> Unit)? = null,
 ) {
     Column(
         modifier = Modifier
@@ -802,7 +877,11 @@ private fun MultiBeneficiaryMagicPhrasesPlanItem(
                     color = colorResource(id = R.color.nc_grey_g7),
                 )
                 Text(
-                    modifier = Modifier.padding(top = 2.dp),
+                    modifier = Modifier
+                        .padding(top = 2.dp)
+                        .clickable(enabled = onCopyMagicPhrase != null && allocation.magic.isNotBlank()) {
+                            onCopyMagicPhrase?.invoke(allocation.magic)
+                        },
                     text = allocation.magic.ifBlank { stringResource(id = R.string.nc_no_listed) },
                     style = NunchukTheme.typography.body,
                     color = colorResource(id = R.color.nc_grey_g7),
@@ -1210,7 +1289,8 @@ fun SpecialDetailPlanItem(
     content: String = "dolphin concert apple",
     editable: Boolean = false,
     actionText: String = stringResource(id = R.string.nc_edit),
-    onClick: () -> Unit = {}
+    onClick: () -> Unit = {},
+    onContentClick: (() -> Unit)? = null,
 ) {
     Column(
         modifier = Modifier
@@ -1269,6 +1349,7 @@ fun SpecialDetailPlanItem(
             modifier = Modifier
                 .padding(start = 32.dp)
                 .fillMaxWidth()
+                .clickable(enabled = onContentClick != null) { onContentClick?.invoke() }
         )
     }
 }

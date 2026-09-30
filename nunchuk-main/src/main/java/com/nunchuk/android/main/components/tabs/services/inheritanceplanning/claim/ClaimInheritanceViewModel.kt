@@ -17,6 +17,7 @@ import com.nunchuk.android.core.network.ApiErrorCode.INHERITANCE_PLAN_NOT_FOUND
 import com.nunchuk.android.core.network.NunchukApiException
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toSingleSigner
+import com.nunchuk.android.core.util.multiSigAccountIndex
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.preparerecover.InheritanceOption
 import com.nunchuk.android.model.InheritanceAdditional
@@ -39,6 +40,7 @@ import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
 import timber.log.Timber
 import javax.inject.Inject
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.verifymessage.ImportSignatureVia
 
 @HiltViewModel
 class ClaimInheritanceViewModel @Inject constructor(
@@ -314,10 +316,14 @@ class ClaimInheritanceViewModel @Inject constructor(
         }
     }
 
-    fun showImportFile() {
+    /**
+     * "Import signature" pressed on the export-completed screen; the verify screen, which owns the
+     * launchers, performs the import over [via].
+     */
+    fun requestImportSignature(via: ImportSignatureVia) {
         _uiState.update {
             it.copy(
-                event = ClaimInheritanceEvent.ImportFile,
+                event = ClaimInheritanceEvent.ImportSignature(via),
             )
         }
     }
@@ -420,7 +426,7 @@ sealed class ClaimInheritanceEvent {
     data object SignerAdded : ClaimInheritanceEvent()
     data class SignMessage(val signer: SignerModel) : ClaimInheritanceEvent()
     data class GenerateChallengeSuccess(val option: InheritanceOption) : ClaimInheritanceEvent()
-    data object ImportFile : ClaimInheritanceEvent()
+    data class ImportSignature(val via: ImportSignatureVia) : ClaimInheritanceEvent()
 }
 
 @Parcelize
@@ -441,6 +447,34 @@ data class ClaimData(
     val isOnChainClaim: Boolean
         get() = !bsms.isNullOrEmpty() || walletType == WalletType.MINISCRIPT
 
-    val derivationPaths = keyOrigins.map { it.derivationPath }
+    /**
+     * One path per [requiredSigners] entry, in that order — the two lists travel together into
+     * the claiming transaction and are read by index. The plan's key origins are the source; a
+     * signer's own path stands in when the plan has none (legacy claims) or the origin cannot be
+     * told apart (a master signer that holds several accounts).
+     */
+    val derivationPaths: List<String>
+        get() = requiredSigners.map { signer -> signer.originDerivationPath() }
+
+    private fun SignerModel.originDerivationPath(): String =
+        keyOrigins.firstOrNull { it.xfp == fingerPrint && (isMasterSigner || it.derivationPath == derivationPath) }
+            ?.derivationPath
+            ?: keyOrigins.firstOrNull { it.xfp == fingerPrint }?.derivationPath
+            ?: derivationPath
+
+    /** Whether one of the added signers is this origin's key. */
+    private fun KeyOrigin.isAdded(): Boolean =
+        signers.any { it.fingerPrint == xfp && (it.isMasterSigner || it.derivationPath == derivationPath) }
+
+    /**
+     * Account the next inheritance key is expected at: taken from the first key of the plan not
+     * added yet. -1 when the plan does not say (no key origins, or all keys already added). Two
+     * keys of one device share an XFP, so an origin counts as added only when a signer sits at
+     * its path too.
+     */
+    val nextKeyAccountIndex: Int
+        get() = keyOrigins
+            .firstOrNull { origin -> !origin.isAdded() }
+            ?.derivationPath?.multiSigAccountIndex ?: -1
 }
 

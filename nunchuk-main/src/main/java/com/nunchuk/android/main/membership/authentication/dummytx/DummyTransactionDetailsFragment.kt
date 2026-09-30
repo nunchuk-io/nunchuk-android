@@ -30,9 +30,9 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.stringResource
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -43,11 +43,10 @@ import androidx.viewbinding.ViewBinding
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.dialog.NcConfirmationDialog
 import com.nunchuk.android.core.base.BaseShareSaveFileFragment
+import com.nunchuk.android.core.bitbox.BitBoxSignPsbtSheet
 import com.nunchuk.android.core.domain.data.SignTransaction
 import com.nunchuk.android.core.domain.membership.TargetAction
-import com.nunchuk.android.core.bitbox.BitBoxSignPsbtSheet
 import com.nunchuk.android.core.ledger.LedgerSignPsbtSheet
-import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.BasePortalActivity
 import com.nunchuk.android.core.nfc.NfcActionListener
@@ -457,6 +456,8 @@ class DummyTransactionDetailsFragment : BaseShareSaveFileFragment<ViewBinding>()
 
     private fun openGroupDashboard(message: String = walletAuthenticationViewModel.signedSuccessMessage) {
         val args by requireActivity().navArgs<WalletAuthenticationActivityArgs>()
+        // Clear the task down to MainActivity first, then stack the dashboard on top.
+        navigator.returnToMainScreen(requireActivity())
         navigator.openGroupDashboardScreen(
             activityContext = requireActivity(),
             groupId = args.groupId.orEmpty(),
@@ -464,7 +465,6 @@ class DummyTransactionDetailsFragment : BaseShareSaveFileFragment<ViewBinding>()
             message = message,
             isFreeGroupWallet = args.signatureFlowType == SignatureFlowType.FREE_GROUP_WALLET
         )
-        ActivityManager.popUntilRoot()
     }
 
     private fun handleSignedFailed(singleSigner: SingleSigner) {

@@ -54,6 +54,7 @@ import com.nunchuk.android.transaction.components.receive.ReceiveTransactionActi
 import com.nunchuk.android.transaction.components.receive.TabCountChangeListener
 import com.nunchuk.android.transaction.components.receive.address.AddressFragmentArgs
 import com.nunchuk.android.transaction.components.receive.address.AddressTab
+import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningVerticalDialog
 import dagger.hilt.android.AndroidEntryPoint
@@ -242,18 +243,41 @@ internal class UnusedAddressFragment : BaseFragment<ViewBinding>(),
             )
         )
         if (!viewModel.isLiquidWallet()) {
-            options.add(
-                SheetOption(
-                    type = SheetOptionType.TYPE_VERIFY_ADDRESS_DEVICE,
-                    resId = R.drawable.ic_visibility,
-                    label = when {
-                        viewModel.isTrezorWallet() -> getString(R.string.nc_verify_address_via_trezor_suite)
-                        viewModel.isLedgerWallet() -> getString(R.string.nc_verify_address_via_ledger)
-                        viewModel.isBitBoxWallet() -> getString(R.string.nc_verify_address_via_bitbox)
-                        else -> getString(R.string.nc_verify_address_via_portal)
-                    },
+            // A multisig can hold several of these at once, so offer one row per device the
+            // wallet actually has instead of the first match: a 3/5 holding both a Ledger and a
+            // BitBox was only ever offered the Ledger.
+            val deviceOptions = buildList {
+                if (viewModel.isTrezorWallet()) {
+                    add(SignerTag.TREZOR to R.string.nc_verify_address_via_trezor_suite)
+                }
+                if (viewModel.isLedgerWallet()) {
+                    add(SignerTag.LEDGER to R.string.nc_verify_address_via_ledger)
+                }
+                if (viewModel.isBitBoxWallet()) {
+                    add(SignerTag.BITBOX to R.string.nc_verify_address_via_bitbox)
+                }
+            }
+            if (deviceOptions.isEmpty()) {
+                // Portal carries no tag to detect, so it stays the fallback it has always been.
+                options.add(
+                    SheetOption(
+                        type = SheetOptionType.TYPE_VERIFY_ADDRESS_DEVICE,
+                        resId = R.drawable.ic_visibility,
+                        label = getString(R.string.nc_verify_address_via_portal),
+                    )
                 )
-            )
+            } else {
+                deviceOptions.forEach { (tag, labelRes) ->
+                    options.add(
+                        SheetOption(
+                            type = SheetOptionType.TYPE_VERIFY_ADDRESS_DEVICE,
+                            resId = R.drawable.ic_visibility,
+                            label = getString(labelRes),
+                            id = tag.name,
+                        )
+                    )
+                }
+            }
         }
         if (viewModel.isSingleSignWallet()) {
             options.add(
@@ -274,11 +298,11 @@ internal class UnusedAddressFragment : BaseFragment<ViewBinding>(),
                 viewLifecycleOwner.lifecycleScope.launch {
                     val address = getCurrentAddress().orEmpty()
                     if (address.isNotBlank()) {
-                        when {
-                            viewModel.isTrezorWallet() -> viewModel.requestVerifyAddressByTrezor(address)
+                        when (option.id) {
+                            SignerTag.TREZOR.name -> viewModel.requestVerifyAddressByTrezor(address)
                             // The sheet resolves the address index itself, on the device session.
-                            viewModel.isLedgerWallet() -> ledgerVerifyAddress = address
-                            viewModel.isBitBoxWallet() -> bitBoxVerifyAddress = address
+                            SignerTag.LEDGER.name -> ledgerVerifyAddress = address
+                            SignerTag.BITBOX.name -> bitBoxVerifyAddress = address
                             else -> {
                                 val index = viewModel.getAddressIndex(address)
                                 if (index != -1) {

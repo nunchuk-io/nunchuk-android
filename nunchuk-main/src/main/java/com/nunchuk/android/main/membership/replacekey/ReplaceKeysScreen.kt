@@ -6,6 +6,8 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -58,6 +60,8 @@ import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.toReadableDrawableResId
 import com.nunchuk.android.core.util.toReadableSignerType
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.membership.honey.distribution.InheritanceClaimStatusRow
+import com.nunchuk.android.main.membership.model.InheritanceClaimState
 import com.nunchuk.android.model.StateEvent
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
@@ -69,6 +73,8 @@ fun ReplaceKeysScreen(
     onReplaceInheritanceClicked: (SignerModel) -> Unit = {},
     onCreateNewWalletSuccess: (String) -> Unit = {},
     onVerifyClicked: (SignerModel) -> Unit = {},
+    onSetUpClaimOptionsClicked: (SignerModel) -> Unit = {},
+    onInheritanceBackupClicked: (SignerModel) -> Unit = {},
     onRemove: (String) -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -97,6 +103,8 @@ fun ReplaceKeysScreen(
         onCreateWalletClicked = viewModel::onCreateWallet,
         onCancelReplaceWallet = viewModel::onCancelReplaceWallet,
         onVerifyClicked = onVerifyClicked,
+        onSetUpClaimOptionsClicked = onSetUpClaimOptionsClicked,
+        onInheritanceBackupClicked = onInheritanceBackupClicked,
         onRemove = onRemove
     )
 }
@@ -113,6 +121,8 @@ private fun ReplaceKeysContent(
     onCreateWalletClicked: () -> Unit = {},
     onCancelReplaceWallet: () -> Unit = {},
     onVerifyClicked: (SignerModel) -> Unit = {},
+    onSetUpClaimOptionsClicked: (SignerModel) -> Unit = {},
+    onInheritanceBackupClicked: (SignerModel) -> Unit = {},
     onRemove: (String) -> Unit = {}
 ) {
     var showSheetOptions by rememberSaveable { mutableStateOf(false) }
@@ -174,12 +184,18 @@ private fun ReplaceKeysContent(
                     modifier = Modifier.fillMaxSize()
                 ) {
                     items(uiState.walletSigners) { item ->
+                        val isInheritanceSlot = uiState.isInheritanceSlot(item.fingerPrint)
+                        // An off-chain inheritance key is driven by the sharing method the owner
+                        // chose, not by the single verify flag every other key has: it can carry
+                        // two artifacts that are verified apart.
+                        val claimState = uiState.inheritanceClaimStates[item.fingerPrint]
+                            ?.takeIf { isInheritanceSlot }
                         ReplaceKeyCard(
                             modifier = Modifier.padding(top = 16.dp),
                             replacedSigner = uiState.replaceSigners[item.fingerPrint],
                             originalSigner = item,
                             onReplaceClicked = {
-                                if (uiState.inheritanceXfps.contains(it.fingerPrint) && uiState.isActiveAssistedWallet) {
+                                if (isInheritanceSlot) {
                                     selectedInheritanceSigner = it
                                 } else {
                                     onReplaceKeyClicked(it)
@@ -191,6 +207,9 @@ private fun ReplaceKeysContent(
                                     (uiState.replaceSigners[item.fingerPrint]?.type == SignerType.NFC || uiState.replaceSigners[item.fingerPrint]?.tags.orEmpty()
                                         .contains(SignerTag.INHERITANCE)),
                             onVerifyClicked = onVerifyClicked,
+                            claimState = claimState,
+                            onSetUpClaimOptionsClicked = onSetUpClaimOptionsClicked,
+                            onInheritanceBackupClicked = onInheritanceBackupClicked,
                             isMissingBackup = uiState.coldCardBackUpFileName[uiState.replaceSigners[item.fingerPrint]?.fingerPrint].isNullOrEmpty() &&
                                     uiState.replaceSigners[item.fingerPrint]?.type != SignerType.NFC,
                             isReplaced = uiState.replaceSigners.containsKey(item.fingerPrint),
@@ -262,6 +281,7 @@ private fun ReplaceKeysContent(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ReplaceKeyCard(
     replacedSigner: SignerModel?,
@@ -270,11 +290,23 @@ fun ReplaceKeyCard(
     isReplaced: Boolean = false,
     isNeedVerify: Boolean = false,
     isMissingBackup: Boolean = false,
+    /**
+     * Set only for an off-chain inheritance slot that has a replacement on it. It outranks
+     * [isNeedVerify]: that flag reads the single verification the server keeps per key, which goes
+     * green after one artifact and would hide the second half of a "do both" key.
+     */
+    claimState: InheritanceClaimState? = null,
     onReplaceClicked: (data: SignerModel) -> Unit = {},
     onVerifyClicked: (data: SignerModel) -> Unit = {},
+    onSetUpClaimOptionsClicked: (data: SignerModel) -> Unit = {},
+    onInheritanceBackupClicked: (data: SignerModel) -> Unit = {},
     onRemoveClicked: (data: SignerModel) -> Unit = {},
 ) {
     val item = replacedSigner ?: originalSigner
+    val showsClaimStatus = claimState != null && replacedSigner != null
+    val needsClaimOptions = showsClaimStatus && claimState.isUnset
+    val needsClaimVerification =
+        showsClaimStatus && !claimState.isUnset && !claimState.isFullyVerified
     val modifier = if (isReplaced.not()) {
         modifier.border(
             BorderStroke(1.dp, colorResource(id = R.color.nc_stroke_primary)),
@@ -286,7 +318,7 @@ fun ReplaceKeyCard(
     Column {
         Box(
             modifier = modifier.background(
-                color = if (isReplaced && !isNeedVerify)
+                color = if (isReplaced && !(if (showsClaimStatus) needsClaimVerification else isNeedVerify))
                     MaterialTheme.colorScheme.fillSlimeT2
                 else
                     colorResource(id = R.color.nc_background),
@@ -294,71 +326,112 @@ fun ReplaceKeyCard(
             ),
             contentAlignment = Alignment.Center,
         ) {
-            Row(
-                modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically
-            ) {
-                NcCircleImage(
-                    resId = item.toReadableDrawableResId(),
-                )
-                Column(
-                    modifier = Modifier
-                        .weight(1.0f)
-                        .padding(start = 8.dp)
-                ) {
-                    Text(
-                        text = item.name,
-                        style = NunchukTheme.typography.body
+            Column(modifier = Modifier.padding(12.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    NcCircleImage(
+                        resId = item.toReadableDrawableResId(),
                     )
-                    Row(modifier = Modifier.padding(top = 4.dp)) {
-                        NcTag(
-                            label = item.toReadableSignerType(context = LocalContext.current),
-                            backgroundColor = colorResource(
-                                id = R.color.nc_bg_mid_gray
-                            ),
+                    Column(
+                        modifier = Modifier
+                            .weight(1.0f)
+                            .padding(start = 8.dp)
+                    ) {
+                        Text(
+                            text = item.name,
+                            style = NunchukTheme.typography.body
                         )
-                        if (item.isShowAcctX()) {
+                        FlowRow(
+                            modifier = Modifier.padding(top = 4.dp),
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
                             NcTag(
-                                modifier = Modifier.padding(start = 4.dp),
-                                label = stringResource(R.string.nc_acct_x, item.index),
+                                label = item.toReadableSignerType(context = LocalContext.current),
                                 backgroundColor = colorResource(
                                     id = R.color.nc_bg_mid_gray
                                 ),
                             )
-                        }
-                    }
-                    Text(
-                        modifier = Modifier.padding(top = 4.dp),
-                        text = item.getXfpOrCardIdLabel(),
-                        style = NunchukTheme.typography.bodySmall
-                    )
-                }
-                if (isReplaced) {
-                    if (isNeedVerify) {
-                        NcOutlineButton(
-                            modifier = Modifier.height(36.dp),
-                            onClick = { onVerifyClicked(item) },
-                        ) {
-                            Text(
-                                text = if (isMissingBackup.not()) stringResource(R.string.nc_verify_backup) else stringResource(
-                                    R.string.nc_upload_backup
+                            if (item.isShowAcctX()) {
+                                NcTag(
+                                    label = stringResource(R.string.nc_acct_x, item.index),
+                                    backgroundColor = colorResource(
+                                        id = R.color.nc_bg_mid_gray
+                                    ),
                                 )
-                            )
+                            }
+                        }
+                        Text(
+                            modifier = Modifier.padding(top = 4.dp),
+                            text = item.getXfpOrCardIdLabel(),
+                            style = NunchukTheme.typography.bodySmall
+                        )
+                    }
+                    if (isReplaced) {
+                        if (needsClaimOptions) {
+                            NcOutlineButton(
+                                modifier = Modifier.height(36.dp),
+                                onClick = { onSetUpClaimOptionsClicked(item) },
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.nc_set_up),
+                                    style = NunchukTheme.typography.titleSmall,
+                                )
+                            }
+                        } else if (needsClaimVerification) {
+                            NcOutlineButton(
+                                modifier = Modifier.height(36.dp),
+                                onClick = { onInheritanceBackupClicked(item) },
+                            ) {
+                                Text(
+                                    text = if (claimState.needsEncryptedBackupUpload) {
+                                        stringResource(R.string.nc_back_up)
+                                    } else {
+                                        stringResource(R.string.nc_verify)
+                                    },
+                                    style = NunchukTheme.typography.titleSmall,
+                                )
+                            }
+                        } else if (!showsClaimStatus && isNeedVerify) {
+                            NcOutlineButton(
+                                modifier = Modifier.height(36.dp),
+                                onClick = { onVerifyClicked(item) },
+                            ) {
+                                Text(
+                                    text = if (isMissingBackup.not()) stringResource(R.string.nc_verify_backup) else stringResource(
+                                        R.string.nc_upload_backup
+                                    ),
+                                    style = NunchukTheme.typography.titleSmall,
+                                )
+                            }
+                        } else {
+                            NcOutlineButton(
+                                modifier = Modifier.height(36.dp),
+                                onClick = { onRemoveClicked(originalSigner) },
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.nc_remove),
+                                    style = NunchukTheme.typography.titleSmall,
+                                )
+                            }
                         }
                     } else {
                         NcOutlineButton(
                             modifier = Modifier.height(36.dp),
-                            onClick = { onRemoveClicked(originalSigner) },
+                            onClick = { onReplaceClicked(item) },
                         ) {
-                            Text(text = stringResource(R.string.nc_remove))
+                            Text(
+                                text = stringResource(R.string.nc_replace),
+                                style = NunchukTheme.typography.titleSmall,
+                            )
                         }
                     }
-                } else {
-                    NcOutlineButton(
-                        modifier = Modifier.height(36.dp),
-                        onClick = { onReplaceClicked(item) },
-                    ) {
-                        Text(text = stringResource(R.string.nc_replace))
-                    }
+                }
+                if (showsClaimStatus) {
+                    // Full card width, lined up with the text column (48dp icon + 8dp gap).
+                    InheritanceClaimStatusRow(
+                        modifier = Modifier.padding(start = 56.dp),
+                        claimState = claimState,
+                    )
                 }
             }
         }

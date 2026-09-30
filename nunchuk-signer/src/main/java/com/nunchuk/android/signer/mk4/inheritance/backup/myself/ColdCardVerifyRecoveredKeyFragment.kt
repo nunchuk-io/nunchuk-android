@@ -47,6 +47,8 @@ import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
+import com.nunchuk.android.core.util.COLDCARD_DEFAULT_KEY_NAME
+import com.nunchuk.android.core.util.formattedName
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.mk4.Mk4Activity
 import com.nunchuk.android.signer.mk4.Mk4ViewModel
@@ -67,6 +69,7 @@ class ColdCardVerifyRecoveredKeyFragment : MembershipFragment() {
         val remainTime by membershipStepManager.remainingTime.collectAsStateWithLifecycle()
         ColdCardVerifyRecoveredKeyScreen(remainTime = remainTime,
             xfp = mk4ViewModel.coldCardBackUpParam.xfp,
+            deviceName = (requireActivity() as Mk4Activity).signerTag.formattedName,
             onContinue = {
                 val keyId = mk4ViewModel.coldCardBackUpParam.keyId
                 if (keyId.isNotEmpty()) {
@@ -74,12 +77,14 @@ class ColdCardVerifyRecoveredKeyFragment : MembershipFragment() {
                         keyId = keyId,
                         filePath = mk4ViewModel.coldCardBackUpParam.filePath,
                         groupId = (requireActivity() as? Mk4Activity)?.groupId.orEmpty(),
-                        walletId = (requireActivity() as? Mk4Activity)?.walletId.orEmpty()
+                        walletId = (requireActivity() as? Mk4Activity)?.walletId.orEmpty(),
+                        verificationMethod = (requireActivity() as? Mk4Activity)?.claimOption,
                     )
                 } else {
                     viewModel.setKeyVerified(
-                        (requireActivity() as? Mk4Activity)?.groupId.orEmpty(),
-                        mk4ViewModel.coldCardBackUpParam.xfp
+                        groupId = (requireActivity() as? Mk4Activity)?.groupId.orEmpty(),
+                        masterSignerId = mk4ViewModel.coldCardBackUpParam.xfp,
+                        verificationMethod = (requireActivity() as? Mk4Activity)?.claimOption,
                     )
                 }
             },
@@ -105,7 +110,11 @@ class ColdCardVerifyRecoveredKeyFragment : MembershipFragment() {
 
 @Composable
 internal fun ColdCardVerifyRecoveredKeyScreen(
-    remainTime: Int = 0, xfp: String = "", onContinue: () -> Unit = {}, onSkip: () -> Unit = {}
+    remainTime: Int = 0,
+    xfp: String = "",
+    deviceName: String = COLDCARD_DEFAULT_KEY_NAME,
+    onContinue: () -> Unit = {},
+    onSkip: () -> Unit = {},
 ) {
 
     var showConfirmationDialog by remember { mutableStateOf(false) }
@@ -175,7 +184,7 @@ internal fun ColdCardVerifyRecoveredKeyScreen(
 
                 Text(
                     modifier = Modifier.padding(top = 24.dp),
-                    text = "You should now have recovered the original key on COLDCARD. Please verify that the Master Key Fingerprint (XFP) on your COLDCARD matches the one shown below.",
+                    text = stringResource(R.string.nc_recovered_key_on_device, deviceName),
                     style = NunchukTheme.typography.body
                 )
 

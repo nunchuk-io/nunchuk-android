@@ -1,1 +1,2 @@
-- Bug fixes and improvements
+- Inheritance: use your own hardware signing device as the inheritance key in off-chain timelock plans.
+- Bug fixes and improvements.
