@@ -5,7 +5,7 @@ enum class SigningOperation { MESSAGE, PSBT }
 enum class PayloadCodecKind { SPECTER_MESSAGE, COLDCARD_JSON, PASSPORT_TEXT, KRUX_TEXT, RAW_PSBT }
 enum class QrFraming { PLAIN, BBQR_JSON, UR, BBQR }
 enum class InAppSigningDevice { LEDGER, BITBOX }
-enum class FileSigningInstructions { COLDCARD, PASSPORT, KRUX }
+enum class FileSigningInstructions { COLDCARD, PASSPORT, KRUX, GENERIC }
 enum class RouteContext { SIGNING_SHEET, AFTER_FILE_EXPORT }
 
 /**
@@ -160,7 +160,23 @@ fun SigningDevice.profile(): SignerProfile = when (this) {
         SigningMethod.InApp(InAppSigningDevice.BITBOX), SigningMethod.InApp(InAppSigningDevice.BITBOX),
     )
     SigningDevice.TREZOR -> SignerProfile(SigningMethod.TrezorSuite, SigningMethod.TrezorSuite)
-    SigningDevice.FOREIGN_SOFTWARE, SigningDevice.PORTAL, SigningDevice.GENERIC_AIRGAP,
+    // Unknown device: the most widely read formats, and no NFC. Message only: the claiming PSBT
+    // has no generic air-gapped route yet.
+    SigningDevice.GENERIC_AIRGAP -> SignerProfile(
+        message = routes(
+            ExportRoute.File(
+                codec = PayloadCodecKind.COLDCARD_JSON,
+                fileName = "message.txt",
+                afterExport = AfterFileExport(
+                    listOf(SigningTransport.FILE, SigningTransport.QR),
+                    FileSigningInstructions.GENERIC,
+                ),
+            ),
+            ExportRoute.Qr(PayloadCodecKind.SPECTER_MESSAGE, QrFraming.PLAIN),
+        ),
+        psbt = SigningMethod.Unsupported,
+    )
+    SigningDevice.FOREIGN_SOFTWARE, SigningDevice.PORTAL,
     SigningDevice.OTHER_HARDWARE, SigningDevice.SERVER, SigningDevice.PLATFORM, SigningDevice.UNKNOWN ->
         SignerProfile(SigningMethod.Unsupported, SigningMethod.Unsupported)
 }

@@ -18,6 +18,7 @@ class SigningProfileTest {
     @Test
     fun `message signing sheet routes, in order`() {
         assertRoutes(SigningDevice.COLDCARD, SigningOperation.MESSAGE, listOf(FILE, QR, NFC), listOf(FILE, QR, NFC))
+        assertRoutes(SigningDevice.GENERIC_AIRGAP, SigningOperation.MESSAGE, listOf(FILE, QR), listOf(FILE, QR))
         assertRoutes(SigningDevice.KRUX, SigningOperation.MESSAGE, listOf(FILE, QR), listOf(FILE, QR))
         assertRoutes(SigningDevice.PASSPORT, SigningOperation.MESSAGE, listOf(FILE), listOf(FILE))
         listOf(SigningDevice.JADE, SigningDevice.KEYSTONE, SigningDevice.SEEDSIGNER).forEach {
@@ -41,6 +42,7 @@ class SigningProfileTest {
         assertAfterFileExport(SigningDevice.COLDCARD, listOf(FILE), FileSigningInstructions.COLDCARD)
         assertAfterFileExport(SigningDevice.PASSPORT, listOf(FILE), FileSigningInstructions.PASSPORT)
         assertAfterFileExport(SigningDevice.KRUX, listOf(QR, FILE), FileSigningInstructions.KRUX)
+        assertAfterFileExport(SigningDevice.GENERIC_AIRGAP, listOf(FILE, QR), FileSigningInstructions.GENERIC)
     }
 
     @Test
@@ -91,6 +93,7 @@ class SigningProfileTest {
         assertEquals("SeedSigner", SigningDevice.SEEDSIGNER.profile().qrDeviceName)
         assertEquals("Krux", SigningDevice.KRUX.profile().qrDeviceName)
         assertEquals("", SigningDevice.COLDCARD.profile().qrDeviceName)
+        assertEquals("", SigningDevice.GENERIC_AIRGAP.profile().qrDeviceName)
     }
 
     @Test
@@ -105,9 +108,16 @@ class SigningProfileTest {
     }
 
     @Test
+    fun `generic air-gapped keys sign the message by file or plain QR, never the PSBT`() {
+        assertFile(SigningDevice.GENERIC_AIRGAP, PayloadCodecKind.COLDCARD_JSON, "message.txt")
+        assertQr(SigningDevice.GENERIC_AIRGAP, SigningOperation.MESSAGE, PayloadCodecKind.SPECTER_MESSAGE, QrFraming.PLAIN)
+        assertEquals(SigningMethod.Unsupported, SigningDevice.GENERIC_AIRGAP.profile().psbt)
+    }
+
+    @Test
     fun `devices the claim cannot sign with are unsupported for both operations`() {
         listOf(
-            SigningDevice.FOREIGN_SOFTWARE, SigningDevice.PORTAL, SigningDevice.GENERIC_AIRGAP,
+            SigningDevice.FOREIGN_SOFTWARE, SigningDevice.PORTAL,
             SigningDevice.OTHER_HARDWARE, SigningDevice.SERVER, SigningDevice.PLATFORM, SigningDevice.UNKNOWN,
         ).forEach { device ->
             assertEquals("$device", SigningMethod.Unsupported, device.profile().message)

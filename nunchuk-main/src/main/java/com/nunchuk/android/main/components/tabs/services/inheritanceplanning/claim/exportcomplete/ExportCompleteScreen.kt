@@ -76,6 +76,7 @@ fun ExportCompleteContent(
         FileSigningInstructions.COLDCARD -> MainR.string.nc_export_completed_instructions
         FileSigningInstructions.PASSPORT -> MainR.string.nc_export_completed_instructions_passport
         FileSigningInstructions.KRUX -> MainR.string.nc_export_completed_instructions_krux
+        FileSigningInstructions.GENERIC -> MainR.string.nc_export_completed_instructions_generic
     }
     var showImportOptions by remember { mutableStateOf(false) }
     NunchukTheme {
@@ -173,4 +174,10 @@ private fun ExportCompleteContentPassportPreview() {
 @Composable
 private fun ExportCompleteContentKruxPreview() {
     ExportCompleteContent(device = SigningDevice.KRUX)
+}
+
+@Preview
+@Composable
+private fun ExportCompleteContentGenericAirgapPreview() {
+    ExportCompleteContent(device = SigningDevice.GENERIC_AIRGAP)
 }
