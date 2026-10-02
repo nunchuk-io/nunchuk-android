@@ -10,6 +10,9 @@ choose how that key reaches their Beneficiary.
 (`membership/onchaintimelock/`, `WalletType.MINISCRIPT`) must not change behaviour. Every new branch
 is gated behind `OnChainAddSignerParam.FLAG_ADD_INHERITANCE_OFF_CHAIN_SIGNER`, which on-chain never
 passes. The claim flow is a separate scope and is untouched.
+One agreed exception: adding an inheritance key picks the key type *before* the seed-phrase and
+passphrase guides, and skips them for TAPSIGNER, on **both** on- and off-chain — the order is the
+same logic either way (Slack `C01LNKU28FN`, thread_ts `1790909694.917589`).
 
 ---
 
@@ -20,6 +23,7 @@ passes. The claim flow is a separate scope and is untouched.
 | Design | Figma `NDS – Inheritance BYOH`, file key `c1J2lsV2uVgb8XBtQa4m03`, page node `1:2` |
 | API | Jira **NUN-10192** — "BE - Support seed phrase and encrypted backup options for off-chain inheritance" |
 | Discussion | Slack `C017CLBP6P3`, thread_ts `1788944391.059549` |
+| Guide order (on- + off-chain) | Slack `C01LNKU28FN`, thread_ts `1790909694.917589` |
 
 ### Reading the Figma reliably
 
@@ -60,15 +64,16 @@ except asset export.
 ## 2. Flow as implemented
 
 ```
-key list  ──Add on the inheritance slot──►  inheritance intro
+key list  ──Add on the inheritance slot──►  key-type picker (server-driven)
                                               │
-                                              ▼
-                                         passphrase notice
-                                              │
-                                              ▼
-                                     key-type picker (server-driven)
-                                              │
-                                              ▼
+                              has a seed phrase? (not TAPSIGNER)
+                                  yes │            │ no
+                                      ▼            │
+                              inheritance intro    │
+                                      ▼            │
+                              passphrase notice    │
+                                      │◄───────────┘
+                                      ▼
                                    "add an existing key?" sheet
                                         │            │
                                   reuse │            │ add new
@@ -195,7 +200,11 @@ Keystone, Jade and SeedSigner. That is native SDK work the claim flow depends on
 **UI / flow**
 - Picker is server-driven (`is_inheritance_key` + `MULTI_SIG`); the static list in
   `SignerIntroViewModel.offChainInheritanceSetupKeyTypes` is only a fallback for a legacy response
-- Inheritance intro + passphrase notice inside `SignerIntroActivity`, before the picker
+- Inheritance intro + passphrase notice inside `SignerIntroActivity`, **after** the picker and only
+  for a key type with a seed phrase (not TAPSIGNER). `SignerIntroCoordinator.select` returns
+  `ShowInheritanceGuide`; the guide destinations carry the key type and `guideCompleted` resumes
+  with it. The on-chain timelock add and replace flows open the same screens, so the old
+  `InheritanceKeyIntroFragment` / `ImportantNoticePassphraseFragment` are gone.
 - Existing-key sheet after the key type is picked
 - `KeyDistributionActivity` — "key added" + sharing-method choice + the "do both" checklist,
   entered at any of the three by `KeyDistributionEntry`
@@ -448,8 +457,8 @@ Two things deliberately left alone:
 
 ### Not covered
 
-- **On-chain replace is untouched.** `OnChainReplaceKeysFragment` is a separate screen for
-  `MINISCRIPT` wallets and keeps its own dispatcher.
+- **On-chain replace is untouched** apart from the guide order above. `OnChainReplaceKeysFragment`
+  is a separate screen for `MINISCRIPT` wallets and keeps its own dispatcher.
 - **Free (non-assisted) wallets** have no inheritance key, so nothing on that path changed.
 
 
@@ -682,8 +691,8 @@ Passport already in the key manager first (as the Jade is), otherwise the generi
 - **A fresh draft has `signers: []`.** Identify the inheritance slot from the membership step
   (`type.isAddInheritanceKey`); use the draft only to enrich it with `claim_options` /
   `verifications`.
-- **`AirgapIntroFragment`, `ImportantNoticePassphraseContent` and `LedgerInstructionScreen` are
-  shared** with the ordinary add-key and on-chain flows. Copy and layout fixes were applied
+- **`AirgapIntroFragment`, `ImportantNoticePassphraseContent` (`membership/signer/`) and
+  `LedgerInstructionScreen` are shared** with the ordinary add-key and on-chain flows. Copy and layout fixes were applied
   globally; behavioural additions (Krux's third step) are gated to this flow.
 - **Four dispatchers must agree** on a key type — see §9 of
   `membership/onchaintimelock/ONCHAIN_TIMELOCK_FLOWS.md`. A missing branch is a silent no-op, not a

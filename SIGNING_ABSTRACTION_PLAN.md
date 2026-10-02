@@ -392,7 +392,7 @@ next key is signed, so in a two-Trezor claim it can take the second key's reply.
 - No `else` in any table keyed by `SigningDevice`.
 - `ExportTransactionActivity` / `ImportTransactionActivity` / `SignFlowType` are called through the
   adapter, not rewritten.
-- On-chain timelock flows untouched (same scope guard as `plan.md`).
+- On-chain timelock flows untouched (same scope guard as `inheritanceplanning/OFF_CHAIN_INHERITANCE_BYOH.md`).
 - Payoff first is fewer duplicated device decisions and one result-processing path — not moving all
   signing code into one large host.
 
