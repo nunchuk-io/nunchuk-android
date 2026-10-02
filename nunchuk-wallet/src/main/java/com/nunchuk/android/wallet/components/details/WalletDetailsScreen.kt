@@ -29,6 +29,7 @@ import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.model.BannerState
 import com.nunchuk.android.model.LiquidNetworkStatus
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
+import com.nunchuk.android.wallet.R
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.core.R as CoreR
 
@@ -82,6 +83,11 @@ internal fun WalletDetailsScreen(
     val isFacilitatorAdmin = state.role == AssistedWalletRole.FACILITATOR_ADMIN
     val isWalletNamed = state.walletExtended.wallet.name.isNotEmpty()
     val showSearch = isWalletNamed && !state.isFreeGroupWallet
+    val searchIcon = when {
+        !state.opensGroupDashboard -> R.drawable.ic_search_white
+        !state.groupId.isNullOrEmpty() -> R.drawable.ic_groups_menu
+        else -> R.drawable.ic_health_check_menu
+    }
     // Locked wallets and facilitator admins still need the overflow menu: since
     // "View wallet config" moved out of the header into it, that menu is now the
     // only way to reach the wallet config screen (and from there, Export wallet
@@ -143,6 +149,7 @@ internal fun WalletDetailsScreen(
                         headerState = headerState,
                         showSearch = showSearch,
                         showMenu = showMenu,
+                        searchIcon = searchIcon,
                         onBack = onBack,
                         onSearch = onSearch,
                         onMenu = onMenu,
@@ -157,7 +164,7 @@ internal fun WalletDetailsScreen(
                         headerState = headerState,
                         showSearch = showSearch,
                         showMenu = showMenu,
-                        isFreeGroupWallet = state.isFreeGroupWallet,
+                        searchIcon = searchIcon,
                         onBack = onBack,
                         onSearch = onSearch,
                         onMenu = onMenu,

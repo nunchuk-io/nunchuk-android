@@ -54,7 +54,6 @@ import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.model.membership.isActiveWallet
 import com.nunchuk.android.model.transaction.ExtendedTransaction
 import com.nunchuk.android.model.transaction.ServerTransaction
-import com.nunchuk.android.model.wallet.WalletStatus
 import com.nunchuk.android.type.ExportFormat
 import com.nunchuk.android.type.MiniscriptTimelockBased
 import com.nunchuk.android.type.WalletType
@@ -786,7 +785,10 @@ internal class WalletDetailsViewModel @Inject constructor(
         get() = getState().groupId
 
     val isLockedAssistedWallet: Boolean
-        get() = getState().walletStatus == WalletStatus.LOCKED.name && !getState().isFreeGroupWallet
+        get() = getState().isLockedAssistedWallet
+
+    val opensGroupDashboard: Boolean
+        get() = getState().opensGroupDashboard
 
     fun isInactiveAssistedWallet() = assistedWalletManager.isInactiveAssistedWallet(args.walletId)
 

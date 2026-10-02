@@ -1,5 +1,6 @@
 package com.nunchuk.android.wallet.components.details
 
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -122,6 +123,7 @@ internal fun StableCollapsingWalletHeader(
     headerState: CollapsingHeaderState,
     showSearch: Boolean,
     showMenu: Boolean,
+    @DrawableRes searchIcon: Int = R.drawable.ic_search_white,
     onBack: () -> Unit,
     onSearch: () -> Unit,
     onMenu: () -> Unit,
@@ -148,6 +150,7 @@ internal fun StableCollapsingWalletHeader(
             onMenu = onMenu,
             showSearch = showSearch,
             showMenu = showMenu,
+            searchIcon = searchIcon,
         )
 
         topBanners()
@@ -202,6 +205,7 @@ private fun StableHeaderToolbar(
     onMenu: () -> Unit,
     showSearch: Boolean,
     showMenu: Boolean,
+    @DrawableRes searchIcon: Int,
 ) {
     Box(
         modifier = Modifier
@@ -223,7 +227,7 @@ private fun StableHeaderToolbar(
             if (showSearch) {
                 IconButton(onClick = onSearch) {
                     Icon(
-                        painter = painterResource(R.drawable.ic_search_white),
+                        painter = painterResource(searchIcon),
                         contentDescription = "Search",
                         tint = Color.White,
                     )

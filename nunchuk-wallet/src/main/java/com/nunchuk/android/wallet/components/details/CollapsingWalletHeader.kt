@@ -1,5 +1,6 @@
 package com.nunchuk.android.wallet.components.details
 
+import androidx.annotation.DrawableRes
 import androidx.compose.animation.core.animate
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -204,7 +205,7 @@ internal fun CollapsingWalletHeader(
     headerState: CollapsingHeaderState,
     showSearch: Boolean,
     showMenu: Boolean,
-    isFreeGroupWallet: Boolean,
+    @DrawableRes searchIcon: Int,
     onBack: () -> Unit,
     onSearch: () -> Unit,
     onMenu: () -> Unit,
@@ -251,7 +252,7 @@ internal fun CollapsingWalletHeader(
             onMenu = onMenu,
             showSearch = showSearch,
             showMenu = showMenu,
-            isFreeGroupWallet = isFreeGroupWallet,
+            searchIcon = searchIcon,
         )
 
         topBanners()
@@ -313,7 +314,7 @@ private fun HeaderToolbar(
     onMenu: () -> Unit,
     showSearch: Boolean,
     showMenu: Boolean,
-    isFreeGroupWallet: Boolean,
+    @DrawableRes searchIcon: Int,
 ) {
     Box(
         modifier = Modifier
@@ -335,10 +336,7 @@ private fun HeaderToolbar(
             if (showSearch) {
                 IconButton(onClick = onSearch) {
                     Icon(
-                        painter = painterResource(
-                            if (isFreeGroupWallet) R.drawable.ic_groups_menu
-                            else R.drawable.ic_search_white
-                        ),
+                        painter = painterResource(searchIcon),
                         contentDescription = "Search",
                         tint = Color.White,
                     )

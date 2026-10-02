@@ -331,7 +331,7 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
     }
 
     private fun handleSearch() {
-        if (viewModel.isAssistedWallet || viewModel.isLockedAssistedWallet) {
+        if (viewModel.opensGroupDashboard) {
             navigator.openGroupDashboardScreen(
                 groupId = viewModel.groupId,
                 walletId = args.walletId,

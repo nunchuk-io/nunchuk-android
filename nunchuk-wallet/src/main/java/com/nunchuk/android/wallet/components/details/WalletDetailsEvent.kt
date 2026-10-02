@@ -26,6 +26,7 @@ import com.nunchuk.android.model.HistoryPeriod
 import com.nunchuk.android.model.LiquidNetworkStatus
 import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
+import com.nunchuk.android.model.wallet.WalletStatus
 import com.nunchuk.android.type.ConnectionStatus
 import com.nunchuk.android.type.MiniscriptTimelockBased
 
@@ -77,4 +78,12 @@ data class WalletDetailsState(
     val liquidConnectionStatus: ConnectionStatus? = null,
     val requirePassphraseSignerId: String? = null,
     val passphraseError: String? = null,
-)
+) {
+    val isLockedAssistedWallet: Boolean
+        get() = walletStatus == WalletStatus.LOCKED.name && !isFreeGroupWallet
+
+    // The header search button doubles as the group-dashboard entry for assisted wallets;
+    // their transaction search lives in the overflow menu instead.
+    val opensGroupDashboard: Boolean
+        get() = isAssistedWallet || isLockedAssistedWallet
+}
