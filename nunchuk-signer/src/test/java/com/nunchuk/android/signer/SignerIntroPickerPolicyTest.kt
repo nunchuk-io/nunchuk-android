@@ -128,6 +128,40 @@ class SignerIntroPickerPolicyTest {
         assertTrue(cards.filter { it.keyType != KeyType.SOFTWARE }.all { it.isDisabled })
     }
 
+    // The inheritance entries the server returned on testnet: one list per wallet type.
+    private val serverInheritanceConfigs = listOf(
+        WalletType.MINISCRIPT to listOf(
+            SignerType.AIRGAP to null, SignerType.AIRGAP to SignerTag.COLDCARD, SignerType.AIRGAP to SignerTag.JADE,
+            SignerType.AIRGAP to SignerTag.KRUX, SignerType.COLDCARD_NFC to null, SignerType.HARDWARE to SignerTag.BITBOX,
+            SignerType.HARDWARE to SignerTag.COLDCARD, SignerType.HARDWARE to SignerTag.JADE, SignerType.HARDWARE to SignerTag.LEDGER,
+        ),
+        WalletType.MULTI_SIG to listOf(
+            SignerType.AIRGAP to null, SignerType.AIRGAP to SignerTag.COLDCARD, SignerType.AIRGAP to SignerTag.JADE,
+            SignerType.AIRGAP to SignerTag.KEYSTONE, SignerType.AIRGAP to SignerTag.KRUX, SignerType.AIRGAP to SignerTag.PASSPORT,
+            SignerType.COLDCARD_NFC to null, SignerType.HARDWARE to SignerTag.BITBOX, SignerType.HARDWARE to SignerTag.COLDCARD,
+            SignerType.HARDWARE to SignerTag.JADE, SignerType.HARDWARE to SignerTag.LEDGER, SignerType.HARDWARE to SignerTag.TREZOR,
+            SignerType.NFC to null,
+        ),
+    ).flatMap { (wallet, signers) -> signers.map { (type, tag) -> config(wallet, true, type, tag) } }
+
+    @Test fun `inheritance pickers are scoped to their wallet type even when the caller passes none`() {
+        val onChain = listOf(KeyType.COLDCARD, KeyType.JADE, KeyType.KRUX, KeyType.BITBOX, KeyType.LEDGER, KeyType.GENERIC_AIRGAP)
+        val offChain = listOf(
+            KeyType.TAPSIGNER, KeyType.COLDCARD, KeyType.JADE, KeyType.KEYSTONE, KeyType.KRUX, KeyType.FOUNDATION,
+            KeyType.BITBOX, KeyType.LEDGER, KeyType.TREZOR, KeyType.GENERIC_AIRGAP,
+        )
+        for ((flow, expected) in listOf(
+            SignerIntroFlow.OnChainTimelockKey(isInheritanceKey = true) to onChain,
+            SignerIntroFlow.OffChainInheritanceKey() to offChain,
+        )) {
+            val policy = SignerIntroPickerPolicy(SignerIntroRequest(flow = flow))
+            val state = policy.applyConfigs(SignerIntroState(supportedSigners = policy.initialSigners), serverInheritanceConfigs)
+            val cards = policy.displayInfos(state).map { it.keyType }
+            assertEquals("$flow", expected.sorted(), cards.sorted())
+            assertEquals("$flow shows a device twice", cards.distinct(), cards)
+        }
+    }
+
     private fun signer(type: SignerType, tag: SignerTag? = null) = SupportedSigner(
         type, tag, WalletType.MULTI_SIG, AddressType.NATIVE_SEGWIT,
     )

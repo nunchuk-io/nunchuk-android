@@ -31,12 +31,84 @@ class SignerIntroCoordinatorTest {
     @Test fun `owner inheritance setup offers existing keys then opens device exactly once`() {
         val router = router(SignerIntroFlow.OffChainInheritanceKey())
         assertTrue(router.isInheritanceSetup)
-        for (key in KeyType.entries) assertEquals(SignerIntroAction.OfferExisting(key), router.select(key))
+        for (key in KeyType.entries) assertEquals(SignerIntroAction.OfferExisting(key), router.guideCompleted(key))
         assertEquals(SignerIntroAction.Tapsigner(true), router.createNew(KeyType.TAPSIGNER))
         assertEquals(SignerIntroAction.Coldcard(true), router.createNew(KeyType.COLDCARD))
         assertEquals(SignerIntroAction.Airgap(SignerTag.JADE, true, null), router.createNew(KeyType.JADE))
         for ((key, device) in hardware) assertEquals(SignerIntroAction.ReturnHardwareTag(device.tag), router.createNew(key))
     }
+
+    private val inheritanceFlows = listOf(
+        SignerIntroFlow.OffChainInheritanceKey(),
+        SignerIntroFlow.OnChainTimelockKey(isInheritanceKey = true),
+    )
+    private val seedPhraseKeys = KeyType.entries - KeyType.TAPSIGNER - KeyType.PLATFORM_KEY
+
+    @Test fun `adding an inheritance key shows the guides first for every key with a seed phrase`() {
+        for (flow in inheritanceFlows) {
+            val router = router(flow)
+            for (key in seedPhraseKeys) {
+                assertEquals("$flow / $key", SignerIntroAction.ShowInheritanceGuide(key), router.select(key))
+            }
+            // TAPSIGNER has no seed phrase to back up, so it skips straight to the device flow.
+            assertEquals("$flow", router.guideCompleted(KeyType.TAPSIGNER), router.select(KeyType.TAPSIGNER))
+            assertNotEquals(SignerIntroAction.ShowInheritanceGuide(KeyType.TAPSIGNER), router.select(KeyType.TAPSIGNER))
+        }
+    }
+
+    @Test fun `no other flow shows the inheritance guides`() {
+        val flows = listOf(
+            SignerIntroFlow.AddKey, SignerIntroFlow.AddWalletKey, SignerIntroFlow.AddAssistedWalletKey,
+            SignerIntroFlow.ReplaceWalletKey, SignerIntroFlow.OnChainTimelockKey(),
+            SignerIntroFlow.ClaimInheritance("claim", true), SignerIntroFlow.ClaimInheritance("claim", false),
+            SignerIntroFlow.VerifyBackup(currentSigner = null),
+        )
+        for (flow in flows) for (key in KeyType.entries) {
+            assertFalse("$flow / $key", router(flow).select(key) is SignerIntroAction.ShowInheritanceGuide)
+        }
+    }
+
+    @Test fun `on-chain inheritance key resumes the picked device after the guides`() {
+        val router = router(SignerIntroFlow.OnChainTimelockKey(isInheritanceKey = true))
+        assertEquals(SignerIntroAction.CheckFirmware(SignerFirmwareDevice.COLDCARD), router.guideCompleted(KeyType.COLDCARD))
+        assertEquals(SignerIntroAction.CheckFirmware(SignerFirmwareDevice.JADE), router.guideCompleted(KeyType.JADE))
+        assertEquals(SignerIntroAction.Airgap(SignerTag.SEEDSIGNER, true, null), router.guideCompleted(KeyType.SEEDSIGNER))
+        for ((key, device) in hardware) {
+            assertEquals(SignerIntroAction.ReturnHardwareTag(device.tag), router.guideCompleted(key))
+        }
+        assertEquals(SignerIntroAction.OfferExisting(KeyType.TAPSIGNER), router.select(KeyType.TAPSIGNER))
+    }
+
+    @Test fun `off-chain inheritance key offers existing keys after the guides`() {
+        val router = router(SignerIntroFlow.OffChainInheritanceKey())
+        for (key in seedPhraseKeys) {
+            assertEquals(SignerIntroAction.ShowInheritanceGuide(key), router.select(key))
+            assertEquals(SignerIntroAction.OfferExisting(key), router.guideCompleted(key))
+        }
+        assertEquals(SignerIntroAction.OfferExisting(KeyType.TAPSIGNER), router.select(KeyType.TAPSIGNER))
+    }
+
+    @Test fun `replacing an inheritance key keeps the replaced key through the guides`() {
+        val replace = OnChainAddSignerParam.ReplaceInfo(replacedXfp = "abcd1234", step = null)
+        val flows = listOf(
+            SignerIntroFlow.OnChainTimelockKey(isInheritanceKey = true, replaceInfo = replace),
+            SignerIntroFlow.OffChainInheritanceKey(replaceInfo = replace),
+        )
+        for (flow in flows) {
+            val router = router(flow)
+            assertEquals(SignerIntroAction.ShowInheritanceGuide(KeyType.KEYSTONE), router.select(KeyType.KEYSTONE))
+            // The device screen owns the replacement, so the airgap flow must not also return a signer.
+            val airgap = SignerIntroAction.Airgap(SignerTag.KEYSTONE, false, "abcd1234")
+            val next = router.guideCompleted(KeyType.KEYSTONE)
+            if (flow is SignerIntroFlow.OffChainInheritanceKey) {
+                assertEquals(SignerIntroAction.OfferExisting(KeyType.KEYSTONE), next)
+                assertEquals(airgap, router.createNew(KeyType.KEYSTONE))
+            } else {
+                assertEquals(airgap, next)
+            }
+        }
+    }
+
 
     @Test fun `claim pairs every in-app hardware device using the plan account`() {
         for (onChain in listOf(true, false)) {
@@ -130,7 +202,7 @@ class SignerIntroCoordinatorTest {
         for (inheritance in listOf(false, true)) {
             val router = router(SignerIntroFlow.OnChainTimelockKey(isInheritanceKey = inheritance))
             for ((key, device) in hardware) {
-                assertEquals(SignerIntroAction.ReturnHardwareTag(device.tag), router.select(key))
+                assertEquals(SignerIntroAction.ReturnHardwareTag(device.tag), router.guideCompleted(key))
             }
         }
     }

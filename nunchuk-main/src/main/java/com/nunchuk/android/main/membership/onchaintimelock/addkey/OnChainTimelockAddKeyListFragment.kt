@@ -93,7 +93,6 @@ import com.nunchuk.android.core.signer.toSingleSigner
 import com.nunchuk.android.core.signer.SignerIntroFlow
 import com.nunchuk.android.core.signer.SignerIntroRequest
 import com.nunchuk.android.core.util.BackUpSeedPhraseType
-import com.nunchuk.android.core.util.InheritancePlanType
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.orDefault
 import com.nunchuk.android.core.util.showError
@@ -108,7 +107,6 @@ import com.nunchuk.android.main.membership.model.StepData
 import com.nunchuk.android.main.membership.model.getButtonText
 import com.nunchuk.android.main.membership.model.getLabel
 import com.nunchuk.android.main.membership.model.resId
-import com.nunchuk.android.main.membership.onchaintimelock.importantpassphrase.ImportantNoticePassphraseFragment
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.SingleSigner
@@ -293,13 +291,6 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
             }
             clearFragmentResult(TapSignerListBottomSheetFragment.REQUEST_KEY)
         }
-        setFragmentResultListener(ImportantNoticePassphraseFragment.REQUEST_KEY) { _, bundle ->
-            val signer = bundle.parcelable<SignerModel>(GlobalResultKey.EXTRA_SIGNER)
-            val signerTag = bundle.getSerializable(GlobalResultKey.EXTRA_SIGNER_TAG) as? SignerTag
-            handleSignerIntroResult(signer, signerTag)
-            clearFragmentResult(ImportantNoticePassphraseFragment.REQUEST_KEY)
-        }
-
         setFragmentResultListener(ColdCardIntroFragment.REQUEST_KEY) { _, bundle ->
             val signerTag = bundle.getSerializable(GlobalResultKey.EXTRA_SIGNER_TAG) as? SignerTag
             if (signerTag != null) {
@@ -582,11 +573,20 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
         if (allSigners.isEmpty()) {
             // No signers exist, check if this is inheritance key or hardware key
             if (nextStep.isAddInheritanceKey) {
-                // For inheritance key, navigate to inheritance intro screen
-                findNavController().navigate(
-                    OnChainTimelockAddKeyListFragmentDirections.actionOnChainTimelockAddKeyListFragmentToInheritanceKeyIntroFragment(
-                        inheritanceType = InheritancePlanType.ON_CHAIN
-                    )
+                // The picker comes first; it shows the seed-phrase guides only for a key type that has one.
+                navigator.openSignerIntroScreen(
+                    launcher = signerIntroLauncher,
+                    activityContext = requireActivity(),
+                    request = SignerIntroRequest(
+                        walletId = (activity as MembershipActivity).walletId,
+                        groupId = groupId,
+                        flow = SignerIntroFlow.OnChainTimelockKey(
+                            isInheritanceKey = true,
+                            keyIndex = allSigners.size,
+                            existingSigners = getAllExistingSigners()
+                        ),
+                        walletType = WalletType.MINISCRIPT,
+                    ),
                 )
             } else {
                 navigator.openSignerIntroScreen(

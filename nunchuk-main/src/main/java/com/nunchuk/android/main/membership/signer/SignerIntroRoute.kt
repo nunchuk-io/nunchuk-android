@@ -51,6 +51,10 @@ internal fun SignerIntroRoute(
                         walletId = request.walletId,
                         groupId = request.groupId,
                     ))
+                    // Single-top, so a double tap on a card does not stack the guide twice.
+                    is SignerIntroEvent.ShowInheritanceGuide -> navController.navigate(
+                        InheritanceKeyIntroDestination(keyType = event.keyType.name)
+                    ) { launchSingleTop = true }
                     is SignerIntroHostEvent -> onEvent(event)
                 }
             }
@@ -61,9 +65,7 @@ internal fun SignerIntroRoute(
         if (viewModel.verifyingKeyType == null) {
             NavHost(
                 navController = navController,
-                startDestination = if (viewModel.isInheritanceSetup) {
-                    InheritanceKeyIntroDestination
-                } else SignerIntroDestination,
+                startDestination = SignerIntroDestination,
             ) {
                 signerIntroDestination(
                     viewModel = viewModel,
@@ -74,12 +76,16 @@ internal fun SignerIntroRoute(
                 inheritanceKeyIntroDestination(
                     remainTime = remainTime,
                     onMoreClicked = onMore,
-                    onContinueClicked = { navController.navigate(InheritancePassphraseNoticeDestination) },
+                    onContinueClicked = { keyType ->
+                        navController.navigate(InheritancePassphraseNoticeDestination(keyType = keyType.name)) {
+                            launchSingleTop = true
+                        }
+                    },
                 )
                 inheritancePassphraseNoticeDestination(
                     remainTime = remainTime,
                     onMoreClicked = onMore,
-                    onContinueClicked = { navController.navigate(SignerIntroDestination) },
+                    onContinueClicked = viewModel::onInheritanceGuideCompleted,
                 )
                 checkFirmwareDestination(
                     onChainAddSignerParam = request.deviceParams,

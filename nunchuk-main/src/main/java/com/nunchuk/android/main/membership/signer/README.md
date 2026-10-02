@@ -22,12 +22,18 @@ select different completion contracts.
 request data. In particular, Taproot restrictions arrive through `supportedSigners`; operation
 alone does not determine which devices are eligible.
 
+`OnChainTimelockKey` and `OffChainInheritanceKey` imply their wallet type (`MINISCRIPT` and
+`MULTI_SIG`) when the caller passes none: the server lists inheritance keys once per wallet type, so
+an unscoped picker shows each shared device twice and offers devices the wallet cannot use.
+
 ## Responsibilities
 
 - `SignerIntroPickerPolicy` in `nunchuk-signer` owns the visible/enabled key types, server config
   filtering by wallet type and inheritance slot, ordering and fallback behavior.
-- `SignerIntroCoordinator` owns selection and continuation decisions. `select` may offer existing
-  keys; `createNew` resumes the same `KeyType` without offering them again.
+- `SignerIntroCoordinator` owns selection and continuation decisions. `select` may show the
+  inheritance guides or offer existing keys; `guideCompleted` resumes after the guides and
+  `createNew` after the reuse offer, each with the same `KeyType` and without repeating the step
+  before it.
 - `SignerIntroViewModel` loads configs/keys, owns sheet state and emits buffered effects to one UI
   consumer. Initialization is idempotent; verification launch and pending sheet selection use saved state.
 - `SignerIntroRoute` renders Compose navigation and sheets.
@@ -49,7 +55,16 @@ operation from those flags in the coordinator.
    and reads its result; shared claim/verify policy stays in the coordinator. In-app hardware
    devices are listed in `SignerHardwareDevice`; adding an entry requires exhaustive Intent and
    result adapters. Firmware gates use `SignerFirmwareDevice` rather than arbitrary signer tags.
-4. Cover its supported operations in coordinator and picker-policy tests.
+4. Decide `KeyType.hasSeedPhrase` (inheritance guides) in the coordinator, then cover its supported
+   operations in coordinator and picker-policy tests.
+
+## Inheritance guides
+
+Adding an inheritance key (`OnChainTimelockKey(isInheritanceKey = true)` or `OffChainInheritanceKey`)
+opens the picker first. For a key type with a seed phrase, `select` returns `ShowInheritanceGuide`:
+`SignerIntroRoute` shows the inheritance intro and the passphrase notice, both carrying the picked
+`KeyType`, and the notice's Continue calls `guideCompleted`. TAPSIGNER has no seed phrase to back up,
+so it skips both. `KeyType.hasSeedPhrase` is an exhaustive `when`, so a new key type has to decide.
 
 ## Completion details to preserve
 
@@ -156,8 +171,8 @@ see the resolution status after them.
    only accepts host events. Dispatch is exhaustive. Firmware continuation accepts
    `SignerFirmwareDevice`, while hardware launch accepts `SignerHardwareDevice` directly, with
    exhaustive adapters instead of a tag lookup. A test checks all hardware `KeyType` mappings.
-3. Only the ViewModel creates the coordinator. The Activity and route read `verifyingKeyType` and
-   `isInheritanceSetup` from it.
+3. Only the ViewModel creates the coordinator. The Activity and route read `verifyingKeyType`
+   from it.
 4. The flow table now states explicitly that standard flows currently share behavior.
 5. Reuse policy and inheritance-slot policy enumerate every flow instead of defaulting new flows.
 

@@ -17,7 +17,21 @@ class SignerIntroCoordinator(val request: SignerIntroRequest) {
         is SignerIntroFlow.ClaimInheritance, is SignerIntroFlow.VerifyBackup -> true
     }
 
-    fun select(keyType: KeyType): SignerIntroAction {
+    private val isAddingInheritanceKey = isInheritanceSetup ||
+        (flow as? SignerIntroFlow.OnChainTimelockKey)?.isInheritanceKey == true
+
+    /**
+     * Adding an inheritance key with a seed phrase shows the seed-phrase and passphrase guides first;
+     * [guideCompleted] then resumes with the same key. A key without one (TAPSIGNER) has nothing to
+     * back up for the Beneficiary, so it goes straight on.
+     */
+    fun select(keyType: KeyType): SignerIntroAction =
+        if (isAddingInheritanceKey && keyType.hasSeedPhrase) {
+            SignerIntroAction.ShowInheritanceGuide(keyType)
+        } else guideCompleted(keyType)
+
+    /** Continue after the inheritance guides, without showing them a second time. */
+    fun guideCompleted(keyType: KeyType): SignerIntroAction {
         if (shouldOfferExisting(keyType)) return SignerIntroAction.OfferExisting(keyType)
         return openNew(keyType)
     }
@@ -127,6 +141,7 @@ sealed interface HardwareMode {
 }
 
 sealed interface SignerIntroAction {
+    data class ShowInheritanceGuide(val keyType: KeyType) : SignerIntroAction
     data class OfferExisting(val keyType: KeyType) : SignerIntroAction
     data class CheckFirmware(val device: SignerFirmwareDevice) : SignerIntroAction
     data class Tapsigner(val returnResult: Boolean) : SignerDeviceAction
@@ -151,3 +166,12 @@ enum class SignerHardwareDevice(val tag: SignerTag) {
 enum class SignerFirmwareDevice(val tag: SignerTag) {
     COLDCARD(SignerTag.COLDCARD), JADE(SignerTag.JADE),
 }
+
+/** TAPSIGNER never exposes its seed, and the platform key lives on the server. */
+private val KeyType.hasSeedPhrase: Boolean
+    get() = when (this) {
+        KeyType.TAPSIGNER, KeyType.PLATFORM_KEY -> false
+        KeyType.COLDCARD, KeyType.JADE, KeyType.PORTAL, KeyType.SEEDSIGNER, KeyType.KEYSTONE,
+        KeyType.FOUNDATION, KeyType.LEDGER, KeyType.BITBOX, KeyType.TREZOR, KeyType.KRUX,
+        KeyType.SOFTWARE, KeyType.GENERIC_AIRGAP -> true
+    }

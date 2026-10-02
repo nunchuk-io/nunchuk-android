@@ -88,7 +88,6 @@ import com.nunchuk.android.core.signer.toSingleSigner
 import com.nunchuk.android.core.signer.SignerIntroFlow
 import com.nunchuk.android.core.signer.SignerIntroRequest
 import com.nunchuk.android.core.util.BackUpSeedPhraseType
-import com.nunchuk.android.core.util.InheritancePlanType
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.toReadableDrawableResId
@@ -100,7 +99,6 @@ import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFrag
 import com.nunchuk.android.main.membership.model.AddReplaceKeyOnChainData
 import com.nunchuk.android.main.membership.model.ReplaceStepData
 import com.nunchuk.android.main.membership.model.resId
-import com.nunchuk.android.main.membership.onchaintimelock.importantpassphrase.ImportantNoticePassphraseFragment
 import com.nunchuk.android.model.OnChainReplaceKeyStep
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.TimelockBased
@@ -282,17 +280,6 @@ class OnChainReplaceKeysFragment : Fragment() {
                 handleSignerTypeLogic(data.type, selectedSignerTag)
             }
             clearFragmentResult(TapSignerListBottomSheetFragment.REQUEST_KEY)
-        }
-
-        // An inheritance key reaches the signer intro through ImportantNoticePassphraseFragment,
-        // which relays the intro's result back here as a fragment result instead of an activity
-        // result. It carries the same extras, so it takes the same dispatcher.
-        setFragmentResultListener(ImportantNoticePassphraseFragment.REQUEST_KEY) { _, bundle ->
-            handleSignerIntroResult(
-                signerModel = bundle.parcelable<SignerModel>(GlobalResultKey.EXTRA_SIGNER),
-                requestDesktopSignerTag = bundle.getSerializable(GlobalResultKey.EXTRA_SIGNER_TAG) as? SignerTag,
-            )
-            clearFragmentResult(ImportantNoticePassphraseFragment.REQUEST_KEY)
         }
 
         setFragmentResultListener(ColdCardIntroFragment.REQUEST_KEY) { _, bundle ->
@@ -562,23 +549,26 @@ class OnChainReplaceKeysFragment : Fragment() {
                 nextStep == OnChainReplaceKeyStep.INHERITANCE_KEY_1 ||
                 nextStep == OnChainReplaceKeyStep.INHERITANCE_KEY_1_TIMELOCK
             ) {
-                // For inheritance key, navigate to inheritance intro screen
+                // The picker comes first; it shows the seed-phrase guides only for a key type that has one.
                 val currentStep = viewModel.getCurrentStep()
-                findNavController().navigate(
-                    OnChainReplaceKeysFragmentDirections.actionOnChainReplaceKeysFragmentToInheritanceKeyIntroFragment(
-                        inheritanceType = InheritancePlanType.ON_CHAIN,
-                        onChainAddSignerParam = OnChainAddSignerParam(
-                            flags = OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER,
-                            keyIndex = currentKeyData?.getAllSigners()?.size ?: 0,
-                            currentSigner = currentKeyData?.getAllSigners()?.firstOrNull(),
+                navigator.openSignerIntroScreen(
+                    launcher = signerIntroLauncher,
+                    activityContext = requireActivity(),
+                    request = SignerIntroRequest(
+                        walletId = (activity as MembershipActivity).walletId,
+                        groupId = args.groupId,
+                        flow = SignerIntroFlow.OnChainTimelockKey(
+                            isInheritanceKey = true,
+                            keyIndex = allSigners.size,
                             replaceInfo = currentStep?.let {
                                 OnChainAddSignerParam.ReplaceInfo(
                                     replacedXfp = viewModel.replacedXfp,
                                     step = it
                                 )
                             }
-                        )
-                    )
+                        ),
+                        walletType = WalletType.MINISCRIPT,
+                    ),
                 )
             } else {
                 // For hardware keys, open signer intro activity

@@ -86,7 +86,6 @@ class SignerIntroViewModel @Inject constructor(
     private var coordinator: SignerIntroCoordinator? = null
     private val selectionState = SignerIntroSelectionState(savedStateHandle)
     val verifyingKeyType: KeyType? get() = requireNotNull(coordinator).verifyingKeyType
-    val isInheritanceSetup: Boolean get() = requireNotNull(coordinator).isInheritanceSetup
 
     init {
         viewModelScope.launch {
@@ -173,6 +172,11 @@ class SignerIntroViewModel @Inject constructor(
         dispatch(requireNotNull(coordinator).select(keyType))
     }
 
+    /** The owner finished the inheritance guides for [keyType]. */
+    fun onInheritanceGuideCompleted(keyType: KeyType) {
+        dispatch(requireNotNull(coordinator).guideCompleted(keyType))
+    }
+
     fun onFirmwareChecked(device: SignerFirmwareDevice) {
         dispatch(requireNotNull(coordinator).firmwareChecked(device))
     }
@@ -196,6 +200,7 @@ class SignerIntroViewModel @Inject constructor(
     private fun dispatch(action: SignerIntroAction) {
         when (action) {
             is SignerIntroAction.OfferExisting -> offerExisting(action.keyType)
+            is SignerIntroAction.ShowInheritanceGuide -> sendEvent(SignerIntroEvent.ShowInheritanceGuide(action.keyType))
             SignerIntroAction.RecoverSoftware -> {
                 savedStateHandle[RECOVERY_VISIBLE] = true
                 _state.update { it.copy(showRecoveryOptions = true) }
@@ -318,6 +323,7 @@ class SignerIntroViewModel @Inject constructor(
 
 sealed interface SignerIntroEvent {
     data class CheckFirmware(val device: SignerFirmwareDevice) : SignerIntroEvent
+    data class ShowInheritanceGuide(val keyType: KeyType) : SignerIntroEvent
     data class OpenDevice(val action: SignerDeviceAction) : SignerIntroHostEvent
     data class ReturnHardwareTag(val tag: SignerTag) : SignerIntroHostEvent
     data object ReturnPlatformKey : SignerIntroHostEvent

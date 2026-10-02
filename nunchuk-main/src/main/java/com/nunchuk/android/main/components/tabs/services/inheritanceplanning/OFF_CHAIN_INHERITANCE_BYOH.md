@@ -236,6 +236,13 @@ Keystone, Jade and SeedSigner. That is native SDK work the claim flow depends on
   Coldcard, Jade, Ledger and BitBox each appeared twice. `BackUpSeedPhraseArgs.walletType` carries
   it: `MULTI_SIG` off-chain, `MINISCRIPT` from the on-chain timelock and replace flows. The four
   add-key pickers already passed it; only the re-add ones had no way to.
+  **That last claim was wrong for the on-chain inheritance picker:** it was opened without a wallet
+  type (by the old passphrase notice, and still after the guide reorder), so it listed both lists —
+  Coldcard, Jade, Krux, BitBox and Ledger twice, plus TAPSIGNER, Keystone, Foundation and Trezor,
+  which the server only offers for `MULTI_SIG`. Both on-chain inheritance requests now pass
+  `MINISCRIPT`, and `SignerIntroPickerPolicy` implies it from the flow (`OnChainTimelockKey` →
+  `MINISCRIPT`, `OffChainInheritanceKey` → `MULTI_SIG`) so a caller cannot leave it out again.
+  `SignerIntroPickerPolicyTest` pins it against the server's testnet lists.
 - **The backup upload no longer re-adds the key.** `uploadBackupKey` asks the server to add the key
   when `isRequestAddKey` is set, which is how a TAPSIGNER used to get onto the draft. The key is
   now added before the sharing method is chosen, so that request came back

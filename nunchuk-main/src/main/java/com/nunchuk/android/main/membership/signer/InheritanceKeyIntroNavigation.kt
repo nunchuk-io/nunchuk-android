@@ -23,6 +23,7 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
+import androidx.navigation.toRoute
 import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.compose.HighlightMessageType
 import com.nunchuk.android.compose.NcHintMessage
@@ -30,32 +31,34 @@ import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.main.R
-import com.nunchuk.android.main.membership.onchaintimelock.importantpassphrase.ImportantNoticePassphraseContent
+import com.nunchuk.android.signer.KeyType
 import kotlinx.serialization.Serializable
 
 /**
  * What the inheritance key is and what the owner needs off the device before adding it.
  *
- * It runs *before* the key-type picker — this is general information about the inheritance key, not
- * about any one device — and is followed by the passphrase notice.
+ * It runs *after* the key-type picker, and only for a key type that has a seed phrase — a TAPSIGNER
+ * owner has none to view or back up — and is followed by the passphrase notice. [keyType] is the
+ * picked [KeyType] name, carried through so the selection resumes once both guides are done.
  */
 @Serializable
-data object InheritanceKeyIntroDestination
+data class InheritanceKeyIntroDestination(val keyType: String)
 
-/** The passphrase warning, shared with the on-chain inheritance flow. */
+/** The passphrase warning that follows [InheritanceKeyIntroDestination], on- and off-chain. */
 @Serializable
-data object InheritancePassphraseNoticeDestination
+data class InheritancePassphraseNoticeDestination(val keyType: String)
 
 fun NavGraphBuilder.inheritanceKeyIntroDestination(
     remainTime: Int = 0,
     onMoreClicked: () -> Unit = {},
-    onContinueClicked: () -> Unit = {},
+    onContinueClicked: (KeyType) -> Unit = {},
 ) {
-    composable<InheritanceKeyIntroDestination> {
+    composable<InheritanceKeyIntroDestination> { backStackEntry ->
+        val keyType = KeyType.valueOf(backStackEntry.toRoute<InheritanceKeyIntroDestination>().keyType)
         InheritanceKeyIntroContent(
             remainTime = remainTime,
             onMoreClicked = onMoreClicked,
-            onContinueClicked = onContinueClicked,
+            onContinueClicked = { onContinueClicked(keyType) },
         )
     }
 }
@@ -63,13 +66,14 @@ fun NavGraphBuilder.inheritanceKeyIntroDestination(
 fun NavGraphBuilder.inheritancePassphraseNoticeDestination(
     remainTime: Int = 0,
     onMoreClicked: () -> Unit = {},
-    onContinueClicked: () -> Unit = {},
+    onContinueClicked: (KeyType) -> Unit = {},
 ) {
-    composable<InheritancePassphraseNoticeDestination> {
+    composable<InheritancePassphraseNoticeDestination> { backStackEntry ->
+        val keyType = KeyType.valueOf(backStackEntry.toRoute<InheritancePassphraseNoticeDestination>().keyType)
         ImportantNoticePassphraseContent(
             remainTime = remainTime,
             onMoreClicked = onMoreClicked,
-            onContinueClicked = onContinueClicked,
+            onContinueClicked = { onContinueClicked(keyType) },
         )
     }
 }

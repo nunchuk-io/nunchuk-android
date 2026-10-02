@@ -14,7 +14,16 @@ import com.nunchuk.android.type.WalletType
 /** Which keys are visible/enabled, independently of how a selected device is opened. */
 internal class SignerIntroPickerPolicy(private val request: SignerIntroRequest) {
     private val keyFlow = request.keyFlow
-    private val walletType = request.walletType
+    // The server lists an inheritance entry per wallet type, so an unscoped picker shows each shared
+    // device twice and offers devices the wallet cannot use. The on-chain timelock is always
+    // Miniscript and the off-chain inheritance key always multisig, so those flows never go unscoped.
+    private val walletType = request.walletType ?: when (request.flow) {
+        is SignerIntroFlow.OnChainTimelockKey -> WalletType.MINISCRIPT
+        is SignerIntroFlow.OffChainInheritanceKey -> WalletType.MULTI_SIG
+        SignerIntroFlow.AddKey, SignerIntroFlow.AddWalletKey, SignerIntroFlow.AddAssistedWalletKey,
+        SignerIntroFlow.ReplaceWalletKey, is SignerIntroFlow.ClaimInheritance,
+        is SignerIntroFlow.VerifyBackup -> null
+    }
     private val onChainAddSignerParam = request.deviceParams
     private val isAddInheritanceOffChainSetup = request.flow is SignerIntroFlow.OffChainInheritanceKey
     private val isOffChainClaim = (request.flow as? SignerIntroFlow.ClaimInheritance)?.isOnChain == false

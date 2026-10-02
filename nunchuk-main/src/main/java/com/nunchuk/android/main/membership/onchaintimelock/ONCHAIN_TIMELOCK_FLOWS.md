@@ -24,7 +24,6 @@ onchaintimelock/
 │                           OnChainTimelockAddKeyListViewModel
 ├── setuptimelock/          OnChainSetUpTimelockFragment            — pick the unlock date
 │                           OnChainSetUpTimelockViewModel           — create OR replace timelock
-├── importantpassphrase/    ImportantNoticePassphraseFragment       — inheritance-key passphrase warning
 ├── backupseedphrase/       BackUpSeedPhraseActivity (+ 4 Compose destinations)
 │                           BackUpSeedPhraseSharedViewModel         — verify / skip the seed backup
 ├── replacekey/             OnChainReplaceKeyIntroFragment          — replace flow intro
@@ -173,9 +172,11 @@ onAddClicked(card)  →  savedStateHandle[current_step] = card.getNextStepToAdd(
 1. **Customized draft, non-inheritance step** (`state.isCustomized && !nextStep.isAddInheritanceKey`)
    → `SignerIntroActivity` with `FLAG_ADD_SIGNER`, `walletType = MINISCRIPT`.
 2. **Slot 0 empty**
-   * inheritance step → `inheritanceKeyIntroFragment(inheritanceType = ON_CHAIN)`
-     → `importantNoticePassphraseFragment` → `SignerIntroActivity` with
-       `FLAG_ADD_INHERITANCE_SIGNER`.
+   * inheritance step → `SignerIntroActivity` with `FLAG_ADD_INHERITANCE_SIGNER`,
+     `walletType = MINISCRIPT` (the server lists inheritance keys per wallet type). The key-type
+     picker comes first; for a key type with a seed phrase (anything but TAPSIGNER) it then shows
+     the seed-phrase intro and passphrase notice (`SignerIntroRoute`) before the device flow.
+     Replace (`OnChainReplaceKeysFragment`) takes the same path, carrying `replaceInfo`.
    * otherwise → `SignerIntroActivity` with `FLAG_ADD_SIGNER`, `keyIndex = 0`.
 3. **Slot 0 filled** (adding the second account of the same device)
    * TapSigner (`SignerType.NFC`) → `viewModel.handleTapSignerAcct1Addition(...)` (§3.6).
@@ -218,7 +219,6 @@ the membership). Picking one → `onSelectedExistingHardwareSigner`; picking "ad
 | Source | Carrier | Handler |
 |---|---|---|
 | `SignerIntroActivity` | `signerIntroLauncher` (`EXTRA_SIGNER` and/or `EXTRA_SIGNER_TAG`) | `handleSignerIntroResult` |
-| `ImportantNoticePassphraseFragment` | fragment result `REQUEST_KEY` | `handleSignerIntroResult` |
 | `ColdCardIntroFragment` | fragment result (`EXTRA_SIGNER_TAG`) | `handleHardwareSignerTag` |
 | `TapSignerListBottomSheetFragment` | fragment result | reuse / `handleSignerTypeLogic` |
 | `LedgerActivity` / `BitBoxActivity` | dedicated launchers | `onSelectedExistingHardwareSigner` |
@@ -526,8 +526,6 @@ The view model:
 * `OnChainReplaceKeysViewModel.getStepInfo()` returns a stub `MembershipStepInfo(step = TIMELOCK)`
   because `MembershipStepInfo` cannot express `OnChainReplaceKeyStep`. Consequently the `filePath`
   and `backUpFileName` on `OnVerifySigner` are meaningless in the replace flow.
-* `ImportantNoticePassphraseFragment.handleContinueClick` hardcodes `keyIndex = 0`, so it is only
-  correct for the first slot of an inheritance card.
 * `AddKeyListEvent.SelectAirgapType` / `OnChainReplaceKeyEvent.SelectAirgapType` are emitted nowhere
   and handled with empty bodies.
 * Several strings on both key-list screens are hardcoded English ("Pull to refresh the key
