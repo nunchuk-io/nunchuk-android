@@ -245,7 +245,7 @@ private fun AssistedWalletScreen(
 }
 
 @Composable
-private fun AssistedWalletContent(
+fun AssistedWalletContent(
     uiState: WalletsBottomSheetState,
     title: String? = null,
     onWalletClick: (WalletExtended) -> Unit = {},

@@ -21,9 +21,9 @@ package com.nunchuk.android.signer.components.details.message
 
 import android.nfc.tech.IsoDep
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -57,47 +57,38 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.fragment.navArgs
-import androidx.viewbinding.ViewBinding
 import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.border
+import com.nunchuk.android.compose.dialog.NcConfirmationDialog
 import com.nunchuk.android.compose.greyLight
 import com.nunchuk.android.compose.whisper
-import com.nunchuk.android.compose.dialog.NcConfirmationDialog
-import com.nunchuk.android.core.base.BaseShareSaveFileFragment
 import com.nunchuk.android.core.bitbox.BitBoxSignMessageSheet
 import com.nunchuk.android.core.ledger.LedgerSignMessageSheet
+import com.nunchuk.android.core.nfc.BaseComposeNfcActivity
 import com.nunchuk.android.core.nfc.BaseNfcActivity
-import com.nunchuk.android.core.nfc.NfcActionListener
-import com.nunchuk.android.core.nfc.NfcViewModel
 import com.nunchuk.android.core.util.TrezorCallbackHolder
 import com.nunchuk.android.core.util.copyToClipboard
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.openTrezorSuiteLink
 import com.nunchuk.android.core.util.orUnknownError
-import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.core.util.showOrHideNfcLoading
-import com.nunchuk.android.core.util.showSuccess
 import com.nunchuk.android.model.SignedMessage
 import com.nunchuk.android.signer.R
+import com.nunchuk.android.signer.components.details.SignerDialogs
 import com.nunchuk.android.type.SignerType
-import com.nunchuk.android.widget.NCInputDialog
+import com.nunchuk.android.widget.NCToastMessage
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 import kotlinx.coroutines.delay
@@ -106,10 +97,10 @@ import kotlinx.coroutines.flow.filterNotNull
 
 @OptIn(ExperimentalFoundationApi::class)
 @AndroidEntryPoint
-class SignMessageFragment : BaseShareSaveFileFragment<ViewBinding>() {
-    private val args: SignMessageFragmentArgs by navArgs()
+class SignMessageActivity : BaseComposeNfcActivity() {
+    private val args by lazy { SignMessageArgs.fromBundle(requireNotNull(intent.extras)) }
     private val viewModel: SignMessageViewModel by viewModels()
-    private val nfcViewModel: NfcViewModel by activityViewModels()
+    private val dialogs = SignerDialogs()
     private var openTrezorSuiteDeeplink: String? by mutableStateOf(null)
 
     /** Message to sign on a Ledger; non-null shows the connect-and-sign sheet. */
@@ -125,75 +116,69 @@ class SignMessageFragment : BaseShareSaveFileFragment<ViewBinding>() {
     @Inject
     lateinit var trezorCallbackHolder: TrezorCallbackHolder
 
-    override fun initializeBinding(inflater: LayoutInflater, container: ViewGroup?): ViewBinding {
-        TODO("Not yet implemented")
-    }
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+        observeEvents()
+        setContent {
+            val state by viewModel.state.collectAsStateWithLifecycle()
+            NunchukTheme {
+                dialogs.Content()
+                SignMessageContent(
+                    defaultPath = state.defaultPath,
+                    isPathEditable = state.isPathEditable,
+                    signedMessage = state.signedMessage,
+                    onValidatePath = viewModel::validatePath,
+                    onSignMessage = { message, path ->
+                        onSignMessage(message, path)
+                    },
+                    onCopyAddress = {
+                        NCToastMessage(this).show(getString(R.string.nc_signer_address_copied_to_clipboard))
+                    },
+                    onCopySignature = {
+                        NCToastMessage(this).show(getString(R.string.nc_signer_signature_copied_to_clipboard))
+                    },
+                    onExportSignature = {
+                        showSaveShareOption()
+                    },
+                    onResetSignature = viewModel::resetSignature
+                )
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
-    ): View {
-        return ComposeView(requireContext()).apply {
-            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-
-            setContent {
-                val state by viewModel.state.collectAsStateWithLifecycle()
-                NunchukTheme {
-                    SignMessageContent(
-                        defaultPath = state.defaultPath,
-                        isPathEditable = state.isPathEditable,
-                        signedMessage = state.signedMessage,
-                        onValidatePath = viewModel::validatePath,
-                        onSignMessage = { message, path ->
-                            onSignMessage(message, path)
+                if (openTrezorSuiteDeeplink != null) {
+                    NcConfirmationDialog(
+                        title = stringResource(id = com.nunchuk.android.core.R.string.nc_confirmation),
+                        message = stringResource(id = R.string.nc_open_trezor_suite_continue_signing_message),
+                        positiveButtonText = stringResource(id = R.string.nc_open_trezor_suite),
+                        negativeButtonText = stringResource(id = com.nunchuk.android.core.R.string.nc_cancel),
+                        isPositiveButtonWrapContent = true,
+                        onPositiveClick = {
+                            openTrezorSuiteDeeplink?.let(this@SignMessageActivity::openTrezorSuiteLink)
+                            openTrezorSuiteDeeplink = null
                         },
-                        onCopyAddress = {
-                            showSuccess(getString(R.string.nc_signer_address_copied_to_clipboard))
-                        },
-                        onCopySignature = {
-                            showSuccess(getString(R.string.nc_signer_signature_copied_to_clipboard))
-                        },
-                        onExportSignature = {
-                            showSaveShareOption()
-                        },
-                        onResetSignature = viewModel::resetSignature
+                        onDismiss = { openTrezorSuiteDeeplink = null }
                     )
+                }
 
-                    if (openTrezorSuiteDeeplink != null) {
-                        NcConfirmationDialog(
-                            title = stringResource(id = com.nunchuk.android.core.R.string.nc_confirmation),
-                            message = stringResource(id = R.string.nc_open_trezor_suite_continue_signing_message),
-                            positiveButtonText = stringResource(id = R.string.nc_open_trezor_suite),
-                            negativeButtonText = stringResource(id = com.nunchuk.android.core.R.string.nc_cancel),
-                            isPositiveButtonWrapContent = true,
-                            onPositiveClick = {
-                                openTrezorSuiteDeeplink?.let(requireActivity()::openTrezorSuiteLink)
-                                openTrezorSuiteDeeplink = null
-                            },
-                            onDismiss = { openTrezorSuiteDeeplink = null }
-                        )
-                    }
+                ledgerSignMessage?.let { message ->
+                    LedgerSignMessageSheet(
+                        masterFingerprint = args.masterFingerprint,
+                        derivationPath = args.derivationPath,
+                        message = message,
+                        onDismiss = { ledgerSignMessage = null },
+                        onSignature = viewModel::onLedgerMessageSigned,
+                    )
+                }
 
-                    ledgerSignMessage?.let { message ->
-                        LedgerSignMessageSheet(
-                            masterFingerprint = args.masterFingerprint,
-                            derivationPath = args.derivationPath,
-                            message = message,
-                            onDismiss = { ledgerSignMessage = null },
-                            onSignature = viewModel::onLedgerMessageSigned,
-                        )
-                    }
-
-                    // The BitBox signs at the path the SDK resolved (state.defaultPath), not the
-                    // signer's own — see Confluence "4. Sign message".
-                    bitBoxSignMessage?.let { (message, path) ->
-                        BitBoxSignMessageSheet(
-                            masterFingerprint = args.masterFingerprint,
-                            derivationPath = path,
-                            message = message,
-                            onDismiss = { bitBoxSignMessage = null },
-                            onSignature = viewModel::onBitBoxMessageSigned,
-                        )
-                    }
+                // The BitBox signs at the path the SDK resolved (state.defaultPath), not the
+                // signer's own — see Confluence "4. Sign message".
+                bitBoxSignMessage?.let { (message, path) ->
+                    BitBoxSignMessageSheet(
+                        masterFingerprint = args.masterFingerprint,
+                        derivationPath = path,
+                        message = message,
+                        onDismiss = { bitBoxSignMessage = null },
+                        onSignature = viewModel::onBitBoxMessageSigned,
+                    )
                 }
             }
         }
@@ -219,21 +204,21 @@ class SignMessageFragment : BaseShareSaveFileFragment<ViewBinding>() {
             // rather than sign at a path we couldn't resolve — the signature would verify
             // against nothing and look like a device fault.
             if (path.isBlank()) {
-                showError(getString(R.string.nc_signer_invalid_derivation_path))
+                NCToastMessage(this).showError(getString(R.string.nc_signer_invalid_derivation_path))
             } else {
                 bitBoxSignMessage = message.trim() to path
             }
         } else if (viewModel.isTrezorSigner()) {
             viewModel.requestSignMessageByTrezor()
         } else if (args.signerType == SignerType.NFC) {
-            (requireActivity() as NfcActionListener).startNfcFlow(BaseNfcActivity.REQUEST_NFC_HEALTH_CHECK)
+            startNfcFlow(BaseNfcActivity.REQUEST_NFC_HEALTH_CHECK)
         } else if (args.signerType == SignerType.HARDWARE) {
             // A hardware key can never sign through the software path below, so don't let it fall
             // there. Reaching here means either the signer hasn't loaded yet — its tags are what
             // pick the device flow, and they arrive asynchronously — or it has no in-app flow at
             // all. Both are worth saying out loud; silently attempting a software sign fails in a
             // way that looks like the key is broken.
-            showError(
+            NCToastMessage(this).showError(
                 getString(
                     if (viewModel.isSignerLoaded()) {
                         com.nunchuk.android.core.R.string.nc_use_desktop_app_to_sign
@@ -243,7 +228,7 @@ class SignMessageFragment : BaseShareSaveFileFragment<ViewBinding>() {
                 )
             )
         } else if (viewModel.needPassphrase()) {
-            NCInputDialog(requireActivity()).showDialog(
+            dialogs.input(
                 title = getString(R.string.nc_transaction_enter_passphrase),
                 onConfirmed = { viewModel.handleHealthCheck(it) }
             )
@@ -252,22 +237,21 @@ class SignMessageFragment : BaseShareSaveFileFragment<ViewBinding>() {
         }
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
+    private fun observeEvents() {
         flowObserver(viewModel.event) { event ->
             when (event) {
-                SignMessageEvent.InvalidPath -> showError(getString(R.string.nc_signer_invalid_derivation_path))
-                SignMessageEvent.NoSignatureDetected -> showError(getString(R.string.nc_signer_no_signature_detected))
+                SignMessageEvent.InvalidPath -> NCToastMessage(this).showError(getString(R.string.nc_signer_invalid_derivation_path))
+                SignMessageEvent.NoSignatureDetected -> NCToastMessage(this).showError(getString(R.string.nc_signer_no_signature_detected))
                 is SignMessageEvent.ShowOpenTrezorSuiteConfirmation -> {
                     openTrezorSuiteDeeplink = event.deeplink
                 }
 
                 is SignMessageEvent.ShowError ->
                     if (nfcViewModel.handleNfcError(event.e).not()) {
-                        showError(event.e.message.orUnknownError())
+                        NCToastMessage(this).showError(event.e.message.orUnknownError())
                     }
 
-                SignMessageEvent.SignSuccess -> showSuccess(getString(R.string.nc_signer_the_message_has_been_signed))
+                SignMessageEvent.SignSuccess -> NCToastMessage(this).show(getString(R.string.nc_signer_the_message_has_been_signed))
                 is SignMessageEvent.Loading -> showOrHideLoading(event.isLoading)
                 is SignMessageEvent.NfcLoading -> showOrHideNfcLoading(event.isLoading)
                 is SignMessageEvent.ShareFile -> controller.shareFile(event.path)

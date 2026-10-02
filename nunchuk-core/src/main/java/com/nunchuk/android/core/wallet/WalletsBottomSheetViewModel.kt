@@ -40,6 +40,7 @@ import com.nunchuk.android.usecase.membership.GetSavedAddressListLocalUseCase
 import com.nunchuk.android.usecase.membership.GetSavedAddressListRemoteUseCase
 import com.nunchuk.android.utils.ByzantineGroupUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
@@ -68,22 +69,27 @@ class WalletsBottomSheetViewModel @Inject constructor(
 
     private var exclusiveAddresses: List<String> = emptyList()
 
+    // init() may be called again on the same instance (activity-scoped host), so drop the previous collectors
+    private val initJobs = mutableListOf<Job>()
+
     fun init(
         configArgs: WalletComposeBottomSheet.ConfigArgs?,
         walletIds: List<String>,
         exclusiveWalletIds: List<String>,
         exclusiveAddresses: List<String>
     ) {
+        initJobs.forEach { it.cancel() }
+        initJobs.clear()
         this.exclusiveAddresses = exclusiveAddresses
         _state.update { it.copy(config = configArgs ?: WalletComposeBottomSheet.ConfigArgs()) }
-        viewModelScope.launch {
+        initJobs += viewModelScope.launch {
             getFreeGroupWalletsUseCase(Unit)
                 .onSuccess { wallets ->
                     _state.update { it.copy(groupWallets = wallets.map { it.id }.toHashSet()) }
                     composeWalletUiModels()
                 }
         }
-        viewModelScope.launch {
+        initJobs += viewModelScope.launch {
             getGroupsUseCase(Unit)
                 .collect { result ->
                     val groups = result.getOrDefault(emptyList())
@@ -96,7 +102,7 @@ class WalletsBottomSheetViewModel @Inject constructor(
                     }
                 }
         }
-        viewModelScope.launch {
+        initJobs += viewModelScope.launch {
             getLocalMembershipPlansFlowUseCase(Unit)
                 .map { it.getOrElse { emptyList() } }
                 .collect { plans ->
@@ -117,7 +123,7 @@ class WalletsBottomSheetViewModel @Inject constructor(
     }
 
     private fun getWallets(exclusiveWalletIds: List<String>, walletIds: List<String>) {
-        viewModelScope.launch {
+        initJobs += viewModelScope.launch {
             getWalletsUseCase.execute()
                 .catch { Timber.e(it) }
                 .collect { wallets ->
@@ -130,7 +136,7 @@ class WalletsBottomSheetViewModel @Inject constructor(
                     composeWalletUiModels()
                 }
         }
-        viewModelScope.launch {
+        initJobs += viewModelScope.launch {
             getAssistedWalletsFlowUseCase(Unit)
                 .map { it.getOrElse { emptyList() } }
                 .distinctUntilChanged()
@@ -147,7 +153,7 @@ class WalletsBottomSheetViewModel @Inject constructor(
     }
 
     fun getSavedAddresses() {
-        viewModelScope.launch {
+        initJobs += viewModelScope.launch {
             getSavedAddressListLocalUseCase(Unit)
                 .collect { result ->
                     val config = _state.value.config

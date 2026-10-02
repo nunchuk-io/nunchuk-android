@@ -74,8 +74,8 @@ class SignMessageViewModel @Inject constructor(
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val saveLocalFileUseCase: SaveLocalFileUseCase
 ) : ViewModel() {
-    private val args: SignMessageFragmentArgs =
-        SignMessageFragmentArgs.fromSavedStateHandle(savedStateHandle)
+    private val args: SignMessageArgs =
+        SignMessageArgs.fromSavedStateHandle(savedStateHandle)
     private val _state = MutableStateFlow(SignMessageUiState())
     val state = _state.asStateFlow()
 

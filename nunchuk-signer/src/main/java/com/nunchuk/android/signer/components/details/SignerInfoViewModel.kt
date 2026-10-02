@@ -151,8 +151,8 @@ internal class SignerInfoViewModel @Inject constructor(
         .map { it.getOrDefault(emptySet()) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptySet())
 
-    private val args: SignerInfoFragmentArgs =
-        SignerInfoFragmentArgs.fromSavedStateHandle(savedStateHandle)
+    private val args: SignerInfoArgs =
+        SignerInfoArgs.fromSavedStateHandle(savedStateHandle)
 
     init {
         _state.update { it.copy(signerName = args.name) }
