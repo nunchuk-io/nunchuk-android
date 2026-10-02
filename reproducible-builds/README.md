@@ -144,12 +144,13 @@ git submodule add --force -b main https://github.com/nunchuk-io/libnunchuk.git s
 git submodule update --init --recursive
 
 # Get the nunchuk-android-nativesdk version used in nunchuk-android
-sdk_version=$(sed -n "s/.*prebuildNativeSdkVersion = '\([0-9.]*\)@aar'.*/\1/p" $HOME/nunchuk-android/configs/dependencies.gradle)
+sdk_version=$(sed -n 's/^nativeSdk = "\([0-9.]*\)".*/\1/p' $HOME/nunchuk-android/gradle/libs.versions.toml)
 git checkout $sdk_version
 
-# Build the SDK
-docker run --rm -v "$(pwd)":/nunchuk-android-nativesdk nunchuk-android bash -c "cd /nunchuk-android-nativesdk/src/main/native && ./.install_deps.sh"
-docker run --rm -v "$(pwd)":/nunchuk-android-nativesdk nunchuk-android bash -c "cd /nunchuk-android-nativesdk && ./gradlew assembleArmRelease"
+# Build the SDK with the same `nunchuk-android` image built above. The SDK's Gradle 8.7
+# cannot run on JDK 25, so point JAVA_HOME at the JDK 21 the image also ships.
+docker run --rm -v "$(pwd)":/nunchuk-android-nativesdk -e JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64 nunchuk-android bash -c "cd /nunchuk-android-nativesdk/src/main/native && ./.install_deps.sh"
+docker run --rm -v "$(pwd)":/nunchuk-android-nativesdk -e JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64 nunchuk-android bash -c "cd /nunchuk-android-nativesdk && ./gradlew assembleArmRelease"
 ```
 After that's done, you have your sdk .aar file! It's located in:
 
