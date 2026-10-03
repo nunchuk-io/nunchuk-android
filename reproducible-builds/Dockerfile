@@ -4,11 +4,6 @@
 #   nunchuk-android-nativesdk/Dockerfile
 # The app's reproducible-build guide builds the native SDK in this same image, so
 # any drift between the two copies breaks verification of the prebuilt .aar.
-#
-# The two projects need different JDKs, so both are installed:
-#   - nunchuk-android:           JDK 25 (build-logic toolchain) - the default JAVA_HOME
-#   - nunchuk-android-nativesdk: JDK 21 (Gradle 8.7 cannot run on JDK 25) - run with
-#                                -e JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
 FROM docker.io/debian:trixie-20250811-slim
 
 # python-is-python3 + python3-setuptools: libwally-core's ./configure (AX_PYTHON_DEVEL)
@@ -20,7 +15,7 @@ RUN set -ex; \
     DEBIAN_FRONTEND=noninteractive apt-get install --yes -o APT::Install-Suggests=false --no-install-recommends \
         bzip2 make automake ninja-build g++-multilib libtool binutils-gold \
         bsdextrautils pkg-config python3 python-is-python3 python3-setuptools patch bison curl unzip git \
-        openjdk-21-jdk openjdk-25-jdk disorderfs; \
+        openjdk-25-jdk disorderfs; \
     rm -rf /var/lib/apt/lists/*;
 
 ENV JAVA_HOME=/usr/lib/jvm/java-25-openjdk-amd64
@@ -29,11 +24,8 @@ ENV ANDROID_SDK_ROOT=/sdk
 ENV ANDROID_SDK=/sdk
 ENV ANDROID_HOME=/sdk
 ENV ANDROID_SDK_URL=https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
-# App: build-tools 36.0.0 / android-36. Native SDK: build-tools 34.0.0 / android-35.
 ENV ANDROID_BUILD_TOOLS_VERSION=36.0.0
 ENV ANDROID_VERSION=36
-ENV ANDROID_NATIVESDK_BUILD_TOOLS_VERSION=34.0.0
-ENV ANDROID_NATIVESDK_VERSION=35
 ENV ANDROID_NDK_VERSION=27.2.12479018
 ENV ANDROID_CMAKE_VERSION=3.22.1
 ENV ANDROID_NDK_HOME=${ANDROID_HOME}/ndk/${ANDROID_NDK_VERSION}
@@ -54,8 +46,6 @@ RUN $ANDROID_HOME/cmdline-tools/bin/sdkmanager --sdk_root=$ANDROID_HOME --update
 RUN $ANDROID_HOME/cmdline-tools/bin/sdkmanager --sdk_root=$ANDROID_HOME \
     "build-tools;${ANDROID_BUILD_TOOLS_VERSION}" \
     "platforms;android-${ANDROID_VERSION}" \
-    "build-tools;${ANDROID_NATIVESDK_BUILD_TOOLS_VERSION}" \
-    "platforms;android-${ANDROID_NATIVESDK_VERSION}" \
     "cmake;$ANDROID_CMAKE_VERSION" \
     "platform-tools" \
     "ndk;$ANDROID_NDK_VERSION"
