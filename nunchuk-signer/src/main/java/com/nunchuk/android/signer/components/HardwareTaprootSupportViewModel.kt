@@ -3,8 +3,10 @@ package com.nunchuk.android.signer.components
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.model.signer.SupportedSigner
+import com.nunchuk.android.model.signer.matches
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.SignerTag
+import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.signer.GetSupportedSignersUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -35,6 +37,18 @@ data class HardwareTaprootSupportState(
             signer.tag == tag
                     && (signer.addressType == null || signer.addressType == AddressType.TAPROOT)
                     && (signer.walletType == null || signer.walletType == walletType)
+        }
+    }
+
+    /**
+     * Same lookup for a key the app already holds (software, TAPSIGNER, ...): those rows are
+     * matched on the signer type, and on the tag only when the row names one.
+     */
+    fun isTaprootSupported(type: SignerType, tags: List<SignerTag>, walletType: WalletType): Boolean {
+        if (!isLoaded) return false
+        return taprootSigners.any { signer ->
+            signer.matches(type, tags, walletType)
+                    && (signer.addressType == null || signer.addressType == AddressType.TAPROOT)
         }
     }
 }

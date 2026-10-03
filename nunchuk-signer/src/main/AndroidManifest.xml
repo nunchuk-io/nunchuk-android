@@ -10,6 +10,13 @@
             android:windowSoftInputMode="adjustResize" />
 
         <activity
+            android:name=".components.details.exportxpub.ExportXpubActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
             android:name=".components.add.AddAirgapSignerActivity"
             android:label="@string/nc_create_signer_title"
             android:screenOrientation="portrait"

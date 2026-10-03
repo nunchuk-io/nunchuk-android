@@ -51,12 +51,14 @@ internal fun SignerOptionsSheet(
     signerType: SignerType?,
     canSignMessage: Boolean,
     canQrUnlock: Boolean,
+    canExportXpub: Boolean,
     onOption: (SingerOption) -> Unit,
     onDismiss: () -> Unit,
 ) {
     val options = buildList {
         if (canQrUnlock) add(SingerOption.QR_UNLOCK to R.string.nc_jade_qr_unlock)
         if (canSignMessage) add(SingerOption.SIGN_MESSAGE to R.string.nc_signer_sign_message)
+        if (canExportXpub) add(SingerOption.EXPORT_XPUB to R.string.nc_export_xpub)
         if (signerType == SignerType.NFC) {
             add(SingerOption.TOP_UP to R.string.nc_top_up_xpubs)
             add(SingerOption.CHANGE_CVC to R.string.nc_change_cvc)
@@ -193,6 +195,7 @@ private fun SignerOptionsSheetPreview() {
             signerType = SignerType.NFC,
             canSignMessage = true,
             canQrUnlock = false,
+            canExportXpub = true,
             onOption = {},
             onDismiss = {},
         )

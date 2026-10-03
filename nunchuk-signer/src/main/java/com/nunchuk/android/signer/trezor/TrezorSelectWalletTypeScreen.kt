@@ -152,6 +152,30 @@ fun SelectWalletTypeScreen(
     continueConfirmation: ContinueConfirmation? = null,
     onContinue: (Boolean, AddressType, Int) -> Unit = { _, _, _ -> }
 ) {
+    SelectWalletTypeScreen(
+        subtitle = subtitle,
+        isTaprootSupported = { walletType -> taprootSupportState.isTaprootSupported(signerTag, walletType) },
+        onBack = onBack,
+        continueConfirmation = continueConfirmation,
+        onContinue = onContinue,
+    )
+}
+
+/**
+ * Same screen without the hardware-tag lookup: [isTaprootSupported] answers per wallet type, and
+ * a non-null [onCustomPathClicked] adds the "Advanced → Custom derivation path" row, called with
+ * the current selection so the path editor can start from it.
+ */
+@Composable
+fun SelectWalletTypeScreen(
+    subtitle: String,
+    isTaprootSupported: (WalletType) -> Boolean,
+    title: String = stringResource(id = R.string.nc_select_wallet_address_type),
+    onBack: () -> Unit = {},
+    continueConfirmation: ContinueConfirmation? = null,
+    onCustomPathClicked: ((Boolean, AddressType, Int) -> Unit)? = null,
+    onContinue: (Boolean, AddressType, Int) -> Unit = { _, _, _ -> }
+) {
     var isSingleSig by rememberSaveable { mutableStateOf(true) }
     var addressTypeName by rememberSaveable { mutableStateOf(AddressType.NATIVE_SEGWIT.name) }
     var accountIndex by rememberSaveable { mutableIntStateOf(0) }
@@ -161,7 +185,7 @@ fun SelectWalletTypeScreen(
 
     val addressType = addressTypeName.toAddressTypeOrDefault()
     val selectedWalletType = if (isSingleSig) WalletType.SINGLE_SIG else WalletType.MULTI_SIG
-    val isTaprootSupported = taprootSupportState.isTaprootSupported(signerTag, selectedWalletType)
+    val isTaprootSupported = isTaprootSupported(selectedWalletType)
     val addressTypeValue = stringResource(
         id = R.string.nc_default_value,
         walletAddressTypeText(addressType)
@@ -205,7 +229,7 @@ fun SelectWalletTypeScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                text = stringResource(id = R.string.nc_select_wallet_address_type),
+                text = title,
                 style = NunchukTheme.typography.heading
             )
 
@@ -253,6 +277,32 @@ fun SelectWalletTypeScreen(
                 value = accountIndexValue,
                 onEdit = { showAccountIndexSheet = true }
             )
+
+            if (onCustomPathClicked != null) {
+                Column {
+                    Text(
+                        text = stringResource(id = R.string.nc_advanced),
+                        style = NunchukTheme.typography.titleLarge
+                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = stringResource(id = R.string.nc_custom_derivation_path),
+                            style = NunchukTheme.typography.body
+                        )
+                        Text(
+                            text = stringResource(id = com.nunchuk.android.core.R.string.nc_edit),
+                            style = NunchukTheme.typography.textLink,
+                            modifier = Modifier.clickable {
+                                onCustomPathClicked(isSingleSig, addressType, accountIndex)
+                            }
+                        )
+                    }
+                }
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
         }

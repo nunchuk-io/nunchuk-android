@@ -59,6 +59,9 @@ import com.nunchuk.android.core.wallet.WalletsBottomSheetViewModel
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.VerificationType
 import com.nunchuk.android.signer.R
+import com.nunchuk.android.signer.components.details.exportxpub.ExportXpubActivity
+import com.nunchuk.android.signer.components.details.exportxpub.exporter.XpubExporters
+import com.nunchuk.android.signer.components.details.exportxpub.exporter.XpubKey
 import com.nunchuk.android.signer.components.details.message.SignMessageActivity
 import com.nunchuk.android.signer.components.details.message.SignMessageArgs
 import com.nunchuk.android.signer.components.details.model.SingerOption
@@ -75,6 +78,9 @@ import javax.inject.Inject
 class SignerInfoActivity : BaseComposePortalActivity() {
     @Inject
     lateinit var trezorCallbackHolder: TrezorCallbackHolder
+
+    @Inject
+    lateinit var xpubExporters: XpubExporters
 
     private var openTrezorSuiteDeeplink: String? by mutableStateOf(null)
 
@@ -193,6 +199,7 @@ class SignerInfoActivity : BaseComposePortalActivity() {
                     signerType = type,
                     canSignMessage = type?.let(::canSignMessage) == true,
                     canQrUnlock = viewModel.isJadeSigner(),
+                    canExportXpub = canExportXpub(uiState),
                     onOption = { option ->
                         showOptions = false
                         onOptionClickListener(option)
@@ -282,7 +289,30 @@ class SignerInfoActivity : BaseComposePortalActivity() {
             )
 
             SingerOption.UPDATE_FIRMWARE -> selectFirmwareFile()
+            SingerOption.EXPORT_XPUB -> openExportXpub()
         }
+    }
+
+    /** Offered for any key that has an exporter; see [XpubExporters]. */
+    private fun canExportXpub(state: SignerInfoState) = state.toXpubKey()?.let(xpubExporters::canExport) == true
+
+    private fun SignerInfoState.toXpubKey(): XpubKey? = masterSigner?.let { XpubKey(it.type, it.tags, isMasterSigner = true) }
+        ?: remoteSigner?.let { XpubKey(it.type, it.tags, isMasterSigner = false) }
+
+    private fun openExportXpub() {
+        val state = viewModel.state.value
+        val masterSigner = state.masterSigner
+        val remoteSigner = state.remoteSigner
+        ExportXpubActivity.start(
+            activityContext = this,
+            isMasterSigner = masterSigner != null,
+            masterSignerId = args.id,
+            signerType = masterSigner?.type ?: remoteSigner?.type ?: args.signerType,
+            signerTags = masterSigner?.tags ?: remoteSigner?.tags.orEmpty(),
+            masterFingerprint = remoteSigner?.masterFingerprint.orEmpty(),
+            derivationPath = remoteSigner?.derivationPath.orEmpty(),
+            descriptor = remoteSigner?.descriptor.orEmpty(),
+        )
     }
 
     /**

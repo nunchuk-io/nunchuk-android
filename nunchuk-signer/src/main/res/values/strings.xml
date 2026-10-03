@@ -329,4 +329,12 @@
     <string name="nc_keystone_backup_step_create">Create the encrypted backup of this key on the device</string>
     <string name="nc_keystone_backup_step_export">Export the backup file via QR code or microSD card</string>
     <string name="nc_keystone_backup_hint">Menu names may differ by firmware version. Exact steps to be finalized with Keystone.</string>
+    <string name="nc_export_xpub">Export XPUB</string>
+    <string name="nc_export_xpub_select_account">Select the account to export.</string>
+    <string name="nc_custom_derivation_path">Custom derivation path</string>
+    <string name="nc_custom_derivation_path_desc">Enter the full derivation path to export.</string>
+    <string name="nc_custom_derivation_path_hint">Use h or \' for hardened steps.</string>
+    <string name="nc_custom_derivation_path_invalid">Enter a valid path, e.g. m/84h/0h/0h.</string>
+    <string name="nc_copy_xpub">Copy XPUB</string>
+    <string name="nc_xpub_copied">XPUB copied</string>
 </resources>
