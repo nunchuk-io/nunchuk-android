@@ -51,6 +51,7 @@ import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.model.signer.SupportedSigner
+import com.nunchuk.android.model.signer.matches
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.wallet.ConfigureWalletState
 import com.nunchuk.android.wallet.ConfigureWalletViewModel
@@ -312,11 +313,7 @@ private fun isSupportedSigner(
     supportedSigners: List<SupportedSigner>,
     signer: SignerModel,
     walletType: WalletType
-) = supportedSigners.isEmpty() || supportedSigners.any { supportedSigner ->
-    supportedSigner.type == signer.type
-            && (supportedSigner.tag == null || signer.tags.contains(supportedSigner.tag))
-            && (supportedSigner.walletType == null || supportedSigner.walletType == walletType)
-}
+) = supportedSigners.isEmpty() || supportedSigners.any { it.matches(signer.type, signer.tags, walletType) }
 
 @Composable
 private fun CircleButton(

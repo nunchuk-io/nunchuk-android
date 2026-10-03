@@ -28,3 +28,12 @@ val supportedAirgapSigner = SupportedSigner(
     walletType = null,
     addressType = null
 )
+/**
+ * Whether this supported-signer row covers a key of [type] with [tags]: the type has to match,
+ * the tag only when the row names one, and the wallet type only when both sides name one (a row
+ * without a wallet type covers every wallet type; a null [walletType] skips the check).
+ */
+fun SupportedSigner.matches(type: SignerType, tags: List<SignerTag>, walletType: WalletType? = null): Boolean =
+    this.type == type &&
+            (tag == null || tags.contains(tag)) &&
+            (walletType == null || this.walletType == null || this.walletType == walletType)

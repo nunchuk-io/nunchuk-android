@@ -57,6 +57,7 @@ import com.nunchuk.android.compose.signer.SingleChoiceSignerCard
 import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.core.R
 import com.nunchuk.android.model.signer.SupportedSigner
+import com.nunchuk.android.model.signer.matches
 import com.nunchuk.android.type.SignerType
 
 @Composable
@@ -71,9 +72,7 @@ fun TapSignerListScreen(
     val selectedSigner by viewModel.selectSingle.collectAsStateWithLifecycle()
 
     val selectableSigner = if (supportedSigners.isNotEmpty()) args.signers.partition { signer ->
-        supportedSigners.any {
-            it.type == signer.type && (it.tag == null || signer.tags.contains(it.tag))
-        }
+        supportedSigners.any { it.matches(signer.type, signer.tags) }
     } else {
         Pair(args.signers, emptyList())
     }
