@@ -103,7 +103,7 @@ abstract class MembershipFragment : BaseShareSaveFileFragment<ViewBinding>(), Bo
 
     protected fun handleShowMore() {
         val options = mutableListOf<SheetOption>()
-        if (allowRestartWizard && (viewModel.getRole().isMaster || viewModel.getRole().isNone)) {
+        if (canRestartWizard) {
             options.add(
                 SheetOption(
                     type = SheetOptionType.TYPE_RESTART_WIZARD,
@@ -120,6 +120,10 @@ abstract class MembershipFragment : BaseShareSaveFileFragment<ViewBinding>(), Bo
         )
         BottomSheetOption.newInstance(options).show(childFragmentManager, "BottomSheetOption")
     }
+
+    /** Restart is offered to the master or a wallet with no role only. */
+    protected val canRestartWizard: Boolean
+        get() = allowRestartWizard && (viewModel.getRole().isMaster || viewModel.getRole().isNone)
 
     private fun resetWizard() {
         viewModel.resetWizard(membershipStepManager.localMembershipPlan)

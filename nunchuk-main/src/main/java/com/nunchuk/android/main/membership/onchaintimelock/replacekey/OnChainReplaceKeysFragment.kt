@@ -111,6 +111,7 @@ import com.nunchuk.android.nav.args.AddAirSignerArgs
 import com.nunchuk.android.nav.args.BackUpSeedPhraseArgs
 import com.nunchuk.android.nav.args.SetupMk4Args
 import com.nunchuk.android.share.result.GlobalResultKey
+import com.nunchuk.android.share.result.isExitWizard
 import com.nunchuk.android.signer.bitbox.BitBoxActivity
 import com.nunchuk.android.signer.ledger.LedgerActivity
 import com.nunchuk.android.signer.mk4.inheritance.ColdCardIntroFragment
@@ -143,6 +144,10 @@ class OnChainReplaceKeysFragment : Fragment() {
     private val signerIntroLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
+        if (result.isExitWizard()) {
+            requireActivity().finish()
+            return@registerForActivityResult
+        }
         if (result.resultCode == Activity.RESULT_OK && result.data != null) {
             handleSignerIntroResult(result.data!!)
         }
@@ -203,6 +208,10 @@ class OnChainReplaceKeysFragment : Fragment() {
      */
     private val verifyBackUpSeedPhraseLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.isExitWizard()) {
+                requireActivity().finish()
+                return@registerForActivityResult
+            }
             val verifiedXfp = result.data?.getStringExtra(GlobalResultKey.EXTRA_VERIFIED_XFP)
             if (result.resultCode == Activity.RESULT_OK && !verifiedXfp.isNullOrEmpty()) {
                 viewModel.setReplaceKeyVerified(verifiedXfp)

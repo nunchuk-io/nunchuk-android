@@ -17,6 +17,7 @@ import com.nunchuk.android.core.R
 import com.nunchuk.android.core.signer.SelectSignerArgs
 import com.nunchuk.android.core.signer.SelectSignerBottomSheet
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.signer.SignerIntroFlow
 import com.nunchuk.android.core.signer.SignerIntroRequest
 import com.nunchuk.android.signer.SignerIntroHostEvent
 import com.nunchuk.android.signer.SignerIntroEvent
@@ -70,6 +71,7 @@ internal fun SignerIntroRoute(
                 signerIntroDestination(
                     viewModel = viewModel,
                     onChainAddSignerParam = request.deviceParams,
+                    isWizardStep = request.flow is SignerIntroFlow.OffChainAssistedKey,
                     onClick = viewModel::onKeySelected,
                     onMoreClicked = onMore,
                 )

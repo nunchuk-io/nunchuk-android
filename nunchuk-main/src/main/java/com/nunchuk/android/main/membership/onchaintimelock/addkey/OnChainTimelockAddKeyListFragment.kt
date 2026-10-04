@@ -122,6 +122,7 @@ import com.nunchuk.android.nav.args.SetupMk4Args
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.share.result.GlobalResultKey
+import com.nunchuk.android.share.result.isExitWizard
 import com.nunchuk.android.signer.bitbox.BitBoxActivity
 import com.nunchuk.android.signer.ledger.LedgerActivity
 import com.nunchuk.android.signer.mk4.inheritance.ColdCardIntroFragment
@@ -151,6 +152,10 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
     private val signerIntroLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
+        if (result.isExitWizard()) {
+            requireActivity().finish()
+            return@registerForActivityResult
+        }
         if (result.resultCode == Activity.RESULT_OK && result.data != null) {
             val data = result.data!!
             val signerModel = data.parcelable<SignerModel>(GlobalResultKey.EXTRA_SIGNER)
@@ -189,6 +194,10 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
      */
     private val verifyBackUpSeedPhraseLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.isExitWizard()) {
+                requireActivity().finish()
+                return@registerForActivityResult
+            }
             val verifiedXfp = result.data?.getStringExtra(GlobalResultKey.EXTRA_VERIFIED_XFP)
             if (result.resultCode == Activity.RESULT_OK && !verifiedXfp.isNullOrEmpty()) {
                 viewModel.setKeyVerified(verifiedXfp)
@@ -557,6 +566,7 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                 launcher = signerIntroLauncher,
                 activityContext = requireActivity(),
                 request = SignerIntroRequest(
+                    canRestartWizard = canRestartWizard,
                     walletId = (activity as MembershipActivity).walletId,
                     groupId = groupId,
                     flow = SignerIntroFlow.OnChainTimelockKey(
@@ -578,6 +588,7 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                     launcher = signerIntroLauncher,
                     activityContext = requireActivity(),
                     request = SignerIntroRequest(
+                        canRestartWizard = canRestartWizard,
                         walletId = (activity as MembershipActivity).walletId,
                         groupId = groupId,
                         flow = SignerIntroFlow.OnChainTimelockKey(
@@ -593,6 +604,7 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                     launcher = signerIntroLauncher,
                     activityContext = requireActivity(),
                     request = SignerIntroRequest(
+                        canRestartWizard = canRestartWizard,
                         walletId = (activity as MembershipActivity).walletId,
                         groupId = groupId,
                         flow = SignerIntroFlow.OnChainTimelockKey(
@@ -728,6 +740,7 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
             requireActivity(),
             BackUpSeedPhraseArgs(
                 type = BackUpSeedPhraseType.INTRO,
+                canRestartWizard = canRestartWizard,
                 signer = event.signer,
                 groupId = (activity as MembershipActivity).groupId,
                 walletId = (activity as MembershipActivity).walletId,
@@ -747,6 +760,7 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
             requireActivity(),
             BackUpSeedPhraseArgs(
                 type = BackUpSeedPhraseType.SUCCESS,
+                canRestartWizard = canRestartWizard,
                 signer = null,
                 groupId = (activity as MembershipActivity).groupId,
                 walletId = (activity as MembershipActivity).walletId

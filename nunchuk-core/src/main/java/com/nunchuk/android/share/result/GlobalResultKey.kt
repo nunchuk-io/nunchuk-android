@@ -55,10 +55,13 @@ object GlobalResultKey {
 
     /**
      * Name of the [com.nunchuk.android.signer.KeyType] the owner picked, handed back when the
-     * picker itself cannot run that key's flow. Used by the off-chain inheritance key (BYOH)
-     * setup for TAPSIGNER and COLDCARD, whose backup flow is owned by the key-list screen.
+     * picker itself does not run that key's flow: the regular key of an assisted off-chain wallet,
+     * whose membership setup is owned by the key-list screen.
      */
     const val EXTRA_KEY_TYPE = "extra_key_type"
+
+    /** Set when "Exit wizard" was confirmed on a screen the wizard opened; see [isExitWizard]. */
+    const val EXTRA_EXIT_WIZARD = "extra_exit_wizard"
 }
 
 object GlobalResult {

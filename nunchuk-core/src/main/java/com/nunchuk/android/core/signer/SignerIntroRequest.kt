@@ -17,6 +17,12 @@ data class SignerIntroRequest(
     val walletType: WalletType? = null,
     /** Consecutive accounts needed by a wallet slot; supported by Ledger and BitBox. */
     val accountCount: Int = 1,
+    /**
+     * Whether the wizard menu may offer "Restart wizard". Only the wizard's key lists grant it, and
+     * only to a role that may restart; elsewhere (replace key, backup verification) it would reset
+     * the membership plan from outside the wizard.
+     */
+    val canRestartWizard: Boolean = false,
 ) : Parcelable {
     val deviceParams: OnChainAddSignerParam?
         get() = flow.deviceParams
@@ -27,6 +33,20 @@ sealed class SignerIntroFlow : Parcelable {
     @Parcelize data object AddWalletKey : SignerIntroFlow()
     @Parcelize data object AddAssistedWalletKey : SignerIntroFlow()
     @Parcelize data object ReplaceWalletKey : SignerIntroFlow()
+
+    /**
+     * A regular (non-inheritance) key of an assisted off-chain wallet. The picker offers the owner's
+     * existing keys of the picked type and hands back either that key or, to set up a new one, the
+     * key type; the key list runs the membership setup for either, as it did from its old sheet.
+     */
+    @Parcelize
+    data class OffChainAssistedKey(
+        /** A limited keyholder may only add a TAPSIGNER, Ledger, Trezor or (if allowed) software key. */
+        val isKeyHolderLimited: Boolean = false,
+        val allowSoftwareKey: Boolean = false,
+        /** Keys already on the wallet, which cannot fill another slot. */
+        val existingSigners: List<SignerModel> = emptyList(),
+    ) : SignerIntroFlow()
 
     @Parcelize
     data class OnChainTimelockKey(
@@ -63,7 +83,8 @@ sealed class SignerIntroFlow : Parcelable {
 private val SignerIntroFlow.deviceParams: OnChainAddSignerParam?
     get() = when (this) {
         SignerIntroFlow.AddKey, SignerIntroFlow.AddWalletKey,
-        SignerIntroFlow.AddAssistedWalletKey, SignerIntroFlow.ReplaceWalletKey -> null
+        SignerIntroFlow.AddAssistedWalletKey, SignerIntroFlow.ReplaceWalletKey,
+        is SignerIntroFlow.OffChainAssistedKey -> null
         is SignerIntroFlow.OnChainTimelockKey -> OnChainAddSignerParam(
             flags = if (isInheritanceKey) OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER
                 else OnChainAddSignerParam.FLAG_ADD_SIGNER,

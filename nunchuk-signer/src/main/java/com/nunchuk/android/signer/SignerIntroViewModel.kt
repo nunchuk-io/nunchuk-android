@@ -29,6 +29,7 @@ import com.nunchuk.android.usecase.membership.RestartWizardUseCase
 import com.nunchuk.android.usecase.signer.CreateSoftwareSignerByXprvUseCase
 import com.nunchuk.android.usecase.signer.GetAllSignersUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -85,6 +86,8 @@ class SignerIntroViewModel @Inject constructor(
     val event = _event.receiveAsFlow()
     private var coordinator: SignerIntroCoordinator? = null
     private val selectionState = SignerIntroSelectionState(savedStateHandle)
+    /** Completes once the existing keys are known, so a fast pick cannot read the list as empty. */
+    private val existingSignersLoaded = CompletableDeferred<Unit>()
     val verifyingKeyType: KeyType? get() = requireNotNull(coordinator).verifyingKeyType
 
     init {
@@ -106,7 +109,7 @@ class SignerIntroViewModel @Inject constructor(
         pickerPolicy = policy
         _state.update { it.copy(supportedSigners = policy.initialSigners) }
         if (policy.usesWalletConfigs) fetchUserWalletConfigs()
-        if (policy.loadsExistingSigners) loadAllSigners()
+        if (policy.loadsExistingSigners) loadAllSigners() else existingSignersLoaded.complete(Unit)
         updateSignerDisplayInfos()
         _state.update { it.copy(showRecoveryOptions = savedStateHandle[RECOVERY_VISIBLE] ?: false) }
         if (routing.verifyingKeyType != null && savedStateHandle.get<Boolean>(VERIFICATION_OPENED) != true) {
@@ -142,6 +145,8 @@ class SignerIntroViewModel @Inject constructor(
                 val restored = selectionState.restore(::findExistingSigners)
                 _state.update { it.copy(existingSelection = restored) }
             }
+            // A failed load offers nothing rather than leaving the pick waiting forever.
+            existingSignersLoaded.complete(Unit)
         }
     }
 
@@ -208,6 +213,7 @@ class SignerIntroViewModel @Inject constructor(
             is SignerDeviceAction -> sendEvent(SignerIntroEvent.OpenDevice(action))
             is SignerIntroAction.CheckFirmware -> sendEvent(SignerIntroEvent.CheckFirmware(action.device))
             is SignerIntroAction.ReturnHardwareTag -> sendEvent(SignerIntroEvent.ReturnHardwareTag(action.tag))
+            is SignerIntroAction.ReturnKeyType -> sendEvent(SignerIntroEvent.ReturnKeyType(action.keyType))
             SignerIntroAction.ReturnPlatformKey -> sendEvent(SignerIntroEvent.ReturnPlatformKey)
         }
     }
@@ -227,7 +233,9 @@ class SignerIntroViewModel @Inject constructor(
         )
     }
 
-    private fun offerExisting(keyType: KeyType) {
+    private fun offerExisting(keyType: KeyType) = viewModelScope.launch {
+        // "No existing key" must mean none were found, not that the list has not arrived yet.
+        existingSignersLoaded.await()
         val signers = findExistingSigners(keyType)
         if (signers.isEmpty()) {
             dismissExistingSigners()
@@ -239,6 +247,11 @@ class SignerIntroViewModel @Inject constructor(
     }
 
     private fun filterExistingSigners(signers: List<SignerModel>): List<SignerModel> {
+        (coordinator?.request?.flow as? SignerIntroFlow.OffChainAssistedKey)?.let { flow ->
+            // A device already on this multisig wallet cannot fill another slot, whatever its account.
+            val walletXfps = flow.existingSigners.mapTo(HashSet()) { it.fingerPrint }
+            return signers.filter { it.fingerPrint !in walletXfps }
+        }
         val existingSigners = onChainAddSignerParam?.existingSigners ?: return signers
         if (existingSigners.isEmpty()) return signers
         return signers.filter { signer ->
@@ -326,6 +339,7 @@ sealed interface SignerIntroEvent {
     data class ShowInheritanceGuide(val keyType: KeyType) : SignerIntroEvent
     data class OpenDevice(val action: SignerDeviceAction) : SignerIntroHostEvent
     data class ReturnHardwareTag(val tag: SignerTag) : SignerIntroHostEvent
+    data class ReturnKeyType(val keyType: KeyType) : SignerIntroHostEvent
     data object ReturnPlatformKey : SignerIntroHostEvent
     data object RestartWizardSuccess : SignerIntroHostEvent
     data class Error(val message: String) : SignerIntroHostEvent

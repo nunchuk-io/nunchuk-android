@@ -103,7 +103,7 @@ import com.nunchuk.android.core.util.toReadableDrawableResId
 import com.nunchuk.android.core.util.toReadableSignerType
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.MembershipActivity
-import com.nunchuk.android.main.membership.byzantine.addKey.getKeyOptions
+import com.nunchuk.android.main.membership.byzantine.addKey.pickedKeySheetOptionType
 import com.nunchuk.android.main.membership.custom.CustomKeyAccountFragment
 import com.nunchuk.android.main.membership.honey.distribution.openInheritanceKeyAdded
 import com.nunchuk.android.main.membership.honey.distribution.openInheritanceSeedPhraseBackup
@@ -134,6 +134,7 @@ import com.nunchuk.android.share.ColdcardAction
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.share.result.GlobalResultKey
+import com.nunchuk.android.share.result.isExitWizard
 import com.nunchuk.android.signer.bitbox.BitBoxActivity
 import com.nunchuk.android.signer.ledger.LedgerActivity
 import com.nunchuk.android.signer.trezor.TrezorActivity
@@ -220,12 +221,47 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
         }
 
     /**
+     * The regular-key picker. It has already offered the existing keys, so it hands back either
+     * the one chosen or, for a new key, its type; the type runs the old option sheet's branch
+     * without offering the existing keys a second time.
+     */
+    private val keyTypePickerLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.isExitWizard()) {
+                requireActivity().finish()
+                return@registerForActivityResult
+            }
+            val data = result.data?.takeIf { result.resultCode == Activity.RESULT_OK }
+                ?: return@registerForActivityResult
+            data.parcelable<SignerModel>(GlobalResultKey.EXTRA_SIGNER)?.let { signer ->
+                selectedSignerTag = null
+                onExistingSignerSelected(signer, signer.type)
+                return@registerForActivityResult
+            }
+            val optionType = data.pickedKeySheetOptionType() ?: return@registerForActivityResult
+            // The picker leaves software keys to this screen (two on one device), so offer those here.
+            skipExistingKeyOffer = optionType != SheetOptionType.TYPE_ADD_SOFTWARE_KEY
+            try {
+                onOptionClicked(SheetOption(type = optionType))
+            } finally {
+                skipExistingKeyOffer = false
+            }
+        }
+
+    /** Set while a key type picked for a new key runs its branch; see [keyTypePickerLauncher]. */
+    private var skipExistingKeyOffer = false
+
+    /**
      * The off-chain inheritance key type picker, preceded by the inheritance intro and the
      * passphrase notice. It runs every key type's own flow itself and hands the key back; only
      * Ledger, Trezor and BitBox come back as a tag, because their in-app pairing belongs here.
      */
     private val inheritanceKeyPickerLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.isExitWizard()) {
+                requireActivity().finish()
+                return@registerForActivityResult
+            }
             val data = result.data
             if (result.resultCode != Activity.RESULT_OK || data == null) return@registerForActivityResult
             // Every other key type is added inside the picker and comes back as a signer.
@@ -266,6 +302,7 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
             when (option) {
                 ClaimOption.SEED_PHRASE -> openInheritanceSeedPhraseBackup(
                     navigator = navigator,
+                    canRestartWizard = canRestartWizard,
                     signer = signer,
                     groupId = membershipGroupId,
                     walletId = membershipWalletId,
@@ -285,6 +322,10 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
      */
     private val verifySeedPhraseBackupLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.isExitWizard()) {
+                requireActivity().finish()
+                return@registerForActivityResult
+            }
             val verifiedXfp = result.data?.getStringExtra(GlobalResultKey.EXTRA_VERIFIED_XFP)
             if (result.resultCode == Activity.RESULT_OK && !verifiedXfp.isNullOrEmpty()) {
                 viewModel.onSeedPhraseBackupVerified(
@@ -360,26 +401,7 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
         setFragmentResultListener(TapSignerListBottomSheetFragment.REQUEST_KEY) { _, bundle ->
             val data = TapSignerListBottomSheetFragmentArgs.fromBundle(bundle)
             if (data.signers.isNotEmpty()) {
-                when (data.type) {
-                    SignerType.NFC -> openCreateBackUpTapSigner(data.signers.first().id)
-                    SignerType.PORTAL_NFC -> findNavController().navigate(
-                        AddKeyListFragmentDirections.actionAddKeyListFragmentToCustomKeyAccountFragmentFragment(
-                            data.signers.first(),
-                            walletId = (activity as MembershipActivity).walletId,
-                        )
-                    )
-
-                    else -> {
-                        val signer = data.signers.first()
-                        val selectedSignerTag = selectedSignerTag
-                        when {
-                            signer.type == SignerType.AIRGAP && signer.tags.isEmpty() && selectedSignerTag != null ->
-                                viewModel.onUpdateSignerTag(signer, selectedSignerTag)
-
-                            else -> viewModel.onSelectedExistingHardwareSigner(signer.toSingleSigner())
-                        }
-                    }
-                }
+                onExistingSignerSelected(data.signers.first(), data.type)
             } else {
                 when (data.type) {
                     SignerType.NFC -> openSetupTapSigner()
@@ -391,6 +413,29 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
                 }
             }
             clearFragmentResult(TapSignerListBottomSheetFragment.REQUEST_KEY)
+        }
+    }
+
+    /** An existing key picked for the slot, from the key picker or from the reuse sheet. */
+    private fun onExistingSignerSelected(signer: SignerModel, type: SignerType) {
+        when (type) {
+            SignerType.NFC -> openCreateBackUpTapSigner(signer.id)
+            SignerType.PORTAL_NFC -> findNavController().navigate(
+                AddKeyListFragmentDirections.actionAddKeyListFragmentToCustomKeyAccountFragmentFragment(
+                    signer,
+                    walletId = (activity as MembershipActivity).walletId,
+                )
+            )
+
+            else -> {
+                val selectedSignerTag = selectedSignerTag
+                when {
+                    signer.type == SignerType.AIRGAP && signer.tags.isEmpty() && selectedSignerTag != null ->
+                        viewModel.onUpdateSignerTag(signer, selectedSignerTag)
+
+                    else -> viewModel.onSelectedExistingHardwareSigner(signer.toSingleSigner())
+                }
+            }
         }
     }
 
@@ -630,6 +675,7 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
                 AddKeyListEvent.OnAddAllKey -> onAddAllKey()
                 is AddKeyListEvent.OnSeedPhraseBackupVerified -> openInheritanceSeedPhraseVerified(
                     navigator = navigator,
+                    canRestartWizard = canRestartWizard,
                     signer = event.signer,
                     groupId = membershipGroupId,
                     walletId = membershipWalletId,
@@ -680,7 +726,7 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
                 -> if (viewModel.state.value.isCustomized) {
                 openSignerIntro()
             } else {
-                openSelectHardwareOption()
+                openKeyTypePicker()
             }
 
             else -> Unit
@@ -692,6 +738,7 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
             launcher = signerIntroLauncher,
             activityContext = requireActivity(),
             request = SignerIntroRequest(
+                canRestartWizard = canRestartWizard,
                 flow = SignerIntroFlow.AddAssistedWalletKey,
                 groupId = "",
                 walletType = WalletType.MULTI_SIG,
@@ -699,17 +746,20 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
         )
     }
 
-    private fun openSelectHardwareOption() {
-        val options = getKeyOptions(
-            context = requireContext(),
-            isKeyHolderLimited = false,
-            isStandard = false,
+    private fun openKeyTypePicker() {
+        navigator.openSignerIntroScreen(
+            launcher = keyTypePickerLauncher,
+            activityContext = requireActivity(),
+            request = SignerIntroRequest(
+                canRestartWizard = canRestartWizard,
+                flow = SignerIntroFlow.OffChainAssistedKey(
+                    existingSigners = viewModel.existingWalletSigners(),
+                ),
+                groupId = membershipGroupId,
+                walletId = membershipWalletId,
+                walletType = WalletType.MULTI_SIG,
+            ),
         )
-        BottomSheetOption.newInstance(
-            options = options,
-            title = getString(R.string.nc_what_type_of_hardware_want_to_add),
-            showClosedIcon = true,
-        ).show(childFragmentManager, "BottomSheetOption")
     }
 
     private fun handleShowKeysOrCreate(
@@ -717,7 +767,7 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
         type: SignerType,
         onEmptySigner: () -> Unit,
     ) {
-        if (signer.isNotEmpty()) {
+        if (signer.isNotEmpty() && !skipExistingKeyOffer) {
             findNavController().navigate(
                 AddKeyListFragmentDirections.actionAddKeyListFragmentToTapSignerListBottomSheetFragment(
                     signer.toTypedArray(),
@@ -831,6 +881,7 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
             launcher = inheritanceKeyPickerLauncher,
             activityContext = requireActivity(),
             request = SignerIntroRequest(
+                canRestartWizard = canRestartWizard,
                 groupId = (activity as MembershipActivity).groupId,
                 walletId = (activity as MembershipActivity).walletId,
                 walletType = WalletType.MULTI_SIG,

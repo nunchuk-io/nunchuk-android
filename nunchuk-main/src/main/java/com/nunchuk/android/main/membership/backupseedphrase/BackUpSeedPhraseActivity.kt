@@ -114,6 +114,7 @@ class BackUpSeedPhraseActivity : BaseComposeActivity(), BottomSheetOptionListene
                 // Scopes the key types to the wallet being built; without it the server's
                 // inheritance list contributes one card per wallet type and vendors repeat.
                 walletType = args.walletType,
+                canRestartWizard = args.canRestartWizard,
                 flow = SignerIntroFlow.VerifyBackup(
                     currentSigner = args.signer,
                     replaceInfo = OnChainAddSignerParam.ReplaceInfo(
@@ -220,13 +221,15 @@ class BackUpSeedPhraseActivity : BaseComposeActivity(), BottomSheetOptionListene
 
     private fun handleShowMore() {
         val options = mutableListOf<SheetOption>()
-        options.add(
-            SheetOption(
-                type = SheetOptionType.TYPE_RESTART_WIZARD,
-                label = getString(R.string.nc_restart_wizard)
-
+        // Only granted by the wizard's key lists, to a role that may restart; never from replace key.
+        if (args.canRestartWizard) {
+            options.add(
+                SheetOption(
+                    type = SheetOptionType.TYPE_RESTART_WIZARD,
+                    label = getString(R.string.nc_restart_wizard)
+                )
             )
-        )
+        }
         options.add(
             SheetOption(
                 type = SheetOptionType.TYPE_EXIT_WIZARD,
@@ -270,6 +273,8 @@ class BackUpSeedPhraseActivity : BaseComposeActivity(), BottomSheetOptionListene
             NCInfoDialog(this).showDialog(
                 message = getString(R.string.nc_resume_wizard_desc),
                 onYesClick = {
+                    // Leaving the wizard closes its host too, not just this flow.
+                    setResult(Activity.RESULT_OK, Intent().putExtra(GlobalResultKey.EXTRA_EXIT_WIZARD, true))
                     finish()
                 }
             )

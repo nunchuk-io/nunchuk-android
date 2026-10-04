@@ -15,6 +15,7 @@ object SignerIntroDestination
 fun NavGraphBuilder.signerIntroDestination(
     viewModel: SignerIntroViewModel,
     onChainAddSignerParam: OnChainAddSignerParam?,
+    isWizardStep: Boolean,
     onClick: (KeyType) -> Unit = {},
     onMoreClicked: () -> Unit = {},
 ) {
@@ -22,6 +23,7 @@ fun NavGraphBuilder.signerIntroDestination(
         SignerIntroNavigationScreen(
             viewModel = viewModel,
             onChainAddSignerParam = onChainAddSignerParam,
+            isWizardStep = isWizardStep,
             onClick = onClick,
             onMoreClicked = onMoreClicked,
         )
@@ -32,12 +34,14 @@ fun NavGraphBuilder.signerIntroDestination(
 private fun SignerIntroNavigationScreen(
     viewModel: SignerIntroViewModel,
     onChainAddSignerParam: OnChainAddSignerParam? = null,
+    isWizardStep: Boolean = false,
     onClick: (KeyType) -> Unit = {},
     onMoreClicked: () -> Unit = {},
 ) {
     SignerIntroScreen(
         viewModel = viewModel,
         onChainAddSignerParam = onChainAddSignerParam,
+        isWizardStep = isWizardStep,
         onClick = onClick,
         onMoreClicked = onMoreClicked
     )

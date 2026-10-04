@@ -35,10 +35,12 @@ internal fun Fragment.openInheritanceSeedPhraseBackup(
     walletId: String,
     launcher: ActivityResultLauncher<Intent>,
     replacedXfp: String? = null,
+    canRestartWizard: Boolean = false,
 ) {
     navigator.openBackUpSeedPhraseActivity(
         activityContext = requireActivity(),
         args = BackUpSeedPhraseArgs(
+            canRestartWizard = canRestartWizard,
             type = BackUpSeedPhraseType.INTRO,
             signer = signer,
             groupId = groupId,
@@ -57,6 +59,7 @@ internal fun Fragment.openInheritanceSeedPhraseVerified(
     signer: SignerModel?,
     groupId: String,
     walletId: String,
+    canRestartWizard: Boolean = false,
 ) {
     navigator.openBackUpSeedPhraseActivity(
         activityContext = requireActivity(),
@@ -65,7 +68,7 @@ internal fun Fragment.openInheritanceSeedPhraseVerified(
             groupId = groupId,
             walletId = walletId,
             claimOption = ClaimOption.SEED_PHRASE,
-        ),
+        ).copy(canRestartWizard = canRestartWizard),
     )
 }
 

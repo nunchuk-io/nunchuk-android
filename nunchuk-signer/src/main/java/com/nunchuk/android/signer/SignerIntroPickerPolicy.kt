@@ -19,12 +19,13 @@ internal class SignerIntroPickerPolicy(private val request: SignerIntroRequest) 
     // Miniscript and the off-chain inheritance key always multisig, so those flows never go unscoped.
     private val walletType = request.walletType ?: when (request.flow) {
         is SignerIntroFlow.OnChainTimelockKey -> WalletType.MINISCRIPT
-        is SignerIntroFlow.OffChainInheritanceKey -> WalletType.MULTI_SIG
+        is SignerIntroFlow.OffChainInheritanceKey, is SignerIntroFlow.OffChainAssistedKey -> WalletType.MULTI_SIG
         SignerIntroFlow.AddKey, SignerIntroFlow.AddWalletKey, SignerIntroFlow.AddAssistedWalletKey,
         SignerIntroFlow.ReplaceWalletKey, is SignerIntroFlow.ClaimInheritance,
         is SignerIntroFlow.VerifyBackup -> null
     }
     private val onChainAddSignerParam = request.deviceParams
+    private val offChainAssistedKey = request.flow as? SignerIntroFlow.OffChainAssistedKey
     private val isAddInheritanceOffChainSetup = request.flow is SignerIntroFlow.OffChainInheritanceKey
     private val isOffChainClaim = (request.flow as? SignerIntroFlow.ClaimInheritance)?.isOnChain == false
     private val isInheritanceSlot = when (val flow = request.flow) {
@@ -32,7 +33,8 @@ internal class SignerIntroPickerPolicy(private val request: SignerIntroRequest) 
         is SignerIntroFlow.OffChainInheritanceKey, is SignerIntroFlow.ClaimInheritance,
         is SignerIntroFlow.VerifyBackup -> true
         SignerIntroFlow.AddKey, SignerIntroFlow.AddWalletKey,
-        SignerIntroFlow.AddAssistedWalletKey, SignerIntroFlow.ReplaceWalletKey -> false
+        SignerIntroFlow.AddAssistedWalletKey, SignerIntroFlow.ReplaceWalletKey,
+        is SignerIntroFlow.OffChainAssistedKey -> false
     }
 
     /**
@@ -42,10 +44,11 @@ internal class SignerIntroPickerPolicy(private val request: SignerIntroRequest) 
     private val isServerDrivenInheritancePicker = isAddInheritanceOffChainSetup || isOffChainClaim
 
     val usesWalletConfigs = onChainAddSignerParam != null
-    val loadsExistingSigners = onChainAddSignerParam != null
+    val loadsExistingSigners = onChainAddSignerParam != null || offChainAssistedKey != null
     val initialSigners: List<SupportedSigner> = when {
         isOffChainClaim -> offChainInheritanceClaimKeyTypes
         isAddInheritanceOffChainSetup -> offChainInheritanceSetupKeyTypes
+        offChainAssistedKey != null -> offChainAssistedKeyTypes
         else -> request.supportedSigners
     }
 
@@ -95,7 +98,7 @@ internal class SignerIntroPickerPolicy(private val request: SignerIntroRequest) 
         val (signersToDisplay, allowedSigners) = resolveSignersToDisplay(currentState)
         val isDisableAll = keyFlow != KeyFlow.NONE
 
-        return signersToDisplay.mapNotNull { signer ->
+        val cards = signersToDisplay.filter(::isAllowedByFlow).mapNotNull { signer ->
             signer.toDisplayInfo()?.copy(
                 isDisabled = signer.isDisabledIn(
                     allowedSigners = allowedSigners,
@@ -104,19 +107,38 @@ internal class SignerIntroPickerPolicy(private val request: SignerIntroRequest) 
                     keyFlow = keyFlow,
                 )
             )
-        } + SignerDisplayInfo(
+        }
+        if (offChainAssistedKey?.isKeyHolderLimited == true) return cards
+        return cards + SignerDisplayInfo(
             iconRes = R.drawable.ic_split,
             titleRes = R.string.nc_generic_airgap,
             keyType = KeyType.GENERIC_AIRGAP,
             category = SignerDisplayCategory.ROW_SIMPLE,
             isDisabled = !calculateIsGenericAirgapEnable(currentState),
         )
+    }
 
+    private val keyHolderHardwareTags = setOf(SignerTag.LEDGER, SignerTag.TREZOR)
+
+    /**
+     * The assisted off-chain key list offers a software key only where the plan allows one, and a
+     * limited keyholder only the keys they can add themselves: TAPSIGNER, Ledger and Trezor.
+     */
+    private fun isAllowedByFlow(signer: SupportedSigner): Boolean {
+        val flow = offChainAssistedKey ?: return true
+        return when {
+            signer.type == SignerType.SOFTWARE -> flow.allowSoftwareKey
+            flow.isKeyHolderLimited -> signer.type == SignerType.NFC ||
+                (signer.type == SignerType.HARDWARE && signer.tag in keyHolderHardwareTags)
+            else -> true
+        }
     }
 
     private fun resolveSignersToDisplay(
         state: SignerIntroState,
     ): Pair<List<SupportedSigner>, List<SupportedSigner>> = when {
+        // The fixed catalog of the old option sheet, every entry enabled.
+        offChainAssistedKey != null -> state.supportedSigners to state.supportedSigners
         state.eligibleSupportedSigners.isNotEmpty() && onChainAddSignerParam != null -> {
             state.eligibleSupportedSigners.inPickerOrder() to state.eligibleSupportedSigners
         }

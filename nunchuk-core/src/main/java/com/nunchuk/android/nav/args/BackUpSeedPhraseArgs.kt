@@ -45,6 +45,8 @@ data class BackUpSeedPhraseArgs(
      * the same device once for each of them.
      */
     val walletType: WalletType? = null,
+    /** Whether the wizard menu may offer Restart; see [com.nunchuk.android.core.signer.SignerIntroRequest.canRestartWizard]. */
+    val canRestartWizard: Boolean = false,
 ) {
 
     fun buildBundle() = Bundle().apply {
@@ -55,6 +57,7 @@ data class BackUpSeedPhraseArgs(
         putString(REPLACED_XFP, replacedXfp)
         putString(CLAIM_OPTION, claimOption?.name)
         putSerializable(WALLET_TYPE, walletType)
+        putBoolean(CAN_RESTART_WIZARD, canRestartWizard)
     }
 
     companion object {
@@ -87,6 +90,7 @@ data class BackUpSeedPhraseArgs(
         private const val REPLACED_XFP = "replaced_xfp"
         private const val CLAIM_OPTION = "claim_option"
         private const val WALLET_TYPE = "wallet_type"
+        private const val CAN_RESTART_WIZARD = "can_restart_wizard"
 
         fun deserializeFrom(intent: Intent): BackUpSeedPhraseArgs = BackUpSeedPhraseArgs(
             type = intent.extras?.getSerializable(TYPE) as? BackUpSeedPhraseType 
@@ -98,6 +102,7 @@ data class BackUpSeedPhraseArgs(
             claimOption = intent.extras?.getString(CLAIM_OPTION)
                 ?.let { name -> ClaimOption.entries.firstOrNull { it.name == name } },
             walletType = intent.extras?.getSerializable(WALLET_TYPE) as? WalletType,
+            canRestartWizard = intent.extras?.getBoolean(CAN_RESTART_WIZARD) == true,
         )
     }
 }

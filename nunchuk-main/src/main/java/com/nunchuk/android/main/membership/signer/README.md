@@ -10,6 +10,7 @@ wallet IDs and a non-empty claim magic phrase are not operation selectors.
 | `AddAssistedWalletKey` | Ordinary assisted-wallet key; uses normal device setup |
 | `ReplaceWalletKey` | Documents ordinary replacement intent; uses the same standard setup as `AddKey` |
 | `OnChainTimelockKey` | Regular or inheritance slot of an assisted on-chain timelock wallet |
+| `OffChainAssistedKey` | Regular key of an assisted off-chain wallet; offers existing keys (not software) and returns the chosen key (`EXTRA_SIGNER`) or, for a new key, the picked `KeyType` (`EXTRA_KEY_TYPE`); the key list runs the membership setup |
 | `OffChainInheritanceKey` | Owner sets up or replaces an off-chain inheritance key |
 | `ClaimInheritance` | Beneficiary claim, explicitly on-chain or off-chain |
 | `VerifyBackup` | Re-read a restored device; never offer an existing key as verification |

@@ -122,6 +122,9 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
             is SignerIntroEvent.ReturnHardwareTag -> relayResult(RESULT_OK, Intent().apply {
                 putExtra(GlobalResultKey.EXTRA_SIGNER_TAG, event.tag)
             })
+            is SignerIntroEvent.ReturnKeyType -> relayResult(RESULT_OK, Intent().apply {
+                putExtra(GlobalResultKey.EXTRA_KEY_TYPE, event.keyType.name)
+            })
             SignerIntroEvent.ReturnPlatformKey -> relayResult(RESULT_OK, Intent().apply {
                 putExtra(EXTRA_PLATFORM_KEY_SELECTED, true)
             })
@@ -168,12 +171,15 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
 
     private fun handleShowMore() {
         val options = mutableListOf<SheetOption>()
-        options.add(
-            SheetOption(
-                type = SheetOptionType.TYPE_RESTART_WIZARD,
-                label = getString(R.string.nc_restart_wizard)
+        // Only the wizard's key lists grant Restart, and only to a role that may restart.
+        if (request.canRestartWizard) {
+            options.add(
+                SheetOption(
+                    type = SheetOptionType.TYPE_RESTART_WIZARD,
+                    label = getString(R.string.nc_restart_wizard)
+                )
             )
-        )
+        }
         options.add(
             SheetOption(
                 type = SheetOptionType.TYPE_EXIT_WIZARD,
@@ -196,7 +202,8 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
             NCInfoDialog(this).showDialog(
                 message = getString(R.string.nc_resume_wizard_desc),
                 onYesClick = {
-                    finish()
+                    // Leaving the wizard closes its host too, not just this picker.
+                    relayResult(RESULT_OK, Intent().putExtra(GlobalResultKey.EXTRA_EXIT_WIZARD, true))
                 }
             )
         }

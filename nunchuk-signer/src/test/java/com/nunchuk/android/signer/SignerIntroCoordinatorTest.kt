@@ -28,6 +28,18 @@ class SignerIntroCoordinatorTest {
         }
     }
 
+    @Test fun `assisted off-chain regular key offers existing keys then hands the type back`() {
+        for (flow in listOf(SignerIntroFlow.OffChainAssistedKey(), SignerIntroFlow.OffChainAssistedKey(isKeyHolderLimited = true))) {
+            val router = router(flow)
+            for (key in KeyType.entries - KeyType.SOFTWARE - KeyType.PLATFORM_KEY) {
+                assertEquals("$flow / $key", SignerIntroAction.OfferExisting(key), router.select(key))
+            }
+            // The key list checks software keys itself, so the picker hands that type straight back.
+            assertEquals(SignerIntroAction.ReturnKeyType(KeyType.SOFTWARE), router.select(KeyType.SOFTWARE))
+            for (key in KeyType.entries) assertEquals("$flow / $key", SignerIntroAction.ReturnKeyType(key), router.createNew(key))
+        }
+    }
+
     @Test fun `owner inheritance setup offers existing keys then opens device exactly once`() {
         val router = router(SignerIntroFlow.OffChainInheritanceKey())
         assertTrue(router.isInheritanceSetup)

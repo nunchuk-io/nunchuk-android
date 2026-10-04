@@ -44,6 +44,7 @@ import com.nunchuk.android.core.signer.getSelectKeyTypeSubtitleRes
 fun SignerIntroScreen(
     viewModel: SignerIntroViewModel,
     onChainAddSignerParam: OnChainAddSignerParam? = null,
+    isWizardStep: Boolean = false,
     onClick: (KeyType) -> Unit = {},
     onMoreClicked: () -> Unit = {}
 ) {
@@ -53,6 +54,7 @@ fun SignerIntroScreen(
         state = state,
         onChainAddSignerParam = onChainAddSignerParam,
         remainTime = remainTime,
+        isWizardStep = isWizardStep,
         onClick = onClick,
         onMoreClicked = onMoreClicked,
     )
@@ -62,6 +64,8 @@ fun SignerIntroScreen(
 fun SignerIntroScreenContent(
     state: SignerIntroState,
     onChainAddSignerParam: OnChainAddSignerParam? = null,
+    /** A step of the assisted-wallet wizard with no device params (the off-chain regular key). */
+    isWizardStep: Boolean = false,
     remainTime: Int = 0,
     onClick: (KeyType) -> Unit = {},
     onMoreClicked: () -> Unit = {},
@@ -69,7 +73,7 @@ fun SignerIntroScreenContent(
     // Only the membership run of "Add inheritance key" is on the wizard clock. The Beneficiary's
     // claim and the plain add-key entry points reuse this picker with no step timer behind them,
     // so they keep the bare app bar rather than reporting a stale remaining time.
-    val showsRemainingTime = onChainAddSignerParam?.let {
+    val showsRemainingTime = isWizardStep || onChainAddSignerParam?.let {
         it.isAddInheritanceSigner() && !it.isClaiming
     } == true
     Scaffold(topBar = {
@@ -81,7 +85,7 @@ fun SignerIntroScreenContent(
             },
             isBack = false,
             actions = {
-                if (onChainAddSignerParam != null && onChainAddSignerParam.isClaiming.not()) {
+                if (isWizardStep || (onChainAddSignerParam != null && onChainAddSignerParam.isClaiming.not())) {
                     IconButton(onClick = onMoreClicked) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_more),

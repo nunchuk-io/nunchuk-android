@@ -51,6 +51,43 @@ class SignerIntroPickerPolicyTest {
         assertEquals(listOf(KeyType.TAPSIGNER, KeyType.GENERIC_AIRGAP), policy.displayInfos(state).map { it.keyType })
     }
 
+    private val oldSheetKeyTypes = listOf(
+        KeyType.TAPSIGNER, KeyType.TREZOR, KeyType.JADE, KeyType.PORTAL, KeyType.SEEDSIGNER,
+        KeyType.KEYSTONE, KeyType.FOUNDATION, KeyType.COLDCARD, KeyType.BITBOX, KeyType.LEDGER,
+        KeyType.KRUX, KeyType.GENERIC_AIRGAP,
+    )
+
+    private fun offChainAssistedCards(flow: SignerIntroFlow.OffChainAssistedKey): List<SignerDisplayInfo> {
+        val policy = SignerIntroPickerPolicy(SignerIntroRequest(flow = flow))
+        assertFalse(policy.usesWalletConfigs)
+        assertTrue(policy.loadsExistingSigners)
+        return policy.displayInfos(SignerIntroState(supportedSigners = policy.initialSigners))
+    }
+
+    @Test fun `assisted off-chain regular key keeps every key type of the old option sheet`() {
+        val cards = offChainAssistedCards(SignerIntroFlow.OffChainAssistedKey())
+        assertEquals(oldSheetKeyTypes, cards.map { it.keyType })
+        assertTrue(cards.none { it.isDisabled })
+    }
+
+    @Test fun `assisted off-chain regular key offers software only when allowed`() {
+        val cards = offChainAssistedCards(SignerIntroFlow.OffChainAssistedKey(allowSoftwareKey = true))
+        assertEquals((oldSheetKeyTypes + KeyType.SOFTWARE).toSet(), cards.map { it.keyType }.toSet())
+        assertTrue(cards.none { it.isDisabled })
+    }
+
+    @Test fun `limited keyholder sees only the keys they can add`() {
+        assertEquals(
+            listOf(KeyType.TAPSIGNER, KeyType.TREZOR, KeyType.LEDGER),
+            offChainAssistedCards(SignerIntroFlow.OffChainAssistedKey(isKeyHolderLimited = true)).map { it.keyType },
+        )
+        assertEquals(
+            setOf(KeyType.TAPSIGNER, KeyType.TREZOR, KeyType.LEDGER, KeyType.SOFTWARE),
+            offChainAssistedCards(SignerIntroFlow.OffChainAssistedKey(isKeyHolderLimited = true, allowSoftwareKey = true))
+                .map { it.keyType }.toSet(),
+        )
+    }
+
     @Test fun `off-chain owner uses backend inheritance list in picker order`() {
         val policy = SignerIntroPickerPolicy(SignerIntroRequest(
             flow = SignerIntroFlow.OffChainInheritanceKey(), walletType = WalletType.MULTI_SIG,

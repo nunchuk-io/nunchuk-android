@@ -12,7 +12,8 @@ class SignerIntroCoordinator(val request: SignerIntroRequest) {
 
     private val isManagedKeyFlow = when (flow) {
         SignerIntroFlow.AddKey, SignerIntroFlow.AddWalletKey,
-        SignerIntroFlow.AddAssistedWalletKey, SignerIntroFlow.ReplaceWalletKey -> false
+        SignerIntroFlow.AddAssistedWalletKey, SignerIntroFlow.ReplaceWalletKey,
+        is SignerIntroFlow.OffChainAssistedKey -> false
         is SignerIntroFlow.OnChainTimelockKey, is SignerIntroFlow.OffChainInheritanceKey,
         is SignerIntroFlow.ClaimInheritance, is SignerIntroFlow.VerifyBackup -> true
     }
@@ -40,6 +41,8 @@ class SignerIntroCoordinator(val request: SignerIntroRequest) {
         SignerIntroFlow.AddKey, SignerIntroFlow.AddWalletKey,
         SignerIntroFlow.AddAssistedWalletKey, SignerIntroFlow.ReplaceWalletKey,
         is SignerIntroFlow.VerifyBackup -> false
+        // The key list checks software keys itself (two on one device), so the offer skips them.
+        is SignerIntroFlow.OffChainAssistedKey -> keyType != KeyType.SOFTWARE && keyType != KeyType.PLATFORM_KEY
         is SignerIntroFlow.OffChainInheritanceKey -> true
         is SignerIntroFlow.OnChainTimelockKey -> keyType == KeyType.TAPSIGNER
         is SignerIntroFlow.ClaimInheritance -> when (keyType) {
@@ -63,7 +66,10 @@ class SignerIntroCoordinator(val request: SignerIntroRequest) {
         SignerFirmwareDevice.JADE -> jadeGuide()
     }
 
-    private fun openNew(keyType: KeyType): SignerIntroAction = when (keyType) {
+    private fun openNew(keyType: KeyType): SignerIntroAction = if (flow is SignerIntroFlow.OffChainAssistedKey) {
+        // The key list owns the membership setup of a new key; this screen only picked its type.
+        SignerIntroAction.ReturnKeyType(keyType)
+    } else when (keyType) {
         KeyType.TAPSIGNER -> SignerIntroAction.Tapsigner(isManagedKeyFlow)
         KeyType.COLDCARD -> if (needsFirmwareCheck) {
             SignerIntroAction.CheckFirmware(SignerFirmwareDevice.COLDCARD)
@@ -106,7 +112,8 @@ class SignerIntroCoordinator(val request: SignerIntroRequest) {
             is SignerIntroFlow.OffChainInheritanceKey, is SignerIntroFlow.OnChainTimelockKey ->
                 SignerIntroAction.ReturnHardwareTag(tag)
             SignerIntroFlow.AddKey, SignerIntroFlow.AddWalletKey,
-            SignerIntroFlow.AddAssistedWalletKey, SignerIntroFlow.ReplaceWalletKey ->
+            SignerIntroFlow.AddAssistedWalletKey, SignerIntroFlow.ReplaceWalletKey,
+            is SignerIntroFlow.OffChainAssistedKey ->
                 SignerIntroAction.Hardware(device, HardwareMode.Add)
         }
     }
@@ -117,7 +124,8 @@ class SignerIntroCoordinator(val request: SignerIntroRequest) {
             is SignerIntroFlow.OffChainInheritanceKey -> flow.replaceInfo?.replacedXfp
             SignerIntroFlow.AddKey, SignerIntroFlow.AddWalletKey,
             SignerIntroFlow.AddAssistedWalletKey, SignerIntroFlow.ReplaceWalletKey,
-            is SignerIntroFlow.ClaimInheritance, is SignerIntroFlow.VerifyBackup -> null
+            is SignerIntroFlow.ClaimInheritance, is SignerIntroFlow.VerifyBackup,
+            is SignerIntroFlow.OffChainAssistedKey -> null
         }?.takeIf { it.isNotEmpty() }
         // Replacement is owned by the device screen; returning a signer would replace it twice.
         return SignerIntroAction.Airgap(
@@ -149,6 +157,7 @@ sealed interface SignerIntroAction {
     data class Airgap(val tag: SignerTag?, val returnResult: Boolean, val replacedXfp: String?) : SignerDeviceAction
     data class Hardware(val device: SignerHardwareDevice, val mode: HardwareMode) : SignerDeviceAction
     data class ReturnHardwareTag(val tag: SignerTag) : SignerIntroAction
+    data class ReturnKeyType(val keyType: KeyType) : SignerIntroAction
     data object Portal : SignerDeviceAction
     data object CreateSoftware : SignerDeviceAction
     data object RecoverSoftware : SignerIntroAction

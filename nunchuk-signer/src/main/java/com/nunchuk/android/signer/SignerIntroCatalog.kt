@@ -144,3 +144,11 @@ val defaultSupportedSigners = listOf(
         addressType = AddressType.NATIVE_SEGWIT
     )
 )
+
+/**
+ * Key types offered for a regular key of an assisted off-chain wallet: every type its old option
+ * sheet listed, so the picker drops none of them. Unlike the inheritance slot this list is not
+ * server-driven; the flow itself narrows it (software key, limited keyholder). Declared after
+ * [defaultSupportedSigners], which it reads at initialization.
+ */
+internal val offChainAssistedKeyTypes = defaultSupportedSigners + multiSigSigner(SignerType.AIRGAP)
