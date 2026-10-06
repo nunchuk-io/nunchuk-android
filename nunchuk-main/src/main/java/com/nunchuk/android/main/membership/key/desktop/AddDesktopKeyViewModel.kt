@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.model.isAddInheritanceKey
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.membership.DeletePendingRequestsByMagicUseCase
@@ -76,7 +77,8 @@ class AddDesktopKeyViewModel @Inject constructor(
                 RequestAddDesktopKeyUseCase.Param(
                     args.step,
                     args.groupId.orEmpty(),
-                    if (args.isAddInheritanceKey) listOf(
+                    // The membership add-key lists don't pass isAddInheritanceKey; the step names the slot.
+                    if (args.isAddInheritanceKey || args.step.isAddInheritanceKey) listOf(
                         SignerTag.INHERITANCE,
                         args.signerTag
                     ) else listOf(args.signerTag),
