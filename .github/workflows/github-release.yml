@@ -1,0 +1,67 @@
+name: GitHub binary release
+
+# Publishes <versionName>.apk + SHA256SUMS + SHA256SUMS.asc to the GitHub release
+# for an android.* tag. The APK is the Play-signed universal APK (downloaded from
+# the Play API), the same bytes users install from the Play Store.
+#
+# The GPG key and passphrase live only in the `release-signing` environment,
+# which accepts android.* tags and needs a reviewer's approval per run. This job
+# deliberately runs no Gradle and no third-party actions, and pins the actions it
+# does use to a commit SHA, so no outside code runs while the key is imported.
+#
+# A tag ending in "-signtest" (e.g. android.2.9.0-signtest) is a dry run: it signs
+# and uploads the files as a workflow artifact, and creates no GitHub release.
+
+on:
+  push:
+    tags: [ "android.*" ]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    environment: release-signing
+    timeout-minutes: 45
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - name: Import signing key
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+        run: printf '%s' "$GPG_PRIVATE_KEY" | gpg --batch --import
+
+      - name: Write Play service account
+        env:
+          SA: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+        run: |
+          umask 077
+          printf '%s' "$SA" > "$RUNNER_TEMP/play-sa.json"
+
+      - name: Download Play-signed APK, sign SHA256SUMS, publish
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+          SA_JSON: ${{ runner.temp }}/play-sa.json
+          TAG: ${{ github.ref_name }}
+          PLAY_WAIT_SECS: "1800"
+          WORKDIR: ${{ runner.temp }}/github-release
+          SKIP_GITHUB: ${{ endsWith(github.ref_name, '-signtest') && '1' || '0' }}
+        run: ./scripts/publish-github-release.sh
+
+      - name: Upload dry-run output
+        if: endsWith(github.ref_name, '-signtest')
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: signtest-${{ github.ref_name }}
+          path: |
+            ${{ runner.temp }}/github-release/SHA256SUMS
+            ${{ runner.temp }}/github-release/SHA256SUMS.asc
+
+      - name: Remove key material
+        if: always()
+        run: rm -rf ~/.gnupg "$RUNNER_TEMP/play-sa.json"

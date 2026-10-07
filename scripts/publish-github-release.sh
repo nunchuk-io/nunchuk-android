@@ -36,6 +36,7 @@
 #   GPG_KEY      key id/email to sign with          (default: tatattai@gmail.com)
 #   WORKDIR      staging dir for artifacts          (default: ./build/github-release)
 #   SKIP_GITHUB  if "1", stop after signing (no release/upload)
+#   PLAY_WAIT_SECS  keep polling Play for the universal APK this long (default: 0)
 #
 set -euo pipefail
 
@@ -45,6 +46,7 @@ REPO="${REPO:-nunchuk-io/nunchuk-android}"
 GPG_KEY="${GPG_KEY:-tatattai@gmail.com}"
 WORKDIR="${WORKDIR:-build/github-release}"
 SKIP_GITHUB="${SKIP_GITHUB:-0}"
+PLAY_WAIT_SECS="${PLAY_WAIT_SECS:-0}"
 APP_GRADLE="${APP_GRADLE:-nunchuk-app/build.gradle.kts}"
 
 # Auto-derive version from the app module unless overridden -> zero-arg run.
@@ -114,10 +116,18 @@ download_from_play() {
   local token listing download_id
   log "Requesting Play API access token..."
   token=$(mint_token)
-  log "Listing generated APKs for versionCode ${VERSION_CODE}..."
-  listing=$(curl -sS -H "Authorization: Bearer $token" \
-    "$API/applications/$PACKAGE/generatedApks/$VERSION_CODE")
-  download_id=$(echo "$listing" | jq -r '.generatedApks[]?.generatedUniversalApk.downloadId // empty' | head -1)
+  # CI starts right after the tag push, usually before Play has finished
+  # processing the AAB, so poll for up to PLAY_WAIT_SECS (the token lives 1h).
+  local deadline=$(( $(date +%s) + PLAY_WAIT_SECS ))
+  while :; do
+    log "Listing generated APKs for versionCode ${VERSION_CODE}..."
+    listing=$(curl -sS -H "Authorization: Bearer $token" \
+      "$API/applications/$PACKAGE/generatedApks/$VERSION_CODE")
+    download_id=$(echo "$listing" | jq -r '.generatedApks[]?.generatedUniversalApk.downloadId // empty' | head -1)
+    [ -n "$download_id" ] || [ "$(date +%s)" -ge "$deadline" ] && break
+    log "not ready yet, retrying in 60s"
+    sleep 60
+  done
   [ -n "$download_id" ] || die "no universal APK for versionCode $VERSION_CODE yet (Play may still be processing the upload, or App Signing is off). Raw: $listing"
   log "Downloading universal APK -> $APK"
   curl -sS -L -H "Authorization: Bearer $token" \
