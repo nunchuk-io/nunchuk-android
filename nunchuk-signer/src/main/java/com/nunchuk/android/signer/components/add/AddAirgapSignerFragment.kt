@@ -235,7 +235,8 @@ class AddAirgapSignerFragment : BaseCameraFragment<ViewBinding>(),
             if (signer.masterFingerprint == onChainAddSignerParam.currentSigner?.fingerPrint) {
                 if (onChainAddSignerParam.isReplaceKeyFlow()) {
                     viewModel.setReplaceKeyVerified(
-                        keyId = signer.masterSignerId,
+                        // An air-gap key has no master signer id; the replacement is keyed by xfp.
+                        keyId = signer.masterFingerprint,
                         groupId = activity.groupId,
                         walletId = activity.walletId,
                         verificationMethod = onChainAddSignerParam.claimOption,
