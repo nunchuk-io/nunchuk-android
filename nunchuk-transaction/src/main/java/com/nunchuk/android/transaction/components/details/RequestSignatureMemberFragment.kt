@@ -286,7 +286,7 @@ private fun ContactMemberView(
                         }
                     }
                     Text(
-                        text = "Pending",
+                        text = stringResource(R.string.nc_transaction_pending),
                         style = NunchukTheme.typography.title
                     )
                 }

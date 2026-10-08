@@ -19,7 +19,6 @@
 
 package com.nunchuk.android.settings.about
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -59,9 +58,8 @@ class AboutActivity : BaseActivity<ActivityAboutBinding>() {
         binding.tvEmail.setOnClickListener { sendEmail(email = CONTACT_EMAIL) }
     }
 
-    @SuppressLint("SetTextI18n")
     private fun initViews() {
-        binding.tvVersion.text = "${getString(R.string.nc_version)} ${viewModel.version}"
+        binding.tvVersion.text = getString(R.string.nc_settings_version_number, viewModel.version)
     }
 
     companion object {

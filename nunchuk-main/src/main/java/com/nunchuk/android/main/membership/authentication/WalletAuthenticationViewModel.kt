@@ -481,12 +481,12 @@ class WalletAuthenticationViewModel @Inject constructor(
     private suspend fun requestSignTransactionByTrezor(signerModel: SignerModel) {
         val wallet = resolveWallet()?.also { currentWallet = it }
             ?: run {
-                _event.emit(WalletAuthenticationEvent.ShowError("Cannot load wallet for Trezor signing"))
+                _event.emit(WalletAuthenticationEvent.ShowError(messageRes = R.string.nc_membership_cannot_load_wallet_trezor))
                 return
             }
 
         if (dataToSign.value.isBlank()) {
-            _event.emit(WalletAuthenticationEvent.ShowError("Can not sign this transaction"))
+            _event.emit(WalletAuthenticationEvent.ShowError(messageRes = R.string.nc_membership_can_not_sign_transaction))
             return
         }
 
@@ -722,7 +722,7 @@ class WalletAuthenticationViewModel @Inject constructor(
             if (result.isSuccess) {
                 val signature = result.getOrThrow()
                 if (signature.isEmpty()) {
-                    _event.emit(WalletAuthenticationEvent.ShowError("Wallet has not registered to Portal yet"))
+                    _event.emit(WalletAuthenticationEvent.ShowError(messageRes = R.string.nc_membership_wallet_not_registered_portal))
                 } else {
                     handleSignatureResult(result, signer)
                 }

@@ -88,7 +88,11 @@ fun PaymentSummaryContent(
                 .fillMaxWidth(),
             title = stringResource(id = R.string.nc_amount),
             titleStyle = NunchukTheme.typography.title,
-            value = "$amount ${if (useAmount) currency.orEmpty() else "% of wallet balance (*)"}",
+            value = if (useAmount) {
+                "$amount ${currency.orEmpty()}"
+            } else {
+                stringResource(R.string.nc_membership_percent_of_wallet_balance, amount)
+            },
             onValueChange = {},
             enabled = false,
             disableBackgroundColor = MaterialTheme.colorScheme.greyLight,

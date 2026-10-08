@@ -106,7 +106,7 @@ fun UnableJoinGroupWalletScreen(
                 ) {
                     Image(
                         painter = painterResource(id = R.drawable.ic_unable_access_link),
-                        contentDescription = "Help Icon",
+                        contentDescription = stringResource(com.nunchuk.android.main.R.string.nc_main_cd_help_icon),
                         modifier = Modifier.size(96.dp)
                     )
                 }

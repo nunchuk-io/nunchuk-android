@@ -147,7 +147,7 @@ private fun OnChainTimelockExplanationContent(
                         IconButton(onClick = onMoreClicked) {
                             NcIcon(
                                 painter = painterResource(R.drawable.ic_more),
-                                contentDescription = "More options"
+                                contentDescription = stringResource(R.string.nc_membership_cd_more_icon)
                             )
                         }
                     }

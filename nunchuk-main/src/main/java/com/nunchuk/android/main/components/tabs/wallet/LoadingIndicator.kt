@@ -1,5 +1,6 @@
 package com.nunchuk.android.main.components.tabs.wallet
 
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Text
@@ -35,6 +36,6 @@ fun LoadingIndicator(
             progress = { progress },
         )
 
-        Text(text = "Loading", style = NunchukTheme.typography.bodySmall)
+        Text(text = stringResource(R.string.nc_main_loading), style = NunchukTheme.typography.bodySmall)
     }
 }

@@ -78,7 +78,7 @@ private fun BackUpSeedPhraseVerifyContent(
                         IconButton(onClick = onMoreClicked) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_more),
-                                contentDescription = "More icon"
+                                contentDescription = stringResource(R.string.nc_membership_cd_more_icon)
                             )
                         }
                     }
@@ -104,29 +104,29 @@ private fun BackUpSeedPhraseVerifyContent(
             ) {
                 Text(
                     modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
-                    text = "Verify your inheritance key seed phrase",
+                    text = stringResource(R.string.nc_membership_verify_seed_phrase_title),
                     style = NunchukTheme.typography.heading
                 )
 
                 NCLabelWithIndex(
                     modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
                     index = 1,
-                    label = "Refer to your inheritance key device's instruction manual and locate the option to [B]Wipe the seed[/B] or [B]Set a temporary seed.[/B] If you choose to wipe the seed, make sure the existing seed has also been backed up.",
+                    label = stringResource(R.string.nc_membership_verify_step_wipe_seed),
                 )
                 NCLabelWithIndex(
                     modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
                     index = 2,
-                    label = "Locate the option to [B]Restore from a BIP39 seed phrase[/B]",
+                    label = stringResource(R.string.nc_membership_verify_step_restore_bip39),
                 )
                 NCLabelWithIndex(
                     modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
                     index = 3,
-                    label = "Enter the inheritance key seed phrase carefully on the device",
+                    label = stringResource(R.string.nc_membership_verify_step_enter_seed),
                 )
                 NCLabelWithIndex(
                     modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
                     index = 4,
-                    label = "Once the device is loaded with the seed phrase, [B]re-add the restored key[/B] to the Nunchuk app to verify that its public key matches the public key of your inheritance key",
+                    label = stringResource(R.string.nc_membership_verify_step_readd_key),
                 )
             }
         }

@@ -1,5 +1,6 @@
 package com.nunchuk.android.main.membership.onchaintimelock.replacekey
 
+import com.nunchuk.android.main.membership.annotatedStringWithStyledArg
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
@@ -848,7 +849,7 @@ private fun OnChainReplaceKeysContent(
                     IconButton(onClick = { showSheetOptions = true }) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_more),
-                            contentDescription = "More icon"
+                            contentDescription = stringResource(R.string.nc_membership_cd_more_icon)
                         )
                     }
                 })
@@ -877,21 +878,17 @@ private fun OnChainReplaceKeysContent(
                         .fillMaxSize()
                 ) {
                     Text(
-                        text = "Replace key or change timelock",
+                        text = stringResource(R.string.nc_membership_replace_key_or_change_timelock),
                         style = NunchukTheme.typography.heading
                     )
 
                     Text(
                         modifier = Modifier.padding(top = 16.dp, bottom = 4.dp),
-                        text = buildAnnotatedString {
-
-                            withStyle(style = SpanStyle(fontWeight = FontWeight.W700)) {
-                                append("Before the timelock")
-                            }
-                            append(
-                                ", spending requires two signatures from a 2-of-4 multisig:"
-                            )
-                        },
+                        text = annotatedStringWithStyledArg(
+                            formatRes = R.string.nc_membership_before_timelock_desc,
+                            argRes = R.string.nc_membership_before_the_timelock,
+                            style = SpanStyle(fontWeight = FontWeight.W700),
+                        ),
                         style = NunchukTheme.typography.body
                     )
 
@@ -931,7 +928,7 @@ private fun OnChainReplaceKeysContent(
                                 modifier = Modifier
                                     .padding(top = 12.dp)
                                     .fillMaxWidth(),
-                                text = "Pull to refresh the key status.",
+                                text = stringResource(R.string.nc_membership_pull_to_refresh_key_status),
                                 style = NunchukTheme.typography.bodySmall,
                                 textAlign = TextAlign.Center
                             )
@@ -940,15 +937,11 @@ private fun OnChainReplaceKeysContent(
                         item {
                             Text(
                                 modifier = Modifier.padding(top = 16.dp, bottom = 4.dp),
-                                text = buildAnnotatedString {
-
-                                    withStyle(style = SpanStyle(fontWeight = FontWeight.W700)) {
-                                        append("After the timelock")
-                                    }
-                                    append(
-                                        ", spending only requires one signature from a 1-of-3 multisig. The keyset remains the same, minus the Platform key."
-                                    )
-                                },
+                                text = annotatedStringWithStyledArg(
+                                    formatRes = R.string.nc_membership_after_timelock_desc,
+                                    argRes = R.string.nc_membership_after_the_timelock,
+                                    style = SpanStyle(fontWeight = FontWeight.W700),
+                                ),
                                 style = NunchukTheme.typography.body
                             )
                             val timelockKey =
@@ -1093,7 +1086,7 @@ fun ReplaceKeyCard(
                                     .padding(start = 8.dp)
                             ) {
                                 Text(
-                                    text = displaySigners.firstOrNull()?.name ?: "Unknown Signer",
+                                    text = displaySigners.firstOrNull()?.name ?: stringResource(R.string.nc_membership_unknown_signer),
                                     style = NunchukTheme.typography.body
                                 )
 
@@ -1101,7 +1094,7 @@ fun ReplaceKeyCard(
                                     NcTag(
                                         label = displaySigners.firstOrNull()
                                             ?.toReadableSignerType(context = LocalContext.current)
-                                            ?: "Unknown",
+                                            ?: stringResource(R.string.nc_unknown),
                                         backgroundColor = colorResource(
                                             id = R.color.nc_bg_mid_gray
                                         ),
@@ -1114,13 +1107,13 @@ fun ReplaceKeyCard(
                                                     if (firstSigner.index >= 0) firstSigner.index else 0
                                                 )
                                             } else {
-                                                "Acct X"
+                                                stringResource(R.string.nc_membership_acct_x_placeholder)
                                             }
-                                        } ?: "Acct X"
+                                        } ?: stringResource(R.string.nc_membership_acct_x_placeholder)
                                     NcTag(
                                         modifier = Modifier
                                             .padding(start = 4.dp)
-                                            .alpha(if (firstAcctLabel == "Acct X") 0.5f else 1.0f),
+                                            .alpha(if (firstAcctLabel == stringResource(R.string.nc_membership_acct_x_placeholder)) 0.5f else 1.0f),
                                         label = firstAcctLabel,
                                         backgroundColor = colorResource(
                                             id = R.color.nc_bg_mid_gray
@@ -1134,13 +1127,13 @@ fun ReplaceKeyCard(
                                                     if (secondSigner.index >= 0) secondSigner.index else 0
                                                 )
                                             } else {
-                                                "Acct Y"
+                                                stringResource(R.string.nc_membership_acct_y_placeholder)
                                             }
-                                        } ?: "Acct Y"
+                                        } ?: stringResource(R.string.nc_membership_acct_y_placeholder)
                                     NcTag(
                                         modifier = Modifier
                                             .padding(start = 4.dp)
-                                            .alpha(if (secondAcctLabel == "Acct Y") 0.5f else 1.0f),
+                                            .alpha(if (secondAcctLabel == stringResource(R.string.nc_membership_acct_y_placeholder)) 0.5f else 1.0f),
                                         label = secondAcctLabel,
                                         backgroundColor = colorResource(
                                             id = R.color.nc_bg_mid_gray
@@ -1167,7 +1160,7 @@ fun ReplaceKeyCard(
                                         },
                                     ) {
                                         Text(
-                                            text = if (isReplaced) "Remove" else "Replace",
+                                            text = if (isReplaced) stringResource(R.string.nc_remove) else stringResource(R.string.nc_replace),
                                             style = NunchukTheme.typography.captionTitle,
                                         )
                                     }
@@ -1194,7 +1187,7 @@ fun ReplaceKeyCard(
                                     },
                                 ) {
                                     Text(
-                                        text = "Replace",
+                                        text = stringResource(R.string.nc_replace),
                                         style = NunchukTheme.typography.captionTitle,
                                     )
                                 }
@@ -1212,7 +1205,7 @@ fun ReplaceKeyCard(
                         top.linkTo(parent.top)
                         end.linkTo(parent.end)
                     },
-                contentDescription = "Inheritance icon",
+                contentDescription = stringResource(R.string.nc_membership_cd_inheritance_icon),
                 painter = painterResource(id = R.drawable.ic_badge_inheritance)
             )
         }
@@ -1229,13 +1222,17 @@ fun ReplaceKeyCard(
             ) {
                 NcIcon(
                     painter = painterResource(id = R.drawable.ic_replace),
-                    contentDescription = "Replace icon"
+                    contentDescription = stringResource(R.string.nc_membership_cd_replace_icon)
                 )
 
                 val originalSigner = data.originalSigners.firstOrNull()
                 if (originalSigner != null) {
                     Text(
-                        text = "Replacing ${originalSigner.name} (${originalSigner.getXfpOrCardIdLabel()})",
+                        text = stringResource(
+                            R.string.nc_membership_replacing_signer,
+                            originalSigner.name,
+                            originalSigner.getXfpOrCardIdLabel(),
+                        ),
                         style = NunchukTheme.typography.bodySmall,
                     )
                 }
@@ -1264,7 +1261,7 @@ private fun ReplaceServerCard(
                 .padding(start = 8.dp)
         ) {
             Text(
-                text = "Platform Key",
+                text = stringResource(R.string.nc_membership_platform_key),
                 style = NunchukTheme.typography.body
             )
         }
@@ -1286,7 +1283,7 @@ private fun TimelockReplaceCard(
         val dateFormat = SimpleDateFormat("MM/dd/yyyy HH:mm", Locale.getDefault())
         dateFormat.timeZone = TimeZone.getTimeZone(displayedTimelock.timezone)
         val dateStr = dateFormat.format(Date(displayedTimelock.timelockValue * 1000))
-        if (isHeightLock) "Est. $dateStr" else dateStr
+        if (isHeightLock) stringResource(R.string.nc_membership_est_date, dateStr) else dateStr
     } else ""
     Column(
         modifier = modifier
@@ -1343,7 +1340,7 @@ private fun TimelockReplaceCard(
                     onClick = onChangeClicked,
                 ) {
                     Text(
-                        text = "Change",
+                        text = stringResource(R.string.nc_change),
                         style = NunchukTheme.typography.captionTitle,
                     )
                 }
@@ -1357,7 +1354,7 @@ private fun TimelockReplaceCard(
             ) {
                 NcIcon(
                     painter = painterResource(id = R.drawable.ic_replace),
-                    contentDescription = "Replace icon"
+                    contentDescription = stringResource(R.string.nc_membership_cd_replace_icon)
                 )
 
                 val formattedOriginalDate = data.originalTimelock?.let {
@@ -1369,9 +1366,9 @@ private fun TimelockReplaceCard(
                 } ?: ""
                 Text(
                     text = if (formattedOriginalDate.isNotEmpty()) {
-                        "Replacing existing timelock ($formattedOriginalDate)"
+                        stringResource(R.string.nc_membership_replacing_existing_timelock_date, formattedOriginalDate)
                     } else {
-                        "Replacing existing timelock"
+                        stringResource(R.string.nc_membership_replacing_existing_timelock)
                     },
                     style = NunchukTheme.typography.bodySmall,
                 )

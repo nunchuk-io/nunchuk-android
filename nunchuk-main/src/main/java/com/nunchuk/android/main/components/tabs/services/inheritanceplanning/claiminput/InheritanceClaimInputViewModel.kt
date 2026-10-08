@@ -40,6 +40,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import com.nunchuk.android.main.R
+import dagger.hilt.android.qualifiers.ApplicationContext
+import android.content.Context
 
 @HiltViewModel
 class InheritanceClaimInputViewModel @Inject constructor(
@@ -47,7 +50,8 @@ class InheritanceClaimInputViewModel @Inject constructor(
     private val importBackupKeyContentUseCase: ImportBackupKeyContentUseCase,
     private val masterSignerMapper: MasterSignerMapper,
     private val getInheritanceClaimStateUseCase: GetInheritanceClaimStateUseCase,
-    private val deleteMasterSignerUseCase: DeleteMasterSignerUseCase
+    private val deleteMasterSignerUseCase: DeleteMasterSignerUseCase,
+    @ApplicationContext private val context: Context,
 ) : ViewModel() {
 
     private val _event = MutableSharedFlow<InheritanceClaimInputEvent>()
@@ -86,7 +90,7 @@ class InheritanceClaimInputViewModel @Inject constructor(
                     if (resultImport.isSuccess) {
                         importMasterSigners.add(resultImport.getOrThrow())
                     } else {
-                        errorMsg = "Invalid password. Unable to restore backup"
+                        errorMsg = context.getString(R.string.nc_main_invalid_password_unable_to_restore_backup)
                     }
                 }
             }
@@ -96,7 +100,7 @@ class InheritanceClaimInputViewModel @Inject constructor(
                 }
                 _event.emit(
                     InheritanceClaimInputEvent.Error(
-                        errorMsg ?: "Invalid password. Unable to restore backup"
+                        errorMsg ?: context.getString(R.string.nc_main_invalid_password_unable_to_restore_backup)
                     )
                 )
                 return@launch

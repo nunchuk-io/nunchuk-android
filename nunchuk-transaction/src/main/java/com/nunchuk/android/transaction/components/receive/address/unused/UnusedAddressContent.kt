@@ -153,14 +153,14 @@ internal fun UnusedAddressContent(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        text = "${currentPage + 1}/${addresses.size} address",
+                        text = stringResource(R.string.nc_transaction_address_pager, currentPage + 1, addresses.size),
                         style = NunchukTheme.typography.body,
                         color = MaterialTheme.colorScheme.textPrimary,
                     )
                     Icon(
                         modifier = Modifier.clickable(onClick = onMoreClick),
                         painter = painterResource(id = com.nunchuk.android.widget.R.drawable.ic_more_white),
-                        contentDescription = "More options",
+                        contentDescription = stringResource(R.string.nc_transaction_more_options),
                         tint = MaterialTheme.colorScheme.textPrimary,
                     )
                 }
@@ -275,7 +275,7 @@ private fun AddressCard(
                     Image(
                         modifier = Modifier.fillMaxSize(),
                         bitmap = imageBitmap,
-                        contentDescription = "QR Code",
+                        contentDescription = stringResource(R.string.nc_transaction_qr_code),
                         contentScale = ContentScale.Fit,
                     )
                 }
@@ -337,7 +337,7 @@ private fun GenerateAddressCard(
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_plus_big),
-                    contentDescription = "Generate address",
+                    contentDescription = stringResource(R.string.nc_transaction_generate_address),
                     tint = MaterialTheme.colorScheme.textPrimary,
                 )
             }

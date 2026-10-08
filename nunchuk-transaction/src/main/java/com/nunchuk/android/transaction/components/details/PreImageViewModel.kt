@@ -1,8 +1,10 @@
 package com.nunchuk.android.transaction.components.details
 
+import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.model.ScriptNode
+import com.nunchuk.android.transaction.R
 import com.nunchuk.android.usecase.RevealPreimageUseCase
 import com.nunchuk.android.utils.ChecksumUtil
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -23,7 +25,7 @@ class PreImageViewModel @Inject constructor(
     fun setInvalidPreimageLengthError() {
         _state.update {
             it.copy(
-                error = "Invalid preimage length"
+                error = R.string.nc_transaction_invalid_preimage_length
             )
         }
     }
@@ -49,7 +51,7 @@ class PreImageViewModel @Inject constructor(
             }.onFailure {
                 _state.update {
                     it.copy(
-                        error = "Invalid preimage"
+                        error = R.string.nc_transaction_invalid_preimage
                     )
                 }
             }
@@ -68,5 +70,5 @@ class PreImageViewModel @Inject constructor(
 
 data class PreImageState(
     val isSuccess: Boolean = false,
-    val error: String? = null
+    @StringRes val error: Int? = null
 ) 

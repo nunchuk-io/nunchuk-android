@@ -244,7 +244,7 @@ private fun CosigningGroupPolicyContent(
                     Text(
                         text = stringResource(
                             R.string.nc_request_cosigning_policies_change_by,
-                            requester?.name ?: "Someone"
+                            requester?.name ?: stringResource(R.string.nc_wallet_someone)
                         ),
                         style = NunchukTheme.typography.body,
                         modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp)

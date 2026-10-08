@@ -19,6 +19,8 @@
 
 package com.nunchuk.android.transaction.components.send.confirmation
 
+import android.content.Context
+import androidx.annotation.StringRes
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.model.SigningPath
@@ -41,7 +43,13 @@ sealed class TransactionConfirmEvent {
         val tags: List<CoinTag>,
     ) : TransactionConfirmEvent()
 
-    data class CreateTxErrorEvent(val message: String, val code: Int = 0) : TransactionConfirmEvent()
+    data class CreateTxErrorEvent(
+        val message: String = "",
+        val code: Int = 0,
+        @StringRes val messageRes: Int? = null,
+    ) : TransactionConfirmEvent() {
+        fun resolveMessage(context: Context): String = messageRes?.let(context::getString) ?: message
+    }
 
     data class DraftTransactionSuccess(val transaction: Transaction) : TransactionConfirmEvent()
 

@@ -285,7 +285,7 @@ private fun CoinDetailContent(
                         IconButton(onClick = onShowMore) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_more),
-                                contentDescription = "More"
+                                contentDescription = stringResource(R.string.nc_more)
                             )
                         }
                     },
@@ -343,7 +343,7 @@ private fun CoinDetailContent(
                                     bottom = 24.dp
                                 )
                                 .fillMaxWidth(), onClick = { onViewCoinAncestry(output) }) {
-                            Text(text = "View coin ancestry", style = NunchukTheme.typography.title)
+                            Text(text = stringResource(R.string.nc_wallet_view_coin_ancestry), style = NunchukTheme.typography.title)
                         }
                     }
                 }
@@ -401,7 +401,7 @@ private fun CoinBadgeRow(output: UnspentOutput) {
                 Icon(
                     modifier = Modifier.padding(start = 10.dp),
                     painter = painterResource(id = R.drawable.ic_lock),
-                    contentDescription = "Locked"
+                    contentDescription = stringResource(R.string.nc_locked)
                 )
                 Text(
                     modifier = Modifier.padding(
@@ -421,7 +421,7 @@ private fun CoinBadgeRow(output: UnspentOutput) {
                 Icon(
                     modifier = Modifier.padding(start = 10.dp),
                     painter = painterResource(id = R.drawable.ic_schedule),
-                    contentDescription = "Locked"
+                    contentDescription = stringResource(R.string.nc_locked)
                 )
                 Text(
                     modifier = Modifier.padding(

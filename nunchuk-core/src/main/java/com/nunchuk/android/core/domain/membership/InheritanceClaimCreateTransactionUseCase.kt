@@ -31,12 +31,16 @@ import com.nunchuk.android.usecase.UseCase
 import com.nunchuk.android.usecase.signer.GetRemoteOrMasterSignerUseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
+import android.content.Context
+import dagger.hilt.android.qualifiers.ApplicationContext
+import com.nunchuk.android.core.R
 
 class InheritanceClaimCreateTransactionUseCase @Inject constructor(
     @IoDispatcher dispatcher: CoroutineDispatcher,
     private val userWalletRepository: PremiumWalletRepository,
     private val getRemoteOrMasterSignerUseCase: GetRemoteOrMasterSignerUseCase,
-    private val nunchukNativeSdk: NunchukNativeSdk
+    private val nunchukNativeSdk: NunchukNativeSdk,
+    @ApplicationContext private val context: Context
 ) : UseCase<InheritanceClaimCreateTransactionUseCase.Param, ExtendTransaction>(
     dispatcher
 ) {
@@ -155,7 +159,7 @@ class InheritanceClaimCreateTransactionUseCase @Inject constructor(
         val expectedAddress = parameters.address.trim()
         if (expectedAddress.isEmpty()) {
             throw InheritanceClaimPsbtMismatchException(
-                "The claim transaction has no destination address to verify against."
+                context.getString(R.string.nc_inheritance_claim_psbt_no_destination)
             )
         }
         // Bech32 addresses are case-insensitive; base58 ones differing only in case fail checksum.
@@ -164,7 +168,7 @@ class InheritanceClaimCreateTransactionUseCase @Inject constructor(
         }
         if (!paysDestination) {
             throw InheritanceClaimPsbtMismatchException(
-                "The claim transaction does not pay the destination address you entered."
+                context.getString(R.string.nc_inheritance_claim_psbt_wrong_destination)
             )
         }
     }

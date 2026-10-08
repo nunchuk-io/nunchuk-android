@@ -246,7 +246,7 @@ fun FreeGroupWalletRecoverScreen(
                     IconButton(onClick = { showAskForDeleteDialog = true }) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_close),
-                            contentDescription = "Back",
+                            contentDescription = stringResource(R.string.nc_main_cd_back),
                             tint = MaterialTheme.colorScheme.textPrimary
                         )
                     }
@@ -270,7 +270,7 @@ fun FreeGroupWalletRecoverScreen(
                         ) {
                             NcIcon(
                                 painter = painterResource(id = R.drawable.ic_encrypted),
-                                contentDescription = "Encrypted icon",
+                                contentDescription = stringResource(R.string.nc_main_cd_encrypted_icon),
                                 tint = colorResource(id = R.color.nc_text_secondary)
                             )
                             Text(
@@ -489,7 +489,7 @@ private fun TaprootAddressContent(
                 modifier = Modifier.padding(
                     vertical = 8.dp
                 ),
-                text = "Key path",
+                text = stringResource(R.string.nc_key_path),
                 enabled = true,
             )
 
@@ -539,7 +539,7 @@ private fun TaprootAddressContent(
                 bottom = 8.dp,
                 end = 16.dp
             ),
-            text = "Script path",
+            text = stringResource(R.string.nc_miniscript_script_path),
             enabled = true
         )
     }

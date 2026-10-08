@@ -455,7 +455,7 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
                 handleSignRequestSignature()
             }
 
-            NoInternetConnection -> showError("There is no Internet connection. The platform key co-signing policies will apply once you are connected.")
+            NoInternetConnection -> showError(getString(R.string.nc_transaction_no_internet_platform_key_policies))
             is TransactionDetailsEvent.GetRawTransactionSuccess -> handleCopyContent(event.rawTransaction)
             TransactionDetailsEvent.RequestSignatureTransactionSuccess -> {
                 hideLoading()
@@ -499,7 +499,7 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
 
     private fun showExportToFileError(event: TransactionError) {
         hideLoading()
-        NCToastMessage(this).showError(event.message)
+        NCToastMessage(this).showError(event.messageRes?.let { getString(it) } ?: event.message)
     }
 
     private fun showExportToFileSuccess(event: ExportToFileSuccess) {
@@ -509,7 +509,7 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
 
     private fun handleCancelTransaction() {
         if (viewModel.getTransaction().status.isConfirmed()) {
-            NCToastMessage(this).showError("Cannot replace transaction. The original transaction has already been confirmed")
+            NCToastMessage(this).showError(getString(R.string.nc_transaction_cannot_replace_confirmed))
             return
         }
         if (viewModel.getTransaction().status.isPending()) {

@@ -61,7 +61,7 @@ fun TransactionNoteView(modifier: Modifier = Modifier, note: String) {
                 .border(1.dp, color = MaterialTheme.colorScheme.strokePrimary, shape = CircleShape)
                 .padding(4.dp),
             painter = painterResource(id = R.drawable.ic_transaction_note),
-            contentDescription = "Transaction Note"
+            contentDescription = stringResource(R.string.nc_cd_transaction_note)
         )
         Column(
             modifier = Modifier

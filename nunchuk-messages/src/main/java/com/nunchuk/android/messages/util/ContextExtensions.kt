@@ -220,7 +220,7 @@ fun Activity.safeStartActivity(intent: Intent) {
     try {
         startActivity(intent)
     } catch (e: Exception) {
-        NCToastMessage(this).showError("Couldn't find apps to open this file")
+        NCToastMessage(this).showError(getString(R.string.nc_message_no_app_to_open_file))
         Timber.e(e)
     }
 }

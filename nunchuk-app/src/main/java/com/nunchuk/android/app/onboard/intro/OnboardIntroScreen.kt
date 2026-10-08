@@ -90,7 +90,7 @@ fun OnboardIntroContent(
         ) {
             Image(
                 painter = painterResource(id = R.drawable.ic_logo_light),
-                contentDescription = "Logo image",
+                contentDescription = stringResource(R.string.nc_onboard_logo_image),
                 modifier = Modifier
                     .padding(top = 24.dp)
                     .size(84.dp)

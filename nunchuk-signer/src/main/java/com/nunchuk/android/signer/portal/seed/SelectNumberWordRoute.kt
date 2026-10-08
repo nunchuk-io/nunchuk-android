@@ -121,7 +121,7 @@ fun SelectNumberWordScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                text = "How many seed words do you want?",
+                text = stringResource(R.string.nc_portal_how_many_seed_words),
                 style = NunchukTheme.typography.heading
             )
 
@@ -131,7 +131,7 @@ fun SelectNumberWordScreen(
                 isSelected = numberOfWords == 12,
             ) {
                 Text(
-                    text = "12 words (recommended)",
+                    text = stringResource(R.string.nc_portal_12_words_recommended),
                     style = NunchukTheme.typography.title
                 )
             }
@@ -142,7 +142,7 @@ fun SelectNumberWordScreen(
                 isSelected = numberOfWords == 24,
             ) {
                 Text(
-                    text = "24 words",
+                    text = stringResource(R.string.nc_portal_24_words),
                     style = NunchukTheme.typography.title
                 )
             }

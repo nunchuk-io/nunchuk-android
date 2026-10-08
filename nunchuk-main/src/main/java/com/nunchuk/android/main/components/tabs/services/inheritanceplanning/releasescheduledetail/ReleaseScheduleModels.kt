@@ -24,6 +24,8 @@ import java.time.ZoneId
 import java.time.LocalDate
 import java.util.Calendar
 import java.util.TimeZone
+import androidx.annotation.StringRes
+import com.nunchuk.android.main.R
 
 data class ReleaseScheduleDate(
     val month: Int,
@@ -100,14 +102,16 @@ data class ReleaseScheduleInstallmentLine(
     val availablePercent: Int,
     val availableBy: ReleaseScheduleDate,
 ) {
-    val orderLabel: String
+    /** Resource id of the ordinal pattern (e.g. "%1$dst") matching [order]. */
+    @get:StringRes
+    val orderLabelRes: Int
         get() = when (order % 100) {
-            11, 12, 13 -> "${order}th"
+            11, 12, 13 -> R.string.nc_main_ordinal_th
             else -> when (order % 10) {
-                1 -> "${order}st"
-                2 -> "${order}nd"
-                3 -> "${order}rd"
-                else -> "${order}th"
+                1 -> R.string.nc_main_ordinal_st
+                2 -> R.string.nc_main_ordinal_nd
+                3 -> R.string.nc_main_ordinal_rd
+                else -> R.string.nc_main_ordinal_th
             }
         }
 }

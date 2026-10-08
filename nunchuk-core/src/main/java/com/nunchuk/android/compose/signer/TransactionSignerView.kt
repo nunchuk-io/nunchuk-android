@@ -59,7 +59,7 @@ fun TransactionSignerView(
             NcIcon(
                 modifier = Modifier.padding(start = 8.dp),
                 painter = painterResource(R.drawable.ic_check_circle_24),
-                contentDescription = "Signed",
+                contentDescription = stringResource(R.string.nc_transaction_signed),
             )
         } else if (canSign && signer.type.canSign) {
             NcPrimaryDarkButton(onClick = { onSignClick(signer) }, height = 36.dp) {

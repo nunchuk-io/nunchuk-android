@@ -1,5 +1,6 @@
 package com.nunchuk.android.main.rollover.broadcast
 
+import androidx.compose.ui.res.pluralStringResource
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -135,7 +136,7 @@ private fun RollOverBroadcastTransactionContent(
             modifier = Modifier.systemBarsPadding(),
             topBar = {
                 NcTopAppBar(
-                    title = "Before you continue",
+                    title = stringResource(R.string.nc_main_rollover_before_you_continue),
                     textStyle = NunchukTheme.typography.title,
                     actions = {
                         Spacer(modifier = Modifier.size(LocalViewConfiguration.current.minimumTouchTargetSize))
@@ -151,7 +152,7 @@ private fun RollOverBroadcastTransactionContent(
                     NcHintMessage(
                         messages = listOf(
                             ClickAbleText(
-                                content = "Broadcasting the rollover transactions at the same time might allow someone to link those transactions and damage your privacy."
+                                content = stringResource(R.string.nc_main_rollover_broadcast_privacy_warning)
                             )
                         ),
                         type = HighlightMessageType.WARNING,
@@ -218,7 +219,7 @@ private fun RollOverBroadcastTransactionContent(
                         ) {
                             Text(
                                 modifier = Modifier.weight(1f),
-                                text = "Automatically randomize broadcast",
+                                text = stringResource(R.string.nc_main_rollover_randomize_broadcast),
                                 style = NunchukTheme.typography.title
                             )
 
@@ -235,7 +236,7 @@ private fun RollOverBroadcastTransactionContent(
                                 modifier = Modifier
                                     .padding(horizontal = 16.dp)
                                     .fillMaxWidth(),
-                                text = "Broadcast transactions within:",
+                                text = stringResource(R.string.nc_main_rollover_broadcast_within),
                                 style = NunchukTheme.typography.body
                             )
 
@@ -262,10 +263,7 @@ private fun RollOverBroadcastTransactionContent(
                                 },
                                 label = { value ->
                                     Text(
-                                        text = when (value) {
-                                            1 -> "1 day"
-                                            else -> "$value days"
-                                        },
+                                        text = pluralStringResource(R.plurals.nc_main_days, value, value),
                                         style = NunchukTheme.typography.title
                                     )
                                 },

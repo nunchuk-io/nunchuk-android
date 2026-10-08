@@ -531,7 +531,7 @@ private fun TrezorAccountIndexBottomSheet(
                 IconButton(onClick = onDismiss) {
                     NcIcon(
                         painter = painterResource(id = R.drawable.ic_close),
-                        contentDescription = "Close",
+                        contentDescription = stringResource(R.string.nc_text_close),
                         modifier = Modifier.size(24.dp)
                     )
                 }

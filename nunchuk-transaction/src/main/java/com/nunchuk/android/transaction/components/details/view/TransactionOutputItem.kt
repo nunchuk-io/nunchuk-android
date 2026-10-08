@@ -54,7 +54,7 @@ fun TransactionOutputItem(
             ) {
                 NcIcon(
                     painter = painterResource(id = R.drawable.ic_saved_address),
-                    contentDescription = "Saved Address",
+                    contentDescription = stringResource(R.string.nc_transaction_saved_address_icon),
                     modifier = Modifier.size(16.dp),
                 )
 

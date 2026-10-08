@@ -57,7 +57,7 @@ fun DecoyWalletScreen(
             ) {
                 Text(
                     modifier = Modifier.padding(top = 16.dp),
-                    text = "Decoy Wallet",
+                    text = stringResource(R.string.nc_settings_decoy_wallet_title),
                     style = NunchukTheme.typography.heading,
                 )
 

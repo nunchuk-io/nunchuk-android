@@ -1,5 +1,6 @@
 package com.nunchuk.android.main.rollover.coincontrol
 
+import androidx.compose.ui.res.pluralStringResource
 import android.app.Activity.RESULT_OK
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -222,7 +223,7 @@ private fun RollOverCoinControlContent(
                     }) {
                         Icon(
                             painter = painterResource(id = com.nunchuk.android.wallet.R.drawable.ic_back),
-                            contentDescription = "Back icon"
+                            contentDescription = stringResource(R.string.nc_main_cd_back_icon_lower)
                         )
                     }
                     Text(
@@ -250,21 +251,20 @@ private fun RollOverCoinControlContent(
                         .fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    val transactionRequiredText = if (uiState.numOfTxs == 1) {
-                        "transaction required"
-                    } else {
-                        "transactions required"
-                    }
                     Text(
-                        text = "${uiState.numOfTxs} $transactionRequiredText",
+                        text = pluralStringResource(
+                            R.plurals.nc_main_rollover_transactions_required,
+                            uiState.numOfTxs,
+                            uiState.numOfTxs
+                        ),
                         style = NunchukTheme.typography.bodySmall
                     )
                     Text(
                         modifier = Modifier.padding(top = 8.dp),
                         text = if (uiState.isCalculating) {
-                            "Estimated fee: calculating..."
+                            stringResource(R.string.nc_main_rollover_estimated_fee_calculating)
                         } else {
-                            "Estimated fee: ${uiState.feeAmount.getBTCAmount()}"
+                            stringResource(R.string.nc_main_rollover_estimated_fee_value, uiState.feeAmount.getBTCAmount())
                         },
                         style = NunchukTheme.typography.titleSmall
                     )
@@ -289,7 +289,7 @@ private fun RollOverCoinControlContent(
                 LazyColumn {
                     item {
                         Text(
-                            text = "Select the coin tags and collections you want to keep for the new wallet. Please note that the more tags and collections, the more transactions and fees will be required for the rollover.",
+                            text = stringResource(R.string.nc_main_rollover_select_tags_collections_desc),
                             style = NunchukTheme.typography.body,
                             modifier = Modifier.padding(top = 16.dp)
                         )
@@ -304,11 +304,11 @@ private fun RollOverCoinControlContent(
                                 modifier = Modifier
                                     .size(24.dp),
                                 painter = painterResource(id = R.drawable.ic_coin_tag),
-                                contentDescription = "Lock icon"
+                                contentDescription = stringResource(R.string.nc_main_cd_lock_icon)
                             )
                             Text(
                                 modifier = Modifier.padding(start = 8.dp),
-                                text = "Tags",
+                                text = stringResource(R.string.nc_tags),
                                 style = NunchukTheme.typography.title
                             )
                         }
@@ -345,11 +345,11 @@ private fun RollOverCoinControlContent(
                                 modifier = Modifier
                                     .size(24.dp),
                                 painter = painterResource(id = R.drawable.ic_coin_collection),
-                                contentDescription = "Lock icon"
+                                contentDescription = stringResource(R.string.nc_main_cd_lock_icon)
                             )
                             Text(
                                 modifier = Modifier.padding(start = 8.dp),
-                                text = "Collections",
+                                text = stringResource(R.string.nc_collections),
                                 style = NunchukTheme.typography.title
                             )
                         }

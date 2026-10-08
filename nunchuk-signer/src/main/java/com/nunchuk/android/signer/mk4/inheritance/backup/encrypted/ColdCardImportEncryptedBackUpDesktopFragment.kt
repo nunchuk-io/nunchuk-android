@@ -29,7 +29,6 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.fragment.compose.content
@@ -104,21 +103,31 @@ internal fun ColdCardImportEncryptedBackUpDesktopScreen(
             ) {
                 Text(
                     modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
-                    text = "Import encrypted backup file via Desktop app",
+                    text = stringResource(R.string.nc_coldcard_import_backup_via_desktop_title),
                     style = NunchukTheme.typography.heading
                 )
+                val downloadLinkText = stringResource(R.string.nc_coldcard_download_it_here)
+                val fullText = stringResource(
+                    R.string.nc_coldcard_install_desktop_app_hint,
+                    downloadLinkText
+                )
                 val annotatedText = buildAnnotatedString {
-                    append("If you haven’t installed the Desktop app yet, please ")
-                    pushStringAnnotation(tag = "DOWNLOAD_HERE", annotation = "download_here")
-                    withStyle(
-                        style = SpanStyle(
-                            textDecoration = TextDecoration.Underline
+                    append(fullText)
+                    val linkStart = fullText.indexOf(downloadLinkText)
+                    if (linkStart >= 0) {
+                        val linkEnd = linkStart + downloadLinkText.length
+                        addStringAnnotation(
+                            tag = "DOWNLOAD_HERE",
+                            annotation = "download_here",
+                            start = linkStart,
+                            end = linkEnd
                         )
-                    ) {
-                        append("download it here.")
+                        addStyle(
+                            style = SpanStyle(textDecoration = TextDecoration.Underline),
+                            start = linkStart,
+                            end = linkEnd
+                        )
                     }
-                    append("\n\nOnce the app is installed,, please follow the instructions below to import the encrypted backup file on your Desktop:")
-                    pop()
                 }
                 Text(
                     modifier = Modifier
@@ -152,7 +161,7 @@ internal fun ColdCardImportEncryptedBackUpDesktopScreen(
                     ) {
                         Text(
                             modifier = Modifier.fillMaxWidth(),
-                            text = "Navigate to Home → Wallet → Dashboard → Alerts → View",
+                            text = stringResource(R.string.nc_coldcard_desktop_navigate_alerts),
                             style = NunchukTheme.typography.body,
                             textAlign = TextAlign.Start
                         )

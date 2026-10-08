@@ -89,7 +89,7 @@ internal fun EmptyTransactionView(
             ) {
                 Image(
                     bitmap = qrBitmap.asImageBitmap(),
-                    contentDescription = "Receive address QR",
+                    contentDescription = stringResource(R.string.nc_wallet_cd_receive_address_qr),
                     modifier = Modifier.size(180.dp),
                 )
             }

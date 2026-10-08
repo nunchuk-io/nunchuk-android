@@ -245,7 +245,7 @@ private fun OnChainSetUpTimelockContent(
                     IconButton(onClick = onMoreClicked) {
                         Icon(
                             painter = painterResource(id = com.nunchuk.android.signer.R.drawable.ic_more),
-                            contentDescription = "More icon"
+                            contentDescription = stringResource(R.string.nc_membership_cd_more_icon)
                         )
                     }
                 }
@@ -256,7 +256,7 @@ private fun OnChainSetUpTimelockContent(
             ) {
                 NcHintMessage(
                     modifier = Modifier.padding(horizontal = 16.dp),
-                    messages = listOf(ClickAbleText(content = "Even with the inheritance key, the Beneficiary cannot claim funds before the timelock expires."))
+                    messages = listOf(ClickAbleText(content = stringResource(R.string.nc_membership_timelock_beneficiary_cannot_claim)))
                 )
 
                 NcPrimaryDarkButton(
@@ -279,16 +279,12 @@ private fun OnChainSetUpTimelockContent(
             ) {
                 Text(
                     modifier = Modifier.padding(start = 16.dp, end = 16.dp),
-                    text = if (isReplaceKeyFlow) "Change on-chain timelock" else "Set up an on-chain timelock",
+                    text = stringResource(if (isReplaceKeyFlow) R.string.nc_membership_change_on_chain_timelock else R.string.nc_membership_set_up_on_chain_timelock),
                     style = NunchukTheme.typography.heading
                 )
                 NcHighlightText(
                     modifier = Modifier.padding(16.dp),
-                    text = "Your inheritance plan includes an on-chain timelock enforced by the Bitcoin network. After it expires, the Beneficiary can claim the funds autonomously using the required secrets.\n" +
-                            "\n" +
-                            "[B]The lock is immutable.[/B] Once set, the unlock time cannot be changed. To adjust it later, you must create a new wallet and migrate your funds. A guided feature is available in the Wallet Config screen.\n" +
-                            "\n" +
-                            "Recommendation: Set a duration of 5 to 10 years to minimize the need for future migrations.",
+                    text = stringResource(R.string.nc_membership_on_chain_timelock_explanation),
                     style = NunchukTheme.typography.body
                 )
 
@@ -322,7 +318,7 @@ private fun OnChainSetUpTimelockContent(
                     // Date field
                     NcTextField(
                         modifier = Modifier.weight(1f),
-                        title = "Date",
+                        title = stringResource(R.string.nc_date),
                         value = selectedDateText,
                         readOnly = true,
                         enabled = false,
@@ -347,7 +343,7 @@ private fun OnChainSetUpTimelockContent(
                     // Time field
                     NcTextField(
                         modifier = Modifier.weight(1f),
-                        title = "Time",
+                        title = stringResource(R.string.nc_time),
                         value = selectedTimeText,
                         readOnly = true,
                         enabled = false,

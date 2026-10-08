@@ -278,7 +278,7 @@ private fun RollOverTransferFundContent(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "Timelocked",
+                                text = stringResource(R.string.nc_timelocked),
                                 style = NunchukTheme.typography.body,
                             )
                             Column(

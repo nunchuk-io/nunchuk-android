@@ -83,7 +83,7 @@ fun ListRecurringPaymentScreen(
                                 IconButton(onClick = { showSortOptionBottomSheet = true }) {
                                     Icon(
                                         painter = painterResource(id = R.drawable.ic_sort_dark),
-                                        contentDescription = " Sort Dark"
+                                        contentDescription = stringResource(R.string.nc_sort)
                                     )
                                 }
                                 if (uiState.sortBy != SortBy.NONE) {

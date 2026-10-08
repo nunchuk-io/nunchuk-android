@@ -1,5 +1,6 @@
 package com.nunchuk.android.main.groupwallet.join
 
+import com.nunchuk.android.main.R
 import android.content.Context
 import android.graphics.Bitmap
 import androidx.lifecycle.ViewModel
@@ -45,7 +46,7 @@ class CommonQRCodeViewModel @Inject constructor(
             if (filePath != null) {
                 _event.emit(CommonQRCodeEvent.ShareQRCodeSuccess(filePath))
             } else {
-                _event.emit(CommonQRCodeEvent.Error("Failed to share QR code"))
+                _event.emit(CommonQRCodeEvent.Error(context.getString(R.string.nc_main_failed_to_share_qr_code)))
             }
         }
     }

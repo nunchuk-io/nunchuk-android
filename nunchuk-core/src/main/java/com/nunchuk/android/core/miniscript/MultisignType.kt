@@ -1,39 +1,42 @@
 package com.nunchuk.android.core.miniscript
 
+import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
 import com.nunchuk.android.core.R
 
 enum class MultisignType(
-    val title: String,
-    val description: String,
-    val icon: Int
+    @StringRes val titleRes: Int,
+    @StringRes val descriptionRes: Int,
+    @DrawableRes val icon: Int
 ) {
     EXPANDING(
-        "Expanding multisig",
-        "Number of required signatures stays the same, but more possible signers can be added over time",
+        R.string.nc_miniscript_expanding_multisig,
+        R.string.nc_miniscript_expanding_multisig_desc,
         icon = R.drawable.ic_expanding_multisign
     ),
     DECAYING(
-        "Decaying multisig",
-        "Total number of possible signers stays the same, but fewer signatures are needed over time",
+        R.string.nc_miniscript_decaying_multisig,
+        R.string.nc_miniscript_decaying_multisig_desc,
         icon = R.drawable.ic_decaying_multisign
     ),
     FLEXIBLE(
-        "Flexible multisig", "Both the number of signers and required signatures can change over time",
+        R.string.nc_miniscript_flexible_multisig,
+        R.string.nc_miniscript_flexible_multisig_desc,
         icon = R.drawable.ic_flexible_multisign
     ),
     ZEN_HODL(
-        "Zen Hodl",
-        "Locks coins immediately when deposited and only allows spending after the timelock expires",
+        R.string.nc_multisign_zen_hodl,
+        R.string.nc_multisign_zen_hodl_desc,
         icon = R.drawable.ic_zen_hodl
     ),
     CUSTOM(
-        "Enter miniscript",
-        "Paste or enter your miniscript",
+        R.string.nc_miniscript_enter_miniscript,
+        R.string.nc_miniscript_enter_miniscript_desc,
         icon = R.drawable.ic_enter_miniscript
     ),
     IMPORT(
-        "Import from file",
-        "Import miniscript from a file",
+        R.string.nc_miniscript_import_from_file,
+        R.string.nc_miniscript_import_from_file_desc,
         icon = R.drawable.ic_import
     ),
 }

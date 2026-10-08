@@ -318,13 +318,13 @@ private fun RbfCancelTransactionContent(
                             verticalArrangement = Arrangement.Center
                         ) {
                             Text(
-                                text = "Anti-fee sniping",
+                                text = stringResource(R.string.nc_transaction_anti_fee_sniping),
                                 style = NunchukTheme.typography.body,
                             )
 
                             Text(
                                 modifier = Modifier.padding(top = 4.dp),
-                                text = "Adds the latest block height to the PSBT to prevent fee sniping attacks.",
+                                text = stringResource(R.string.nc_transaction_anti_fee_sniping_desc),
                                 style = NunchukTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.textSecondary
                             )

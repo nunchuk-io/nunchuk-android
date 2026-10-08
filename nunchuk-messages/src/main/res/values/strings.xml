@@ -91,4 +91,19 @@
         <item quantity="other">%d members</item>
     </plurals>
     <string name="nc_multiple_addresses">multiple addresses</string>
+    <string name="nc_message_image">Image</string>
+    <string name="nc_message_play_icon">Play Icon</string>
+    <string name="nc_message_back">Back</string>
+    <string name="nc_message_encrypted_icon">Encrypted icon</string>
+    <string name="nc_message_forward">Forward</string>
+    <string name="nc_message_copied_to_clipboard">Message copied to clipboard</string>
+    <string name="nc_message_user">User</string>
+    <string name="nc_message_type_a_message">Type a message</string>
+    <string name="nc_message_send">Send</string>
+    <string name="nc_message_no_app_to_open_file">Couldn\'t find apps to open this file</string>
+    <string name="nc_message_group_members_count">Members (%1$d)</string>
+    <string name="nc_message_downloaded">Downloaded</string>
+    <string name="nc_message_media_position">%1$d of %2$d</string>
+    <string name="nc_message_unknown_user">Unknown User</string>
+    <string name="nc_message_nunchuk_error_detail">[%1$s][%2$s] Exception %3$s: %4$s</string>
 </resources>

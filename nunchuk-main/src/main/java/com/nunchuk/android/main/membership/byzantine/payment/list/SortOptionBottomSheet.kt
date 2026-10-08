@@ -106,28 +106,28 @@ fun SortOptionsBottomSheetScreen(
             )
             SortRadioButtonItem(
                 modifier = Modifier.padding(top = 16.dp),
-                text = "Sort oldest to newest",
+                text = stringResource(R.string.nc_membership_sort_oldest_to_newest),
                 isSelected = sortBy == SortBy.NEWEST,
                 onClick = { sortBy = SortBy.NEWEST })
             SortRadioButtonItem(
                 modifier = Modifier,
-                text = "Sort newest to oldest",
+                text = stringResource(R.string.nc_membership_sort_newest_to_oldest),
                 isSelected = sortBy == SortBy.OLDEST,
                 onClick = { sortBy = SortBy.OLDEST })
             Text(
                 modifier = Modifier.padding(top = 24.dp),
-                text = "Sort by payment name",
+                text = stringResource(R.string.nc_membership_sort_by_payment_name),
                 textAlign = TextAlign.Center,
                 style = NunchukTheme.typography.title
             )
             SortRadioButtonItem(
                 modifier = Modifier.padding(top = 16.dp),
-                text = "Sort A → Z",
+                text = stringResource(R.string.nc_membership_sort_a_to_z),
                 isSelected = sortBy == SortBy.AZ,
                 onClick = { sortBy = SortBy.AZ })
             SortRadioButtonItem(
                 modifier = Modifier,
-                text = "Sort Z → A",
+                text = stringResource(R.string.nc_membership_sort_z_to_a),
                 isSelected = sortBy == SortBy.ZA,
                 onClick = { sortBy = SortBy.ZA })
             Spacer(modifier = Modifier.weight(1f))
@@ -141,7 +141,7 @@ fun SortOptionsBottomSheetScreen(
                 },
                 enabled = true,
             ) {
-                Text(text = "Apply")
+                Text(text = stringResource(R.string.nc_apply))
             }
         }
 

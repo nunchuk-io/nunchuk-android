@@ -1,7 +1,9 @@
 package com.nunchuk.android.app.miniscript.intro
 
+import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.R
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.usecase.CreateMiniscriptTemplateByCustomUseCase
@@ -42,7 +44,7 @@ class MiniscriptIntroViewModel @Inject constructor(
                 } else {
                     _uiState.update {
                         it.copy(
-                            event = MiniscriptIntroEvent.ShowError("Failed to read data or script has invalid syntax")
+                            event = MiniscriptIntroEvent.ShowErrorRes(R.string.nc_miniscript_failed_to_read)
                         )
                     }
                 }
@@ -71,4 +73,5 @@ data class MiniscriptIntroState(
 sealed class MiniscriptIntroEvent {
     data class NavigateToCustomTemplate(val template: String) : MiniscriptIntroEvent()
     data class ShowError(val message: String) : MiniscriptIntroEvent()
+    data class ShowErrorRes(@StringRes val resId: Int) : MiniscriptIntroEvent()
 } 

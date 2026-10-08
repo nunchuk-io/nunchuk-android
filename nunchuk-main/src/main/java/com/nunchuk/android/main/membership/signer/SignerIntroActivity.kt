@@ -27,7 +27,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
-import com.nunchuk.android.core.R
+import com.nunchuk.android.main.R
 import com.nunchuk.android.core.base.BaseComposeActivity
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
@@ -67,7 +67,7 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
             val passphrase = result.data?.getStringExtra(GlobalResultKey.PASSPHRASE).orEmpty()
             if (mnemonic.isNotEmpty()) {
                 val signerCount = viewModel.state.value.allSigners.size + 1
-                val signerName = "Inheritance key #$signerCount"
+                val signerName = getString(R.string.nc_membership_inheritance_key_name, signerCount)
                 viewModel.createSoftwareSignerFromMnemonic(mnemonic, passphrase, signerName)
             }
         }
@@ -80,7 +80,7 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
             val xprv = result.data?.getStringExtra(GlobalResultKey.XPRV).orEmpty()
             if (xprv.isNotEmpty()) {
                 val signerCount = viewModel.state.value.allSigners.size + 1
-                val signerName = "Inheritance key #$signerCount"
+                val signerName = getString(R.string.nc_membership_inheritance_key_name, signerCount)
                 viewModel.createSoftwareSignerFromXprv(xprv, signerName)
             }
         }

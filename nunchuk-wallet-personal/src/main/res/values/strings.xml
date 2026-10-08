@@ -61,4 +61,15 @@
     <string name="nc_wallet_send_invite">Send invite</string>
     <string name="nc_wallet_invite_description">To include multiple email addresses, separate them by commas or spaces.</string>
     <string name="nc_wallet_invite_hint">Enter email addresses</string>
+    <string name="nc_wallet_group_wallet_not_found">Group wallet not found</string>
+    <string name="nc_wallet_failed_to_read_script">Failed to read data or script has invalid syntax</string>
+    <string name="nc_wallet_personal_wallet_config">Wallet config</string>
+    <string name="nc_wallet_number_of_keys_desc">Number of keys assigned to the wallet (up to %1$d).</string>
+    <string name="nc_wallet_number_of_signatures_desc">Number of signatures required to unlock funds.</string>
+    <string name="nc_wallet_no_miniscript_added">No miniscript added yet. Start creating your own spending rules.</string>
+    <string name="nc_wallet_add_miniscript">Add miniscript</string>
+    <string name="nc_wallet_select_unassisted_wallet_type">Select unassisted wallet type:</string>
+    <string name="nc_wallet_remaining_assisted_wallets">(%1$d remaining)</string>
+    <string name="nc_wallet_required_signs_of_total_type">%1$d/%2$d %3$s</string>
 </resources>
+

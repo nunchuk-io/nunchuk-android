@@ -28,6 +28,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.NunchukTheme
@@ -36,6 +37,7 @@ import com.nunchuk.android.compose.coin.PreviewCoinCard
 import com.nunchuk.android.compose.miniscript.TimelockInfo
 import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.model.UnspentOutput
+import com.nunchuk.android.transaction.R
 
 @Composable
 fun TransactionCoinSelection(
@@ -48,7 +50,7 @@ fun TransactionCoinSelection(
         Column(modifier = modifier.fillMaxWidth()) {
             Text(
                 modifier = Modifier.padding(16.dp),
-                text = "Current selection",
+                text = stringResource(R.string.nc_transaction_current_selection),
                 style = NunchukTheme.typography.titleSmall
             )
 

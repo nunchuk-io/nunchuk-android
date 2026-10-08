@@ -347,9 +347,9 @@ private fun ReviewPolicyCard(
 private fun formatCoSigningDelayText(hours: Int, minutes: Int): String {
     return when {
         hours == 0 && minutes == 0 -> stringResource(com.nunchuk.android.core.R.string.nc_off)
-        hours > 0 && minutes > 0 -> "$hours hours $minutes min"
-        hours > 0 -> "$hours hours"
-        else -> "$minutes min"
+        hours > 0 && minutes > 0 -> pluralStringResource(R.plurals.nc_main_hours_minutes, hours, hours, minutes)
+        hours > 0 -> pluralStringResource(R.plurals.nc_main_hours_count, hours, hours)
+        else -> stringResource(R.string.nc_main_minutes_count, minutes)
     }
 }
 

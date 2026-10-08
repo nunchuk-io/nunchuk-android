@@ -16,7 +16,7 @@
             android:id="@+id/image"
             android:layout_width="300dp"
             android:layout_height="wrap_content"
-            android:contentDescription="Image"
+            android:contentDescription="@string/nc_message_image"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             tools:layout_height="300dp" />
@@ -27,7 +27,7 @@
             android:layout_height="40dp"
             android:layout_gravity="center"
             android:background="@drawable/nc_bg_primary_circle"
-            android:contentDescription="Play Icon"
+            android:contentDescription="@string/nc_message_play_icon"
             android:src="@drawable/ic_video_thumbnail"
             android:visibility="gone"
             tools:visibility="visible" />

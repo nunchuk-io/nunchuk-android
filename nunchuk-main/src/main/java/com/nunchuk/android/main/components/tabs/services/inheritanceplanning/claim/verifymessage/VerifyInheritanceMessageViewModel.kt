@@ -56,6 +56,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.FileOutputStream
+import com.nunchuk.android.main.R
 
 @HiltViewModel(assistedFactory = VerifyInheritanceMessageViewModel.Factory::class)
 class VerifyInheritanceMessageViewModel @AssistedInject constructor(
@@ -210,7 +211,7 @@ class VerifyInheritanceMessageViewModel @AssistedInject constructor(
     }
 
     private suspend fun reportUnsupportedRoute(): String {
-        _event.emit(VerifyInheritanceMessageEvent.ShowError("This key cannot sign that way"))
+        _event.emit(VerifyInheritanceMessageEvent.ShowError(applicationContext.getString(R.string.nc_main_key_cannot_sign_that_way)))
         return ""
     }
 
@@ -317,7 +318,7 @@ class VerifyInheritanceMessageViewModel @AssistedInject constructor(
             val signature = signedMessage?.signature.orEmpty()
 
             if (signature.isEmpty()) {
-                _event.emit(VerifyInheritanceMessageEvent.ShowError("No signature available"))
+                _event.emit(VerifyInheritanceMessageEvent.ShowError(applicationContext.getString(R.string.nc_main_no_signature_available)))
                 return@launch
             }
 
@@ -441,7 +442,7 @@ class VerifyInheritanceMessageViewModel @AssistedInject constructor(
                 }
             } catch (e: Exception) {
                 if (e.nativeErrorCode() == NativeErrorCode.INVALID_SIGNED_MESSAGE) {
-                    _event.emit(VerifyInheritanceMessageEvent.ShowError("Invalid signature. Please try again."))
+                    _event.emit(VerifyInheritanceMessageEvent.ShowError(applicationContext.getString(R.string.nc_main_invalid_signature_try_again)))
                 } else {
                     _event.emit(VerifyInheritanceMessageEvent.ShowError(e.message.orUnknownError()))
                 }
@@ -483,7 +484,7 @@ class VerifyInheritanceMessageViewModel @AssistedInject constructor(
                 }
                 .onFailure { e ->
                     if (e.nativeErrorCode() == NativeErrorCode.INVALID_SIGNED_MESSAGE) {
-                        _event.emit(VerifyInheritanceMessageEvent.ShowError("Invalid signature. Please try again."))
+                        _event.emit(VerifyInheritanceMessageEvent.ShowError(applicationContext.getString(R.string.nc_main_invalid_signature_try_again)))
                     } else {
                         _event.emit(VerifyInheritanceMessageEvent.ShowError(e.message.orUnknownError()))
                     }

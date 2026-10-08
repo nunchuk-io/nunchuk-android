@@ -568,7 +568,7 @@ internal fun StageCard(
                                 modifier = Modifier.padding(bottom = 10.dp),
                                 text = stringResource(
                                     id = R.string.nc_release_schedule_installment_line,
-                                    line.orderLabel,
+                                    stringResource(line.orderLabelRes, line.order),
                                     line.availablePercent,
                                     line.availableBy.display()
                                 ),

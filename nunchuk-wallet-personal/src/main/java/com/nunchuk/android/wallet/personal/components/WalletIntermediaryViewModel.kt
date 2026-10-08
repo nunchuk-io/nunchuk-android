@@ -61,6 +61,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.nunchuk.android.wallet.personal.R
 
 class WalletIntermediaryViewModel @AssistedInject constructor(
     @Assisted private val isQuickWallet: Boolean,
@@ -246,7 +247,7 @@ class WalletIntermediaryViewModel @AssistedInject constructor(
                     _event.emit(WalletIntermediaryEvent.ImportWalletSuccessEvent(wallet, filePath))
                 } else {
                     deleteWalletUseCase(DeleteWalletUseCase.Params(wallet.id))
-                    _event.emit(WalletIntermediaryEvent.ShowError("Group wallet not found"))
+                    _event.emit(WalletIntermediaryEvent.ShowError(application.getString(R.string.nc_wallet_group_wallet_not_found)))
                 }
             }
         }

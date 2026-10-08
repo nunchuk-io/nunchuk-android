@@ -125,12 +125,12 @@ fun FeeSettingsContent(
                             .padding(end = 12.dp),
                     ) {
                         Text(
-                            text = "Automatic fee selection",
+                            text = stringResource(com.nunchuk.android.settings.R.string.nc_settings_automatic_fee_selection),
                             style = NunchukTheme.typography.body
                         )
                         Text(
                             modifier = Modifier.padding(top = 4.dp),
-                            text = "Applies when a transaction has multiple signing policies with different fees",
+                            text = stringResource(com.nunchuk.android.settings.R.string.nc_settings_automatic_fee_selection_desc),
                             style = NunchukTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.textSecondary)
                         )
                     }

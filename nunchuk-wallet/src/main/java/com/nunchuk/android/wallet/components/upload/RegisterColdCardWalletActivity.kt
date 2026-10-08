@@ -330,7 +330,7 @@ internal fun RegisterColdCardWalletScreen(
                         IconButton(onClick = onMoreClicked) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_more),
-                                contentDescription = "More icon"
+                                contentDescription = stringResource(R.string.nc_wallet_cd_more_icon)
                             )
                         }
                     }
@@ -356,15 +356,15 @@ internal fun RegisterColdCardWalletScreen(
             ) {
                 Text(
                     modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
-                    text = "Register wallet on COLDCARD",
+                    text = stringResource(R.string.nc_wallet_register_wallet_on_coldcard),
                     style = NunchukTheme.typography.heading
                 )
                 Text(
                     modifier = Modifier.padding(16.dp),
                     text = if (isExportViaFile) {
-                        "Download the wallet configuration file below and copy it to a microSD card.\n\nInsert the card into the COLDCARD, then go to Settings → Miniscript → Import file."
+                        stringResource(R.string.nc_wallet_register_coldcard_via_file_desc)
                     } else {
-                        "On COLDCARD, go to Settings → Miniscript → Scan QR code.\n\nTap Continue to display the QR code."
+                        stringResource(R.string.nc_wallet_register_coldcard_via_qr_desc)
                     },
                     style = NunchukTheme.typography.body
                 )
@@ -389,7 +389,7 @@ internal fun RegisterColdCardWalletScreen(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .weight(1f),
-                                text = "Download file",
+                                text = stringResource(R.string.nc_wallet_download_file),
                                 style = NunchukTheme.typography.body,
                                 textAlign = TextAlign.Center
                             )

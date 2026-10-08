@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.wallet.shared.components.assign
 
+import androidx.annotation.StringRes
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
@@ -27,6 +28,7 @@ sealed class AssignSignerEvent {
     object ChangeBip32Success : AssignSignerEvent()
     data class Loading(val isLoading: Boolean) : AssignSignerEvent()
     data class ShowError(val message: String) : AssignSignerEvent()
+    data class ShowErrorRes(@StringRes val messageRes: Int) : AssignSignerEvent()
     data class AssignSignerCompletedEvent(
         val roomId: String
     ) : AssignSignerEvent()

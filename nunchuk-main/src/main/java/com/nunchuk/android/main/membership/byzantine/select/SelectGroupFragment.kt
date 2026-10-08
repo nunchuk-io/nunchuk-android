@@ -186,7 +186,7 @@ private fun SelectGroupContent(
                     IconButton(onClick = onMoreClicked) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_more),
-                            contentDescription = "More icon"
+                            contentDescription = stringResource(R.string.nc_membership_cd_more_icon)
                         )
                     }
                 })
@@ -267,7 +267,7 @@ fun ProBadgePlan(modifier: Modifier, text: String) {
         Icon(
             painter = painterResource(id = R.drawable.ic_check_badge),
             tint = Color.White,
-            contentDescription = "Badge Icon"
+            contentDescription = stringResource(R.string.nc_membership_cd_badge_icon)
         )
         Text(
             modifier = Modifier.padding(start = 4.dp),
@@ -294,7 +294,7 @@ fun StandardBadgePlan(modifier: Modifier) {
     ) {
         NcIcon(
             painter = painterResource(id = R.drawable.ic_check_badge),
-            contentDescription = "Badge Icon"
+            contentDescription = stringResource(R.string.nc_membership_cd_badge_icon)
         )
         Text(
             modifier = Modifier.padding(start = 4.dp),

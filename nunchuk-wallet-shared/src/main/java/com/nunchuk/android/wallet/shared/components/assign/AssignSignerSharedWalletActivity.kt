@@ -115,6 +115,7 @@ class AssignSignerSharedWalletActivity : BaseNfcActivity<ActivityAssignSignerBin
         when (event) {
             is AssignSignerCompletedEvent -> openRoom(event.roomId)
             is ShowError -> NCToastMessage(this).showError(event.message)
+            is AssignSignerEvent.ShowErrorRes -> NCToastMessage(this).showError(getString(event.messageRes))
             AssignSignerEvent.ChangeBip32Success -> NCToastMessage(this).show(getString(R.string.nc_bip_32_updated))
             is AssignSignerEvent.Loading -> showOrHideLoading(event.isLoading)
             is AssignSignerEvent.CacheTapSignerXpubError -> handleCacheXpubError(event)

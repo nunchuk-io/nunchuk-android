@@ -93,7 +93,7 @@ fun WalletsHeader(
                 .clickable(onClick = onAddWalletClick)
                 .size(24.dp),
             painter = painterResource(id = R.drawable.ic_plus),
-            contentDescription = "Add Wallet"
+            contentDescription = stringResource(R.string.nc_main_cd_add_wallet)
         )
     }
 }

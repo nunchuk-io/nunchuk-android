@@ -69,7 +69,7 @@ import com.nunchuk.android.core.referral.ReferralArgs
 import com.nunchuk.android.core.util.openExternalLink
 import com.nunchuk.android.model.campaigns.CampaignStatus
 import com.nunchuk.android.model.campaigns.CampaignType
-import com.nunchuk.android.signer.R
+import com.nunchuk.android.R
 import com.nunchuk.android.utils.EmailValidator
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage
@@ -103,6 +103,7 @@ fun NavGraphBuilder.referralInviteFriend(
             }
         }
 
+        val addressChangeSuccessMessage = stringResource(R.string.nc_address_change_successfully)
         LaunchedEffect(state.event) {
             state.event?.let {
                 when (it) {
@@ -110,7 +111,7 @@ fun NavGraphBuilder.referralInviteFriend(
                         snackState.showSnackbar(
                             NcSnackbarVisuals(
                                 type = NcToastType.SUCCESS,
-                                message = "Address change successful.",
+                                message = addressChangeSuccessMessage,
                             )
                         )
                     }
@@ -244,7 +245,7 @@ fun ReferralInviteFriendScreen(
                         }) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_more),
-                                contentDescription = "More icon"
+                                contentDescription = stringResource(R.string.nc_referral_more_icon)
                             )
                         }
                     } else {
@@ -338,7 +339,7 @@ fun ReferralInviteFriendScreen(
                             .clickable {
                                 onChangeAddress()
                             },
-                        text = "Change",
+                        text = stringResource(R.string.nc_change),
                         style = NunchukTheme.typography.captionTitle
                     )
                 }
@@ -480,7 +481,7 @@ fun ReferralInviteFriendScreen(
             ) {
                 HorizontalDivider(modifier = Modifier.padding(vertical = 20.dp))
 
-                Text(text = "Share your link", style = NunchukTheme.typography.title)
+                Text(text = stringResource(R.string.nc_referral_share_your_link), style = NunchukTheme.typography.title)
 
                 Row(modifier = Modifier.padding(top = 12.dp)) {
                     Row(
@@ -512,7 +513,7 @@ fun ReferralInviteFriendScreen(
                     }
                 }
                 Text(
-                    text = "More ways to share",
+                    text = stringResource(R.string.nc_referral_more_ways_to_share),
                     style = NunchukTheme.typography.title,
                     modifier = Modifier.padding(top = 20.dp)
                 )

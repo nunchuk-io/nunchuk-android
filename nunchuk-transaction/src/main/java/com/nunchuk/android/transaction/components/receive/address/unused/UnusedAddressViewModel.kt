@@ -29,6 +29,7 @@ import com.nunchuk.android.core.util.TrezorCallbackMethod
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.parseTrezorCallback
 import com.nunchuk.android.model.Wallet
+import com.nunchuk.android.transaction.R
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.usecase.GetAddressPathUseCase
@@ -176,7 +177,7 @@ internal class UnusedAddressViewModel @Inject constructor(
                     if (isMyAddress) {
                         _event.emit(UnusedAddressEvent.VerifyAddressSuccessEvent)
                     } else {
-                        _event.emit(UnusedAddressEvent.VerifyAddressErrorEvent("Address verification failed"))
+                        _event.emit(UnusedAddressEvent.VerifyAddressErrorEvent(messageRes = R.string.nc_transaction_address_verification_failed))
                     }
                 }.onFailure {
                     _event.emit(UnusedAddressEvent.VerifyAddressErrorEvent(it.message.orUnknownError()))

@@ -19,6 +19,8 @@
 
 package com.nunchuk.android.signer.tapsigner.backup.verify.components
 
+import androidx.compose.ui.res.stringResource
+import com.nunchuk.android.signer.R
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -57,7 +59,7 @@ fun TsVerifyBackUpOption(
             Column {
                 Text(text = label, style = NunchukTheme.typography.title)
                 if (isRecommend) {
-                    NcTag(modifier = Modifier.padding(top = 4.dp), label = "Recommended")
+                    NcTag(modifier = Modifier.padding(top = 4.dp), label = stringResource(R.string.nc_recommended))
                 }
             }
         }

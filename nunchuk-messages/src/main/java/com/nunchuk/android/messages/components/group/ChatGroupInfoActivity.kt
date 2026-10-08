@@ -111,7 +111,7 @@ class ChatGroupInfoActivity : BaseActivity<ActivityGroupChatInfoBinding>() {
             binding.name.text = it.name
             val count = it.getMembersCount()
             binding.membersCountTop.text = resources.getQuantityString(R.plurals.nc_message_members, count, count)
-            binding.members.text = "Members ($count)"
+            binding.members.text = getString(R.string.nc_message_group_members_count, count)
             binding.badge.text = "$count"
         }
         state.wallet?.let { wallet ->

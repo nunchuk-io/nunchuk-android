@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.wallet
 
+import android.content.Context
 import android.nfc.tech.IsoDep
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -49,6 +50,8 @@ import com.nunchuk.android.usecase.signer.GetSupportedSignersUseCase
 import com.nunchuk.android.usecase.wallet.GetWallets2UseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
+import com.nunchuk.android.wallet.core.R
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -81,7 +84,8 @@ class ConfigureWalletViewModel @Inject constructor(
     private val getGroupSandboxUseCase: GetGroupSandboxUseCase,
     private val getSignerUseCase: GetSignerUseCase,
     private val hasSignerUseCase: HasSignerUseCase,
-    private val singleSignerMapper: SingleSignerMapper
+    private val singleSignerMapper: SingleSignerMapper,
+    @ApplicationContext private val context: Context,
 ) : ViewModel() {
 
     private lateinit var args: ConfigureWalletArgs
@@ -130,7 +134,7 @@ class ConfigureWalletViewModel @Inject constructor(
                         if (hasSignerUseCase(signer).getOrNull() == true) {
                             singleSignerMapper(getSignerUseCase(signer).getOrThrow()).copy(isVisible = true)
                         } else {
-                            signer.toModel().copy(isVisible = false, name = "Key ${index + 1}")
+                            signer.toModel().copy(isVisible = false, name = context.getString(R.string.nc_wallet_key_with_index, index + 1))
                         }
                     }
                     _state.update {

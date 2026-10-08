@@ -167,7 +167,7 @@ private fun RbfCustomizeDestinationContent(
                                 .clickable { startQRCodeScan(qrLauncher) }
                                 .padding(16.dp),
                             painter = painterResource(id = R.drawable.ic_qr),
-                            contentDescription = "QR Code"
+                            contentDescription = stringResource(R.string.nc_transaction_qr_code)
                         )
                     },
                     hasError = uiState.showError,

@@ -66,6 +66,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.core.R
+import androidx.compose.ui.res.stringResource
 
 @Composable
 fun NcPasswordTextField(
@@ -134,7 +135,9 @@ fun NcPasswordTextField(
 
                             // Please provide localized description for accessibility services
                             val description =
-                                if (passwordVisible) "Hide password" else "Show password"
+                                stringResource(
+                                    if (passwordVisible) R.string.nc_cd_hide_password else R.string.nc_cd_show_password
+                                )
 
                             IconButton(onClick = { passwordVisible = !passwordVisible }) {
                                 Icon(painter = painterResource(id = image), description)
@@ -169,7 +172,7 @@ fun NcPasswordTextField(
                         .size(16.dp)
                         .padding(2.dp),
                     painter = painterResource(id = R.drawable.ic_error_outline),
-                    contentDescription = "Error icon",
+                    contentDescription = stringResource(R.string.nc_cd_error_icon),
                     tint = colorResource(id = R.color.nc_orange_color)
                 )
                 Text(
@@ -249,7 +252,9 @@ fun NcPasswordTextField(
 
                             // Please provide localized description for accessibility services
                             val description =
-                                if (passwordVisible) "Hide password" else "Show password"
+                                stringResource(
+                                    if (passwordVisible) R.string.nc_cd_hide_password else R.string.nc_cd_show_password
+                                )
 
                             IconButton(onClick = { passwordVisible = !passwordVisible }) {
                                 Icon(painter = painterResource(id = image), description)
@@ -284,7 +289,7 @@ fun NcPasswordTextField(
                         .size(16.dp)
                         .padding(2.dp),
                     painter = painterResource(id = R.drawable.ic_error_outline),
-                    contentDescription = "Error icon",
+                    contentDescription = stringResource(R.string.nc_cd_error_icon),
                     tint = colorResource(id = R.color.nc_orange_color)
                 )
                 Text(

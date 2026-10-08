@@ -25,6 +25,7 @@ import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.shorten
 import com.nunchuk.android.core.util.toReadableSignerType
 import com.nunchuk.android.wallet.core.databinding.ItemAssignSignerBinding
+import com.nunchuk.android.wallet.shared.R
 import com.nunchuk.android.widget.util.AbsViewBinder
 
 internal class SignersViewBinder(
@@ -50,6 +51,6 @@ internal class SignersViewBinder(
         binding.signerType.isVisible = !isEmptyXFP
         binding.signerPrimaryKeyType.isVisible = model.isPrimaryKey
         binding.tvBip32Path.isVisible = model.derivationPath.isNotEmpty()
-        binding.tvBip32Path.text = "BIP32 path: ${model.derivationPath}"
+        binding.tvBip32Path.text = binding.root.context.getString(R.string.nc_bip32_path, model.derivationPath)
     }
 }

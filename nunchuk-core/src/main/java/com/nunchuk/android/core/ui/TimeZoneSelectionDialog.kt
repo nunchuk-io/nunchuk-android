@@ -30,6 +30,7 @@ import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.R
 import java.util.TimeZone
+import androidx.compose.ui.res.stringResource
 
 @Composable
 fun TimeZoneSelectionDialog(
@@ -78,7 +79,7 @@ fun TimeZoneSelectionDialog(
             }
 
             NcTopAppBar(
-                title = "Select Time zone",
+                title = stringResource(R.string.nc_select_time_zone),
                 textStyle = NunchukTheme.typography.title,
             )
 
@@ -93,7 +94,7 @@ fun TimeZoneSelectionDialog(
                 },
                 placeholder = {
                     Text(
-                        text = "Search time zone",
+                        text = stringResource(R.string.nc_search_time_zone),
                         style = NunchukTheme.typography.body.copy(
                             color = colorResource(id = R.color.nc_boulder_color)
                         )

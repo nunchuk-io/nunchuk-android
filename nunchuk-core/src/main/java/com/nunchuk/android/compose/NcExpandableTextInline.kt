@@ -20,6 +20,8 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.res.stringResource
+import com.nunchuk.android.core.R
 
 const val DEFAULT_MINIMUM_TEXT_LINE = 3
 
@@ -30,12 +32,13 @@ fun NcExpandableTextInline(
     style: TextStyle = NunchukTheme.typography.body,
     text: String,
     collapsedMaxLine: Int = DEFAULT_MINIMUM_TEXT_LINE,
-    showMoreText: String = "... More",
+    showMoreText: String? = null,
     showMoreStyle: SpanStyle = SpanStyle(fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.textPrimary),
     showLessText: String = "",
     showLessStyle: SpanStyle = showMoreStyle,
     textAlign: TextAlign? = null,
 ) {
+    val resolvedShowMoreText = showMoreText ?: stringResource(R.string.nc_expandable_text_show_more)
     var isExpanded by remember { mutableStateOf(false) }
     var clickable by remember { mutableStateOf(false) }
     var lastCharIndex by remember { mutableIntStateOf(0) }
@@ -58,10 +61,10 @@ fun NcExpandableTextInline(
                     } else {
                         kotlin.runCatching {
                             val adjustText = text.substring(startIndex = 0, endIndex = lastCharIndex)
-                                .dropLast(showMoreText.length)
+                                .dropLast(resolvedShowMoreText.length)
                                 .dropLastWhile { Character.isWhitespace(it) || it == '.' }
                             append(adjustText)
-                            withStyle(style = showMoreStyle) { append(showMoreText) }
+                            withStyle(style = showMoreStyle) { append(resolvedShowMoreText) }
                         }.onFailure {
                             append(text)
                         }

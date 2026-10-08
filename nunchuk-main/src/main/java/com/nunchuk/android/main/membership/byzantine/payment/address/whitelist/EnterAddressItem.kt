@@ -1,5 +1,6 @@
 package com.nunchuk.android.main.membership.byzantine.payment.address.whitelist
 
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -37,11 +38,11 @@ fun EnterAddressItem(
                 .padding(vertical = 12.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
-            Text(text = "Address ${index.inc()}", style = NunchukTheme.typography.title)
+            Text(text = stringResource(R.string.nc_membership_address_number, index.inc()), style = NunchukTheme.typography.title)
             Text(
                 modifier = Modifier
                     .clickable { onRemoveAddress(index) },
-                text = "Remove",
+                text = stringResource(R.string.nc_remove),
                 style = NunchukTheme.typography.title.copy(textDecoration = TextDecoration.Underline)
             )
         }
@@ -64,7 +65,7 @@ fun EnterAddressItem(
                         .clickable { openScanQrCode(index) }
                         .padding(12.dp),
                     painter = painterResource(id = R.drawable.ic_qr),
-                    contentDescription = "QR Code"
+                    contentDescription = stringResource(R.string.nc_membership_cd_qr_code)
                 )
             }
         )

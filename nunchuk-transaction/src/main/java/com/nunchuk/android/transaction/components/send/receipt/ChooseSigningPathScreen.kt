@@ -69,7 +69,7 @@ fun ChooseSigningPathScreen(
                         .fillMaxWidth()
                         .padding(16.dp)
                 ) {
-                    Text("Continue")
+                    Text(stringResource(com.nunchuk.android.widget.R.string.nc_text_continue))
                 }
             }
         ) { innerPadding ->
@@ -155,7 +155,7 @@ fun ChooseSigningPathScreen(
                                         bottom = 8.dp,
                                         end = 16.dp
                                     ),
-                                    text = "Script path",
+                                    text = stringResource(R.string.nc_miniscript_script_path),
                                     enabled = true
                                 )
                                 ScriptNodeTree(

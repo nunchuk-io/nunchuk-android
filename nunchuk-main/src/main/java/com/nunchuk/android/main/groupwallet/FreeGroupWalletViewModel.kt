@@ -260,9 +260,9 @@ class FreeGroupWalletViewModel @Inject constructor(
             _uiState.update { it.copy(isLoading = true) }
             val numOfGroups = getFreeGroupWalletsUseCase(Unit).getOrNull()?.size ?: 0
             val groupName = if (numOfGroups == 0) {
-                "Group wallet"
+                application.getString(R.string.nc_group_wallet)
             } else {
-                "Group wallet #${numOfGroups + 1}"
+                application.getString(R.string.nc_main_group_wallet_with_index, numOfGroups + 1)
             }
 
             val currentState = _uiState.value
@@ -437,7 +437,7 @@ class FreeGroupWalletViewModel @Inject constructor(
 
                     val keyOrder = miniscriptAssignedKeyOrder[keyName]
                     if (keyOrder != null && signerModel.isVisible.not()) {
-                        signerModel = signerModel.copy(name = "Key #$keyOrder")
+                        signerModel = signerModel.copy(name = application.getString(R.string.nc_key_with_index, "#$keyOrder"))
                     }
 
                     signerMap[keyName] = signerModel
@@ -543,7 +543,7 @@ class FreeGroupWalletViewModel @Inject constructor(
                         if (keepOfflineSignerInfo) {
                             offlineSigner
                         } else {
-                            offlineSigner.copy(name = "Key #${index.inc()}")
+                            offlineSigner.copy(name = application.getString(R.string.nc_key_with_index, "#${index.inc()}"))
                         }
                     }
                 }
@@ -824,7 +824,7 @@ class FreeGroupWalletViewModel @Inject constructor(
                             skipConflictCheck = true
                         )
                     } else {
-                        _uiState.update { it.copy(errorMessage = "No key selected for path change") }
+                        _uiState.update { it.copy(errorMessage = application.getString(R.string.nc_main_no_key_selected_for_path_change)) }
                     }
                 } else {
                     val index = savedStateHandle.get<Int>(CURRENT_SIGNER_INDEX) ?: return@launch
@@ -857,10 +857,10 @@ class FreeGroupWalletViewModel @Inject constructor(
                                     )
                                 }
                             } else {
-                                _uiState.update { it.copy(errorMessage = "Signer not found for path change") }
+                                _uiState.update { it.copy(errorMessage = application.getString(R.string.nc_main_signer_not_found_for_path_change)) }
                             }
                         } else {
-                            _uiState.update { it.copy(errorMessage = "No key selected for path change") }
+                            _uiState.update { it.copy(errorMessage = application.getString(R.string.nc_main_no_key_selected_for_path_change)) }
                         }
                     } else {
                         _uiState.update { it.copy(requestCacheTapSignerXpubEvent = true) }
@@ -1052,7 +1052,7 @@ class FreeGroupWalletViewModel @Inject constructor(
                 if (masterSigner == null) {
                     Timber.tag("miniscript-feature")
                         .e("proceedWithAddingSignerForKey: Master signer not found with id=${signer.fingerPrint}")
-                    _uiState.update { it.copy(errorMessage = "Master signer not found") }
+                    _uiState.update { it.copy(errorMessage = application.getString(R.string.nc_main_master_signer_not_found)) }
                     return@launch
                 }
 
@@ -1101,7 +1101,7 @@ class FreeGroupWalletViewModel @Inject constructor(
                 if (singleSigner == null) {
                     Timber.tag("miniscript-feature")
                         .e("proceedWithAddingSignerForKey: Single signer not found with fingerPrint=${signer.fingerPrint}, derivationPath=${signer.derivationPath}")
-                    _uiState.update { it.copy(errorMessage = "Single signer not found") }
+                    _uiState.update { it.copy(errorMessage = application.getString(R.string.nc_main_single_signer_not_found)) }
                     return@launch
                 }
 
@@ -1652,7 +1652,7 @@ class FreeGroupWalletViewModel @Inject constructor(
                     } ?: run {
                         Timber.tag("miniscript-feature")
                             .e("resumeAddSignerProcess: No signer found at cached index ${pendingState.currentIndex}")
-                        _uiState.update { it.copy(errorMessage = "No signer found at cached index") }
+                        _uiState.update { it.copy(errorMessage = application.getString(R.string.nc_main_no_signer_found_at_cached_index)) }
                     }
                 }.onFailure { error ->
                     Timber.tag("miniscript-feature")

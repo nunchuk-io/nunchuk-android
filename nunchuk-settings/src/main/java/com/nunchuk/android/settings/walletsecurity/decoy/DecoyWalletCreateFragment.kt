@@ -1,5 +1,6 @@
 package com.nunchuk.android.settings.walletsecurity.decoy
 
+import androidx.compose.ui.res.stringResource
 import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.FragmentManager
 import androidx.compose.foundation.Image
@@ -53,7 +54,7 @@ fun DecoyWalletCreateScreen(
             modifier = Modifier.navigationBarsPadding(),
             topBar = {
                 NcTopAppBar(
-                    title = "Create decoy wallet",
+                    title = stringResource(R.string.nc_settings_create_decoy_wallet),
                     textStyle = NunchukTheme.typography.titleLarge,
                 )
             }, bottomBar = {
@@ -68,7 +69,7 @@ fun DecoyWalletCreateScreen(
                         onClick = onCreateDecoyWallet
                     ) {
                         Text(
-                            text = "Create new decoy wallet",
+                            text = stringResource(R.string.nc_settings_create_new_decoy_wallet),
                             style = NunchukTheme.typography.title.copy(
                                 color = MaterialTheme.colorScheme.controlTextPrimary
                             )
@@ -82,7 +83,7 @@ fun DecoyWalletCreateScreen(
                         onClick = onUseExistingWallet
                     ) {
                         Text(
-                            "Use existing wallet as decoy wallet",
+                            stringResource(R.string.nc_settings_use_existing_wallet_as_decoy_wallet),
                             style = NunchukTheme.typography.title
                         )
                     }
@@ -99,14 +100,14 @@ fun DecoyWalletCreateScreen(
 
                 Image(
                     painter = painterResource(id = R.drawable.ic_create_decoy_wallet),
-                    contentDescription = "Decoy wallet intro",
+                    contentDescription = stringResource(R.string.nc_settings_decoy_wallet_intro),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 24.dp),
                 )
 
                 Text(
-                    text = "You can either create a new decoy wallet or use an existing wallet as your decoy wallet.",
+                    text = stringResource(R.string.nc_settings_create_or_use_existing_decoy_wallet_desc),
                     style = NunchukTheme.typography.body,
                     modifier = Modifier.padding(top = 24.dp)
                 )

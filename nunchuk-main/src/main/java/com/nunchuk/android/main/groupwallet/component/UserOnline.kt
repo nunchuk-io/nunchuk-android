@@ -37,7 +37,7 @@ fun UserOnline(numberOfOnlineUsers: Int) {
         NcIcon(
             modifier = Modifier.size(24.dp),
             painter = painterResource(id = R.drawable.ic_mulitsig_dark),
-            contentDescription = "Key icon",
+            contentDescription = stringResource(R.string.nc_main_cd_key_icon),
         )
 
         Text(

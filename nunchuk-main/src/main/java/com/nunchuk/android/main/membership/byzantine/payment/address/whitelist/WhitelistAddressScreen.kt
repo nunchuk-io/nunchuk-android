@@ -71,7 +71,7 @@ fun WhitelistAddressRoute(
             snackState.showSnackbar(
                 NcSnackbarVisuals(
                     type = NcToastType.ERROR,
-                    message = "${context.getString(R.string.nc_transaction_invalid_address)}: $address",
+                    message = context.getString(R.string.nc_membership_invalid_address_with_value, address),
                 )
             )
             whitelistAddressViewModel.onInvalidAddressEventConsumed()
@@ -264,7 +264,7 @@ private fun EnterAddressView(
                         .padding(end = 6.dp)
                         .size(24.dp),
                     painter = painterResource(id = R.drawable.ic_plus),
-                    contentDescription = "Icon Add",
+                    contentDescription = stringResource(R.string.nc_membership_cd_add_icon),
                 )
                 Text(text = stringResource(R.string.nc_add_address))
             }

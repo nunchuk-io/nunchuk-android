@@ -95,7 +95,7 @@ class SelectElectrumServerActivity : BaseComposeActivity(), InputBottomSheetList
                 showAddSeverBottomSheet = {
                     InputBottomSheet.show(
                         fragmentManager = supportFragmentManager,
-                        title = "Enter the server’s address",
+                        title = getString(R.string.nc_settings_enter_server_address),
                         currentInput = ""
                     )
                 },
@@ -316,7 +316,7 @@ private fun ElectrumSeverItem(
             NcIcon(
                 modifier = Modifier.size(24.dp),
                 painter = painterResource(id = R.drawable.ic_accounts_settings),
-                contentDescription = "Icon user",
+                contentDescription = stringResource(R.string.nc_settings_icon_user),
             )
         }
         Text(
@@ -330,13 +330,13 @@ private fun ElectrumSeverItem(
                     .size(24.dp)
                     .clickable(onClick = onRemove),
                 painter = painterResource(id = R.drawable.ic_close),
-                contentDescription = "Icon close",
+                contentDescription = stringResource(R.string.nc_settings_icon_close),
             )
         } else if (isSelected) {
             NcIcon(
                 modifier = Modifier.size(24.dp),
                 painter = painterResource(id = R.drawable.ic_check),
-                contentDescription = "Icon check",
+                contentDescription = stringResource(R.string.nc_settings_icon_check),
             )
         }
     }

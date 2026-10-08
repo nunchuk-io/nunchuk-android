@@ -577,7 +577,7 @@ private fun AddAirgapSignerContent(
                                     .padding(start = 6.dp)
                                     .size(18.dp),
                                 painter = painterResource(id = R.drawable.ic_import),
-                                contentDescription = "Import",
+                                contentDescription = stringResource(R.string.nc_airgap_import_cd),
                             )
                         }
                     }
@@ -605,7 +605,7 @@ private fun AddAirgapSignerContent(
                                     .padding(start = 6.dp)
                                     .size(18.dp),
                                 painter = painterResource(id = R.drawable.ic_qr),
-                                contentDescription = "QR",
+                                contentDescription = stringResource(R.string.nc_airgap_qr_cd),
                             )
                         }
                     }

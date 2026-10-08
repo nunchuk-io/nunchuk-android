@@ -44,7 +44,7 @@ import com.nunchuk.android.compose.miniscript.ScriptNodeTree
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.type.AddressType
-import com.nunchuk.android.wallet.R
+import com.nunchuk.android.R
 import com.nunchuk.android.wallet.util.toReadableString
 import kotlinx.serialization.Serializable
 import com.nunchuk.android.core.signer.signerKey
@@ -87,7 +87,7 @@ fun MiniscriptReviewWalletScreen(
                         },
                         enabled = uiState.areAllKeysAssigned && !hasDuplicateSigners
                     ) {
-                        Text(text = "Create wallet")
+                        Text(text = stringResource(R.string.nc_miniscript_create_wallet))
                     }
                 }
             },
@@ -209,7 +209,7 @@ private fun TaprootAddressContent(
         } else if (scriptNodeMuSig != null) {
             NcBadgePrimary(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                text = "Key path",
+                text = stringResource(R.string.nc_key_path),
                 enabled = true,
             )
 
@@ -237,7 +237,7 @@ private fun TaprootAddressContent(
                 start = 16.dp,
                 end = 16.dp
             ),
-            text = "Script path",
+            text = stringResource(R.string.nc_miniscript_script_path),
             enabled = true
         )
     }

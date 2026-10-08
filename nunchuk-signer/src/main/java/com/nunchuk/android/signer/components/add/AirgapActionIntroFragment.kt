@@ -1,5 +1,6 @@
 package com.nunchuk.android.signer.components.add
 
+import com.nunchuk.android.compose.NcHighlightText
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -18,10 +19,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.fragment.compose.content
@@ -136,7 +133,7 @@ internal fun AirgapActionIntroScreen(
                 Text(
                     modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
                     text = if (isOnChainTimelockKey) {
-                        "${stringResource(R.string.nc_add_jade)} (${onChainKeyIndex + 1}/2)"
+                        stringResource(R.string.nc_add_jade_step, stringResource(R.string.nc_add_jade), onChainKeyIndex + 1)
                     } else {
                         stringResource(R.string.nc_add_jade)
                     },
@@ -144,46 +141,14 @@ internal fun AirgapActionIntroScreen(
                 )
                 if (isOnChainTimelockKey || onChainAddSignerParam.isVerifyOnChainTimelockBackup()) {
                     Spacer(modifier = Modifier.padding(top = 16.dp))
-                    Text(
+                    NcHighlightText(
                         modifier = Modifier.padding(horizontal = 16.dp),
                         text = if (!isOnChainTimelockKey) {
-                            buildAnnotatedString {
-                                append("Please re-add the key for the spending path ")
-                                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                    append("after the timelock")
-                                }
-                                append(" to verify. On your device, select ")
-                                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                    append("account 0")
-                                }
-                                append(" for this spending path.")
-                            }
+                            stringResource(R.string.nc_airgap_re_add_key_after_timelock)
                         } else if (onChainKeyIndex == 0) {
-                            buildAnnotatedString {
-                                append("Each hardware device must be added twice, with both keys (before and after the timelock) coming from the same device but using different derivation paths.\n\n")
-                                append("Please add a key for the spending path ")
-                                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                    append("after the timelock.")
-                                }
-                                append(" On your device, select ")
-                                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                    append("account 0")
-                                }
-                                append(" for this spending path.")
-                            }
+                            stringResource(R.string.nc_airgap_add_key_after_timelock)
                         } else {
-                            buildAnnotatedString {
-                                append("Each hardware device must be added twice, with both keys (before and after the timelock) coming from the same device but using different derivation paths.\n\n")
-                                append("Now add the second key from the same Jade for the spending path ")
-                                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                    append("before the timelock")
-                                }
-                                append(". On your device, select ")
-                                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                    append("account $onChainKeyIndex")
-                                }
-                                append(" for this spending path.")
-                            }
+                            stringResource(R.string.nc_airgap_add_second_jade_key, onChainKeyIndex)
                         },
                         style = NunchukTheme.typography.body
                     )

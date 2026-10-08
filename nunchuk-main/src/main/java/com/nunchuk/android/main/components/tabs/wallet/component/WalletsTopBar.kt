@@ -55,7 +55,7 @@ internal fun WalletsTopBar(
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.ic_nfc),
-                contentDescription = "Nfc Icon",
+                contentDescription = stringResource(R.string.nc_main_cd_nfc_icon),
                 tint = Color.White
             )
         }
@@ -89,7 +89,7 @@ internal fun WalletsTopBar(
             ) {
                 Image(
                     painter = painterResource(R.drawable.ic_gift),
-                    contentDescription = "Gift Icon"
+                    contentDescription = stringResource(R.string.nc_main_cd_gift_icon)
                 )
 
                 Text(

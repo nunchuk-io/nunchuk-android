@@ -179,4 +179,27 @@
     <string name="nc_seed_phrase_delay_new_waiting_period">New Waiting Period</string>
     <string name="nc_seed_phrase_delay_decrease_message">You\'re changing the waiting period from %1$d hours to %2$d hours. The new setting will apply after the current period ends.</string>
     <string name="nc_confirm">Confirm</string>
+    <string name="nc_settings_pin_icon">PIN</string>
+    <string name="nc_settings_change_pin">Change PIN</string>
+    <string name="nc_settings_right_arrow">Right arrow</string>
+    <string name="nc_settings_security_pin">Security PIN</string>
+    <string name="nc_settings_decoy_pin_title">Decoy Pin</string>
+    <string name="nc_settings_your_decoy_pin">Your Decoy PIN</string>
+    <string name="nc_settings_confirm_your_decoy_pin">Confirm Your Decoy PIN</string>
+    <string name="nc_settings_create_decoy_wallet">Create decoy wallet</string>
+    <string name="nc_settings_create_new_decoy_wallet">Create new decoy wallet</string>
+    <string name="nc_settings_use_existing_wallet_as_decoy_wallet">Use existing wallet as decoy wallet</string>
+    <string name="nc_settings_decoy_wallet_intro">Decoy wallet intro</string>
+    <string name="nc_settings_create_or_use_existing_decoy_wallet_desc">You can either create a new decoy wallet or use an existing wallet as your decoy wallet.</string>
+    <string name="nc_settings_decoy_wallet_title">Decoy Wallet</string>
+    <string name="nc_settings_feature_unavailable">Feature Unavailable</string>
+    <string name="nc_settings_pin_turned_off">PIN has been turned off</string>
+    <string name="nc_settings_enter_server_address">Enter the server’s address</string>
+    <string name="nc_settings_icon_user">Icon user</string>
+    <string name="nc_settings_icon_close">Icon close</string>
+    <string name="nc_settings_icon_check">Icon check</string>
+    <string name="nc_settings_automatic_fee_selection">Automatic fee selection</string>
+    <string name="nc_settings_automatic_fee_selection_desc">Applies when a transaction has multiple signing policies with different fees</string>
+    <string name="nc_settings_version_number">Version %1$s</string>
+    <string name="nc_settings_confirm_account_deletion">Confirm account deletion</string>
 </resources>

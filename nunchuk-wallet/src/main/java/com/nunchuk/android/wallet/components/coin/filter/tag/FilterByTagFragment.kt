@@ -150,7 +150,7 @@ private fun FilterByTagContent(
                     }) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_back),
-                            contentDescription = "Back icon"
+                            contentDescription = stringResource(R.string.nc_wallet_cd_back_icon)
                         )
                     }
                     Text(

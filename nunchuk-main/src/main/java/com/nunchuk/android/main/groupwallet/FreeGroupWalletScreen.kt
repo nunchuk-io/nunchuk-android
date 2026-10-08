@@ -295,7 +295,7 @@ fun FreeGroupWalletScreen(
                     IconButton(onClick = { onBackPressOwner?.onBackPressedDispatcher?.onBackPressed() }) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_close),
-                            contentDescription = "Back",
+                            contentDescription = stringResource(R.string.nc_main_cd_back),
                             tint = MaterialTheme.colorScheme.textPrimary
                         )
                     }
@@ -319,7 +319,7 @@ fun FreeGroupWalletScreen(
                         ) {
                             NcIcon(
                                 painter = painterResource(id = R.drawable.ic_encrypted),
-                                contentDescription = "Encrypted icon",
+                                contentDescription = stringResource(R.string.nc_main_cd_encrypted_icon),
                                 tint = colorResource(id = R.color.nc_text_secondary)
                             )
                             Text(
@@ -338,7 +338,7 @@ fun FreeGroupWalletScreen(
                         }) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_more),
-                                contentDescription = "More icon"
+                                contentDescription = stringResource(R.string.nc_main_cd_more_icon)
                             )
                         }
                     }
@@ -666,7 +666,7 @@ fun FreeGroupWalletScreen(
         if (showRemoveConfirmation) {
             NcConfirmationDialog(
                 title = stringResource(id = R.string.nc_text_warning),
-                message = "Are you sure you want to remove the signer from this key?",
+                message = stringResource(R.string.nc_main_remove_signer_from_key_confirm),
                 onPositiveClick = {
                     onRemoveSignerForKey(keyToRemove)
                     showRemoveConfirmation = false
@@ -779,7 +779,7 @@ private fun TaprootAddressContent(
         } else if (state.scriptNodeMuSig != null) {
             NcBadgePrimary(
                 modifier = Modifier.padding(vertical = 8.dp),
-                text = "Key path",
+                text = stringResource(R.string.nc_key_path),
                 enabled = true,
             )
 

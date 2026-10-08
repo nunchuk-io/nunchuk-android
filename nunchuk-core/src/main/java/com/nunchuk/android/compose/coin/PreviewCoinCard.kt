@@ -126,7 +126,7 @@ fun PreviewCoinCard(
                             .padding(horizontal = 8.dp, vertical = 2.dp)
                             .size(12.dp),
                         painter = painterResource(id = R.drawable.ic_lock),
-                        contentDescription = "Lock"
+                        contentDescription = stringResource(R.string.nc_cd_lock)
                     )
                 }
                 if (output.scheduleTime > 0L && mode != MODE_VIEW_ONLY) {
@@ -140,7 +140,7 @@ fun PreviewCoinCard(
                             .padding(horizontal = 8.dp, vertical = 2.dp)
                             .size(12.dp),
                         painter = painterResource(id = R.drawable.ic_schedule),
-                        contentDescription = "Schedule"
+                        contentDescription = stringResource(R.string.nc_cd_schedule)
                     )
                 }
             }

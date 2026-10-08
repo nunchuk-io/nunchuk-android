@@ -22,4 +22,6 @@
     <string name="nc_txt_btn_recover_bsms">Recover via BSMS/descriptors/config file</string>
     <string name="nc_txt_exit_wallet_recovery">Exit wallet recovery</string>
     <string name="nc_txt_assign_key_not_found_des">We couldn’t find any keys that can be assigned to this wallet</string>
+    <string name="nc_wallet_no_keys_found">No keys found</string>
+    <string name="nc_wallet_shared_recover_via_qr_code">Recover via QR code</string>
 </resources>

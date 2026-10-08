@@ -135,7 +135,7 @@ fun InputWalletNameScreen(
                             IconButton(onClick = { onNameChange("") }) {
                                 Icon(
                                     painter = painterResource(id = R.drawable.ic_close),
-                                    contentDescription = "Close"
+                                    contentDescription = stringResource(R.string.nc_text_close)
                                 )
                             }
                         }

@@ -18,6 +18,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
@@ -35,7 +36,7 @@ import com.nunchuk.android.compose.NcToastType
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.dialog.NcConfirmationDialog
-import com.nunchuk.android.core.R
+import com.nunchuk.android.R
 import com.nunchuk.android.core.miniscript.MiniscriptUtil
 import com.nunchuk.android.core.miniscript.formatMiniscript
 import com.nunchuk.android.type.AddressType
@@ -63,6 +64,8 @@ fun NavGraphBuilder.miniscriptCustomTemplateDestination(
         var showTaprootWarning by remember { mutableStateOf(false) }
         var pendingTemplate by remember { mutableStateOf("") }
 
+        val context = LocalContext.current
+        val addressTypeChangedMessage = stringResource(R.string.nc_miniscript_address_type_changed)
         LaunchedEffect(event) {
             when (event) {
                 is MiniscriptCustomTemplateEvent.Success -> {
@@ -77,7 +80,7 @@ fun NavGraphBuilder.miniscriptCustomTemplateDestination(
                 is MiniscriptCustomTemplateEvent.Error -> {
                     snackbarHostState.showSnackbar(
                         NcSnackbarVisuals(
-                            message = (event as MiniscriptCustomTemplateEvent.Error).message,
+                            message = context.getString((event as MiniscriptCustomTemplateEvent.Error).messageRes),
                             type = NcToastType.ERROR
                         )
                     )
@@ -92,7 +95,7 @@ fun NavGraphBuilder.miniscriptCustomTemplateDestination(
                     coroutineScope.launch {
                         snackbarHostState.showSnackbar(
                             NcSnackbarVisuals(
-                                message = "Address type changed to Taproot",
+                                message = addressTypeChangedMessage,
                                 type = NcToastType.SUCCESS
                             )
                         )

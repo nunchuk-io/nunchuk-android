@@ -25,6 +25,7 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.primaryT1
 import com.nunchuk.android.core.R
 import com.nunchuk.android.share.groupwallet.avatarColors
+import androidx.compose.ui.res.stringResource
 
 @Composable
 fun PolicyHeader(
@@ -40,10 +41,10 @@ fun PolicyHeader(
         NcIcon(
             modifier = Modifier.size(24.dp),
             painter = painterResource(id = R.drawable.ic_policies),
-            contentDescription = "Policies",
+            contentDescription = stringResource(R.string.nc_policies),
         )
         Text(
-            text = "Policies",
+            text = stringResource(R.string.nc_policies),
             style = NunchukTheme.typography.title
         )
 

@@ -83,7 +83,7 @@ class WalletAuthenticationActivity : BasePortalActivity<ActivityNavigationBindin
                     showOrHideLoading(it.isLoading)
                 } else if (it is WalletAuthenticationEvent.ShowError) {
                     hideLoading()
-                    NCToastMessage(this).showError(it.message)
+                    NCToastMessage(this).showError(it.messageRes?.let { res -> getString(res) } ?: it.message)
                 }
             }
         }

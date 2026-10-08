@@ -45,6 +45,7 @@ import java.util.ArrayDeque
 import java.util.UUID
 import java.util.regex.Pattern
 import kotlin.concurrent.thread
+import com.nunchuk.android.core.R
 
 /**
  * Ledger's view of the shared device model. Aliases rather than its own types so the Ledger
@@ -140,7 +141,7 @@ class LedgerBleController(
                     if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
                         openUsbDevice(device)
                     } else {
-                        listener.onError("USB permission denied")
+                        listener.onError(context.getString(R.string.nc_hardware_error_usb_permission_denied))
                     }
                 }
 
@@ -183,7 +184,7 @@ class LedgerBleController(
         val scanner = adapter.bluetoothLeScanner
         if (scanner == null) {
             if (foundDevices.isNotEmpty()) listener.onScanResults(foundDevices.values.toList())
-            listener.onError("BLE scanner is unavailable")
+            listener.onError(context.getString(R.string.nc_hardware_error_ble_scanner_unavailable))
             return
         }
         if (scanning) return
@@ -206,7 +207,7 @@ class LedgerBleController(
             }
 
             override fun onScanFailed(errorCode: Int) {
-                listener.onError("BLE scan failed: $errorCode")
+                listener.onError(context.getString(R.string.nc_hardware_error_ble_scan_failed, errorCode.toString()))
             }
         }
         scanCallback = callback
@@ -219,7 +220,7 @@ class LedgerBleController(
             )
         }.onFailure {
             scanning = false
-            listener.onError("BLE scan failed: ${it.message ?: it.javaClass.simpleName}")
+            listener.onError(context.getString(R.string.nc_hardware_error_ble_scan_failed, it.message ?: it.javaClass.simpleName))
             return
         }
         mainHandler.postDelayed(pruneStaleBle, BLE_PRUNE_INTERVAL_MS)
@@ -280,7 +281,7 @@ class LedgerBleController(
         devices.forEach { device ->
             foundDevices[device.deviceName] = LedgerDevice(
                 id = device.deviceName,
-                name = device.productName ?: "Ledger (USB)",
+                name = device.productName ?: context.getString(R.string.nc_ledger_usb_device_name),
                 transport = LedgerTransportKind.USB,
             )
         }
@@ -335,7 +336,7 @@ class LedgerBleController(
             return
         }
         val device = runCatching { adapter.getRemoteDevice(address) }.getOrNull() ?: run {
-            listener.onError("Ledger device unavailable")
+            listener.onError(context.getString(R.string.nc_ledger_error_device_unavailable))
             return
         }
         connectBle(device, connection)
@@ -375,7 +376,7 @@ class LedgerBleController(
             mainHandler.post {
                 val spec = LEDGER_BLE_SPECS.firstOrNull { gatt.getService(it.serviceUuid) != null }
                 if (spec != null && status == BluetoothGatt.GATT_SUCCESS) completeBleReady(gatt)
-                else listener.onError("BLE notification setup failed")
+                else listener.onError(context.getString(R.string.nc_ledger_error_ble_notification_setup_failed))
             }
         }
 
@@ -409,7 +410,7 @@ class LedgerBleController(
                 // resume() while an app switch is pending (once the command itself has been
                 // written, resume() answers "no command to resume after app switch"). Fail
                 // the command instead so the user can reconnect and retry.
-                conn.commandActive -> fail("Ledger disconnected. Reconnect and try again.")
+                conn.commandActive -> fail(context.getString(R.string.nc_ledger_error_disconnected))
             }
         }
     }
@@ -420,7 +421,7 @@ class LedgerBleController(
             gatt.getService(spec.serviceUuid)?.let { spec to it }
         }
         if (match == null) {
-            fail("Ledger BLE service not found")
+            fail(context.getString(R.string.nc_ledger_error_ble_service_not_found))
             return
         }
         val (spec, service) = match
@@ -428,7 +429,7 @@ class LedgerBleController(
         val writeWithResponse = service.getCharacteristic(spec.writeUuid)
         val write = writeWithResponse ?: service.getCharacteristic(spec.writeCmdUuid)
         if (notify == null || write == null) {
-            fail("Ledger BLE characteristics missing")
+            fail(context.getString(R.string.nc_ledger_error_ble_characteristics_missing))
             return
         }
         conn.writeCharacteristic = write
@@ -513,7 +514,7 @@ class LedgerBleController(
         if (conn.bleWriteRetries >= BLE_WRITE_RETRY_ATTEMPTS) {
             conn.bleWriteQueue.clear()
             conn.finishCommand()
-            fail("BLE write failed")
+            fail(context.getString(R.string.nc_ledger_error_ble_write_failed))
             return
         }
         conn.bleWriteRetries += 1
@@ -537,7 +538,7 @@ class LedgerBleController(
             Timber.tag(TAG).e("no BLE write callback after ${BLE_WRITE_TIMEOUT_MS}ms")
             conn.bleWriteQueue.clear()
             conn.bleWriteInFlight = null
-            fail("Ledger stopped responding. Reconnect and try again.")
+            fail(context.getString(R.string.nc_ledger_error_not_responding))
         }
         bleWriteTimeout = timeout
         mainHandler.postDelayed(timeout, BLE_WRITE_TIMEOUT_MS)
@@ -569,7 +570,7 @@ class LedgerBleController(
     // region USB
     private fun connectUsbById(deviceName: String) {
         val device = usbManager?.deviceList?.get(deviceName) ?: run {
-            listener.onError("Ledger USB device unavailable")
+            listener.onError(context.getString(R.string.nc_ledger_error_usb_device_unavailable))
             return
         }
         val conn = connection?.takeIf { it.id == deviceName && it.transport == LedgerTransportKind.USB }
@@ -597,7 +598,7 @@ class LedgerBleController(
             .map { device.getInterface(it) }
             .firstOrNull { it.interfaceClass == UsbConstants.USB_CLASS_HID }
         if (hidInterface == null) {
-            fail("Ledger HID interface not found")
+            fail(context.getString(R.string.nc_ledger_error_hid_interface_not_found))
             return
         }
         var inEndpoint: UsbEndpoint? = null
@@ -608,14 +609,14 @@ class LedgerBleController(
             if (endpoint.direction == UsbConstants.USB_DIR_OUT) outEndpoint = endpoint
         }
         if (inEndpoint == null || outEndpoint == null) {
-            fail("Ledger HID endpoints not found")
+            fail(context.getString(R.string.nc_ledger_error_hid_endpoints_not_found))
             return
         }
         conn.clearUsbRuntime()
         val usbConnection = usbManager?.openDevice(device)
         if (usbConnection == null || !usbConnection.claimInterface(hidInterface, true)) {
             runCatching { usbConnection?.close() }
-            fail("Failed to open Ledger USB device")
+            fail(context.getString(R.string.nc_ledger_error_usb_open_failed))
             return
         }
         conn.usbConnection = usbConnection
@@ -639,7 +640,7 @@ class LedgerBleController(
         if (device.vendorId != LEDGER_USB_VENDOR_ID) return
         foundDevices[device.deviceName] = LedgerDevice(
             id = device.deviceName,
-            name = device.productName ?: "Ledger (USB)",
+            name = device.productName ?: context.getString(R.string.nc_ledger_usb_device_name),
             transport = LedgerTransportKind.USB,
         )
         listener.onScanResults(foundDevices.values.toList())
@@ -671,7 +672,7 @@ class LedgerBleController(
         when {
             // Detached because of the app switch — onUsbAttached() picks it back up.
             conn.resumePending -> Unit
-            conn.commandActive -> fail("Ledger disconnected. Reconnect and try again.")
+            conn.commandActive -> fail(context.getString(R.string.nc_ledger_error_disconnected))
         }
     }
 
@@ -703,14 +704,14 @@ class LedgerBleController(
         if (usbConnection == null || endpoint == null) {
             // Writing with no open handle used to return silently, leaving the command hanging
             // with nothing on screen.
-            fail("Ledger USB connection is not open")
+            fail(context.getString(R.string.nc_ledger_error_usb_not_open))
             return
         }
         frames.forEach { frame ->
             val wrote = usbConnection.bulkTransfer(endpoint, frame, frame.size, USB_TIMEOUT_MS)
             // A short write leaves half a frame on the wire; the device just drops it.
             if (wrote != frame.size) {
-                fail("USB write failed: $wrote/${frame.size}")
+                fail(context.getString(R.string.nc_hardware_error_usb_write_failed, wrote, frame.size))
                 return
             }
         }
@@ -809,14 +810,14 @@ class LedgerBleController(
     private fun startCommand(request: LedgerRequest, block: (String, LedgerTransport) -> LedgerStep) {
         val conn = connection ?: run {
             Timber.tag(TAG).e("startCommand($request): no connection")
-            listener.onError("Ledger not connected")
+            listener.onError(context.getString(R.string.nc_ledger_error_not_connected))
             return
         }
         if (conn.commandActive) {
             // The coordinators run one command at a time; enforce it here too so two commands
             // can never interleave their frames in the same queue.
             Timber.tag(TAG).e("startCommand($request) while ${conn.activeRequest} is still active")
-            listener.onError("Ledger is busy with another command")
+            listener.onError(context.getString(R.string.nc_ledger_error_busy))
             return
         }
         Timber.tag(TAG).d("startCommand($request) session=${conn.id} transport=${conn.transport}")
@@ -865,7 +866,7 @@ class LedgerBleController(
             LedgerStepType.FAILED -> {
                 val request = conn.activeRequest
                 val statusWord = step.error?.statusWord ?: 0
-                val message = step.error?.message?.takeIf { it.isNotBlank() } ?: "Ledger error"
+                val message = step.error?.message?.takeIf { it.isNotBlank() } ?: context.getString(R.string.nc_ledger_error_generic)
                 Timber.tag(TAG).e(
                     "FAILED request=$request statusWord=0x%04X code=%d message=%s",
                     statusWord, step.error?.code ?: 0, message,
@@ -894,7 +895,7 @@ class LedgerBleController(
                 onTransportReady()
             } else {
                 val device = conn.bleDevice ?: conn.gatt?.device
-                if (device == null) fail("Ledger BLE device is unavailable") else connectBle(device, conn)
+                if (device == null) fail(context.getString(R.string.nc_ledger_error_ble_device_unavailable)) else connectBle(device, conn)
             }
 
             LedgerTransportKind.USB -> handleUsbAppSwitch(conn)

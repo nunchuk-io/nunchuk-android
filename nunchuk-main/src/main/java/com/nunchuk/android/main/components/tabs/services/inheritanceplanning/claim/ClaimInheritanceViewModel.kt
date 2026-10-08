@@ -41,6 +41,9 @@ import kotlinx.parcelize.Parcelize
 import timber.log.Timber
 import javax.inject.Inject
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.verifymessage.ImportSignatureVia
+import com.nunchuk.android.main.R
+import dagger.hilt.android.qualifiers.ApplicationContext
+import android.content.Context
 
 @HiltViewModel
 class ClaimInheritanceViewModel @Inject constructor(
@@ -56,6 +59,7 @@ class ClaimInheritanceViewModel @Inject constructor(
     private val getAddedKeysForInheritanceUseCase: GetAddedKeysForInheritanceUseCase,
     private val deletePendingRequestsByMagicUseCase: DeletePendingRequestsByMagicUseCase,
     private val getClaimSigningChallengeUseCase: GetClaimSigningChallengeUseCase,
+    @ApplicationContext private val context: Context,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val handledRequestIds = mutableSetOf<String>()
@@ -185,7 +189,7 @@ class ClaimInheritanceViewModel @Inject constructor(
         if (!isKeyInOrigins) {
             _uiState.update {
                 it.copy(
-                    event = ClaimInheritanceEvent.ShowError("Incorrect key. Please add the correct key."),
+                    event = ClaimInheritanceEvent.ShowError(context.getString(R.string.nc_main_incorrect_key_add_correct_key)),
                     isLoading = false
                 )
             }

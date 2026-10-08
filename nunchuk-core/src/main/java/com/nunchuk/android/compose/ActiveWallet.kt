@@ -111,14 +111,14 @@ fun ActiveWallet(
                         Icon(
                             modifier = Modifier.padding(end = 4.dp),
                             painter = painterResource(id = R.drawable.ic_circle_three),
-                            contentDescription = "Wallet",
+                            contentDescription = stringResource(R.string.nc_cd_wallet),
                             tint = colorResource(R.color.nc_grey_g7)
                         )
                     } else if (walletStatus != WalletStatus.REPLACED.name && !isDeprecatedGroupWallet) {
                         Icon(
                             modifier = Modifier.padding(end = 4.dp),
                             painter = painterResource(id = R.drawable.ic_wallet_small),
-                            contentDescription = "Wallet",
+                            contentDescription = stringResource(R.string.nc_cd_wallet),
                             tint = colorResource(R.color.nc_grey_g7)
                         )
                     }

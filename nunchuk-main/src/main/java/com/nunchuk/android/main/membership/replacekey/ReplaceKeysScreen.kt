@@ -145,7 +145,7 @@ private fun ReplaceKeysContent(
                         IconButton(onClick = { showSheetOptions = true }) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_more),
-                                contentDescription = "More icon"
+                                contentDescription = stringResource(R.string.nc_membership_cd_more_icon)
                             )
                         }
                     }
@@ -443,11 +443,11 @@ fun ReplaceKeyCard(
             ) {
                 NcIcon(
                     painter = painterResource(id = R.drawable.ic_replace),
-                    contentDescription = "Replace icon"
+                    contentDescription = stringResource(R.string.nc_membership_cd_replace_icon)
                 )
 
                 Text(
-                    text = "Replacing ${originalSigner.name} (${originalSigner.getXfpOrCardIdLabel()})",
+                    text = stringResource(R.string.nc_membership_replacing_signer, originalSigner.name, originalSigner.getXfpOrCardIdLabel()),
                     style = NunchukTheme.typography.bodySmall,
                 )
             }

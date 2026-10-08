@@ -179,7 +179,7 @@ internal class UnusedAddressFragment : BaseFragment<ViewBinding>(),
                 }
 
                 is UnusedAddressEvent.VerifyAddressErrorEvent -> {
-                    activity?.let { NCToastMessage(it).showError(event.message) }
+                    activity?.let { NCToastMessage(it).showError(event.messageRes?.let { res -> getString(res) } ?: event.message) }
                 }
 
                 UnusedAddressEvent.VerifyAddressSuccessEvent -> {

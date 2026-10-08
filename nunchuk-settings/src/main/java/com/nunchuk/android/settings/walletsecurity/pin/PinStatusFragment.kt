@@ -81,17 +81,17 @@ fun PinStatusContent(
                 ) {
                     NcIcon(
                         painter = painterResource(id = R.drawable.ic_password),
-                        contentDescription = "PIN"
+                        contentDescription = stringResource(R.string.nc_settings_pin_icon)
                     )
                     Text(
                         modifier = Modifier.padding(start = 8.dp),
-                        text = "Change PIN",
+                        text = stringResource(R.string.nc_settings_change_pin),
                         style = NunchukTheme.typography.body,
                     )
                     Spacer(modifier = Modifier.weight(1f))
                     NcIcon(
                         painter = painterResource(id = R.drawable.ic_right_arrow_dark),
-                        contentDescription = "Right arrow"
+                        contentDescription = stringResource(R.string.nc_settings_right_arrow)
                     )
                 }
             }

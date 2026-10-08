@@ -64,7 +64,7 @@ fun SelectCoinCreateTransactionBottomBar(
             Icon(
                 modifier = Modifier.padding(start = 4.dp),
                 painter = painterResource(id = if (isExpand) R.drawable.ic_expand else R.drawable.ic_collapse),
-                contentDescription = "Expand Or Collapse",
+                contentDescription = stringResource(R.string.nc_wallet_cd_expand_or_collapse),
             )
         }
         Text(

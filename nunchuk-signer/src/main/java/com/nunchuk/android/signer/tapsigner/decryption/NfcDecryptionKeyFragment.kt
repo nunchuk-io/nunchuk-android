@@ -96,7 +96,7 @@ class NfcDecryptionKeyFragment : BaseFragment<FragmentDecryptionKeyBinding>() {
         nfcViewModel.updateMasterSigner(masterSigner)
         val fromMembershipFlow = (requireActivity() as NfcSetupActivity).fromMembershipFlow
         if (fromMembershipFlow) {
-            nameNfcViewModel.updateName(masterSigner, "Inheritance Key")
+            nameNfcViewModel.updateName(masterSigner, getString(R.string.nc_tapsigner_inheritance_key))
         } else {
             findNavController().navigate(R.id.addNfcNameFragment)
         }

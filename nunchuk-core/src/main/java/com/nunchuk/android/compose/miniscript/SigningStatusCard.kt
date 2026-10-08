@@ -15,6 +15,8 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.NcIcon
@@ -56,10 +58,14 @@ fun SigningStatusCard(
             NcIcon(
                 modifier = Modifier.size(16.dp),
                 painter = painterResource(id = R.drawable.ic_btc),
-                contentDescription = "Bitcoin icon"
+                contentDescription = stringResource(R.string.nc_cd_bitcoin_icon)
             )
             Text(
-                text = "Signing for $coins coins ($amount BTC)",
+                text = stringResource(
+                    R.string.nc_signing_for_coins,
+                    pluralStringResource(R.plurals.nc_coins_with_count, coins, coins),
+                    "$amount ${stringResource(R.string.nc_currency_btc)}"
+                ),
                 style = NunchukTheme.typography.bodySmall
             )
         }
@@ -74,12 +80,16 @@ fun SigningStatusCard(
                 NcIcon(
                     modifier = Modifier.size(16.dp),
                     painter = painterResource(id = R.drawable.ic_timer),
-                    contentDescription = "Timer icon"
+                    contentDescription = stringResource(R.string.nc_cd_timer_icon)
                 )
                 Text(
                     text = when (policyStatus) {
-                        PolicyStatus.ACTIVE -> "Active policy after $startDate"
-                        PolicyStatus.ACTIVE_WITH_DATE -> "Active policy from $startDate until $endDate"
+                        PolicyStatus.ACTIVE -> stringResource(R.string.nc_miniscript_active_policy_after, startDate.orEmpty())
+                        PolicyStatus.ACTIVE_WITH_DATE -> stringResource(
+                            R.string.nc_miniscript_active_policy_from_until,
+                            startDate.orEmpty(),
+                            endDate.orEmpty()
+                        )
                         else -> ""
                     },
                     style = NunchukTheme.typography.bodySmall
@@ -95,10 +105,10 @@ fun SigningStatusCard(
                 NcIcon(
                     modifier = Modifier.size(16.dp),
                     painter = painterResource(id = R.drawable.ic_close),
-                    contentDescription = "Close icon"
+                    contentDescription = stringResource(R.string.nc_cd_close_icon)
                 )
                 Text(
-                    text = "Inactive policy",
+                    text = stringResource(R.string.nc_miniscript_inactive_policy),
                     style = NunchukTheme.typography.bodySmall
                 )
             }

@@ -38,6 +38,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -89,7 +90,7 @@ fun CoinTagGroupView(
                         )
                         .padding(horizontal = 8.dp, vertical = 4.dp)
                         .clickable { onTagExpand = onTagExpand.not() },
-                    text = if (onTagExpand) stringResource(R.string.nc_show_less) else "${tagIds.size - 5} more tags",
+                    text = if (onTagExpand) stringResource(R.string.nc_show_less) else pluralStringResource(R.plurals.nc_coin_more_tags, tagIds.size - 5, tagIds.size - 5),
                     style = NunchukTheme.typography.bodySmall,
                 )
             }

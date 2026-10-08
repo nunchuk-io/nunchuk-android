@@ -12,6 +12,7 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
+import com.nunchuk.android.R
 import com.nunchuk.android.app.miniscript.configurewallet.MiniscriptConfigureWallet
 import com.nunchuk.android.app.miniscript.configurewallet.miniscriptConfigureWalletDestination
 import com.nunchuk.android.app.miniscript.contractpolicy.MiniscriptConfigTemplate
@@ -67,7 +68,7 @@ class MiniscriptActivity : BaseComposeNfcActivity(), InputBipPathBottomSheetList
 
                     LaunchedEffect(uiState.requestCacheTapSignerXpubEvent) {
                         if (uiState.requestCacheTapSignerXpubEvent) {
-                            startNfcFlow(REQUEST_NFC_TOPUP_XPUBS, "Please rescan your TAPSIGNER to get a new XPUB")
+                            startNfcFlow(REQUEST_NFC_TOPUP_XPUBS, getString(R.string.nc_miniscript_rescan_tapsigner_new_xpub))
                             sharedWalletViewModel.resetRequestCacheTapSignerXpub()
                         }
                     }

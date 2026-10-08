@@ -181,7 +181,7 @@ abstract class BaseNfcActivity<Binding : ViewBinding> : BaseShareSaveFileActivit
     private fun showInputCvcDialog(errorMessage: String? = null, descMessage: String? = null) {
         NCInputDialog(this)
             .showDialog(
-                title = "Enter PIN",
+                title = getString(R.string.nc_enter_pin),
                 onConfirmed = { cvc ->
                     if (cvc.isValidCvc()) {
                         nfcViewModel.updateInputCvc(cvc)

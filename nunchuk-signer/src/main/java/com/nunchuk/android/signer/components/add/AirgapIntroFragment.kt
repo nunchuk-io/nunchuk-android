@@ -140,7 +140,7 @@ private fun AirgapIntroContent(
                             IconButton(onClick = onMoreClicked) {
                                 Icon(
                                     painter = painterResource(id = R.drawable.ic_more),
-                                    contentDescription = "More icon"
+                                    contentDescription = stringResource(R.string.nc_signer_more_icon)
                                 )
                             }
                         }

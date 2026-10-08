@@ -265,7 +265,7 @@ fun AddOrEditAddressScreenContent(
                         error = if (uiState.invalidAddress) stringResource(id = R.string.nc_transaction_invalid_address) else null,
                         placeholder = {
                             Text(
-                                text = "Enter an address",
+                                text = stringResource(R.string.nc_transaction_enter_an_address),
                                 style = NunchukTheme.typography.body.copy(
                                     color = MaterialTheme.colorScheme.textSecondary
                                 )
@@ -293,7 +293,7 @@ fun AddOrEditAddressScreenContent(
                 } else {
                     Text(
                         modifier = Modifier.padding(start = 16.dp, end = 16.dp),
-                        text = "Address",
+                        text = stringResource(R.string.nc_address),
                         style = NunchukTheme.typography.titleSmall
                     )
 

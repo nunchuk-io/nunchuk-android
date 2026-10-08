@@ -31,6 +31,7 @@ import com.nunchuk.android.core.domain.membership.GetSecurityQuestionUseCase
 import com.nunchuk.android.core.domain.membership.GetSecurityQuestionsUserDataUseCase
 import com.nunchuk.android.core.domain.membership.SecurityQuestionsUpdateUseCase
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.model.SecurityQuestionModel
 import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.model.QuestionsAndAnswer
@@ -159,7 +160,7 @@ class RecoveryQuestionViewModel @Inject constructor(
             }
             _event.emit(RecoveryQuestionEvent.GetSecurityQuestionSuccess(questions))
         } else {
-            _event.emit(RecoveryQuestionEvent.ShowError("Can not get security question, Please check network connection"))
+            _event.emit(RecoveryQuestionEvent.ShowErrorRes(R.string.nc_membership_can_not_get_security_question))
         }
     }
 

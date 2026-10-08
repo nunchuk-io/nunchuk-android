@@ -19,6 +19,8 @@
 
 package com.nunchuk.android.signer.mk4.intro
 
+import com.nunchuk.android.signer.R
+import android.app.Application
 import android.nfc.NdefRecord
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -88,6 +90,7 @@ class Mk4IntroViewModel @Inject constructor(
     private val replaceKeyUseCase: ReplaceKeyUseCase,
     private val getReplaceSignerNameUseCase: GetReplaceSignerNameUseCase,
     private val getIndexFromPathUseCase: GetIndexFromPathUseCase,
+    private val application: Application,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     private val _event = MutableSharedFlow<Mk4IntroViewEvent>()
@@ -129,7 +132,7 @@ class Mk4IntroViewModel @Inject constructor(
                     val sortedSigner = result.getOrThrow().sortedBy { it.derivationPath }
                     val signer = sortedSigner.find { it.derivationPath.isRecommendedMultiSigPath }
                     if (signer == null) {
-                        _event.emit(Mk4IntroViewEvent.ShowError("XPUBs file is invalid"))
+                        _event.emit(Mk4IntroViewEvent.ShowError(application.getString(R.string.nc_xpubs_file_invalid)))
                         _event.emit(Mk4IntroViewEvent.Loading(false))
                         return@launch
                     }
@@ -153,7 +156,7 @@ class Mk4IntroViewModel @Inject constructor(
                     if (onChainAddSignerParam?.currentSigner != null && signer.masterFingerprint != onChainAddSignerParam.currentSigner?.fingerPrint && onChainAddSignerParam.keyIndex > 0) {
                         _event.emit(
                             Mk4IntroViewEvent.ShowError(
-                                "The added key has an XFP mismatch. Please use the same device for both keys."
+                                application.getString(R.string.nc_added_key_xfp_mismatch)
                             )
                         )
                         _event.emit(Mk4IntroViewEvent.Loading(false))
@@ -176,7 +179,12 @@ class Mk4IntroViewModel @Inject constructor(
                             if (newAccountIndex != 0) {
                                 _event.emit(
                                     Mk4IntroViewEvent.ShowError(
-                                        "The key you just added (XFP:${signer.masterFingerprint.uppercase()}, Account $newAccountIndex) doesn't match the original inheritance key (XFP:${currentSigner.fingerPrint.uppercase()}, Account 0). Please try again."
+                                        application.getString(
+                            R.string.nc_key_account_mismatch_inheritance,
+                            signer.masterFingerprint.uppercase(),
+                            newAccountIndex,
+                            currentSigner.fingerPrint.uppercase(),
+                        )
                                     )
                                 )
                                 _event.emit(Mk4IntroViewEvent.Loading(false))

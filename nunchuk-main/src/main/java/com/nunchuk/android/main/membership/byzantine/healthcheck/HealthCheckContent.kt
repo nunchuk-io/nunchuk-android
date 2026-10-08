@@ -87,7 +87,7 @@ fun HealthCheckContent(
                     actions = {
                         val isEnable = state.walletStatus != WalletStatus.LOCKED.name
                         Text(
-                            text = "Reminders",
+                            text = stringResource(R.string.nc_membership_reminders),
                             style = NunchukTheme.typography.title,
                             color = if (isEnable) MaterialTheme.colorScheme.textPrimary else MaterialTheme.colorScheme.quickSilver,
                             textDecoration = TextDecoration.Underline,
@@ -188,7 +188,7 @@ private fun HealthCheckItem(
                     .height(16.dp)
                     .clickable { onNavigateToSignerInfo() },
                 painter = painterResource(id = R.drawable.ic_history),
-                contentDescription = "image description",
+                contentDescription = stringResource(R.string.nc_membership_cd_image),
                 contentScale = ContentScale.None
             )
         }

@@ -190,7 +190,7 @@ private fun ClaimBackupPasswordContent(
                 )
                 Text(
                     modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp),
-                    text = "Please enter Backup Password",
+                    text = stringResource(com.nunchuk.android.main.R.string.nc_main_please_enter_backup_password),
                     style = NunchukTheme.typography.body
                 )
             }

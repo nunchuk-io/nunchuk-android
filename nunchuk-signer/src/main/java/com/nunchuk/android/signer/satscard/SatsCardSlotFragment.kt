@@ -135,7 +135,7 @@ class SatsCardSlotFragment : BaseFragment<FragmentSatscardActiveSlotBinding>(),
             "${getString(R.string.nc_slot)} ${args.status.activeSlotIndex.inc()}/${args.status.numberOfSlot}"
         binding.address.text = activeSlot.address
         binding.qrCode.setImageBitmap(activeSlot.address.orEmpty().convertToQRCode())
-        binding.tvCardId.text = "${getString(R.string.nc_card_id)}: ${args.status.ident}"
+        binding.tvCardId.text = getString(R.string.nc_satscard_card_id_value, args.status.ident)
     }
 
     private fun registerEvents() {
@@ -316,7 +316,7 @@ class SatsCardSlotFragment : BaseFragment<FragmentSatscardActiveSlotBinding>(),
         if (slot.isConfirmed) {
             binding.tvBalanceUsd.text = slot.balance.getCurrencyAmount()
         } else {
-            binding.tvBalanceUsd.text = "(${getString(R.string.nc_unconfirmed)})"
+            binding.tvBalanceUsd.text = getString(R.string.nc_satscard_unconfirmed_in_parentheses)
         }
     }
 

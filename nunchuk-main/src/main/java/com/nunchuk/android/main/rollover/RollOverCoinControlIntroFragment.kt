@@ -170,7 +170,7 @@ private fun RollOverCoinControlIntroContent(
             modifier = Modifier.systemBarsPadding(),
             topBar = {
                 NcTopAppBar(
-                    title = "Coin control",
+                    title = stringResource(R.string.nc_coin_control),
                     textStyle = NunchukTheme.typography.title,
                     actions = {
                         Spacer(modifier = Modifier.size(LocalViewConfiguration.current.minimumTouchTargetSize))
@@ -190,7 +190,7 @@ private fun RollOverCoinControlIntroContent(
                         onClick = {
                             onContinueClicked()
                         }) {
-                        Text(text = "Continue consolidating all coins")
+                        Text(text = stringResource(R.string.nc_main_rollover_continue_consolidating_all_coins))
                     }
 
                     TextButton(
@@ -240,7 +240,7 @@ private fun RollOverCoinControlIntroContent(
 
                 Text(
                     modifier = Modifier.padding(top = 16.dp),
-                    text = "By default, all existing coins will be consolidated into a single coin in the new wallet. If you want to organize and segregate your coins for various purposes, consider using coin tags or collections before proceeding with the rollover, or keep all coins as they are.",
+                    text = stringResource(R.string.nc_main_rollover_coin_control_intro_desc),
                     style = NunchukTheme.typography.body,
                 )
             }

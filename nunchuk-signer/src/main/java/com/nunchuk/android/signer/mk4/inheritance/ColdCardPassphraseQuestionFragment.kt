@@ -127,7 +127,7 @@ fun ColdCardPassphraseQuestionScreen(
                         }
                     ) {
                         Text(
-                            text = "Continue",
+                            text = stringResource(R.string.nc_text_continue),
                             style = NunchukTheme.typography.title.copy(color = MaterialTheme.colorScheme.controlTextPrimary)
                         )
                     }
@@ -144,26 +144,26 @@ fun ColdCardPassphraseQuestionScreen(
 
                 Image(
                     painter = painterResource(id = R.drawable.ic_coldcard_passphrase_intro),
-                    contentDescription = "Decoy wallet intro",
+                    contentDescription = stringResource(R.string.nc_coldcard_decoy_wallet_intro_cd),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 24.dp),
                 )
 
                 Text(
-                    text = "Are you using a passphrase with your COLDCARD?",
+                    text = stringResource(R.string.nc_coldcard_passphrase_question_title),
                     style = NunchukTheme.typography.heading,
                     modifier = Modifier.padding(top = 12.dp)
                 )
 
                 Text(
-                    text = "A BIP39 passphrase is an extra word added to the seed phrase as another layer of security.",
+                    text = stringResource(R.string.nc_coldcard_passphrase_question_desc),
                     style = NunchukTheme.typography.body,
                 )
 
                 NcOptionItem(
                     isSelected = selectedOption == 0,
-                    label = "I don’t have a passphrase",
+                    label = stringResource(R.string.nc_coldcard_i_dont_have_passphrase),
                     onClick = {
                         selectedOption = 0
                     }
@@ -171,7 +171,7 @@ fun ColdCardPassphraseQuestionScreen(
 
                 NcOptionItem(
                     isSelected = selectedOption == 1,
-                    label = "I have a passphrase",
+                    label = stringResource(R.string.nc_coldcard_i_have_passphrase),
                     onClick = {
                         selectedOption = 1
                     }

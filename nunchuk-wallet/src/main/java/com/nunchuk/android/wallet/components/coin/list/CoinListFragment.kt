@@ -430,7 +430,7 @@ private fun CoinListContent(
                         ) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_search_white),
-                                contentDescription = "Search",
+                                contentDescription = stringResource(R.string.nc_wallet_cd_search),
                                 tint = MaterialTheme.colorScheme.controlTextPrimary
                             )
                         }
@@ -511,15 +511,15 @@ fun SpendableAmountSection(spendableAmount: Amount) {
 private fun TimelockWarningSection(warningInfo: TimelockInfo) {
     val warningMessage = when {
         warningInfo.hasRelativeTimelock && warningInfo.hasAbsoluteTimelock -> {
-            "Move coins to reset a soon-expiring relative timelock. Absolute timelocks can't be reset, so after expiry, move funds to a new wallet to reuse signing policies."
+            stringResource(R.string.nc_wallet_timelock_warning_relative_and_absolute)
         }
 
         warningInfo.hasRelativeTimelock -> {
-            "Move coins with a soon-expiring timelock to another address in this wallet to reset the timelock."
+            stringResource(R.string.nc_wallet_timelock_warning_relative)
         }
 
         warningInfo.hasAbsoluteTimelock -> {
-            "Absolute timelocks can't be reset. After expiry, consider moving funds to a new wallet with the same policies if you want to reuse them."
+            stringResource(R.string.nc_wallet_timelock_warning_absolute)
         }
 
         else -> null

@@ -87,7 +87,8 @@ internal fun WalletConfigView(
     val wallet = state.walletExtended.wallet
     val miniscriptDisplaySignerMap = buildWalletConfigMiniscriptDisplaySignerMap(
         scriptNode = state.scriptNode,
-        signerMap = state.signerMap
+        signerMap = state.signerMap,
+        keyNameFormat = stringResource(R.string.nc_wallet_key_number),
     )
     val isLimitAccess = state.isDeprecatedGroupWallet || isLimitAccess(
         state.group,
@@ -121,7 +122,7 @@ internal fun WalletConfigView(
                         ) {
                             NcIcon(
                                 painter = painterResource(id = R.drawable.ic_more),
-                                contentDescription = "More",
+                                contentDescription = stringResource(R.string.nc_more),
                             )
                         }
                     }
@@ -161,7 +162,7 @@ internal fun WalletConfigView(
                             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                                 NcIcon(
                                     painter = painterResource(id = R.drawable.ic_wallets),
-                                    contentDescription = "Wallet",
+                                    contentDescription = stringResource(R.string.nc_wallet_cd_wallet),
                                     modifier = Modifier.size(16.dp),
                                     tint = colorResource(id = R.color.nc_white_color)
                                 )
@@ -181,7 +182,7 @@ internal fun WalletConfigView(
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Text(
-                                text = if (state.isDeprecatedGroupWallet) "[DEPRECATED] ${wallet.name}" else wallet.name,
+                                text = if (state.isDeprecatedGroupWallet) stringResource(R.string.nc_wallet_deprecated_wallet_name, wallet.name) else wallet.name,
                                 style = NunchukTheme.typography.titleLarge
                                     .copy(color = colorResource(id = R.color.nc_white_color)),
                                 maxLines = 2,
@@ -192,7 +193,7 @@ internal fun WalletConfigView(
                                 modifier = Modifier.clickable(onClick = onEditWalletName),
                                 painter = painterResource(id = R.drawable.ic_edit),
                                 tint = colorResource(id = R.color.nc_white_color),
-                                contentDescription = "Wallet",
+                                contentDescription = stringResource(R.string.nc_wallet_cd_wallet),
                             )
                         }
                         Row(
@@ -204,7 +205,7 @@ internal fun WalletConfigView(
                                 text = when {
                                     isLiquid -> stringResource(id = R.string.nc_usdt_stablecoin)
                                     state.walletExtended.wallet.miniscript.isEmpty() -> "$requiredSignInfo$walletTypeString"
-                                    else -> "Miniscript"
+                                    else -> stringResource(R.string.nc_miniscript)
                                 },
                                 style = NunchukTheme.typography.bodySmall
                                     .copy(color = colorResource(id = R.color.nc_white_color))
@@ -305,7 +306,7 @@ internal fun WalletConfigView(
                                 NcIcon(
                                     modifier = Modifier.size(24.dp),
                                     painter = painterResource(id = R.drawable.ic_mulitsig_dark),
-                                    contentDescription = "Key",
+                                    contentDescription = stringResource(R.string.nc_wallet_cd_key),
                                     tint = MaterialTheme.colorScheme.textPrimary
                                 )
 
@@ -350,7 +351,8 @@ internal fun WalletConfigView(
 
 private fun buildWalletConfigMiniscriptDisplaySignerMap(
     scriptNode: ScriptNode?,
-    signerMap: Map<String, SignerModel?>
+    signerMap: Map<String, SignerModel?>,
+    keyNameFormat: String,
 ): Map<String, SignerModel?> {
     if (scriptNode == null || signerMap.isEmpty()) return signerMap
 
@@ -368,7 +370,7 @@ private fun buildWalletConfigMiniscriptDisplaySignerMap(
 
             if (shouldUseFallbackKeyName) {
                 keyOrderByName[keyName]?.let { index ->
-                    signer.copy(name = "Key #$index")
+                    signer.copy(name = keyNameFormat.format(index))
                 } ?: signer
             } else {
                 signer
@@ -399,7 +401,7 @@ private fun TaprootAddressContent(
                 modifier = Modifier.padding(
                     vertical = 8.dp
                 ),
-                text = "Key path",
+                text = stringResource(R.string.nc_key_path),
                 enabled = true,
             )
 
@@ -440,7 +442,7 @@ private fun TaprootAddressContent(
                 bottom = 8.dp,
                 end = 16.dp
             ),
-            text = "Script path",
+            text = stringResource(R.string.nc_miniscript_script_path),
             enabled = true
         )
     }

@@ -306,10 +306,10 @@ private fun TransactionConfirmScreen(
                         feeApplyError = if (event.code == NativeErrorCode.INVALID_FEE_RATE) {
                             context.getString(R.string.nc_input_fee_insufficient)
                         } else {
-                            event.message
+                            event.resolveMessage(context)
                         }
                     } else {
-                        activity.showCreateTransactionError(event.message)
+                        activity.showCreateTransactionError(event.resolveMessage(activity))
                     }
                 }
 
@@ -665,7 +665,7 @@ internal fun TransactionConfirmContent(
                         IconButton(onClick = onEstimatedFeeInfoClick) {
                             NcIcon(
                                 painter = painterResource(id = R.drawable.ic_help),
-                                contentDescription = "Info",
+                                contentDescription = stringResource(com.nunchuk.android.widget.R.string.nc_text_info),
                             )
                         }
                     }

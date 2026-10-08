@@ -36,4 +36,6 @@
     <string name="nc_transaction_sign">Sign</string>
     <string name="nc_text_n_a">N/A</string>
     <string name="nc_sign_up">Sign up</string>
+    <string name="nc_widget_confirmation_code">Confirmation code</string>
+    <string name="nc_widget_save_pdf">Save PDF</string>
 </resources>

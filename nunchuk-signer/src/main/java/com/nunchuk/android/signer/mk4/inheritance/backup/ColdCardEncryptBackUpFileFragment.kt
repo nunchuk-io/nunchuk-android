@@ -96,7 +96,7 @@ internal fun ColdCardEncryptBackUpFileScreen(
                     type = HighlightMessageType.HINT,
                     content = {
                         Text(
-                            text = "Please note that the 12-word Backup Password is different from your seed phrase, even though both may consist of 12 or 24 words.",
+                            text = stringResource(R.string.nc_coldcard_backup_password_differs_hint),
                             style = NunchukTheme.typography.titleSmall
                         )
                     }
@@ -109,7 +109,7 @@ internal fun ColdCardEncryptBackUpFileScreen(
                     onClick = onContinue
                 ) {
                     Text(
-                        text = "Continue",
+                        text = stringResource(R.string.nc_text_continue),
                         style = NunchukTheme.typography.title.copy(color = MaterialTheme.colorScheme.controlTextPrimary)
                     )
                 }
@@ -126,7 +126,7 @@ internal fun ColdCardEncryptBackUpFileScreen(
 
                 Text(
                     modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
-                    text = "Encrypt the backup file",
+                    text = stringResource(R.string.nc_coldcard_encrypt_backup_file),
                     style = NunchukTheme.typography.heading
                 )
                 Text(
@@ -141,13 +141,13 @@ internal fun ColdCardEncryptBackUpFileScreen(
                 NCLabelWithIndex(
                     modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
                     index = 1,
-                    title = "Record Backup Password",
+                    title = stringResource(R.string.nc_coldcard_record_backup_password),
                     label = when {
                         signerTag == SignerTag.KEYSTONE ->
                             stringResource(R.string.nc_keystone_backup_step_password)
 
-                        isHasPassphrase -> "Navigate to Advanced/Tools → Backup → Backup System → 2 [B](with passphrase).[/B]"
-                        else -> "Navigate to Advanced/Tools → Backup → Backup System"
+                        isHasPassphrase -> stringResource(R.string.nc_coldcard_backup_system_with_passphrase)
+                        else -> stringResource(R.string.nc_coldcard_backup_system)
                     },
                 )
 
@@ -167,7 +167,7 @@ internal fun ColdCardEncryptBackUpFileScreen(
                     ) {
                         Text(
                             modifier = Modifier.fillMaxWidth(),
-                            text = "Note down the Backup Password (12 words) and store it in a safe place.",
+                            text = stringResource(R.string.nc_coldcard_note_down_backup_password),
                             style = NunchukTheme.typography.body,
                             textAlign = TextAlign.Start
                         )
@@ -177,18 +177,18 @@ internal fun ColdCardEncryptBackUpFileScreen(
                 NCLabelWithIndex(
                     modifier = Modifier.padding(16.dp),
                     index = 2,
-                    title = "Encrypt the backup file",
+                    title = stringResource(R.string.nc_coldcard_encrypt_backup_file),
                     label = if (signerTag == SignerTag.KEYSTONE) {
                         stringResource(R.string.nc_keystone_backup_step_create)
                     } else {
-                        "Confirm backup file password → OK."
+                        stringResource(R.string.nc_coldcard_confirm_backup_file_password)
                     },
                 )
                 if (signerTag == SignerTag.KEYSTONE) {
                     NCLabelWithIndex(
                         modifier = Modifier.padding(horizontal = 16.dp),
                         index = 3,
-                        title = "Export the backup file",
+                        title = stringResource(R.string.nc_coldcard_export_backup_file),
                         label = stringResource(R.string.nc_keystone_backup_step_export),
                     )
                     NcHintMessage(

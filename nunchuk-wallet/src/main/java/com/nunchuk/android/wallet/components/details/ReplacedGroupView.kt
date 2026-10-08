@@ -66,7 +66,7 @@ fun ReplacedGroupView(
 
                 NcIcon(
                     painter = painterResource(R.drawable.ic_arrow_right_new),
-                    contentDescription = "Arrow",
+                    contentDescription = stringResource(R.string.nc_wallet_cd_arrow),
                 )
             }
         } else {

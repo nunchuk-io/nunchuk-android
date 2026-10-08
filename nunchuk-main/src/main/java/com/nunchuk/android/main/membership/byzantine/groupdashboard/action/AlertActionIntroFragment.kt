@@ -294,7 +294,7 @@ private fun AlertActionIntroContent(
     val body = when (alert.type) {
         AlertType.REQUEST_INHERITANCE_PLANNING -> stringResource(
             id = R.string.nc_inheritance_planning_request_desc,
-            state.requester?.user?.name ?: "Someone",
+            state.requester?.user?.name ?: stringResource(R.string.nc_membership_someone),
             state.wallet.name
         )
 

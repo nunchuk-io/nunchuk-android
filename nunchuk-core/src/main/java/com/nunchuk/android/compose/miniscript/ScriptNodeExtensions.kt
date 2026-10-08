@@ -1,5 +1,9 @@
 package com.nunchuk.android.compose.miniscript
 
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
+import com.nunchuk.android.core.R
 import com.nunchuk.android.core.miniscript.ScriptNodeType
 import com.nunchuk.android.model.ScriptNode
 import com.nunchuk.android.model.TimeLock
@@ -9,7 +13,10 @@ import java.util.Calendar
 import java.util.Locale
 import kotlin.math.ceil
 
+private fun Long.toPluralCount(): Int = coerceIn(0L, Int.MAX_VALUE.toLong()).toInt()
+
 val ScriptNode.displayName: String
+    @Composable
     get() = when (this.type) {
         ScriptNodeType.PK.name -> "PK"
         ScriptNodeType.OLDER.name -> {
@@ -24,25 +31,32 @@ val ScriptNode.displayName: String
 
                     val parts = mutableListOf<String>()
                     if (days > 0) {
-                        parts.add("${days}d")
+                        parts.add(stringResource(R.string.nc_miniscript_unit_days_short, days))
                     }
                     if (hours > 0) {
-                        parts.add("${hours}h")
+                        parts.add(stringResource(R.string.nc_miniscript_unit_hours_short, hours))
                     }
                     if (minutes > 0) {
-                        parts.add("${minutes}m")
+                        parts.add(stringResource(R.string.nc_miniscript_unit_minutes_short, minutes))
                     }
 
                     if (parts.isEmpty()) {
-                        "After 0d"
+                        stringResource(
+                            R.string.nc_miniscript_after_value,
+                            stringResource(R.string.nc_miniscript_unit_days_short, 0)
+                        )
                     } else {
-                        "After ${parts.joinToString(" ")}"
+                        stringResource(R.string.nc_miniscript_after_value, parts.joinToString(" "))
                     }
                 }
 
                 else -> { // block height
                     val formattedBlocks = String.format("%,d", timeLock.value)
-                    if (timeLock.value == 1L) "After 1 block" else "After $formattedBlocks blocks"
+                    pluralStringResource(
+                        R.plurals.nc_miniscript_after_blocks,
+                        timeLock.value.toPluralCount(),
+                        formattedBlocks
+                    )
                 }
             }
         }
@@ -52,12 +66,16 @@ val ScriptNode.displayName: String
             when {
                 timeLock.isTimestamp() -> {
                     val targetDate = calculateDateFromSeconds(timeLock.value)
-                    "After $targetDate"
+                    stringResource(R.string.nc_miniscript_after_value, targetDate)
                 }
 
                 else -> { // block height
                     val formattedBlocks = String.format("%,d", timeLock.value)
-                    if (timeLock.value == 1L) "After 1 block" else "After block $formattedBlocks"
+                    if (timeLock.value == 1L) {
+                        pluralStringResource(R.plurals.nc_miniscript_after_blocks, 1, formattedBlocks)
+                    } else {
+                        stringResource(R.string.nc_miniscript_after_block_height, formattedBlocks)
+                    }
                 }
             }
         }
@@ -69,17 +87,26 @@ val ScriptNode.displayName: String
         ScriptNodeType.AND.name -> "AND"
         ScriptNodeType.OR.name -> "OR"
         ScriptNodeType.ANDOR.name -> "AND OR"
-        ScriptNodeType.THRESH.name -> "Thresh ${this.k}/${this.subs.size}"
-        ScriptNodeType.MULTI.name -> "Multisig ${this.k}/${this.keys.size}"
+        ScriptNodeType.THRESH.name -> stringResource(
+            R.string.nc_miniscript_thresh_name,
+            this.k.toString(),
+            this.subs.size.toString()
+        )
+        ScriptNodeType.MULTI.name -> stringResource(
+            R.string.nc_miniscript_multisig_name,
+            this.k.toString(),
+            this.keys.size.toString()
+        )
         ScriptNodeType.OR_TAPROOT.name -> "OR"
         ScriptNodeType.MUSIG.name -> "MuSig"
-        else -> "Unknown"
+        else -> stringResource(R.string.nc_unknown)
     }
 
 val ScriptNode.descriptionText: String
+    @Composable
     get() = when (this.type) {
-        ScriptNodeType.PK.name -> "Public key"
-        ScriptNodeType.OLDER.name -> "From the time the coins are received."
+        ScriptNodeType.PK.name -> stringResource(R.string.nc_miniscript_public_key)
+        ScriptNodeType.OLDER.name -> stringResource(R.string.nc_miniscript_older_desc)
         ScriptNodeType.AFTER.name -> {
             val timeLock = this.timeLock ?: TimeLock()
             when {
@@ -90,8 +117,10 @@ val ScriptNode.descriptionText: String
                         diff <= 0 -> ""
                         diff >= 86400 -> {
                             val daysFromNow = ceil(diff / 86400.0).toInt()
-                            val dayText = if (daysFromNow == 1) "day" else "days"
-                            "$daysFromNow $dayText from today."
+                            stringResource(
+                                R.string.nc_miniscript_from_today,
+                                pluralStringResource(R.plurals.nc_day, daysFromNow, daysFromNow)
+                            )
                         }
                         else -> {
                             val totalMinutes = ceil(diff / 60.0).toInt()
@@ -99,22 +128,23 @@ val ScriptNode.descriptionText: String
                             val minutes = totalMinutes % 60
 
                             if (hours >= 24) {
-                                "1 day from today."
+                                stringResource(
+                                    R.string.nc_miniscript_from_today,
+                                    pluralStringResource(R.plurals.nc_day, 1, 1)
+                                )
                             } else {
                                 val parts = mutableListOf<String>()
                                 if (hours > 0) {
-                                    val hourText = if (hours == 1) "hour" else "hours"
-                                    parts.add("$hours $hourText")
+                                    parts.add(pluralStringResource(R.plurals.nc_plural_hour, hours, hours.toString()))
                                 }
                                 if (minutes > 0) {
-                                    val minuteText = if (minutes == 1) "minute" else "minutes"
-                                    parts.add("$minutes $minuteText")
+                                    parts.add(pluralStringResource(R.plurals.nc_plural_minute, minutes, minutes.toString()))
                                 }
 
                                 if (parts.isEmpty()) {
                                     ""
                                 } else {
-                                    "${parts.joinToString(" ")} from now."
+                                    stringResource(R.string.nc_miniscript_from_now, parts.joinToString(" "))
                                 }
                             }
                         }
@@ -122,25 +152,26 @@ val ScriptNode.descriptionText: String
                 }
 
                 else -> { // block height - provide a generic description since we don't have currentBlockHeight
-                    "When the specified block height is reached."
+                    stringResource(R.string.nc_miniscript_after_block_desc)
                 }
             }
         }
 
-        ScriptNodeType.HASH160.name -> "Requires a preimage that hashes to a given value with HASH160"
-        ScriptNodeType.HASH256.name -> "Requires a preimage that hashes to a given value with SHA256"
-        ScriptNodeType.RIPEMD160.name -> "Requires a preimage that hashes to a given value with RIPEMD160"
-        ScriptNodeType.SHA256.name -> "Requires a preimage that hashes to a given value with SHA256"
-        ScriptNodeType.AND.name -> "Both conditions must be satisfied."
-        ScriptNodeType.OR.name -> "Only one condition needs to be satisfied."
-        ScriptNodeType.ANDOR.name -> " If the first condition is met, the second must also be met. If the first condition isn't met, the third must be met instead.\n(Note: Timelocks cannot revoke an earlier spend path.)"
-        ScriptNodeType.THRESH.name -> "Requires M of N conditions."
-        ScriptNodeType.MULTI.name -> "Requires M of N keys."
-        ScriptNodeType.OR_TAPROOT.name -> "Only one tapscript needs to be satisfied."
-        ScriptNodeType.MUSIG.name -> "Better privacy and lower fees. Requires all keys."
+        ScriptNodeType.HASH160.name -> stringResource(R.string.nc_miniscript_hash_desc, "HASH160")
+        ScriptNodeType.HASH256.name -> stringResource(R.string.nc_miniscript_hash_desc, "SHA256")
+        ScriptNodeType.RIPEMD160.name -> stringResource(R.string.nc_miniscript_hash_desc, "RIPEMD160")
+        ScriptNodeType.SHA256.name -> stringResource(R.string.nc_miniscript_hash_desc, "SHA256")
+        ScriptNodeType.AND.name -> stringResource(R.string.nc_miniscript_and_desc)
+        ScriptNodeType.OR.name -> stringResource(R.string.nc_miniscript_or_desc)
+        ScriptNodeType.ANDOR.name -> stringResource(R.string.nc_miniscript_andor_desc)
+        ScriptNodeType.THRESH.name -> stringResource(R.string.nc_miniscript_thresh_desc)
+        ScriptNodeType.MULTI.name -> stringResource(R.string.nc_miniscript_multi_desc)
+        ScriptNodeType.OR_TAPROOT.name -> stringResource(R.string.nc_miniscript_or_taproot_desc)
+        ScriptNodeType.MUSIG.name -> stringResource(R.string.nc_miniscript_musig_desc)
         else -> ""
     }
 
+@Composable
 fun ScriptNode.getAfterBlockDescription(currentBlockHeight: Int): String {
     val timeLock = this.timeLock ?: TimeLock()
     return if (this.type == ScriptNodeType.AFTER.name && !timeLock.isTimestamp()) {
@@ -150,7 +181,11 @@ fun ScriptNode.getAfterBlockDescription(currentBlockHeight: Int): String {
             ""
         } else {
             val formattedBlockDiff = String.format("%,d", blockDiff)
-            if (blockDiff == 1L) "1 block from the current block." else "$formattedBlockDiff blocks from the current block."
+            pluralStringResource(
+                R.plurals.nc_miniscript_blocks_from_current_block,
+                blockDiff.toPluralCount(),
+                formattedBlockDiff
+            )
         }
     } else {
         this.descriptionText

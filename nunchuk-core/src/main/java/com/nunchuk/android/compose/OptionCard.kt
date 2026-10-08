@@ -22,6 +22,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.core.R
+import androidx.compose.ui.res.stringResource
 
 @Composable
 fun OptionCard(
@@ -58,7 +59,7 @@ fun OptionCard(
             Image(
                 modifier = Modifier.align(Alignment.Bottom),
                 painter = painter,
-                contentDescription = "Image",
+                contentDescription = stringResource(R.string.nc_cd_image),
             )
         }
     }

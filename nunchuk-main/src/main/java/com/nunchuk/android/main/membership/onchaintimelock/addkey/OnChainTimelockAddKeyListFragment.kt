@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.main.membership.onchaintimelock.addkey
 
+import com.nunchuk.android.main.membership.annotatedStringWithStyledArg
 import android.app.Activity
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -830,7 +831,7 @@ fun OnChainTimelockAddKeyListContent(
                         IconButton(onClick = onMoreClicked) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_more),
-                                contentDescription = "More icon"
+                                contentDescription = stringResource(R.string.nc_membership_cd_more_icon)
                             )
                         }
                     },
@@ -878,19 +879,15 @@ fun OnChainTimelockAddKeyListContent(
                         )
                         Text(
                             modifier = Modifier.padding(top = 16.dp, bottom = 4.dp),
-                            text = buildAnnotatedString {
-
-                                withStyle(style = SpanStyle(fontWeight = FontWeight.W700)) {
-                                    append("Before the timelock")
-                                }
-                                append(
-                                    if (isGroupWallet) {
-                                        ", spending requires three signatures from a 3-of-5 multisig:"
-                                    } else {
-                                        ", spending requires two signatures from a 2-of-4 multisig:"
-                                    }
-                                )
-                            },
+                            text = annotatedStringWithStyledArg(
+                                formatRes = if (isGroupWallet) {
+                                    R.string.nc_membership_before_timelock_group_desc
+                                } else {
+                                    R.string.nc_membership_before_timelock_desc
+                                },
+                                argRes = R.string.nc_membership_before_the_timelock,
+                                style = SpanStyle(fontWeight = FontWeight.W700),
+                            ),
                             style = NunchukTheme.typography.body
                         )
                     }
@@ -916,7 +913,7 @@ fun OnChainTimelockAddKeyListContent(
                             modifier = Modifier
                                 .padding(top = 12.dp)
                                 .fillMaxWidth(),
-                            text = "Pull to refresh the key statuses.",
+                            text = stringResource(R.string.nc_membership_pull_to_refresh_key_statuses),
                             style = NunchukTheme.typography.bodySmall,
                             textAlign = TextAlign.Center
                         )
@@ -927,19 +924,15 @@ fun OnChainTimelockAddKeyListContent(
                         item {
                             Text(
                                 modifier = Modifier.padding(top = 16.dp, bottom = 4.dp),
-                                text = buildAnnotatedString {
-
-                                    withStyle(style = SpanStyle(fontWeight = FontWeight.W700)) {
-                                        append("After the timelock")
-                                    }
-                                    append(
-                                        if (isGroupWallet) {
-                                            ", spending only requires two signatures from a 2-of-4 multisig. The keyset remains the same, minus the Platform key."
-                                        } else {
-                                            ", spending only requires one signature from a 1-of-3 multisig. The keyset remains the same, minus the Platform key."
-                                        }
-                                    )
-                                },
+                                text = annotatedStringWithStyledArg(
+                                    formatRes = if (isGroupWallet) {
+                                        R.string.nc_membership_after_timelock_group_desc
+                                    } else {
+                                        R.string.nc_membership_after_timelock_desc
+                                    },
+                                    argRes = R.string.nc_membership_after_the_timelock,
+                                    style = SpanStyle(fontWeight = FontWeight.W700),
+                                ),
                                 style = NunchukTheme.typography.body
                             )
                             Column {
@@ -1049,14 +1042,14 @@ private fun AddKeyCard(
                                     .padding(start = 8.dp)
                             ) {
                                 Text(
-                                    text = signers.firstOrNull()?.name ?: "Unknown Signer",
+                                    text = signers.firstOrNull()?.name ?: stringResource(R.string.nc_membership_unknown_signer),
                                     style = NunchukTheme.typography.body
                                 )
                                 Row(modifier = Modifier.padding(top = 4.dp)) {
                                     NcTag(
                                         label = signers.firstOrNull()
                                             ?.toReadableSignerType(context = LocalContext.current)
-                                            ?: "Unknown",
+                                            ?: stringResource(R.string.nc_unknown),
                                         backgroundColor = colorResource(
                                             id = R.color.nc_bg_mid_gray
                                         ),
@@ -1068,13 +1061,13 @@ private fun AddKeyCard(
                                                 if (firstSigner.index >= 0) firstSigner.index else 0
                                             )
                                         } else {
-                                            "Acct X"
+                                            stringResource(R.string.nc_membership_acct_x_placeholder)
                                         }
-                                    } ?: "Acct X"
+                                    } ?: stringResource(R.string.nc_membership_acct_x_placeholder)
                                     NcTag(
                                         modifier = Modifier
                                             .padding(start = 4.dp)
-                                            .alpha(if (firstAcctLabel == "Acct X") 0.5f else 1.0f),
+                                            .alpha(if (firstAcctLabel == stringResource(R.string.nc_membership_acct_x_placeholder)) 0.5f else 1.0f),
                                         label = firstAcctLabel,
                                         backgroundColor = colorResource(
                                             id = R.color.nc_bg_mid_gray
@@ -1088,13 +1081,13 @@ private fun AddKeyCard(
                                                     if (secondSigner.index >= 0) secondSigner.index else 0
                                                 )
                                             } else {
-                                                "Acct Y"
+                                                stringResource(R.string.nc_membership_acct_y_placeholder)
                                             }
-                                        } ?: "Acct Y"
+                                        } ?: stringResource(R.string.nc_membership_acct_y_placeholder)
                                     NcTag(
                                         modifier = Modifier
                                             .padding(start = 4.dp)
-                                            .alpha(if (secondAcctLabel == "Acct Y") 0.5f else 1.0f),
+                                            .alpha(if (secondAcctLabel == stringResource(R.string.nc_membership_acct_y_placeholder)) 0.5f else 1.0f),
                                         label = secondAcctLabel,
                                         backgroundColor = colorResource(
                                             id = R.color.nc_bg_mid_gray
@@ -1119,7 +1112,7 @@ private fun AddKeyCard(
                                 if (isVerified) {
                                     Icon(
                                         painter = painterResource(id = R.drawable.nc_circle_checked),
-                                        contentDescription = "Checked icon"
+                                        contentDescription = stringResource(R.string.nc_membership_cd_checked_icon)
                                     )
                                     Text(
                                         modifier = Modifier.padding(start = 4.dp),
@@ -1193,7 +1186,7 @@ private fun AddKeyCard(
                         top.linkTo(parent.top)
                         end.linkTo(parent.end)
                     },
-                contentDescription = "Inheritance icon",
+                contentDescription = stringResource(R.string.nc_membership_cd_inheritance_icon),
                 painter = painterResource(id = R.drawable.ic_badge_inheritance)
             )
         }
@@ -1227,7 +1220,7 @@ private fun ConfigItem(
         ) {
             if (isHeightLock.not()) {
                 Text(
-                    text = if (item.type == MembershipStep.TIMELOCK && isTimelockWithData) "After" else item.type.getLabel(
+                    text = if (item.type == MembershipStep.TIMELOCK && isTimelockWithData) stringResource(R.string.nc_membership_after) else item.type.getLabel(
                         context = LocalContext.current,
                         isStandard = isStandard,
                         isOnChain = true
@@ -1241,11 +1234,11 @@ private fun ConfigItem(
                         if (firstSigner.isShowAcctX(true)) {
                             stringResource(R.string.nc_acct_x, firstSigner.index)
                         } else {
-                            "Acct X"
+                            stringResource(R.string.nc_membership_acct_x_placeholder)
                         }
-                    } ?: "Acct X"
+                    } ?: stringResource(R.string.nc_membership_acct_x_placeholder)
                     NcTag(
-                        modifier = Modifier.alpha(if (firstAcctLabel == "Acct X") 0.5f else 1.0f),
+                        modifier = Modifier.alpha(if (firstAcctLabel == stringResource(R.string.nc_membership_acct_x_placeholder)) 0.5f else 1.0f),
                         label = firstAcctLabel,
                         backgroundColor = colorResource(
                             id = R.color.nc_bg_mid_gray
@@ -1255,13 +1248,13 @@ private fun ConfigItem(
                         if (secondSigner.isShowAcctX(true)) {
                             stringResource(R.string.nc_acct_x, secondSigner.index)
                         } else {
-                            "Acct Y"
+                            stringResource(R.string.nc_membership_acct_y_placeholder)
                         }
-                    } ?: "Acct Y"
+                    } ?: stringResource(R.string.nc_membership_acct_y_placeholder)
                     NcTag(
                         modifier = Modifier
                             .padding(start = 4.dp)
-                            .alpha(if (secondAcctLabel == "Acct Y") 0.5f else 1.0f),
+                            .alpha(if (secondAcctLabel == stringResource(R.string.nc_membership_acct_y_placeholder)) 0.5f else 1.0f),
                         label = secondAcctLabel,
                         backgroundColor = colorResource(
                             id = R.color.nc_bg_mid_gray
@@ -1277,7 +1270,7 @@ private fun ConfigItem(
                         dateFormat.timeZone = TimeZone.getTimeZone(timezoneId)
                     }
                     val dateStr = dateFormat.format(Date(it.value * 1000))
-                    if (isHeightLock) "Est. $dateStr" else dateStr
+                    if (isHeightLock) stringResource(R.string.nc_membership_est_date, dateStr) else dateStr
                 } ?: ""
                 Text(
                     text = formattedDate,
@@ -1312,14 +1305,14 @@ private fun ConfigItem(
                 onClick = { onChangeTimelockClicked(item) },
             ) {
                 Text(
-                    text = "Change",
+                    text = stringResource(R.string.nc_change),
                     style = NunchukTheme.typography.caption,
                 )
             }
         } else {
             Icon(
                 painter = painterResource(id = R.drawable.nc_circle_checked),
-                contentDescription = "Checked icon"
+                contentDescription = stringResource(R.string.nc_membership_cd_checked_icon)
             )
             Text(
                 modifier = Modifier.padding(start = 4.dp),

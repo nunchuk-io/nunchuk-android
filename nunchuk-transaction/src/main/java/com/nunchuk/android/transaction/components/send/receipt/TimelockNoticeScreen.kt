@@ -175,7 +175,11 @@ private fun TimelockNoticeScreenContent(
                     onClick = { isSelectNotLockCoin = true }
                 ) {
                     Text(
-                        text = "Send ${notLockCoinAmount.getBTCAmount()} (${notLockCoinAmount.getCurrencyAmount()})",
+                        text = stringResource(
+                            R.string.nc_transaction_send_amount,
+                            notLockCoinAmount.getBTCAmount(),
+                            notLockCoinAmount.getCurrencyAmount()
+                        ),
                         style = NunchukTheme.typography.body.copy(fontWeight = FontWeight.Bold)
                     )
                     Spacer(modifier = Modifier.height(4.dp))
@@ -191,15 +195,19 @@ private fun TimelockNoticeScreenContent(
                     onClick = { isSelectNotLockCoin = false }
                 ) {
                     Text(
-                        text = "Send full amount ${totalAmount.getBTCAmount()} (${totalAmount.getCurrencyAmount()})",
+                        text = stringResource(
+                            R.string.nc_transaction_send_full_amount,
+                            totalAmount.getBTCAmount(),
+                            totalAmount.getCurrencyAmount()
+                        ),
                         style = NunchukTheme.typography.body.copy(fontWeight = FontWeight.Bold)
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = if (isTimeLock) {
-                            "Sign now, broadcast after $timelockDate"
+                            stringResource(R.string.nc_transaction_sign_now_broadcast_after_date, timelockDate)
                         } else {
-                            "Sign now, broadcast after block $formatBlockHeight"
+                            stringResource(R.string.nc_transaction_sign_now_broadcast_after_block, formatBlockHeight)
                         },
                         style = NunchukTheme.typography.bodySmall
                     )
@@ -251,14 +259,14 @@ private fun TimelockNoticeScreenContent(
                                         .size(20.dp)
                                         .align(Alignment.CenterVertically),
                                     painter = painterResource(CoreR.drawable.ic_timer),
-                                    contentDescription = "Timer",
+                                    contentDescription = stringResource(R.string.nc_transaction_timer),
                                 )
 
                                 Text(
                                     text = if (isTimeLock) {
-                                        "Ready to broadcast after $timelockDateTime"
+                                        stringResource(R.string.nc_transaction_ready_to_broadcast_after_date, timelockDateTime)
                                     } else {
-                                        "Ready to broadcast after block $formatBlockHeight"
+                                        stringResource(R.string.nc_transaction_ready_to_broadcast_after_block, formatBlockHeight)
                                     },
                                     style = NunchukTheme.typography.titleSmall,
                                     modifier = Modifier.align(Alignment.CenterVertically)
@@ -300,11 +308,11 @@ private fun TimelockNoticeScreenContent(
                                         .size(20.dp)
                                         .align(Alignment.CenterVertically),
                                     painter = painterResource(CoreR.drawable.ic_check_circle_2),
-                                    contentDescription = "Checked",
+                                    contentDescription = stringResource(R.string.nc_transaction_checked),
                                 )
 
                                 Text(
-                                    text = "Can sign and broadcast immediately",
+                                    text = stringResource(R.string.nc_transaction_can_sign_and_broadcast_immediately),
                                     style = NunchukTheme.typography.titleSmall,
                                     modifier = Modifier.align(Alignment.CenterVertically)
                                 )

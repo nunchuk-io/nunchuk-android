@@ -159,7 +159,7 @@ fun PaidUserWalletTypeContent(
                         }
                         .padding(start = 16.dp, top = 4.dp, end = 16.dp, bottom = 16.dp),
                     title = stringResource(id = R.string.nc_assisted_wallet),
-                    subtext = "($remainingAssistedWallets remaining)",
+                    subtext = stringResource(R.string.nc_wallet_remaining_assisted_wallets, remainingAssistedWallets),
                     desc = stringResource(R.string.nc_assisted_wallet_create_wallet_desc),
                     resId = R.drawable.ic_wallet_type_assisted_wallet
                 )
@@ -213,7 +213,7 @@ fun Action(
     ) {
         NcIcon(
             painter = painterResource(id = R.drawable.ic_group_wallet),
-            contentDescription = "Group Wallet Icon"
+            contentDescription = stringResource(R.string.nc_wallet_cd_group_wallet_icon)
         )
 
         Text(
@@ -231,7 +231,7 @@ fun Action(
                     onScanQRClicked()
                 },
             painter = painterResource(id = R.drawable.ic_qr),
-            contentDescription = "QR Icon"
+            contentDescription = stringResource(R.string.nc_wallet_cd_qr_icon)
         )
 
         VerticalDivider(
@@ -244,7 +244,7 @@ fun Action(
         NcIcon(
             modifier = Modifier.size(24.dp),
             painter = painterResource(id = R.drawable.ic_arrow_right_new),
-            contentDescription = "Arrow Right Icon"
+            contentDescription = stringResource(R.string.nc_wallet_cd_arrow_right_icon)
         )
     }
 
@@ -263,7 +263,7 @@ fun Action(
     ) {
         NcIcon(
             painter = painterResource(id = R.drawable.ic_recover_existing_wallet),
-            contentDescription = "Group Wallet Icon"
+            contentDescription = stringResource(R.string.nc_wallet_cd_group_wallet_icon)
         )
 
         Text(
@@ -281,7 +281,7 @@ fun Action(
                     onRecoverWalletClicked()
                 },
             painter = painterResource(id = R.drawable.ic_arrow_right_new),
-            contentDescription = "Arrow Right Icon"
+            contentDescription = stringResource(R.string.nc_wallet_cd_arrow_right_icon)
         )
     }
 }
@@ -310,7 +310,7 @@ fun Bottom() {
         ) {
             Image(
                 painter = painterResource(id = R.drawable.ic_wallet_type_assisted_wallet),
-                contentDescription = "Wallet Icon",
+                contentDescription = stringResource(R.string.nc_wallet_cd_wallet_icon),
                 modifier = Modifier
                     .size(44.dp)
             )
@@ -328,7 +328,7 @@ fun Bottom() {
                     .padding(start = 12.dp)
                     .size(24.dp),
                 painter = painterResource(id = R.drawable.ic_arrow_right_new),
-                contentDescription = "Arrow Right Icon"
+                contentDescription = stringResource(R.string.nc_wallet_cd_arrow_right_icon)
             )
         }
     }
@@ -428,7 +428,7 @@ fun WalletTypeItem(
     ) {
         Image(
             painter = painterResource(id = resId),
-            contentDescription = "Wallet Icon",
+            contentDescription = stringResource(R.string.nc_wallet_cd_wallet_icon),
             modifier = Modifier
                 .size(44.dp)
         )
@@ -509,7 +509,7 @@ fun UnassistedWalletTypeSheet(
         ) {
             Text(
                 modifier = Modifier.padding(horizontal = 16.dp),
-                text = "Select unassisted wallet type:",
+                text = stringResource(R.string.nc_wallet_select_unassisted_wallet_type),
                 style = NunchukTheme.typography.title,
             )
             FreeUserWalletTypeContent(onWalletTypeSelected = onWalletTypeSelected)

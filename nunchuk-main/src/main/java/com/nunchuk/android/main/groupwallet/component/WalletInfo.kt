@@ -131,7 +131,7 @@ internal fun WalletInfo(
                     NcIcon(
                         modifier = Modifier.size(16.dp),
                         painter = painterResource(id = R.drawable.ic_chain),
-                        contentDescription = "Wallet icon",
+                        contentDescription = stringResource(R.string.nc_main_cd_wallet_icon),
                         tint = colorResource(id = R.color.nc_white_color)
                     )
 
@@ -152,7 +152,7 @@ internal fun WalletInfo(
                     NcIcon(
                         modifier = Modifier.size(16.dp),
                         painter = painterResource(id = R.drawable.ic_qrcode_2),
-                        contentDescription = "Wallet icon",
+                        contentDescription = stringResource(R.string.nc_main_cd_wallet_icon),
                         tint = colorResource(id = R.color.nc_white_color)
                     )
 
@@ -172,7 +172,7 @@ internal fun WalletInfo(
                     NcIcon(
                         modifier = Modifier.size(16.dp),
                         painter = painterResource(id = R.drawable.ic_setting_2),
-                        contentDescription = "Wallet icon",
+                        contentDescription = stringResource(R.string.nc_main_cd_wallet_icon),
                         tint = colorResource(id = R.color.nc_white_color)
                     )
 

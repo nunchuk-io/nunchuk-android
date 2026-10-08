@@ -70,7 +70,7 @@
                 android:layout_marginHorizontal="@dimen/nc_padding_16"
                 android:layout_marginTop="@dimen/nc_padding_18"
                 android:paddingVertical="@dimen/nc_padding_8"
-                android:text="If you do this later:" />
+                android:text="@string/nc_wallet_upload_config_do_later" />
 
             <com.nunchuk.android.widget.NCFontTextView
                 android:id="@+id/descriptionHint"
@@ -81,7 +81,7 @@
                 android:layout_marginBottom="@dimen/nc_padding_16"
                 android:background="@drawable/nc_rounded_whisper_background"
                 android:padding="@dimen/nc_padding_16"
-                android:text="Navigate to Wallet details → View wallet config → More menu → Export wallet configuration" />
+                android:text="@string/nc_wallet_upload_config_do_later_path" />
 
         </LinearLayout>
     </ScrollView>
@@ -110,7 +110,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/nc_padding_6"
-                android:text="Export configuration"
+                android:text="@string/nc_wallet_upload_config_export"
                 android:textColor="@color/nc_control_text_primary" />
         </LinearLayout>
 

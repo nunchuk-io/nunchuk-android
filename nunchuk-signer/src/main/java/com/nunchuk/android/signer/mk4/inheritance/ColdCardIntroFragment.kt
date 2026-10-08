@@ -170,7 +170,7 @@ internal fun ColdCardIntroScreen(
                 Text(
                     modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
                     text = if (isOnChainTimelockKey) {
-                        "Add COLDCARD (${onChainKeyIndex + 1}/2)"
+                        stringResource(R.string.nc_add_coldcard_step, onChainKeyIndex + 1)
                     } else {
                         stringResource(R.string.nc_add_coldcard_mk4)
                     },

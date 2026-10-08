@@ -42,7 +42,7 @@ fun ArchivedWalletsRow(
     ) {
         NcIcon(
             painter = painterResource(id = R.drawable.ic_archive),
-            contentDescription = "Archived"
+            contentDescription = stringResource(R.string.nc_main_cd_archived)
         )
 
         Text(
@@ -65,7 +65,7 @@ fun ArchivedWalletsRow(
 
         NcIcon(
             painter = painterResource(id = R.drawable.ic_arrow),
-            contentDescription = "Arrow",
+            contentDescription = stringResource(R.string.nc_main_cd_arrow),
             modifier = Modifier.padding(start = 12.dp)
         )
     }

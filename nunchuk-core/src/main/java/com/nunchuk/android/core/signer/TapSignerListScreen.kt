@@ -115,12 +115,12 @@ private fun TapSignerListContent(
     ignoreIndexCheckForAcctX: Boolean = false,
 ) {
     val signerLabel = when (type) {
-        SignerType.NFC -> "TAPSIGNER(s)"
-        SignerType.COLDCARD_NFC -> "COLDCARD(s)"
-        SignerType.AIRGAP -> "Air-gapped key(s)"
-        SignerType.HARDWARE -> "Wired key(s)"
-        SignerType.SOFTWARE -> "Software key(s)"
-        else -> "key(s)"
+        SignerType.NFC -> stringResource(R.string.nc_signer_label_tapsigners)
+        SignerType.COLDCARD_NFC -> stringResource(R.string.nc_signer_label_coldcards)
+        SignerType.AIRGAP -> stringResource(R.string.nc_signer_label_airgapped_keys)
+        SignerType.HARDWARE -> stringResource(R.string.nc_signer_label_wired_keys)
+        SignerType.SOFTWARE -> stringResource(R.string.nc_signer_label_software_keys)
+        else -> stringResource(R.string.nc_signer_label_keys)
     }
     val screenHeightDp = LocalConfiguration.current.screenHeightDp
     Column(
@@ -135,7 +135,7 @@ private fun TapSignerListContent(
         ) {
             NcIcon(
                 painter = painterResource(id = R.drawable.ic_close),
-                contentDescription = "Back Icon"
+                contentDescription = stringResource(R.string.nc_cd_back_icon)
             )
         }
         Text(

@@ -50,10 +50,10 @@ internal fun normalizeGroupPlatformKeyPolicy(policy: GroupPlatformKeyPolicy?): G
 @Composable
 internal fun formatSpendingLimit(policy: SpendingPolicy): String {
     val timeUnitText = when (policy.timeUnit) {
-        SpendingTimeUnit.DAILY -> "Day"
-        SpendingTimeUnit.WEEKLY -> "Week"
-        SpendingTimeUnit.MONTHLY -> "Month"
-        SpendingTimeUnit.YEARLY -> "Year"
+        SpendingTimeUnit.DAILY -> stringResource(R.string.nc_main_time_unit_day)
+        SpendingTimeUnit.WEEKLY -> stringResource(R.string.nc_main_time_unit_week)
+        SpendingTimeUnit.MONTHLY -> stringResource(R.string.nc_main_time_unit_month)
+        SpendingTimeUnit.YEARLY -> stringResource(R.string.nc_main_time_unit_year)
     }
     val isFiat = policy.currencyUnit != "BTC" && policy.currencyUnit != "sat"
     val limitText = if (policy.limit == 0.0) "0" else {
@@ -63,18 +63,18 @@ internal fun formatSpendingLimit(policy: SpendingPolicy): String {
             policy.limit.formatDecimalWithoutZero(USD_FRACTION_DIGITS)
         }
     }
-    return "${policy.currencyUnit} $limitText / $timeUnitText"
+    return stringResource(R.string.nc_main_spending_limit_per_unit, policy.currencyUnit, limitText, timeUnitText)
 }
 
 @Composable
 internal fun formatGroupSpendingLimit(limit: GroupSpendingLimit): String {
     val normalizedLimit = normalizeGroupSpendingLimit(limit)
     val intervalText = when (normalizedLimit.interval.name) {
-        "DAILY" -> "Day"
-        "WEEKLY" -> "Week"
-        "MONTHLY" -> "Month"
-        "YEARLY" -> "Year"
-        else -> "Day"
+        "DAILY" -> stringResource(R.string.nc_main_time_unit_day)
+        "WEEKLY" -> stringResource(R.string.nc_main_time_unit_week)
+        "MONTHLY" -> stringResource(R.string.nc_main_time_unit_month)
+        "YEARLY" -> stringResource(R.string.nc_main_time_unit_year)
+        else -> stringResource(R.string.nc_main_time_unit_day)
     }
     val amountDouble = normalizedLimit.amount.toDoubleOrNull() ?: 0.0
     val isFiat = normalizedLimit.currency != "BTC" && normalizedLimit.currency != "sat"
@@ -85,7 +85,7 @@ internal fun formatGroupSpendingLimit(limit: GroupSpendingLimit): String {
             amountDouble.formatDecimalWithoutZero(USD_FRACTION_DIGITS)
         }
     }
-    return "${normalizedLimit.currency} $amountText / $intervalText"
+    return stringResource(R.string.nc_main_spending_limit_per_unit, normalizedLimit.currency, amountText, intervalText)
 }
 
 @Composable

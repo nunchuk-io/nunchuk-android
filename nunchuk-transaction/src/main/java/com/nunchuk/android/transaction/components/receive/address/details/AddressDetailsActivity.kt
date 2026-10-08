@@ -25,6 +25,7 @@ import androidx.activity.viewModels
 import androidx.core.view.isVisible
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.qr.convertToQRCode
+import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.databinding.ActivityAddressDetailsBinding
 import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint
@@ -53,7 +54,7 @@ class AddressDetailsActivity : BaseActivity<ActivityAddressDetailsBinding>() {
 
     private fun handleState(state: AddressDetailsState) {
         binding.derivationPath.isVisible = state.derivationPath.isNotEmpty()
-        binding.derivationPath.text = "Path: ${state.derivationPath}"
+        binding.derivationPath.text = getString(R.string.nc_transaction_derivation_path, state.derivationPath)
     }
 
     private fun setupViews() {

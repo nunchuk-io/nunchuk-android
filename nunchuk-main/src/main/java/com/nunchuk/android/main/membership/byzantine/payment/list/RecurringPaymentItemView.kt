@@ -23,7 +23,7 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.greyDark
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.byzantine.payment.RecurringPaymentProvider
-import com.nunchuk.android.main.membership.byzantine.payment.toResId
+import com.nunchuk.android.main.membership.byzantine.payment.toUnitResId
 import com.nunchuk.android.model.payment.RecurringPayment
 import com.nunchuk.android.model.payment.RecurringPaymentType
 import com.nunchuk.android.utils.formatAmount
@@ -57,22 +57,23 @@ fun RecurringPaymentItemView(
 
             if (recurringPayment.paymentType == RecurringPaymentType.PERCENTAGE) {
                 Text(
-                    text = "${recurringPayment.formatAmount}% / ${
-                        stringResource(
-                            recurringPayment.frequency.toResId()
-                        ).removePrefix("Every ")
-                    }",
+                    text = stringResource(
+                        R.string.nc_membership_percent_per_frequency,
+                        recurringPayment.formatAmount,
+                        stringResource(recurringPayment.frequency.toUnitResId()),
+                    ),
                     style = NunchukTheme.typography.title,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
             } else {
                 Text(
-                    text = "${recurringPayment.currency} ${recurringPayment.formatAmount} / ${
-                        stringResource(
-                            recurringPayment.frequency.toResId()
-                        ).removePrefix("Every ")
-                    }",
+                    text = stringResource(
+                        R.string.nc_membership_amount_per_frequency,
+                        recurringPayment.currency.orEmpty(),
+                        recurringPayment.formatAmount,
+                        stringResource(recurringPayment.frequency.toUnitResId()),
+                    ),
                     style = NunchukTheme.typography.title,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -80,7 +81,10 @@ fun RecurringPaymentItemView(
             }
 
             Text(
-                text = "Start date: ${Date(recurringPayment.startDate).simpleGlobalDateFormat()}",
+                text = stringResource(
+                    R.string.nc_membership_start_date_value,
+                    Date(recurringPayment.startDate).simpleGlobalDateFormat(),
+                ),
                 style = NunchukTheme.typography.caption,
                 color = MaterialTheme.colorScheme.greyDark,
                 maxLines = 1,
@@ -91,7 +95,7 @@ fun RecurringPaymentItemView(
         Image(
             modifier = Modifier.size(24.dp),
             painter = painterResource(id = R.drawable.ic_right_arrow_dark),
-            contentDescription = "Arrow"
+            contentDescription = stringResource(R.string.nc_membership_cd_arrow)
         )
     }
 }

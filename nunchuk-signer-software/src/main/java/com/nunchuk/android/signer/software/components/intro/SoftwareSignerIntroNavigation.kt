@@ -87,7 +87,7 @@ fun SoftwareSignerIntroScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 NcHintMessage(
-                    messages = listOf(ClickAbleText("Upgrade software keys to hardware keys for improved security."))
+                    messages = listOf(ClickAbleText(stringResource(R.string.nc_software_upgrade_to_hardware_hint)))
                 )
 
                 NcPrimaryDarkButton(
@@ -130,7 +130,7 @@ fun SoftwareSignerIntroScreen(
 
             NcSpannedText(
                 modifier = Modifier.padding(top = 24.dp),
-                text = "A software key will be generated locally on this device. [B]Deleting the app will also delete the software key.[/B]\n\nPlease make sure to:",
+                text = stringResource(R.string.nc_software_intro_key_generated_locally),
                 baseStyle = NunchukTheme.typography.body,
                 styles = mapOf(SpanIndicator('B') to SpanStyle(fontWeight = FontWeight.Bold)),
             )
@@ -138,15 +138,15 @@ fun SoftwareSignerIntroScreen(
             Section(
                 modifier = Modifier.padding(top = 24.dp),
                 iconResId = R.drawable.ic_replace_primary_key,
-                title = "Back up the key ",
-                content = "The backup will allow you to recover the key in worst case scenarios.",
+                title = stringResource(R.string.nc_software_intro_back_up_key_title),
+                content = stringResource(R.string.nc_software_intro_back_up_key_desc),
             )
 
             Section(
                 modifier = Modifier.padding(top = 24.dp),
                 iconResId = R.drawable.ic_emergency_lockdown_dark,
-                title = "Keep your device secure",
-                content = "Since the software key resides on this device, keeping the device safe will prevent the software key from being compromised.",
+                title = stringResource(R.string.nc_software_intro_keep_device_secure_title),
+                content = stringResource(R.string.nc_software_intro_keep_device_secure_desc),
             )
         }
     }
@@ -183,7 +183,7 @@ private fun Section(
         modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        NcIcon(painter = painterResource(id = iconResId), contentDescription = "Icon")
+        NcIcon(painter = painterResource(id = iconResId), contentDescription = stringResource(R.string.nc_software_icon_cd))
         Column(
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(8.dp)

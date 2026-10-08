@@ -40,6 +40,7 @@ import com.nunchuk.android.widget.NCToastMessage
 import kotlinx.coroutines.flow.filterIsInstance
 import java.util.Locale
 import javax.inject.Inject
+import com.nunchuk.android.core.R
 
 abstract class BaseComposeActivity : AppCompatActivity(), LoadingDialog {
 
@@ -64,11 +65,15 @@ abstract class BaseComposeActivity : AppCompatActivity(), LoadingDialog {
 
     override fun showLoading(
         cancelable: Boolean,
-        title: String ,
+        title: String?,
         message: String?
     ) {
         creator.cancel()
-        creator.showDialog(cancelable, title = title, message = message)
+        creator.showDialog(
+            cancelable,
+            title = title ?: getString(R.string.nc_loading_please_wait),
+            message = message
+        )
     }
 
     override fun hideLoading() {
@@ -77,7 +82,7 @@ abstract class BaseComposeActivity : AppCompatActivity(), LoadingDialog {
 
     override fun showOrHideLoading(
         loading: Boolean,
-        title: String,
+        title: String?,
         message: String?
     ) {
         if (loading) showLoading(title = title, message = message) else hideLoading()

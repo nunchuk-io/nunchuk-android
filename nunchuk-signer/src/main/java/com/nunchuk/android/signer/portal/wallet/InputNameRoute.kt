@@ -110,7 +110,7 @@ fun InputNameScreen(
                             IconButton(onClick = { name = "" }) {
                                 Icon(
                                     painter = painterResource(id = R.drawable.ic_close),
-                                    contentDescription = "Close"
+                                    contentDescription = stringResource(R.string.nc_text_close)
                                 )
                             }
                         }

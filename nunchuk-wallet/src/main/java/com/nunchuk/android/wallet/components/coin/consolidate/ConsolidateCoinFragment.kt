@@ -176,7 +176,7 @@ fun ConsolidateCoinScreen(
 
                 Text(
                     modifier = Modifier.padding(top = 24.dp),
-                    text = "Wallet address",
+                    text = stringResource(R.string.nc_wallet_wallet_address),
                     style = NunchukTheme.typography.title,
                 )
 

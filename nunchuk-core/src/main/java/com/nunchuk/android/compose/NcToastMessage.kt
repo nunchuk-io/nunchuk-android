@@ -19,6 +19,7 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.core.R
+import androidx.compose.ui.res.stringResource
 
 @Composable
 fun NcSnackBarHost(state: SnackbarHostState) {
@@ -82,7 +83,7 @@ fun NcToastMessage(type: NcToastType = NcToastType.SUCCESS, message: String) {
         Image(
             modifier = Modifier.size(36.dp),
             painter = painterResource(id = iconResId),
-            contentDescription = "Icon",
+            contentDescription = stringResource(R.string.nc_cd_icon),
         )
         Text(
             text = message,

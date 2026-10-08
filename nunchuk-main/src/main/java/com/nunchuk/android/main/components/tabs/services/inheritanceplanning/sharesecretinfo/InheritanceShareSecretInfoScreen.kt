@@ -714,7 +714,7 @@ private fun InheritanceOnChainShareSecretInfoContent(
                         NcIcon(
                             modifier = Modifier.align(Alignment.CenterEnd),
                             painter = painterResource(R.drawable.ic_download),
-                            contentDescription = "Download icon",
+                            contentDescription = stringResource(R.string.nc_main_cd_download_icon),
                         )
                     }
 

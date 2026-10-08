@@ -81,7 +81,7 @@ private fun BackUpSeedPhraseVerifySuccessContent(
                     IconButton(onClick = onMoreClicked) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_more),
-                            contentDescription = "More icon"
+                            contentDescription = stringResource(R.string.nc_membership_cd_more_icon)
                         )
                     }
                 }
@@ -105,13 +105,13 @@ private fun BackUpSeedPhraseVerifySuccessContent(
 
                 Text(
                     modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
-                    text = "You have backed up the seed phrase correctly",
+                    text = stringResource(R.string.nc_membership_seed_phrase_backed_up_correctly),
                     style = NunchukTheme.typography.heading
                 )
 
                 Text(
                     modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
-                    text = "The restored key’s public key matches the public key of your inheritance key.",
+                    text = stringResource(R.string.nc_membership_restored_key_matches),
                     style = NunchukTheme.typography.body
                 )
 

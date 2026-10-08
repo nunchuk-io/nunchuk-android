@@ -26,4 +26,70 @@
     <string name="nc_shortcut_send_long_label">Send Bitcoin</string>
     <string name="nc_shortcut_receive_short_label">Receive</string>
     <string name="nc_shortcut_receive_long_label">Receive Bitcoin</string>
+
+    <!-- Referral -->
+    <string name="nc_referral_more_icon">More icon</string>
+    <string name="nc_referral_share_your_link">Share your link</string>
+    <string name="nc_referral_more_ways_to_share">More ways to share</string>
+    <string name="nc_referral_confirmation_code_sent_to">Enter the confirmation code we sent to %1$s.</string>
+    <string name="nc_referral_reward_address_email_hint">We\'ll send you an email to confirm (or change) the reward address each time there\'s a successful referral.</string>
+    <string name="nc_referral_save_change">Save change</string>
+    <string name="nc_referral_select_wallet_or_enter_address">Select wallet or enter address to receive reward</string>
+    <string name="nc_referral_select_your_wallet">Select your wallet</string>
+    <string name="nc_referral_other_address">Other address</string>
+    <string name="nc_referral_enter_or_scan_address">Enter or scan your address</string>
+    <string name="nc_referral_link_copied">Link copied to clipboard</string>
+
+    <!-- Onboard / quick wallet -->
+    <string name="nc_onboard_logo_image">Logo image</string>
+    <string name="nc_quick_wallet_help_icon">Help Icon</string>
+
+    <!-- Miniscript -->
+    <string name="nc_miniscript_select_timezone">Select Timezone</string>
+    <string name="nc_miniscript_search_time_zone">Search time zone</string>
+    <string name="nc_miniscript_select_time_zone">Select Time zone</string>
+    <string name="nc_miniscript_add_another_account_of_key">Add another account of this key to use it in more than one policy</string>
+    <string name="nc_miniscript_no_derivation_paths_for_related_keys">Could not find available derivation paths for all related keys</string>
+    <string name="nc_miniscript_no_derivation_path_for_key">Could not find available derivation path for key</string>
+    <string name="nc_miniscript_rescan_tapsigner_new_xpub">Please rescan your TAPSIGNER to get a new XPUB</string>
+    <string name="nc_miniscript_invalid_timelock_max_days">Invalid value. Timelock must not exceed 388 days.</string>
+    <string name="nc_miniscript_enter_at_least_one_time_value">Please enter at least one time value.</string>
+    <string name="nc_miniscript_invalid_relative_block_height">Invalid block height. Enter a value between 0 and 65,534 blocks.</string>
+    <string name="nc_miniscript_unlock_after_fixed_date_time">Unlock after a fixed date &amp; time</string>
+    <string name="nc_miniscript_current_block_height">Current Bitcoin block height is %1$s</string>
+    <string name="nc_miniscript_unit_days">(days)</string>
+    <string name="nc_miniscript_unit_blocks">(blocks)</string>
+    <string name="nc_miniscript_unit_days_hours_minutes">(days, hours, minutes)</string>
+    <string name="nc_miniscript_days">Days</string>
+    <string name="nc_miniscript_hours">Hours</string>
+    <string name="nc_miniscript_spending_rules">Spending rules</string>
+    <string name="nc_miniscript_reuse_keys_across_policies">Reuse keys across policies (extra XPUBs might be required)</string>
+    <string name="nc_miniscript_zen_hodl">Zen Hodl</string>
+    <string name="nc_miniscript_block_number">block %1$s</string>
+    <plurals name="nc_miniscript_blocks_count">
+        <item quantity="one">%1$s block</item>
+        <item quantity="other">%1$s blocks</item>
+    </plurals>
+    <string name="nc_miniscript_duration_days_short">%1$dd</string>
+    <string name="nc_miniscript_duration_hours_short">%1$dh</string>
+    <string name="nc_miniscript_duration_minutes_short">%1$dm</string>
+    <string name="nc_miniscript_singlesig">singlesig</string>
+    <string name="nc_miniscript_m_of_n_multisig">%1$d-of-%2$d multisig</string>
+    <string name="nc_miniscript_m_of_n_multisig_nb">%1$d‑of‑%2$d multisig</string>
+    <string name="nc_miniscript_rule_absolute_initial">Until %1$s, spending requires signatures from a %2$s.</string>
+    <string name="nc_miniscript_rule_absolute_after_flexible">After that, spending requires either the same %1$s OR a %2$s.</string>
+    <string name="nc_miniscript_rule_absolute_after_expanding">After that, spending requires either the same %1$s OR a %2$s of %3$s multisig.</string>
+    <string name="nc_miniscript_rule_absolute_after_expanding_singlesig">After that, spending requires either the same %1$s OR a %2$s of %3$s singlesig.</string>
+    <string name="nc_miniscript_rule_absolute_after_decaying">After that, spending requires either the same %1$s OR a %2$s-of-%3$s multisig.</string>
+    <string name="nc_miniscript_rule_absolute_after_decaying_singlesig">After that, spending requires either the same %1$s OR a %2$s-of-%3$s singlesig.</string>
+    <string name="nc_miniscript_rule_relative_initial">First %1$s, after a coin is received: spending that coin requires signatures from a %2$s.</string>
+    <string name="nc_miniscript_rule_relative_after_flexible">After that, the same coin can be spent with either the same %1$s OR a %2$s.</string>
+    <string name="nc_miniscript_rule_relative_after_expanding">After that, the same coin can be spent with either the same %1$s OR a %2$s of %3$s multisig.</string>
+    <string name="nc_miniscript_rule_relative_after_expanding_singlesig">After that, the same coin can be spent with either the same %1$s OR a %2$s of %3$s singlesig.</string>
+    <string name="nc_miniscript_rule_relative_after_decaying">After that, the same coin can be spent with either the same %1$s OR a %2$s-of-%3$s multisig.</string>
+    <string name="nc_miniscript_rule_relative_after_decaying_singlesig">After that, the same coin can be spent with either the same %1$s OR a %2$s-of-%3$s singlesig.</string>
+    <string name="nc_miniscript_rule_zen_absolute_initial">Coins sent to this wallet are locked immediately and cannot be spent until %1$s.</string>
+    <string name="nc_miniscript_rule_zen_absolute_after">After that, spending requires signature from a %1$s.</string>
+    <string name="nc_miniscript_rule_zen_relative_initial">First %1$s, after a coin is received: spending that coin is not allowed.</string>
+    <string name="nc_miniscript_rule_zen_relative_after">After that, the same coin can be spent with a %1$s.</string>
 </resources>

@@ -44,14 +44,14 @@ fun NcTimeZoneField(
     title: String = stringResource(R.string.nc_time_zone),
     selectedTimeZone: TimeZoneDetail,
     onTimeZoneSelected: (TimeZoneDetail) -> Unit,
-    placeholder: String = "Select Time zone"
+    placeholder: String? = null
 ) {
     var showTimeZoneDialog by remember { mutableStateOf(false) }
 
     val displayText = if (selectedTimeZone.city.isNotEmpty()) {
         "${selectedTimeZone.city} (${selectedTimeZone.offset})"
     } else {
-        placeholder
+        placeholder ?: stringResource(R.string.nc_select_time_zone)
     }
 
     NcTextField(

@@ -28,6 +28,7 @@ import com.nunchuk.android.core.util.nativeErrorCode
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.share.model.SignFlowType
+import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.imports.ImportTransactionEvent.ImportTransactionSuccess
 import com.nunchuk.android.usecase.ImportKeystoneTransactionUseCase
 import com.nunchuk.android.usecase.membership.ParseKeystoneDummyTransaction
@@ -136,7 +137,7 @@ internal class ImportTransactionViewModel @Inject constructor(
                 setEvent(ImportTransactionEvent.ImportTransactionError(e.message.orUnknownError(), errorCode))
             } else if (_state.value.progress >= 100 || args.signFlowType is SignFlowType.ClaimAirgapMessage) {
                 // A static signature QR has no multi-frame progress to wait for.
-                setEvent(ImportTransactionEvent.ImportTransactionError("Invalid or unreadable QR code. Please try again."))
+                setEvent(ImportTransactionEvent.ImportTransactionError(messageRes = R.string.nc_transaction_invalid_qr_code))
             }
         }
     }

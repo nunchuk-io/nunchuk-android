@@ -89,7 +89,7 @@ fun ColdCardPassphraseImportantNoticeScreen(
                         onClick = onUseWithoutPassphrase
                     ) {
                         Text(
-                            text = "Use another key (without passphrase)",
+                            text = stringResource(R.string.nc_coldcard_use_another_key_without_passphrase),
                             style = NunchukTheme.typography.title.copy(color = MaterialTheme.colorScheme.controlTextPrimary)
                         )
                     }
@@ -101,7 +101,7 @@ fun ColdCardPassphraseImportantNoticeScreen(
                         onClick = onContinueWithPassphrase
                     ) {
                         Text(
-                            "Continue, I know what I’m doing",
+                            stringResource(R.string.nc_coldcard_continue_i_know_what_im_doing),
                             style = NunchukTheme.typography.title
                         )
                     }
@@ -118,20 +118,20 @@ fun ColdCardPassphraseImportantNoticeScreen(
 
                 Image(
                     painter = painterResource(id = R.drawable.ic_important_notice),
-                    contentDescription = "Decoy wallet intro",
+                    contentDescription = stringResource(R.string.nc_coldcard_decoy_wallet_intro_cd),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 24.dp),
                 )
 
                 Text(
-                    text = "Important notice about passphrase",
+                    text = stringResource(R.string.nc_coldcard_passphrase_important_notice_title),
                     style = NunchukTheme.typography.heading,
                     modifier = Modifier.padding(top = 12.dp)
                 )
 
                 NcHighlightText(
-                    text = "Using a passphrase for the inheritance key greatly complicates the setup and increases the risk of errors, both for you and the Beneficiary. [B]We strongly recommend using an inheritance key without a passphrase.[/B]"
+                    text = stringResource(R.string.nc_coldcard_passphrase_important_notice_desc)
                 )
             }
         }

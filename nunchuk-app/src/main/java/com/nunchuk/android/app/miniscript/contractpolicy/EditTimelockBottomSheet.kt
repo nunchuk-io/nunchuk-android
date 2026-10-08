@@ -37,8 +37,10 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.rememberNestedScrollInteropConnection
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
+import com.nunchuk.android.R
 import com.nunchuk.android.compose.NcDatePickerDialog
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcRadioButton
@@ -274,40 +276,40 @@ fun EditTimelockContent(
             ) {
                 Text(
                     modifier = Modifier.padding(top = 32.dp),
-                    text = "Edit timelock",
+                    text = stringResource(R.string.nc_miniscript_edit_timelock),
                     style = NunchukTheme.typography.title
                 )
 
-                Text("Timelock type", style = NunchukTheme.typography.titleSmall)
+                Text(stringResource(R.string.nc_miniscript_timelock_type), style = NunchukTheme.typography.titleSmall)
 
                 RadioOption(
-                    title = "Absolute time",
-                    description = "Unlock after a fixed point (specific date or block)",
+                    title = stringResource(R.string.nc_miniscript_absolute_time),
+                    description = stringResource(R.string.nc_miniscript_absolute_time_desc),
                     selected = timelockType == MiniscriptTimelockType.ABSOLUTE,
                     onClick = { timelockType = MiniscriptTimelockType.ABSOLUTE }
                 )
 
                 RadioOption(
-                    title = "Relative time",
-                    description = "Unlocks after a set period from the time coins are received. Transfers within the same wallet will reset the timelock.",
+                    title = stringResource(R.string.nc_miniscript_relative_time),
+                    description = stringResource(R.string.nc_miniscript_relative_time_desc),
                     selected = timelockType == MiniscriptTimelockType.RELATIVE,
                     onClick = { timelockType = MiniscriptTimelockType.RELATIVE }
                 )
 
                 HorizontalDivider()
 
-                Text("Time unit", style = NunchukTheme.typography.titleSmall)
+                Text(stringResource(R.string.nc_miniscript_time_unit), style = NunchukTheme.typography.titleSmall)
 
                 RadioOption(
-                    title = "Timestamp",
-                    description = "Unlock after a specific time (Unix timestamp)",
+                    title = stringResource(R.string.nc_miniscript_timestamp),
+                    description = stringResource(R.string.nc_miniscript_timestamp_desc),
                     selected = timeUnit == MiniscriptTimelockBased.TIME_LOCK,
                     onClick = { timeUnit = MiniscriptTimelockBased.TIME_LOCK }
                 )
 
                 RadioOption(
-                    title = "Block height",
-                    description = "Unlock after a specific block number",
+                    title = stringResource(R.string.nc_miniscript_block_height),
+                    description = stringResource(R.string.nc_miniscript_block_height_desc),
                     selected = timeUnit == MiniscriptTimelockBased.HEIGHT_LOCK,
                     onClick = { timeUnit = MiniscriptTimelockBased.HEIGHT_LOCK }
                 )
@@ -348,7 +350,7 @@ fun EditTimelockContent(
                                 coroutineScope.launch {
                                     snackbarHostState.showSnackbar(
                                         NcSnackbarVisuals(
-                                            message = "Please enter a value between the current block height and 499999999",
+                                            message = context.getString(R.string.nc_miniscript_invalid_block_height),
                                             type = NcToastType.ERROR
                                         )
                                     )
@@ -364,7 +366,7 @@ fun EditTimelockContent(
                                 coroutineScope.launch {
                                     snackbarHostState.showSnackbar(
                                         NcSnackbarVisuals(
-                                            message = "Invalid value. Timelock must not exceed 388 days.",
+                                            message = context.getString(R.string.nc_miniscript_invalid_timelock_max_days),
                                             type = NcToastType.ERROR
                                         )
                                     )
@@ -377,7 +379,7 @@ fun EditTimelockContent(
                                 coroutineScope.launch {
                                     snackbarHostState.showSnackbar(
                                         NcSnackbarVisuals(
-                                            message = "Please enter at least one time value.",
+                                            message = context.getString(R.string.nc_miniscript_enter_at_least_one_time_value),
                                             type = NcToastType.ERROR
                                         )
                                     )
@@ -390,7 +392,7 @@ fun EditTimelockContent(
                                 coroutineScope.launch {
                                     snackbarHostState.showSnackbar(
                                         NcSnackbarVisuals(
-                                            message = "Invalid block height. Enter a value between 0 and 65,534 blocks.",
+                                            message = context.getString(R.string.nc_miniscript_invalid_relative_block_height),
                                             type = NcToastType.ERROR
                                         )
                                     )
@@ -450,7 +452,7 @@ fun EditTimelockContent(
                         onSave(timelockData)
                     }
                 ) {
-                    Text(text = "Save")
+                    Text(text = stringResource(R.string.nc_save))
                 }
             }
         }
@@ -493,27 +495,27 @@ fun DatePickerField(
 
     val datePickerTextTitle = if (timelockType == MiniscriptTimelockType.ABSOLUTE) {
         if (timeUnit == MiniscriptTimelockBased.TIME_LOCK) {
-            "Unlock after a fixed date"
+            stringResource(R.string.nc_miniscript_unlock_after_fixed_date)
         } else {
-            "Unlock after the target block number"
+            stringResource(R.string.nc_miniscript_unlock_after_block_number)
         }
     } else {
-        "Unlock after time period"
+        stringResource(R.string.nc_miniscript_unlock_after_time_period)
     }
 
     val datePickerTextDesc =
         if (timelockType == MiniscriptTimelockType.ABSOLUTE && timeUnit == MiniscriptTimelockBased.HEIGHT_LOCK) {
             val numberFormatter = DecimalFormat("#,###")
-            "Current Bitcoin block height is ${numberFormatter.format(currentBlockHeight)}"
+            stringResource(R.string.nc_miniscript_current_block_height, numberFormatter.format(currentBlockHeight))
         } else {
             ""
         }
 
     val datePickerTitleHint = if (timelockType == MiniscriptTimelockType.RELATIVE) {
         if (timeUnit == MiniscriptTimelockBased.TIME_LOCK) {
-            "(days)"
+            stringResource(R.string.nc_miniscript_unit_days)
         } else {
-            "(blocks)"
+            stringResource(R.string.nc_miniscript_unit_blocks)
         }
     } else {
         ""
@@ -523,9 +525,9 @@ fun DatePickerField(
         Row {
             Text(
                 text = if (timelockType == MiniscriptTimelockType.ABSOLUTE) {
-                    "Unlock after a fixed date & time"
+                    stringResource(R.string.nc_miniscript_unlock_after_fixed_date_time)
                 } else {
-                    "Unlock after time period"
+                    stringResource(R.string.nc_miniscript_unlock_after_time_period)
                 },
                 style = NunchukTheme.typography.titleSmall,
             )
@@ -533,7 +535,7 @@ fun DatePickerField(
                 text = if (timelockType == MiniscriptTimelockType.ABSOLUTE) {
                     ""
                 } else {
-                    "(days, hours, minutes)"
+                    stringResource(R.string.nc_miniscript_unit_days_hours_minutes)
                 },
                 style = NunchukTheme.typography.bodySmall.copy(
                     color = MaterialTheme.colorScheme.textSecondary
@@ -547,11 +549,11 @@ fun DatePickerField(
         // Timezone field
         NcTextField(
             modifier = Modifier.padding(top = 10.dp),
-            title = "Time zone",
+            title = stringResource(R.string.nc_time_zone),
             value = if (selectedTimeZone.city.isNotEmpty()) {
                 "${selectedTimeZone.city} (${selectedTimeZone.offset})"
             } else {
-                "Select Time zone"
+                stringResource(R.string.nc_miniscript_select_time_zone)
             },
             readOnly = true,
             enabled = false,
@@ -607,7 +609,7 @@ fun DatePickerField(
             ) {
                 NcTextField(
                     modifier = Modifier.weight(1f),
-                    title = "Time",
+                    title = stringResource(R.string.nc_time),
                     value = selectedTimeText,
                     readOnly = true,
                     enabled = false,
@@ -677,7 +679,7 @@ fun DatePickerField(
             ) {
                 NcTextField(
                     modifier = Modifier.weight(1f),
-                    title = "Days",
+                    title = stringResource(R.string.nc_miniscript_days),
                     value = daysValue,
                     onValueChange = { value ->
                         if (value.isEmpty() || value.all { it.isDigit() }) {
@@ -687,7 +689,7 @@ fun DatePickerField(
                 )
                 NcTextField(
                     modifier = Modifier.weight(1f),
-                    title = "Hours",
+                    title = stringResource(R.string.nc_miniscript_hours),
                     value = hoursValue,
                     onValueChange = { value ->
                         if (value.isEmpty() || value.all { it.isDigit() }) {
@@ -697,7 +699,7 @@ fun DatePickerField(
                 )
                 NcTextField(
                     modifier = Modifier.weight(1f),
-                    title = "Minutes",
+                    title = stringResource(R.string.nc_minutes),
                     value = minutesValue,
                     onValueChange = { value ->
                         if (value.isEmpty() || value.all { it.isDigit() }) {

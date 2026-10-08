@@ -150,7 +150,7 @@ class NonSubscriberIntroFragment : Fragment(), BottomSheetOptionListener {
                     when (event) {
                         is NonSubscriberIntroEvent.Loading -> showOrHideLoading(event.isLoading)
                         is NonSubscriberIntroEvent.ShowError -> showError(event.message)
-                        is NonSubscriberIntroEvent.OnSubmitEmailSuccess -> showSuccess("We sent an email to ${event.email}")
+                        is NonSubscriberIntroEvent.OnSubmitEmailSuccess -> showSuccess(getString(R.string.nc_we_sent_an_email, event.email))
                         NonSubscriberIntroEvent.EmailInvalid -> showError(getString(R.string.nc_text_email_invalid))
                         NonSubscriberIntroEvent.HideUpsellBannerSuccess -> {
                             requireActivity().onBackPressedDispatcher.onBackPressed()
@@ -188,7 +188,7 @@ private fun NonSubscriberIntroContent(
                                     IconButton(onClick = onActionClick) {
                                         Icon(
                                             painter = painterResource(id = R.drawable.ic_more),
-                                            contentDescription = "More icon"
+                                            contentDescription = stringResource(R.string.nc_main_cd_more_icon)
                                         )
                                     }
                                 }

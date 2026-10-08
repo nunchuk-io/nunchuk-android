@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.transaction.components.receive.address.unused
 
+import androidx.annotation.StringRes
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.type.WalletType
 
@@ -28,7 +29,10 @@ sealed class UnusedAddressEvent {
     data class MarkAddressAsUsedSuccessEvent(val address: String) : UnusedAddressEvent()
     data class ShowOpenTrezorSuiteConfirmationEvent(val deeplink: String) : UnusedAddressEvent()
     data object VerifyAddressSuccessEvent : UnusedAddressEvent()
-    data class VerifyAddressErrorEvent(val message: String) : UnusedAddressEvent()
+    data class VerifyAddressErrorEvent(
+        val message: String = "",
+        @StringRes val messageRes: Int? = null,
+    ) : UnusedAddressEvent()
 }
 
 data class UnusedAddressState(

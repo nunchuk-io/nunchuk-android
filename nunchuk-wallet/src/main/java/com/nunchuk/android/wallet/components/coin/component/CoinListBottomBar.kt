@@ -57,7 +57,7 @@ fun CoinListBottomBar(
         IconButton(onClick = onSendBtc) {
             Icon(
                 painter = painterResource(id = R.drawable.ic_sending_bitcoin),
-                contentDescription = "Send Btc"
+                contentDescription = stringResource(R.string.nc_wallet_cd_send_btc)
             )
         }
         Column(
@@ -76,7 +76,7 @@ fun CoinListBottomBar(
         IconButton(onClick = onShowSelectedCoinMoreOption) {
             Icon(
                 painter = painterResource(id = R.drawable.ic_more),
-                contentDescription = "Menu more"
+                contentDescription = stringResource(R.string.nc_wallet_cd_menu_more)
             )
         }
     }

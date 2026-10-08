@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.main.membership.authentication
 
+import androidx.annotation.StringRes
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Transaction
@@ -30,7 +31,11 @@ import com.nunchuk.android.type.TransactionStatus
 sealed class WalletAuthenticationEvent {
     data class Loading(val isLoading: Boolean) : WalletAuthenticationEvent()
     data class ProcessFailure(val message: String) : WalletAuthenticationEvent()
-    data class ShowError(val message: String) : WalletAuthenticationEvent()
+    /** [messageRes], when set, takes precedence over [message] (app-authored, localizable text). */
+    data class ShowError(
+        val message: String = "",
+        @StringRes val messageRes: Int? = null,
+    ) : WalletAuthenticationEvent()
     data class SignDummyTxSuccess(val signatures: Map<String, String> = emptyMap()) :
         WalletAuthenticationEvent()
 

@@ -310,7 +310,7 @@ class ExportInvoices(private val context: Context) {
             paintGrayBox
         )
         canvas.drawText(
-            "Transaction note",
+            context.getString(R.string.nc_transaction_note),
             margin36 + margin12,
             yPosition + margin30,
             paintText.apply {

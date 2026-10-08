@@ -207,7 +207,7 @@ private fun InheritancePlanTypeContent(
 
                 if (isChangeTimelockFlow) {
                     Text(
-                        text = "Please review the differences between off-chain and on-chain options before changing the timelock.",
+                        text = stringResource(R.string.nc_membership_review_timelock_differences),
                         style = NunchukTheme.typography.body,
                     )
                 }
@@ -235,8 +235,12 @@ private fun InheritancePlanTypeContent(
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        text = if (fromAddKeyStep) "You can change the plan later (new wallet required). Not sure which to choose? Read the in-depth comparison." else if (isChangeTimelockFlow) "Read the in-depth comparison." else stringResource(
-                            R.string.nc_change_plan_later
+                        text = stringResource(
+                            when {
+                                fromAddKeyStep -> R.string.nc_membership_plan_change_later_comparison
+                                isChangeTimelockFlow -> R.string.nc_membership_read_in_depth_comparison
+                                else -> R.string.nc_change_plan_later
+                            }
                         ),
                         style = NunchukTheme.typography.titleSmall,
                         modifier = Modifier.weight(1f)
@@ -309,7 +313,7 @@ private fun InheritancePlanTypeOption(
                     Text(
                         text = buildAnnotatedString {
                             withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                append("Pros: ")
+                                append(stringResource(R.string.nc_membership_pros_label))
                             }
                             append(stringResource(R.string.nc_off_chain_pros))
                         },
@@ -318,7 +322,7 @@ private fun InheritancePlanTypeOption(
                     Text(
                         text = buildAnnotatedString {
                             withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                append("Cons: ")
+                                append(stringResource(R.string.nc_membership_cons_label))
                             }
                             append(stringResource(R.string.nc_off_chain_cons))
                         },
@@ -382,13 +386,16 @@ private fun InheritancePlanTypeOption(
                     Text(
                         text = buildAnnotatedString {
                             withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                append("Pros: ")
+                                append(stringResource(R.string.nc_membership_pros_label))
                             }
-                            append("Your Beneficiary can claim the inheritance ")
+                            val withOrWithout = stringResource(R.string.nc_membership_with_or_without)
+                            val claimText = stringResource(R.string.nc_membership_beneficiary_can_claim, withOrWithout)
+                            val styledIndex = claimText.indexOf(withOrWithout)
+                            append(claimText.substring(0, styledIndex))
                             withStyle(style = SpanStyle(fontStyle = FontStyle.Italic)) {
-                                append("with or without")
+                                append(withOrWithout)
                             }
-                            append(" Nunchuk's assistance once the timelock expires.")
+                            append(claimText.substring(styledIndex + withOrWithout.length))
                         },
                         style = NunchukTheme.typography.body,
                         modifier = Modifier.padding(top = 12.dp)
@@ -396,7 +403,7 @@ private fun InheritancePlanTypeOption(
                     Text(
                         text = buildAnnotatedString {
                             withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                append("Cons: ")
+                                append(stringResource(R.string.nc_membership_cons_label))
                             }
                             append(stringResource(R.string.nc_on_chain_cons))
                         },

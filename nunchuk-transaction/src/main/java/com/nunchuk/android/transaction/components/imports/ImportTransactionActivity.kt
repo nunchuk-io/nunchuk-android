@@ -103,7 +103,7 @@ class ImportTransactionActivity : BaseCameraActivity<ActivityImportTransactionBi
         val message = if (event.errorCode == NativeErrorCode.JADE_QR_PIN_UNLOCK) {
             getString(com.nunchuk.android.core.R.string.nc_jade_locked_qr_error)
         } else {
-            getString(R.string.nc_transaction_imported_failed) + event.message
+            getString(R.string.nc_transaction_imported_failed) + (event.messageRes?.let { getString(it) } ?: event.message)
         }
         if (args.isFinishWhenError) {
             NcToastManager.scheduleShowMessage(

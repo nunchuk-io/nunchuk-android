@@ -144,7 +144,7 @@ fun GroupDashboardContent(
                                 IconButton(onClick = onWalletClick, enabled = isWalletCreated) {
                                     NcIcon(
                                         painter = painterResource(id = R.drawable.ic_wallets),
-                                        contentDescription = "Wallet icon",
+                                        contentDescription = stringResource(R.string.nc_membership_cd_wallet_icon),
                                         tint = if (isWalletCreated) MaterialTheme.colorScheme.textPrimary else MaterialTheme.colorScheme.controlFillSecondary
                                     )
                                 }
@@ -153,7 +153,7 @@ fun GroupDashboardContent(
                                 IconButton(onClick = onMoreClick) {
                                     NcIcon(
                                         painter = painterResource(id = R.drawable.ic_more),
-                                        contentDescription = "More icon"
+                                        contentDescription = stringResource(R.string.nc_membership_cd_more_icon)
                                     )
                                 }
                             }
@@ -174,7 +174,7 @@ fun GroupDashboardContent(
                         ) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_messages),
-                                contentDescription = "Chat"
+                                contentDescription = stringResource(R.string.nc_membership_cd_chat)
                             )
                         }
                     }
@@ -192,7 +192,7 @@ fun GroupDashboardContent(
                             ) {
                                 Icon(
                                     painter = painterResource(id = R.drawable.ic_messages),
-                                    contentDescription = "Chat"
+                                    contentDescription = stringResource(R.string.nc_membership_cd_chat)
                                 )
                             }
                         } else {
@@ -215,7 +215,7 @@ fun GroupDashboardContent(
                                 icon = {
                                     Icon(
                                         painter = painterResource(id = R.drawable.ic_create_message),
-                                        contentDescription = "Search",
+                                        contentDescription = stringResource(R.string.nc_membership_cd_search),
                                         tint = if (isEnableStartGroupChat) LocalContentColor.current else colorResource(
                                             id = R.color.nc_grey_dark_color
                                         )
@@ -485,7 +485,7 @@ private fun AlertView(
                     if (isDismissible) onDismissClick() else onViewClick()
                 }
             ) {
-                Text(text = if (isDismissible) "Dismiss" else "View")
+                Text(text = stringResource(if (isDismissible) R.string.nc_membership_dismiss else R.string.nc_membership_view))
             }
         }
     }
@@ -598,7 +598,7 @@ private fun ContactMemberView(
                         }
                     }
                     Text(
-                        text = "Pending",
+                        text = stringResource(R.string.nc_claim_status_pending),
                         style = NunchukTheme.typography.title
                     )
                 }

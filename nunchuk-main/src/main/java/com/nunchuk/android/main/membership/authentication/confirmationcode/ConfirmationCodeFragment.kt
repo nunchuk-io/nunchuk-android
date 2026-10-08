@@ -160,7 +160,7 @@ fun ConfirmChangeScreenContent(
                             modifier = Modifier.size(36.dp),
                             contentScale = ContentScale.Crop,
                             painter = painterResource(id = R.drawable.ic_info),
-                            contentDescription = "Info icon"
+                            contentDescription = stringResource(R.string.nc_membership_cd_info_icon)
                         )
                         NcSpannedText(
                             modifier = Modifier.padding(start = 18.dp),

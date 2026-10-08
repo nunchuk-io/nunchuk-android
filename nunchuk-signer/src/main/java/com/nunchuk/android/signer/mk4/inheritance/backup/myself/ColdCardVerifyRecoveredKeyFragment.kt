@@ -135,7 +135,7 @@ internal fun ColdCardVerifyRecoveredKeyScreen(
 
                 NcHintMessage(modifier = Modifier.padding(top = 16.dp), content = {
                     Text(
-                        text = "If the XFP doesn’t match, please recheck the uploaded file. If you are using a passphrase, it must be included in the encrypted backup.",
+                        text = stringResource(R.string.nc_coldcard_xfp_mismatch_recheck_hint),
                         style = NunchukTheme.typography.titleSmall
                     )
                 })
@@ -146,7 +146,7 @@ internal fun ColdCardVerifyRecoveredKeyScreen(
                         showConfirmationDialog = true
                     }) {
                     Text(
-                        text = "I have verified the backup",
+                        text = stringResource(R.string.nc_i_have_verified),
                         style = NunchukTheme.typography.title.copy(color = MaterialTheme.colorScheme.controlTextPrimary)
                     )
                 }
@@ -178,7 +178,7 @@ internal fun ColdCardVerifyRecoveredKeyScreen(
 
                 Text(
                     modifier = Modifier.padding(top = 24.dp),
-                    text = "Verify the recovered key",
+                    text = stringResource(R.string.nc_coldcard_verify_recovered_key),
                     style = NunchukTheme.typography.heading
                 )
 
@@ -204,7 +204,7 @@ internal fun ColdCardVerifyRecoveredKeyScreen(
                     ) {
                         Text(
                             modifier = Modifier.fillMaxWidth(),
-                            text = "Note down the Backup Password (12 words) and store it in a safe place.",
+                            text = stringResource(R.string.nc_coldcard_note_down_backup_password),
                             style = NunchukTheme.typography.body,
                             textAlign = TextAlign.Start
                         )
@@ -213,7 +213,7 @@ internal fun ColdCardVerifyRecoveredKeyScreen(
 
                 Text(
                     modifier = Modifier.padding(top = 24.dp),
-                    text = "Master key figngerprint (XFP)",
+                    text = stringResource(R.string.nc_coldcard_master_key_fingerprint_xfp),
                     style = NunchukTheme.typography.body
                 )
                 Box(
@@ -243,7 +243,7 @@ internal fun ColdCardVerifyRecoveredKeyScreen(
 
             if (showConfirmationDialog) {
                 NcConfirmationDialog(title = stringResource(R.string.nc_confirmation),
-                    message = "Are you sure you have verified the backup? Inheritance claiming might not work with an unverified backup.",
+                    message = stringResource(R.string.nc_coldcard_confirm_verified_backup),
                     onPositiveClick = {
                         onContinue()
                         showConfirmationDialog = false

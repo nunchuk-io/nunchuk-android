@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.main.membership.key.recoveryquestion
 
+import androidx.annotation.StringRes
 import com.nunchuk.android.main.membership.model.SecurityQuestionModel
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.membership.AssistedWalletBrief
@@ -42,6 +43,7 @@ sealed class RecoveryQuestionEvent {
     ) : RecoveryQuestionEvent()
 
     data class ShowError(val message: String) : RecoveryQuestionEvent()
+    data class ShowErrorRes(@StringRes val messageRes: Int) : RecoveryQuestionEvent()
     data object RecoveryQuestionUpdateSuccess : RecoveryQuestionEvent()
     data object DiscardChangeClick : RecoveryQuestionEvent()
 }

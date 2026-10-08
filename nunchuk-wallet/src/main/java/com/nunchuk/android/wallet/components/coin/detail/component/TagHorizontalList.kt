@@ -60,7 +60,7 @@ fun TagHorizontalList(
             modifier = Modifier
                 .size(24.dp),
             painter = painterResource(id = R.drawable.ic_coin_tag),
-            contentDescription = "Lock icon"
+            contentDescription = stringResource(R.string.nc_wallet_cd_lock_icon)
         )
         Text(
             modifier = Modifier.padding(start = 8.dp),
@@ -85,7 +85,7 @@ fun TagHorizontalList(
             Icon(
                 modifier = Modifier.clickable { onUpdateTag() },
                 painter = painterResource(R.drawable.ic_plus),
-                contentDescription = "Add"
+                contentDescription = stringResource(R.string.nc_add)
             )
         }
     }
@@ -134,7 +134,7 @@ fun TagHorizontalList(
             modifier = Modifier
                 .size(24.dp),
             painter = painterResource(id = R.drawable.ic_coin_tag),
-            contentDescription = "Coin Tag"
+            contentDescription = stringResource(R.string.nc_wallet_cd_coin_tag)
         )
         Text(
             modifier = Modifier.padding(start = 8.dp),

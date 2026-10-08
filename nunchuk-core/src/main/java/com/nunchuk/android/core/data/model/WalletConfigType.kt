@@ -1,6 +1,9 @@
 package com.nunchuk.android.core.data.model
 
 import androidx.annotation.Keep
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
+import com.nunchuk.android.core.R
 
 @Keep
 enum class WalletConfigType {
@@ -10,12 +13,13 @@ enum class WalletConfigType {
     MINISCRIPT
 }
 
+@Composable
 fun WalletConfigType.toOptionName(): String {
     return when (this) {
-        WalletConfigType.TOW_OF_THREE -> "2/3 multisig"
-        WalletConfigType.THREE_OF_FIVE -> "3/5 multisig"
-        WalletConfigType.CUSTOM -> "Customize multisig"
-        WalletConfigType.MINISCRIPT -> "Miniscript"
+        WalletConfigType.TOW_OF_THREE -> stringResource(R.string.nc_wallet_config_m_of_n_multisig, 2, 3)
+        WalletConfigType.THREE_OF_FIVE -> stringResource(R.string.nc_wallet_config_m_of_n_multisig, 3, 5)
+        WalletConfigType.CUSTOM -> stringResource(R.string.nc_wallet_config_customize_multisig)
+        WalletConfigType.MINISCRIPT -> stringResource(R.string.nc_miniscript)
     }
 }
 

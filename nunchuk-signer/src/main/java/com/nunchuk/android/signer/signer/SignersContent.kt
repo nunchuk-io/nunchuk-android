@@ -67,7 +67,7 @@ fun SignersContent(
                 ) {
                     Image(
                         painter = painterResource(id = R.drawable.bg_let_s_add_keys_transparent),
-                        contentDescription = "No keys",
+                        contentDescription = stringResource(R.string.nc_signers_no_keys),
                         modifier = Modifier.fillMaxWidth()
                     )
 
@@ -114,7 +114,7 @@ fun SignersContent(
                             IconButton(onClick = onAddSignerClick) {
                                 Icon(
                                     painterResource(id = R.drawable.ic_add_dark),
-                                    contentDescription = "Add Signer",
+                                    contentDescription = stringResource(R.string.nc_signers_add_signer),
                                 )
                             }
                         }

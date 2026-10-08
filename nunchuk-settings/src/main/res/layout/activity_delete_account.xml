@@ -33,7 +33,7 @@
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/nc_padding_16"
         android:layout_marginTop="@dimen/nc_padding_16"
-        app:edit_title="Confirmation code"
+        app:edit_title="@string/nc_confirmation_code"
         app:errorEnabled="true" />
 
     <com.nunchuk.android.widget.NCFontButton
@@ -43,6 +43,6 @@
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/nc_padding_16"
         android:layout_marginTop="@dimen/nc_padding_18"
-        android:text="Confirm account deletion" />
+        android:text="@string/nc_settings_confirm_account_deletion" />
 
 </androidx.appcompat.widget.LinearLayoutCompat>

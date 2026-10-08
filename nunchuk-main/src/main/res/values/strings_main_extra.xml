@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Strings extracted from hardcoded text in nunchuk-main (non-membership). -->
+<resources>
+    <string name="nc_main_buffer_period_apply_on">Buffer period: (%1$s)</string>
+    <string name="nc_main_cannot_load_wallet_for_signing">Cannot load wallet for %1$s signing</string>
+    <string name="nc_main_cd_add_wallet">Add Wallet</string>
+    <string name="nc_main_cd_archived">Archived</string>
+    <string name="nc_main_cd_arrow">Arrow</string>
+    <string name="nc_main_cd_back">Back</string>
+    <string name="nc_main_cd_back_icon">Back Icon</string>
+    <string name="nc_main_cd_back_icon_lower">Back icon</string>
+    <string name="nc_main_cd_checked_icon">Checked icon</string>
+    <string name="nc_main_cd_download_icon">Download icon</string>
+    <string name="nc_main_cd_edit_icon">Edit icon</string>
+    <string name="nc_main_cd_encrypted_icon">Encrypted icon</string>
+    <string name="nc_main_cd_gift_icon">Gift Icon</string>
+    <string name="nc_main_cd_help_icon">Help Icon</string>
+    <string name="nc_main_cd_illustration">Illustration</string>
+    <string name="nc_main_cd_invalid_email">Invalid email</string>
+    <string name="nc_main_cd_key_icon">Key icon</string>
+    <string name="nc_main_cd_lock_icon">Lock icon</string>
+    <string name="nc_main_cd_more_icon">More icon</string>
+    <string name="nc_main_cd_nfc_icon">Nfc Icon</string>
+    <string name="nc_main_cd_qr_code">QR Code</string>
+    <string name="nc_main_cd_remove_email">Remove email</string>
+    <string name="nc_main_cd_replace_icon">Replace icon</string>
+    <string name="nc_main_cd_share">Share</string>
+    <string name="nc_main_cd_valid_email">Valid email</string>
+    <string name="nc_main_cd_wallet_icon">Wallet icon</string>
+    <string name="nc_main_estimated_in_parentheses">(Estimated)</string>
+    <string name="nc_main_failed_to_initialize_inheritance_claiming">Failed to initialize inheritance claiming</string>
+    <string name="nc_main_failed_to_share_qr_code">Failed to share QR code</string>
+    <string name="nc_main_funds_become_claimable_after">Funds become claimable after:</string>
+    <string name="nc_main_group_wallet_with_index">Group wallet #%1$d</string>
+    <string name="nc_main_guest_wallets_notice">Guest wallets notice</string>
+    <string name="nc_main_guest_wallets_notice_desc">The wallets created in guest mode will still work normally after you create a new account. To access them again, switch back to guest mode:</string>
+    <string name="nc_main_guest_wallets_notice_path">Profile → Sign out → Continue as guest</string>
+    <plurals name="nc_main_hours_count">
+        <item quantity="one">%1$d hour</item>
+        <item quantity="other">%1$d hours</item>
+    </plurals>
+    <plurals name="nc_main_hours_minutes">
+        <item quantity="one">%1$d hour %2$d min</item>
+        <item quantity="other">%1$d hours %2$d min</item>
+    </plurals>
+    <string name="nc_main_incorrect_key_add_correct_key">Incorrect key. Please add the correct key.</string>
+    <string name="nc_main_inheritance_key_number">Inheritance Key %1$d</string>
+    <string name="nc_main_invalid_password_unable_to_restore_backup">Invalid password. Unable to restore backup</string>
+    <string name="nc_main_invalid_signature_try_again">Invalid signature. Please try again.</string>
+    <string name="nc_main_key_cannot_sign_that_way">This key cannot sign that way</string>
+    <string name="nc_main_link_copied_to_clipboard">Link copied to clipboard</string>
+    <string name="nc_main_loading">Loading</string>
+    <string name="nc_main_master_signer_not_found">Master signer not found</string>
+    <string name="nc_main_minutes_count">%1$d min</string>
+    <string name="nc_main_no_key_selected_for_path_change">No key selected for path change</string>
+    <string name="nc_main_no_signature_available">No signature available</string>
+    <string name="nc_main_no_signer_found_at_cached_index">No signer found at cached index</string>
+    <string name="nc_main_ordinal_nd">%1$dnd</string>
+    <string name="nc_main_ordinal_rd">%1$drd</string>
+    <string name="nc_main_ordinal_st">%1$dst</string>
+    <string name="nc_main_ordinal_th">%1$dth</string>
+    <string name="nc_main_please_enter_backup_password">Please enter Backup Password</string>
+    <string name="nc_main_remove_signer_from_key_confirm">Are you sure you want to remove the signer from this key?</string>
+    <string name="nc_main_replacing_key">Replacing %1$s (%2$s)</string>
+    <string name="nc_main_rescan_tapsigner_new_xpub">Please rescan your TAPSIGNER to get a new XPUB</string>
+    <string name="nc_main_rollover_before_you_continue">Before you continue</string>
+    <string name="nc_main_rollover_broadcast_privacy_warning">Broadcasting the rollover transactions at the same time might allow someone to link those transactions and damage your privacy.</string>
+    <string name="nc_main_rollover_broadcast_within">Broadcast transactions within:</string>
+    <string name="nc_main_rollover_coin_control_intro_desc">By default, all existing coins will be consolidated into a single coin in the new wallet. If you want to organize and segregate your coins for various purposes, consider using coin tags or collections before proceeding with the rollover, or keep all coins as they are.</string>
+    <string name="nc_main_rollover_continue_consolidating_all_coins">Continue consolidating all coins</string>
+    <string name="nc_main_rollover_estimated_fee_calculating">Estimated fee: calculating...</string>
+    <string name="nc_main_rollover_estimated_fee_value">Estimated fee: %1$s</string>
+    <string name="nc_main_rollover_failed_to_create_transactions">Failed to create transactions</string>
+    <string name="nc_main_rollover_following_transactions_created">The following transactions will be created.</string>
+    <string name="nc_main_rollover_preview">Rollover preview</string>
+    <string name="nc_main_rollover_randomize_broadcast">Automatically randomize broadcast</string>
+    <string name="nc_main_rollover_select_tags_collections_desc">Select the coin tags and collections you want to keep for the new wallet. Please note that the more tags and collections, the more transactions and fees will be required for the rollover.</string>
+    <string name="nc_main_rollover_sign_transactions_at_convenience">Please sign the rollover transactions at your convenience.</string>
+    <string name="nc_main_rollover_total_fee">Total fee: %1$s</string>
+    <string name="nc_main_scan_qr_to_join_group_wallet">Scan the QR code to join the group wallet.</string>
+    <string name="nc_main_share_qr_code">Share QR code</string>
+    <string name="nc_main_signer_not_found_for_path_change">Signer not found for path change</string>
+    <string name="nc_main_single_signer_not_found">Single signer not found</string>
+    <string name="nc_main_someone">Someone</string>
+    <string name="nc_main_spending_limit_per_unit">%1$s %2$s / %3$s</string>
+    <string name="nc_main_text_in_parentheses">(%1$s)</string>
+    <string name="nc_main_time_unit_day">Day</string>
+    <string name="nc_main_time_unit_month">Month</string>
+    <string name="nc_main_time_unit_week">Week</string>
+    <string name="nc_main_time_unit_year">Year</string>
+
+    <plurals name="nc_main_days">
+        <item quantity="one">%1$d day</item>
+        <item quantity="other">%1$d days</item>
+    </plurals>
+    <plurals name="nc_main_rollover_transactions_required">
+        <item quantity="one">%1$d transaction required</item>
+        <item quantity="other">%1$d transactions required</item>
+    </plurals>
+</resources>

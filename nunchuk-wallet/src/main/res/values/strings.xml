@@ -140,4 +140,24 @@
     <string name="nc_estimate_remain_time">Est. time remaining: %1$d minutes</string>
     <string name="nc_select_a_destination_wallet">Select a destination wallet</string>
     <string name="nc_text_connection_status_syncing">Syncing</string>
+    <string name="nc_wallet_chat">Chat</string>
+    <string name="nc_wallet_type_a_message">Type a message</string>
+    <string name="nc_wallet_view_coin_ancestry">View coin ancestry</string>
+    <string name="nc_wallet_wallet_address">Wallet address</string>
+    <string name="nc_wallet_register_wallet_on_coldcard">Register wallet on COLDCARD</string>
+    <string name="nc_wallet_download_file">Download file</string>
+    <string name="nc_wallet_register_coldcard_via_file_desc">Download the wallet configuration file below and copy it to a microSD card.\n\nInsert the card into the COLDCARD, then go to Settings → Miniscript → Import file.</string>
+    <string name="nc_wallet_register_coldcard_via_qr_desc">On COLDCARD, go to Settings → Miniscript → Scan QR code.\n\nTap Continue to display the QR code.</string>
+    <string name="nc_wallet_timelock_warning_relative_and_absolute">Move coins to reset a soon-expiring relative timelock. Absolute timelocks can\'t be reset, so after expiry, move funds to a new wallet to reuse signing policies.</string>
+    <string name="nc_wallet_timelock_warning_relative">Move coins with a soon-expiring timelock to another address in this wallet to reset the timelock.</string>
+    <string name="nc_wallet_timelock_warning_absolute">Absolute timelocks can\'t be reset. After expiry, consider moving funds to a new wallet with the same policies if you want to reuse them.</string>
+    <string name="nc_wallet_tether_usd">Tether USD</string>
+    <string name="nc_wallet_liquid_btc_colon">Liquid BTC:</string>
+    <string name="nc_wallet_value_with_amount">%1$s (%2$s)</string>
+    <string name="nc_wallet_deprecated_wallet_name">[DEPRECATED] %1$s</string>
+    <string name="nc_wallet_someone">Someone</string>
+    <string name="nc_wallet_date_placeholder">mm/dd/yyyy</string>
+    <string name="nc_wallet_upload_config_do_later">If you do this later:</string>
+    <string name="nc_wallet_upload_config_do_later_path">Navigate to Wallet details → View wallet config → More menu → Export wallet configuration</string>
+    <string name="nc_wallet_upload_config_export">Export configuration</string>
 </resources>

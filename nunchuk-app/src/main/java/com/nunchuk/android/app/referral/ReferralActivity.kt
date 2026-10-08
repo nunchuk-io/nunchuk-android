@@ -9,6 +9,7 @@ import androidx.compose.runtime.remember
 import androidx.core.view.WindowCompat
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
+import com.nunchuk.android.R
 import com.nunchuk.android.app.referral.address.DEFAULT_ADDRESS
 import com.nunchuk.android.app.referral.address.DEFAULT_WALLET_ID
 import com.nunchuk.android.app.referral.address.navigateToReferralAddress
@@ -57,7 +58,7 @@ class ReferralActivity : BaseComposeActivity() {
                         navController = navigationController,
                         onCopyToClipboard = {
                             copyToClipboard(label = "Nunchuk", text = it)
-                            NCToastMessage(this@ReferralActivity).show("Link copied to clipboard")
+                            NCToastMessage(this@ReferralActivity).show(getString(R.string.nc_referral_link_copied))
                         }, onChangeAddress = { address, walletId, isHasLocalReferralCode ->
                             navigationController.navigateToReferralAddress(
                                 address = address.ifBlank { DEFAULT_ADDRESS },

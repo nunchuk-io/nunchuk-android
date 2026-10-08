@@ -313,7 +313,7 @@ private fun CoinFilterContent(
                                                 .size(24.dp)
                                                 .align(Alignment.CenterEnd),
                                             painter = painterResource(id = R.drawable.ic_arrow_expand),
-                                            contentDescription = "Arrow Expand"
+                                            contentDescription = stringResource(R.string.nc_wallet_cd_arrow_expand)
                                         )
                                     }
                                 }
@@ -352,7 +352,7 @@ private fun CoinFilterContent(
                                                 .size(24.dp)
                                                 .align(Alignment.CenterEnd),
                                             painter = painterResource(id = R.drawable.ic_arrow_expand),
-                                            contentDescription = "Arrow Expand"
+                                            contentDescription = stringResource(R.string.nc_wallet_cd_arrow_expand)
                                         )
                                     }
                                 }
@@ -410,7 +410,7 @@ private fun CoinFilterContent(
                                         .clickable { onSelectDate(true) }
                                         .fillMaxWidth()
                                         .padding(12.dp),
-                                    text = if (startTime <= 0L) "mm/dd/yyyy" else Date(startTime).simpleGlobalDateFormat(),
+                                    text = if (startTime <= 0L) stringResource(R.string.nc_wallet_date_placeholder) else Date(startTime).simpleGlobalDateFormat(),
                                     style = NunchukTheme.typography.body,
                                 )
                                 Text(
@@ -429,7 +429,7 @@ private fun CoinFilterContent(
                                         .clickable { onSelectDate(false) }
                                         .fillMaxWidth()
                                         .padding(12.dp),
-                                    text = if (endTime <= 0L) "mm/dd/yyyy" else Date(endTime).simpleGlobalDateFormat(),
+                                    text = if (endTime <= 0L) stringResource(R.string.nc_wallet_date_placeholder) else Date(endTime).simpleGlobalDateFormat(),
                                     style = NunchukTheme.typography.body,
                                 )
                             }

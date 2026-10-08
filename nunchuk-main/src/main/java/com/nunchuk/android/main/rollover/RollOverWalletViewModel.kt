@@ -1,5 +1,7 @@
 package com.nunchuk.android.main.rollover
 
+import com.nunchuk.android.main.R
+import androidx.annotation.StringRes
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -180,7 +182,7 @@ class RollOverWalletViewModel @Inject constructor(
                 )
             ).onSuccess {
                 if (it.isNullOrEmpty()) {
-                    _event.emit(RollOverWalletEvent.Error("Failed to create transactions"))
+                    _event.emit(RollOverWalletEvent.Error(messageResId = R.string.nc_main_rollover_failed_to_create_transactions))
                     return@onSuccess
                 }
                 _event.emit(RollOverWalletEvent.Success)
@@ -347,7 +349,10 @@ class RollOverWalletViewModel @Inject constructor(
 
 sealed class RollOverWalletEvent {
     data class Loading(val isLoading: Boolean) : RollOverWalletEvent()
-    data class Error(val message: String) : RollOverWalletEvent()
+    data class Error(
+        val message: String = "",
+        @StringRes val messageResId: Int? = null,
+    ) : RollOverWalletEvent()
     data object Success : RollOverWalletEvent()
 }
 

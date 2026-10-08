@@ -49,7 +49,7 @@ fun LockCoinRow(
             modifier = Modifier
                 .size(24.dp),
             painter = painterResource(id = R.drawable.ic_lock),
-            contentDescription = "Lock icon"
+            contentDescription = stringResource(R.string.nc_wallet_cd_lock_icon)
         )
         Text(
             modifier = Modifier.padding(start = 8.dp),

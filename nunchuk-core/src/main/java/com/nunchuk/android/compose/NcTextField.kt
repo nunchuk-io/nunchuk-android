@@ -65,6 +65,7 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.core.R
+import androidx.compose.ui.res.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -407,7 +408,7 @@ private fun BottomText(error: String?) {
                 .size(16.dp)
                 .padding(2.dp),
             painter = painterResource(id = R.drawable.ic_error_outline),
-            contentDescription = "Error icon",
+            contentDescription = stringResource(R.string.nc_cd_error_icon),
         )
         Text(
             text = error.orEmpty(), style = NunchukTheme.typography.bodySmall.copy(

@@ -59,17 +59,17 @@ fun KeySetView(
             if (isValueKeySet) {
                 NcIcon(
                     painter = painterResource(R.drawable.ic_nc_star_dark),
-                    contentDescription = "Value Key Set",
+                    contentDescription = stringResource(R.string.nc_transaction_value_key_set_icon),
                 )
 
                 Text(
-                    text = "Value Keyset",
+                    text = stringResource(R.string.nc_transaction_value_keyset),
                     style = NunchukTheme.typography.captionTitle,
                     modifier = Modifier.padding(start = 8.dp)
                 )
             } else {
                 Text(
-                    text = "Keyset ${keySetIndex + 1}",
+                    text = stringResource(R.string.nc_transaction_keyset_index, keySetIndex + 1),
                     style = NunchukTheme.typography.captionTitle,
                     modifier = Modifier.padding(start = 8.dp)
                 )
@@ -78,7 +78,7 @@ fun KeySetView(
             if (pendingSignatures > 0 && keySet.status.isPendingSignatures()) {
                 NcIcon(
                     painter = painterResource(R.drawable.ic_pending_signatures),
-                    contentDescription = "Required Signers",
+                    contentDescription = stringResource(R.string.nc_transaction_required_signers),
                     modifier = Modifier.padding(start = 4.dp)
                 )
 

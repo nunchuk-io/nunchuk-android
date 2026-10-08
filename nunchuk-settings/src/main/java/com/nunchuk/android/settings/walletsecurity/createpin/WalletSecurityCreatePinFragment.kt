@@ -147,7 +147,9 @@ private fun WalletSecurityCreatePinContent(
             ) {
                 Text(
                     modifier = Modifier.padding(top = 16.dp),
-                    text = if (createPinFlow) "Security PIN" else "Change PIN",
+                    text = stringResource(
+                        if (createPinFlow) R.string.nc_settings_security_pin else R.string.nc_settings_change_pin
+                    ),
                     style = NunchukTheme.typography.heading
                 )
 

@@ -150,7 +150,7 @@ fun QuickWalletScreen(
                 ) {
                     Image(
                         painter = painterResource(id = R.drawable.ic_circle_new_wallet),
-                        contentDescription = "Help Icon",
+                        contentDescription = stringResource(R.string.nc_quick_wallet_help_icon),
                         modifier = Modifier.size(96.dp)
                     )
                 }

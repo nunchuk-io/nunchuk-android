@@ -23,11 +23,12 @@ import com.nunchuk.android.core.base.BaseComposeActivity
 import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.util.InheritanceClaimTxDetailInfo
 import com.nunchuk.android.model.Transaction
+import com.nunchuk.android.transaction.R
 import com.nunchuk.android.widget.NCToastMessage
 
 fun BaseComposeActivity.showCreateTransactionError(message: String) {
     hideLoading()
-    NCToastMessage(this).showError("Create transaction error due to $message")
+    NCToastMessage(this).showError(getString(R.string.nc_transaction_create_error_due_to, message))
 }
 
 fun BaseComposeActivity.openTransactionDetailScreen(
@@ -46,7 +47,7 @@ fun BaseComposeActivity.openTransactionDetailScreen(
         inheritanceClaimTxDetailInfo = inheritanceClaimTxDetailInfo,
         transaction = transaction
     )
-    NCToastMessage(this).showMessage("Transaction created::$txId")
+    NCToastMessage(this).showMessage(getString(R.string.nc_transaction_created_with_id, txId))
 }
 
 fun BaseComposeActivity.returnActiveRoom(roomId: String) {

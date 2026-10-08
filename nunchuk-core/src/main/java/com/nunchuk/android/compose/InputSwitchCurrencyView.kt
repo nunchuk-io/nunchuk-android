@@ -90,7 +90,7 @@ private fun SwitchAmount(isBtc: Boolean, onSwitchBtcAndCurrency: (Boolean) -> Un
     ) {
         NcIcon(
             painter = painterResource(id = R.drawable.ic_switch),
-            contentDescription = "Switch",
+            contentDescription = stringResource(R.string.nc_cd_switch),
         )
         Text(
             modifier = Modifier.padding(horizontal = 8.dp),

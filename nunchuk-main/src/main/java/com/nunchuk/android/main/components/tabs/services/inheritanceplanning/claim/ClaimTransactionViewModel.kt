@@ -59,6 +59,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.FileOutputStream
+import com.nunchuk.android.main.R
 
 @HiltViewModel(assistedFactory = ClaimTransactionViewModel.Factory::class)
 class ClaimTransactionViewModel @AssistedInject constructor(
@@ -304,7 +305,7 @@ class ClaimTransactionViewModel @AssistedInject constructor(
             }.onFailure { exception ->
                 Timber.e(exception, "Failed to claim inheritance transaction")
                 val errorMessage = if (exception.isNoInternetException) {
-                    "Network unreachable. Please try again later."
+                    applicationContext.getString(R.string.nc_network_unreachable_try_again_later)
                 } else {
                     exception.readableMessage()
                 }
@@ -347,7 +348,7 @@ class ClaimTransactionViewModel @AssistedInject constructor(
                 } ?: throw Exception("Failed to read file content")
                 decodeSignedPsbt(fileContent)
             } catch (_: Exception) {
-                _event.emit(ClaimTransactionEvent.ShowError("Invalid signature. Please try again."))
+                _event.emit(ClaimTransactionEvent.ShowError(applicationContext.getString(R.string.nc_main_invalid_signature_try_again)))
             }
             _loadingType.update { null }
         }
@@ -380,7 +381,7 @@ class ClaimTransactionViewModel @AssistedInject constructor(
                 ?.let { bsms -> parseWalletDescriptorUseCase(bsms).getOrNull() }
                 ?.also { registrationWallet = it }
             ?: run {
-                _event.emit(ClaimTransactionEvent.ShowError("Cannot load wallet for ${tag.formattedName} signing"))
+                _event.emit(ClaimTransactionEvent.ShowError(applicationContext.getString(R.string.nc_main_cannot_load_wallet_for_signing, tag.formattedName)))
                 null
             }
 
@@ -409,7 +410,7 @@ class ClaimTransactionViewModel @AssistedInject constructor(
         viewModelScope.launch {
             _loadingType.update { LoadingType.Normal }
             runCatching { decodeSignedPsbt(signedPsbt) }.onFailure {
-                _event.emit(ClaimTransactionEvent.ShowError("Invalid signature. Please try again."))
+                _event.emit(ClaimTransactionEvent.ShowError(applicationContext.getString(R.string.nc_main_invalid_signature_try_again)))
             }
             _loadingType.update { null }
         }

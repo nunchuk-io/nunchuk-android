@@ -130,7 +130,7 @@ fun TaprootConfigScreen(
                         IconButton(onClick = onToggleShowPath) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_more),
-                                contentDescription = "More icon"
+                                contentDescription = stringResource(R.string.nc_wallet_cd_more_icon)
                             )
                         }
                     }
@@ -214,7 +214,7 @@ fun TaprootConfigScreen(
                                     shape = RoundedCornerShape(20.dp)
                                 )
                                 .padding(horizontal = 10.dp, vertical = 4.dp),
-                            text = "${state.totalRequireSigns}/${state.selectedSigners.size} $walletTypeString",
+                            text = stringResource(R.string.nc_wallet_required_signs_of_total_type, state.totalRequireSigns, state.selectedSigners.size, walletTypeString),
                             style = NunchukTheme.typography.caption,
                         )
                     }

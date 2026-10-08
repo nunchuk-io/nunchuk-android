@@ -44,7 +44,7 @@ fun LazyListScope.HealthCheckStatusView(
             Row {
                 NcIcon(
                     painter = painterResource(id = R.drawable.ic_health_check),
-                    contentDescription = "image description",
+                    contentDescription = stringResource(R.string.nc_membership_cd_image),
                 )
                 Text(
                     modifier = Modifier.padding(start = 8.dp),

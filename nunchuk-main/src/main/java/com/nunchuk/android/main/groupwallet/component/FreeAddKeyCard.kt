@@ -244,7 +244,7 @@ private fun KeyAddedView(
                                 NcIcon(
                                     modifier = Modifier.size(12.dp),
                                     painter = painterResource(id = R.drawable.ic_edit_small),
-                                    contentDescription = "Edit icon"
+                                    contentDescription = stringResource(R.string.nc_main_cd_edit_icon)
                                 )
                             }
                         }
@@ -328,11 +328,11 @@ private fun KeyAddedView(
             ) {
                 NcIcon(
                     painter = painterResource(id = R.drawable.ic_replace),
-                    contentDescription = "Replace icon"
+                    contentDescription = stringResource(R.string.nc_main_cd_replace_icon)
                 )
 
                 Text(
-                    text = "Replacing ${signer.name} (${signer.getXfpOrCardIdLabel()})",
+                    text = stringResource(R.string.nc_main_replacing_key, signer.name, signer.getXfpOrCardIdLabel()),
                     style = NunchukTheme.typography.bodySmall,
                 )
             }
@@ -367,7 +367,7 @@ private fun KeyNotSyncView(modifier: Modifier, index: Int) {
         NcIcon(
             modifier = Modifier.size(18.dp),
             painter = painterResource(id = R.drawable.nc_circle_checked),
-            contentDescription = "Checked icon"
+            contentDescription = stringResource(R.string.nc_main_cd_checked_icon)
         )
         Text(
             modifier = Modifier.padding(start = 4.dp),

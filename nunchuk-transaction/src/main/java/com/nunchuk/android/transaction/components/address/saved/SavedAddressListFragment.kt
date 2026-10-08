@@ -128,7 +128,7 @@ fun SavedAddressListScreenContent(
                 .statusBarsPadding(),
             topBar = {
                 NcTopAppBar(
-                    title = "Saved addresses",
+                    title = stringResource(R.string.nc_saved_addresses),
                     textStyle = NunchukTheme.typography.titleLarge,
                     actions = {
                         Spacer(modifier = Modifier.size(LocalViewConfiguration.current.minimumTouchTargetSize))

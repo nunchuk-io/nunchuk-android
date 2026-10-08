@@ -182,7 +182,7 @@ class CheckSignMessageFragment : Fragment() {
                         WalletAuthenticationEvent.ShowAirgapOption -> Unit
                         WalletAuthenticationEvent.ExportTransactionToColdcardSuccess -> Unit
                         WalletAuthenticationEvent.CanNotSignDummyTx -> showError(getString(R.string.nc_can_not_sign_please_try_again))
-                        WalletAuthenticationEvent.CanNotSignHardwareKey -> showError("Please use the desktop app to sign with this key")
+                        WalletAuthenticationEvent.CanNotSignHardwareKey -> showError(getString(R.string.nc_use_desktop_app_to_sign))
                         WalletAuthenticationEvent.PromptPassphrase -> NCInputDialog(requireActivity()).showDialog(
                             title = getString(com.nunchuk.android.transaction.R.string.nc_transaction_enter_passphrase),
                             onConfirmed = {

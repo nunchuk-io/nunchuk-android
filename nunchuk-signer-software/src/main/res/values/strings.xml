@@ -76,4 +76,16 @@
     <string name="nc_create_back_up_key_now">Create and back up key now</string>
     <string name="nc_create_now_back_up_key_later">Create key now, back up later</string>
     <string name="nc_xprv_copied_to_clipboard">XPRV copied to clipboard</string>
+
+    <!-- i18n phase 1: extracted hardcoded strings -->
+    <string name="nc_software_invalid_xprv">Invalid XPRV</string>
+    <string name="nc_software_word_number">Word #%1$d</string>
+    <string name="nc_software_upgrade_to_hardware_hint">Upgrade software keys to hardware keys for improved security.</string>
+    <string name="nc_software_intro_key_generated_locally">A software key will be generated locally on this device. [B]Deleting the app will also delete the software key.[/B]\n\nPlease make sure to:</string>
+    <string name="nc_software_intro_back_up_key_title">Back up the key </string>
+    <string name="nc_software_intro_back_up_key_desc">The backup will allow you to recover the key in worst case scenarios.</string>
+    <string name="nc_software_intro_keep_device_secure_title">Keep your device secure</string>
+    <string name="nc_software_intro_keep_device_secure_desc">Since the software key resides on this device, keeping the device safe will prevent the software key from being compromised.</string>
+    <string name="nc_software_icon_cd">Icon</string>
+    <string name="nc_pkey_manually_signature_hint">On the Activation Date, would you like us to notify the Beneficiary or Trustee of the inheritance plan? If so, please provide an email address.</string>
 </resources>

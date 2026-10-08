@@ -89,7 +89,7 @@ fun SignerIntroScreenContent(
                     IconButton(onClick = onMoreClicked) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_more),
-                            contentDescription = "More icon"
+                            contentDescription = stringResource(R.string.nc_signer_more_icon)
                         )
                     }
                 }
@@ -241,7 +241,7 @@ private fun SignerItem(
     ) {
         NcIcon(
             painter = painterResource(id = iconRes),
-            contentDescription = "Key icon",
+            contentDescription = stringResource(R.string.nc_signer_key_icon),
             modifier = Modifier.size(24.dp)
         )
 

@@ -159,7 +159,7 @@ private fun UsedAddressItem(
                         RoundedCornerShape(4.dp),
                     ),
                 bitmap = imageBitmap,
-                contentDescription = "QR Code",
+                contentDescription = stringResource(R.string.nc_transaction_qr_code),
             )
         }
         Column(
@@ -224,7 +224,7 @@ private fun LiquidUsedAddressItem(
                             RoundedCornerShape(4.dp),
                         ),
                     bitmap = imageBitmap,
-                    contentDescription = "QR Code",
+                    contentDescription = stringResource(R.string.nc_transaction_qr_code),
                 )
             }
             AddressWithInspect(

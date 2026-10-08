@@ -231,7 +231,7 @@ fun NavGraphBuilder.unlockPinScreen(
             when (state.event) {
                 UnlockPinEvent.PinMatched -> {
                     if (route.isRemovePin) {
-                        NCToastMessage(activity).show("PIN has been turned off")
+                        NCToastMessage(activity).show(activity.getString(R.string.nc_settings_pin_turned_off))
                         onPinRemoved()
                     } else {
                         activity.finish()

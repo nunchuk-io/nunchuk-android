@@ -177,7 +177,7 @@ private fun CheckFirmwareContent(
                         IconButton(onClick = onMoreClicked) {
                             Icon(
                                 painter = painterResource(id = com.nunchuk.android.signer.R.drawable.ic_more),
-                                contentDescription = "More icon"
+                                contentDescription = stringResource(R.string.nc_membership_cd_more_icon)
                             )
                         }
                     }
@@ -202,29 +202,40 @@ private fun CheckFirmwareContent(
             ) {
                 Text(
                     modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
-                    text = "Check your $signerName firmware",
+                    text = stringResource(R.string.nc_membership_check_firmware_title, signerName),
                     style = NunchukTheme.typography.heading
                 )
                 val context = LocalContext.current
+                val versionText = when {
+                    firmwareVersion.isEmpty() -> ""
+                    firmwareVersion.contains("or above", ignoreCase = true) -> "$firmwareVersion."
+                    else -> stringResource(R.string.nc_membership_firmware_version_or_above, firmwareVersion)
+                }
+                val requirementText = if (firmwareVersion.isNotEmpty()) {
+                    stringResource(R.string.nc_membership_firmware_requirement_version, signerName, versionText)
+                } else {
+                    stringResource(R.string.nc_membership_firmware_requirement_latest, signerName)
+                }
+                val linkText = if (args.signerTag == SignerTag.JADE) {
+                    stringResource(R.string.nc_membership_firmware_blockstream_instructions)
+                } else {
+                    stringResource(R.string.nc_membership_firmware_signer_instructions, signerName)
+                }
+                val updateText = stringResource(R.string.nc_membership_firmware_update_instructions, signerName, linkText)
                 val annotatedText = buildAnnotatedString {
-                    append(
-                        "Your $signerName must support Miniscript for on-chain timelocks. Please make sure the device is running "
-                    )
                     if (firmwareVersion.isNotEmpty()) {
+                        val versionIndex = requirementText.lastIndexOf(versionText)
+                        append(requirementText.substring(0, versionIndex))
                         withStyle(style = SpanStyle(fontWeight = FontWeight.W700)) {
-                            val versionText =
-                                if (firmwareVersion.contains("or above", ignoreCase = true)) {
-                                    "$firmwareVersion."
-                                } else {
-                                    "$firmwareVersion or above."
-                                }
                             append(versionText)
                         }
+                        append(requirementText.substring(versionIndex + versionText.length))
                     } else {
-                        append("the latest firmware version.")
+                        append(requirementText)
                     }
                     append("\n\n")
-                    append("To check or update $signerName firmware, please follow ")
+                    val linkIndex = updateText.lastIndexOf(linkText)
+                    append(updateText.substring(0, linkIndex))
                     pushStringAnnotation(
                         tag = "URL",
                         annotation = when (args.signerTag) {
@@ -239,14 +250,10 @@ private fun CheckFirmwareContent(
                             textDecoration = TextDecoration.None
                         )
                     ) {
-                        if (args.signerTag == SignerTag.JADE) {
-                            append("Blockstream's instructions")
-                        } else {
-                            append("$signerName's instructions")
-                        }
+                        append(linkText)
                     }
                     pop()
-                    append(".")
+                    append(updateText.substring(linkIndex + linkText.length))
                 }
 
                 ClickableText(

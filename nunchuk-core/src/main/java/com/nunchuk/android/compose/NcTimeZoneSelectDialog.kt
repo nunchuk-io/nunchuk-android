@@ -27,6 +27,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import java.util.TimeZone
+import androidx.compose.ui.res.stringResource
+import com.nunchuk.android.core.R
 
 data class SimpleTimeZone(
     val id: String,
@@ -98,13 +100,13 @@ fun NcTimeZoneSelectDialog(
                 modifier = Modifier.padding(16.dp)
             ) {
                 Text(
-                    text = "Select Timezone",
+                    text = stringResource(R.string.nc_select_timezone),
                     style = NunchukTheme.typography.title,
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
                 
                 NcTextField(
-                    title = "Search",
+                    title = stringResource(R.string.nc_search),
                     value = search.text,
                     onValueChange = { search = search.copy(text = it) },
                     modifier = Modifier.padding(bottom = 16.dp)

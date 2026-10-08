@@ -139,7 +139,7 @@ private fun UnAssistedIntroContent(
             ) {
                 Image(
                     painter = painterResource(id = R.drawable.ic_onboard_unassisted_wallet),
-                    contentDescription = "Unassisted wallet",
+                    contentDescription = stringResource(R.string.nc_unassisted_wallet),
                 )
             }
             Text(

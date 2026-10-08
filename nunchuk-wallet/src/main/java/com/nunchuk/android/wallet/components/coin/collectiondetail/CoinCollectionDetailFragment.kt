@@ -321,7 +321,7 @@ private fun CoinCollectionDetailContent(
                             IconButton(onClick = onShowMoreOptions) {
                                 NcIcon(
                                     painter = painterResource(id = R.drawable.ic_more),
-                                    contentDescription = "More icon"
+                                    contentDescription = stringResource(R.string.nc_wallet_cd_more_icon)
                                 )
                             }
                         },
@@ -401,7 +401,7 @@ private fun CoinCollectionDetailContent(
                                     Amount(totalAmount).getBTCAmount()
 
                                 Text(
-                                    text = "$textValue ($amountTotalText)", style = NunchukTheme.typography.bodySmall,
+                                    text = stringResource(R.string.nc_wallet_value_with_amount, textValue, amountTotalText), style = NunchukTheme.typography.bodySmall,
                                     modifier = Modifier.padding(top = 4.dp)
                                 )
                             }

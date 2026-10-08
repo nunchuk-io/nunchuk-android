@@ -114,7 +114,7 @@ class MembershipActivity : BaseWalletConfigActivity<ActivityNavigationBinding>()
     }
 
     fun requestTapSignerCaching() {
-        startNfcFlow(REQUEST_NFC_TOPUP_XPUBS, "Please rescan your TAPSIGNER to get a new XPUB")
+        startNfcFlow(REQUEST_NFC_TOPUP_XPUBS, getString(R.string.nc_membership_rescan_tapsigner_new_xpub))
     }
 
     fun setTapSignerCachingCallback(callback: (IsoDep?, String) -> Unit) {

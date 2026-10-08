@@ -64,7 +64,7 @@ internal class ConfirmSeedViewHolder(
     private val binding = ItemConfirmSeedBinding.bind(itemView)
 
     override fun bind(data: PhraseWordGroup) {
-        val wordNum = "Word #${data.index + 1}"
+        val wordNum = itemView.context.getString(R.string.nc_software_word_number, data.index + 1)
         binding.wordNum.text = wordNum
         binding.firstWord.text = data.firstWord.word
         binding.secondWord.text = data.secondWord.word

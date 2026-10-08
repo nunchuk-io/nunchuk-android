@@ -54,7 +54,7 @@ import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.core.domain.signer.DuplicateSignerData
 import com.nunchuk.android.core.miniscript.ScriptNodeType
 import com.nunchuk.android.core.signer.SignerModel
-import com.nunchuk.android.main.R
+import com.nunchuk.android.R
 import com.nunchuk.android.core.signer.SelectSignerArgs
 import com.nunchuk.android.core.signer.SelectSignerBottomSheet
 import com.nunchuk.android.model.ScriptNode
@@ -177,6 +177,14 @@ fun MiniscriptConfigWalletScreen(
                 ).show()
             }
             
+            is MiniscriptSharedWalletEvent.ErrorRes -> {
+                android.widget.Toast.makeText(
+                    context,
+                    context.getString(event.resId),
+                    android.widget.Toast.LENGTH_SHORT
+                ).show()
+            }
+            
             is MiniscriptSharedWalletEvent.OpenChangeBip32Path -> {
                 onOpenChangeBip32Path(event.signer)
             }
@@ -184,7 +192,7 @@ fun MiniscriptConfigWalletScreen(
             is MiniscriptSharedWalletEvent.Bip32PathChanged -> {
                 android.widget.Toast.makeText(
                     context,
-                    "BIP32 path updated successfully",
+                    context.getString(R.string.nc_miniscript_bip32_path_updated),
                     android.widget.Toast.LENGTH_SHORT
                 ).show()
             }
@@ -470,7 +478,7 @@ private fun TaprootAddressContent(
         } else if (uiState.scriptNodeMuSig != null) {
             NcBadgePrimary(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                text = "Key path",
+                text = stringResource(R.string.nc_key_path),
                 enabled = true,
             )
 

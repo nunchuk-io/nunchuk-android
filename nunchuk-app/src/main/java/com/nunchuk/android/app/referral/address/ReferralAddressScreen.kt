@@ -64,7 +64,7 @@ import com.nunchuk.android.compose.dialog.NcInfoDialog
 import com.nunchuk.android.compose.greyLight
 import com.nunchuk.android.core.qr.startQRCodeScan
 import com.nunchuk.android.core.util.ClickAbleText
-import com.nunchuk.android.signer.R
+import com.nunchuk.android.R
 
 const val referralAddressRoute = "referral_address_route/{address}/{walletId}/{action}"
 internal const val DEFAULT_ADDRESS = "DEFAULT_ADDRESS"
@@ -234,7 +234,7 @@ fun ReferralAddressScreen(
                 NcHintMessage(
                     messages = listOf(
                         ClickAbleText(
-                            content = "We'll send you an email to confirm (or change) the reward address each time there's a successful referral."
+                            content = stringResource(R.string.nc_referral_reward_address_email_hint)
                         )
                     ),
                     textStyle = NunchukTheme.typography.caption,
@@ -253,7 +253,7 @@ fun ReferralAddressScreen(
                         }
                     },
                 ) {
-                    Text(text = "Save change")
+                    Text(text = stringResource(R.string.nc_referral_save_change))
                 }
             }
 
@@ -267,12 +267,12 @@ fun ReferralAddressScreen(
             LazyColumn {
                 item {
                     Text(
-                        text = "Select wallet or enter address to receive reward",
+                        text = stringResource(R.string.nc_referral_select_wallet_or_enter_address),
                         style = NunchukTheme.typography.heading,
                     )
 
                     Text(
-                        text = "Select your wallet", style = NunchukTheme.typography.titleLarge,
+                        text = stringResource(R.string.nc_referral_select_your_wallet), style = NunchukTheme.typography.titleLarge,
                         modifier = Modifier.padding(top = 24.dp, bottom = 4.dp)
                     )
                 }
@@ -300,7 +300,7 @@ fun ReferralAddressScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Other address",
+                            text = stringResource(R.string.nc_referral_other_address),
                             style = NunchukTheme.typography.titleLarge,
                             modifier = Modifier.weight(1f)
                         )
@@ -333,7 +333,7 @@ fun ReferralAddressScreen(
                                 modifier = Modifier
                                     .padding(end = 10.dp)
                                     .weight(1f),
-                                text = "Enter or scan your address",
+                                text = stringResource(R.string.nc_referral_enter_or_scan_address),
                                 style = NunchukTheme.typography.body
                             )
 
@@ -352,7 +352,7 @@ fun ReferralAddressScreen(
                             placeholder = {
                                 Text(
                                     modifier = Modifier.padding(top = 8.dp),
-                                    text = "Enter or scan your address",
+                                    text = stringResource(R.string.nc_referral_enter_or_scan_address),
                                     style = NunchukTheme.typography.body
                                 )
                             },

@@ -142,6 +142,7 @@ class RecoveryQuestionFragment : MembershipFragment() {
                 is RecoveryQuestionEvent.GetSecurityQuestionSuccess -> handleShowSecurityQuestion(it)
                 is RecoveryQuestionEvent.Loading -> showOrHideLoading(it.isLoading)
                 is RecoveryQuestionEvent.ShowError -> showError(it.message)
+                is RecoveryQuestionEvent.ShowErrorRes -> showError(getString(it.messageRes))
                 is RecoveryQuestionEvent.ConfigRecoveryQuestionSuccess -> findNavController().popBackStack()
                 is RecoveryQuestionEvent.CalculateRequiredSignaturesSuccess -> {
                     navigator.openWalletAuthentication(

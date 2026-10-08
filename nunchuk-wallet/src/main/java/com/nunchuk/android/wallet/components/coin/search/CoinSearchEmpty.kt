@@ -46,7 +46,7 @@ fun ColumnScope.EmptySearchState() {
             .background(color = MaterialTheme.colorScheme.greyLight, shape = CircleShape)
             .padding(18.dp),
         painter = painterResource(id = R.drawable.ic_search_not_found),
-        contentDescription = "Search not found"
+        contentDescription = stringResource(R.string.nc_wallet_cd_search_not_found)
     )
     Text(
         modifier = Modifier

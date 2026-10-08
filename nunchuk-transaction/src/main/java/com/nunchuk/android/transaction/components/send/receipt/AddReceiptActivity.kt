@@ -620,7 +620,7 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
                     hideLoading()
                     openTransactionConfirmForLiquid()
                 } else {
-                    showCreateTransactionError(event.message)
+                    showCreateTransactionError(event.resolveMessage(this))
                 }
             }
             is TransactionConfirmEvent.CreateTxSuccessEvent -> {

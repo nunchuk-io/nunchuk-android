@@ -1,5 +1,6 @@
 package com.nunchuk.android.app.miniscript.contractpolicy
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -28,7 +29,7 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
-import com.nunchuk.android.main.R
+import com.nunchuk.android.R
 import com.nunchuk.android.wallet.personal.components.add.KeyManagementSection
 import kotlinx.coroutines.launch
 
@@ -47,7 +48,7 @@ data class EditPolicyConfig(
     val maxM: Int = MAX_REQUIRED_KEYS,
     val minN: Int = 2,
     val maxN: Int = MAX_TOTAL_KEYS,
-    val title: String = "Edit multisig policy"
+    @StringRes val titleRes: Int = R.string.nc_miniscript_edit_multisig_policy
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -106,7 +107,7 @@ fun EditPolicyBottomSheetContent(
             .nestedScroll(rememberNestedScrollInteropConnection())
     ) {
         Text(
-            text = config.title,
+            text = stringResource(id = config.titleRes),
             style = NunchukTheme.typography.title,
         )
         
@@ -158,8 +159,8 @@ fun KeysAndRequiredKeysScreen(
 
         if (showRequiredKeys) {
             KeyManagementSection(
-                title = "Required keys",
-                description = "Number of signatures required",
+                title = stringResource(id = R.string.nc_miniscript_required_keys),
+                description = stringResource(id = R.string.nc_miniscript_num_signatures_required),
                 value = requiredKeys,
                 enableIncrement = requiredKeys < if (showTotalKeys) totalKeys else maxM,
                 enableDecrement = requiredKeys > minM,
@@ -174,8 +175,8 @@ fun KeysAndRequiredKeysScreen(
 
         if (showTotalKeys) {
             KeyManagementSection(
-                title = "Total number of keys",
-                description = "Total number of public keys in the multisig",
+                title = stringResource(id = R.string.nc_miniscript_total_number_of_keys),
+                description = stringResource(id = R.string.nc_miniscript_total_number_of_pubkeys),
                 value = totalKeys,
                 enableIncrement = totalKeys < maxN,
                 enableDecrement = totalKeys > minN && (!showRequiredKeys || totalKeys > requiredKeys),

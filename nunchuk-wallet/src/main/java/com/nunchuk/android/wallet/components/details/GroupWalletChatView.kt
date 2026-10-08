@@ -42,6 +42,7 @@ import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.model.FreeGroupMessage
 import com.nunchuk.android.wallet.R
+import androidx.compose.ui.res.stringResource
 
 @Composable
 internal fun GroupWalletChatView(
@@ -112,7 +113,7 @@ fun ChatHeader(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = "Chat",
+            text = stringResource(R.string.nc_wallet_chat),
             style = NunchukTheme.typography.titleSmall,
         )
         Spacer(modifier = Modifier.width(8.dp))
@@ -136,7 +137,7 @@ fun ChatHeader(
 
         NcIcon(
             painter = painterResource(id = R.drawable.ic_expand_chat),
-            contentDescription = "Expand",
+            contentDescription = stringResource(R.string.nc_expand),
             tint = MaterialTheme.colorScheme.controlFillPrimary,
             modifier = Modifier.size(20.dp)
                 .clickable {
@@ -146,7 +147,7 @@ fun ChatHeader(
 
         NcIcon(
             painter = if (isChatExpanded) painterResource(id = R.drawable.ic_arrow_chat_down) else painterResource(id = R.drawable.ic_arrow_chat_up),
-            contentDescription = "Expand",
+            contentDescription = stringResource(R.string.nc_expand),
             tint = MaterialTheme.colorScheme.controlFillPrimary,
             modifier = Modifier
                 .padding(start = 16.dp)
@@ -186,7 +187,7 @@ fun ChatBubble(message: String) {
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.ic_user),
-                contentDescription = "User",
+                contentDescription = stringResource(R.string.nc_wallet_cd_user),
                 tint = Color.Black,
                 modifier = Modifier.size(14.dp)
             )
@@ -219,7 +220,7 @@ fun ChatInput(onSendMessage: (String) -> Unit) {
             onValueChange = { inputText = it },
             placeholder = {
                 Text(
-                    text = "Type a message",
+                    text = stringResource(R.string.nc_wallet_type_a_message),
                     style = NunchukTheme.typography.bodySmall,
                 )
             },
@@ -238,7 +239,7 @@ fun ChatInput(onSendMessage: (String) -> Unit) {
                         inputText = ""
                     }
                 },
-            contentDescription = "Send",
+            contentDescription = stringResource(R.string.nc_send),
             tint = MaterialTheme.colorScheme.textSecondary
         )
     }

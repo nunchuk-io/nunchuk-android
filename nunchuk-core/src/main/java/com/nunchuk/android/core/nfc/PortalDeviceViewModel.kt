@@ -51,6 +51,7 @@ import xyz.twenty_two.GenerateMnemonicWords
 import xyz.twenty_two.PortalSdk
 import xyz.twenty_two.SetDescriptorBsmsData
 import javax.inject.Inject
+import com.nunchuk.android.core.R
 
 @HiltViewModel
 class PortalDeviceViewModel @Inject constructor(
@@ -147,7 +148,7 @@ class PortalDeviceViewModel @Inject constructor(
         unlockPortalAndExecute(savedStateHandle.get<String>(EXTRA_PIN).orEmpty()) {
             val status = sdk.getStatus()
             if (status.fingerprint != fingerPrint) {
-                _state.update { state -> state.copy(message = "Portal fingerprint mismatch") }
+                _state.update { state -> state.copy(message = application.getString(R.string.nc_portal_fingerprint_mismatch)) }
             } else {
                 signerPin[fingerPrint] = savedStateHandle.get<String>(EXTRA_PIN).orEmpty()
                 val signedPsbt = sdk.signPsbt(psbt)
@@ -255,7 +256,7 @@ class PortalDeviceViewModel @Inject constructor(
     ) {
         val status = sdk.getStatus()
         if (!status.initialized) {
-            _state.update { state -> state.copy(message = "Portal not initialized") }
+            _state.update { state -> state.copy(message = application.getString(R.string.nc_portal_not_initialized)) }
             return
         }
         if (!status.unlocked) {

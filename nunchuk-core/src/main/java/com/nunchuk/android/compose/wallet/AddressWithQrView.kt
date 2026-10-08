@@ -24,6 +24,8 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.border
 import com.nunchuk.android.compose.greyLight
 import com.nunchuk.android.core.qr.convertToQRCode
+import androidx.compose.ui.res.stringResource
+import com.nunchuk.android.core.R
 
 @Composable
 fun AddressWithQrView(
@@ -57,7 +59,7 @@ fun AddressWithQrView(
                         RoundedCornerShape(8.dp),
                     ),
                 bitmap = it.asImageBitmap(),
-                contentDescription = "Qr Code",
+                contentDescription = stringResource(R.string.nc_cd_qr_code),
             )
         }
         Text(

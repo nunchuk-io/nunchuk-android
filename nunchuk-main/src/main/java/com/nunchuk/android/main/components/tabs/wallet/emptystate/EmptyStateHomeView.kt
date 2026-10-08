@@ -1,4 +1,5 @@
 
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -58,7 +59,7 @@ fun EmptyStateHomeView(
             ) {
                 Image(
                     painter = painterResource(id = contentData.imageResId),
-                    contentDescription = "Illustration",
+                    contentDescription = stringResource(R.string.nc_main_cd_illustration),
                     modifier = Modifier.size(250.dp),
                     contentScale = ContentScale.Fit
                 )

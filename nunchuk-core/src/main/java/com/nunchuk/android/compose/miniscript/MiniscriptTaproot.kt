@@ -4,9 +4,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import com.nunchuk.android.compose.NcBadgePrimary
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.core.R
 import com.nunchuk.android.core.signer.SignerModel
 
 @Composable
@@ -23,7 +25,7 @@ fun MiniscriptTaproot(
         modifier = modifier
     ) {
         NcBadgePrimary(
-            text = if (keyPath.isNotEmpty()) "Key path" else "Key path disabled",
+            text = stringResource(if (keyPath.isNotEmpty()) R.string.nc_key_path else R.string.nc_miniscript_key_path_disabled),
             enabled = keyPath.isNotEmpty(),
         )
         if (keyPath.isNotEmpty()) {

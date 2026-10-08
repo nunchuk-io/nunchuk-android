@@ -146,7 +146,7 @@ internal fun ColdCardVerifyBackupScreen(
                     onClick = onContinue
                 ) {
                     Text(
-                        text = "Continue",
+                        text = stringResource(R.string.nc_text_continue),
                         style = NunchukTheme.typography.title.copy(color = MaterialTheme.colorScheme.controlTextPrimary)
                     )
                 }
@@ -178,7 +178,7 @@ internal fun ColdCardVerifyBackupScreen(
 
                 Text(
                     modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
-                    text = "Test recovery on COLDCARD",
+                    text = stringResource(R.string.nc_coldcard_test_recovery),
                     style = NunchukTheme.typography.heading
                 )
 
@@ -209,14 +209,14 @@ internal fun ColdCardVerifyBackupScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Download the encrypted backup file",
+                            text = stringResource(R.string.nc_coldcard_download_encrypted_backup_file),
                             style = NunchukTheme.typography.title,
                             textDecoration = TextDecoration.Underline
                         )
 
                         NcIcon(
                             painter = painterResource(id = R.drawable.ic_download),
-                            contentDescription = "Download the encrypted backup file",
+                            contentDescription = stringResource(R.string.nc_coldcard_download_encrypted_backup_file),
                             modifier = Modifier.size(24.dp),
                         )
                     }
@@ -225,15 +225,15 @@ internal fun ColdCardVerifyBackupScreen(
                 NCLabelWithIndex(
                     modifier = Modifier.padding(horizontal = 16.dp),
                     index = 2,
-                    title = "Prepare COLDCARD",
-                    label = "If you have an unused COLDCARD, you can use it to test recovery.\n\nOtherwise, back up your current seed from the COLDCARD, then wipe it to test recovery.\n\nGo to Advanced/Tools → Danger Zone → Seed Functions → Destroy Seed → OK → 4.",
+                    title = stringResource(R.string.nc_coldcard_prepare_coldcard),
+                    label = stringResource(R.string.nc_coldcard_prepare_coldcard_desc),
                 )
 
                 NCLabelWithIndex(
                     modifier = Modifier.padding(horizontal = 16.dp),
                     index = 3,
-                    title = "Recover via backup file on COLDCARD",
-                    label = "Import the backup file you just downloaded into your COLDCARD and recover the key from the backup file.\nEnter PIN→ Import Existing → Restore Backup → Select backup file.",
+                    title = stringResource(R.string.nc_coldcard_recover_via_backup_file),
+                    label = stringResource(R.string.nc_coldcard_recover_via_backup_file_desc),
                 )
 
                 Box(
@@ -252,7 +252,7 @@ internal fun ColdCardVerifyBackupScreen(
                     ) {
                         Text(
                             modifier = Modifier.fillMaxWidth(),
-                            text = "Note down the Backup Password (12 words) and store it in a safe place.",
+                            text = stringResource(R.string.nc_coldcard_note_down_backup_password),
                             style = NunchukTheme.typography.body,
                             textAlign = TextAlign.Start
                         )

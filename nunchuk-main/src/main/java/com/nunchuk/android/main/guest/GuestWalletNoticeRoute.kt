@@ -1,5 +1,6 @@
 package com.nunchuk.android.main.guest
 
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -56,7 +57,7 @@ fun GuestWalletNoticeScreen(
                     .padding(16.dp)
             ) {
                 Text(
-                    text = "Got it",
+                    text = stringResource(R.string.nc_text_got_it),
                 )
             }
         }
@@ -76,12 +77,12 @@ fun GuestWalletNoticeScreen(
                     .align(Alignment.CenterHorizontally),
             )
             Text(
-                text = "Guest wallets notice",
+                text = stringResource(com.nunchuk.android.main.R.string.nc_main_guest_wallets_notice),
                 style = NunchukTheme.typography.heading,
                 modifier = Modifier.padding(top = 24.dp)
             )
             Text(
-                text = "The wallets created in guest mode will still work normally after you create a new account. To access them again, switch back to guest mode:",
+                text = stringResource(com.nunchuk.android.main.R.string.nc_main_guest_wallets_notice_desc),
                 style = NunchukTheme.typography.body,
                 modifier = Modifier.padding(top = 12.dp)
             )
@@ -96,7 +97,7 @@ fun GuestWalletNoticeScreen(
                     .padding(vertical = 16.dp, horizontal = 12.dp)
             ) {
                 Text(
-                    text = "Profile → Sign out → Continue as guest",
+                    text = stringResource(com.nunchuk.android.main.R.string.nc_main_guest_wallets_notice_path),
                     style = NunchukTheme.typography.body,
                     color = NunchukTheme.typography.body.color
                 )

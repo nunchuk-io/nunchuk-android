@@ -85,10 +85,10 @@ internal fun rememberStableWalletHeaderModel(state: WalletDetailsState): StableW
 
     return StableWalletHeaderUiModel(
         title = wallet.name,
-        primaryAssetTitle = "Tether USD",
+        primaryAssetTitle = stringResource(R.string.nc_wallet_tether_usd),
         primaryAssetAmount = Utils.maskValue(usdtRaw, hide),
         primaryAssetCashAmount = Utils.maskValue(usdtCashRaw, hide),
-        secondaryAssetTitle = "Liquid BTC:",
+        secondaryAssetTitle = stringResource(R.string.nc_wallet_liquid_btc_colon),
         secondaryAssetAmount = Utils.maskValue(lbtcRaw, hide),
         secondaryAssetCashAmount = Utils.maskValue(lbtcCashRaw, hide),
         hideWalletDetail = hide,
@@ -219,7 +219,7 @@ private fun StableHeaderToolbar(
             IconButton(onClick = onBack) {
                 Icon(
                     painter = painterResource(R.drawable.ic_back_white),
-                    contentDescription = "Back",
+                    contentDescription = stringResource(R.string.nc_wallet_cd_back),
                     tint = Color.White,
                 )
             }
@@ -228,7 +228,7 @@ private fun StableHeaderToolbar(
                 IconButton(onClick = onSearch) {
                     Icon(
                         painter = painterResource(searchIcon),
-                        contentDescription = "Search",
+                        contentDescription = stringResource(R.string.nc_wallet_cd_search),
                         tint = Color.White,
                     )
                 }
@@ -237,7 +237,7 @@ private fun StableHeaderToolbar(
                 IconButton(onClick = onMenu) {
                     Icon(
                         painter = painterResource(R.drawable.ic_more_horizontal),
-                        contentDescription = "More",
+                        contentDescription = stringResource(R.string.nc_more),
                         tint = Color.White,
                     )
                 }
@@ -554,7 +554,7 @@ private fun StableMaskToggleIcon(hide: Boolean, onClick: () -> Unit) {
         painter = painterResource(
             if (hide) R.drawable.ic_visibility else R.drawable.ic_hide_pass
         ),
-        contentDescription = "Toggle mask",
+        contentDescription = stringResource(R.string.nc_wallet_cd_toggle_mask),
         tint = Color.White,
         modifier = Modifier
             .size(24.dp)

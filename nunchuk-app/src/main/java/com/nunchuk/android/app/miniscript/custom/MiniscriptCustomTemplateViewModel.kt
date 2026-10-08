@@ -1,7 +1,9 @@
 package com.nunchuk.android.app.miniscript.custom
 
+import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.R
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.usecase.CreateMiniscriptTemplateByCustomUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -13,7 +15,7 @@ import javax.inject.Inject
 
 sealed class MiniscriptCustomTemplateEvent {
     data class Success(val template: String, val addressType: AddressType? = null) : MiniscriptCustomTemplateEvent()
-    data class Error(val message: String) : MiniscriptCustomTemplateEvent()
+    data class Error(@StringRes val messageRes: Int) : MiniscriptCustomTemplateEvent()
     data class ShowTaprootWarning(val template: String) : MiniscriptCustomTemplateEvent()
     data object AddressTypeChangedToTaproot : MiniscriptCustomTemplateEvent()
 }
@@ -35,14 +37,14 @@ class MiniscriptCustomTemplateViewModel @Inject constructor(
                 )
             ).onSuccess { result ->
                 if (result.template.isEmpty()) {
-                    _event.value = MiniscriptCustomTemplateEvent.Error("Format not supported")
+                    _event.value = MiniscriptCustomTemplateEvent.Error(R.string.nc_miniscript_format_not_supported)
                 } else if (addressType != AddressType.TAPROOT && result.isValidTapscript) {
                     _event.value = MiniscriptCustomTemplateEvent.ShowTaprootWarning(result.template)
                 } else {
                     _event.value = MiniscriptCustomTemplateEvent.Success(result.template)
                 }
             }.onFailure { e ->
-                _event.value = MiniscriptCustomTemplateEvent.Error("Format not supported")
+                _event.value = MiniscriptCustomTemplateEvent.Error(R.string.nc_miniscript_format_not_supported)
             }
         }
     }

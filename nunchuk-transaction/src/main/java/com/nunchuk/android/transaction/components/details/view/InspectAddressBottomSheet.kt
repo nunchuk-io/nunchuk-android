@@ -123,7 +123,7 @@ fun InspectAddressBottomSheet(
                 ) {
                     NcIcon(
                         painter = painterResource(id = com.nunchuk.android.widget.R.drawable.ic_copy),
-                        contentDescription = "Copy",
+                        contentDescription = stringResource(com.nunchuk.android.core.R.string.nc_copy),
                         modifier = Modifier.size(18.dp),
                     )
                     Text(

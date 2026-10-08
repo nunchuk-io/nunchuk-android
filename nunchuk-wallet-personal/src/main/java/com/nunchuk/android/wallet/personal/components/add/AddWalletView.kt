@@ -191,7 +191,7 @@ fun AddWalletView(
                 coroutineScope.launch {
                     snackbarHostState.showSnackbar(
                         NcSnackbarVisuals(
-                            message = "Failed to read data or script has invalid syntax",
+                            message = context.getString(R.string.nc_wallet_failed_to_read_script),
                             type = NcToastType.ERROR
                         )
                     )
@@ -363,7 +363,7 @@ fun AddWalletView(
                         )
 
                         Text(
-                            text = "Wallet config",
+                            text = stringResource(R.string.nc_wallet_personal_wallet_config),
                             modifier = Modifier.padding(bottom = 6.dp),
                             style = NunchukTheme.typography.titleSmall
                         )
@@ -380,7 +380,7 @@ fun AddWalletView(
                                 isViewOnly = isViewConfigOnly && option != viewOnlyComposer?.walletConfigType,
                                 selected = if (viewOnlyComposer != null) viewOnlyComposer.walletConfigType == option else walletConfigType == option,
                                 name = option.toOptionName(),
-                                badge = if (option == WalletConfigType.MINISCRIPT) "New" else null,
+                                badge = if (option == WalletConfigType.MINISCRIPT) stringResource(R.string.nc_wallet_new) else null,
                                 isEndItem = option == WalletConfigType.CUSTOM && walletConfigType != WalletConfigType.CUSTOM,
                                 onClick = {
                                     val previousWalletType = walletConfigType
@@ -935,7 +935,7 @@ fun KeyManagementSection(
             ) {
                 NcIcon(
                     painter = painterResource(id = R.drawable.ic_minus),
-                    contentDescription = "Decrement",
+                    contentDescription = stringResource(R.string.nc_wallet_cd_decrement),
                 )
             }
 
@@ -962,7 +962,7 @@ fun KeyManagementSection(
             ) {
                 NcIcon(
                     painter = painterResource(id = R.drawable.ic_plus),
-                    contentDescription = "Increment",
+                    contentDescription = stringResource(R.string.nc_wallet_cd_increment),
                 )
             }
         }
@@ -995,8 +995,8 @@ fun KeysAndRequiredKeysScreen(
         }
 
         KeyManagementSection(
-            title = "Keys",
-            description = "Number of keys assigned to the wallet (up to ${freeGroupWalletConfig.maxKey}).",
+            title = stringResource(R.string.nc_title_signers),
+            description = stringResource(R.string.nc_wallet_number_of_keys_desc, freeGroupWalletConfig.maxKey),
             value = keys,
             enableIncrement = keys < freeGroupWalletConfig.maxKey && viewOnly.not(),
             enableDecrement = keys > 2 && keys > requiredKeys && viewOnly.not(),
@@ -1007,8 +1007,8 @@ fun KeysAndRequiredKeysScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         KeyManagementSection(
-            title = "Required keys",
-            description = "Number of signatures required to unlock funds.",
+            title = stringResource(R.string.nc_miniscript_required_keys),
+            description = stringResource(R.string.nc_wallet_number_of_signatures_desc),
             value = requiredKeys,
             enableIncrement = requiredKeys < keys && viewOnly.not(),
             enableDecrement = requiredKeys > 1 && viewOnly.not(),
@@ -1042,7 +1042,7 @@ private fun MiniscriptSection(onAddMiniscript: () -> Unit = {}) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Miniscript",
+                    text = stringResource(R.string.nc_miniscript),
                     style = NunchukTheme.typography.body,
                     color = MaterialTheme.colorScheme.textPrimary
                 )
@@ -1060,7 +1060,7 @@ private fun MiniscriptSection(onAddMiniscript: () -> Unit = {}) {
                         .padding(horizontal = 8.dp, vertical = 2.dp)
                 ) {
                     Text(
-                        text = "New",
+                        text = stringResource(R.string.nc_wallet_new),
                         style = NunchukTheme.typography.caption
                     )
                 }
@@ -1091,7 +1091,7 @@ private fun MiniscriptSection(onAddMiniscript: () -> Unit = {}) {
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Text(
-                    text = "No miniscript added yet. Start creating your own spending rules.",
+                    text = stringResource(R.string.nc_wallet_no_miniscript_added),
                     style = NunchukTheme.typography.body,
                     color = MaterialTheme.colorScheme.textPrimary
                 )
@@ -1102,7 +1102,7 @@ private fun MiniscriptSection(onAddMiniscript: () -> Unit = {}) {
                     onClick = onAddMiniscript
                 ) {
                     Text(
-                        text = "Add miniscript",
+                        text = stringResource(R.string.nc_wallet_add_miniscript),
                         style = NunchukTheme.typography.titleSmall.copy(
                             color = MaterialTheme.colorScheme.controlTextPrimary
                         )
@@ -1140,7 +1140,7 @@ private fun MiniscriptSectionFilled(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Miniscript",
+                    text = stringResource(R.string.nc_miniscript),
                     style = NunchukTheme.typography.body
                 )
                 Box(
@@ -1157,7 +1157,7 @@ private fun MiniscriptSectionFilled(
                         .padding(horizontal = 8.dp, vertical = 2.dp)
                 ) {
                     Text(
-                        text = "New",
+                        text = stringResource(R.string.nc_wallet_new),
                         style = NunchukTheme.typography.caption
                     )
                 }
@@ -1209,10 +1209,10 @@ private fun MiniscriptSectionFilled(
                             NcIcon(
                                 modifier = Modifier.size(16.dp),
                                 painter = painterResource(id = R.drawable.ic_edit_small),
-                                contentDescription = "Edit"
+                                contentDescription = stringResource(R.string.nc_edit)
                             )
                             Text(
-                                text = "Edit",
+                                text = stringResource(R.string.nc_edit),
                                 style = NunchukTheme.typography.titleSmall,
                                 color = MaterialTheme.colorScheme.textPrimary
                             )
@@ -1226,10 +1226,10 @@ private fun MiniscriptSectionFilled(
                             NcIcon(
                                 modifier = Modifier.size(16.dp),
                                 painter = painterResource(id = R.drawable.ic_delete),
-                                contentDescription = "Remove"
+                                contentDescription = stringResource(R.string.nc_remove)
                             )
                             Text(
-                                text = "Remove",
+                                text = stringResource(R.string.nc_remove),
                                 style = NunchukTheme.typography.titleSmall,
                                 color = MaterialTheme.colorScheme.textPrimary
                             )

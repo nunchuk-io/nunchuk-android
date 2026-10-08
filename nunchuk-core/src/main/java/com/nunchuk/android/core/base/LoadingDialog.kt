@@ -3,7 +3,7 @@ package com.nunchuk.android.core.base
 interface LoadingDialog {
     fun showLoading(
         cancelable: Boolean = true,
-        title: String = "Please wait",
+        title: String? = null,
         message: String? = null
     )
 
@@ -11,7 +11,7 @@ interface LoadingDialog {
 
     fun showOrHideLoading(
         loading: Boolean,
-        title: String = "Please wait",
+        title: String? = null,
         message: String? = null
     )
 }

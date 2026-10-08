@@ -223,7 +223,7 @@ fun CreateCollectionView(
                     .padding(horizontal = 16.dp)
             ) {
                 NcTextField(
-                    title = "Collection name",
+                    title = stringResource(R.string.nc_collection_name),
                     value = collectionName,
                     onValueChange = {
                         collectionName = it

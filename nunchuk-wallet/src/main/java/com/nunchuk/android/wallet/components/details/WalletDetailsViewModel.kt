@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.wallet.components.details
 
+import android.content.Context
 import android.util.LruCache
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
@@ -100,6 +101,7 @@ import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.ShareBSM
 import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.ShowLiquidNetworkToast
 import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.WalletDetailsError
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
@@ -119,10 +121,12 @@ import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.session.room.model.Membership
 import timber.log.Timber
 import javax.inject.Inject
+import com.nunchuk.android.wallet.R
 
 @HiltViewModel
 internal class WalletDetailsViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
+    @ApplicationContext private val context: Context,
     private val getWalletUseCase: GetWalletUseCase,
     private val addressesUseCase: GetAddressesUseCase,
     private val newAddressUseCase: NewAddressUseCase,
@@ -404,7 +408,7 @@ internal class WalletDetailsViewModel @Inject constructor(
                     HistoryPeriod(
                         id = it.toString(),
                         durationInMillis = it.toLong(),
-                        displayName = if (it > 1) "$it days" else "$it day",
+                        displayName = context.resources.getQuantityString(R.plurals.nc_day, it, it),
                         enabled = true
                     )
                 }.orEmpty()

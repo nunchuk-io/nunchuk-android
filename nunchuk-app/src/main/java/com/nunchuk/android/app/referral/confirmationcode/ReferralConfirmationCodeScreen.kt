@@ -148,7 +148,7 @@ fun ReferralConfirmationCodeScreen(
             snackState = snackState,
             topBar = {
                 NcTopAppBar(
-                    title = "Enter confirmation code",
+                    title = stringResource(R.string.nc_enter_confirmation_code),
                     textStyle = NunchukTheme.typography.titleLarge,
                     actions = {
                         Spacer(modifier = Modifier.size(LocalViewConfiguration.current.minimumTouchTargetSize))
@@ -162,7 +162,8 @@ fun ReferralConfirmationCodeScreen(
                     .fillMaxHeight()
             ) {
                 val annotatedText = buildAnnotatedString {
-                    append("Enter the confirmation code we sent to ${state.email}. ")
+                    append(stringResource(R.string.nc_referral_confirmation_code_sent_to, state.email))
+                    append(" ")
                     pushStringAnnotation(tag = "RESEND_CODE", annotation = "resend_code")
                     withStyle(
                         style = SpanStyle(
@@ -170,7 +171,7 @@ fun ReferralConfirmationCodeScreen(
                             textDecoration = TextDecoration.Underline
                         )
                     ) {
-                        append("Resend code")
+                        append(stringResource(R.string.nc_text_resend_code))
                     }
                     pop()
                 }
@@ -193,7 +194,7 @@ fun ReferralConfirmationCodeScreen(
                 )
                 NcTextField(
                     modifier = Modifier.padding(top = 24.dp),
-                    title = "Confirmation code",
+                    title = stringResource(R.string.nc_confirmation_code),
                     value = code,
                     onValueChange = {
                         code = it

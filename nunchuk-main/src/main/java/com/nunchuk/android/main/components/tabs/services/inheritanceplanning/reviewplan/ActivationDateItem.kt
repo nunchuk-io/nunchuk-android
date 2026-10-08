@@ -94,7 +94,7 @@ fun ActivationDateItem(
                     )
                     Text(
                         modifier = Modifier.padding(start = 4.dp, bottom = 2.dp),
-                        text = "(Estimated)",
+                        text = stringResource(R.string.nc_main_estimated_in_parentheses),
                         style = NunchukTheme.typography.bodySmall,
                         color = colorResource(R.color.nc_text_disable),
                     )

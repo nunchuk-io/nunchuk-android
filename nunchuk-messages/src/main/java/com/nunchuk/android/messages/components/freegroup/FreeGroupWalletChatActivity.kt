@@ -166,7 +166,7 @@ fun FreeGroupWalletChatScreen(
                         IconButton(onClick = { onBackPressOwner?.onBackPressedDispatcher?.onBackPressed() }) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_back),
-                                contentDescription = "Back",
+                                contentDescription = stringResource(id = R.string.nc_message_back),
                                 tint = MaterialTheme.colorScheme.textPrimary
                             )
                         }
@@ -191,7 +191,7 @@ fun FreeGroupWalletChatScreen(
                             ) {
                                 NcIcon(
                                     painter = painterResource(id = R.drawable.ic_encrypted),
-                                    contentDescription = "Encrypted icon",
+                                    contentDescription = stringResource(id = R.string.nc_message_encrypted_icon),
                                     tint = colorResource(id = R.color.nc_text_secondary)
                                 )
                                 Text(
@@ -281,7 +281,7 @@ fun ChatHeader(btc: String, multisign: String, onClick: () -> Unit = {}) {
         Spacer(modifier = Modifier.weight(1f))
         Icon(
             painter = painterResource(id = R.drawable.ic_arrow_right_new),
-            contentDescription = "Forward",
+            contentDescription = stringResource(id = R.string.nc_message_forward),
             modifier = Modifier.size(20.dp)
         )
     }
@@ -364,7 +364,7 @@ fun SentMessageBubble(message: MessageUI.SenderMessage) {
                         Toast
                             .makeText(
                                 context,
-                                "Message copied to clipboard",
+                                context.getString(R.string.nc_message_copied_to_clipboard),
                                 Toast.LENGTH_SHORT
                             )
                             .show()
@@ -378,7 +378,7 @@ fun SentMessageBubble(message: MessageUI.SenderMessage) {
             )
         }
         Text(
-            text = "Delivered",
+            text = stringResource(id = R.string.nc_message_status_delivered),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.textSecondary,
             modifier = Modifier.padding(top = 2.dp)
@@ -419,7 +419,7 @@ fun ReceivedMessageBubble(message: MessageUI.ReceiverMessage) {
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_user),
-                    contentDescription = "User",
+                    contentDescription = stringResource(id = R.string.nc_message_user),
                     tint = Color.Black,
                     modifier = Modifier.size(14.dp)
                 )
@@ -447,7 +447,7 @@ fun ReceivedMessageBubble(message: MessageUI.ReceiverMessage) {
                             Toast
                                 .makeText(
                                     context,
-                                    "Message copied to clipboard",
+                                    context.getString(R.string.nc_message_copied_to_clipboard),
                                     Toast.LENGTH_SHORT
                                 )
                                 .show()
@@ -485,7 +485,7 @@ fun ChatInput(
             onValueChange = { inputText = it },
             placeholder = {
                 Text(
-                    text = "Type a message",
+                    text = stringResource(id = R.string.nc_message_type_a_message),
                     style = NunchukTheme.typography.bodySmall,
                 )
             },
@@ -504,7 +504,7 @@ fun ChatInput(
                         inputText = ""
                     }
                 },
-            contentDescription = "Send",
+            contentDescription = stringResource(id = R.string.nc_message_send),
             tint = MaterialTheme.colorScheme.textSecondary
         )
     }

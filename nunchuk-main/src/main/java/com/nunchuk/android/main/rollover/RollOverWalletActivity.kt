@@ -60,7 +60,7 @@ class RollOverWalletActivity : BaseActivity<ActivityNavigationBinding>() {
 
         flowObserver(viewModel.event) { event ->
             when (event) {
-                is RollOverWalletEvent.Error -> NCToastMessage(this).showError(event.message)
+                is RollOverWalletEvent.Error -> NCToastMessage(this).showError(event.messageResId?.let { getString(it) } ?: event.message)
                 is RollOverWalletEvent.Loading -> showOrHideLoading(event.isLoading)
                 RollOverWalletEvent.Success -> {
                     val source = intent.getIntExtra(SOURCE, RollOverWalletSource.WALLET_CONFIG)
@@ -73,7 +73,7 @@ class RollOverWalletActivity : BaseActivity<ActivityNavigationBinding>() {
                     } else {
                         navigator.returnToMainScreen(this)
                     }
-                    NcToastManager.scheduleShowMessage(message = "Please sign the rollover transactions at your convenience.")
+                    NcToastManager.scheduleShowMessage(message = getString(R.string.nc_main_rollover_sign_transactions_at_convenience))
                 }
             }
         }

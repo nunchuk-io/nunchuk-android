@@ -43,6 +43,7 @@ import com.nunchuk.android.usecase.GetSignerFromMasterSignerUseCase
 import com.nunchuk.android.usecase.GetUnusedSignerFromMasterSignerUseCase
 import com.nunchuk.android.usecase.JoinWalletUseCase
 import com.nunchuk.android.utils.onException
+import com.nunchuk.android.wallet.shared.R
 import com.nunchuk.android.wallet.shared.components.assign.AssignSignerEvent.ShowError
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -204,7 +205,7 @@ internal class AssignSignerViewModel @AssistedInject constructor(
         else state.remoteSigners.filter { state.selectedSigner.contains(it.toModel()) }
 
         if (unusedSignerSigners.isEmpty() && remoteSigners.isEmpty()) {
-            event(ShowError("No keys found"))
+            event(AssignSignerEvent.ShowErrorRes(R.string.nc_wallet_no_keys_found))
             return
         }
 

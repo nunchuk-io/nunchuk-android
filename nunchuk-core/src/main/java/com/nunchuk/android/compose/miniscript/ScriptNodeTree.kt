@@ -445,7 +445,7 @@ internal fun CreateKeyItem(
                             NcIcon(
                                 modifier = Modifier.size(12.dp),
                                 painter = painterResource(id = R.drawable.ic_edit_small),
-                                contentDescription = "Edit icon",
+                                contentDescription = stringResource(R.string.nc_cd_edit_icon),
                                 tint = if (isDuplicateSigner) {
                                     Color.Red
                                 } else {
@@ -744,7 +744,7 @@ fun AndOrView(
                         if (isShowTapscriptBadge) {
                             NcBadgeOutline(
                                 modifier = Modifier.padding(start = 8.dp),
-                                text = "Tapscripts"
+                                text = stringResource(R.string.nc_miniscript_tapscripts)
                             )
                         }
                     }
@@ -774,7 +774,7 @@ fun AndOrView(
                     if (pendingSigners > 0 && data.transactionStatus.isPendingSignatures()) {
                         NcIcon(
                             painter = painterResource(id = R.drawable.ic_pending_signatures),
-                            contentDescription = "Warning",
+                            contentDescription = stringResource(R.string.nc_text_warning),
                             tint = MaterialTheme.colorScheme.textSecondary
                         )
                         Text(
@@ -790,7 +790,7 @@ fun AndOrView(
                     } else if (pendingSigners <= 0) {
                         NcIcon(
                             painter = painterResource(id = R.drawable.ic_check_circle),
-                            contentDescription = "Check",
+                            contentDescription = stringResource(R.string.nc_cd_check_icon),
                             tint = MaterialTheme.colorScheme.textSecondary
                         )
                         Text(
@@ -858,7 +858,7 @@ fun MusigItem(
                     if (data.mode == ScriptMode.SIGN && isSatisfiable && keySet != null && !isCompleted) {
                         NcIcon(
                             painter = painterResource(id = R.drawable.ic_pending_signatures),
-                            contentDescription = "Pending",
+                            contentDescription = stringResource(R.string.nc_cd_pending_icon),
                             tint = MaterialTheme.colorScheme.textSecondary
                         )
                         val pluralId =
@@ -902,7 +902,7 @@ fun MusigItem(
                         .align(Alignment.CenterVertically)
                 ) {
                     Text(
-                        text = if (isCompleted) "Completed" else "Round ${round}/2",
+                        text = if (isCompleted) stringResource(R.string.nc_text_completed) else stringResource(R.string.nc_miniscript_round_of_two, round),
                         style = NunchukTheme.typography.titleSmall.copy(color = textColor),
                         modifier = Modifier
                             .background(color = badgeColor, shape = RoundedCornerShape(20.dp))
@@ -1095,7 +1095,7 @@ fun ThreshMultiItem(
                     if (pendingSigners > 0 && data.transactionStatus.isPendingSignatures()) {
                         NcIcon(
                             painter = painterResource(id = R.drawable.ic_pending_signatures),
-                            contentDescription = "Warning",
+                            contentDescription = stringResource(R.string.nc_text_warning),
                             tint = MaterialTheme.colorScheme.textSecondary
                         )
                         Text(
@@ -1111,7 +1111,7 @@ fun ThreshMultiItem(
                     } else if (pendingSigners <= 0) {
                         NcIcon(
                             painter = painterResource(id = R.drawable.ic_check_circle),
-                            contentDescription = "Check",
+                            contentDescription = stringResource(R.string.nc_cd_check_icon),
                             tint = MaterialTheme.colorScheme.textSecondary
                         )
                         Text(
@@ -1231,18 +1231,18 @@ fun TimelockItem(
                 // Show locked/unlocked status in SIGN mode
                 if (mode == ScriptMode.SIGN) {
                     if (isUnlocked) {
-                        CheckedLabel(text = "Unlocked")
+                        CheckedLabel(text = stringResource(R.string.nc_unlocked))
                     } else {
                         Text(
                             modifier = Modifier
                                 .align(Alignment.CenterVertically),
-                            text = "Locked",
+                            text = stringResource(R.string.nc_locked),
                             style = NunchukTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.textSecondary
                         )
                         NcIcon(
                             painter = painterResource(R.drawable.ic_lock),
-                            contentDescription = "Locked",
+                            contentDescription = stringResource(R.string.nc_locked),
                             modifier = Modifier
                                 .padding(start = 4.dp)
                                 .size(24.dp)
@@ -1309,7 +1309,7 @@ fun HashlockItem(
 
             if (data.mode == ScriptMode.SIGN) {
                 if (data.signedHash[node.idString] == true) {
-                    CheckedLabel(text = "Unlocked")
+                    CheckedLabel(text = stringResource(R.string.nc_unlocked))
                 } else {
                     NcPrimaryDarkButton(
                         height = 36.dp,
@@ -1616,7 +1616,7 @@ fun RowScope.CheckedLabel(
             .align(Alignment.CenterVertically)
             .padding(start = 4.dp),
         painter = painterResource(R.drawable.ic_check_circle_24),
-        contentDescription = "Signed",
+        contentDescription = stringResource(R.string.nc_transaction_signed),
     )
 }
 
@@ -1633,11 +1633,14 @@ fun ActivePolicyAfterView(
             val timestamp = group.start
             val formattedText = when {
                 lockBased == MiniscriptTimelockBased.TIME_LOCK && timestamp > 0 -> {
-                    "Active policy after ${Date(timestamp * 1000L).dateTimeFormat()}"
+                    stringResource(
+                        R.string.nc_miniscript_active_policy_after,
+                        Date(timestamp * 1000L).dateTimeFormat()
+                    )
                 }
 
                 lockBased == MiniscriptTimelockBased.HEIGHT_LOCK && timestamp > 0 -> {
-                    "Active policy after block $timestamp"
+                    stringResource(R.string.nc_miniscript_active_policy_after_block, timestamp)
                 }
 
                 else -> ""
@@ -1661,7 +1664,7 @@ fun ActivePolicyAfterView(
                     ) {
                         NcIcon(
                             painter = painterResource(R.drawable.ic_timer),
-                            contentDescription = "Lock icon",
+                            contentDescription = stringResource(R.string.nc_cd_lock_icon),
                             modifier = Modifier.size(16.dp),
                             tint = MaterialTheme.colorScheme.textPrimary
                         )
@@ -1679,7 +1682,7 @@ fun ActivePolicyAfterView(
                         ) {
                             NcIcon(
                                 painter = painterResource(R.drawable.ic_btc),
-                                contentDescription = "Info icon",
+                                contentDescription = stringResource(R.string.nc_cd_info_icon),
                                 modifier = Modifier.size(16.dp),
                                 tint = MaterialTheme.colorScheme.textPrimary
                             )
@@ -1714,7 +1717,7 @@ fun ActivePolicyAfterView(
                 ) {
                     NcIcon(
                         painter = painterResource(R.drawable.ic_btc),
-                        contentDescription = "Info icon",
+                        contentDescription = stringResource(R.string.nc_cd_info_icon),
                         modifier = Modifier.size(16.dp),
                         tint = MaterialTheme.colorScheme.textPrimary
                     )

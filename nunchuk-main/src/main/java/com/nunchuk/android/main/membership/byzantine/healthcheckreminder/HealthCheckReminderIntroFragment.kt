@@ -73,7 +73,7 @@ fun HealthCheckReminderIntroScreenContent(
                     .navigationBarsPadding()
             ) {
                 NcTopAppBar(
-                    title = "Reminders",
+                    title = stringResource(R.string.nc_membership_reminders),
                     textStyle = NunchukTheme.typography.titleLarge,
                     actions = {
                         Spacer(modifier = Modifier.size(LocalViewConfiguration.current.minimumTouchTargetSize))

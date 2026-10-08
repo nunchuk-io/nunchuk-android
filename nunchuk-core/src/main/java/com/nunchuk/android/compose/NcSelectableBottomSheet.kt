@@ -30,6 +30,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.core.R
 import kotlinx.coroutines.launch
+import androidx.compose.ui.res.stringResource
 
 data class SelectableItem(
     @DrawableRes val resId: Int,
@@ -156,7 +157,7 @@ private fun NcSelectableBottomSheetItem(
         painter?.let {
             NcIcon(
                 painter = it,
-                contentDescription = "Icon",
+                contentDescription = stringResource(R.string.nc_cd_icon),
                 modifier = Modifier.padding(end = 12.dp).size(24.dp)
             )
         }
@@ -167,7 +168,7 @@ private fun NcSelectableBottomSheetItem(
         if (selected) {
             Image(
                 painter = painterResource(id = R.drawable.ic_check),
-                contentDescription = "Icon Check"
+                contentDescription = stringResource(R.string.nc_cd_icon_check)
             )
         }
     }

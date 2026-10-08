@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.signer.mk4.recover
 
+import com.nunchuk.android.signer.R
 import android.app.Application
 import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
@@ -192,7 +193,7 @@ class ColdcardRecoverViewModel @Inject constructor(
         onChainAddSignerParam: OnChainAddSignerParam?
     ) {
         val signer = singleSigners.find { it.derivationPath.isRecommendedMultiSigPath }
-            ?: return emitErrorAndStopLoading(ColdcardRecoverEvent.ShowError("Can not find valid signer path"))
+            ?: return emitErrorAndStopLoading(ColdcardRecoverEvent.ShowError(application.getString(R.string.nc_coldcard_cannot_find_signer_path)))
 
         if (!validateMembershipSigner(signer, onChainAddSignerParam, newIndex)) return
 
@@ -230,7 +231,7 @@ class ColdcardRecoverViewModel @Inject constructor(
             signer.masterFingerprint != onChainAddSignerParam.currentSigner?.fingerPrint &&
             onChainAddSignerParam.keyIndex > 0
         ) {
-            emitErrorAndStopLoading(ColdcardRecoverEvent.ShowError("The added key has an XFP mismatch. Please use the same device for both keys."))
+            emitErrorAndStopLoading(ColdcardRecoverEvent.ShowError(application.getString(R.string.nc_added_key_xfp_mismatch)))
             return false
         }
         if (chain == Chain.MAIN && isTestNetPath(signer.derivationPath)) {
@@ -263,7 +264,12 @@ class ColdcardRecoverViewModel @Inject constructor(
             if (newAccountIndex != 0) {
                 emitErrorAndStopLoading(
                     ColdcardRecoverEvent.ShowError(
-                        "The key you just added (XFP:${signer.masterFingerprint.uppercase()}, Account $newAccountIndex) doesn't match the original inheritance key (XFP:${currentSigner.fingerPrint.uppercase()}, Account 0). Please try again."
+                        application.getString(
+                            R.string.nc_key_account_mismatch_inheritance,
+                            signer.masterFingerprint.uppercase(),
+                            newAccountIndex,
+                            currentSigner.fingerPrint.uppercase(),
+                        )
                     )
                 )
                 return true

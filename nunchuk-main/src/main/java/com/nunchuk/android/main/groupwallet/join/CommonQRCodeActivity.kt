@@ -1,5 +1,6 @@
 package com.nunchuk.android.main.groupwallet.join
 
+import androidx.compose.ui.res.stringResource
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
@@ -118,7 +119,7 @@ fun CommonQRCodeScreen(
     NunchukTheme {
         Scaffold(topBar = {
             NcTopAppBar(
-                title = "Share QR code",
+                title = stringResource(R.string.nc_main_share_qr_code),
                 textStyle = NunchukTheme.typography.titleLarge,
                 isBack = false
             )
@@ -144,7 +145,7 @@ fun CommonQRCodeScreen(
                 ) {
                     Image(
                         bitmap = qrCodeBitmap.asImageBitmap(),
-                        contentDescription = "QR Code",
+                        contentDescription = stringResource(R.string.nc_main_cd_qr_code),
                         modifier = Modifier.fillMaxSize()
                     )
 //                    Image(
@@ -157,7 +158,7 @@ fun CommonQRCodeScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
-                    text = "Scan the QR code to join the group wallet.",
+                    text = stringResource(R.string.nc_main_scan_qr_to_join_group_wallet),
                     style = NunchukTheme.typography.body,
                     textAlign = TextAlign.Center
                 )
@@ -177,7 +178,7 @@ fun CommonQRCodeScreen(
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_share),
-                        contentDescription = "Share",
+                        contentDescription = stringResource(R.string.nc_main_cd_share),
                         tint = Color.Black
                     )
                 }

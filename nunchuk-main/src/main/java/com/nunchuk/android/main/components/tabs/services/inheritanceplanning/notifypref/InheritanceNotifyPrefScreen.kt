@@ -427,7 +427,7 @@ private fun EmailChip(
                 painter = if (email.valid) painterResource(R.drawable.ic_check_circle_outline_24) else painterResource(
                     R.drawable.ic_error_outline_24
                 ),
-                contentDescription = if (email.valid) "Valid email" else "Invalid email",
+                contentDescription = if (email.valid) stringResource(R.string.nc_main_cd_valid_email) else stringResource(R.string.nc_main_cd_invalid_email),
                 modifier = Modifier.size(20.dp)
             )
 
@@ -443,7 +443,7 @@ private fun EmailChip(
             // Right close icon
             Icon(
                 painter = painterResource(R.drawable.ic_close),
-                contentDescription = "Remove email",
+                contentDescription = stringResource(R.string.nc_main_cd_remove_email),
                 tint = Color(0xFF031F2B),
                 modifier = Modifier.size(16.dp)
             )

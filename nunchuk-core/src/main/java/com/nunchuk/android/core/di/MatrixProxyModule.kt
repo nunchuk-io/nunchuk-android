@@ -34,7 +34,8 @@ import javax.inject.Singleton
 object MatrixCommonModule {
 
     @Provides
-    fun providesMatrixConfiguration() = MatrixConfiguration(roomDisplayNameFallbackProvider = RoomDisplayNameFallbackProviderImpl())
+    fun providesMatrixConfiguration(context: Context) =
+        MatrixConfiguration(roomDisplayNameFallbackProvider = RoomDisplayNameFallbackProviderImpl(context))
 
     @Provides
     @Singleton

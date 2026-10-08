@@ -66,7 +66,7 @@ fun CoinListTopBarNoneMode(
                 IconButton(onClick = onShowMoreOptions) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_more),
-                        contentDescription = "More icon"
+                        contentDescription = stringResource(R.string.nc_wallet_cd_more_icon)
                     )
                 }
             } else {

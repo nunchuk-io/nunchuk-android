@@ -90,7 +90,7 @@ fun SetKeyNameScreen(
                         IconButton(onClick = { name = "" }) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_close),
-                                contentDescription = "Clear key name"
+                                contentDescription = stringResource(R.string.nc_signer_clear_key_name_cd)
                             )
                         }
                     }

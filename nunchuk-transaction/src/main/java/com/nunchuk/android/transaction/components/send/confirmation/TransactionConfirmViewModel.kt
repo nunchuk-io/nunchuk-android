@@ -49,6 +49,7 @@ import com.nunchuk.android.model.TxOutput
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.model.defaultRate
 import com.nunchuk.android.model.setting.TaprootFeeSelectionSetting
+import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.AssignTagEvent
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.CreateTxErrorEvent
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.CreateTxSuccessEvent
@@ -536,7 +537,7 @@ class TransactionConfirmViewModel @Inject constructor(
                     )
                 ).getOrDefault(emptyList())
                 if (coins.isEmpty()) {
-                    _event.emit(CreateTxErrorEvent("No coins found for the transaction inputs."))
+                    _event.emit(CreateTxErrorEvent(messageRes = R.string.nc_transaction_no_coins_found_for_inputs))
                     return@launch
                 }
                 getTimelockedCoinsUseCase(

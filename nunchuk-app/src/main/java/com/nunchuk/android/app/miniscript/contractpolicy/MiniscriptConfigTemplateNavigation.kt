@@ -38,8 +38,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.Placeholder
+import androidx.compose.ui.text.PlaceholderVerticalAlign
+import androidx.compose.foundation.text.InlineTextContent
+import androidx.compose.foundation.text.appendInlineContent
+import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.annotation.StringRes
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.PreviewLightDark
@@ -217,6 +225,7 @@ fun MiniscriptConfigTemplateScreen(
     val dateFormat = remember { SimpleDateFormat("MM/dd/yyyy", Locale.getDefault()) }
     val dateTimeFormat = remember { SimpleDateFormat("MM/dd/yyyy HH:mm", Locale.getDefault()) }
     val numberFormatter = remember { DecimalFormat("#,###") }
+    val context = LocalContext.current
     val timeLockText by remember {
         derivedStateOf {
             when {
@@ -234,7 +243,7 @@ fun MiniscriptConfigTemplateScreen(
                 }
                 // Absolute block height - show "block {number}"
                 timelockData.timelockType == MiniscriptTimelockType.ABSOLUTE && timelockData.timeUnit == MiniscriptTimelockBased.HEIGHT_LOCK -> {
-                    "block ${numberFormatter.format(timelockData.value)}"
+                    context.getString(R.string.nc_miniscript_block_number, numberFormatter.format(timelockData.value))
                 }
                 // Relative time lock - show days, hours, minutes
                 timelockData.timelockType == MiniscriptTimelockType.RELATIVE && timelockData.timeUnit == MiniscriptTimelockBased.TIME_LOCK -> {
@@ -257,28 +266,28 @@ fun MiniscriptConfigTemplateScreen(
                     
                     val parts = mutableListOf<String>()
                     if (days > 0) {
-                        parts.add("${days}d")
+                        parts.add(context.getString(R.string.nc_miniscript_duration_days_short, days))
                     }
                     if (hours > 0) {
-                        parts.add("${hours}h")
+                        parts.add(context.getString(R.string.nc_miniscript_duration_hours_short, hours))
                     }
                     if (minutes > 0) {
-                        parts.add("${minutes}m")
+                        parts.add(context.getString(R.string.nc_miniscript_duration_minutes_short, minutes))
                     }
                     
                     if (parts.isEmpty()) {
-                        "0d"
+                        context.getString(R.string.nc_miniscript_duration_days_short, 0)
                     } else {
                         parts.joinToString(" ")
                     }
                 }
                 // Relative block height - show "{number} blocks"
                 timelockData.timelockType == MiniscriptTimelockType.RELATIVE && timelockData.timeUnit == MiniscriptTimelockBased.HEIGHT_LOCK -> {
-                    "${numberFormatter.format(timelockData.value)} blocks"
+                    context.resources.getQuantityString(R.plurals.nc_miniscript_blocks_count, timelockData.value.coerceIn(0, Int.MAX_VALUE.toLong()).toInt(), numberFormatter.format(timelockData.value))
                 }
                 // Default fallback
                 else -> {
-                    "${numberFormatter.format(timelockData.value)} blocks"
+                    context.resources.getQuantityString(R.plurals.nc_miniscript_blocks_count, timelockData.value.coerceIn(0, Int.MAX_VALUE.toLong()).toInt(), numberFormatter.format(timelockData.value))
                 }
             }
         }
@@ -327,10 +336,10 @@ fun MiniscriptConfigTemplateScreen(
     }
 
     val title = when (multisignType) {
-        MultisignType.FLEXIBLE -> "Flexible multisig"
-        MultisignType.EXPANDING -> "Expanding multisig"
-        MultisignType.DECAYING -> "Decaying multisig"
-        MultisignType.ZEN_HODL -> "Zen Hodl"
+        MultisignType.FLEXIBLE -> stringResource(R.string.nc_miniscript_flexible_multisig)
+        MultisignType.EXPANDING -> stringResource(R.string.nc_miniscript_expanding_multisig)
+        MultisignType.DECAYING -> stringResource(R.string.nc_miniscript_decaying_multisig)
+        MultisignType.ZEN_HODL -> stringResource(R.string.nc_miniscript_zen_hodl)
         else -> ""
     }
 
@@ -358,7 +367,7 @@ fun MiniscriptConfigTemplateScreen(
                             onContinueClick(m, n, newM, newN, timelockData, reuseSigner.value)
                         }
                     ) {
-                        Text(text = "Continue")
+                        Text(text = stringResource(R.string.nc_miniscript_continue))
                     }
                 }
             },
@@ -371,13 +380,8 @@ fun MiniscriptConfigTemplateScreen(
                     .verticalScroll(rememberScrollState())
             ) {
                 val spacing = 12.dp
-                val chipModifier = Modifier
-                    .padding(end = 4.dp)
-                    .background(color = MaterialTheme.colorScheme.fillBeewax, shape = RoundedCornerShape(8.dp))
-                    .padding(horizontal = 8.dp, vertical = 4.dp)
-
                 Text(
-                    text = "Spending rules",
+                    text = stringResource(R.string.nc_miniscript_spending_rules),
                     style = NunchukTheme.typography.titleSmall,
                     modifier = Modifier.padding(bottom = spacing, start = 16.dp, end = 16.dp)
                 )
@@ -390,7 +394,6 @@ fun MiniscriptConfigTemplateScreen(
                                     m = m,
                                     n = n,
                                     timeLockText = timeLockText,
-                                    chipModifier = chipModifier,
                                     onEditingInitialPolicyChange = { editingInitialPolicy = it },
                                     onShowEditPolicyBottomSheetChange = { showEditPolicyBottomSheet = it },
                                     onShowEditTimelockBottomSheetChange = { showEditTimelockBottomSheet = it }
@@ -401,7 +404,6 @@ fun MiniscriptConfigTemplateScreen(
                                     m = m,
                                     n = n,
                                     timeLockText = timeLockText,
-                                    chipModifier = chipModifier,
                                     onEditingInitialPolicyChange = { editingInitialPolicy = it },
                                     onShowEditPolicyBottomSheetChange = { showEditPolicyBottomSheet = it },
                                     onShowEditTimelockBottomSheetChange = { showEditTimelockBottomSheet = it }
@@ -417,7 +419,6 @@ fun MiniscriptConfigTemplateScreen(
                             newN = newN,
                             multisignType = multisignType,
                             timeLockText = timeLockText,
-                            chipModifier = chipModifier,
                             onEditingInitialPolicyChange = { editingInitialPolicy = it },
                             onShowEditPolicyBottomSheetChange = { showEditPolicyBottomSheet = it },
                             onShowEditTimelockBottomSheetChange = { showEditTimelockBottomSheet = it }
@@ -431,7 +432,6 @@ fun MiniscriptConfigTemplateScreen(
                             newN = newN,
                             multisignType = multisignType,
                             timeLockText = timeLockText,
-                            chipModifier = chipModifier,
                             onEditingInitialPolicyChange = { editingInitialPolicy = it },
                             onShowEditPolicyBottomSheetChange = { showEditPolicyBottomSheet = it },
                             onShowEditTimelockBottomSheetChange = { showEditTimelockBottomSheet = it }
@@ -458,7 +458,7 @@ fun MiniscriptConfigTemplateScreen(
                             )
                         }
                         Text(
-                            text = "Reuse keys across policies (extra XPUBs might be required)",
+                            text = stringResource(R.string.nc_miniscript_reuse_keys_across_policies),
                             style = NunchukTheme.typography.body
                         )
                     }
@@ -598,61 +598,138 @@ fun MiniscriptConfigTemplateScreen(
     }
 }
 
+sealed interface SentenceArg {
+    data class Plain(val text: String) : SentenceArg
+    data class Chip(val text: String, val onClick: () -> Unit) : SentenceArg
+}
+
+private val sentencePlaceholder = Regex("%(\\d+)\\\$s")
+private val chipHorizontalPadding = 8.dp
+private val chipVerticalPadding = 4.dp
+private val chipIconSpacing = 4.dp
+private val chipIconSize = 16.dp
+
+/**
+ * Renders a whole translatable sentence whose `%n$s` placeholders are filled with [args], so a
+ * translation can put the editable chips wherever its grammar needs them. Chips are inline content
+ * sized from their measured text, keeping the pill look of the old chip rows.
+ */
 @Composable
-fun TextChipLineContent(
+fun ChipSentence(
+    template: String,
+    args: List<SentenceArg>,
     modifier: Modifier = Modifier,
-    text: String,
-    onClick: () -> Unit = {},
-    contentBeginning: @Composable () -> Unit = {},
-    contentEnd: @Composable () -> Unit = {},
 ) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        contentBeginning()
-        TextChip(
+    val style = NunchukTheme.typography.body
+    val textMeasurer = rememberTextMeasurer()
+    val density = LocalDensity.current
+    val inlineContent = mutableMapOf<String, InlineTextContent>()
+    val text = buildAnnotatedString {
+        var cursor = 0
+        sentencePlaceholder.findAll(template).forEach { match ->
+            append(template.substring(cursor, match.range.first))
+            when (val arg = args[match.groupValues[1].toInt() - 1]) {
+                is SentenceArg.Plain -> append(arg.text)
+                is SentenceArg.Chip -> {
+                    val id = "chip${match.groupValues[1]}"
+                    val textSize = textMeasurer.measure(arg.text, style).size
+                    val placeholder = with(density) {
+                        Placeholder(
+                            width = (textSize.width + (chipHorizontalPadding * 2 + chipIconSpacing + chipIconSize).toPx()).toSp(),
+                            height = (maxOf(textSize.height.toFloat(), chipIconSize.toPx()) + (chipVerticalPadding * 2).toPx()).toSp(),
+                            placeholderVerticalAlign = PlaceholderVerticalAlign.TextCenter,
+                        )
+                    }
+                    inlineContent[id] = InlineTextContent(placeholder) {
+                        SentenceChip(text = arg.text, onClick = arg.onClick)
+                    }
+                    appendInlineContent(id, arg.text)
+                }
+            }
+            cursor = match.range.last + 1
+        }
+        append(template.substring(cursor))
+    }
+    Text(text = text, style = style, inlineContent = inlineContent, modifier = modifier)
+}
+
+@Composable
+private fun SentenceChip(text: String, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .background(color = MaterialTheme.colorScheme.fillBeewax, shape = RoundedCornerShape(8.dp))
+            .clickable(onClick = onClick)
+            .padding(horizontal = chipHorizontalPadding, vertical = chipVerticalPadding),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
             text = text,
-            modifier = modifier.clickable { onClick() },
-            onClick = onClick
+            style = NunchukTheme.typography.body.copy(textDecoration = TextDecoration.Underline),
+            maxLines = 1,
         )
-        contentEnd()
+        Spacer(modifier = Modifier.width(chipIconSpacing))
+        Icon(
+            painter = painterResource(R.drawable.ic_edit),
+            contentDescription = stringResource(R.string.nc_edit),
+            modifier = Modifier.size(chipIconSize)
+        )
     }
 }
 
 @Composable
-fun TextChip(text: String, modifier: Modifier = Modifier, onClick: () -> Unit = {}) {
-    Row(
-        modifier = modifier.clickable { onClick() },
-        verticalAlignment = Alignment.CenterVertically
+private fun SpendingRulesCard(content: @Composable () -> Unit) {
+    Card(
+        modifier = Modifier.fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.lightGray)
     ) {
-        Text(
-            text = buildAnnotatedString {
-                if (text.isNotEmpty()) {
-                    val lastChar = text.last()
-                    val shouldRemoveLastCharUnderline = lastChar == '.' || lastChar == ','
-                    
-                    if (shouldRemoveLastCharUnderline && text.length > 1) {
-                        addStyle(
-                            style = SpanStyle(textDecoration = TextDecoration.Underline),
-                            start = 0,
-                            end = text.length - 1
-                        )
-                    } else {
-                        addStyle(
-                            style = SpanStyle(textDecoration = TextDecoration.Underline),
-                            start = 0,
-                            end = text.length
-                        )
-                    }
-                    append(text)
-                }
-            },
-            style = NunchukTheme.typography.body,
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            content()
+        }
+    }
+}
+
+/**
+ * The "after the timelock" sentence shared by the absolute and relative cards: the same policy OR a
+ * new one whose shape depends on [multisignType]. Each card passes its own templates so the lead-in
+ * ("spending requires" vs "the same coin can be spent with") stays inside one translatable sentence.
+ */
+@Composable
+private fun AfterTimelockSentence(
+    m: Int,
+    n: Int,
+    newM: Int,
+    newN: Int,
+    multisignType: MultisignType,
+    currentPolicyName: String,
+    @StringRes flexibleRes: Int,
+    @StringRes expandingRes: Int,
+    @StringRes expandingSinglesigRes: Int,
+    @StringRes decayingRes: Int,
+    @StringRes decayingSinglesigRes: Int,
+    onEditNewPolicy: () -> Unit,
+) {
+    val current = SentenceArg.Plain(currentPolicyName)
+    when (multisignType) {
+        MultisignType.FLEXIBLE -> ChipSentence(
+            template = stringResource(flexibleRes),
+            args = listOf(current, SentenceArg.Chip(policyName(newM, newN), onEditNewPolicy)),
         )
-        Spacer(modifier = Modifier.width(4.dp))
-        Icon(
-            painter = painterResource(R.drawable.ic_edit),
-            contentDescription = "Edit",
-            modifier = Modifier.size(16.dp)
+
+        MultisignType.EXPANDING -> ChipSentence(
+            template = stringResource(if (newN == 1 && m == 1) expandingSinglesigRes else expandingRes),
+            args = listOf(current, SentenceArg.Plain("$m"), SentenceArg.Chip("$newN", onEditNewPolicy)),
         )
+
+        MultisignType.DECAYING -> ChipSentence(
+            template = stringResource(if (newM == 1 && n == 1) decayingSinglesigRes else decayingRes),
+            args = listOf(current, SentenceArg.Chip("$newM", onEditNewPolicy), SentenceArg.Plain("$n")),
+        )
+
+        else -> Unit
     }
 }
 
@@ -664,133 +741,38 @@ fun AbsoluteCard(
     newN: Int,
     multisignType: MultisignType,
     timeLockText: String,
-    chipModifier: Modifier,
     onEditingInitialPolicyChange: (Boolean) -> Unit,
     onShowEditPolicyBottomSheetChange: (Boolean) -> Unit,
     onShowEditTimelockBottomSheetChange: (Boolean) -> Unit
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth()
-            .padding(horizontal = 16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.lightGray)
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-
-            TextChipLineContent(
-                modifier = chipModifier,
-                contentBeginning = {
-                    Text(
-                        text = "Until ",
-                        style = NunchukTheme.typography.body
-                    )
-                },
-                text = "$timeLockText,",
-                contentEnd = {
-                    Text(
-                        text = "spending requires",
-                        style = NunchukTheme.typography.body
-                    )
-                },
-                onClick = {
-                    onShowEditTimelockBottomSheetChange(true)
-                }
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            TextChipLineContent(
-                modifier = chipModifier,
-                contentBeginning = {
-                    Text(
-                        text = "signatures from a ",
-                        style = NunchukTheme.typography.body
-                    )
-                },
-                text = if (n == 1 && m == 1) "singlesig." else "$m-of-$n multisig.",
-                onClick = {
+    SpendingRulesCard {
+        ChipSentence(
+            template = stringResource(R.string.nc_miniscript_rule_absolute_initial),
+            args = listOf(
+                SentenceArg.Chip(timeLockText) { onShowEditTimelockBottomSheetChange(true) },
+                SentenceArg.Chip(policyName(m, n)) {
                     onEditingInitialPolicyChange(true)
                     onShowEditPolicyBottomSheetChange(true)
-                }
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                "After that, spending requires either the same",
-                style = NunchukTheme.typography.body
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                when (multisignType) {
-                    MultisignType.FLEXIBLE -> {
-                        TextChipLineContent(
-                            contentBeginning = {
-                                Text(
-                                    text = "${if (n == 1 && m == 1) "singlesig" else "$m‑of‑$n multisig"} OR a ",
-                                    style = NunchukTheme.typography.body
-                                )
-                            },
-                            modifier = chipModifier,
-                            text = if (newN == 1 && newM == 1) "singlesig." else "$newM-of-$newN multisig.",
-                            onClick = {
-                                onEditingInitialPolicyChange(false)
-                                onShowEditPolicyBottomSheetChange(true)
-                            }
-                        )
-                    }
-
-                    MultisignType.EXPANDING -> {
-                        TextChipLineContent(
-                            contentBeginning = {
-                                Text(
-                                    text = "${if (n == 1 && m == 1) "singlesig" else "$m‑of‑$n multisig"} OR a $m of ",
-                                    style = NunchukTheme.typography.body
-                                )
-                            },
-                            modifier = chipModifier,
-                            text = "$newN",
-                            contentEnd = {
-                                Text(
-                                    text = if (newN == 1 && m == 1) " singlesig." else " multisig.",
-                                    style = NunchukTheme.typography.body
-                                )
-                            },
-                            onClick = {
-                                onEditingInitialPolicyChange(false)
-                                onShowEditPolicyBottomSheetChange(true)
-                            }
-                        )
-                    }
-
-                    MultisignType.DECAYING -> {
-                        TextChipLineContent(
-                            contentBeginning = {
-                                Text(
-                                    text = "${if (n == 1 && m == 1) "singlesig" else "$m‑of‑$n multisig"} OR a ",
-                                    style = NunchukTheme.typography.body
-                                )
-                            },
-                            modifier = chipModifier,
-                            text = "$newM",
-                            contentEnd = {
-                                Text(
-                                    text = if (newM == 1 && n == 1) "-of-$n singlesig." else "-of-$n multisig.",
-                                    style = NunchukTheme.typography.body
-                                )
-                            },
-                            onClick = {
-                                onEditingInitialPolicyChange(false)
-                                onShowEditPolicyBottomSheetChange(true)
-                            }
-                        )
-                    }
-
-                    else -> {}
-                }
-            }
-        }
+                },
+            ),
+        )
+        AfterTimelockSentence(
+            m = m,
+            n = n,
+            newM = newM,
+            newN = newN,
+            multisignType = multisignType,
+            currentPolicyName = policyNameNb(m, n),
+            flexibleRes = R.string.nc_miniscript_rule_absolute_after_flexible,
+            expandingRes = R.string.nc_miniscript_rule_absolute_after_expanding,
+            expandingSinglesigRes = R.string.nc_miniscript_rule_absolute_after_expanding_singlesig,
+            decayingRes = R.string.nc_miniscript_rule_absolute_after_decaying,
+            decayingSinglesigRes = R.string.nc_miniscript_rule_absolute_after_decaying_singlesig,
+            onEditNewPolicy = {
+                onEditingInitialPolicyChange(false)
+                onShowEditPolicyBottomSheetChange(true)
+            },
+        )
     }
 }
 
@@ -799,57 +781,24 @@ fun ZenHodlAbsoluteCard(
     m: Int,
     n: Int,
     timeLockText: String,
-    chipModifier: Modifier,
     onEditingInitialPolicyChange: (Boolean) -> Unit,
     onShowEditPolicyBottomSheetChange: (Boolean) -> Unit,
     onShowEditTimelockBottomSheetChange: (Boolean) -> Unit
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth()
-            .padding(horizontal = 16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.lightGray)
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                text = "Coins sent to this wallet are locked",
-                style = NunchukTheme.typography.body,
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = "immediately and cannot be spent until ",
-                style = NunchukTheme.typography.body,
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            TextChipLineContent(
-                modifier = chipModifier,
-                text = "$timeLockText.",
-                onClick = {
-                    onShowEditTimelockBottomSheetChange(true)
-                }
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = "After that, spending requires signature from",
-                style = NunchukTheme.typography.body
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            TextChipLineContent(
-                modifier = chipModifier,
-                contentBeginning = {
-                    Text(
-                        text = "a ",
-                        style = NunchukTheme.typography.body
-                    )
-                },
-                text = if (n == 1 && m == 1) "singlesig." else "$m-of-$n multisig.",
-                onClick = {
+    SpendingRulesCard {
+        ChipSentence(
+            template = stringResource(R.string.nc_miniscript_rule_zen_absolute_initial),
+            args = listOf(SentenceArg.Chip(timeLockText) { onShowEditTimelockBottomSheetChange(true) }),
+        )
+        ChipSentence(
+            template = stringResource(R.string.nc_miniscript_rule_zen_absolute_after),
+            args = listOf(
+                SentenceArg.Chip(policyName(m, n)) {
                     onEditingInitialPolicyChange(false)
                     onShowEditPolicyBottomSheetChange(true)
-                }
-            )
-        }
+                },
+            ),
+        )
     }
 }
 
@@ -861,135 +810,38 @@ fun RelativeCard(
     newN: Int,
     multisignType: MultisignType,
     timeLockText: String,
-    chipModifier: Modifier,
     onEditingInitialPolicyChange: (Boolean) -> Unit,
     onShowEditPolicyBottomSheetChange: (Boolean) -> Unit,
     onShowEditTimelockBottomSheetChange: (Boolean) -> Unit
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth()
-            .padding(horizontal = 16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.lightGray)
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-
-            TextChipLineContent(
-                modifier = chipModifier,
-                contentBeginning = {
-                    Text(
-                        text = "First ",
-                        style = NunchukTheme.typography.body
-                    )
-                },
-                text = "$timeLockText,",
-                contentEnd = {
-                    Text(
-                        text = " after a coin is received:",
-                        style = NunchukTheme.typography.body
-                    )
-                },
-                onClick = {
-                    onShowEditTimelockBottomSheetChange(true)
-                }
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = "spending that coin requires signatures",
-                style = NunchukTheme.typography.body
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            TextChipLineContent(
-                contentBeginning = {
-                    Text(
-                        text = "from a ",
-                        style = NunchukTheme.typography.body
-                    )
-                },
-                modifier = chipModifier,
-                text = if (n == 1 && m == 1) "singlesig." else "$m-of-$n multisig.",
-                onClick = {
+    SpendingRulesCard {
+        ChipSentence(
+            template = stringResource(R.string.nc_miniscript_rule_relative_initial),
+            args = listOf(
+                SentenceArg.Chip(timeLockText) { onShowEditTimelockBottomSheetChange(true) },
+                SentenceArg.Chip(policyName(m, n)) {
                     onEditingInitialPolicyChange(true)
                     onShowEditPolicyBottomSheetChange(true)
-                }
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                "After that, the same coin can be spent with",
-                style = NunchukTheme.typography.body
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                "either the same ${if (n == 1 && m == 1) "singlesig" else "$m-of-$n multisig"} OR a ",
-                style = NunchukTheme.typography.body
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                when (multisignType) {
-                    MultisignType.FLEXIBLE -> {
-                        TextChipLineContent(
-                            modifier = chipModifier,
-                            text = if (newN == 1 && newM == 1) "singlesig." else "$newM-of-$newN multisig.",
-                            onClick = {
-                                onEditingInitialPolicyChange(false)
-                                onShowEditPolicyBottomSheetChange(true)
-                            }
-                        )
-                    }
-
-                    MultisignType.EXPANDING -> {
-                        TextChipLineContent(
-                            contentBeginning = {
-                                Text(
-                                    text = "$m of ",
-                                    style = NunchukTheme.typography.body
-                                )
-                            },
-                            modifier = chipModifier,
-                            text = "$newN",
-                            contentEnd = {
-                                Text(
-                                    text = if (newN == 1 && m == 1) " singlesig." else " multisig.",
-                                    style = NunchukTheme.typography.body
-                                )
-                            },
-                            onClick = {
-                                onEditingInitialPolicyChange(false)
-                                onShowEditPolicyBottomSheetChange(true)
-                            }
-                        )
-                    }
-
-                    MultisignType.DECAYING -> {
-                        TextChipLineContent(
-                            modifier = chipModifier,
-                            text = "$newM",
-                            contentEnd = {
-                                Text(
-                                    text = if (newM == 1 && n == 1) "-of-$n singlesig." else "-of-$n multisig.",
-                                    style = NunchukTheme.typography.body
-                                )
-                            },
-                            onClick = {
-                                onEditingInitialPolicyChange(false)
-                                onShowEditPolicyBottomSheetChange(true)
-                            }
-                        )
-                    }
-
-                    else -> {}
-                }
-            }
-        }
+                },
+            ),
+        )
+        AfterTimelockSentence(
+            m = m,
+            n = n,
+            newM = newM,
+            newN = newN,
+            multisignType = multisignType,
+            currentPolicyName = policyName(m, n),
+            flexibleRes = R.string.nc_miniscript_rule_relative_after_flexible,
+            expandingRes = R.string.nc_miniscript_rule_relative_after_expanding,
+            expandingSinglesigRes = R.string.nc_miniscript_rule_relative_after_expanding_singlesig,
+            decayingRes = R.string.nc_miniscript_rule_relative_after_decaying,
+            decayingSinglesigRes = R.string.nc_miniscript_rule_relative_after_decaying_singlesig,
+            onEditNewPolicy = {
+                onEditingInitialPolicyChange(false)
+                onShowEditPolicyBottomSheetChange(true)
+            },
+        )
     }
 }
 
@@ -998,71 +850,42 @@ fun ZenHodlRelativeCard(
     m: Int,
     n: Int,
     timeLockText: String,
-    chipModifier: Modifier,
     onEditingInitialPolicyChange: (Boolean) -> Unit,
     onShowEditPolicyBottomSheetChange: (Boolean) -> Unit,
     onShowEditTimelockBottomSheetChange: (Boolean) -> Unit
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth()
-            .padding(horizontal = 16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.lightGray)
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-
-            TextChipLineContent(
-                modifier = chipModifier,
-                contentBeginning = {
-                    Text(
-                        text = "First ",
-                        style = NunchukTheme.typography.body
-                    )
-                },
-                text = "$timeLockText,",
-                contentEnd = {
-                    Text(
-                        text = " after a coin is received:",
-                        style = NunchukTheme.typography.body
-                    )
-                },
-                onClick = {
-                    onShowEditTimelockBottomSheetChange(true)
-                }
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = "spending that coin is not allowed.",
-                style = NunchukTheme.typography.body
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = "After that, the same coin can be spent with a ",
-                style = NunchukTheme.typography.body
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            TextChipLineContent(
-                modifier = chipModifier,
-                contentBeginning = {
-                    Text(
-                        text = "a ",
-                        style = NunchukTheme.typography.body
-                    )
-                },
-                text = if (n == 1 && m == 1) "singlesig." else "$m-of-$n multisig.",
-                onClick = {
+    SpendingRulesCard {
+        ChipSentence(
+            template = stringResource(R.string.nc_miniscript_rule_zen_relative_initial),
+            args = listOf(SentenceArg.Chip(timeLockText) { onShowEditTimelockBottomSheetChange(true) }),
+        )
+        ChipSentence(
+            template = stringResource(R.string.nc_miniscript_rule_zen_relative_after),
+            args = listOf(
+                SentenceArg.Chip(policyName(m, n)) {
                     onEditingInitialPolicyChange(false)
                     onShowEditPolicyBottomSheetChange(true)
-                }
-            )
-        }
+                },
+            ),
+        )
     }
 }
+
+@Composable
+private fun policyName(m: Int, n: Int): String =
+    if (n == 1 && m == 1) {
+        stringResource(R.string.nc_miniscript_singlesig)
+    } else {
+        stringResource(R.string.nc_miniscript_m_of_n_multisig, m, n)
+    }
+
+@Composable
+private fun policyNameNb(m: Int, n: Int): String =
+    if (n == 1 && m == 1) {
+        stringResource(R.string.nc_miniscript_singlesig)
+    } else {
+        stringResource(R.string.nc_miniscript_m_of_n_multisig_nb, m, n)
+    }
 
 @PreviewLightDark
 @Composable

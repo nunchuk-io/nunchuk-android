@@ -45,6 +45,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import com.nunchuk.android.core.R
+import androidx.compose.ui.res.stringResource
 
 @Composable
 fun NcImageAppBar(
@@ -67,7 +68,7 @@ fun NcImageAppBar(
                 modifier = Modifier.fillMaxWidth(),
                 painter = painterResource(id = backgroundRes),
                 contentScale = ContentScale.Crop,
-                contentDescription = "Background",
+                contentDescription = stringResource(R.string.nc_cd_background),
             )
             CenterAlignedTopAppBar(title = {
                 if (title != null) {
@@ -83,7 +84,7 @@ fun NcImageAppBar(
                 IconButton(onClick = onClick) {
                     NcIcon(
                         painter = painterResource(id = backIconRes),
-                        contentDescription = "Back Icon"
+                        contentDescription = stringResource(R.string.nc_cd_back_icon)
                     )
                 }
             }, actions = {

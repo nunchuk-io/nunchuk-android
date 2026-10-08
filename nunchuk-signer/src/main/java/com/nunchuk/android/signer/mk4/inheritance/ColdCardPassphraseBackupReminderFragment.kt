@@ -112,7 +112,7 @@ fun ColdCardPassphraseBackupReminderScreen(
                         onClick = onContinue
                     ) {
                         Text(
-                            text = "Continue",
+                            text = stringResource(R.string.nc_text_continue),
                             style = NunchukTheme.typography.title.copy(color = MaterialTheme.colorScheme.controlTextPrimary)
                         )
                     }
@@ -129,20 +129,20 @@ fun ColdCardPassphraseBackupReminderScreen(
 
                 Image(
                     painter = painterResource(id = R.drawable.ic_important_notice),
-                    contentDescription = "Decoy wallet intro",
+                    contentDescription = stringResource(R.string.nc_coldcard_decoy_wallet_intro_cd),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 24.dp),
                 )
 
                 Text(
-                    text = "Passphrase backup reminder",
+                    text = stringResource(R.string.nc_coldcard_passphrase_backup_reminder_title),
                     style = NunchukTheme.typography.heading,
                     modifier = Modifier.padding(top = 12.dp)
                 )
 
                 NcHighlightText(
-                    text = "If you use a key with a passphrase, ensure you export the correct file when backing up the inheritance key from the COLDCARD in the next step.\n\n[B]The encrypted backup file must include the passphrase for the inheritance protocol to function correctly.[/B]"
+                    text = stringResource(R.string.nc_coldcard_passphrase_backup_reminder_desc)
                 )
             }
         }

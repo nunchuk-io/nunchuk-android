@@ -180,7 +180,7 @@ fun TransactionDetailView(
                     IconButton(onClick = onShowMore) {
                         NcIcon(
                             painter = painterResource(id = R.drawable.ic_more),
-                            contentDescription = "Back",
+                            contentDescription = stringResource(R.string.nc_transaction_back),
                         )
                     }
                 }
@@ -713,7 +713,7 @@ private fun TransactionHeader(
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_schedule),
-                    contentDescription = "Schedule",
+                    contentDescription = stringResource(R.string.nc_transaction_schedule),
                     tint = colorResource(R.color.nc_grey_g7),
                 )
                 Text(
@@ -821,7 +821,7 @@ private fun TransactionHeader(
 
                 NcIcon(
                     painter = painterResource(id = R.drawable.ic_arrow),
-                    contentDescription = "Manage Coin",
+                    contentDescription = stringResource(R.string.nc_transaction_manage_coin_icon),
                 )
             }
         }
@@ -849,7 +849,7 @@ private fun TransactionHeader(
 
             NcIcon(
                 painter = painterResource(id = if (showDetail) R.drawable.ic_collapse else R.drawable.ic_expand),
-                contentDescription = "Show Details",
+                contentDescription = stringResource(R.string.nc_transaction_show_details),
             )
         }
     }

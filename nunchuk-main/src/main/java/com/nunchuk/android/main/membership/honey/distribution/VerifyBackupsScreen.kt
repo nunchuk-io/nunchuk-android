@@ -246,7 +246,7 @@ private fun BackupChecklistItem(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     NcIcon(
                         painter = painterResource(id = R.drawable.nc_circle_checked),
-                        contentDescription = "Verified icon",
+                        contentDescription = stringResource(R.string.nc_membership_cd_verified_icon),
                     )
                     Text(
                         modifier = Modifier.padding(start = 4.dp),

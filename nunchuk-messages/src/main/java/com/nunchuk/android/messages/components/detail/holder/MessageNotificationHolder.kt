@@ -40,7 +40,7 @@ internal class MessageNotificationHolder(val binding: ItemMessageNotificationBin
             event.isRoomMemberEvent() -> bindMembershipEvent(event, sender)
             event.isRoomNameEvent() -> bindRoomNameEvent(event, sender)
             event.isRoomCreateEvent() -> bindRoomCreateEvent(event, sender)
-            event.isNunchukErrorEvent() -> bindNunchukErrorEvent(event, message.sender.displayName ?: "Unknown User")
+            event.isNunchukErrorEvent() -> bindNunchukErrorEvent(event, message.sender.displayName ?: binding.root.context.getString(R.string.nc_message_unknown_user))
             else -> binding.notification.text = "${message.timelineEvent}"
         }
     }
@@ -49,7 +49,7 @@ internal class MessageNotificationHolder(val binding: ItemMessageNotificationBin
         val code = event.getBodyElementValueByKey(KEY_CODE)
         val platform = event.getBodyElementValueByKey(KEY_PLATFORM)
         val message = event.getBodyElementValueByKey(KEY_MESSAGE)
-        val notificationTxt = "[$platform][$sender] Exception $code: $message"
+        val notificationTxt = binding.root.context.getString(R.string.nc_message_nunchuk_error_detail, platform, sender, code, message)
         binding.notification.text = getHtmlString(R.string.nc_message_nunchuk_error, notificationTxt)
     }
 

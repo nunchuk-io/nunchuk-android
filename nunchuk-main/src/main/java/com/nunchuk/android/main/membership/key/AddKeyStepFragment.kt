@@ -221,7 +221,7 @@ fun AddKeyStepContent(
                         IconButton(onClick = onMoreClicked) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_more),
-                                contentDescription = "More icon"
+                                contentDescription = stringResource(R.string.nc_membership_cd_more_icon)
                             )
                         }
                     }
@@ -302,7 +302,7 @@ fun StepWithEstTime(
 ) {
     Text(
         modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 24.dp),
-        text = "${stringResource(R.string.nc_step)} $index",
+        text = stringResource(R.string.nc_membership_step_number, index),
         style = NunchukTheme.typography.titleSmall
     )
     Row(

@@ -948,7 +948,7 @@ fun AddKeyListContent(
                         IconButton(onClick = onMoreClicked) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_more),
-                                contentDescription = "More icon"
+                                contentDescription = stringResource(R.string.nc_membership_cd_more_icon)
                             )
                         }
                     },
@@ -1004,7 +1004,8 @@ fun AddKeyListContent(
                                     append(stringResource(R.string.nc_among_three_key_select_inheritance))
                                 }
 
-                                append("\n\nPull to refresh the key statuses.")
+                                append("\n\n")
+                                append(stringResource(R.string.nc_membership_pull_to_refresh_key_statuses))
                             },
                             style = NunchukTheme.typography.body
                         )
@@ -1145,7 +1146,7 @@ fun AddKeyCard(
                                 // step carries a single flag that can lag behind them.
                                 Icon(
                                     painter = painterResource(id = R.drawable.nc_circle_checked),
-                                    contentDescription = "Checked icon"
+                                    contentDescription = stringResource(R.string.nc_membership_cd_checked_icon)
                                 )
                                 Text(
                                     modifier = Modifier.padding(start = 4.dp),
@@ -1208,7 +1209,7 @@ fun AddKeyCard(
                         top.linkTo(parent.top)
                         end.linkTo(parent.end)
                     },
-                contentDescription = "Inheritance icon",
+                contentDescription = stringResource(R.string.nc_membership_cd_inheritance_icon),
                 painter = painterResource(id = R.drawable.ic_badge_inheritance)
             )
         }
@@ -1262,7 +1263,7 @@ private fun ConfigItem(
         } else {
             Icon(
                 painter = painterResource(id = R.drawable.nc_circle_checked),
-                contentDescription = "Checked icon"
+                contentDescription = stringResource(R.string.nc_membership_cd_checked_icon)
             )
             Text(
                 modifier = Modifier.padding(start = 4.dp),

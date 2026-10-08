@@ -82,7 +82,7 @@ fun NcPreimageBottomSheet(
                 IconButton(onClick = onDismiss) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_close),
-                        contentDescription = "Close"
+                        contentDescription = stringResource(com.nunchuk.android.widget.R.string.nc_text_close)
                     )
                 }
 
@@ -122,7 +122,7 @@ fun NcPreimageBottomSheet(
                     keyboardType = KeyboardType.Text,
                     imeAction = ImeAction.Done
                 ),
-                error = state.error,
+                error = state.error?.let { stringResource(it) },
                 isTransparent = true
             ) {
                 text = it

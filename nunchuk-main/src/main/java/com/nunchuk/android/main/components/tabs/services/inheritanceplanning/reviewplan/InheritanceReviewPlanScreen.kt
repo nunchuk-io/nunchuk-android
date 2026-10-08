@@ -277,7 +277,7 @@ fun InheritanceReviewPlanScreenContent(
                             if (showMoreIcon && isEditable) {
                                 Icon(
                                     painter = painterResource(id = R.drawable.ic_more_horizontal),
-                                    contentDescription = "More",
+                                    contentDescription = stringResource(R.string.nc_more),
                                     tint = Color.White
                                 )
                             }
@@ -410,8 +410,8 @@ fun InheritanceReviewPlanScreenContent(
                                         Spacer(modifier = Modifier.height(12.dp))
                                         SpecialDetailPlanItem(
                                             iconId = R.drawable.ic_key,
-                                            title = "Inheritance Key ${index + 1}",
-                                            subTitle = "XFP: ${key.uppercase()}",
+                                            title = stringResource(R.string.nc_main_inheritance_key_number, index + 1),
+                                            subTitle = stringResource(R.string.nc_primary_key_account_xfp, key.uppercase()),
                                             content = stringResource(R.string.nc_12_or_24_word_inheritance_key_backup),
                                             editable = false
                                         )
@@ -431,7 +431,7 @@ fun InheritanceReviewPlanScreenContent(
                                                 SpecialDetailPlanItem(
                                                     iconId = R.drawable.ic_key,
                                                     title = pluralStringResource(R.plurals.nc_inheritance_key, 1),
-                                                    subTitle = "XFP: ${key.uppercase()}",
+                                                    subTitle = stringResource(R.string.nc_primary_key_account_xfp, key.uppercase()),
                                                     content = stringResource(R.string.nc_inheritance_key_backup_or_seed_desc),
                                                     actionText = stringResource(id = R.string.nc_text_info),
                                                     editable = true,
@@ -446,7 +446,7 @@ fun InheritanceReviewPlanScreenContent(
                                                 SpecialDetailPlanItem(
                                                     iconId = R.drawable.ic_key,
                                                     title = pluralStringResource(R.plurals.nc_inheritance_key, 1),
-                                                    subTitle = "XFP: ${key.uppercase()}",
+                                                    subTitle = stringResource(R.string.nc_primary_key_account_xfp, key.uppercase()),
                                                     content = stringResource(R.string.nc_12_or_24_word_inheritance_key_backup),
                                                     actionText = stringResource(id = R.string.nc_text_info),
                                                     editable = true,
@@ -473,7 +473,7 @@ fun InheritanceReviewPlanScreenContent(
                                 }
                                 if (setupOrReviewParam.setupFlowType == InheritanceSetupFlowType.OLD_FLOW) {
                                     Text(
-                                        text = "Funds become claimable after:",
+                                        text = stringResource(R.string.nc_main_funds_become_claimable_after),
                                         modifier = Modifier.padding(top = 24.dp, bottom = 12.dp),
                                         style = NunchukTheme.typography.title,
                                         color = Color.White
@@ -1320,7 +1320,7 @@ fun SpecialDetailPlanItem(
 
                 if (subTitle.isNotEmpty()) {
                     Text(
-                        text = "($subTitle)",
+                        text = stringResource(R.string.nc_main_text_in_parentheses, subTitle),
                         color = colorResource(id = R.color.nc_grey_g7),
                         style = NunchukTheme.typography.bodySmall
                     )

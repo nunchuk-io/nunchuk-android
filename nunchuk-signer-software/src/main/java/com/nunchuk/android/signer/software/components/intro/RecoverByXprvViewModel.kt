@@ -1,5 +1,7 @@
 package com.nunchuk.android.signer.software.components.intro
 
+import com.nunchuk.android.signer.software.R
+import android.app.Application
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -18,6 +20,7 @@ import javax.inject.Inject
 class RecoverByXprvViewModel @Inject constructor(
     private val isValidXprvUseCase: IsValidXprvUseCase,
     private val getSignerMasterXprvUseCase: GetSignerMasterXprvUseCase,
+    private val application: Application,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val masterSignerId: String = savedStateHandle.toRoute<RecoverByXprvNavKey>().masterSignerId
@@ -64,7 +67,7 @@ class RecoverByXprvViewModel @Inject constructor(
                 if (isValid) {
                     _state.update { it.copy(event = StateEvent.Unit) }
                 } else {
-                    _state.update { it.copy(error = "Invalid XPRV") }
+                    _state.update { it.copy(error = application.getString(R.string.nc_software_invalid_xprv)) }
                 }
             }.onFailure { e ->
                 _state.update { it.copy(event = StateEvent.String(e.message.orEmpty())) }

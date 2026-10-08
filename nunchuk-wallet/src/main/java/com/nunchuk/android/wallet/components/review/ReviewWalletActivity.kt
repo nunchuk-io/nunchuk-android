@@ -356,7 +356,7 @@ fun ReviewWalletContent(
                             NcIcon(
                                 modifier = Modifier.size(24.dp),
                                 painter = painterResource(id = R.drawable.ic_mulitsig_dark),
-                                contentDescription = "Key",
+                                contentDescription = stringResource(R.string.nc_wallet_cd_key),
                                 tint = MaterialTheme.colorScheme.textPrimary
                             )
 
@@ -472,7 +472,7 @@ private fun TaprootAddressContent(
     if (args.addressType.isTaproot() && args.keyPath.size > 1 && args.scriptNodeMuSig != null) {
         NcBadgePrimary(
             modifier = Modifier.padding(vertical = 8.dp),
-            text = "Key path",
+            text = stringResource(R.string.nc_key_path),
             enabled = true,
         )
 

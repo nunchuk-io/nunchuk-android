@@ -43,6 +43,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import com.nunchuk.android.core.R
+import androidx.compose.ui.res.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -66,7 +67,7 @@ fun NcTopAppBar(
             IconButton(onClick = { if (onBackPress != null) onBackPress.invoke() else onBackPressOwner?.onBackPressedDispatcher?.onBackPressed() }) {
                 Icon(
                     painter = painterResource(id = if (isBack) R.drawable.ic_back else R.drawable.ic_close),
-                    contentDescription = "Back",
+                    contentDescription = stringResource(R.string.nc_cd_back),
                     tint = tintColor
                 )
             }

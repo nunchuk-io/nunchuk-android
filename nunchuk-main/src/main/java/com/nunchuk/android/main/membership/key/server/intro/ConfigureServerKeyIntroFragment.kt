@@ -57,7 +57,7 @@ import com.nunchuk.android.main.membership.policy.ConfigServerKeyActivity
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.membership.MembershipStepManager
-import com.nunchuk.android.signer.R
+import com.nunchuk.android.main.R
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -133,7 +133,7 @@ fun ConfigureServerKeyIntroScreenContent(
                     IconButton(onClick = onMoreClicked) {
                         NcIcon(
                             painter = painterResource(id = R.drawable.ic_more),
-                            contentDescription = "More icon"
+                            contentDescription = stringResource(R.string.nc_membership_cd_more_icon)
                         )
                     }
                 }

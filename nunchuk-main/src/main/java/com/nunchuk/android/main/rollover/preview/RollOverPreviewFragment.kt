@@ -127,7 +127,7 @@ private fun RollOverPreviewContent(
 ) {
     NunchukTheme {
         NcScaffold(modifier = Modifier.systemBarsPadding(), topBar = {
-            NcTopAppBar(title = "Rollover preview",
+            NcTopAppBar(title = stringResource(R.string.nc_main_rollover_preview),
                 textStyle = NunchukTheme.typography.title,
                 actions = {
                     Spacer(modifier = Modifier.size(LocalViewConfiguration.current.minimumTouchTargetSize))
@@ -141,7 +141,7 @@ private fun RollOverPreviewContent(
             ) {
                 Text(
                     modifier = Modifier.padding(top = 8.dp),
-                    text = "Total fee: ${uiState.totalFee.pureBTC().getBTCAmount()}",
+                    text = stringResource(R.string.nc_main_rollover_total_fee, uiState.totalFee.pureBTC().getBTCAmount()),
                     style = NunchukTheme.typography.titleSmall
                 )
                 NcPrimaryDarkButton(
@@ -162,7 +162,7 @@ private fun RollOverPreviewContent(
                 LazyColumn {
                     item {
                         Text(
-                            text = "The following transactions will be created.",
+                            text = stringResource(R.string.nc_main_rollover_following_transactions_created),
                             style = NunchukTheme.typography.body,
                             modifier = Modifier.padding(top = 16.dp)
                         )
@@ -232,7 +232,7 @@ private fun PreviewTransactionView(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = "Estimated fee",
+            text = stringResource(R.string.nc_transaction_estimate_fee),
             style = NunchukTheme.typography.body,
             modifier = Modifier
                 .weight(1f, fill = true)

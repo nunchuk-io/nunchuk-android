@@ -116,7 +116,7 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
 
                     LaunchedEffect(state.requestCacheTapSignerXpubEvent) {
                         if (state.requestCacheTapSignerXpubEvent) {
-                            startNfcFlow(REQUEST_NFC_TOPUP_XPUBS, "Please rescan your TAPSIGNER to get a new XPUB")
+                            startNfcFlow(REQUEST_NFC_TOPUP_XPUBS, getString(R.string.nc_main_rescan_tapsigner_new_xpub))
                             viewModel.resetRequestCacheTapSignerXpub()
                         }
                     }
@@ -205,7 +205,7 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
                                 },
                                 onCopyLinkClicked = {
                                     copyToClipboard(label = "Nunchuk", text = it)
-                                    NCToastMessage(this@FreeGroupWalletActivity).show("Link copied to clipboard")
+                                    NCToastMessage(this@FreeGroupWalletActivity).show(getString(R.string.nc_main_link_copied_to_clipboard))
                                 },
                                 onAddExistingKey = { signer, _ ->
                                     viewModel.addExistingSigner(signer)

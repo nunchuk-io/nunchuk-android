@@ -127,7 +127,7 @@ fun DummyTransactionIntroContent(
                 ) {
                     Image(
                         painter = painterResource(id = R.drawable.ic_pending_signatures),
-                        contentDescription = "Icon pending signatures"
+                        contentDescription = stringResource(R.string.nc_auth_icon_pending_signatures)
                     )
                     Text(
                         modifier = Modifier.padding(start = 4.dp),

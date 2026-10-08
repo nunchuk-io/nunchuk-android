@@ -152,7 +152,7 @@ private fun RecoveryTapSignerListContent(
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.ic_close),
-                contentDescription = "Back Icon"
+                contentDescription = stringResource(R.string.nc_main_cd_back_icon)
             )
         }
         Text(

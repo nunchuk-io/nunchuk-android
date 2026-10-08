@@ -192,7 +192,7 @@ fun NavGraphBuilder.walletSecuritySettingScreen(
                             ),
                             inputBoxTitle = activity.getString(R.string.nc_confirmation_code),
                             clickablePhrases = listOf(
-                                "Resend code" to {
+                                activity.getString(R.string.nc_text_resend_code) to {
                                     viewModel.requestFederatedToken(true)
                                 },
                             ),

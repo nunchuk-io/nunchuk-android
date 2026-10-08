@@ -59,7 +59,7 @@ class BiometricActivity : BaseComposeActivity() {
 
                         }
                         is BiometricPromptManager.BiometricResult.FeatureUnavailable -> {
-                            showToast("Feature Unavailable")
+                            showToast(getString(com.nunchuk.android.settings.R.string.nc_settings_feature_unavailable))
                         }
                         is BiometricPromptManager.BiometricResult.AuthenticationNotSet -> {
                             NCInfoDialog(this@BiometricActivity)

@@ -23,9 +23,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.rememberNestedScrollInteropConnection
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.NcIcon
+import com.nunchuk.android.core.R
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.textSecondary
@@ -84,7 +86,7 @@ fun SelectMultisignTypeBottomSheetContent(
         ) {
             item {
                 Text(
-                    text = "Select multisig template",
+                    text = stringResource(R.string.nc_miniscript_select_multisig_template),
                     style = NunchukTheme.typography.titleSmall,
                 )
             }
@@ -95,8 +97,8 @@ fun SelectMultisignTypeBottomSheetContent(
                     modifier = Modifier.clickable {
                         onSelect(multisignType)
                     },
-                    title = multisignType.title,
-                    description = multisignType.description,
+                    title = stringResource(multisignType.titleRes),
+                    description = stringResource(multisignType.descriptionRes),
                     icon = multisignType.icon
                 )
             }
@@ -107,7 +109,7 @@ fun SelectMultisignTypeBottomSheetContent(
 
             item {
                 Text(
-                    text = "Enter custom miniscript",
+                    text = stringResource(R.string.nc_miniscript_enter_custom_miniscript),
                     style = NunchukTheme.typography.titleSmall,
                 )
             }
@@ -118,8 +120,8 @@ fun SelectMultisignTypeBottomSheetContent(
                     modifier = Modifier.fillMaxWidth().clickable {
                         onSelect(multisignType)
                     },
-                    title = multisignType.title,
-                    description = multisignType.description,
+                    title = stringResource(multisignType.titleRes),
+                    description = stringResource(multisignType.descriptionRes),
                     icon = multisignType.icon
                 )
             }

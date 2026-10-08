@@ -237,7 +237,7 @@ fun CreateWalletScreenContent(
                         IconButton(onClick = { onMoreClicked() }) {
                             Icon(
                                 painter = painterResource(id = com.nunchuk.android.signer.R.drawable.ic_more),
-                                contentDescription = "More icon"
+                                contentDescription = stringResource(R.string.nc_membership_cd_more_icon)
                             )
                         }
                     }

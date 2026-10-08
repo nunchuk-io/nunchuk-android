@@ -221,14 +221,12 @@ private fun TapSignerBackingUpIntroOnChainContent(
             ) {
                 Text(
                     modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
-                    text = "Backing up TAPSIGNER",
+                    text = stringResource(R.string.nc_back_up_tapsigner),
                     style = NunchukTheme.typography.heading
                 )
                 Text(
                     modifier = Modifier.padding(16.dp),
-                    text = "If the TAPSIGNER card is lost or damaged, you can recover it using an encrypted backup file and the Backup Password printed on the back of the card.\n" +
-                            "\n" +
-                            "Would you like to store the encrypted backup on the Nunchuk server? You can also back it up manually.",
+                    text = stringResource(R.string.nc_tapsigner_backup_intro_desc),
                     style = NunchukTheme.typography.body
                 )
 
@@ -238,7 +236,7 @@ private fun TapSignerBackingUpIntroOnChainContent(
                     modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
                     messages = listOf(
                         ClickAbleText(
-                            "We highly recommend that you keep a second copy of the Backup Password and store it somewhere safe."
+                            stringResource(R.string.nc_tapsigner_backup_second_copy_hint)
                         )
                     )
                 )
@@ -250,7 +248,7 @@ private fun TapSignerBackingUpIntroOnChainContent(
                         .fillMaxWidth(),
                     onClick = onContinueClicked
                 ) {
-                    Text(text = "Back up on Nunchuk server")
+                    Text(text = stringResource(R.string.nc_tapsigner_back_up_on_nunchuk_server))
                 }
 
                 NcOutlineButton(
@@ -260,7 +258,7 @@ private fun TapSignerBackingUpIntroOnChainContent(
                         .padding(bottom = 16.dp),
                     onClick = onManualBackup,
                 ) {
-                    Text(text = "I'll do it myself")
+                    Text(text = stringResource(R.string.nc_tapsigner_ill_do_it_myself))
                 }
             }
         }

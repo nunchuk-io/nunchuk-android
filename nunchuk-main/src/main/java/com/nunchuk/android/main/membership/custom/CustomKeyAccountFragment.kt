@@ -416,7 +416,7 @@ private fun CustomKeyAccountFragmentContent(
                             IconButton(onClick = onShowMoreOptions) {
                                 Icon(
                                     painter = painterResource(id = com.nunchuk.android.signer.R.drawable.ic_more),
-                                    contentDescription = "More icon"
+                                    contentDescription = stringResource(R.string.nc_membership_cd_more_icon)
                                 )
                             }
                         }
@@ -509,7 +509,9 @@ private fun CustomKeyAccountFragmentContent(
                         index = newIndex,
                         isTestNet = isTestNet,
                         isMultisig = isMultisig
-                    ),
+                    ).let { path ->
+                        if (path.isEmpty()) path else stringResource(R.string.nc_bip32_path, path)
+                    },
                     style = NunchukTheme.typography.bodySmall,
                 )
             }
@@ -520,9 +522,9 @@ private fun CustomKeyAccountFragmentContent(
 private fun getPath(index: String, isTestNet: Boolean, isMultisig: Boolean): String {
     if (index.isEmpty()) return ""
     if (isMultisig) {
-        return if (isTestNet) "BIP32 path: m/48h/1h/${index}h/2h" else "BIP32 path: m/48h/0h/${index}h/2h"
+        return if (isTestNet) "m/48h/1h/${index}h/2h" else "m/48h/0h/${index}h/2h"
     }
-    return if (isTestNet) "BIP32 path: m/84h/1h/${index}h" else "BIP32 path: m/84h/0h/${index}h"
+    return if (isTestNet) "m/84h/1h/${index}h" else "m/84h/0h/${index}h"
 }
 
 @Preview

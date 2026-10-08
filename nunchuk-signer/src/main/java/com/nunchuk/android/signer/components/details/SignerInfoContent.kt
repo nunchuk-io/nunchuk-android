@@ -186,7 +186,7 @@ fun SignerInfoContent(
                         IconButton(onClick = onMoreClicked) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_more_horizontal),
-                                contentDescription = "More",
+                                contentDescription = stringResource(R.string.nc_more),
                                 tint = Color.White
                             )
                         }
@@ -341,7 +341,7 @@ fun SignerInfoContent(
 
                     val buttonText = if (remainingTimeMs > 0) {
                         val timeString = remainingTimeMs.formatDurationHoursMinutes()
-                        "$viewText in $timeString"
+                        stringResource(R.string.nc_signer_info_view_in_time, viewText, timeString)
                     } else {
                         viewText
                     }
@@ -540,11 +540,11 @@ fun HealthCheckHistoryItem(history: HealthCheckHistory, onHistoryItemClick: () -
                 )
                 val status = when (history.type) {
                     KeyHealthType.HEALTH_CHECK.name, KeyHealthType.DUMMY_TRANSACTION.name -> {
-                        "Health check succeeded"
+                        stringResource(R.string.nc_signer_info_health_check_succeeded)
                     }
 
                     KeyHealthType.TRANSACTION.name -> {
-                        "Transaction signed"
+                        stringResource(R.string.nc_signer_info_transaction_signed)
                     }
 
                     else -> {
@@ -565,7 +565,7 @@ fun HealthCheckHistoryItem(history: HealthCheckHistory, onHistoryItemClick: () -
                 Image(
                     modifier = Modifier.size(24.dp),
                     painter = painterResource(id = R.drawable.ic_right_arrow_dark),
-                    contentDescription = "Arrow"
+                    contentDescription = stringResource(R.string.nc_signer_info_arrow_cd)
                 )
             }
         }

@@ -341,7 +341,7 @@ fun InvoiceScreenContent(
                             }
 
                             Text(
-                                text = "Transaction note",
+                                text = stringResource(R.string.nc_transaction_note),
                                 style = NunchukTheme.typography.titleSmall,
                                 modifier = Modifier
                                     .fillMaxWidth()

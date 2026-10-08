@@ -73,7 +73,7 @@ fun TimelockTimeline(
         ) {
             NcIcon(
                 painter = painterResource(id = R.drawable.ic_timer),
-                contentDescription = "Timelock",
+                contentDescription = stringResource(R.string.nc_cd_timelock),
                 modifier = Modifier.size(16.dp)
             )
             Spacer(modifier = Modifier.width(4.dp))
@@ -178,7 +178,7 @@ fun TimelockTimeline(
             ) {
                 NcIcon(
                     painter = painterResource(id = R.drawable.ic_lock),
-                    contentDescription = "Lock",
+                    contentDescription = stringResource(R.string.nc_cd_lock),
                     modifier = Modifier.size(12.dp),
                     tint = MaterialTheme.colorScheme.controlFillPrimary
                 )
@@ -187,7 +187,7 @@ fun TimelockTimeline(
             // 4. Draw the arrow icon on the right
             NcIcon(
                 painter = painterResource(id = R.drawable.ic_caret_right),
-                contentDescription = "Arrow",
+                contentDescription = stringResource(R.string.nc_cd_arrow),
                 modifier = Modifier
                     .constrainAs(arrowIcon) {
                         end.linkTo(parent.end)
@@ -274,7 +274,7 @@ fun getTimelockRemainingInfo(
                         R.plurals.nc_plural_hour,
                         remainingHours,
                         remainingHours
-                    ) else "Less than 1 hour left"
+                    ) else stringResource(R.string.nc_less_than_one_hour_left)
                 }
             }
         }

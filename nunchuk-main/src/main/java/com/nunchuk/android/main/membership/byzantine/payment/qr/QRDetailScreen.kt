@@ -48,7 +48,7 @@ fun QrDetailScreen(
     NunchukTheme {
         Scaffold(topBar = {
             NcTopAppBar(
-                title = "Address",
+                title = stringResource(R.string.nc_address),
                 textStyle = NunchukTheme.typography.titleLarge,
                 isBack = false,
             )
@@ -86,7 +86,7 @@ fun QrDetailScreen(
                                 RoundedCornerShape(8.dp)
                             ),
                         bitmap = it.asImageBitmap(),
-                        contentDescription = "Qr code",
+                        contentDescription = stringResource(R.string.nc_membership_cd_qr_code),
                         contentScale = ContentScale.FillWidth
                     )
                 }

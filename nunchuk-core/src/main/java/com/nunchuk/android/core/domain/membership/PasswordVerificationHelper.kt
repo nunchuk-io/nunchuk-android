@@ -74,6 +74,7 @@ class PasswordVerificationHelper @Inject constructor(
                 descMessage = context.getString(R.string.nc_re_enter_your_password_dialog_desc),
                 onConfirmed = { password ->
                     verifyPassword(
+                        context = context,
                         password = password,
                         targetAction = targetAction,
                         coroutineScope = coroutineScope,
@@ -141,7 +142,7 @@ class PasswordVerificationHelper @Inject constructor(
             ),
             inputBoxTitle = context.getString(R.string.nc_confirmation_code),
             clickablePhrases = listOf(
-                "Resend code" to {
+                context.getString(R.string.nc_resend_code) to {
                     // Resend the federated token
                     coroutineScope.launch {
                         requestFederatedTokenUseCase(
@@ -179,6 +180,7 @@ class PasswordVerificationHelper @Inject constructor(
 
     /**
      * Verifies password directly without showing dialog
+     * @param context Used to resolve user-facing error messages
      * @param password The password to verify
      * @param targetAction The target action for password verification
      * @param coroutineScope The coroutine scope to launch verification in
@@ -186,6 +188,7 @@ class PasswordVerificationHelper @Inject constructor(
      * @param onError Callback when password verification fails with error message
      */
     fun verifyPassword(
+        context: Context,
         password: String,
         targetAction: TargetAction,
         coroutineScope: CoroutineScope,
@@ -193,7 +196,7 @@ class PasswordVerificationHelper @Inject constructor(
         onError: (String) -> Unit
     ) {
         if (password.isBlank()) {
-            onError("Password cannot be empty")
+            onError(context.getString(R.string.nc_password_cannot_be_empty))
             return
         }
 

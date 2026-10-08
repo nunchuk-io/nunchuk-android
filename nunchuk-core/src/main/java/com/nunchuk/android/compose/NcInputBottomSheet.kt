@@ -53,7 +53,7 @@ fun NcInputBottomSheet(
                 IconButton(onClick = onDismiss) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_close),
-                        contentDescription = "Icon close"
+                        contentDescription = stringResource(R.string.nc_cd_icon_close)
                     )
                 }
 

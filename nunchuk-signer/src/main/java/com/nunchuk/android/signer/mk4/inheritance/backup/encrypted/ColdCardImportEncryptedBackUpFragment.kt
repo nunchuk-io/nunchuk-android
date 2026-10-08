@@ -112,22 +112,22 @@ internal fun ColdCardImportEncryptedBackUpScreen(
             ) {
                 Text(
                     modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
-                    text = "Import encrypted backup",
+                    text = stringResource(R.string.nc_coldcard_import_encrypted_backup),
                     style = NunchukTheme.typography.heading
                 )
                 Text(
                     modifier = Modifier.padding(16.dp),
-                    text = "Next, please import the encrypted backup file.",
+                    text = stringResource(R.string.nc_coldcard_import_encrypted_backup_desc),
                     style = NunchukTheme.typography.body
                 )
 
                 ActionItem(
-                    title = "Import via file",
+                    title = stringResource(R.string.nc_coldcard_import_via_file),
                     iconId = R.drawable.ic_import,
                     onClick = { onColdCardAction(ColdCardAction.FILE) }
                 )
                 ActionItem(
-                    title = "Import via Desktop app",
+                    title = stringResource(R.string.nc_coldcard_import_via_desktop_app),
                     iconId = R.drawable.ic_desktop,
                     onClick = { onColdCardAction(ColdCardAction.DESKTOP) }
                 )

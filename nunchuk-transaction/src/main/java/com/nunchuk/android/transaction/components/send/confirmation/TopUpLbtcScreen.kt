@@ -213,7 +213,7 @@ private fun TopUpAddressCard(
                     Image(
                         modifier = Modifier.fillMaxSize(),
                         bitmap = imageBitmap,
-                        contentDescription = "QR Code",
+                        contentDescription = stringResource(R.string.nc_transaction_qr_code),
                         contentScale = ContentScale.Fit,
                     )
                 }

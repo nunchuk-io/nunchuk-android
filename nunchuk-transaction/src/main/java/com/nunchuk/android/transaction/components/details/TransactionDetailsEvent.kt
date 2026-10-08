@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.transaction.components.details
 
+import androidx.annotation.StringRes
 import com.google.android.play.core.review.ReviewInfo
 import com.nunchuk.android.type.TransactionStatus
 
@@ -53,7 +54,10 @@ sealed class TransactionDetailsEvent {
 
     data class ExportToFileSuccess(val filePath: String) : TransactionDetailsEvent()
 
-    data class TransactionError(val message: String) : TransactionDetailsEvent()
+    data class TransactionError(
+        val message: String = "",
+        @StringRes val messageRes: Int? = null,
+    ) : TransactionDetailsEvent()
 
     data class UpdateTransactionMemoSuccess(val newMemo: String) : TransactionDetailsEvent()
 

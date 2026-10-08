@@ -1,9 +1,11 @@
 package com.nunchuk.android.app.miniscript
 
 import android.nfc.tech.IsoDep
+import androidx.annotation.StringRes
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.R
 import com.nunchuk.android.app.miniscript.configurewallet.MiniscriptConfigureWallet
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
@@ -298,8 +300,8 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
                 if (singleSigner == null) {
                     _uiState.update {
                         it.copy(
-                            event = MiniscriptSharedWalletEvent.Error(
-                                "Add another account of this key to use it in more than one policy"
+                            event = MiniscriptSharedWalletEvent.ErrorRes(
+                                R.string.nc_miniscript_add_another_account_of_key
                             )
                         )
                     }
@@ -431,7 +433,7 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
             } else {
                 Timber.tag(TAG).e("Could not assign signers to all related keys. Assigned: $assignedKeys, Total: ${relatedKeys.size}")
                 _uiState.update { 
-                    it.copy(event = MiniscriptSharedWalletEvent.Error("Could not find available derivation paths for all related keys"))
+                    it.copy(event = MiniscriptSharedWalletEvent.ErrorRes(R.string.nc_miniscript_no_derivation_paths_for_related_keys))
                 }
             }
         } else {
@@ -477,7 +479,7 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
             }
             
             _uiState.update { 
-                it.copy(event = MiniscriptSharedWalletEvent.Error("Could not find available derivation path for key"))
+                it.copy(event = MiniscriptSharedWalletEvent.ErrorRes(R.string.nc_miniscript_no_derivation_path_for_key))
             }
         }
     }
@@ -1057,7 +1059,7 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
         val signers = _uiState.value.signers.values.filterNotNull()
 
         if (signers.isEmpty()) {
-            _uiState.update { it.copy(event = MiniscriptSharedWalletEvent.Error("No signers assigned.")) }
+            _uiState.update { it.copy(event = MiniscriptSharedWalletEvent.ErrorRes(R.string.nc_miniscript_no_signers_assigned)) }
             return
         }
 
@@ -1314,6 +1316,7 @@ data class MiniscriptSharedWalletState(
 
 sealed class MiniscriptSharedWalletEvent {
     data class Error(val message: String) : MiniscriptSharedWalletEvent()
+    data class ErrorRes(@StringRes val resId: Int) : MiniscriptSharedWalletEvent()
     data class OpenChangeBip32Path(val keyName: String, val signer: SignerModel) :
         MiniscriptSharedWalletEvent()
 

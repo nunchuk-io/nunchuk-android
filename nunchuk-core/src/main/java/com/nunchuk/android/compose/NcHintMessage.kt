@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.core.R
 import com.nunchuk.android.core.util.ClickAbleText
+import androidx.compose.ui.res.stringResource
 
 @Composable
 fun NcHintMessage(
@@ -72,7 +73,7 @@ fun NcHintMessage(
             NcIcon(
                 modifier = Modifier.size(iconSize),
                 painter = icon,
-                contentDescription = "Info icon",
+                contentDescription = stringResource(R.string.nc_cd_info_icon),
                 tint = contentColor
             )
             NcClickableText(
@@ -119,7 +120,7 @@ fun NcHintMessage(
             NcIcon(
                 modifier = Modifier.size(iconSize),
                 painter = icon,
-                contentDescription = "Info icon",
+                contentDescription = stringResource(R.string.nc_cd_info_icon),
                 tint = contentColor
             )
             content()

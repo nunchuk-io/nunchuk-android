@@ -78,7 +78,7 @@ fun SearchCoinTopAppBar(
             IconButton(onClick = { onBackPressOwner?.onBackPressedDispatcher?.onBackPressed() }) {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_back),
-                    contentDescription = "Back"
+                    contentDescription = stringResource(R.string.nc_wallet_cd_back)
                 )
             }
         },
@@ -98,7 +98,7 @@ fun SearchCoinTopAppBar(
                 IconButton(onClick = onFilterClicked) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_filter),
-                        contentDescription = "Filter icon"
+                        contentDescription = stringResource(R.string.nc_wallet_cd_filter_icon)
                     )
                 }
                 if (isFiltering) {
@@ -148,7 +148,7 @@ fun SearchCoinTopAppBar(
                         IconButton(onClick = { onQueryChange("") }) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_close),
-                                contentDescription = "Close icon"
+                                contentDescription = stringResource(R.string.nc_wallet_cd_close_icon)
                             )
                         }
                     }

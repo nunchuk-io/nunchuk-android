@@ -47,7 +47,7 @@ internal fun ImportantNoticePassphraseContent(
                     IconButton(onClick = onMoreClicked) {
                         Icon(
                             painter = painterResource(id = com.nunchuk.android.signer.R.drawable.ic_more),
-                            contentDescription = "More icon"
+                            contentDescription = stringResource(R.string.nc_membership_cd_more_icon)
                         )
                     }
                 }
@@ -72,19 +72,23 @@ internal fun ImportantNoticePassphraseContent(
             ) {
                 Text(
                     modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
-                    text = "Important notice about passphrase",
+                    text = stringResource(R.string.nc_membership_passphrase_notice_title),
                     style = NunchukTheme.typography.heading
                 )
                 Text(
                     modifier = Modifier.padding(16.dp),
                     text = buildAnnotatedString {
-                        append("A passphrase is an optional \"extra word\" added to your 12 or 24-word seed phrase.\n\n")
+                        append(stringResource(R.string.nc_membership_passphrase_notice_intro))
+                        append("\n\n")
                         withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                            append("We strongly advise against using a passphrase for the inheritance key.")
+                            append(stringResource(R.string.nc_membership_passphrase_notice_advice))
                         }
-                        append(" It significantly complicates the recovery process and increases the risk of errors for your Beneficiary.\n\n")
-                        append("If you still choose to use a passphrase, you must ensure it is shared with your Beneficiary along with the seed phrase backup.\n\n")
-                        append("Continue to add the inheritance key to the wallet on the next screen.")
+                        append(" ")
+                        append(stringResource(R.string.nc_membership_passphrase_notice_risk))
+                        append("\n\n")
+                        append(stringResource(R.string.nc_membership_passphrase_notice_share))
+                        append("\n\n")
+                        append(stringResource(R.string.nc_membership_passphrase_notice_continue))
                     },
                     style = NunchukTheme.typography.body
                 )

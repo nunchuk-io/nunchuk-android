@@ -31,6 +31,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.navArgs
 import androidx.viewpager2.widget.ViewPager2
+import com.nunchuk.android.messages.R
 import com.nunchuk.android.core.base.BasePermissionFragment
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showError
@@ -125,7 +126,7 @@ class RoomMediaViewerFragment : BasePermissionFragment<FragmentRoomMediaViewerBi
             @SuppressLint("SetTextI18n")
             override fun onPageSelected(position: Int) {
                 currentPosition = position
-                binding.tvImageCount.text = "${position.inc()} of ${items.size}"
+                binding.tvImageCount.text = getString(R.string.nc_message_media_position, position.inc(), items.size)
                 val eventId = items[position].eventId
                 binding.tvFileInfo.text = timelineEvents.find { it.eventId == eventId }?.let {
                     "${it.senderInfo.disambiguatedDisplayName} ${
@@ -156,7 +157,7 @@ class RoomMediaViewerFragment : BasePermissionFragment<FragmentRoomMediaViewerBi
     private fun observer() {
         flowObserver(viewModel.event) {
             when (it) {
-                RoomMediaViewerEvent.DownloadFileSuccess -> showSuccess("Downloaded")
+                RoomMediaViewerEvent.DownloadFileSuccess -> showSuccess(getString(R.string.nc_message_downloaded))
                 is RoomMediaViewerEvent.Loading -> showOrHideLoading(it.isLoading)
                 is RoomMediaViewerEvent.ShowError -> showError(it.message)
             }

@@ -39,7 +39,6 @@ import com.nunchuk.android.utils.CrashlyticsReporter
 import javax.inject.Inject
 
 private const val CHANNEL_ID = "io.nunchuk.android.channelId"
-private const val CHANNEL_NAME = "Nunchuk Notification Center"
 
 class PushNotificationHelper @Inject constructor(
     private val context: Context,
@@ -103,7 +102,7 @@ fun Context.showNotification(data: PushNotificationData, mainIntent: Intent? = n
         builder.priority = NotificationManager.IMPORTANCE_HIGH
         val channel = NotificationChannel(
             CHANNEL_ID,
-            CHANNEL_NAME,
+            getString(R.string.nc_notification_channel_name),
             NotificationManager.IMPORTANCE_HIGH
         )
         notificationManager.createNotificationChannel(channel)

@@ -116,7 +116,7 @@ fun PaymentWalletAddressScreen(
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_delete),
-                        contentDescription = "Remove icon",
+                        contentDescription = stringResource(R.string.nc_membership_cd_remove_icon),
                     )
 
                     Text(

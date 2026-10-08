@@ -85,7 +85,7 @@ internal fun ColdCardBackUpIntroScreen(
                     onClick = onContinue
                 ) {
                     Text(
-                        text = "Continue",
+                        text = stringResource(R.string.nc_text_continue),
                         style = NunchukTheme.typography.title.copy(color = MaterialTheme.colorScheme.controlTextPrimary)
                     )
                 }

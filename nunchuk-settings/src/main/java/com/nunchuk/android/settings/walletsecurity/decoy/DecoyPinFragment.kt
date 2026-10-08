@@ -124,7 +124,7 @@ private fun DecoyPinContent(
             ) {
                 Text(
                     modifier = Modifier.padding(top = 16.dp),
-                    text = "Decoy Pin",
+                    text = stringResource(R.string.nc_settings_decoy_pin_title),
                     style = NunchukTheme.typography.heading
                 )
 
@@ -137,7 +137,7 @@ private fun DecoyPinContent(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 24.dp),
-                    title = "Your Decoy PIN",
+                    title = stringResource(R.string.nc_settings_your_decoy_pin),
                     value = pin,
                     error = pinErrorMsg,
                     keyboardOptions = KeyboardOptions(
@@ -152,7 +152,7 @@ private fun DecoyPinContent(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 24.dp),
-                    title = "Confirm Your Decoy PIN",
+                    title = stringResource(R.string.nc_settings_confirm_your_decoy_pin),
                     value = confirmPin,
                     error = confirmPinErrorMsg,
                     keyboardOptions = KeyboardOptions(

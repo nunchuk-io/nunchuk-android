@@ -128,7 +128,7 @@ private fun BackUpSeedPhraseOptionContent(
                     IconButton(onClick = onMoreClicked) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_more),
-                            contentDescription = "More icon"
+                            contentDescription = stringResource(R.string.nc_membership_cd_more_icon)
                         )
                     }
                 }
@@ -142,22 +142,22 @@ private fun BackUpSeedPhraseOptionContent(
             ) {
                 Text(
                     modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
-                    text = "Verify your inheritance key seed phrase",
+                    text = stringResource(R.string.nc_membership_verify_seed_phrase_title),
                     style = NunchukTheme.typography.heading
                 )
                 Text(
                     modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp),
-                    text = "We recommend verifying now to confirm that your seed phrase backup works.",
+                    text = stringResource(R.string.nc_membership_verify_seed_phrase_recommend),
                     style = NunchukTheme.typography.body
                 )
                 Text(
                     modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp),
-                    text = "This ensures it is correct and can be used to recover the inheritance key in the future.",
+                    text = stringResource(R.string.nc_membership_verify_seed_phrase_ensure),
                     style = NunchukTheme.typography.body
                 )
                 Text(
                     modifier = Modifier.padding(start = 16.dp, top = 24.dp, end = 16.dp, bottom = 16.dp),
-                    text = "Would you like to verify the backup now?",
+                    text = stringResource(R.string.nc_membership_verify_backup_now_question),
                     style = NunchukTheme.typography.body
                 )
                 
@@ -170,14 +170,14 @@ private fun BackUpSeedPhraseOptionContent(
                 ) {
                     Row {
                         Text(
-                            text = "Verify now",
+                            text = stringResource(R.string.nc_membership_verify_now),
                             style = NunchukTheme.typography.title
                         )
                         NcTag(
                             modifier = Modifier
                                 .align(Alignment.CenterVertically)
                                 .padding(start = 8.dp),
-                            label = "Recommended"
+                            label = stringResource(R.string.nc_recommended)
                         )
                     }
                 }
@@ -190,7 +190,7 @@ private fun BackUpSeedPhraseOptionContent(
                     onClick = { verifyNow = false }
                 ) {
                     Text(
-                        text = "Skip verification",
+                        text = stringResource(R.string.nc_skip_verification),
                         style = NunchukTheme.typography.title
                     )
                 }

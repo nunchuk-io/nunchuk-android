@@ -132,7 +132,7 @@ fun InheritanceAlertReviewScreenContent(
             if (groupId.isNotEmpty()) {
                 stringResource(
                     id = R.string.nc_create_inheritance_plan_group_change_by,
-                    requester?.name ?: "Someone",
+                    requester?.name ?: stringResource(R.string.nc_main_someone),
                     uiState.walletName
                 )
             } else {
@@ -144,7 +144,7 @@ fun InheritanceAlertReviewScreenContent(
             if (groupId.isNotEmpty()) {
                 stringResource(
                     id = R.string.nc_update_inheritance_plan_group_change_by,
-                    requester?.name ?: "Someone",
+                    requester?.name ?: stringResource(R.string.nc_main_someone),
                     uiState.walletName
                 )
             } else if (!uiState.isMiniscriptWallet && oldData?.activationTimeMilis != newData?.activationTimeMilis) {
@@ -163,7 +163,7 @@ fun InheritanceAlertReviewScreenContent(
             if (groupId.isNotEmpty()) {
                 stringResource(
                     id = R.string.nc_cancel_inheritance_plan_group_change_by,
-                    requester?.name ?: "Someone",
+                    requester?.name ?: stringResource(R.string.nc_main_someone),
                     uiState.walletName
                 )
             } else {

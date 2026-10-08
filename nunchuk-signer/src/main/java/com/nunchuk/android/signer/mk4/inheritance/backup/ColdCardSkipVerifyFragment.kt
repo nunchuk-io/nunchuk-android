@@ -91,7 +91,7 @@ fun ColdCardSkipVerifyScreen(
                         type = HighlightMessageType.WARNING,
                     ) {
                         Text(
-                            text = "Uploading the incorrect backup file will result in the inheritance being unclaimable.",
+                            text = stringResource(R.string.nc_coldcard_incorrect_backup_unclaimable),
                             style = NunchukTheme.typography.titleSmall
                         )
                     }
@@ -120,20 +120,20 @@ fun ColdCardSkipVerifyScreen(
 
                 Image(
                     painter = painterResource(id = R.drawable.ic_important_notice),
-                    contentDescription = "Decoy wallet intro",
+                    contentDescription = stringResource(R.string.nc_coldcard_decoy_wallet_intro_cd),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 24.dp),
                 )
 
                 Text(
-                    text = "Are you sure you want to skip the backup verification?",
+                    text = stringResource(R.string.nc_coldcard_skip_backup_verification_title),
                     style = NunchukTheme.typography.heading,
                     modifier = Modifier.padding(top = 12.dp)
                 )
 
                 NcHighlightText(
-                    text = "Please note: [B]if you are using a passphrase with your COLDCARD, ensure that the encrypted backup includes the passphrase so the inheritance protocol can function properly.[/B]",
+                    text = stringResource(R.string.nc_coldcard_skip_verification_passphrase_note),
                     style = NunchukTheme.typography.body,
                 )
             }

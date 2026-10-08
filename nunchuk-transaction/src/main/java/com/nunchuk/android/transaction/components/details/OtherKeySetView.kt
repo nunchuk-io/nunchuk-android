@@ -56,7 +56,7 @@ fun OtherKeySetView(
         ) {
             NcIcon(
                 painter = painterResource(id = R.drawable.ic_mulitsig_dark),
-                contentDescription = "Expand",
+                contentDescription = stringResource(R.string.nc_expand),
                 modifier = Modifier.size(20.dp)
             )
 
@@ -104,7 +104,7 @@ fun OtherKeySetView(
 
                 NcIcon(
                     painter = painterResource(id = if (isExpanded) R.drawable.ic_caret_up else R.drawable.ic_caret_down),
-                    contentDescription = "Expand",
+                    contentDescription = stringResource(R.string.nc_expand),
                     modifier = Modifier
                         .clickable(onClick = toggleExpand)
                         .padding(start = 4.dp)

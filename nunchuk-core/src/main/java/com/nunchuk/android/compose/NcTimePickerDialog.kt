@@ -65,7 +65,7 @@ fun NcTimePickerDialog(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(bottom = 20.dp),
-                    text = "Select Time",
+                    text = stringResource(R.string.nc_select_time),
                     style = MaterialTheme.typography.labelMedium
                 )
                 TimePicker(

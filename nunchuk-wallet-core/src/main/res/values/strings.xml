@@ -42,5 +42,31 @@
     <string name="nc_wallet_configuration">Wallet configuration</string>
     <string name="nc_wallet_assigned_signers">Member keys</string>
     <string name="nc_wallet_signer_has_been_used_warning">This air-gapped key has already been used. Key reuse is not recommended</string>
-
+    <string name="nc_wallet_key_number">Key #%1$d</string>
+    <string name="nc_wallet_key_with_index">Key %1$d</string>
+    <string name="nc_wallet_cd_more_icon">More icon</string>
+    <string name="nc_wallet_cd_wallet">Wallet</string>
+    <string name="nc_wallet_cd_key">Key</string>
+    <string name="nc_wallet_cd_user">User</string>
+    <string name="nc_wallet_cd_back">Back</string>
+    <string name="nc_wallet_cd_search">Search</string>
+    <string name="nc_wallet_cd_toggle_mask">Toggle mask</string>
+    <string name="nc_wallet_cd_arrow">Arrow</string>
+    <string name="nc_wallet_cd_receive_address_qr">Receive address QR</string>
+    <string name="nc_wallet_cd_expand_or_collapse">Expand Or Collapse</string>
+    <string name="nc_wallet_cd_send_btc">Send Btc</string>
+    <string name="nc_wallet_cd_menu_more">Menu more</string>
+    <string name="nc_wallet_cd_search_not_found">Search not found</string>
+    <string name="nc_wallet_cd_filter_icon">Filter icon</string>
+    <string name="nc_wallet_cd_close_icon">Close icon</string>
+    <string name="nc_wallet_cd_lock_icon">Lock icon</string>
+    <string name="nc_wallet_cd_back_icon">Back icon</string>
+    <string name="nc_wallet_cd_arrow_expand">Arrow Expand</string>
+    <string name="nc_wallet_cd_coin_tag">Coin Tag</string>
+    <string name="nc_wallet_cd_decrement">Decrement</string>
+    <string name="nc_wallet_cd_increment">Increment</string>
+    <string name="nc_wallet_cd_group_wallet_icon">Group Wallet Icon</string>
+    <string name="nc_wallet_cd_qr_icon">QR Icon</string>
+    <string name="nc_wallet_cd_arrow_right_icon">Arrow Right Icon</string>
+    <string name="nc_wallet_cd_wallet_icon">Wallet Icon</string>
 </resources>

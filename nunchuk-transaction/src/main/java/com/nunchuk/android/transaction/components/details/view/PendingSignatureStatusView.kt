@@ -35,7 +35,7 @@ fun PendingSignatureStatusView(pendingSigners: Int, status: TransactionStatus, i
             if (status.isPendingSignatures() && pendingSigners > 0) {
                 NcIcon(
                     painter = painterResource(id = R.drawable.ic_pending_signatures),
-                    contentDescription = "Warning",
+                    contentDescription = stringResource(R.string.nc_text_warning),
                     modifier = Modifier.padding(start = 8.dp),
                 )
                 Text(
@@ -50,7 +50,7 @@ fun PendingSignatureStatusView(pendingSigners: Int, status: TransactionStatus, i
             } else {
                 NcIcon(
                     painter = painterResource(id = R.drawable.ic_check_circle),
-                    contentDescription = "Check",
+                    contentDescription = stringResource(R.string.nc_transaction_check),
                     modifier = Modifier.padding(start = 8.dp),
                 )
                 Text(

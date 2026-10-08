@@ -84,7 +84,7 @@ private fun BackUpSeedPhraseIntroContent(
                         IconButton(onClick = onMoreClicked) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_more),
-                                contentDescription = "More icon"
+                                contentDescription = stringResource(R.string.nc_membership_cd_more_icon)
                             )
                         }
                     }
@@ -97,7 +97,7 @@ private fun BackUpSeedPhraseIntroContent(
                         .padding(16.dp),
                     onClick = onContinueClicked,
                 ) {
-                    Text(text = "I have backed it up")
+                    Text(text = stringResource(R.string.nc_membership_i_have_backed_it_up))
                 }
             },
         ) { innerPadding ->
@@ -110,16 +110,17 @@ private fun BackUpSeedPhraseIntroContent(
             ) {
                 Text(
                     modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
-                    text = "Back up your inheritance key seed phrase",
+                    text = stringResource(R.string.nc_membership_backup_seed_phrase_title),
                     style = NunchukTheme.typography.heading
                 )
                 Text(
                     modifier = Modifier.padding(16.dp),
                     text = buildAnnotatedString {
                         withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                            append("Please back up the inheritance key seed phrase on a steel plate, or a durable format that is non-digital.")
+                            append(stringResource(R.string.nc_membership_backup_seed_phrase_steel_plate))
                         }
-                        append(" You will need to share this seed phrase backup with your Beneficiary so they can access the inheritance.")
+                        append(" ")
+                        append(stringResource(R.string.nc_membership_backup_seed_phrase_share))
                     },
                     style = NunchukTheme.typography.body
                 )
@@ -127,17 +128,17 @@ private fun BackUpSeedPhraseIntroContent(
                 NCLabelWithIndex(
                     modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
                     index = 1,
-                    label = "Turn on your hardware signing device",
+                    label = stringResource(R.string.nc_membership_backup_step_turn_on),
                 )
                 NCLabelWithIndex(
                     modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
                     index = 2,
-                    label = "Refer to your device’s instruction manual and find the option to view or back up the recovery words for this key (12 or 24 words)",
+                    label = stringResource(R.string.nc_membership_backup_step_find_recovery_words),
                 )
                 NCLabelWithIndex(
                     modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
                     index = 3,
-                    label = "Write each word in the correct sequence and check the spelling carefully",
+                    label = stringResource(R.string.nc_membership_backup_step_write_words),
                 )
             }
         }

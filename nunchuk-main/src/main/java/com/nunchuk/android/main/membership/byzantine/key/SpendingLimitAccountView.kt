@@ -67,7 +67,7 @@ fun SpendingLimitAccountView(
         if (index == 0) {
             Text(text = stringResource(R.string.nc_master))
         } else {
-            Text(text = "${stringResource(R.string.nc_member)} ${index.inc()}")
+            Text(text = stringResource(R.string.nc_member_data, index.inc().toString()))
         }
         Column(
             modifier = Modifier

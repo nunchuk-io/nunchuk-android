@@ -96,20 +96,20 @@ fun ColdCardVerifyBackupMySelfIntroScreen(
 
                 Image(
                     painter = painterResource(id = R.drawable.ic_important_notice),
-                    contentDescription = "Decoy wallet intro",
+                    contentDescription = stringResource(R.string.nc_coldcard_decoy_wallet_intro_cd),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 24.dp),
                 )
 
                 Text(
-                    text = "Note about self-verification",
+                    text = stringResource(R.string.nc_coldcard_note_about_self_verification),
                     style = NunchukTheme.typography.heading,
                     modifier = Modifier.padding(top = 12.dp)
                 )
 
                 Text(
-                    text = "In the upcoming screens, we’ll guide you through verifying the backup using your COLDCARD.",
+                    text = stringResource(R.string.nc_coldcard_self_verification_desc),
                     style = NunchukTheme.typography.body,
                 )
             }

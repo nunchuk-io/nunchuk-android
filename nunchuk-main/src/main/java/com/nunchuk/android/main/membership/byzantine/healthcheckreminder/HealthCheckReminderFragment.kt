@@ -197,7 +197,7 @@ fun HealthCheckReminderContent(
                 .statusBarsPadding(),
             topBar = {
                 NcTopAppBar(
-                    title = "Add reminder",
+                    title = stringResource(R.string.nc_add_reminder),
                     textStyle = NunchukTheme.typography.titleLarge,
                     onBackPress = {
                         onBackPress(isEditMode)
@@ -213,7 +213,7 @@ fun HealthCheckReminderContent(
                                         .size(24.dp)
                                         .clickable { if (isEnable) onAddClick(true) },
                                     painter = painterResource(id = R.drawable.ic_add_dark),
-                                    contentDescription = "Info",
+                                    contentDescription = stringResource(R.string.nc_membership_cd_info_icon),
                                     tint = if (isEnable) Color.Black else colorResource(
                                         id = R.color.nc_bg_mid_gray
                                     )

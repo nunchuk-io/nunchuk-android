@@ -83,6 +83,7 @@ import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.model.joinKeys
 import com.nunchuk.android.model.transaction.ServerTransaction
 import com.nunchuk.android.share.GetContactsUseCase
+import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.BroadcastTransactionSuccess
 import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.CancelScheduleBroadcastTransactionSuccess
 import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.DeleteTransactionSuccess
@@ -1419,7 +1420,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
             ).onSuccess {
                 val signer = currentSigner() ?: return@onSuccess
                 if (it.status != TransactionStatus.READY_TO_BROADCAST && it.signers[signer.fingerPrint] == false) {
-                    _event.emit(TransactionError("Wallet has not registered to Portal yet"))
+                    _event.emit(TransactionError(messageRes = R.string.nc_transaction_wallet_not_registered_to_portal))
                 } else {
                     updateTransaction(transaction = it)
                     if (isMiniscriptWallet()) {

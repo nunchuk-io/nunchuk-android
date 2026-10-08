@@ -328,7 +328,7 @@ private fun HeaderToolbar(
             IconButton(onClick = onBack) {
                 Icon(
                     painter = painterResource(R.drawable.ic_back_white),
-                    contentDescription = "Back",
+                    contentDescription = stringResource(R.string.nc_wallet_cd_back),
                     tint = Color.White,
                 )
             }
@@ -337,7 +337,7 @@ private fun HeaderToolbar(
                 IconButton(onClick = onSearch) {
                     Icon(
                         painter = painterResource(searchIcon),
-                        contentDescription = "Search",
+                        contentDescription = stringResource(R.string.nc_wallet_cd_search),
                         tint = Color.White,
                     )
                 }
@@ -346,7 +346,7 @@ private fun HeaderToolbar(
                 IconButton(onClick = onMenu) {
                     Icon(
                         painter = painterResource(R.drawable.ic_more_horizontal),
-                        contentDescription = "More",
+                        contentDescription = stringResource(R.string.nc_more),
                         tint = Color.White,
                     )
                 }
@@ -593,7 +593,7 @@ private fun MaskToggleIcon(hide: Boolean, onClick: () -> Unit) {
         painter = painterResource(
             if (hide) R.drawable.ic_visibility else R.drawable.ic_hide_pass
         ),
-        contentDescription = "Toggle mask",
+        contentDescription = stringResource(R.string.nc_wallet_cd_toggle_mask),
         tint = Color.White,
         modifier = Modifier
             .size(24.dp)

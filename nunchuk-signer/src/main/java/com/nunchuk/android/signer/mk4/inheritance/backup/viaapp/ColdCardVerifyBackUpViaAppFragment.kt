@@ -176,7 +176,7 @@ internal fun ColdCardVerifyBackupViaAppScreen(
                         onClick = onContinue
                     ) {
                         Text(
-                            text = "Continue",
+                            text = stringResource(R.string.nc_text_continue),
                             style = NunchukTheme.typography.title.copy(color = MaterialTheme.colorScheme.controlTextPrimary)
                         )
                     }
@@ -194,16 +194,16 @@ internal fun ColdCardVerifyBackupViaAppScreen(
                     modifier = Modifier.fillMaxWidth(),
                     painter = painterResource(id = R.drawable.bg_coldcard_backup_pass_illustration),
                     contentScale = ContentScale.Crop,
-                    contentDescription = "Background",
+                    contentDescription = stringResource(R.string.nc_coldcard_background_cd),
                 )
                 Text(
                     modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
-                    text = "Verify backup via the app",
+                    text = stringResource(R.string.nc_coldcard_verify_backup_via_app),
                     style = NunchukTheme.typography.heading
                 )
                 Text(
                     modifier = Modifier.padding(16.dp),
-                    text = "Enter your Backup Password below and the app will check it for you.\n\nAll verification data will stay locally on the device and will be erased immediately afterward.",
+                    text = stringResource(R.string.nc_coldcard_verify_backup_via_app_desc),
                     style = NunchukTheme.typography.body
                 )
 
@@ -211,9 +211,9 @@ internal fun ColdCardVerifyBackupViaAppScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp),
-                    title = "Backup Password",
+                    title = stringResource(R.string.nc_backup_password),
                     inputBoxHeight = 128.dp,
-                    error = if (isShowVerifyError) "Decryption failed, please try again." else "",
+                    error = if (isShowVerifyError) stringResource(R.string.nc_decryption_failed_try_again) else "",
                     value = TextFieldValue(
                         text = backUpPassword,
                         selection = TextRange(backUpPassword.length)

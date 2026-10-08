@@ -239,7 +239,7 @@ fun PendingWalletView(
 
                 NcIcon(
                     painter = painterResource(id = R.drawable.ic_arrow_expand),
-                    contentDescription = "Arrow"
+                    contentDescription = stringResource(R.string.nc_membership_cd_arrow)
                 )
             }
         } else if (isAssistedWallet
@@ -460,7 +460,7 @@ fun AssistedWalletBottomContent(
                 NcIcon(
                     modifier = Modifier.padding(start = 12.dp),
                     painter = painterResource(id = R.drawable.ic_arrow_expand),
-                    contentDescription = "Arrow"
+                    contentDescription = stringResource(R.string.nc_membership_cd_arrow)
                 )
             }
         }
@@ -561,7 +561,7 @@ fun RowScope.ByzantineBottomContent(
             NcIcon(
                 modifier = Modifier.padding(start = 12.dp),
                 painter = painterResource(id = R.drawable.ic_arrow_expand),
-                contentDescription = "Arrow"
+                contentDescription = stringResource(R.string.nc_membership_cd_arrow)
             )
         }
     } else if (role.toRole.isMasterOrAdminOrFacilitatorAdmin && primaryOwnerMember != null) {
@@ -605,7 +605,7 @@ fun RowScope.ByzantineBottomContent(
             NcIcon(
                 modifier = Modifier.padding(start = 12.dp),
                 painter = painterResource(id = R.drawable.ic_arrow_expand),
-                contentDescription = "Arrow"
+                contentDescription = stringResource(R.string.nc_membership_cd_arrow)
             )
         }
     } else {
@@ -632,7 +632,7 @@ fun RowScope.ByzantineBottomContent(
         NcIcon(
             modifier = Modifier.padding(start = 12.dp),
             painter = painterResource(id = R.drawable.ic_arrow_expand),
-            contentDescription = "Arrow"
+            contentDescription = stringResource(R.string.nc_membership_cd_arrow)
         )
     }
 }

@@ -528,7 +528,7 @@ fun getBufferApplyOnText(
         "EVERY_WITHDRAWAL" -> stringResource(id = R.string.nc_release_schedule_buffer_period_every_withdrawal)
         else -> return null
     }
-    val periodDays = bufferPeriod?.intervalCount ?: return "Buffer period: ($applyOnText)"
+    val periodDays = bufferPeriod?.intervalCount ?: return stringResource(id = R.string.nc_main_buffer_period_apply_on, applyOnText)
     return stringResource(
         id = R.string.nc_release_schedule_buffer_period_summary,
         periodDays,

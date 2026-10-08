@@ -108,7 +108,7 @@ fun HardwareDeviceScanBody(
                     .rotate(rotation)
                     .clickable(enabled = !isScanning, onClick = onRescan),
                 painter = painterResource(id = R.drawable.ic_ledger_rescan),
-                contentDescription = "Rescan",
+                contentDescription = stringResource(R.string.nc_cd_rescan),
             )
         }
 
@@ -139,7 +139,7 @@ fun HardwareDeviceScanBody(
                     .alpha(if (isScanning) 0.5f else 1f)
                     .clickable(enabled = !isScanning, onClick = onRefreshUsb),
                 painter = painterResource(id = R.drawable.ic_ledger_rescan),
-                contentDescription = "Refresh USB",
+                contentDescription = stringResource(R.string.nc_cd_refresh_usb),
             )
         }
         if (usbDevices.isEmpty()) {
