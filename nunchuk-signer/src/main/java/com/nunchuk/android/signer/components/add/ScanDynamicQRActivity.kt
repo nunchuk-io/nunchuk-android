@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.signer.components.add
 
+import com.nunchuk.android.core.util.resolve
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
@@ -101,7 +102,7 @@ class ScanDynamicQRActivity : BaseCameraActivity<ActivityScanDynamicQrBinding>()
                         if (it.errorCode == NativeErrorCode.JADE_QR_PIN_UNLOCK) {
                             getString(com.nunchuk.android.core.R.string.nc_jade_locked_qr_error)
                         } else {
-                            it.message
+                            it.message.resolve(this)
                         }
                     )
                 }

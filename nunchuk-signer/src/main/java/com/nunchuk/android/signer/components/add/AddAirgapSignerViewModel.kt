@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.signer.components.add
 
+import com.nunchuk.android.core.util.UiText
 import com.nunchuk.android.signer.R
 import android.app.Application
 import android.net.Uri
@@ -243,7 +244,7 @@ internal class AddAirgapSignerViewModel @Inject constructor(
                         if (newAccountIndex != 0) {
                             setEvent(
                                 AddAirgapSignerErrorEvent(
-                                    application.getString(
+                                    UiText.resource(
                             R.string.nc_key_account_mismatch_inheritance,
                             signer.masterFingerprint.uppercase(),
                             newAccountIndex,
@@ -264,7 +265,7 @@ internal class AddAirgapSignerViewModel @Inject constructor(
                     // would otherwise fire on every key at account 1.
                     setEvent(
                         AddAirgapSignerErrorEvent(
-                            application.getString(R.string.nc_added_key_xfp_mismatch)
+                            UiText.resource(R.string.nc_added_key_xfp_mismatch)
                         )
                     )
                     setEvent(LoadingEventAirgap(false))
@@ -517,7 +518,7 @@ internal class AddAirgapSignerViewModel @Inject constructor(
                 if (result.isSuccess) {
                     emitParsedSigners(result.getOrThrow())
                 } else {
-                    setEvent(AddAirgapSignerErrorEvent(application.getString(R.string.nc_xpubs_file_invalid)))
+                    setEvent(AddAirgapSignerErrorEvent(UiText.resource(R.string.nc_xpubs_file_invalid)))
                 }
             }
             setEvent(LoadingEventAirgap(false))
@@ -557,7 +558,7 @@ internal class AddAirgapSignerViewModel @Inject constructor(
             }
         }
         if (originalSigners.isNotEmpty() && _signers.isEmpty()) {
-            setEvent(AddAirgapSignerErrorEvent(application.getString(R.string.nc_airgap_single_sig_key_detected)))
+            setEvent(AddAirgapSignerErrorEvent(UiText.resource(R.string.nc_airgap_single_sig_key_detected)))
         }
         return _signers
     }

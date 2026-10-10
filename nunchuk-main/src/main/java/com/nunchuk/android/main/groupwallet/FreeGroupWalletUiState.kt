@@ -1,5 +1,6 @@
 package com.nunchuk.android.main.groupwallet
 
+import com.nunchuk.android.core.util.UiText
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.model.GroupSandbox
 import com.nunchuk.android.model.ScriptNode
@@ -15,7 +16,7 @@ data class FreeGroupWalletUiState(
     val isFinishScreen: Boolean = false,
     val numberOfOnlineUsers: Int = 1,
     val groupWalletUnavailable: Boolean = false,
-    val errorMessage: String = "",
+    val errorMessage: UiText? = null,
     val supportedTypes: List<SupportedSigner> = emptyList(),
     val occupiedSlotsIndex : Set<Int> = emptySet(),
     val requestCacheTapSignerXpubEvent: Boolean = false,

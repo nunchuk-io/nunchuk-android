@@ -1,5 +1,6 @@
 package com.nunchuk.android.core.bitbox
 
+import com.nunchuk.android.core.util.withAppLocale
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.PendingIntent
@@ -198,7 +199,7 @@ class BitBoxController(
                     if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
                         openUsbDevice(device)
                     } else {
-                        listener.onError(context.getString(R.string.nc_hardware_error_usb_permission_denied))
+                        listener.onError(context.withAppLocale().getString(R.string.nc_hardware_error_usb_permission_denied))
                     }
                 }
 
@@ -241,7 +242,7 @@ class BitBoxController(
         val scanner = adapter.bluetoothLeScanner
         if (scanner == null) {
             if (foundDevices.isNotEmpty()) listener.onScanResults(foundDevices.values.toList())
-            listener.onError(context.getString(R.string.nc_hardware_error_ble_scanner_unavailable))
+            listener.onError(context.withAppLocale().getString(R.string.nc_hardware_error_ble_scanner_unavailable))
             return
         }
         if (scanning) return
@@ -263,7 +264,7 @@ class BitBoxController(
             }
 
             override fun onScanFailed(errorCode: Int) {
-                listener.onError(context.getString(R.string.nc_hardware_error_ble_scan_failed, errorCode.toString()))
+                listener.onError(context.withAppLocale().getString(R.string.nc_hardware_error_ble_scan_failed, errorCode.toString()))
             }
         }
         scanCallback = callback
@@ -276,7 +277,7 @@ class BitBoxController(
             )
         }.onFailure {
             scanning = false
-            listener.onError(context.getString(R.string.nc_hardware_error_ble_scan_failed, it.message ?: it.javaClass.simpleName))
+            listener.onError(context.withAppLocale().getString(R.string.nc_hardware_error_ble_scan_failed, it.message ?: it.javaClass.simpleName))
             return
         }
         mainHandler.postDelayed({
@@ -316,7 +317,7 @@ class BitBoxController(
             .forEach { device ->
                 foundDevices[device.deviceName] = BitBoxDevice(
                     id = device.deviceName,
-                    name = device.productName ?: context.getString(R.string.nc_bitbox_usb_device_name),
+                    name = device.productName ?: context.withAppLocale().getString(R.string.nc_bitbox_usb_device_name),
                     transport = BitBoxTransportKind.USB,
                 )
             }
@@ -371,7 +372,7 @@ class BitBoxController(
             return
         }
         val device = runCatching { adapter.getRemoteDevice(address) }.getOrNull() ?: run {
-            listener.onError(context.getString(R.string.nc_bitbox_error_device_unavailable))
+            listener.onError(context.withAppLocale().getString(R.string.nc_bitbox_error_device_unavailable))
             return
         }
         connectBle(device, connection)
@@ -432,7 +433,7 @@ class BitBoxController(
                 // refused. Reporting it beats setting the flag anyway: the transport would look
                 // ready, initialize() would write into it, and no indication would ever answer.
                 if (status != BluetoothGatt.GATT_SUCCESS) {
-                    fail(context.getString(R.string.nc_bitbox_error_indications_failed))
+                    fail(context.withAppLocale().getString(R.string.nc_bitbox_error_indications_failed))
                     return@post
                 }
                 // Indications are live: the transport is only usable once both this and the
@@ -492,13 +493,13 @@ class BitBoxController(
         // characteristic belonging to a dead GATT, and every later write would go nowhere.
         val conn = connection?.takeIf { it.gatt === gatt } ?: return
         val service = gatt.getService(BITBOX_BLE_SERVICE_UUID) ?: run {
-            fail(context.getString(R.string.nc_bitbox_error_ble_service_not_found))
+            fail(context.withAppLocale().getString(R.string.nc_bitbox_error_ble_service_not_found))
             return
         }
         val write = service.getCharacteristic(BITBOX_BLE_WRITE_UUID)
         val indicate = service.getCharacteristic(BITBOX_BLE_INDICATE_UUID)
         if (write == null || indicate == null) {
-            fail(context.getString(R.string.nc_bitbox_error_ble_characteristics_not_found))
+            fail(context.withAppLocale().getString(R.string.nc_bitbox_error_ble_characteristics_not_found))
             return
         }
         conn.writeCharacteristic = write
@@ -512,7 +513,7 @@ class BitBoxController(
         }
         cccd.value = BluetoothGattDescriptor.ENABLE_INDICATION_VALUE
         if (!gatt.writeDescriptor(cccd)) {
-            fail(context.getString(R.string.nc_bitbox_error_indications_failed))
+            fail(context.withAppLocale().getString(R.string.nc_bitbox_error_indications_failed))
         }
     }
 
@@ -571,7 +572,7 @@ class BitBoxController(
             // command — including the initialize() the host recovers with — on an ack that is
             // never coming, and it would do it silently.
             dropBleWriteState(conn)
-            fail(context.getString(R.string.nc_bitbox_error_ble_write_failed))
+            fail(context.withAppLocale().getString(R.string.nc_bitbox_error_ble_write_failed))
             return
         }
         // Bind the retry to this connection: after a reconnect or a device switch it would
@@ -602,7 +603,7 @@ class BitBoxController(
             if (connection !== conn || conn.bleWriteInFlight == null) return@Runnable
             Timber.tag(TAG).e("no BLE write callback after ${BLE_WRITE_TIMEOUT_MS}ms")
             dropBleWriteState(conn)
-            fail(context.getString(R.string.nc_bitbox_error_not_responding))
+            fail(context.withAppLocale().getString(R.string.nc_bitbox_error_not_responding))
         }
         bleWriteTimeout = timeout
         mainHandler.postDelayed(timeout, BLE_WRITE_TIMEOUT_MS)
@@ -640,7 +641,7 @@ class BitBoxController(
     // region USB
     private fun connectUsbById(deviceName: String) {
         val device = usbManager?.deviceList?.get(deviceName) ?: run {
-            listener.onError(context.getString(R.string.nc_bitbox_error_usb_device_unavailable))
+            listener.onError(context.withAppLocale().getString(R.string.nc_bitbox_error_usb_device_unavailable))
             return
         }
         val conn = connection?.takeIf { it.id == deviceName && it.transport == BitBoxTransportKind.USB }
@@ -674,7 +675,7 @@ class BitBoxController(
         val usbInterface = device.getInterface(BITBOX_USB_INTERFACE).takeIf {
             device.interfaceCount > BITBOX_USB_INTERFACE
         } ?: run {
-            fail(context.getString(R.string.nc_bitbox_error_usb_interface_not_found))
+            fail(context.withAppLocale().getString(R.string.nc_bitbox_error_usb_interface_not_found))
             return
         }
         var inEndpoint: UsbEndpoint? = null
@@ -685,14 +686,14 @@ class BitBoxController(
             if (endpoint.direction == UsbConstants.USB_DIR_OUT) outEndpoint = endpoint
         }
         if (inEndpoint == null || outEndpoint == null) {
-            fail(context.getString(R.string.nc_bitbox_error_usb_endpoints_not_found))
+            fail(context.withAppLocale().getString(R.string.nc_bitbox_error_usb_endpoints_not_found))
             return
         }
         conn.clearUsbRuntime()
         val usbConnection = usbManager?.openDevice(device)
         if (usbConnection == null || !usbConnection.claimInterface(usbInterface, true)) {
             runCatching { usbConnection?.close() }
-            fail(context.getString(R.string.nc_bitbox_error_usb_open_failed))
+            fail(context.withAppLocale().getString(R.string.nc_bitbox_error_usb_open_failed))
             return
         }
         conn.usbConnection = usbConnection
@@ -707,7 +708,7 @@ class BitBoxController(
         if (!device.isBitBox()) return
         foundDevices[device.deviceName] = BitBoxDevice(
             id = device.deviceName,
-            name = device.productName ?: context.getString(R.string.nc_bitbox_usb_device_name),
+            name = device.productName ?: context.withAppLocale().getString(R.string.nc_bitbox_usb_device_name),
             transport = BitBoxTransportKind.USB,
         )
         listener.onScanResults(foundDevices.values.toList())
@@ -728,14 +729,14 @@ class BitBoxController(
         val usbConnection = conn?.usbConnection
         val endpoint = conn?.usbOutEndpoint
         if (usbConnection == null || endpoint == null) {
-            fail(context.getString(R.string.nc_bitbox_error_usb_not_open))
+            fail(context.withAppLocale().getString(R.string.nc_bitbox_error_usb_not_open))
             return
         }
         frames.forEach { frame ->
             val wrote = usbConnection.bulkTransfer(endpoint, frame, frame.size, USB_TIMEOUT_MS)
             // A short write leaves half a frame on the wire; the device just drops it.
             if (wrote != frame.size) {
-                fail(context.getString(R.string.nc_hardware_error_usb_write_failed, wrote, frame.size))
+                fail(context.withAppLocale().getString(R.string.nc_hardware_error_usb_write_failed, wrote, frame.size))
                 return
             }
         }
@@ -942,7 +943,7 @@ class BitBoxController(
     ) {
         val conn = connection ?: run {
             Timber.tag(TAG).e("startCommand($request): no connection")
-            listener.onError(context.getString(R.string.nc_bitbox_error_not_connected))
+            listener.onError(context.withAppLocale().getString(R.string.nc_bitbox_error_not_connected))
             return
         }
         // Confluence §0, the single-command rule: an operation has to reach COMPLETE, FAILED or
@@ -1037,7 +1038,7 @@ class BitBoxController(
             BitBoxStepType.FAILED -> {
                 val error = step.error
                 val code = error?.errorCode ?: BitBoxErrorCode.NONE
-                val message = error?.message?.takeIf { it.isNotBlank() } ?: context.getString(R.string.nc_bitbox_error_generic)
+                val message = error?.message?.takeIf { it.isNotBlank() } ?: context.withAppLocale().getString(R.string.nc_bitbox_error_generic)
                 Timber.tag(TAG).e(
                     "FAILED request=$request code=$code deviceCode=${error?.deviceCode ?: 0} message=$message"
                 )

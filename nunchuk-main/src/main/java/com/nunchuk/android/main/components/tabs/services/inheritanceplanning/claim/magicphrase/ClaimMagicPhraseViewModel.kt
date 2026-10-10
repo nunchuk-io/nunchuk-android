@@ -1,5 +1,6 @@
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.magicphrase
 
+import com.nunchuk.android.core.util.UiText
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.membership.InheritanceClaimingInitUseCase
@@ -15,14 +16,11 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import com.nunchuk.android.main.R
-import dagger.hilt.android.qualifiers.ApplicationContext
-import android.content.Context
 
 @HiltViewModel
 class ClaimMagicPhraseViewModel @Inject constructor(
     private val getBip39WordListUseCase: GetBip39WordListUseCase,
     private val inheritanceClaimingInitUseCase: InheritanceClaimingInitUseCase,
-    @ApplicationContext private val context: Context,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(ClaimMagicPhraseState())
@@ -76,7 +74,7 @@ class ClaimMagicPhraseViewModel @Inject constructor(
     fun initInheritanceClaiming() {
         val phrase = _state.value.formattedMagicPhrase.trim()
         if (!validateMagicPhrase()) {
-            _state.update { it.copy(error = context.getString(R.string.nc_invalid_magic_phrase_words)) }
+            _state.update { it.copy(error = UiText.resource(R.string.nc_invalid_magic_phrase_words)) }
             return
         }
 
@@ -104,7 +102,7 @@ class ClaimMagicPhraseViewModel @Inject constructor(
                     _state.update {
                         it.copy(
                             isLoading = false,
-                            error = if (dialog == null) e.message.orUnknownError() else null,
+                            error = if (dialog == null) UiText.Dynamic(e.message.orUnknownError()) else null,
                             dialog = dialog
                         )
                     }
@@ -112,7 +110,7 @@ class ClaimMagicPhraseViewModel @Inject constructor(
                     _state.update {
                         it.copy(
                             isLoading = false,
-                            error = e.message ?: context.getString(R.string.nc_main_failed_to_initialize_inheritance_claiming),
+                            error = e.message?.let(UiText::Dynamic) ?: UiText.resource(R.string.nc_main_failed_to_initialize_inheritance_claiming),
                             dialog = null
                         )
                     }

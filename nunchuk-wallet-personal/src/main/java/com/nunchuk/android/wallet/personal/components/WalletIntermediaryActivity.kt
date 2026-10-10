@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.wallet.personal.components
 
+import com.nunchuk.android.core.util.resolve
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -281,7 +282,7 @@ class WalletIntermediaryActivity : BaseComposeCameraActivity(), BottomSheetOptio
         flowObserver(viewModel.event) { event ->
             when (event) {
                 is WalletIntermediaryEvent.OnLoadFileSuccess -> handleLoadFilePath(event)
-                is WalletIntermediaryEvent.ShowError -> NCToastMessage(this).showError(event.msg)
+                is WalletIntermediaryEvent.ShowError -> NCToastMessage(this).showError(event.msg.resolve(this))
                 is WalletIntermediaryEvent.Loading -> showOrHideLoading(event.isLoading)
                 WalletIntermediaryEvent.NoSigner -> showNoSignerDialog()
                 WalletIntermediaryEvent.JoinGroupWalletFailed ->

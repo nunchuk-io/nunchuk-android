@@ -1,5 +1,6 @@
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim
 
+import com.nunchuk.android.core.util.resolve
 import android.app.Activity
 import com.nunchuk.android.core.signing.signingDevice
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -199,7 +200,7 @@ private fun ClaimInheritanceGraph(
 
                 is ClaimInheritanceEvent.ShowError -> {
                     snackbarHostState.showNunchukSnackbar(
-                        message = event.message,
+                        message = event.message.resolve(context),
                         type = NcToastType.ERROR
                     )
                 }

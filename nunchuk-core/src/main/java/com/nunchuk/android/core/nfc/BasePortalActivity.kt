@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.core.nfc
 
+import com.nunchuk.android.core.util.resolve
 import android.net.Uri
 import android.nfc.tech.NfcA
 import android.os.Bundle
@@ -56,8 +57,8 @@ abstract class BasePortalActivity<Binding : ViewBinding> : BaseNfcActivity<Bindi
                 }
                 portalViewModel.markEventHandled()
             }
-            if (state.message.isNotEmpty()) {
-                NCToastMessage(this).showError(state.message)
+            state.message?.resolve(this)?.takeIf { it.isNotEmpty() }?.let { message ->
+                NCToastMessage(this).showError(message)
                 portalViewModel.markMessageHandled()
             }
         }

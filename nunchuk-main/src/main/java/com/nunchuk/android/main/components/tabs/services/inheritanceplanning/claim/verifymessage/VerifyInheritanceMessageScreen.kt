@@ -1,5 +1,6 @@
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.verifymessage
 
+import com.nunchuk.android.core.util.resolve
 import android.Manifest
 import android.app.Activity
 import android.content.pm.PackageManager
@@ -240,7 +241,7 @@ fun VerifyInheritanceMessageScreen(
             when (event) {
                 is VerifyInheritanceMessageEvent.ShowError -> {
                     snackState.showNunchukSnackbar(
-                        message = event.message,
+                        message = event.message.resolve(activity),
                         type = NcToastType.ERROR
                     )
                 }

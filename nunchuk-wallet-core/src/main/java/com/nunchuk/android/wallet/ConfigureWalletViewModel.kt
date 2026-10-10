@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.wallet
 
+import com.nunchuk.android.core.util.withAppLocale
 import android.content.Context
 import android.nfc.tech.IsoDep
 import androidx.lifecycle.SavedStateHandle
@@ -134,7 +135,7 @@ class ConfigureWalletViewModel @Inject constructor(
                         if (hasSignerUseCase(signer).getOrNull() == true) {
                             singleSignerMapper(getSignerUseCase(signer).getOrThrow()).copy(isVisible = true)
                         } else {
-                            signer.toModel().copy(isVisible = false, name = context.getString(R.string.nc_wallet_key_with_index, index + 1))
+                            signer.toModel().copy(isVisible = false, name = context.withAppLocale().getString(R.string.nc_wallet_key_with_index, index + 1))
                         }
                     }
                     _state.update {

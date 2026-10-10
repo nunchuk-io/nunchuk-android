@@ -1,5 +1,6 @@
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim
 
+import com.nunchuk.android.core.util.UiText
 import android.os.Parcelable
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -42,8 +43,6 @@ import timber.log.Timber
 import javax.inject.Inject
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.verifymessage.ImportSignatureVia
 import com.nunchuk.android.main.R
-import dagger.hilt.android.qualifiers.ApplicationContext
-import android.content.Context
 
 @HiltViewModel
 class ClaimInheritanceViewModel @Inject constructor(
@@ -59,7 +58,6 @@ class ClaimInheritanceViewModel @Inject constructor(
     private val getAddedKeysForInheritanceUseCase: GetAddedKeysForInheritanceUseCase,
     private val deletePendingRequestsByMagicUseCase: DeletePendingRequestsByMagicUseCase,
     private val getClaimSigningChallengeUseCase: GetClaimSigningChallengeUseCase,
-    @ApplicationContext private val context: Context,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val handledRequestIds = mutableSetOf<String>()
@@ -189,7 +187,7 @@ class ClaimInheritanceViewModel @Inject constructor(
         if (!isKeyInOrigins) {
             _uiState.update {
                 it.copy(
-                    event = ClaimInheritanceEvent.ShowError(context.getString(R.string.nc_main_incorrect_key_add_correct_key)),
+                    event = ClaimInheritanceEvent.ShowError(UiText.resource(R.string.nc_main_incorrect_key_add_correct_key)),
                     isLoading = false
                 )
             }
@@ -419,7 +417,9 @@ data class ClaimUiState(
 )
 
 sealed class ClaimInheritanceEvent {
-    data class ShowError(val message: String) : ClaimInheritanceEvent()
+    data class ShowError(val message: UiText) : ClaimInheritanceEvent() {
+        constructor(message: String) : this(UiText.Dynamic(message))
+    }
     data class NavigateToInheritanceError(
         val errorCode: Int,
         val message: String

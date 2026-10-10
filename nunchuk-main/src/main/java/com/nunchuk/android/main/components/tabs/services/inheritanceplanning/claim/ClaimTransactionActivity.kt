@@ -1,5 +1,6 @@
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim
 
+import com.nunchuk.android.core.util.resolve
 import android.Manifest
 import android.app.Activity
 import android.content.pm.PackageManager
@@ -116,7 +117,7 @@ private fun ClaimTransactionScreen(
     LaunchedEffect(claimError) {
         claimError?.let { error ->
             snackbarHostState.showNunchukSnackbar(
-                message = error,
+                message = error.resolve(context),
                 type = NcToastType.ERROR
             )
         }
@@ -157,7 +158,7 @@ private fun ClaimTransactionScreen(
 
                 is ClaimTransactionEvent.ShowError -> {
                     snackbarHostState.showNunchukSnackbar(
-                        message = event.message,
+                        message = event.message.resolve(context),
                         type = NcToastType.ERROR
                     )
                 }

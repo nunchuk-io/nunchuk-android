@@ -1,5 +1,6 @@
 package com.nunchuk.android.signer.software.components.intro
 
+import com.nunchuk.android.core.util.asString
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -154,7 +155,7 @@ fun RecoverByXprvContent(
                     title = stringResource(SignerSoftwareR.string.nc_xprv),
                     value = state.xprv,
                     minLines = 5,
-                    error = state.error,
+                    error = state.error?.asString().orEmpty(),
                     enabled = !isViewMode,
                     readOnly = isViewMode,
                 ) {

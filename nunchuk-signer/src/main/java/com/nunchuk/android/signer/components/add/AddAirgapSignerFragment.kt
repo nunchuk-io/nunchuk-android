@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.signer.components.add
 
+import com.nunchuk.android.core.util.resolve
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
@@ -270,7 +271,7 @@ class AddAirgapSignerFragment : BaseCameraFragment<ViewBinding>(),
         viewModel.event.observe(viewLifecycleOwner) {
             when (it) {
                 is AddAirgapSignerSuccessEvent -> handleSignerSuccess(it.singleSigner)
-                is AddAirgapSignerErrorEvent -> onAddAirSignerError(it.message)
+                is AddAirgapSignerErrorEvent -> onAddAirSignerError(it.message.resolve(requireContext()))
                 // Only raised while scanning, which this screen delegates to ScanDynamicQRActivity.
                 is AddAirgapSignerEvent.ShowJadePinReply -> Unit
                 is LoadingEventAirgap -> showOrHideLoading(it.isLoading)

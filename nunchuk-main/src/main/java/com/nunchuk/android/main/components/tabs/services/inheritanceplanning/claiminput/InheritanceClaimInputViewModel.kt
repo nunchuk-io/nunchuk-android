@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claiminput
 
+import com.nunchuk.android.core.util.UiText
 import android.util.Base64
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -41,8 +42,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import com.nunchuk.android.main.R
-import dagger.hilt.android.qualifiers.ApplicationContext
-import android.content.Context
 
 @HiltViewModel
 class InheritanceClaimInputViewModel @Inject constructor(
@@ -51,7 +50,6 @@ class InheritanceClaimInputViewModel @Inject constructor(
     private val masterSignerMapper: MasterSignerMapper,
     private val getInheritanceClaimStateUseCase: GetInheritanceClaimStateUseCase,
     private val deleteMasterSignerUseCase: DeleteMasterSignerUseCase,
-    @ApplicationContext private val context: Context,
 ) : ViewModel() {
 
     private val _event = MutableSharedFlow<InheritanceClaimInputEvent>()
@@ -73,7 +71,7 @@ class InheritanceClaimInputViewModel @Inject constructor(
         if (result.isSuccess) {
             val backupKeys = result.getOrThrow()
             val importMasterSigners = ArrayList<MasterSigner>()
-            var errorMsg: String? = null
+            var errorMsg: UiText? = null
             backupKeys.forEachIndexed { index, backupKey ->
                 val backupData = Base64.decode(backupKey.keyBackUpBase64, Base64.DEFAULT)
                 if (ChecksumUtil.verifyChecksum(backupData, backupKey.keyCheckSum)
@@ -90,7 +88,7 @@ class InheritanceClaimInputViewModel @Inject constructor(
                     if (resultImport.isSuccess) {
                         importMasterSigners.add(resultImport.getOrThrow())
                     } else {
-                        errorMsg = context.getString(R.string.nc_main_invalid_password_unable_to_restore_backup)
+                        errorMsg = UiText.resource(R.string.nc_main_invalid_password_unable_to_restore_backup)
                     }
                 }
             }
@@ -100,7 +98,7 @@ class InheritanceClaimInputViewModel @Inject constructor(
                 }
                 _event.emit(
                     InheritanceClaimInputEvent.Error(
-                        errorMsg ?: context.getString(R.string.nc_main_invalid_password_unable_to_restore_backup)
+                        errorMsg ?: UiText.resource(R.string.nc_main_invalid_password_unable_to_restore_backup)
                     )
                 )
                 return@launch

@@ -8,5 +8,7 @@ data class HistoryPeriod(
     val displayName: String = "",
     val enabled: Boolean = false,
     val id: String = "",
-    val durationInMillis: Long = 0L
+    val durationInMillis: Long = 0L,
+    /** Client-generated retention option; its label is localized by the UI. */
+    val retentionDays: Int? = null
 ) : Parcelable

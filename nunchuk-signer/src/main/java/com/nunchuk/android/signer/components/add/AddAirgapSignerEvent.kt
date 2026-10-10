@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.signer.components.add
 
+import com.nunchuk.android.core.util.UiText
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.usecase.ResultExistingKey
 
@@ -26,9 +27,11 @@ sealed class AddAirgapSignerEvent {
     data class AddAirgapSignerSuccessEvent(val singleSigner: SingleSigner) : AddAirgapSignerEvent()
     data class ParseKeystoneAirgapSignerSuccess(val signers: List<SingleSigner>) : AddAirgapSignerEvent()
     data class AddAirgapSignerErrorEvent(
-        val message: String,
+        val message: UiText,
         val errorCode: Int = -1,
-    ) : AddAirgapSignerEvent()
+    ) : AddAirgapSignerEvent() {
+        constructor(message: String, errorCode: Int = -1) : this(UiText.Dynamic(message), errorCode)
+    }
     data object ErrorMk4TestNet : AddAirgapSignerEvent()
     data object AddSameKey : AddAirgapSignerEvent()
     data class LoadingEventAirgap(val isLoading: Boolean) : AddAirgapSignerEvent()

@@ -1,5 +1,6 @@
 package com.nunchuk.android.core.nfc
 
+import com.nunchuk.android.core.util.UiText
 import android.nfc.tech.NfcA
 import xyz.twenty_two.CardStatus
 
@@ -9,5 +10,5 @@ data class PortalDeviceUiState(
     val status: CardStatus? = null,
     val isConnected: Boolean = false,
     val event: PortalDeviceEvent? = null,
-    val message: String = ""
+    val message: UiText? = null
 )

@@ -1,5 +1,6 @@
 package com.nunchuk.android.main.groupwallet
 
+import com.nunchuk.android.core.util.resolve
 import android.content.Context
 import android.content.Intent
 import android.nfc.tech.IsoDep
@@ -136,10 +137,10 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
                     }
 
                     LaunchedEffect(state.errorMessage) {
-                        if (state.errorMessage.isNotEmpty()) {
+                        state.errorMessage?.let { errorMessage ->
                             snackState.showSnackbar(
                                 NcSnackbarVisuals(
-                                    message = state.errorMessage,
+                                    message = errorMessage.resolve(this@FreeGroupWalletActivity),
                                     type = NcToastType.ERROR
                                 )
                             )

@@ -1,5 +1,6 @@
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.magicphrase
 
+import com.nunchuk.android.core.util.resolve
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
@@ -78,7 +79,7 @@ fun ClaimMagicPhraseScreen(
         state.error?.let { error ->
             coroutineScope.launch {
                 snackState.showNunchukSnackbar(
-                    message = error,
+                    message = error.resolve(context),
                     type = NcToastType.ERROR
                 )
                 viewModel.clearError()

@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.signer.mk4.recover
 
+import com.nunchuk.android.core.util.resolve
 import android.app.Activity.RESULT_OK
 import android.content.Intent
 import android.os.Bundle
@@ -210,7 +211,7 @@ class ColdcardRecoverFragment : MembershipFragment(), BottomSheetOptionListener 
                         }
 
                         is ColdcardRecoverEvent.LoadingEvent -> showOrHideLoading(event.isLoading)
-                        is ColdcardRecoverEvent.ShowError -> showError(event.message)
+                        is ColdcardRecoverEvent.ShowError -> showError(event.message.resolve(requireContext()))
                         ColdcardRecoverEvent.AddSameKey -> showError(getString(R.string.nc_error_add_same_key))
                         ColdcardRecoverEvent.ParseFileError -> showError(getString(R.string.nc_xpubs_file_invalid))
                         ColdcardRecoverEvent.NewIndexNotMatchException -> {

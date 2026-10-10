@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.signer.mk4.intro
 
+import com.nunchuk.android.core.util.UiText
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.usecase.ResultExistingKey
@@ -26,7 +27,9 @@ import com.nunchuk.android.usecase.ResultExistingKey
 sealed class Mk4IntroViewEvent {
     data class Loading(val isLoading: Boolean) : Mk4IntroViewEvent()
     data class LoadMk4SignersSuccess(val signers: List<SingleSigner>) : Mk4IntroViewEvent()
-    data class ShowError(val message: String) : Mk4IntroViewEvent()
+    data class ShowError(val message: UiText) : Mk4IntroViewEvent() {
+        constructor(message: String) : this(UiText.Dynamic(message))
+    }
     class NfcLoading(val isLoading: Boolean) : Mk4IntroViewEvent()
     data object OnContinueClicked : Mk4IntroViewEvent()
     data object ErrorMk4TestNet : Mk4IntroViewEvent()

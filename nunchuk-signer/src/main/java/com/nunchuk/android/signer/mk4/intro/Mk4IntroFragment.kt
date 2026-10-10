@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.signer.mk4.intro
 
+import com.nunchuk.android.core.util.resolve
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
@@ -155,7 +156,7 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
                 is Mk4IntroViewEvent.LoadMk4SignersSuccess -> openSignerSheet(it.signers)
 
                 is Mk4IntroViewEvent.Loading -> showOrHideLoading(it.isLoading)
-                is Mk4IntroViewEvent.ShowError -> showError(it.message)
+                is Mk4IntroViewEvent.ShowError -> showError(it.message.resolve(requireContext()))
                 Mk4IntroViewEvent.OnContinueClicked -> onContinueClicked()
                 is Mk4IntroViewEvent.OnCreateSignerSuccess -> {
                     val onChainAddSignerParam = (activity as Mk4Activity).onChainAddSignerParam

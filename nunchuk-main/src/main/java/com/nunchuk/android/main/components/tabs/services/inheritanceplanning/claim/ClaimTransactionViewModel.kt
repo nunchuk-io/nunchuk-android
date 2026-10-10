@@ -1,5 +1,6 @@
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim
 
+import com.nunchuk.android.core.util.UiText
 import android.content.Context
 import android.net.Uri
 import android.nfc.NdefRecord
@@ -105,8 +106,8 @@ class ClaimTransactionViewModel @AssistedInject constructor(
     private val _event = MutableSharedFlow<ClaimTransactionEvent>()
     val event = _event.asSharedFlow()
 
-    private val _claimError = MutableStateFlow<String?>(null)
-    val claimError: StateFlow<String?> = _claimError.asStateFlow()
+    private val _claimError = MutableStateFlow<UiText?>(null)
+    val claimError: StateFlow<UiText?> = _claimError.asStateFlow()
 
     /** Ledger/BitBox sheet to show; the sheet signs the PSBT and hands it to [handleSignedPsbt]. */
     private val _hardwareSignRequest = MutableStateFlow<HardwareSignRequest?>(null)
@@ -305,9 +306,9 @@ class ClaimTransactionViewModel @AssistedInject constructor(
             }.onFailure { exception ->
                 Timber.e(exception, "Failed to claim inheritance transaction")
                 val errorMessage = if (exception.isNoInternetException) {
-                    applicationContext.getString(R.string.nc_network_unreachable_try_again_later)
+                    UiText.resource(R.string.nc_network_unreachable_try_again_later)
                 } else {
-                    exception.readableMessage()
+                    UiText.Dynamic(exception.readableMessage())
                 }
                 _claimError.update { errorMessage }
             }
@@ -348,7 +349,7 @@ class ClaimTransactionViewModel @AssistedInject constructor(
                 } ?: throw Exception("Failed to read file content")
                 decodeSignedPsbt(fileContent)
             } catch (_: Exception) {
-                _event.emit(ClaimTransactionEvent.ShowError(applicationContext.getString(R.string.nc_main_invalid_signature_try_again)))
+                _event.emit(ClaimTransactionEvent.ShowError(UiText.resource(R.string.nc_main_invalid_signature_try_again)))
             }
             _loadingType.update { null }
         }
@@ -381,7 +382,7 @@ class ClaimTransactionViewModel @AssistedInject constructor(
                 ?.let { bsms -> parseWalletDescriptorUseCase(bsms).getOrNull() }
                 ?.also { registrationWallet = it }
             ?: run {
-                _event.emit(ClaimTransactionEvent.ShowError(applicationContext.getString(R.string.nc_main_cannot_load_wallet_for_signing, tag.formattedName)))
+                _event.emit(ClaimTransactionEvent.ShowError(UiText.resource(R.string.nc_main_cannot_load_wallet_for_signing, tag.formattedName)))
                 null
             }
 
@@ -410,7 +411,7 @@ class ClaimTransactionViewModel @AssistedInject constructor(
         viewModelScope.launch {
             _loadingType.update { LoadingType.Normal }
             runCatching { decodeSignedPsbt(signedPsbt) }.onFailure {
-                _event.emit(ClaimTransactionEvent.ShowError(applicationContext.getString(R.string.nc_main_invalid_signature_try_again)))
+                _event.emit(ClaimTransactionEvent.ShowError(UiText.resource(R.string.nc_main_invalid_signature_try_again)))
             }
             _loadingType.update { null }
         }
@@ -585,7 +586,9 @@ data class HardwareSignRequest(
 sealed class ClaimTransactionEvent {
     data class SaveLocalFile(val isSuccess: Boolean) : ClaimTransactionEvent()
     data class ExportToFileSuccess(val filePath: String) : ClaimTransactionEvent()
-    data class ShowError(val message: String) : ClaimTransactionEvent()
+    data class ShowError(val message: UiText) : ClaimTransactionEvent() {
+        constructor(message: String) : this(UiText.Dynamic(message))
+    }
     data class OpenBlockExplorer(val url: String) : ClaimTransactionEvent()
     data object ExportTransactionToMk4Success : ClaimTransactionEvent()
     data object ImportTransactionFromMk4Success : ClaimTransactionEvent()

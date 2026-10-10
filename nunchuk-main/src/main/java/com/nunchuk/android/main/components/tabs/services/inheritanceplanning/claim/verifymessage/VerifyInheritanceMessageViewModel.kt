@@ -1,5 +1,6 @@
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.verifymessage
 
+import com.nunchuk.android.core.util.UiText
 import android.content.Context
 import android.net.Uri
 import android.nfc.NdefRecord
@@ -211,7 +212,7 @@ class VerifyInheritanceMessageViewModel @AssistedInject constructor(
     }
 
     private suspend fun reportUnsupportedRoute(): String {
-        _event.emit(VerifyInheritanceMessageEvent.ShowError(applicationContext.getString(R.string.nc_main_key_cannot_sign_that_way)))
+        _event.emit(VerifyInheritanceMessageEvent.ShowError(UiText.resource(R.string.nc_main_key_cannot_sign_that_way)))
         return ""
     }
 
@@ -318,7 +319,7 @@ class VerifyInheritanceMessageViewModel @AssistedInject constructor(
             val signature = signedMessage?.signature.orEmpty()
 
             if (signature.isEmpty()) {
-                _event.emit(VerifyInheritanceMessageEvent.ShowError(applicationContext.getString(R.string.nc_main_no_signature_available)))
+                _event.emit(VerifyInheritanceMessageEvent.ShowError(UiText.resource(R.string.nc_main_no_signature_available)))
                 return@launch
             }
 
@@ -442,7 +443,7 @@ class VerifyInheritanceMessageViewModel @AssistedInject constructor(
                 }
             } catch (e: Exception) {
                 if (e.nativeErrorCode() == NativeErrorCode.INVALID_SIGNED_MESSAGE) {
-                    _event.emit(VerifyInheritanceMessageEvent.ShowError(applicationContext.getString(R.string.nc_main_invalid_signature_try_again)))
+                    _event.emit(VerifyInheritanceMessageEvent.ShowError(UiText.resource(R.string.nc_main_invalid_signature_try_again)))
                 } else {
                     _event.emit(VerifyInheritanceMessageEvent.ShowError(e.message.orUnknownError()))
                 }
@@ -484,7 +485,7 @@ class VerifyInheritanceMessageViewModel @AssistedInject constructor(
                 }
                 .onFailure { e ->
                     if (e.nativeErrorCode() == NativeErrorCode.INVALID_SIGNED_MESSAGE) {
-                        _event.emit(VerifyInheritanceMessageEvent.ShowError(applicationContext.getString(R.string.nc_main_invalid_signature_try_again)))
+                        _event.emit(VerifyInheritanceMessageEvent.ShowError(UiText.resource(R.string.nc_main_invalid_signature_try_again)))
                     } else {
                         _event.emit(VerifyInheritanceMessageEvent.ShowError(e.message.orUnknownError()))
                     }
@@ -519,7 +520,9 @@ enum class LoadingType {
 
 sealed class VerifyInheritanceMessageEvent {
     object NoSignatureDetected : VerifyInheritanceMessageEvent()
-    data class ShowError(val message: String) : VerifyInheritanceMessageEvent()
+    data class ShowError(val message: UiText) : VerifyInheritanceMessageEvent() {
+        constructor(message: String) : this(UiText.Dynamic(message))
+    }
     data class NfcError(val e: Throwable) : VerifyInheritanceMessageEvent()
     data class GetInheritanceClaimStateSuccess(val inheritanceAdditional: InheritanceAdditional) :
         VerifyInheritanceMessageEvent()

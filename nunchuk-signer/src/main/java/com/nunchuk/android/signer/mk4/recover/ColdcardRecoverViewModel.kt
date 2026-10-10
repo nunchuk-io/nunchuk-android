@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.signer.mk4.recover
 
+import com.nunchuk.android.core.util.UiText
 import com.nunchuk.android.signer.R
 import android.app.Application
 import android.net.Uri
@@ -193,7 +194,7 @@ class ColdcardRecoverViewModel @Inject constructor(
         onChainAddSignerParam: OnChainAddSignerParam?
     ) {
         val signer = singleSigners.find { it.derivationPath.isRecommendedMultiSigPath }
-            ?: return emitErrorAndStopLoading(ColdcardRecoverEvent.ShowError(application.getString(R.string.nc_coldcard_cannot_find_signer_path)))
+            ?: return emitErrorAndStopLoading(ColdcardRecoverEvent.ShowError(UiText.resource(R.string.nc_coldcard_cannot_find_signer_path)))
 
         if (!validateMembershipSigner(signer, onChainAddSignerParam, newIndex)) return
 
@@ -231,7 +232,7 @@ class ColdcardRecoverViewModel @Inject constructor(
             signer.masterFingerprint != onChainAddSignerParam.currentSigner?.fingerPrint &&
             onChainAddSignerParam.keyIndex > 0
         ) {
-            emitErrorAndStopLoading(ColdcardRecoverEvent.ShowError(application.getString(R.string.nc_added_key_xfp_mismatch)))
+            emitErrorAndStopLoading(ColdcardRecoverEvent.ShowError(UiText.resource(R.string.nc_added_key_xfp_mismatch)))
             return false
         }
         if (chain == Chain.MAIN && isTestNetPath(signer.derivationPath)) {
@@ -264,7 +265,7 @@ class ColdcardRecoverViewModel @Inject constructor(
             if (newAccountIndex != 0) {
                 emitErrorAndStopLoading(
                     ColdcardRecoverEvent.ShowError(
-                        application.getString(
+                        UiText.resource(
                             R.string.nc_key_account_mismatch_inheritance,
                             signer.masterFingerprint.uppercase(),
                             newAccountIndex,
@@ -481,7 +482,9 @@ class ColdcardRecoverViewModel @Inject constructor(
 
 sealed class ColdcardRecoverEvent {
     class LoadingEvent(val isLoading: Boolean) : ColdcardRecoverEvent()
-    class ShowError(val message: String) : ColdcardRecoverEvent()
+    class ShowError(val message: UiText) : ColdcardRecoverEvent() {
+        constructor(message: String) : this(UiText.Dynamic(message))
+    }
     data object OnOpenGuide : ColdcardRecoverEvent()
     data object OnContinue : ColdcardRecoverEvent()
     data class CreateSignerSuccess(val signer: SingleSigner) : ColdcardRecoverEvent()

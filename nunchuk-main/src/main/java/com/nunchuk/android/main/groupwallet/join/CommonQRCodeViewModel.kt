@@ -1,5 +1,6 @@
 package com.nunchuk.android.main.groupwallet.join
 
+import com.nunchuk.android.core.util.UiText
 import com.nunchuk.android.main.R
 import android.content.Context
 import android.graphics.Bitmap
@@ -46,7 +47,7 @@ class CommonQRCodeViewModel @Inject constructor(
             if (filePath != null) {
                 _event.emit(CommonQRCodeEvent.ShareQRCodeSuccess(filePath))
             } else {
-                _event.emit(CommonQRCodeEvent.Error(context.getString(R.string.nc_main_failed_to_share_qr_code)))
+                _event.emit(CommonQRCodeEvent.Error(UiText.resource(R.string.nc_main_failed_to_share_qr_code)))
             }
         }
     }
@@ -56,5 +57,7 @@ data class CommonQRCodeScreenState(val qrCodeBitmap: Bitmap? = null)
 
 sealed class CommonQRCodeEvent {
     data class ShareQRCodeSuccess(val filePath: String) : CommonQRCodeEvent()
-    data class Error(val message: String) : CommonQRCodeEvent()
+    data class Error(val message: UiText) : CommonQRCodeEvent() {
+        constructor(message: String) : this(UiText.Dynamic(message))
+    }
 }

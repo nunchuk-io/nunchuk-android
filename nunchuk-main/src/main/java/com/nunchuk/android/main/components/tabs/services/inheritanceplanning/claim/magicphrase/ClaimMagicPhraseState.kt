@@ -1,5 +1,6 @@
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.magicphrase
 
+import com.nunchuk.android.core.util.UiText
 import com.nunchuk.android.model.InheritanceClaimingInit
 
 sealed class ClaimMagicPhraseDialog {
@@ -14,7 +15,7 @@ data class ClaimMagicPhraseState(
     val suggestions: List<String> = emptyList(),
     val isLoading: Boolean = false,
     val initResult: InheritanceClaimingInit? = null,
-    val error: String? = null,
+    val error: UiText? = null,
     val dialog: ClaimMagicPhraseDialog? = null
 ) {
     val formattedMagicPhrase: String

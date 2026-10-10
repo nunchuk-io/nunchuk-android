@@ -1,5 +1,8 @@
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.backuppassword
 
+import com.nunchuk.android.core.util.UiText
+import com.nunchuk.android.core.util.resolve
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.fillMaxSize
@@ -68,10 +71,11 @@ fun ClaimBackupPasswordScreen(
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
     var isLoading by remember { mutableStateOf(false) }
-    var errorMessage by remember { mutableStateOf<String?>(null) }
+    var errorMessage by remember { mutableStateOf<UiText?>(null) }
 
     LaunchedEffect(Unit) {
         viewModel.event.collectLatest { event ->
@@ -107,7 +111,7 @@ fun ClaimBackupPasswordScreen(
         errorMessage?.let { error ->
             coroutineScope.launch {
                 snackState.showNunchukSnackbar(
-                    message = error,
+                    message = error.resolve(context),
                     type = NcToastType.ERROR
                 )
                 errorMessage = null

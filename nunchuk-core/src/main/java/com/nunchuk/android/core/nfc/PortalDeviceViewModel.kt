@@ -1,5 +1,6 @@
 package com.nunchuk.android.core.nfc
 
+import com.nunchuk.android.core.util.UiText
 import android.app.Application
 import android.net.Uri
 import android.nfc.TagLostException
@@ -148,7 +149,7 @@ class PortalDeviceViewModel @Inject constructor(
         unlockPortalAndExecute(savedStateHandle.get<String>(EXTRA_PIN).orEmpty()) {
             val status = sdk.getStatus()
             if (status.fingerprint != fingerPrint) {
-                _state.update { state -> state.copy(message = application.getString(R.string.nc_portal_fingerprint_mismatch)) }
+                _state.update { state -> state.copy(message = UiText.resource(R.string.nc_portal_fingerprint_mismatch)) }
             } else {
                 signerPin[fingerPrint] = savedStateHandle.get<String>(EXTRA_PIN).orEmpty()
                 val signedPsbt = sdk.signPsbt(psbt)
@@ -205,7 +206,7 @@ class PortalDeviceViewModel @Inject constructor(
                 _state.update { state -> state.copy(event = PortalDeviceEvent.ExportWalletSuccess) }
             }.onFailure {
                 Timber.e(it)
-                _state.update { state -> state.copy(message = it.message.orEmpty()) }
+                _state.update { state -> state.copy(message = UiText.Dynamic(it.message.orEmpty())) }
             }
         }
     }
@@ -224,7 +225,7 @@ class PortalDeviceViewModel @Inject constructor(
                 _state.update { state -> state.copy(event = PortalDeviceEvent.ImportWalletSuccess(it.id)) }
             }.onFailure {
                 Timber.e(it)
-                _state.update { state -> state.copy(message = it.message.orEmpty()) }
+                _state.update { state -> state.copy(message = UiText.Dynamic(it.message.orEmpty())) }
             }
         }
     }
@@ -256,7 +257,7 @@ class PortalDeviceViewModel @Inject constructor(
     ) {
         val status = sdk.getStatus()
         if (!status.initialized) {
-            _state.update { state -> state.copy(message = application.getString(R.string.nc_portal_not_initialized)) }
+            _state.update { state -> state.copy(message = UiText.resource(R.string.nc_portal_not_initialized)) }
             return
         }
         if (!status.unlocked) {
@@ -300,7 +301,7 @@ class PortalDeviceViewModel @Inject constructor(
                 pushEventManager.push(PushEvent.LocalUserSignerAdded(it))
             }.onFailure {
                 Timber.e(it)
-                _state.update { state -> state.copy(message = it.message.orEmpty()) }
+                _state.update { state -> state.copy(message = UiText.Dynamic(it.message.orEmpty())) }
             }
         }
     }
@@ -369,7 +370,7 @@ class PortalDeviceViewModel @Inject constructor(
                     } catch (e: Exception) {
                         Timber.e(e)
                         if (e is TagLostException) {
-                            _state.update { state -> state.copy(message = e.message.orUnknownError()) }
+                            _state.update { state -> state.copy(message = UiText.Dynamic(e.message.orUnknownError())) }
                         }
                         _state.update { state ->
                             state.copy(
@@ -382,7 +383,7 @@ class PortalDeviceViewModel @Inject constructor(
                 }
             }.onFailure {
                 Timber.e(it)
-                _state.update { state -> state.copy(message = it.message.orUnknownError()) }
+                _state.update { state -> state.copy(message = UiText.Dynamic(it.message.orUnknownError())) }
             }
         }
     }
@@ -413,7 +414,7 @@ class PortalDeviceViewModel @Inject constructor(
     }
 
     fun markMessageHandled() {
-        _state.update { state -> state.copy(message = "") }
+        _state.update { state -> state.copy(message = null) }
     }
 
     fun hideLoading() {

@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.wallet.personal.components
 
+import com.nunchuk.android.core.util.UiText
 import android.app.Application
 import android.net.Uri
 import androidx.lifecycle.ViewModel
@@ -247,7 +248,7 @@ class WalletIntermediaryViewModel @AssistedInject constructor(
                     _event.emit(WalletIntermediaryEvent.ImportWalletSuccessEvent(wallet, filePath))
                 } else {
                     deleteWalletUseCase(DeleteWalletUseCase.Params(wallet.id))
-                    _event.emit(WalletIntermediaryEvent.ShowError(application.getString(R.string.nc_wallet_group_wallet_not_found)))
+                    _event.emit(WalletIntermediaryEvent.ShowError(UiText.resource(R.string.nc_wallet_group_wallet_not_found)))
                 }
             }
         }
@@ -262,7 +263,9 @@ sealed class WalletIntermediaryEvent {
     data class OnLoadFileSuccess(val uri: Uri, val path: String, val isGroupWallet: Boolean) :
         WalletIntermediaryEvent()
 
-    data class ShowError(val msg: String) : WalletIntermediaryEvent()
+    data class ShowError(val msg: UiText) : WalletIntermediaryEvent() {
+        constructor(msg: String) : this(UiText.Dynamic(msg))
+    }
     data object NoSigner : WalletIntermediaryEvent()
     data class JoinGroupWalletSuccess(val groupId: String) : WalletIntermediaryEvent()
     data object JoinGroupWalletFailed : WalletIntermediaryEvent()

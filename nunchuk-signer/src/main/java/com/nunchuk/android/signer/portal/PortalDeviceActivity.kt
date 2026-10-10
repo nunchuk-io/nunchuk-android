@@ -1,5 +1,6 @@
 package com.nunchuk.android.signer.portal
 
+import com.nunchuk.android.core.util.resolve
 import android.content.Context
 import android.content.Intent
 import android.nfc.tech.NfcA
@@ -170,10 +171,10 @@ class PortalDeviceActivity : BaseComposeNfcActivity() {
                 }
 
                 LaunchedEffect(state.message) {
-                    if (state.message.isNotEmpty()) {
+                    state.message?.resolve(this@PortalDeviceActivity)?.takeIf { it.isNotEmpty() }?.let { message ->
                         snackState.showSnackbar(
                             NcSnackbarVisuals(
-                                message = state.message,
+                                message = message,
                                 type = NcToastType.ERROR
                             )
                         )

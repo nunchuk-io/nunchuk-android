@@ -24,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -158,7 +159,9 @@ fun GroupChatHistoryScreenContent(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = period.displayName,
+                        text = period.retentionDays?.let { days ->
+                            pluralStringResource(R.plurals.nc_day, days, days)
+                        } ?: period.displayName,
                         style = NunchukTheme.typography.body,
                         modifier = Modifier
                             .weight(1f, true)

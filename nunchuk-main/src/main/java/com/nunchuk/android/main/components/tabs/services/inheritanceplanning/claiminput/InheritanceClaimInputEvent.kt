@@ -19,12 +19,15 @@
 
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claiminput
 
+import com.nunchuk.android.core.util.UiText
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.model.InheritanceAdditional
 
 sealed class InheritanceClaimInputEvent {
     data class Loading(val isLoading: Boolean) : InheritanceClaimInputEvent()
-    data class Error(val message: String) : InheritanceClaimInputEvent()
+    data class Error(val message: UiText) : InheritanceClaimInputEvent() {
+        constructor(message: String) : this(UiText.Dynamic(message))
+    }
     data object NoInheritanceClaimFound : InheritanceClaimInputEvent()
     data class GetInheritanceStatusSuccess(
         val inheritanceAdditional: InheritanceAdditional,

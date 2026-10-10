@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.core.domain.membership
 
+import com.nunchuk.android.core.util.withAppLocale
 import com.nunchuk.android.core.util.toAmount
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.Amount
@@ -159,7 +160,7 @@ class InheritanceClaimCreateTransactionUseCase @Inject constructor(
         val expectedAddress = parameters.address.trim()
         if (expectedAddress.isEmpty()) {
             throw InheritanceClaimPsbtMismatchException(
-                context.getString(R.string.nc_inheritance_claim_psbt_no_destination)
+                context.withAppLocale().getString(R.string.nc_inheritance_claim_psbt_no_destination)
             )
         }
         // Bech32 addresses are case-insensitive; base58 ones differing only in case fail checksum.
@@ -168,7 +169,7 @@ class InheritanceClaimCreateTransactionUseCase @Inject constructor(
         }
         if (!paysDestination) {
             throw InheritanceClaimPsbtMismatchException(
-                context.getString(R.string.nc_inheritance_claim_psbt_wrong_destination)
+                context.withAppLocale().getString(R.string.nc_inheritance_claim_psbt_wrong_destination)
             )
         }
     }

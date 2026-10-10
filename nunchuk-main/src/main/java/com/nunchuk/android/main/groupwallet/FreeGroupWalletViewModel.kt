@@ -1,5 +1,7 @@
 package com.nunchuk.android.main.groupwallet
 
+import com.nunchuk.android.core.util.withAppLocale
+import com.nunchuk.android.core.util.UiText
 import android.app.Application
 import android.nfc.tech.IsoDep
 import androidx.lifecycle.SavedStateHandle
@@ -260,9 +262,9 @@ class FreeGroupWalletViewModel @Inject constructor(
             _uiState.update { it.copy(isLoading = true) }
             val numOfGroups = getFreeGroupWalletsUseCase(Unit).getOrNull()?.size ?: 0
             val groupName = if (numOfGroups == 0) {
-                application.getString(R.string.nc_group_wallet)
+                application.withAppLocale().getString(R.string.nc_group_wallet)
             } else {
-                application.getString(R.string.nc_main_group_wallet_with_index, numOfGroups + 1)
+                application.withAppLocale().getString(R.string.nc_main_group_wallet_with_index, numOfGroups + 1)
             }
 
             val currentState = _uiState.value
@@ -281,7 +283,7 @@ class FreeGroupWalletViewModel @Inject constructor(
                 savedStateHandle[FreeGroupWalletActivity.EXTRA_GROUP_ID] = groupSandbox.id
                 updateGroupSandbox(groupSandbox)
             }.onFailure { error ->
-                _uiState.update { it.copy(errorMessage = error.message.orUnknownError()) }
+                _uiState.update { it.copy(errorMessage = UiText.Dynamic(error.message.orUnknownError())) }
             }
             _uiState.update { it.copy(isLoading = false) }
         }
@@ -437,7 +439,7 @@ class FreeGroupWalletViewModel @Inject constructor(
 
                     val keyOrder = miniscriptAssignedKeyOrder[keyName]
                     if (keyOrder != null && signerModel.isVisible.not()) {
-                        signerModel = signerModel.copy(name = application.getString(R.string.nc_key_with_index, "#$keyOrder"))
+                        signerModel = signerModel.copy(name = application.withAppLocale().getString(R.string.nc_key_with_index, "#$keyOrder"))
                     }
 
                     signerMap[keyName] = signerModel
@@ -506,7 +508,7 @@ class FreeGroupWalletViewModel @Inject constructor(
     private fun createPlatformKeySignerModel(keyName: String): SignerModel {
         return SignerModel(
             id = "platform_key_$keyName",
-            name = application.getString(com.nunchuk.android.core.R.string.nc_server_key),
+            name = application.withAppLocale().getString(com.nunchuk.android.core.R.string.nc_server_key),
             derivationPath = "",
             fingerPrint = "platform_key_$keyName",
             type = SignerType.PLATFORM,
@@ -543,7 +545,7 @@ class FreeGroupWalletViewModel @Inject constructor(
                         if (keepOfflineSignerInfo) {
                             offlineSigner
                         } else {
-                            offlineSigner.copy(name = application.getString(R.string.nc_key_with_index, "#${index.inc()}"))
+                            offlineSigner.copy(name = application.withAppLocale().getString(R.string.nc_key_with_index, "#${index.inc()}"))
                         }
                     }
                 }
@@ -606,7 +608,7 @@ class FreeGroupWalletViewModel @Inject constructor(
             Timber.d("Add signer to group $signer at index $index")
             val existingSigners = getWalletSigners()
             if (existingSigners.any { it.fingerPrint == signer.masterFingerprint }) {
-                _uiState.update { it.copy(errorMessage = application.getString(R.string.nc_key_already_in_wallet)) }
+                _uiState.update { it.copy(errorMessage = UiText.resource(R.string.nc_key_already_in_wallet)) }
                 return@launch
             }
             addSignerToGroup(signer, index)
@@ -625,7 +627,7 @@ class FreeGroupWalletViewModel @Inject constructor(
             updateGroupSandbox(it)
         }.onFailure { error ->
             Timber.e("Failed to add signer to group $error")
-            _uiState.update { it.copy(errorMessage = error.message.orUnknownError()) }
+            _uiState.update { it.copy(errorMessage = UiText.Dynamic(error.message.orUnknownError())) }
         }
         _uiState.update { it.copy(isLoading = false) }
     }
@@ -648,7 +650,7 @@ class FreeGroupWalletViewModel @Inject constructor(
                     updateGroupSandbox(it)
                 }.onFailure { error ->
                     Timber.e("Failed to remove signer from group $error")
-                    _uiState.update { it.copy(errorMessage = error.message.orUnknownError()) }
+                    _uiState.update { it.copy(errorMessage = UiText.Dynamic(error.message.orUnknownError())) }
                 }
                 _uiState.update { it.copy(isLoading = false) }
             }
@@ -660,7 +662,7 @@ class FreeGroupWalletViewModel @Inject constructor(
             deleteGroupSandboxUseCase(groupId).onSuccess {
                 _uiState.update { it.copy(isFinishScreen = true, group = null) }
             }.onFailure { error ->
-                _uiState.update { it.copy(errorMessage = error.message.orUnknownError()) }
+                _uiState.update { it.copy(errorMessage = UiText.Dynamic(error.message.orUnknownError())) }
             }
         }
     }
@@ -684,13 +686,13 @@ class FreeGroupWalletViewModel @Inject constructor(
             ).onSuccess { groupSandbox ->
                 updateGroupSandbox(groupSandbox)
                 NcToastManager.scheduleShowMessage(
-                    application.getString(R.string.nc_new_platform_key_added)
+                    application.withAppLocale().getString(R.string.nc_new_platform_key_added)
                 )
             }.onFailure { error ->
                 if (isMiniscriptWallet()) {
                     setSlotOccupied(false)
                 }
-                _uiState.update { it.copy(errorMessage = error.message.orUnknownError()) }
+                _uiState.update { it.copy(errorMessage = UiText.Dynamic(error.message.orUnknownError())) }
             }
             _uiState.update { it.copy(isLoading = false) }
         }
@@ -703,7 +705,7 @@ class FreeGroupWalletViewModel @Inject constructor(
     }
 
     fun markMessageHandled() {
-        _uiState.update { it.copy(errorMessage = "") }
+        _uiState.update { it.copy(errorMessage = null) }
     }
 
     fun getSuggestedSigners(): List<SupportedSigner> {
@@ -732,7 +734,7 @@ class FreeGroupWalletViewModel @Inject constructor(
                     addSignerToGroup(singleSigner)
                 }.onFailure { error ->
                     Timber.e("Failed to add signer to group $error")
-                    _uiState.update { it.copy(errorMessage = error.message.orUnknownError()) }
+                    _uiState.update { it.copy(errorMessage = UiText.Dynamic(error.message.orUnknownError())) }
                 }
             } else {
                 val singleSigner = singleSigners.find {
@@ -824,7 +826,7 @@ class FreeGroupWalletViewModel @Inject constructor(
                             skipConflictCheck = true
                         )
                     } else {
-                        _uiState.update { it.copy(errorMessage = application.getString(R.string.nc_main_no_key_selected_for_path_change)) }
+                        _uiState.update { it.copy(errorMessage = UiText.resource(R.string.nc_main_no_key_selected_for_path_change)) }
                     }
                 } else {
                     val index = savedStateHandle.get<Int>(CURRENT_SIGNER_INDEX) ?: return@launch
@@ -857,16 +859,16 @@ class FreeGroupWalletViewModel @Inject constructor(
                                     )
                                 }
                             } else {
-                                _uiState.update { it.copy(errorMessage = application.getString(R.string.nc_main_signer_not_found_for_path_change)) }
+                                _uiState.update { it.copy(errorMessage = UiText.resource(R.string.nc_main_signer_not_found_for_path_change)) }
                             }
                         } else {
-                            _uiState.update { it.copy(errorMessage = application.getString(R.string.nc_main_no_key_selected_for_path_change)) }
+                            _uiState.update { it.copy(errorMessage = UiText.resource(R.string.nc_main_no_key_selected_for_path_change)) }
                         }
                     } else {
                         _uiState.update { it.copy(requestCacheTapSignerXpubEvent = true) }
                     }
                 } else {
-                    _uiState.update { it.copy(errorMessage = error.message.orUnknownError()) }
+                    _uiState.update { it.copy(errorMessage = UiText.Dynamic(error.message.orUnknownError())) }
                 }
             }
             _uiState.update { it.copy(isLoading = false) }
@@ -902,7 +904,7 @@ class FreeGroupWalletViewModel @Inject constructor(
             }.onFailure { error ->
                 _uiState.update {
                     it.copy(
-                        errorMessage = error.message.orUnknownError(),
+                        errorMessage = UiText.Dynamic(error.message.orUnknownError()),
                         isLoading = false
                     )
                 }
@@ -942,7 +944,7 @@ class FreeGroupWalletViewModel @Inject constructor(
             }.onFailure { error ->
                 _uiState.update {
                     it.copy(
-                        errorMessage = error.message.orUnknownError(),
+                        errorMessage = UiText.Dynamic(error.message.orUnknownError()),
                         isLoading = false,
                         requestCacheTapSignerXpubEvent = false,
                         pendingAddSignerState = null
@@ -962,7 +964,7 @@ class FreeGroupWalletViewModel @Inject constructor(
                 getSignerOldWallet(replaceWalletId)
                 _uiState.update { state -> state.copy(isCreatedReplaceGroup = true) }
             }.onFailure { error ->
-                _uiState.update { it.copy(errorMessage = error.message.orUnknownError()) }
+                _uiState.update { it.copy(errorMessage = UiText.Dynamic(error.message.orUnknownError())) }
             }
             _uiState.update { it.copy(isLoading = false) }
         }
@@ -995,7 +997,7 @@ class FreeGroupWalletViewModel @Inject constructor(
             }.onFailure { error ->
                 // listen group sandbox again
                 listenGroupSandbox()
-                _uiState.update { it.copy(errorMessage = error.message.orUnknownError()) }
+                _uiState.update { it.copy(errorMessage = UiText.Dynamic(error.message.orUnknownError())) }
             }
         }
     }
@@ -1052,7 +1054,7 @@ class FreeGroupWalletViewModel @Inject constructor(
                 if (masterSigner == null) {
                     Timber.tag("miniscript-feature")
                         .e("proceedWithAddingSignerForKey: Master signer not found with id=${signer.fingerPrint}")
-                    _uiState.update { it.copy(errorMessage = application.getString(R.string.nc_main_master_signer_not_found)) }
+                    _uiState.update { it.copy(errorMessage = UiText.resource(R.string.nc_main_master_signer_not_found)) }
                     return@launch
                 }
 
@@ -1091,7 +1093,7 @@ class FreeGroupWalletViewModel @Inject constructor(
                 }.onFailure { error ->
                     Timber.tag("miniscript-feature")
                         .e("proceedWithAddingSignerForKey: Failed to get unused signer: $error")
-                    _uiState.update { it.copy(errorMessage = error.message.orUnknownError()) }
+                    _uiState.update { it.copy(errorMessage = UiText.Dynamic(error.message.orUnknownError())) }
                 }
             } else {
                 val singleSigner = singleSigners.find {
@@ -1101,7 +1103,7 @@ class FreeGroupWalletViewModel @Inject constructor(
                 if (singleSigner == null) {
                     Timber.tag("miniscript-feature")
                         .e("proceedWithAddingSignerForKey: Single signer not found with fingerPrint=${signer.fingerPrint}, derivationPath=${signer.derivationPath}")
-                    _uiState.update { it.copy(errorMessage = application.getString(R.string.nc_main_single_signer_not_found)) }
+                    _uiState.update { it.copy(errorMessage = UiText.resource(R.string.nc_main_single_signer_not_found)) }
                     return@launch
                 }
 
@@ -1232,7 +1234,7 @@ class FreeGroupWalletViewModel @Inject constructor(
             updateGroupSandbox(it)
         }.onFailure { error ->
             Timber.e("Failed to remove signer from group $error")
-            _uiState.update { it.copy(errorMessage = error.message.orUnknownError()) }
+            _uiState.update { it.copy(errorMessage = UiText.Dynamic(error.message.orUnknownError())) }
         }
         _uiState.update { it.copy(isLoading = false) }
     }
@@ -1376,7 +1378,7 @@ class FreeGroupWalletViewModel @Inject constructor(
         }.onFailure { error ->
             Timber.tag("miniscript-feature")
                 .e("addMasterSignerToRelatedKeysInGroup: Failed to get current index: $error")
-            _uiState.update { it.copy(errorMessage = error.message.orUnknownError()) }
+            _uiState.update { it.copy(errorMessage = UiText.Dynamic(error.message.orUnknownError())) }
         }
     }
 
@@ -1593,7 +1595,7 @@ class FreeGroupWalletViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        errorMessage = if (shouldShowError) error.message.orUnknownError() else ""
+                        errorMessage = if (shouldShowError) UiText.Dynamic(error.message.orUnknownError()) else null
                     )
                 }
             }
@@ -1652,12 +1654,12 @@ class FreeGroupWalletViewModel @Inject constructor(
                     } ?: run {
                         Timber.tag("miniscript-feature")
                             .e("resumeAddSignerProcess: No signer found at cached index ${pendingState.currentIndex}")
-                        _uiState.update { it.copy(errorMessage = application.getString(R.string.nc_main_no_signer_found_at_cached_index)) }
+                        _uiState.update { it.copy(errorMessage = UiText.resource(R.string.nc_main_no_signer_found_at_cached_index)) }
                     }
                 }.onFailure { error ->
                     Timber.tag("miniscript-feature")
                         .e("resumeAddSignerProcess: Failed to get signer at cached index: $error")
-                    _uiState.update { it.copy(errorMessage = error.message.orUnknownError()) }
+                    _uiState.update { it.copy(errorMessage = UiText.Dynamic(error.message.orUnknownError())) }
                 }
             }
         }
