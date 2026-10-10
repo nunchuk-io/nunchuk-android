@@ -293,6 +293,9 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
                     )
                 } else if (viewModel.isAssistedWallet()) {
                     showReEnterPassword(TargetAction.REPLACE_KEYS)
+                } else if (viewModel.isMiniscriptWallet()) {
+                    // Personal miniscript wallet without a timelock -> single-device replace flow.
+                    openMiniscriptReplaceKey()
                 } else {
                     navigator.openMembershipActivity(
                         activityContext = this,
@@ -379,24 +382,29 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
                         activityContext = this,
                         walletId = args.walletId,
                     )
-                } else if (viewModel.isMiniscriptWallet()) {
+                } else if (viewModel.isMiniscriptWallet() && !viewModel.isAssistedWallet()) {
                     // Personal miniscript wallet -> single-device replace flow.
-                    val wallet = viewModel.state.value.walletExtended.wallet
-                    navigator.openMiniscriptScreen(
-                        activityContext = this,
-                        args = MiniscriptArgs(
-                            walletName = wallet.name,
-                            addressType = wallet.addressType,
-                            template = wallet.miniscript,
-                            replaceWalletId = viewModel.getReplaceWalletId(),
-                            isReplaceKeyWithTimelock = viewModel.isReplaceKeyWithTimelock()
-                        )
-                    )
+                    openMiniscriptReplaceKey()
                 } else {
+                    // Assisted on-chain wallet -> server-side replace flow.
                     showReEnterPassword(TargetAction.REPLACE_KEYS)
                 }
             }
         }
+    }
+
+    private fun openMiniscriptReplaceKey() {
+        val wallet = viewModel.state.value.walletExtended.wallet
+        navigator.openMiniscriptScreen(
+            activityContext = this,
+            args = MiniscriptArgs(
+                walletName = wallet.name,
+                addressType = wallet.addressType,
+                template = wallet.miniscript,
+                replaceWalletId = viewModel.getReplaceWalletId(),
+                isReplaceKeyWithTimelock = viewModel.isReplaceKeyWithTimelock()
+            )
+        )
     }
 
     private fun showConfigureGapLimitDialog() {
@@ -747,9 +755,9 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
                             R.string.nc_replace_key_change_timelock,
                         ),
                     )
-                } else if (viewModel.isMiniscriptWallet().not() || viewModel.isGroupSandboxWallet()) {
-                    // Non-miniscript wallets, plus free group miniscript wallets without a
-                    // timelock (collaborative replace handles those via the group sandbox).
+                } else {
+                    // Every other wallet, including free (personal or group) miniscript wallets
+                    // without a timelock.
                     options.add(
                         SheetOption(
                             SheetOptionType.TYPE_REPLACE_KEY,
