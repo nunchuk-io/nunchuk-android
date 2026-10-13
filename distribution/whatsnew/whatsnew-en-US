@@ -1,2 +1,2 @@
-- Inheritance: use your own hardware signing device as the inheritance key in off-chain timelock plans.
+- Option to export XPUB, including for software keys.
 - Bug fixes and improvements.
