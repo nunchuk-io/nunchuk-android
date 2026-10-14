@@ -1,7 +1,10 @@
 import com.google.firebase.appdistribution.gradle.AppDistributionExtension
 import com.google.firebase.crashlytics.buildtools.gradle.CrashlyticsExtension
+import com.google.firebase.crashlytics.buildtools.gradle.tasks.InjectMappingFileIdTask
+import com.google.firebase.crashlytics.buildtools.mappingfiles.MappingFileIdWriter
 import java.io.FileInputStream
 import java.util.Properties
+import java.util.UUID
 
 plugins {
     id("nunchuk.android.application")
@@ -122,6 +125,48 @@ android {
                 releaseNotesFile = "nunchuk-app/release_notes.txt"
                 testers = "hung.tran@nunchuk.io"
                 groups = "testers"
+            }
+        }
+    }
+}
+
+// Crashlytics 3.0.7 generates a random ID on every release build (#105).
+// Use a commit + variant ID only for clean checkouts of the pinned build inputs.
+// Dirty/no-Git builds keep the plugin's random ID to avoid reusing a published
+// mapping ID for modified code. Recheck these task APIs when upgrading the plugin.
+val crashlyticsRevision = providers.exec {
+    workingDir(rootDir)
+    commandLine("git", "-c", "safe.directory=$rootDir", "rev-parse", "--verify", "HEAD")
+    isIgnoreExitValue = true
+}.standardOutput.asText.map { it.trim() }
+val crashlyticsStatus = providers.exec {
+    workingDir(rootDir)
+    commandLine("git", "-c", "safe.directory=$rootDir", "status", "--porcelain", "--untracked-files=normal")
+    isIgnoreExitValue = true
+}
+val crashlyticsCleanRevision = crashlyticsRevision.zip(crashlyticsStatus.standardOutput.asText) { revision, status ->
+    if (revision.matches(Regex("[0-9a-f]{40}")) && status.isBlank()) revision else ""
+}.zip(crashlyticsStatus.result) { revision, result ->
+    if (result.exitValue == 0) revision else ""
+}
+
+tasks.withType<InjectMappingFileIdTask>().configureEach {
+    inputs.property("reproducibleSourceRevision", crashlyticsCleanRevision)
+    doLast {
+        val injection = this as InjectMappingFileIdTask
+        if (!injection.useBlankMappingFileId.get()) {
+            val revision = inputs.properties["reproducibleSourceRevision"] as String
+            if (revision.isEmpty()) {
+                logger.lifecycle("Crashlytics: keeping a random mapping ID (checkout is dirty or has no Git revision).")
+            } else {
+                val id = UUID.nameUUIDFromBytes(
+                    "nunchuk-crashlytics-v1:$revision:$path".toByteArray(Charsets.UTF_8)
+                ).toString().replace("-", "")
+                // The upload task reads this file; changing only the XML breaks deobfuscation.
+                injection.mappingFileIdFile.get().asFile.writeText(id)
+                MappingFileIdWriter(
+                    injection.resourceDir.file("values/com_google_firebase_crashlytics_mappingfileid.xml").get().asFile
+                ).writeMappingFileId(id)
             }
         }
     }
