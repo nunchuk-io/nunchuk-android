@@ -65,6 +65,7 @@ import com.nunchuk.android.core.signer.SelectSignerArgs
 import com.nunchuk.android.core.signer.SelectSignerBottomSheet
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
+import com.nunchuk.android.core.util.filterTaprootSigners
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.ScriptNode
 import com.nunchuk.android.model.Wallet
@@ -75,6 +76,7 @@ import com.nunchuk.android.type.MiniscriptTimelockBased
 import com.nunchuk.android.type.MiniscriptTimelockType
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.WalletTemplate
+import com.nunchuk.android.type.WalletType
 import kotlinx.serialization.Serializable
 import timber.log.Timber
 
@@ -335,7 +337,9 @@ fun MiniscriptReplaceKeyContent(
                 onDismiss = {
                     showSignerBottomSheet = false
                 },
-                supportedSigners = state.supportedTypes,
+                supportedSigners = state.supportedTypes.filterTaprootSigners(
+                    state.walletExtended.wallet.addressType, WalletType.MINISCRIPT
+                ),
                 onAddExistKey = { signer ->
                     showSignerBottomSheet = false
                     onReplaceSignerWithExisting(signer, currentKeyToReplace)

@@ -18,6 +18,7 @@ import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.signer.toSingleSigner
+import com.nunchuk.android.core.util.filterTaprootSigners
 import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.exception.NCNativeException
@@ -792,8 +793,7 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
 
     fun getSuggestedSigners(): List<SupportedSigner> {
         return _uiState.value.let { state ->
-            state.supportedTypes.takeIf { state.addressType.isTaproot() == true }
-                ?.filter { it.walletType == WalletType.MULTI_SIG || it.walletType == null }.orEmpty()
+            state.supportedTypes.filterTaprootSigners(state.addressType, WalletType.MINISCRIPT)
         }
     }
 

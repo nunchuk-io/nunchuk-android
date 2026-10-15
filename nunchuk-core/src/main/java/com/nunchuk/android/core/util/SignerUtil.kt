@@ -25,6 +25,8 @@ import com.nunchuk.android.core.R
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.model.signer.SupportedSigner
+import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.SignerType.AIRGAP
@@ -36,6 +38,20 @@ import com.nunchuk.android.type.SignerType.PORTAL_NFC
 import com.nunchuk.android.type.SignerType.SERVER
 import com.nunchuk.android.type.SignerType.SOFTWARE
 import com.nunchuk.android.type.SignerType.UNKNOWN
+import com.nunchuk.android.type.WalletType
+
+fun List<SupportedSigner>.filterTaprootSigners(
+    addressType: AddressType?,
+    walletType: WalletType?
+): List<SupportedSigner> {
+    // An empty list leaves non-Taproot pickers unrestricted.
+    if (addressType?.isTaproot() != true) return emptyList()
+    return filter {
+        // Keep software keys available with older Taproot API responses.
+        it.walletType == null || it.walletType == walletType ||
+                (walletType == WalletType.MINISCRIPT && it.type == SOFTWARE)
+    }
+}
 
 val SingleSigner.isColdCard: Boolean
     get() = type == COLDCARD_NFC || tags.contains(SignerTag.COLDCARD)

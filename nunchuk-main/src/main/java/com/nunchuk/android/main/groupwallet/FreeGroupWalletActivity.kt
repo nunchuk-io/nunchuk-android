@@ -488,7 +488,9 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
         groupId: String,
         supportedSigners: List<SupportedSigner>
     ) {
-        val newSupportedSigners = supportedSigners.ifEmpty { defaultSupportedSigners } + supportedSeverSigner + supportedAirgapSigner
+        val newSupportedSigners = supportedSigners.ifEmpty {
+            defaultSupportedSigners + supportedSeverSigner + supportedAirgapSigner
+        }
         navigator.openSignerIntroScreen(
             launcher = signerIntroLauncher,
             activityContext = this,

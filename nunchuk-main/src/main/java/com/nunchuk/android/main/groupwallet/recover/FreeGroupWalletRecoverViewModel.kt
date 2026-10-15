@@ -11,6 +11,7 @@ import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
+import com.nunchuk.android.core.util.filterTaprootSigners
 import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.core.util.readableMessage
 import com.nunchuk.android.main.groupwallet.FreeGroupWalletActivity
@@ -97,15 +98,13 @@ class FreeGroupWalletRecoverViewModel @Inject constructor(
 
     fun getSuggestedSigners(): List<SupportedSigner> {
         return _uiState.value.let { state ->
-            state.supportedTypes.takeIf { state.wallet?.addressType?.isTaproot() == true }
-                ?.filter { it.walletType == WalletType.MULTI_SIG || it.walletType == null }
-                .orEmpty()
+            state.supportedTypes.filterTaprootSigners(state.wallet?.addressType, WalletType.MULTI_SIG)
         }
     }
 
     fun getSuggestedSignersForMiniscript(): List<SupportedSigner> {
-        return _uiState.value.supportedTypes.filter { 
-            it.walletType == WalletType.MULTI_SIG || it.walletType == null 
+        return _uiState.value.let { state ->
+            state.supportedTypes.filterTaprootSigners(state.wallet?.addressType, WalletType.MINISCRIPT)
         }
     }
 
