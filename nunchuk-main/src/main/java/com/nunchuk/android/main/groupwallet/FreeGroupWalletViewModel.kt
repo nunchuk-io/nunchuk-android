@@ -23,6 +23,7 @@ import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.isPlatformKey
+import com.nunchuk.android.core.util.filterTaprootSigners
 import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.exception.NCNativeException
@@ -811,9 +812,7 @@ class FreeGroupWalletViewModel @Inject constructor(
 
     fun getSuggestedSigners(): List<SupportedSigner> {
         return _uiState.value.let { state ->
-            state.supportedTypes.takeIf { state.group?.addressType?.isTaproot() == true }
-                ?.filter { it.walletType == WalletType.MULTI_SIG || it.walletType == null }
-                .orEmpty()
+            state.supportedTypes.filterTaprootSigners(state.group?.addressType, WalletType.MULTI_SIG)
         }
     }
 

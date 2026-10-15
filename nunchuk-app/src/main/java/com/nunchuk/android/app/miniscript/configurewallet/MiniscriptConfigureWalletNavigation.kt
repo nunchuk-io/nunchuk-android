@@ -57,10 +57,12 @@ import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.R
 import com.nunchuk.android.core.signer.SelectSignerArgs
 import com.nunchuk.android.core.signer.SelectSignerBottomSheet
+import com.nunchuk.android.core.util.filterTaprootSigners
 import com.nunchuk.android.model.ScriptNode
 import com.nunchuk.android.model.signer.SupportedSigner
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.type.WalletType
 import kotlinx.serialization.Serializable
 import timber.log.Timber
 import com.nunchuk.android.core.signer.signerKey
@@ -339,7 +341,9 @@ fun MiniscriptConfigWalletScreen(
                     onDismiss = {
                         showSignerBottomSheet = false
                     },
-                    supportedSigners = uiState.supportedTypes,
+                    supportedSigners = uiState.supportedTypes.filterTaprootSigners(
+                        uiState.addressType, WalletType.MINISCRIPT
+                    ),
                     onAddExistKey = { signer ->
                         showSignerBottomSheet = false
                         onAddExistingKey(signer, currentKeyToAssign)

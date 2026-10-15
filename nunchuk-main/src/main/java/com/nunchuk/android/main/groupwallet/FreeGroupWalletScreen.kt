@@ -75,6 +75,7 @@ import com.nunchuk.android.core.miniscript.ScriptNodeType
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.ADD_WALLET_REUSE_SIGNER_RESULT
 import com.nunchuk.android.core.util.isPlatformKey
+import com.nunchuk.android.core.util.filterTaprootSigners
 import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.groupwallet.component.FreeAddKeyCard
@@ -243,6 +244,9 @@ fun FreeGroupWalletScreen(
     onMarkEventHandled: () -> Unit = {},
     onConfigPlatformKey: () -> Unit = {},
 ) {
+    val supportedSigners = state.supportedTypes.filterTaprootSigners(
+        state.group?.addressType, state.group?.walletType
+    )
     val pullRefreshState = rememberPullRefreshState(state.isRefreshing, refresh)
     var showSignerBottomSheet by rememberSaveable { mutableStateOf(false) }
     var showMoreOption by rememberSaveable { mutableStateOf(false) }
@@ -450,7 +454,7 @@ fun FreeGroupWalletScreen(
                                     if (state.allSigners.isNotEmpty()) {
                                         showSignerBottomSheet = true
                                     } else {
-                                        onAddNewKeyForMiniscript(state.supportedTypes)
+                                        onAddNewKeyForMiniscript(supportedSigners)
                                     }
                                 }
                             }
@@ -509,7 +513,7 @@ fun FreeGroupWalletScreen(
                                         if (state.allSigners.isNotEmpty()) {
                                             showSignerBottomSheet = true
                                         } else {
-                                            onAddNewKeyForMiniscript(state.supportedTypes)
+                                            onAddNewKeyForMiniscript(supportedSigners)
                                         }
                                     }
                                 },
@@ -525,7 +529,7 @@ fun FreeGroupWalletScreen(
                                                     if (state.allSigners.isNotEmpty()) {
                                                         showSignerBottomSheet = true
                                                     } else {
-                                                        onAddNewKeyForMiniscript(state.supportedTypes)
+                                                        onAddNewKeyForMiniscript(supportedSigners)
                                                     }
                                                 },
                                             ) {
@@ -568,7 +572,7 @@ fun FreeGroupWalletScreen(
                                                     if (state.allSigners.isNotEmpty()) {
                                                         showSignerBottomSheet = true
                                                     } else {
-                                                        onAddNewKeyForMiniscript(state.supportedTypes)
+                                                        onAddNewKeyForMiniscript(supportedSigners)
                                                     }
                                                 },
                                             ) {
@@ -839,8 +843,7 @@ fun FreeGroupWalletScreen(
             if (allSigners.isNotEmpty()) {
                 SelectSignerBottomSheet(
                     onDismiss = { showSignerBottomSheet = false },
-                    supportedSigners = state.supportedTypes.takeIf { state.group?.addressType?.isTaproot() == true }
-                        .orEmpty(),
+                    supportedSigners = supportedSigners,
                     onAddExistKey = { signer ->
                         showSignerBottomSheet = false
                         if (isMiniscriptMode) {
@@ -852,7 +855,7 @@ fun FreeGroupWalletScreen(
                     onAddNewKey = {
                         showSignerBottomSheet = false
                         if (isMiniscriptMode) {
-                            onAddNewKeyForMiniscript(state.supportedTypes)
+                            onAddNewKeyForMiniscript(supportedSigners)
                         } else {
                             onAddNewKey(currentSignerIndex)
                         }
@@ -865,7 +868,7 @@ fun FreeGroupWalletScreen(
             } else {
                 showSignerBottomSheet = false
                 if (isMiniscriptMode) {
-                    onAddNewKeyForMiniscript(state.supportedTypes)
+                    onAddNewKeyForMiniscript(supportedSigners)
                 } else {
                     onAddNewKey(currentSignerIndex)
                 }
