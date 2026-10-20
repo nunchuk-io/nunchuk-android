@@ -143,7 +143,7 @@ fun Int.toBBQRDensity(): Int = when (this) {
 }
 
 fun Double.formatRoundDecimal(): String {
-    val df = DecimalFormat("#.##")
+    val df = DecimalFormat("#.##", java.text.DecimalFormatSymbols(Locale.US))
     return df.format(this)
 }
 

@@ -31,6 +31,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nunchuk.android.core.hardware.HardwareConnectButton
 import com.nunchuk.android.core.hardware.HardwareDeviceScanBody
+import com.nunchuk.android.core.util.asString
+import com.nunchuk.android.core.util.resolve
 import com.nunchuk.android.core.hardware.HardwareVerifyAddressBox
 import com.nunchuk.android.core.hardware.KeepScreenOn
 import com.nunchuk.android.compose.NunchukTheme
@@ -312,7 +314,7 @@ private fun LedgerSheet(
                 }
 
                 is LedgerSheetEvent.Error -> activity?.let {
-                    NCToastMessage(it).showError(event.message)
+                    NCToastMessage(it).showError(event.message.resolve(it))
                 }
 
                 is LedgerSheetEvent.RequestEnableBluetooth ->
@@ -352,7 +354,7 @@ private fun LedgerSheet(
             isBusy = state.isBusy,
             devices = state.devices,
             selectedAddress = state.selectedDeviceId,
-            statusText = state.statusText,
+            statusText = state.statusText?.asString().orEmpty(),
             // Shown so the user has something to compare the device screen against.
             verifyAddress = (action as? LedgerSheetAction.VerifyAddress)?.address,
             connectButtonText = action.connectButtonText,

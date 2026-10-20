@@ -19,17 +19,16 @@
 
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.bufferperiod
 
-import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.membership.GetInheritanceBufferPeriodUseCase
+import com.nunchuk.android.core.util.UiText
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningParam
 import com.nunchuk.android.model.Period
 import com.nunchuk.android.share.membership.MembershipStepManager
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -37,7 +36,6 @@ import javax.inject.Inject
 @HiltViewModel
 class InheritanceBufferPeriodViewModel @Inject constructor(
     private val getInheritanceBufferPeriodUseCase: GetInheritanceBufferPeriodUseCase,
-    @ApplicationContext private val context: Context,
     membershipStepManager: MembershipStepManager,
 ) : ViewModel() {
 
@@ -72,7 +70,7 @@ class InheritanceBufferPeriodViewModel @Inject constructor(
                 onOptionClick(param.bufferPeriod?.id ?: NO_NEED_PERIOD_ITEM_ID)
             }
         } else {
-            _event.emit(InheritanceBufferPeriodEvent.Error(message = result.exceptionOrNull()?.message.orUnknownError()))
+            _event.emit(InheritanceBufferPeriodEvent.Error(message = UiText.Dynamic(result.exceptionOrNull()?.message.orUnknownError())))
         }
     }
 
@@ -82,10 +80,11 @@ class InheritanceBufferPeriodViewModel @Inject constructor(
             interval = "",
             intervalCount = 0,
             enabled = false,
-            displayName = context.getString(R.string.nc_do_not_need_buffer_period),
+            displayName = "",
             isRecommended = false
         ),
-        isSelected = false
+        isSelected = false,
+        label = UiText.resource(R.string.nc_do_not_need_buffer_period)
     )
 
     fun onOptionClick(id: String) {

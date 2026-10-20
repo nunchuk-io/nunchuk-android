@@ -15,6 +15,7 @@ import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.Inh
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.MembershipStepEffect
 import com.nunchuk.android.model.Period
+import com.nunchuk.android.core.util.resolve
 import com.nunchuk.android.widget.NCToastMessage
 import kotlinx.serialization.Serializable
 
@@ -76,7 +77,7 @@ fun NavGraphBuilder.inheritanceBufferPeriod(
                 .collect { event ->
                     when (event) {
                         is InheritanceBufferPeriodEvent.Loading -> activity.showOrHideLoading(event.isLoading)
-                        is InheritanceBufferPeriodEvent.Error -> NCToastMessage(activity).showError(event.message)
+                        is InheritanceBufferPeriodEvent.Error -> NCToastMessage(activity).showError(event.message.resolve(activity))
                         is InheritanceBufferPeriodEvent.OnContinueClick -> {
                             onContinueClick(
                                 routeDraftId,

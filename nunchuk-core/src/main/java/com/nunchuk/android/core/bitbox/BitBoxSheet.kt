@@ -39,6 +39,8 @@ import com.nunchuk.android.core.hardware.HardwareDeviceScanBody
 import com.nunchuk.android.core.hardware.KeepScreenOn
 import com.nunchuk.android.core.hardware.HardwareTransportKind
 import com.nunchuk.android.core.hardware.HardwareVerifyAddressBox
+import com.nunchuk.android.core.util.asString
+import com.nunchuk.android.core.util.resolve
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.widget.NCToastMessage
 
@@ -322,7 +324,7 @@ private fun BitBoxSheet(
                 }
 
                 is BitBoxSheetEvent.Error -> activity?.let {
-                    NCToastMessage(it).showError(event.message)
+                    NCToastMessage(it).showError(event.message.resolve(it))
                 }
 
                 is BitBoxSheetEvent.RequestEnableBluetooth ->
@@ -362,7 +364,7 @@ private fun BitBoxSheet(
             isBusy = state.isBusy,
             devices = state.devices,
             selectedAddress = state.selectedDeviceId,
-            statusText = state.statusText,
+            statusText = state.statusText?.asString().orEmpty(),
             pairingCode = state.pairingCode,
             // Shown so the user has something to compare the device screen against.
             verifyAddress = (action as? BitBoxSheetAction.VerifyAddress)?.address,

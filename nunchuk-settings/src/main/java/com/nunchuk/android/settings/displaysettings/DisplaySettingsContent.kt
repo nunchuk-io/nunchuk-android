@@ -35,6 +35,8 @@ fun DisplaySettingsContent(
     onDisplayUnitClick: () -> Unit = { },
     onWalletVisibilityClick: () -> Unit = { },
     onAppearanceClick: () -> Unit = { },
+    languageLabel: String = "",
+    onLanguageClick: () -> Unit = { },
     onHideWalletDetailsChange: (Boolean) -> Unit = { }
 ) {
     val themeModeLabel = when (uiState.themeMode) {
@@ -116,6 +118,31 @@ fun DisplaySettingsContent(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .clickable { onLanguageClick() }
+                        .padding(top = 12.dp, bottom = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = stringResource(R.string.nc_language),
+                        style = NunchukTheme.typography.body,
+                        modifier = Modifier.weight(1f)
+                    )
+
+                    Text(
+                        modifier = Modifier.padding(end = 8.dp),
+                        text = languageLabel,
+                        style = NunchukTheme.typography.body.copy(color = MaterialTheme.colorScheme.textSecondary)
+                    )
+
+                    NcIcon(
+                        painter = painterResource(id = R.drawable.ic_arrow),
+                        contentDescription = ""
+                    )
+                }
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
                         .clickable { onWalletVisibilityClick() }
                         .padding(top = 12.dp, bottom = 16.dp),
                 ) {
@@ -164,5 +191,5 @@ fun DisplaySettingsContent(
 @PreviewLightDark
 @Composable
 fun DisplaySettingsContentPreview() {
-    DisplaySettingsContent()
+    DisplaySettingsContent(languageLabel = "English")
 }

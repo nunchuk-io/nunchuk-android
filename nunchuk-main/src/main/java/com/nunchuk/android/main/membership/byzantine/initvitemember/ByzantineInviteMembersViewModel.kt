@@ -1,6 +1,5 @@
 package com.nunchuk.android.main.membership.byzantine.initvitemember
 
-import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -10,6 +9,7 @@ import com.nunchuk.android.core.domain.membership.EditGroupMemberUseCase
 import com.nunchuk.android.core.domain.membership.EditGroupMemberUserDataUseCase
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.network.NunchukApiException
+import com.nunchuk.android.core.util.UiText
 import com.nunchuk.android.core.util.orDefault
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.domain.di.IoDispatcher
@@ -27,7 +27,6 @@ import com.nunchuk.android.usecase.membership.CreateGroupWalletUseCase
 import com.nunchuk.android.usecase.membership.GetInheritanceUseCase
 import com.nunchuk.android.utils.EmailValidator
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -41,7 +40,6 @@ import javax.inject.Inject
 @HiltViewModel
 class ByzantineInviteMembersViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    @ApplicationContext private val context: Context,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val accountManager: AccountManager,
     private val getContactsUseCase: GetContactsUseCase,
@@ -198,12 +196,12 @@ class ByzantineInviteMembersViewModel @Inject constructor(
         return _state.value.members.count { it.role.toRole.isKeyHolder } > getMaximumKeyholderRole()
     }
 
-    private fun getError(email: String?): String {
-        if (email == null) return ""
+    private fun getError(email: String?): UiText? {
+        if (email == null) return null
         if (email in getMemberEmails()) {
-            return context.getString(R.string.nc_duplicate_email_addresses)
+            return UiText.resource(R.string.nc_duplicate_email_addresses)
         }
-        return ""
+        return null
     }
 
     fun interactingMemberIndex(index: Int) {
@@ -219,7 +217,7 @@ class ByzantineInviteMembersViewModel @Inject constructor(
         val isAllMemberValid = members.isNotEmpty() && members.all {
             it.role != AssistedWalletRole.NONE.name && EmailValidator.valid(
                 it.email
-            ) && it.err.isNullOrEmpty()
+            ) && it.err == null
         }
         return if (args.flow == ByzantineMemberFlow.SETUP) {
             isAllMemberValid

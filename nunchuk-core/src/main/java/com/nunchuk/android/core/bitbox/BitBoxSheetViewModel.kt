@@ -10,7 +10,9 @@ import com.nunchuk.android.core.domain.utils.BitBoxTransactionSigner
 import com.nunchuk.android.core.domain.utils.BitBoxWalletRegistrar
 import com.nunchuk.android.core.domain.utils.GetBitBoxSignMessagePathUseCase
 import com.nunchuk.android.core.domain.utils.HealthCheckSingleSignerUseCase
+import com.nunchuk.android.core.util.UiText
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.core.util.withAppLocale
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.type.BitBoxErrorCode
@@ -123,7 +125,7 @@ data class BitBoxSheetUiState(
     val isScanning: Boolean = false,
     val devices: List<BitBoxDevice> = emptyList(),
     val selectedDeviceId: String? = null,
-    val statusText: String = "",
+    val statusText: UiText? = null,
     /** True once the device conversation has begun; guards re-connecting mid-flow. */
     val isBusy: Boolean = false,
     /**
@@ -161,7 +163,7 @@ sealed class BitBoxSheetEvent {
     /** Connected BitBox isn't the signer we're signing for — ask for the right device. */
     data object WrongDevice : BitBoxSheetEvent()
 
-    data class Error(val message: String) : BitBoxSheetEvent()
+    data class Error(val message: UiText) : BitBoxSheetEvent()
 
     /** Bluetooth is off; the host owns the "enable Bluetooth" launcher. */
     data object RequestEnableBluetooth : BitBoxSheetEvent()
@@ -232,16 +234,16 @@ class BitBoxSheetViewModel @Inject constructor(
 
         override fun onScanFinished(found: Int) {
             _state.update { it.copy(isScanning = false) }
-            if (found == 0) setStatus(context.getString(R.string.nc_bitbox_no_devices_found))
+            if (found == 0) setStatus(UiText.resource(R.string.nc_bitbox_no_devices_found))
         }
 
         override fun onConnecting(device: BitBoxDevice) {
             _state.update { it.copy(isScanning = false) }
-            setStatus(context.getString(R.string.nc_ledger_connecting, device.name))
+            setStatus(UiText.resource(R.string.nc_ledger_connecting, device.name))
         }
 
         override fun onInteraction(interaction: BitBoxUserInteraction) {
-            setStatus(interaction.statusText(context))
+            setStatus(interaction.statusUiText())
         }
 
         override fun onPairingCode(code: String) = _state.update { it.copy(pairingCode = code) }
@@ -283,7 +285,7 @@ class BitBoxSheetViewModel @Inject constructor(
             // Nothing resumes across a transport drop, so fail the sequence rather than leaving
             // it suspended on a session that no longer exists.
             failInFlight(BitBoxErrorCode.SESSION_LOST, disconnectedMessage())
-            setStatus(disconnectedMessage())
+            setStatus(UiText.resource(R.string.nc_bitbox_disconnected))
         }
 
         override fun onError(message: String) {
@@ -294,7 +296,7 @@ class BitBoxSheetViewModel @Inject constructor(
             if (executor.isAwaiting) {
                 failInFlight(BitBoxErrorCode.NONE, message)
             } else {
-                emit(BitBoxSheetEvent.Error(message))
+                emit(BitBoxSheetEvent.Error(UiText.Dynamic(message)))
             }
         }
 
@@ -314,7 +316,7 @@ class BitBoxSheetViewModel @Inject constructor(
     fun onPermissionsDenied() {
         emit(
             BitBoxSheetEvent.Error(
-                context.getString(R.string.nc_bitbox_bluetooth_permission_required)
+                UiText.resource(R.string.nc_bitbox_bluetooth_permission_required)
             )
         )
     }
@@ -322,12 +324,12 @@ class BitBoxSheetViewModel @Inject constructor(
     /** The user declined the system "turn on Bluetooth" prompt (or it couldn't be shown). */
     fun onBluetoothStillOff() {
         _state.update { it.copy(isScanning = false) }
-        setStatus(context.getString(R.string.nc_bitbox_bluetooth_off))
+        setStatus(UiText.resource(R.string.nc_bitbox_bluetooth_off))
     }
 
     fun startScan() {
         _state.update {
-            it.copy(statusText = context.getString(R.string.nc_bitbox_scanning), isScanning = true)
+            it.copy(statusText = UiText.resource(R.string.nc_bitbox_scanning), isScanning = true)
         }
         controller.startScan()
     }
@@ -390,7 +392,7 @@ class BitBoxSheetViewModel @Inject constructor(
                     return@launch
                 }
                 sessionRebuilt = true
-                setStatus(context.getString(R.string.nc_bitbox_reconnecting))
+                setStatus(UiText.resource(R.string.nc_bitbox_reconnecting))
             }
         }
     }
@@ -404,24 +406,22 @@ class BitBoxSheetViewModel @Inject constructor(
      */
     private suspend fun runSequence(action: BitBoxSheetAction): BitBoxSheetEvent {
         val result = executor.initialize()
-            ?: throw IllegalStateException(context.getString(R.string.nc_bitbox_initialize_failed))
+            ?: throw BitBoxUiTextException(UiText.resource(R.string.nc_bitbox_initialize_failed))
         lastFirmwareVersion = result.device.firmwareVersion
         when {
             result.isAttestationInvalid ->
-                throw IllegalStateException(
-                    context.getString(R.string.nc_bitbox_attestation_error)
-                )
+                throw BitBoxUiTextException(UiText.resource(R.string.nc_bitbox_attestation_error))
 
             result.device.firmwareUpgradeRequired ->
-                throw IllegalStateException(firmwareMessage(tooNew = false))
+                throw BitBoxUiTextException(firmwareMessage(tooNew = false))
 
             // Confluence §0 gates this end too; without the check a device ahead of the
             // integration would sail past here and fail later on some unrelated-looking command.
             result.device.firmwareVersion.isBitBoxFirmwareTooNew() ->
-                throw IllegalStateException(firmwareMessage(tooNew = true))
+                throw BitBoxUiTextException(firmwareMessage(tooNew = true))
 
             !result.device.initialized ->
-                throw IllegalStateException(context.getString(R.string.nc_bitbox_not_set_up))
+                throw BitBoxUiTextException(UiText.resource(R.string.nc_bitbox_not_set_up))
         }
         return when (action) {
             is BitBoxSheetAction.HealthCheck -> runHealthCheck(action)
@@ -547,7 +547,7 @@ class BitBoxSheetViewModel @Inject constructor(
             // screen, which a sheet has no room for.
             e is BitBoxCommandException && e.code == BitBoxErrorCode.DEVICE_UNINITIALIZED ->
                 _event.emit(
-                    BitBoxSheetEvent.Error(context.getString(R.string.nc_bitbox_not_set_up))
+                    BitBoxSheetEvent.Error(UiText.resource(R.string.nc_bitbox_not_set_up))
                 )
 
             // "Unsupported" covers both ends of the window and they need opposite actions, so
@@ -561,7 +561,7 @@ class BitBoxSheetViewModel @Inject constructor(
                 )
 
             e is BitBoxCommandException && e.code == BitBoxErrorCode.ATTESTATION -> _event.emit(
-                BitBoxSheetEvent.Error(context.getString(R.string.nc_bitbox_attestation_error))
+                BitBoxSheetEvent.Error(UiText.resource(R.string.nc_bitbox_attestation_error))
             )
 
             // §6's operation errors: the message alone rarely says which device state was wrong,
@@ -569,7 +569,7 @@ class BitBoxSheetViewModel @Inject constructor(
             e is BitBoxCommandException && e.code.isOperationError() && e.deviceCode != 0 ->
                 _event.emit(
                     BitBoxSheetEvent.Error(
-                        context.getString(
+                        UiText.resource(
                             R.string.nc_bitbox_device_error,
                             e.message.orUnknownError(),
                             e.deviceCode,
@@ -577,7 +577,9 @@ class BitBoxSheetViewModel @Inject constructor(
                     )
                 )
 
-            else -> _event.emit(BitBoxSheetEvent.Error(e.message.orUnknownError()))
+            e is BitBoxUiTextException -> _event.emit(BitBoxSheetEvent.Error(e.text))
+
+            else -> _event.emit(BitBoxSheetEvent.Error(UiText.Dynamic(e.message.orUnknownError())))
         }
     }
 
@@ -610,22 +612,22 @@ class BitBoxSheetViewModel @Inject constructor(
      * covers both directions when the version is unknown — better than telling someone to update
      * a device that is already ahead of us.
      */
-    private fun firmwareMessage(tooNew: Boolean): String {
+    private fun firmwareMessage(tooNew: Boolean): UiText {
         val version = lastFirmwareVersion.trim()
-        if (version.isEmpty()) return context.getString(R.string.nc_bitbox_firmware_unsupported)
+        if (version.isEmpty()) return UiText.resource(R.string.nc_bitbox_firmware_unsupported)
         val res = if (tooNew) {
             R.string.nc_bitbox_firmware_too_new
         } else {
             R.string.nc_bitbox_firmware_too_old
         }
-        return context.getString(res, version)
+        return UiText.resource(res, version)
     }
 
-    private fun disconnectedMessage() = context.getString(R.string.nc_bitbox_disconnected)
+    private fun disconnectedMessage() = context.withAppLocale().getString(R.string.nc_bitbox_disconnected)
 
     private fun clearPairingCode() = _state.update { it.copy(pairingCode = null) }
 
-    private fun setStatus(text: String) = _state.update { it.copy(statusText = text) }
+    private fun setStatus(text: UiText) = _state.update { it.copy(statusText = text) }
 
     private fun emit(event: BitBoxSheetEvent) = viewModelScope.launch {
         // Everything routed through here ends the attempt (denied permission, Bluetooth off,
@@ -645,3 +647,5 @@ class BitBoxSheetViewModel @Inject constructor(
         private const val HEALTH_CHECK_MESSAGE = "Run health check"
     }
 }
+
+private class BitBoxUiTextException(val text: UiText) : IllegalStateException()

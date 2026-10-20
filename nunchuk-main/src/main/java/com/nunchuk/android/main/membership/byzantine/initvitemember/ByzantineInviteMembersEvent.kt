@@ -1,5 +1,6 @@
 package com.nunchuk.android.main.membership.byzantine.initvitemember
 
+import com.nunchuk.android.core.util.UiText
 import com.nunchuk.android.model.ByzantineMember
 import com.nunchuk.android.model.Contact
 import com.nunchuk.android.model.Inheritance
@@ -39,7 +40,7 @@ data class InviteMemberUi(
     val email: String,
     val userId: String?,
     val isContact: Boolean = false,
-    val err: String? = null,
+    val err: UiText? = null,
     val isNewAdded: Boolean = false
 ) {
     companion object {

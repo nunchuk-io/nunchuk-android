@@ -57,6 +57,8 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcScaffold
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.manager.NcToastManager
+import com.nunchuk.android.core.util.asString
+import com.nunchuk.android.core.util.resolve
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.core.wallet.WalletSecurityType
 import com.nunchuk.android.settings.R
@@ -182,7 +184,7 @@ private fun WalletSecurityCreatePinContent(
                             .padding(top = 24.dp),
                         title = title,
                         value = inputValue[index]?.value.orEmpty(),
-                        error = inputValue[index]?.errorMsg,
+                        error = inputValue[index]?.errorMsg?.asString(),
                         onValueChange = {
                             onInputChange(index, it)
                         },
@@ -227,7 +229,7 @@ fun NavGraphBuilder.walletSecurityCreatePinScreen(
             viewModel.event.collectLatest { event ->
                 when (event) {
                     is WalletSecurityCreatePinEvent.Error -> {
-                        NCToastMessage(activity).showError(message = event.message)
+                        NCToastMessage(activity).showError(message = event.message.resolve(activity))
                     }
 
                     is WalletSecurityCreatePinEvent.Loading -> {

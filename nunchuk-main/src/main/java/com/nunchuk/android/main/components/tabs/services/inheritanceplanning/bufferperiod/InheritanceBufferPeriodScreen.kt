@@ -47,6 +47,7 @@ import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.SelectableContainer
 import com.nunchuk.android.core.util.InheritancePlanFlow
+import com.nunchuk.android.core.util.asString
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
 import com.nunchuk.android.model.Period
 import com.nunchuk.android.signer.R
@@ -126,7 +127,7 @@ private fun InheritanceBufferPeriodContent(
                     OptionItem(
                         modifier = Modifier.fillMaxWidth(),
                         isSelected = item.isSelected,
-                        label = item.period.displayName,
+                        label = item.label.asString(),
                         isRecommended = item.period.isRecommended
                     ) {
                         onOptionClick(item.period.id)

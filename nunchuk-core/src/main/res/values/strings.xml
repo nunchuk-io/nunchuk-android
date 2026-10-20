@@ -1386,4 +1386,27 @@
         <item quantity="other">Remove non-standard keys</item>
     </plurals>
     <string name="nc_create_anyway">Create anyway</string>
+    <string name="nc_language">Language</string>
+    <string name="nc_search_languages">Search languages</string>
+    <string name="nc_follow_device_language">Follow device language</string>
+    <string name="nc_language_currently_using">Currently using %1$s</string>
+    <string name="nc_language_device_language">Device language: %1$s</string>
+    <string name="nc_language_device_fallback">Currently using English. Your device language (%1$s) isn\'t available yet.</string>
+    <string name="nc_no_languages_found">No languages found</string>
+    <string name="nc_clear_search">Clear search</string>
+    <string name="nc_change_language_failed">Couldn\'t change language. Try again.</string>
+    <string name="nc_language_name_english">English</string>
+    <string name="nc_language_name_arabic">Arabic</string>
+    <string name="nc_language_name_chinese_simplified">Chinese, Simplified</string>
+    <string name="nc_language_name_chinese_traditional">Chinese, Traditional</string>
+    <string name="nc_language_name_french">French</string>
+    <string name="nc_language_name_german">German</string>
+    <string name="nc_language_name_hindi">Hindi</string>
+    <string name="nc_language_name_indonesian">Indonesian</string>
+    <string name="nc_language_name_japanese">Japanese</string>
+    <string name="nc_language_name_korean">Korean</string>
+    <string name="nc_language_name_portuguese_brazil">Portuguese, Brazil</string>
+    <string name="nc_language_name_russian">Russian</string>
+    <string name="nc_language_name_spanish">Spanish</string>
+    <string name="nc_language_name_vietnamese">Vietnamese</string>
 </resources>

@@ -11,6 +11,7 @@ import com.nunchuk.android.core.domain.utils.LedgerMessageSigner
 import com.nunchuk.android.core.domain.utils.LedgerTransactionSigner
 import com.nunchuk.android.core.domain.utils.LedgerWalletRegistrar
 import com.nunchuk.android.core.domain.utils.LedgerWrongDeviceException
+import com.nunchuk.android.core.util.UiText
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.nativelib.NunchukNativeSdk
@@ -114,7 +115,7 @@ data class LedgerSheetUiState(
     val isScanning: Boolean = false,
     val devices: List<LedgerDevice> = emptyList(),
     val selectedDeviceId: String? = null,
-    val statusText: String = "",
+    val statusText: UiText? = null,
     /** True once the device conversation has begun; guards re-connecting mid-flow. */
     val isBusy: Boolean = false,
 ) {
@@ -147,7 +148,7 @@ sealed class LedgerSheetEvent {
     /** Connected Ledger isn't the signer we're signing for — ask for the right device. */
     data object WrongDevice : LedgerSheetEvent()
 
-    data class Error(val message: String) : LedgerSheetEvent()
+    data class Error(val message: UiText) : LedgerSheetEvent()
 
     /** Bluetooth is off; the host owns the "enable Bluetooth" launcher. */
     data object RequestEnableBluetooth : LedgerSheetEvent()
@@ -192,12 +193,12 @@ class LedgerSheetViewModel @Inject constructor(
 
         override fun onScanFinished(found: Int) {
             _state.update { it.copy(isScanning = false) }
-            if (found == 0) setStatus(context.getString(R.string.nc_ledger_no_devices_found))
+            if (found == 0) setStatus(UiText.resource(R.string.nc_ledger_no_devices_found))
         }
 
         override fun onConnecting(device: LedgerDevice) {
             _state.update { it.copy(isScanning = false) }
-            setStatus(context.getString(R.string.nc_ledger_connecting, device.name))
+            setStatus(UiText.resource(R.string.nc_ledger_connecting, device.name))
         }
 
         override fun onInteraction(interaction: LedgerUserInteraction) {
@@ -218,7 +219,7 @@ class LedgerSheetViewModel @Inject constructor(
             } else {
                 // Health check doesn't branch on the status word; surface as a plain error.
                 failPendingHealthCheck()
-                emit(LedgerSheetEvent.Error(message))
+                emit(LedgerSheetEvent.Error(UiText.Dynamic(message)))
             }
         }
 
@@ -229,7 +230,7 @@ class LedgerSheetViewModel @Inject constructor(
             } else {
                 failPendingHealthCheck()
                 _state.update { it.copy(isScanning = false) }
-                emit(LedgerSheetEvent.Error(message))
+                emit(LedgerSheetEvent.Error(UiText.Dynamic(message)))
             }
         }
 
@@ -249,7 +250,7 @@ class LedgerSheetViewModel @Inject constructor(
     fun onPermissionsDenied() {
         emit(
             LedgerSheetEvent.Error(
-                context.getString(R.string.nc_ledger_bluetooth_permission_required)
+                UiText.resource(R.string.nc_ledger_bluetooth_permission_required)
             )
         )
     }
@@ -257,11 +258,11 @@ class LedgerSheetViewModel @Inject constructor(
     /** The user declined the system "turn on Bluetooth" prompt (or it couldn't be shown). */
     fun onBluetoothStillOff() {
         _state.update { it.copy(isScanning = false) }
-        setStatus(context.getString(R.string.nc_ledger_bluetooth_off))
+        setStatus(UiText.resource(R.string.nc_ledger_bluetooth_off))
     }
 
     fun startScan() {
-        _state.update { it.copy(statusText = "", isScanning = true) }
+        _state.update { it.copy(statusText = null, isScanning = true) }
         controller.startScan()
     }
 
@@ -388,7 +389,7 @@ class LedgerSheetViewModel @Inject constructor(
         _state.update { it.copy(isBusy = false) }
         when (e) {
             is LedgerWrongDeviceException -> _event.emit(LedgerSheetEvent.WrongDevice)
-            else -> _event.emit(LedgerSheetEvent.Error(e.message.orUnknownError()))
+            else -> _event.emit(LedgerSheetEvent.Error(UiText.Dynamic(e.message.orUnknownError())))
         }
     }
 
@@ -451,7 +452,7 @@ class LedgerSheetViewModel @Inject constructor(
         _state.update { LedgerSheetUiState() }
     }
 
-    private fun setStatus(text: String) = _state.update { it.copy(statusText = text) }
+    private fun setStatus(text: UiText) = _state.update { it.copy(statusText = text) }
 
     private fun emit(event: LedgerSheetEvent) = viewModelScope.launch {
         // Everything routed through here ends the attempt (denied permission, Bluetooth off,
@@ -460,14 +461,14 @@ class LedgerSheetViewModel @Inject constructor(
         _event.emit(event)
     }
 
-    private fun interactionText(interaction: LedgerUserInteraction): String = when (interaction) {
-        LedgerUserInteraction.UNLOCK_DEVICE -> context.getString(R.string.nc_ledger_unlock_device)
-        LedgerUserInteraction.CONFIRM_OPEN_APP -> context.getString(R.string.nc_ledger_confirm_open_app)
-        LedgerUserInteraction.VERIFY_ADDRESS -> context.getString(R.string.nc_ledger_verify_address)
-        LedgerUserInteraction.REGISTER_WALLET -> context.getString(R.string.nc_ledger_register_wallet)
-        LedgerUserInteraction.SIGN_MESSAGE -> context.getString(R.string.nc_ledger_confirm_sign_message)
-        LedgerUserInteraction.SIGN_TRANSACTION -> context.getString(R.string.nc_ledger_confirm_sign_transaction)
-        LedgerUserInteraction.NONE -> context.getString(R.string.nc_ledger_communicating)
+    private fun interactionText(interaction: LedgerUserInteraction): UiText = when (interaction) {
+        LedgerUserInteraction.UNLOCK_DEVICE -> UiText.resource(R.string.nc_ledger_unlock_device)
+        LedgerUserInteraction.CONFIRM_OPEN_APP -> UiText.resource(R.string.nc_ledger_confirm_open_app)
+        LedgerUserInteraction.VERIFY_ADDRESS -> UiText.resource(R.string.nc_ledger_verify_address)
+        LedgerUserInteraction.REGISTER_WALLET -> UiText.resource(R.string.nc_ledger_register_wallet)
+        LedgerUserInteraction.SIGN_MESSAGE -> UiText.resource(R.string.nc_ledger_confirm_sign_message)
+        LedgerUserInteraction.SIGN_TRANSACTION -> UiText.resource(R.string.nc_ledger_confirm_sign_transaction)
+        LedgerUserInteraction.NONE -> UiText.resource(R.string.nc_ledger_communicating)
     }
 
     override fun onCleared() {

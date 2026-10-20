@@ -2,6 +2,8 @@ package com.nunchuk.android.core.bitbox
 
 import android.content.Context
 import com.nunchuk.android.core.R
+import com.nunchuk.android.core.util.UiText
+import com.nunchuk.android.core.util.resolve
 import com.nunchuk.android.type.BitBoxUserInteraction
 
 /**
@@ -16,24 +18,26 @@ import com.nunchuk.android.type.BitBoxUserInteraction
  * through to the generic "communicating" line: they can only arise in BitBoxApp now, since that
  * part of the flow was dropped from the design.
  */
-fun BitBoxUserInteraction.statusText(context: Context): String = when (this) {
+fun BitBoxUserInteraction.statusText(context: Context): String = statusUiText().resolve(context)
+
+fun BitBoxUserInteraction.statusUiText(): UiText = when (this) {
     BitBoxUserInteraction.UNLOCK_DEVICE ->
-        context.getString(R.string.nc_bitbox_unlock_device)
+        UiText.resource(R.string.nc_bitbox_unlock_device)
 
     BitBoxUserInteraction.CONFIRM_PAIRING ->
-        context.getString(R.string.nc_bitbox_interaction_confirm_pairing)
+        UiText.resource(R.string.nc_bitbox_interaction_confirm_pairing)
 
     BitBoxUserInteraction.VERIFY_ADDRESS ->
-        context.getString(R.string.nc_bitbox_interaction_verify_address)
+        UiText.resource(R.string.nc_bitbox_interaction_verify_address)
 
     BitBoxUserInteraction.REGISTER_WALLET ->
-        context.getString(R.string.nc_bitbox_interaction_register_wallet)
+        UiText.resource(R.string.nc_bitbox_interaction_register_wallet)
 
     BitBoxUserInteraction.SIGN_MESSAGE ->
-        context.getString(R.string.nc_bitbox_interaction_sign_message)
+        UiText.resource(R.string.nc_bitbox_interaction_sign_message)
 
     BitBoxUserInteraction.SIGN_TRANSACTION ->
-        context.getString(R.string.nc_bitbox_interaction_sign_transaction)
+        UiText.resource(R.string.nc_bitbox_interaction_sign_transaction)
 
-    else -> context.getString(R.string.nc_bitbox_communicating)
+    else -> UiText.resource(R.string.nc_bitbox_communicating)
 }

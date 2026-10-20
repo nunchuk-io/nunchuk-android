@@ -34,7 +34,8 @@ android {
         versionName = "2.9.5"
         multiDexEnabled = true
         vectorDrawables.useSupportLibrary = true
-        resourceConfigurations += "en"
+        // Only languages with shipped translations (AppLanguage.supported).
+        resourceConfigurations += listOf("en")
         ndk {
             // abiFilters += listOf("armeabi-v7a", "x86", "arm64-v8a", "x86_64")
             abiFilters += listOf("arm64-v8a", "armeabi-v7a")
