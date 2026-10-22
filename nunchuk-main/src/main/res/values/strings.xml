@@ -894,4 +894,44 @@
     <string name="nc_membership_invalid_address_with_value">Invalid address: %1$s</string>
     <string name="nc_membership_plan_change_later_comparison">You can change the plan later (new wallet required). Not sure which to choose? Read the in-depth comparison.</string>
     <string name="nc_membership_read_in_depth_comparison">Read the in-depth comparison.</string>
+
+    <!-- On-chain primary inheritance (M of N) -->
+    <string name="nc_primary_inheritance_any_keys">Primary inheritance · any %1$d of %2$d keys</string>
+    <string name="nc_primary_inheritance_all_keys">Primary inheritance · %1$d of %2$d keys</string>
+    <string name="nc_primary_inheritance_single_key">Primary inheritance · 1 of 1 key</string>
+    <string name="nc_seed_phrase_of_this_key_backed_up">Seed phrase of this key you backed up earlier</string>
+    <string name="nc_one_of_your_owner_keys">One of your %1$d owner keys</string>
+    <string name="nc_seed_phrase_of_owner_key_you_share">Seed phrase of the owner key you share</string>
+    <string name="nc_claimable_after">Claimable after:</string>
+    <string name="nc_customized_inheritance_need_these_info_title">Each way to claim needs the keys of one route, plus the Magic Phrase (with Nunchuk) or the wallet configuration file (without Nunchuk). A fallback can be for the same person or someone else:</string>
+    <string name="nc_onchain_item1_label_joint">The Trustee keeps the plan’s Magic Phrase and the wallet configuration (BSMS file). At least one is required to recover the wallet.</string>
+    <string name="nc_default_primary_keys_needed">Any %1$d of the %2$d keys are needed. Share the inheritance key and one of your %3$d owner keys.</string>
+    <plurals name="nc_any_of_these_keys_needed">
+        <item quantity="one">Any %1$d of these %2$d keys is needed.</item>
+        <item quantity="other">Any %1$d of these %2$d keys are needed.</item>
+    </plurals>
+    <string name="nc_all_of_these_keys_needed">All %1$d of these keys are needed.</string>
+    <plurals name="nc_any_of_the_keys_needed">
+        <item quantity="one">Any %1$d of the %2$d is needed.</item>
+        <item quantity="other">Any %1$d of the %2$d are needed.</item>
+    </plurals>
+    <string name="nc_all_of_the_keys_needed">All %1$d are needed.</string>
+    <string name="nc_inheritance_keys_list">Inheritance keys %1$s and %2$d</string>
+    <string name="nc_onchain_share_default_primary_keys">The seed phrases of the inheritance key and one of your %1$d owner keys. Any %2$d of the %3$d keys are needed.</string>
+    <string name="nc_onchain_share_default_primary_keys_joint">The Beneficiary keeps the seed phrases of the inheritance key and one of your %1$d owner keys. Any %2$d of the %3$d keys are needed.</string>
+    <string name="nc_onchain_share_primary_keys">The seed phrases of the primary inheritance keys: %1$s. %2$s</string>
+    <string name="nc_onchain_share_primary_keys_joint">The Beneficiary keeps the seed phrases of the primary inheritance keys: %1$s. %2$s</string>
+    <string name="nc_onchain_share_primary_single_key">The seed phrase of the primary inheritance key: Inheritance key 1.</string>
+    <string name="nc_onchain_share_primary_single_key_joint">The Beneficiary keeps the seed phrase of the primary inheritance key: Inheritance key 1.</string>
+    <string name="nc_primary_keys_default_phrase">the inheritance key and one of your %1$d owner keys</string>
+    <string name="nc_primary_keys_any_phrase">any %1$d of the %2$d primary inheritance keys</string>
+    <string name="nc_primary_keys_all_phrase">all %1$d primary inheritance keys</string>
+    <string name="nc_primary_keys_single_phrase">the primary inheritance key</string>
+    <string name="nc_guided_claim_desc_default_primary">Guided claim using the Magic Phrase, the inheritance key and one of your %1$d owner keys.</string>
+    <string name="nc_guided_claim_desc_primary">Guided claim using the Magic Phrase and %1$s.</string>
+    <string name="nc_guided_claim_desc_primary_joint">Guided claim using the Trustee’s Magic Phrase and %1$s (kept by the Beneficiary).</string>
+    <string name="nc_self_serve_claim_desc_default_primary">Self-serve claim using the wallet configuration file (BSMS file), the inheritance key and one of your %1$d owner keys.</string>
+    <string name="nc_self_serve_claim_desc_primary">Self-serve claim using the wallet configuration file (BSMS file) and %1$s.</string>
+    <string name="nc_self_serve_claim_desc_primary_joint">Self-serve claim using the Trustee’s wallet configuration file (BSMS file) and %1$s.</string>
+    <string name="nc_neither_trustee_nor_beneficiary_can_claim_alone">Neither the Trustee nor the Beneficiary can claim alone.</string>
 </resources>

@@ -76,6 +76,8 @@ import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceBeneficiaryAllocation
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceSetupFlowType
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.PrimaryInheritanceInfo
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.onChainSharePrimaryKeys
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.sharesecret.InheritanceShareSecretType
 import com.nunchuk.android.model.inheritance.ClaimOption
 import com.nunchuk.android.utils.Utils
@@ -96,6 +98,7 @@ internal fun InheritanceShareSecretInfoScreen(
     val sharedUiState by sharedViewModel.state.collectAsStateWithLifecycle()
     InheritanceShareSecretInfoContent(
         isMiniscriptWallet = sharedUiState.isMiniscriptWallet,
+        primaryInheritance = sharedUiState.primaryInheritance,
         remainTime = remainTime,
         type = type,
         magicalPhrase = magicalPhrase,
@@ -114,6 +117,7 @@ internal fun InheritanceShareSecretInfoScreen(
 @Composable
 private fun InheritanceShareSecretInfoContent(
     isMiniscriptWallet: Boolean = false,
+    primaryInheritance: PrimaryInheritanceInfo? = null,
     remainTime: Int = 0,
     magicalPhrase: String = "",
     type: Int = 0,
@@ -129,6 +133,7 @@ private fun InheritanceShareSecretInfoContent(
     val routes = claimOptions.toInheritanceKeyRoutes()
     if (isMiniscriptWallet) {
         InheritanceOnChainShareSecretInfoContent(
+            primaryInheritance = primaryInheritance,
             remainTime = remainTime,
             magicalPhrase = magicalPhrase,
             type = type,
@@ -576,6 +581,7 @@ private fun SecretCard(
 
 @Composable
 private fun InheritanceOnChainShareSecretInfoContent(
+    primaryInheritance: PrimaryInheritanceInfo? = null,
     remainTime: Int = 0,
     magicalPhrase: String = "",
     type: Int = 0,
@@ -655,7 +661,8 @@ private fun InheritanceOnChainShareSecretInfoContent(
                     val item1LabelRes = when (type) {
                         InheritanceShareSecretType.DIRECT.ordinal -> R.string.nc_onchain_item1_label_beneficiary
                         InheritanceShareSecretType.INDIRECT.ordinal -> R.string.nc_onchain_item1_label_trustee
-                        InheritanceShareSecretType.JOINT_CONTROL.ordinal -> R.string.nc_onchain_item1_label_trustee
+                        InheritanceShareSecretType.JOINT_CONTROL.ordinal ->
+                            if (primaryInheritance != null) R.string.nc_onchain_item1_label_joint else R.string.nc_onchain_item1_label_trustee
                         else -> R.string.nc_onchain_item1_label_beneficiary
                     }
 
@@ -719,15 +726,19 @@ private fun InheritanceOnChainShareSecretInfoContent(
                     }
 
                     // Item 2: Beneficiary keeps (for JOINT_CONTROL) or same person keeps (for DIRECT/INDIRECT)
-                    val item2LabelRes = when (type) {
-                        InheritanceShareSecretType.JOINT_CONTROL.ordinal -> R.string.nc_onchain_item2_label_beneficiary
-                        else -> R.string.nc_onchain_item2_label
+                    val isJointControl = type == InheritanceShareSecretType.JOINT_CONTROL.ordinal
+                    val item2Label = if (primaryInheritance != null) {
+                        onChainSharePrimaryKeys(primaryInheritance, isJointControl)
+                    } else {
+                        stringResource(
+                            if (isJointControl) R.string.nc_onchain_item2_label_beneficiary else R.string.nc_onchain_item2_label
+                        )
                     }
 
                     NCLabelWithIndex(
                         modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp),
                         index = 2,
-                        label = stringResource(item2LabelRes),
+                        label = item2Label,
                     )
 
                     Spacer(modifier = Modifier.height(20.dp))
@@ -742,6 +753,36 @@ private fun InheritanceOnChainShareSecretInfoContent(
 private fun InheritanceShareSecretInfoScreenPreview() {
     InheritanceShareSecretInfoContent(
         isMiniscriptWallet = false
+    )
+}
+
+@PreviewLightDark
+@Composable
+private fun InheritanceOnChainShareSecretDefaultPrimaryPreview() {
+    InheritanceOnChainShareSecretInfoContent(
+        primaryInheritance = PrimaryInheritanceInfo(
+            isCustomized = false,
+            requiredSignatures = 2,
+            totalKeys = 4,
+            inheritanceKeyXfps = listOf("6b35f210"),
+        ),
+        magicalPhrase = "dolphin concert apple",
+        type = InheritanceShareSecretType.DIRECT.ordinal,
+    )
+}
+
+@PreviewLightDark
+@Composable
+private fun InheritanceOnChainShareSecretCustomizedJointPreview() {
+    InheritanceOnChainShareSecretInfoContent(
+        primaryInheritance = PrimaryInheritanceInfo(
+            isCustomized = true,
+            requiredSignatures = 2,
+            totalKeys = 3,
+            inheritanceKeyXfps = listOf("79eb35f4", "f91b570c", "8e41b2c7"),
+        ),
+        magicalPhrase = "dolphin concert apple",
+        type = InheritanceShareSecretType.JOINT_CONTROL.ordinal,
     )
 }
 

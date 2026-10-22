@@ -1,5 +1,6 @@
 package com.nunchuk.android.model
 
+import com.nunchuk.android.model.inheritance.OnChainInheritancePolicy
 import com.nunchuk.android.model.signer.SignerServer
 import com.nunchuk.android.type.WalletType
 
@@ -27,4 +28,6 @@ data class WalletServer(
     val sendBsmsEmail: Boolean = false,
     val requiresRegistration: Boolean = false,
     val timelock: WalletTimelock = WalletTimelock(),
+    /** Null for a wallet whose server response predates inheritance routes (legacy 1-of-3). */
+    val inheritancePolicy: OnChainInheritancePolicy? = null,
 )

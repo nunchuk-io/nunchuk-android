@@ -85,6 +85,9 @@ import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.Inh
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceReleaseMethodType
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceSetupFlowType
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.PrimaryInheritanceInfo
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.primaryInheritanceHeading
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.primaryKeysNeededSentence
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.fallbackSettingsSummaryText
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releaseScheduleBufferPeriodSummaryText
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.beneficiaryschedules.InheritanceBeneficiaryScheduleCardData
@@ -143,6 +146,7 @@ fun InheritanceReviewPlanScreen(
 
     InheritanceReviewPlanScreenContent(
         isMiniscriptWallet = sharedUiState.isMiniscriptWallet,
+        primaryInheritance = sharedUiState.primaryInheritance,
         userEmail = sharedUiState.userEmail,
         remainTime = remainTime,
         planFlow = setupOrReviewParam.planFlow,
@@ -185,6 +189,7 @@ fun InheritanceReviewPlanScreen(
 @Composable
 fun InheritanceReviewPlanScreenContent(
     isMiniscriptWallet: Boolean = false,
+    primaryInheritance: PrimaryInheritanceInfo? = null,
     userEmail: String = "",
     remainTime: Int = 0,
     planFlow: Int = InheritancePlanFlow.VIEW,
@@ -382,7 +387,10 @@ fun InheritanceReviewPlanScreenContent(
                                 }
 
                                 Text(
-                                    text = stringResource(R.string.nc_provider_need_these_info_title),
+                                    text = stringResource(
+                                        if (isMiniscriptWallet && primaryInheritance?.isCustomized == true) R.string.nc_customized_inheritance_need_these_info_title
+                                        else R.string.nc_provider_need_these_info_title
+                                    ),
                                     modifier = Modifier.padding(top = 24.dp, bottom = 12.dp),
                                     style = NunchukTheme.typography.title,
                                     color = Color.White
@@ -405,7 +413,9 @@ fun InheritanceReviewPlanScreenContent(
                                         },
                                     )
                                 }
-                                if (isMiniscriptWallet) {
+                                if (isMiniscriptWallet && primaryInheritance != null) {
+                                    PrimaryInheritanceReviewSection(info = primaryInheritance)
+                                } else if (isMiniscriptWallet) {
                                     setupOrReviewParam.inheritanceKeys.forEachIndexed { index, key ->
                                         Spacer(modifier = Modifier.height(12.dp))
                                         SpecialDetailPlanItem(
@@ -473,7 +483,10 @@ fun InheritanceReviewPlanScreenContent(
                                 }
                                 if (setupOrReviewParam.setupFlowType == InheritanceSetupFlowType.OLD_FLOW) {
                                     Text(
-                                        text = stringResource(R.string.nc_main_funds_become_claimable_after),
+                                        text = stringResource(
+                                            if (isMiniscriptWallet && primaryInheritance != null) R.string.nc_claimable_after
+                                            else R.string.nc_main_funds_become_claimable_after
+                                        ),
                                         modifier = Modifier.padding(top = 24.dp, bottom = 12.dp),
                                         style = NunchukTheme.typography.title,
                                         color = Color.White
@@ -834,6 +847,48 @@ private fun SingleBeneficiaryReleaseScheduleSection(
                 )
             }
         }
+    }
+}
+
+/**
+ * On-chain primary inheritance: the route's required signatures, its keys and what the Beneficiary
+ * needs. The guided default lists the separate inheritance key plus one owner-key card; a customized
+ * route lists every key.
+ */
+@Composable
+private fun PrimaryInheritanceReviewSection(info: PrimaryInheritanceInfo) {
+    Text(
+        text = primaryInheritanceHeading(info),
+        modifier = Modifier.padding(top = 24.dp),
+        style = NunchukTheme.typography.title,
+        color = Color.White
+    )
+    info.inheritanceKeyXfps.forEachIndexed { index, xfp ->
+        Spacer(modifier = Modifier.height(12.dp))
+        SpecialDetailPlanItem(
+            iconId = R.drawable.ic_key,
+            title = stringResource(R.string.nc_main_inheritance_key_number, index + 1),
+            subTitle = stringResource(R.string.nc_primary_key_account_xfp, xfp.uppercase()),
+            content = stringResource(R.string.nc_seed_phrase_of_this_key_backed_up),
+            editable = false
+        )
+    }
+    if (info.ownerKeyCount > 0) {
+        Spacer(modifier = Modifier.height(12.dp))
+        SpecialDetailPlanItem(
+            iconId = R.drawable.ic_key,
+            title = stringResource(R.string.nc_one_of_your_owner_keys, info.ownerKeyCount),
+            content = stringResource(R.string.nc_seed_phrase_of_owner_key_you_share),
+            editable = false
+        )
+    }
+    primaryKeysNeededSentence(info)?.let { sentence ->
+        Text(
+            text = sentence,
+            modifier = Modifier.padding(top = 12.dp),
+            style = NunchukTheme.typography.body,
+            color = Color.White
+        )
     }
 }
 
@@ -1418,6 +1473,50 @@ private fun InheritanceReviewPlanScreenPreview() {
             emails = listOf("email1@example.com", "email2@example.com"),
             isNotify = true,
             magicalPhrase = "sample magical phrase"
+        ),
+    )
+}
+
+@PreviewLightDark
+@Composable
+private fun InheritanceReviewPlanOnChainDefaultPrimaryPreview() {
+    InheritanceReviewPlanScreenContent(
+        isMiniscriptWallet = true,
+        primaryInheritance = PrimaryInheritanceInfo(
+            isCustomized = false,
+            requiredSignatures = 2,
+            totalKeys = 4,
+            inheritanceKeyXfps = listOf("6b35f210"),
+        ),
+        state = InheritanceReviewPlanState(walletName = "My Wallet"),
+        planFlow = InheritancePlanFlow.SETUP,
+        magicalPhrase = "dolphin concert apple mirror",
+        setupOrReviewParam = InheritancePlanningParam.SetupOrReview(
+            walletId = "wallet123",
+            activationDate = System.currentTimeMillis(),
+            magicalPhrase = "dolphin concert apple mirror",
+        ),
+    )
+}
+
+@PreviewLightDark
+@Composable
+private fun InheritanceReviewPlanOnChainCustomizedPrimaryPreview() {
+    InheritanceReviewPlanScreenContent(
+        isMiniscriptWallet = true,
+        primaryInheritance = PrimaryInheritanceInfo(
+            isCustomized = true,
+            requiredSignatures = 2,
+            totalKeys = 3,
+            inheritanceKeyXfps = listOf("79eb35f4", "f91b570c", "8e41b2c7"),
+        ),
+        state = InheritanceReviewPlanState(walletName = "My Wallet"),
+        planFlow = InheritancePlanFlow.SETUP,
+        magicalPhrase = "dolphin concert apple mirror",
+        setupOrReviewParam = InheritancePlanningParam.SetupOrReview(
+            walletId = "wallet123",
+            activationDate = System.currentTimeMillis(),
+            magicalPhrase = "dolphin concert apple mirror",
         ),
     )
 }

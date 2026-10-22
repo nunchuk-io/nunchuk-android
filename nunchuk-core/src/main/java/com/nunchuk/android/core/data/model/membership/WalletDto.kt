@@ -23,6 +23,9 @@ import com.google.gson.annotations.SerializedName
 import com.nunchuk.android.model.TimelockBased
 import com.nunchuk.android.model.WalletServer
 import com.nunchuk.android.model.WalletTimelock
+import com.nunchuk.android.model.inheritance.InheritanceRoute
+import com.nunchuk.android.model.inheritance.InheritanceRouteType
+import com.nunchuk.android.model.inheritance.OnChainInheritancePolicy
 import com.nunchuk.android.model.toMembershipPlan
 import com.nunchuk.android.persistence.entity.AssistedWalletEntity
 import com.nunchuk.android.type.WalletType
@@ -47,6 +50,8 @@ data class WalletDto(
     @SerializedName("send_bsms_email") val sendBsmsEmail: Boolean = false,
     @SerializedName("requires_registration") val requiresRegistration: Boolean? = null,
     @SerializedName("timelock") val timelock: TimelockDto? = null,
+    // TODO(hb-inheritance-routes): field names are a proposal until the backend contract is final.
+    @SerializedName("inheritance_policy") val inheritancePolicy: InheritancePolicyDto? = null,
 )
 
 data class ReplaceByDto(
@@ -58,6 +63,41 @@ data class TimelockDto(
     @SerializedName("timezone") val timezone: String? = null,
     @SerializedName("based") val based: String? = null,
     @SerializedName("block_height") val blockHeight: Long? = null,
+)
+
+data class InheritancePolicyDto(
+    @SerializedName("is_customized") val isCustomized: Boolean = false,
+    @SerializedName("routes") val routes: List<InheritanceRouteDto>? = null,
+)
+
+data class InheritanceRouteDto(
+    @SerializedName("type") val type: String? = null,
+    @SerializedName("order") val order: Int = 0,
+    @SerializedName("m") val requiredSignatures: Int = 0,
+    @SerializedName("signers") val xfps: List<String>? = null,
+    @SerializedName("timelock") val timelock: TimelockDto? = null,
+)
+
+internal fun TimelockDto?.toWalletTimelock() = WalletTimelock(
+    timelockValue = this?.value ?: 0L,
+    timezone = this?.timezone.orEmpty(),
+    based = runCatching { TimelockBased.valueOf(this?.based.orEmpty()) }.getOrDefault(TimelockBased.TIME_LOCK),
+    blockHeight = this?.blockHeight
+)
+
+internal fun InheritancePolicyDto.toModel() = OnChainInheritancePolicy(
+    isCustomized = isCustomized,
+    routes = routes.orEmpty().mapNotNull { route ->
+        val type = runCatching { InheritanceRouteType.valueOf(route.type.orEmpty()) }.getOrNull()
+            ?: return@mapNotNull null
+        InheritanceRoute(
+            type = type,
+            order = route.order,
+            requiredSignatures = route.requiredSignatures,
+            xfps = route.xfps.orEmpty(),
+            timelock = route.timelock.toWalletTimelock(),
+        )
+    }
 )
 
 internal fun WalletDto.toModel(): WalletServer {
@@ -77,12 +117,8 @@ internal fun WalletDto.toModel(): WalletServer {
         walletType = walletType?.toWalletType() ?: WalletType.MULTI_SIG,
         sendBsmsEmail = sendBsmsEmail,
         requiresRegistration = requiresRegistration == true,
-        timelock = WalletTimelock(
-            timelockValue = timelock?.value ?: 0L,
-            timezone = timelock?.timezone ?: "",
-            based = runCatching { TimelockBased.valueOf(timelock?.based.orEmpty()) }.getOrDefault(TimelockBased.TIME_LOCK),
-            blockHeight = timelock?.blockHeight
-        )
+        timelock = timelock.toWalletTimelock(),
+        inheritancePolicy = inheritancePolicy?.toModel(),
     )
 }
 

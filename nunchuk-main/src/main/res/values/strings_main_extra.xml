@@ -44,7 +44,7 @@
         <item quantity="other">%1$d hours %2$d min</item>
     </plurals>
     <string name="nc_main_incorrect_key_add_correct_key">Incorrect key. Please add the correct key.</string>
-    <string name="nc_main_inheritance_key_number">Inheritance Key %1$d</string>
+    <string name="nc_main_inheritance_key_number">Inheritance key %1$d</string>
     <string name="nc_main_invalid_password_unable_to_restore_backup">Invalid password. Unable to restore backup</string>
     <string name="nc_main_invalid_signature_try_again">Invalid signature. Please try again.</string>
     <string name="nc_main_key_cannot_sign_that_way">This key cannot sign that way</string>

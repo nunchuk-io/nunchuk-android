@@ -113,15 +113,22 @@ class InheritancePlanningViewModel @Inject constructor(
                     claimOptions = key.claimOptions,
                 )
             }
+        val inheritanceTaggedXfps = wallet.signers
+            .filter { it.tags.contains(SignerTag.INHERITANCE.name) }
+            .mapNotNull { it.xfp }
+            .toSet()
+        // The primary route's own unlock time when the server sends routes; the wallet timelock otherwise.
+        val timelock = wallet.inheritancePolicy?.primary?.timelock ?: wallet.timelock
         _state.update {
             it.copy(
                 inheritanceKeys = inheritanceKeys,
                 walletType = wallet.walletType,
+                primaryInheritance = wallet.inheritancePolicy?.toPrimaryInheritanceInfo(inheritanceTaggedXfps),
                 setupOrReviewParam = it.setupOrReviewParam.copy(
-                    activationDate = if (wallet.walletType == WalletType.MINISCRIPT) wallet.timelock.timelockValue * 1000 else it.setupOrReviewParam.activationDate,
-                    selectedZoneId = wallet.timelock.timezone.takeIf { zone -> zone.isNotEmpty() } ?: it.setupOrReviewParam.selectedZoneId,
-                    timelockBased = wallet.timelock.based,
-                    blockHeight = wallet.timelock.blockHeight
+                    activationDate = if (wallet.walletType == WalletType.MINISCRIPT) timelock.timelockValue * 1000 else it.setupOrReviewParam.activationDate,
+                    selectedZoneId = timelock.timezone.takeIf { zone -> zone.isNotEmpty() } ?: it.setupOrReviewParam.selectedZoneId,
+                    timelockBased = timelock.based,
+                    blockHeight = timelock.blockHeight
                 )
             )
         }
@@ -203,6 +210,8 @@ data class InheritancePlanningState(
     /** The plan's inheritance key(s) as the server reports them, in wallet order. */
     val inheritanceKeys: List<InheritanceKeyInfo> = emptyList(),
     val walletType: WalletType = WalletType.MULTI_SIG,
+    /** On-chain only; null for a legacy plan whose server response has no inheritance routes. */
+    val primaryInheritance: PrimaryInheritanceInfo? = null,
     val userEmail: String = "",
     val setupOrReviewParam: InheritancePlanningParam.SetupOrReview,
     val initialSetupOrReviewParam: InheritancePlanningParam.SetupOrReview? = null,
