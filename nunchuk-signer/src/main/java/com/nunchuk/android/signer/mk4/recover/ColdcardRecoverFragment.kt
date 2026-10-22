@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.signer.mk4.recover
 
+import com.nunchuk.android.core.signer.toRecoveredKey
 import com.nunchuk.android.core.util.resolve
 import android.app.Activity.RESULT_OK
 import android.content.Intent
@@ -182,6 +183,7 @@ class ColdcardRecoverFragment : MembershipFragment(), BottomSheetOptionListener 
                                                     groupId = (activity as Mk4Activity).groupId,
                                                     masterSignerId = event.signer.masterFingerprint,
                                                     verificationMethod = onChainAddSignerParam.claimOption,
+                                                    recoveredKey = event.signer.toRecoveredKey(),
                                                 )
                                             }
                                         } else {

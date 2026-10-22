@@ -1106,6 +1106,8 @@
     <string name="nc_miniscript_num_signatures_required">Number of signatures required</string>
     <string name="nc_miniscript_total_number_of_keys">Total number of keys</string>
     <string name="nc_miniscript_total_number_of_pubkeys">Total number of public keys in the multisig</string>
+    <string name="nc_wallet_cd_decrement">Decrement</string>
+    <string name="nc_wallet_cd_increment">Increment</string>
     <string name="nc_miniscript_contract_policy">Contract policy:</string>
     <string name="nc_miniscript_multisig">multisig</string>
     <string name="nc_miniscript_will_auto_change">will automatically change to</string>

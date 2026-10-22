@@ -101,8 +101,11 @@ abstract class MembershipFragment : BaseShareSaveFileFragment<ViewBinding>(), Bo
         }
     }
 
+    /** Options this screen puts above the wizard options in the More menu. */
+    protected open fun extraMoreOptions(): List<SheetOption> = emptyList()
+
     protected fun handleShowMore() {
-        val options = mutableListOf<SheetOption>()
+        val options = extraMoreOptions().toMutableList()
         if (canRestartWizard) {
             options.add(
                 SheetOption(

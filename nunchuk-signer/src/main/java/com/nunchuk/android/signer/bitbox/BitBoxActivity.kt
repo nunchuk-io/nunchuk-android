@@ -19,6 +19,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.nunchuk.android.model.inheritance.RecoveredKey
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.dialog.NcConfirmationDialog
 import com.nunchuk.android.compose.dialog.NcLoadingDialog
@@ -101,8 +102,8 @@ class BitBoxActivity : BaseComposeActivity() {
 
     /**
      * Verifying a seed-phrase backup: the key already exists and the user restored its seed onto
-     * this device, so connecting is the whole check. Read the fingerprint, hand it back and let
-     * the caller mark the key verified — no xpub, no key created.
+     * this device, so connecting is the whole check. Read the fingerprint and the account xpub, hand
+     * them back and let the caller mark the key verified — no key created.
      */
     private val isVerifyXfpOnly: Boolean by lazy {
         intent.getBooleanExtra(EXTRA_VERIFY_XFP_ONLY, false)
@@ -216,20 +217,18 @@ class BitBoxActivity : BaseComposeActivity() {
                         viewModel.onError(getString(R.string.nc_added_key_xfp_mismatch))
                         return
                     }
-                    if (isVerifyXfpOnly) {
-                        setResult(
-                            RESULT_OK,
-                            Intent().apply {
-                                putExtra(EXTRA_VERIFIED_XFP, fingerprint.lowercase(Locale.getDefault()))
-                            }
-                        )
-                        finish()
-                        return
-                    }
+                    // Verify mode reads the restored account as well (path, then xpub): a
+                    // configurable on-chain draft verifies the backup against it.
                     viewModel.onMasterFingerprintReceived(fingerprint)
                 }
 
-                BitBoxRequest.XPUB -> viewModel.onXpubReceived(controller.resultString())
+                BitBoxRequest.XPUB -> {
+                    if (isVerifyXfpOnly) {
+                        returnVerifiedAccount(controller.resultString())
+                    } else {
+                        viewModel.onXpubReceived(controller.resultString())
+                    }
+                }
 
                 // Every other command belongs to the sign / health-check flows, not add-key.
                 else -> Unit
@@ -571,6 +570,25 @@ class BitBoxActivity : BaseComposeActivity() {
      * a stand-in key so the seed-phrase host can show "This key doesn't match" against the key
      * being verified, the same way it does for a Coldcard or air-gapped key.
      */
+    /** Verify mode: the restored device matched; hand back its fingerprint and account. */
+    private fun returnVerifiedAccount(xpub: String) {
+        val config = viewModel.state.value
+        val xfp = config.masterFingerprint.lowercase(Locale.getDefault())
+        setResult(
+            RESULT_OK,
+            Intent().apply {
+                putExtra(EXTRA_VERIFIED_XFP, xfp)
+                if (xpub.isNotEmpty() && config.derivationPath.isNotEmpty()) {
+                    putExtra(
+                        GlobalResultKey.EXTRA_RECOVERED_KEY,
+                        RecoveredKey(xfp = xfp, derivationPath = config.derivationPath, xpub = xpub),
+                    )
+                }
+            }
+        )
+        finish()
+    }
+
     private fun returnMismatchedDevice(actualXfp: String) {
         setResult(
             RESULT_OK,

@@ -11,6 +11,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
+import com.nunchuk.android.model.inheritance.RecoveredKey
 import com.nunchuk.android.compose.dialog.NcConfirmationDialog
 import com.nunchuk.android.compose.dialog.NcLoadingDialog
 import com.nunchuk.android.compose.NunchukTheme
@@ -99,7 +100,7 @@ class TrezorActivity : BaseComposeActivity() {
                             }
 
                             is TrezorDeeplinkEvent.KeyReadForVerification -> {
-                                returnVerificationResult(event.masterFingerprint)
+                                returnVerificationResult(event.masterFingerprint, event.recoveredKey)
                             }
 
                             is TrezorDeeplinkEvent.ShowError -> {
@@ -211,7 +212,7 @@ class TrezorActivity : BaseComposeActivity() {
      * stand-in key naming the device on a mismatch, which is what the verification steps show.
      * Mirrors Ledger and BitBox — no key is created either way.
      */
-    private fun returnVerificationResult(actualXfp: String) {
+    private fun returnVerificationResult(actualXfp: String, recoveredKey: RecoveredKey? = null) {
         setResult(
             RESULT_OK,
             Intent().apply {
@@ -220,6 +221,7 @@ class TrezorActivity : BaseComposeActivity() {
                         GlobalResultKey.EXTRA_VERIFIED_XFP,
                         actualXfp.lowercase(Locale.getDefault())
                     )
+                    recoveredKey?.let { putExtra(GlobalResultKey.EXTRA_RECOVERED_KEY, it) }
                 } else {
                     putExtra(
                         GlobalResultKey.EXTRA_SIGNER,

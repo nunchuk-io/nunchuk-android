@@ -63,8 +63,6 @@
     <string name="nc_wallet_cd_back_icon">Back icon</string>
     <string name="nc_wallet_cd_arrow_expand">Arrow Expand</string>
     <string name="nc_wallet_cd_coin_tag">Coin Tag</string>
-    <string name="nc_wallet_cd_decrement">Decrement</string>
-    <string name="nc_wallet_cd_increment">Increment</string>
     <string name="nc_wallet_cd_group_wallet_icon">Group Wallet Icon</string>
     <string name="nc_wallet_cd_qr_icon">QR Icon</string>
     <string name="nc_wallet_cd_arrow_right_icon">Arrow Right Icon</string>

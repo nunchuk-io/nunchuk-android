@@ -182,6 +182,11 @@ class SignerIntroViewModel @Inject constructor(
         dispatch(requireNotNull(coordinator).guideCompleted(keyType))
     }
 
+    /** The owner read "Before you use this device" for [keyType]. */
+    fun onDeviceSafetyCompleted(keyType: KeyType) {
+        dispatch(requireNotNull(coordinator).deviceSafetyCompleted(keyType))
+    }
+
     fun onFirmwareChecked(device: SignerFirmwareDevice) {
         dispatch(requireNotNull(coordinator).firmwareChecked(device))
     }
@@ -206,6 +211,8 @@ class SignerIntroViewModel @Inject constructor(
         when (action) {
             is SignerIntroAction.OfferExisting -> offerExisting(action.keyType)
             is SignerIntroAction.ShowInheritanceGuide -> sendEvent(SignerIntroEvent.ShowInheritanceGuide(action.keyType))
+            is SignerIntroAction.ShowDeviceSafety -> sendEvent(SignerIntroEvent.ShowDeviceSafety(action.keyType))
+            SignerIntroAction.ReturnGuideCompleted -> sendEvent(SignerIntroEvent.ReturnGuideCompleted)
             SignerIntroAction.RecoverSoftware -> {
                 savedStateHandle[RECOVERY_VISIBLE] = true
                 _state.update { it.copy(showRecoveryOptions = true) }
@@ -337,6 +344,8 @@ class SignerIntroViewModel @Inject constructor(
 sealed interface SignerIntroEvent {
     data class CheckFirmware(val device: SignerFirmwareDevice) : SignerIntroEvent
     data class ShowInheritanceGuide(val keyType: KeyType) : SignerIntroEvent
+    data class ShowDeviceSafety(val keyType: KeyType) : SignerIntroEvent
+    data object ReturnGuideCompleted : SignerIntroHostEvent
     data class OpenDevice(val action: SignerDeviceAction) : SignerIntroHostEvent
     data class ReturnHardwareTag(val tag: SignerTag) : SignerIntroHostEvent
     data class ReturnKeyType(val keyType: KeyType) : SignerIntroHostEvent

@@ -144,13 +144,60 @@ State assembly, in `init` + `refresh()`:
    is empty are collected into `missingBackupKeys` (the card then shows **Upload backup** instead of
    **Verify**).
 3. `TIMELOCK` / `ADD_SEVER_KEY` steps are hydrated with `info.parseTimelockExtra()`.
-4. Push events `DraftWalletTimelockSet` and `DraftWalletCustomizationChanged` re-trigger `refresh()`;
+4. Push events `DraftWalletTimelockSet`, `DraftWalletCustomizationChanged` and `DraftWalletUpdated`
+   (`draft_wallet_updated`, NUN-10320) re-trigger `refresh()`;
    `KeyAddedToGroup` (only when `isAddOnly`) sets `shouldShowKeyAdded` → `keyAddedToGroupWalletFragment`.
 5. Pull-to-refresh and `onResume()` both call `refresh()`.
 
 Role handling in the UI: `KEYHOLDER_LIMITED` sees invisible keys, the server key and the timelock
 card blurred (`BlurView`) and gets no Continue button; `isFacilitatorAdmin` gets an info dialog on
 entry and disabled buttons.
+
+**Configurable drafts (NUN-10320).** Personal HB on-chain drafts are created with
+`inheritance_policy_type: CONFIGURABLE` (`InheritancePlanTypeViewModel`). For such a draft
+(`AddKeyListState.isConfigurableInheritance`) the screen is built from the server instead of the
+fixed step list:
+
+* `refresh()` keeps `onchain_inheritance_policy`, `cards`, `signers`, `validation_errors` and
+  `finalized`; `buildDraftSetupCards` (`DraftSetupCards.kt`) joins each card key to the signer with
+  the same `key_index`. Spending cards show one chip per account the policy uses; the Platform key
+  and timelock keep their legacy `AddKeyCard`; primary slots sit under "Primary inheritance".
+* **Adding a key** reuses the device dispatch above with stand-in steps
+  (`HONEY_ADD_HARDWARE_KEY_1(_TIMELOCK)` for spending accounts, `HONEY_ADD_INHERITANCE_KEY_TIMELOCK`
+  for inheritance slots); `DraftAddOptions` carries the slot's **account** (not "signers so far") into
+  every device helper (`targetAccountIndex()` / `targetSameDevice()`). The slot (index, tags, account,
+  `account_index_by_xfp`) is put in `DraftKeySlotHolder`; `PremiumWalletRepositoryImpl.syncKey` then
+  follows NUN-10320: `request-add-key {key_index, tags}` → check the account against
+  `request.derivation_path` (else the slot / XFP map; `DraftKeyAccountMismatchException` cancels the
+  request) → `add-key?request_id=…`. Desktop requests send `key_indices` / `key_index` + tags.
+  Another account of a device already on a spending card is reused from the app or the draft, derived
+  (TAPSIGNER), or read off that device at exactly that account. The slot is persisted
+  (`DraftKeySlotStore` → `NCSharePreferences`) and the VM's target account is in `SavedStateHandle`,
+  so an import resumed after process death still lands in its slot; the VM clears it after each import,
+  when it is destroyed, or when a legacy add starts. A configurable draft's import with no slot is
+  refused (`DraftKeySlotMissingException`), never sent to a legacy step index.
+* **Onboarding:** a new device goes through "Before you use this device"
+  (`DeviceSafetyNoticeNavigation.kt`, `showDeviceSafety`). The inheritance guide (intro + passphrase
+  notice, copy per `OnChainInheritanceGuide`) runs once per setup — skipped once a primary key is in or
+  the guide ran this session (`isInheritanceGuideSeen`). Picking a key already in the setup runs the
+  guide alone (`guideOnly`) and resumes the pick (`PendingKeyChoice`); no device-safety notice then.
+* **Customized primary:** Add or Change (offered on every filled slot) opens `ChooseKeySheet` (KEY-01a)
+  when keys exist; the account comes from `DraftKeySlot.expectedAccount` (absent → 0, null → refused).
+  Cancel changes nothing.
+* **Verification** sends the recovered account (`key: {xfp, derivation_path, xpub}`): COLDCARD and
+  air-gap pass the re-added signer; Ledger / BitBox / Trezor return `EXTRA_RECOVERED_KEY`; TAPSIGNER
+  (backup checked by the app) derives the draft's account from the verified master signer
+  (`TapSignerRecoveredKeyResolver`), asking for a tap when that xpub is not cached and stopping with
+  an error otherwise. `KeyRepositoryImpl.setKeyVerified` refuses a configurable draft's verification
+  without the account (`RecoveredKeyRequiredException`); fingerprint-only stays for legacy drafts. The default's inheritance key keeps Verify — the way into
+  `VerifyBackupsScreen` (VER-01) — until it and an owner key are verified; a customized primary
+  verifies each slot inline (KEY-08).
+* **Continue** = `finalized` && no `validation_errors` && (default only) inheritance key + one owner
+  key verified (`isDraftReadyToContinue`). `AddKeyStepViewModel` also uses `finalized` for these drafts.
+* "Customize (advanced)" → `CustomizeInheritanceIntroFragment` (SET-02a) → `PrimaryInheritancePolicySheet`
+  (PRI-02) → `UpdateDraftPrimaryInheritanceUseCase`; "Edit" opens the sheet; More → "Cancel
+  customization" → `ResetDraftPrimaryInheritanceUseCase`. Validation messages show under the primary
+  card (keys / timelock named by an error are circled), the rest at the end of the list.
 
 ### 3.3 "Add" — the dispatcher chain
 

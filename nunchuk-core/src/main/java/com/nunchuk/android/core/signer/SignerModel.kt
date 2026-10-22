@@ -20,6 +20,7 @@
 package com.nunchuk.android.core.signer
 
 import android.os.Parcelable
+import com.nunchuk.android.model.inheritance.RecoveredKey
 import com.nunchuk.android.model.JoinKey
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.signer.SignerServer
@@ -195,3 +196,18 @@ fun hardwareDeviceSignerModel(fingerPrint: String, tag: SignerTag) = SignerModel
     tags = listOf(tag),
     isMasterSigner = false,
 )
+
+/**
+ * The account a restored device just reported, for a configurable on-chain draft's backup
+ * verification; null without an xpub (e.g. an XFP-only check), when the server falls back to XFP.
+ */
+fun SingleSigner.toRecoveredKey(): RecoveredKey? =
+    xpub.takeIf { it.isNotEmpty() }?.let {
+        RecoveredKey(xfp = masterFingerprint, derivationPath = derivationPath, xpub = it)
+    }
+
+/** [SingleSigner.toRecoveredKey] for a re-added key handed back as a [SignerModel]. */
+fun SignerModel.toRecoveredKey(): RecoveredKey? =
+    xpub.takeIf { it.isNotEmpty() && derivationPath.isNotEmpty() }?.let {
+        RecoveredKey(xfp = fingerPrint, derivationPath = derivationPath, xpub = it)
+    }

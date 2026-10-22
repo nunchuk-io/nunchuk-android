@@ -2,6 +2,8 @@ package com.nunchuk.android.signer.trezor
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.signer.toRecoveredKey
+import com.nunchuk.android.model.inheritance.RecoveredKey
 import com.nunchuk.android.core.domain.utils.GetTrezorPublicKeyDeeplinkUseCase
 import com.nunchuk.android.core.domain.utils.ParseTrezorPublicKeyResponseUseCase
 import com.nunchuk.android.core.push.PushEvent
@@ -47,7 +49,11 @@ sealed class TrezorDeeplinkEvent {
      * The fingerprint Trezor Suite reported for a seed-phrase-backup verification. No key is
      * created; the caller compares it against the key being verified.
      */
-    data class KeyReadForVerification(val masterFingerprint: String) : TrezorDeeplinkEvent()
+    data class KeyReadForVerification(
+        val masterFingerprint: String,
+        /** The account Suite returned, for a configurable on-chain draft's verification. */
+        val recoveredKey: RecoveredKey? = null,
+    ) : TrezorDeeplinkEvent()
 }
 
 @HiltViewModel
@@ -197,7 +203,9 @@ class TrezorDeeplinkViewModel @Inject constructor(
             // the app, so adding it again would hit the existing-key dialog instead of verifying.
             if (isVerifyXfpOnly) {
                 _state.update { it.copy(isLoading = false) }
-                _event.emit(TrezorDeeplinkEvent.KeyReadForVerification(signer.masterFingerprint))
+                _event.emit(
+                    TrezorDeeplinkEvent.KeyReadForVerification(signer.masterFingerprint, signer.toRecoveredKey())
+                )
                 return@launch
             }
 

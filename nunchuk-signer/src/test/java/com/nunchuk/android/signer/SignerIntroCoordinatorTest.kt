@@ -1,6 +1,7 @@
 package com.nunchuk.android.signer
 
 import com.nunchuk.android.core.signer.OnChainAddSignerParam
+import com.nunchuk.android.core.signer.OnChainInheritanceGuide
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.SignerIntroFlow
 import com.nunchuk.android.core.signer.SignerIntroRequest
@@ -251,4 +252,44 @@ class SignerIntroCoordinatorTest {
         id = "key", name = "Key", derivationPath = "m/48h/0h/0h/2h",
         fingerPrint = "1234abcd", type = type, tags = tags, isMasterSigner = true,
     )
+
+    @Test fun `configurable draft - the guide runs once, then device safety precedes a new device`() {
+        val first = router(
+            SignerIntroFlow.OnChainTimelockKey(
+                isInheritanceKey = true,
+                inheritanceGuide = OnChainInheritanceGuide.PRIMARY,
+                showDeviceSafety = true,
+            )
+        )
+        assertEquals(SignerIntroAction.ShowInheritanceGuide(KeyType.JADE), first.select(KeyType.JADE))
+        assertEquals(SignerIntroAction.ShowDeviceSafety(KeyType.JADE), first.guideCompleted(KeyType.JADE))
+        // After the notice, the device opens exactly as it did before (Jade: its firmware gate).
+        val legacy = router(SignerIntroFlow.OnChainTimelockKey(isInheritanceKey = true))
+        assertEquals(legacy.guideCompleted(KeyType.JADE), first.deviceSafetyCompleted(KeyType.JADE))
+
+        val later = router(
+            SignerIntroFlow.OnChainTimelockKey(isInheritanceKey = true, showInheritanceGuide = false, showDeviceSafety = true)
+        )
+        assertEquals(SignerIntroAction.ShowDeviceSafety(KeyType.LEDGER), later.select(KeyType.LEDGER))
+        // A software key involves no device.
+        assertNotEquals(SignerIntroAction.ShowDeviceSafety(KeyType.SOFTWARE), later.select(KeyType.SOFTWARE))
+    }
+
+    @Test fun `spending account of a new device also gets device safety, without the inheritance guide`() {
+        val router = router(SignerIntroFlow.OnChainTimelockKey(keyIndex = 1, showDeviceSafety = true))
+        assertEquals(SignerIntroAction.ShowDeviceSafety(KeyType.COLDCARD), router.select(KeyType.COLDCARD))
+    }
+
+    @Test fun `guide-only run returns after the guide`() {
+        val router = router(SignerIntroFlow.OnChainTimelockKey(isInheritanceKey = true, guideOnly = true))
+        assertTrue(router.isGuideOnly)
+        assertEquals(SignerIntroAction.ReturnGuideCompleted, router.guideCompleted(KeyType.GENERIC_AIRGAP))
+    }
+
+    @Test fun `legacy on-chain flow is unchanged - no device safety`() {
+        val router = router(SignerIntroFlow.OnChainTimelockKey(isInheritanceKey = true))
+        for (key in seedPhraseKeys) {
+            assertFalse("$key", router.guideCompleted(key) is SignerIntroAction.ShowDeviceSafety)
+        }
+    }
 }

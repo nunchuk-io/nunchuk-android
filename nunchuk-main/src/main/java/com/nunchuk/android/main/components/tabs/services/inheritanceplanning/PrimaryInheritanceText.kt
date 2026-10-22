@@ -20,27 +20,14 @@ internal fun primaryInheritanceHeading(info: PrimaryInheritanceInfo): String = w
     else -> stringResource(R.string.nc_primary_inheritance_any_keys, info.requiredSignatures, info.totalKeys)
 }
 
-/** The sentence under the key cards on Review your plan; null when there is nothing to add (1 of 1). */
+/**
+ * The sentence under the key cards on Review your plan. Only the guided default has one — which keys
+ * to hand over; the heading already states the M-of-N, so it is never repeated (REV-04 / REV-10).
+ */
 @Composable
-internal fun primaryKeysNeededSentence(info: PrimaryInheritanceInfo): String? = when {
-    !info.isCustomized -> stringResource(
-        R.string.nc_default_primary_keys_needed,
-        info.requiredSignatures,
-        info.totalKeys,
-        info.ownerKeyCount,
-    )
-
-    info.isSingleKey -> null
-    info.requiredSignatures == info.totalKeys ->
-        stringResource(R.string.nc_all_of_these_keys_needed, info.totalKeys)
-
-    else -> pluralStringResource(
-        R.plurals.nc_any_of_these_keys_needed,
-        info.requiredSignatures,
-        info.requiredSignatures,
-        info.totalKeys,
-    )
-}
+internal fun primaryKeysToShareSentence(info: PrimaryInheritanceInfo): String? =
+    if (info.isCustomized) null
+    else stringResource(R.string.nc_share_inheritance_key_and_owner_key, info.ownerKeyCount)
 
 /** Share your secrets, item 2: which seed phrases to hand over and how many of them a claim needs. */
 @Composable

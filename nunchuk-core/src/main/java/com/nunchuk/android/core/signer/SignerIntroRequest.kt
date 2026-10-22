@@ -48,6 +48,13 @@ sealed class SignerIntroFlow : Parcelable {
         val existingSigners: List<SignerModel> = emptyList(),
     ) : SignerIntroFlow()
 
+    /**
+     * @property inheritanceGuide which "Your … inheritance key" copy the guide shows.
+     * @property showInheritanceGuide false once the guide ran in this wallet setup (configurable draft).
+     * @property showDeviceSafety show "Before you use this device" before a new device is used.
+     * @property guideOnly only run the inheritance guide and return RESULT_OK — the key was picked
+     *   from those already in the setup, so no device is involved.
+     */
     @Parcelize
     data class OnChainTimelockKey(
         val isInheritanceKey: Boolean = false,
@@ -55,6 +62,10 @@ sealed class SignerIntroFlow : Parcelable {
         val currentSigner: SignerModel? = null,
         val existingSigners: List<SignerModel> = emptyList(),
         val replaceInfo: OnChainAddSignerParam.ReplaceInfo? = null,
+        val inheritanceGuide: OnChainInheritanceGuide = OnChainInheritanceGuide.LEGACY,
+        val showInheritanceGuide: Boolean = true,
+        val showDeviceSafety: Boolean = false,
+        val guideOnly: Boolean = false,
     ) : SignerIntroFlow()
 
     /** Owner setting up (or replacing) an off-chain inheritance key. */
@@ -112,3 +123,15 @@ private val SignerIntroFlow.deviceParams: OnChainAddSignerParam?
             claimOption = claimOption,
         )
     }
+
+/** Copy of the inheritance-key guide shown before an on-chain inheritance key is added. */
+enum class OnChainInheritanceGuide {
+    /** The 1-of-3 HB plan. */
+    LEGACY,
+
+    /** Configurable draft, guided default: the separate key + one owner key (2 of 4). */
+    DEFAULT_PRIMARY,
+
+    /** Configurable draft, customized primary (KEY-03). */
+    PRIMARY,
+}

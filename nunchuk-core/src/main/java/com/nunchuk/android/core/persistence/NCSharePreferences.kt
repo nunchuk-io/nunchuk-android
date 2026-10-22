@@ -69,6 +69,11 @@ class NCSharePreferences @Inject constructor(context: Context) {
         get() = prefs.getLong(SP_KEY_PENDING_APPLE_SIGN_IN_STARTED_AT, 0L)
         set(value) = prefs.edit().putLong(SP_KEY_PENDING_APPLE_SIGN_IN_STARTED_AT, value).apply()
 
+    /** JSON of the on-chain draft slot being filled ([com.nunchuk.android.model.inheritance.DraftKeySlot]); empty when none. */
+    var draftKeySlot: String
+        get() = prefs.getString(SP_KEY_DRAFT_KEY_SLOT, "").orEmpty()
+        set(value) = prefs.edit().putString(SP_KEY_DRAFT_KEY_SLOT, value).commit().let { }
+
     companion object {
         private const val PACKAGE_PREFIX = "com.nunchuk.android"
         private const val APP_SHARE_PREFERENCE_NAME = "${PACKAGE_PREFIX}.pref"
@@ -83,5 +88,6 @@ class NCSharePreferences @Inject constructor(context: Context) {
         private const val SP_KEY_CUSTOM_SIGNET_SERVER = "${PACKAGE_PREFIX}.key.custom.server.signet"
         private const val SP_KEY_PENDING_APPLE_SIGN_IN_STATE = "${PACKAGE_PREFIX}.key.pending.apple.sign.in.state"
         private const val SP_KEY_PENDING_APPLE_SIGN_IN_STARTED_AT = "${PACKAGE_PREFIX}.key.pending.apple.sign.in.started.at"
+        private const val SP_KEY_DRAFT_KEY_SLOT = "${PACKAGE_PREFIX}.key.draft.key.slot"
     }
 }

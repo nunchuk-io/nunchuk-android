@@ -463,6 +463,13 @@ internal interface UserWalletsApi {
         @Body payload: SignerServerDto,
     ): Data<SignerServerDto>
 
+    /** Imports one account into a configurable draft for the open `request-add-key` [requestId]. */
+    @POST("/v1.1/user-wallets/draft-wallets/add-key")
+    suspend fun addKeyForRequest(
+        @Query("request_id") requestId: String,
+        @Body payload: SignerServerDto,
+    ): Data<SignerServerDto>
+
     @POST("/v1.1/user-wallets/draft-wallets/set-server-key")
     suspend fun setServerKey(
         @Body payload: Map<String, String>,

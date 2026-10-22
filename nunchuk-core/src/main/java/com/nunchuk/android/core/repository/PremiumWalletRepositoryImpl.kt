@@ -185,6 +185,11 @@ import com.nunchuk.android.model.byzantine.AssistedMember
 import com.nunchuk.android.model.byzantine.DraftWallet
 import com.nunchuk.android.model.byzantine.DummyTransactionPayload
 import com.nunchuk.android.model.byzantine.GroupWalletType
+import com.nunchuk.android.model.inheritance.DraftKeyAccountMismatchException
+import com.nunchuk.android.model.inheritance.DraftKeySlot
+import com.nunchuk.android.model.inheritance.DraftKeySlotHolder
+import com.nunchuk.android.model.inheritance.DraftKeySlotMissingException
+import com.nunchuk.android.model.inheritance.bip32AccountIndex
 import com.nunchuk.android.model.inheritance.InheritancePlanBeneficiary
 import com.nunchuk.android.model.inheritance.InheritancePlanExpandedInstallment
 import com.nunchuk.android.model.inheritance.InheritancePlanFallbackPolicy
@@ -239,6 +244,7 @@ import javax.inject.Inject
 
 internal class PremiumWalletRepositoryImpl @Inject constructor(
     private val userWalletApiManager: UserWalletApiManager,
+    private val draftKeySlotHolder: DraftKeySlotHolder,
     private val membershipRepository: MembershipRepository,
     private val gson: Gson,
     private val nunchukNativeSdk: NunchukNativeSdk,
@@ -1939,6 +1945,16 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     override suspend fun syncKey(
         groupId: String, step: MembershipStep, signer: SingleSigner, walletType: WalletType, keySlot: String?,
     ) {
+        // A configurable on-chain draft names its own slot and imports through a request.
+        draftKeySlotHolder.slotFor(groupId)?.takeIf { walletType == WalletType.MINISCRIPT }?.let { slot ->
+            addKeyToDraftSlot(groupId, slot, signer)
+            pushEventManager.push(PushEvent.KeyAddedToGroup)
+            return
+        }
+        // Its slots have no step index: without a slot, refuse rather than import into a legacy index.
+        if (walletType == WalletType.MINISCRIPT && userWalletApiManager.isConfigurableDraft(groupId)) {
+            throw DraftKeySlotMissingException()
+        }
         val allowInheritance = if (walletType == WalletType.MINISCRIPT) {
             getAllowInheritanceFromDraftWallet(groupId)
         } else {
@@ -1958,6 +1974,39 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         pushEventManager.push(PushEvent.KeyAddedToGroup)
     }
 
+    /**
+     * NUN-10320 import: open a request for [slot], check [signer] is the account the request (or the
+     * card) asks for, then `add-key?request_id=…`. A wrong account cancels the request.
+     */
+    private suspend fun addKeyToDraftSlot(groupId: String, slot: DraftKeySlot, signer: SingleSigner) {
+        val requestResponse = if (groupId.isNotEmpty()) {
+            userWalletApiManager.groupWalletApi.requestAddKey(
+                groupId, DesktopKeyRequest(tags = slot.tags, keyIndex = slot.keyIndex)
+            )
+        } else {
+            userWalletApiManager.walletApi.requestAddKey(DesktopKeyRequest(tags = slot.tags, keyIndex = slot.keyIndex))
+        }
+        if (requestResponse.isSuccess.not()) throw requestResponse.error
+        val request = requestResponse.data.request ?: throw NullPointerException("request null")
+        val requestId = request.id.orEmpty()
+        val expected = slot.expectedAccount(signer.masterFingerprint, request.derivationPath)
+        if (expected == null || bip32AccountIndex(signer.derivationPath) != expected) {
+            runCatching {
+                if (groupId.isNotEmpty()) userWalletApiManager.groupWalletApi.cancelRequestAddKey(groupId, requestId)
+                else userWalletApiManager.walletApi.cancelRequestAddKey(requestId)
+            }
+            throw DraftKeyAccountMismatchException(expected)
+        }
+        val signerDto = serverSignerMapper(signer, slot.isInheritance)
+            .copy(index = request.keyIndex ?: slot.keyIndex)
+        val response = if (groupId.isNotEmpty()) {
+            userWalletApiManager.groupWalletApi.addKeyForRequest(groupId, requestId, signerDto)
+        } else {
+            userWalletApiManager.walletApi.addKeyForRequest(requestId, signerDto)
+        }
+        if (response.isSuccess.not()) throw response.error
+    }
+
     override suspend fun requestAddKey(
         groupId: String,
         step: MembershipStep,
@@ -1966,8 +2015,14 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         keySlot: String?,
     ): String {
         val chatId = accountManager.getAccount().chatId
+        val draftSlot = draftKeySlotHolder.slotFor(groupId).takeIf { walletType == WalletType.MINISCRIPT }
+        if (draftSlot == null && walletType == WalletType.MINISCRIPT && userWalletApiManager.isConfigurableDraft(groupId)) {
+            throw DraftKeySlotMissingException()
+        }
+        // Local key for the cached request: a draft slot is not identified by its step.
+        val localKeySlot = draftSlot?.let { "key_indices:" + it.keyIndices.joinToString(",") } ?: keySlot.orEmpty()
         var localRequest =
-            requestAddKeyDao.getRequest(chatId, chain.value, step, tags.joinToString(), groupId, keySlot.orEmpty())
+            requestAddKeyDao.getRequest(chatId, chain.value, step, tags.joinToString(), groupId, localKeySlot)
         if (localRequest != null) {
             val response =
                 if (groupId.isNotEmpty()) userWalletApiManager.groupWalletApi.getRequestAddKeyStatus(
@@ -1985,7 +2040,13 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             } else {
                 false
             }
-            val desktopKeyRequest = if (walletType == WalletType.MINISCRIPT) {
+            val desktopKeyRequest = if (draftSlot != null) {
+                DesktopKeyRequest(
+                    tags = (tags.map { it.name } + draftSlot.tags).distinct(),
+                    keyIndex = draftSlot.keyIndex.takeIf { draftSlot.keyIndices.size <= 1 },
+                    keyIndices = draftSlot.keyIndices.takeIf { it.size > 1 },
+                )
+            } else if (walletType == WalletType.MINISCRIPT) {
                 DesktopKeyRequest(
                     tags = tags.map { it.name },
                     keyIndex = step.toIndex(walletType, allowInheritance),
@@ -2014,7 +2075,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                     step = step,
                     tag = tags.joinToString(),
                     groupId = groupId,
-                    keySlot = keySlot.orEmpty()
+                    keySlot = localKeySlot
                 )
             )
             requestId

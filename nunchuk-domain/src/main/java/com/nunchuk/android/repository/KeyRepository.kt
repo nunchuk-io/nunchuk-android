@@ -25,6 +25,7 @@ import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.model.inheritance.ClaimOption
+import com.nunchuk.android.model.inheritance.RecoveredKey
 import com.nunchuk.android.model.signer.SupportedSigner
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
@@ -74,6 +75,7 @@ interface KeyRepository {
         masterSignerId: String,
         verifyType: VerifyType,
         verificationMethod: ClaimOption? = null,
+        recoveredKey: RecoveredKey? = null,
     )
 
     /**

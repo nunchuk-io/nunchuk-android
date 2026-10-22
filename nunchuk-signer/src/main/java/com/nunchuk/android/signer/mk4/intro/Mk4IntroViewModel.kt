@@ -44,6 +44,7 @@ import com.nunchuk.android.model.SignerExtra
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.model.inheritance.ClaimOption
+import com.nunchuk.android.model.inheritance.RecoveredKey
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.toIndex
 import com.nunchuk.android.share.membership.MembershipStepManager
@@ -374,6 +375,7 @@ class Mk4IntroViewModel @Inject constructor(
         groupId: String,
         masterSignerId: String,
         verificationMethod: ClaimOption? = null,
+        recoveredKey: RecoveredKey? = null,
     ) {
         viewModelScope.launch {
             setKeyVerifiedUseCase(
@@ -382,6 +384,7 @@ class Mk4IntroViewModel @Inject constructor(
                     masterSignerId = masterSignerId,
                     verifyType = VerifyType.APP_VERIFIED,
                     verificationMethod = verificationMethod,
+                    recoveredKey = recoveredKey,
                 )
             ).onSuccess {
                 _event.emit(Mk4IntroViewEvent.KeyVerifiedSuccess)

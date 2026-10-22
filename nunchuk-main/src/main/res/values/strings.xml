@@ -905,12 +905,7 @@
     <string name="nc_claimable_after">Claimable after:</string>
     <string name="nc_customized_inheritance_need_these_info_title">Each way to claim needs the keys of one route, plus the Magic Phrase (with Nunchuk) or the wallet configuration file (without Nunchuk). A fallback can be for the same person or someone else:</string>
     <string name="nc_onchain_item1_label_joint">The Trustee keeps the plan’s Magic Phrase and the wallet configuration (BSMS file). At least one is required to recover the wallet.</string>
-    <string name="nc_default_primary_keys_needed">Any %1$d of the %2$d keys are needed. Share the inheritance key and one of your %3$d owner keys.</string>
-    <plurals name="nc_any_of_these_keys_needed">
-        <item quantity="one">Any %1$d of these %2$d keys is needed.</item>
-        <item quantity="other">Any %1$d of these %2$d keys are needed.</item>
-    </plurals>
-    <string name="nc_all_of_these_keys_needed">All %1$d of these keys are needed.</string>
+    <string name="nc_share_inheritance_key_and_owner_key">Share the inheritance key and one of your %1$d owner keys.</string>
     <plurals name="nc_any_of_the_keys_needed">
         <item quantity="one">Any %1$d of the %2$d is needed.</item>
         <item quantity="other">Any %1$d of the %2$d are needed.</item>
@@ -934,4 +929,70 @@
     <string name="nc_self_serve_claim_desc_primary">Self-serve claim using the wallet configuration file (BSMS file) and %1$s.</string>
     <string name="nc_self_serve_claim_desc_primary_joint">Self-serve claim using the Trustee’s wallet configuration file (BSMS file) and %1$s.</string>
     <string name="nc_neither_trustee_nor_beneficiary_can_claim_alone">Neither the Trustee nor the Beneficiary can claim alone.</string>
+    <!-- On-chain primary inheritance setup (NUN-10320, Figma SET-02a / PRI-02 / SET-12) -->
+    <string name="nc_membership_after_timelock_default_primary_desc">%1$s, spending requires two signatures from a 2-of-4 multisig: your 3 keys plus 1 inheritance key.</string>
+    <plurals name="nc_membership_after_timelock_customized_primary_desc">
+        <item quantity="one">After the timelock, spending requires %1$s signature from the %2$d keys you choose.</item>
+        <item quantity="other">After the timelock, spending requires %1$s signatures from the %2$d keys you choose.</item>
+    </plurals>
+    <!-- Index = the number; past the end, the digits are shown. -->
+    <string-array name="nc_number_words">
+        <item>zero</item>
+        <item>one</item>
+        <item>two</item>
+        <item>three</item>
+        <item>four</item>
+        <item>five</item>
+        <item>six</item>
+        <item>seven</item>
+        <item>eight</item>
+        <item>nine</item>
+        <item>ten</item>
+    </string-array>
+    <string name="nc_hardware_key_number">Hardware key #%1$d</string>
+    <string name="nc_inheritance_key">Inheritance key</string>
+    <string name="nc_choose_a_key">Choose a key</string>
+    <string name="nc_choose_a_key_desc">Choose a key you’ve already added, or add a new one.</string>
+    <string name="nc_choose_key">Choose key</string>
+    <string name="nc_verify_backups">Verify backups</string>
+    <string name="nc_verify_backups_desc">Check that each key’s seed phrase backup works.</string>
+    <string name="nc_verify_backups_inheritance_key_required">Inheritance key · required</string>
+    <string name="nc_verify_backups_other_keys">Other keys in this wallet</string>
+    <string name="nc_verify_backups_other_keys_desc">Verify at least one of these: the key you’ll share with the Beneficiary.</string>
+    <string name="nc_verify_backups_no_other_keys">The keys you add for spending before the timelock will show here. Verify at least one of them: the key you’ll share with the Beneficiary.</string>
+    <string name="nc_primary_inheritance_section">Primary inheritance</string>
+    <string name="nc_primary_inheritance_requires_any_keys">Requires any %1$d of %2$d keys</string>
+    <string name="nc_primary_inheritance_requires_all_keys">Requires %1$d of %2$d keys</string>
+    <string name="nc_customize_inheritance_advanced">Customize (advanced)</string>
+    <string name="nc_customize_inheritance">Customize inheritance</string>
+    <string name="nc_customize_inheritance_desc">Choose the keys and required signatures for inheritance.</string>
+    <string name="nc_customize_inheritance_what_you_can_change">What you can change:</string>
+    <string name="nc_customize_inheritance_keys">Keys</string>
+    <string name="nc_customize_inheritance_keys_desc">Use keys you’ve already added or add new ones. The Platform key cannot be used for inheritance.</string>
+    <string name="nc_customize_inheritance_required_signatures">Required signatures</string>
+    <string name="nc_customize_inheritance_required_signatures_desc">Choose how many of the selected keys are needed to spend after the timelock.</string>
+    <string name="nc_customize_inheritance_spending_unchanged">Spending before the timelock stays the same.</string>
+    <string name="nc_customize_inheritance_single_key_hint">If primary inheritance needs only 1 key, that key can be a single point of failure: it alone can spend after the timelock. To avoid this, require multiple keys.</string>
+    <string name="nc_customize_inheritance_final_hint">Once the wallet is created, these choices can’t be changed without creating a new wallet and moving your funds.</string>
+    <string name="nc_keep_current_setup">Keep current setup</string>
+    <string name="nc_primary_inheritance_policy">Primary inheritance policy</string>
+    <string name="nc_cancel_customization">Cancel customization</string>
+    <string name="nc_cancel_customization_desc">Go back to 2 of 4 keys with a separate inheritance key.</string>
+    <string name="nc_draft_key_account_unavailable">This key can’t be used here yet. Choose another key or add a new one.</string>
+    <!-- Configurable on-chain inheritance key guide (Figma KEY-03 / guided default) and KEY-02 -->
+    <string name="nc_default_primary_key_intro_purpose">After the timelock, this key can claim the inheritance together with any one of your 3 other keys.</string>
+    <string name="nc_default_primary_key_intro_share">Later, you’ll share this seed phrase backup and one of your other keys with the person who will use this key. This key can’t claim on its own.</string>
+    <string name="nc_your_primary_inheritance_key">Your primary inheritance key</string>
+    <string name="nc_primary_key_intro_purpose">This key will be used for primary inheritance. After the timelock, it can claim the funds together with the other keys primary inheritance requires.</string>
+    <string name="nc_primary_key_intro_share">Later, you’ll share this seed phrase with the person you choose for primary inheritance.</string>
+    <string name="nc_device_safety_title">Before you use this device</string>
+    <string name="nc_device_safety_risk_bold">A tampered device can expose your seed phrase and any passphrase you enter.</string>
+    <string name="nc_device_safety_risk">Check the device’s source and follow the manufacturer’s official security checks before using it. If anything seems wrong, stop and use another device.</string>
+    <string name="nc_device_safety_limits">These checks reduce risk, but can’t guarantee that a device hasn’t been tampered with.</string>
+    <string name="nc_device_safety_tip_manufacturer">Buy devices directly from the manufacturer when you can.</string>
+    <string name="nc_device_safety_tip_seed">Never use a seed phrase or PIN that came with a new device.</string>
+    <string name="nc_device_safety_tip_suspicious">If a device seems suspicious, don’t use it. Resetting it doesn’t fix possible hardware tampering.</string>
+    <string name="nc_draft_key_wrong_account">This key must be added from Account %1$d. Add Account %1$d to continue.</string>
+    <string name="nc_draft_key_slot_missing">This key could not be placed. Tap Add on the key’s card again.</string>
+    <string name="nc_draft_key_account_not_read">The account of this key could not be read from the device. Try again.</string>
 </resources>

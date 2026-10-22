@@ -34,6 +34,9 @@ import com.nunchuk.android.core.util.toSignerType
 import com.nunchuk.android.model.KeyUpload
 import com.nunchuk.android.model.ClaimOptionsRequest
 import com.nunchuk.android.model.KeyVerifiedRequest
+import com.nunchuk.android.model.VerifiedKeyPayload
+import com.nunchuk.android.model.inheritance.RecoveredKey
+import com.nunchuk.android.model.inheritance.RecoveredKeyRequiredException
 import com.nunchuk.android.model.inheritance.ClaimOption
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStep
@@ -464,6 +467,7 @@ internal class KeyRepositoryImpl @Inject constructor(
         masterSignerId: String,
         verifyType: VerifyType,
         verificationMethod: ClaimOption?,
+        recoveredKey: RecoveredKey?,
     ) {
         val stepInfo =
             membershipDao.getStepByMasterSignerId(
@@ -472,35 +476,35 @@ internal class KeyRepositoryImpl @Inject constructor(
                 masterSignerId = masterSignerId,
                 groupId = groupId
             )
-                ?: throw NullPointerException("Can not mark key verified $masterSignerId")
+        // A configurable on-chain draft is verified against the recovered account: never send it
+        // fingerprint-only. A key picked from those already in the draft has no local step of its
+        // own, which is fine with that account.
+        if (recoveredKey == null) {
+            if (userWalletApiManager.isConfigurableDraft(groupId)) throw RecoveredKeyRequiredException()
+            if (stepInfo == null) throw NullPointerException("Can not mark key verified $masterSignerId")
+        }
         val verifyTypeString = when (verifyType) {
             VerifyType.APP_VERIFIED -> "APP_VERIFIED"
             VerifyType.SELF_VERIFIED -> "SELF_VERIFIED"
             VerifyType.SKIPPED_VERIFICATION -> "SKIPPED_VERIFICATION"
             VerifyType.NONE -> "NONE"
         }
+        val keyId = stepInfo?.keyIdInServer?.ifEmpty { stepInfo.masterSignerId } ?: masterSignerId
+        val request = KeyVerifiedRequest(
+            keyCheckSum = stepInfo?.checkSum.orEmpty(),
+            verificationType = verifyTypeString,
+            verificationMethod = verificationMethod?.name,
+            key = recoveredKey?.let {
+                VerifiedKeyPayload(xfp = it.xfp, derivationPath = it.derivationPath, xpub = it.xpub)
+            },
+        )
         val response = if (groupId.isEmpty()) {
-            userWalletApiManager.walletApi.setKeyVerified(
-                stepInfo.keyIdInServer.ifEmpty { stepInfo.masterSignerId },
-                KeyVerifiedRequest(
-                    stepInfo.checkSum,
-                    verifyTypeString,
-                    verificationMethod?.name
-                )
-            )
+            userWalletApiManager.walletApi.setKeyVerified(keyId, request)
         } else {
-            userWalletApiManager.groupWalletApi.setKeyVerified(
-                groupId,
-                stepInfo.keyIdInServer.ifEmpty { stepInfo.masterSignerId },
-                KeyVerifiedRequest(
-                    stepInfo.checkSum,
-                    verifyTypeString,
-                    verificationMethod?.name
-                )
-            )
+            userWalletApiManager.groupWalletApi.setKeyVerified(groupId, keyId, request)
         }
         if (response.isSuccess) {
-            membershipDao.updateOrInsert(stepInfo.copy(verifyType = verifyType))
+            stepInfo?.let { membershipDao.updateOrInsert(it.copy(verifyType = verifyType)) }
         } else {
             throw response.error
         }

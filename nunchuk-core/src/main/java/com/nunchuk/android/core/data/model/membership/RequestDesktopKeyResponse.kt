@@ -32,5 +32,11 @@ internal data class Request(
     @SerializedName("keys")
     val keys: List<SignerServerDto>? = null,
     @SerializedName("wallet_type")
-    val walletType: String? = null
+    val walletType: String? = null,
+    /** Configurable on-chain draft: the slot this request fills right now (NUN-10320). */
+    @SerializedName("key_index")
+    val keyIndex: Int? = null,
+    /** The account path to import for [keyIndex]; null = pick it from the card's `account_index_by_xfp`. */
+    @SerializedName("derivation_path")
+    val derivationPath: String? = null,
 )

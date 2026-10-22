@@ -32,4 +32,16 @@ data class KeyVerifiedRequest(
      */
     @SerializedName("verification_method")
     val verificationMethod: String? = null,
+    /**
+     * The account recovered from the seed-phrase backup (configurable on-chain drafts, NUN-10320).
+     * One matching account verifies every imported account of that XFP.
+     */
+    @SerializedName("key")
+    val key: VerifiedKeyPayload? = null,
+)
+
+data class VerifiedKeyPayload(
+    @SerializedName("xfp") val xfp: String,
+    @SerializedName("derivation_path") val derivationPath: String,
+    @SerializedName("xpub") val xpub: String,
 )

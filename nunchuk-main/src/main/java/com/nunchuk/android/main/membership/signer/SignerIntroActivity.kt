@@ -140,6 +140,7 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
             }
             is SignerIntroEvent.CreateSoftwareSignerSuccess -> returnSigner(event.signer)
             is SignerIntroEvent.Error -> NCToastMessage(this).showError(event.message)
+            SignerIntroEvent.ReturnGuideCompleted -> relayResult(RESULT_OK, null)
         }
     }
 

@@ -17,11 +17,13 @@ import com.nunchuk.android.core.R
 import com.nunchuk.android.core.signer.SelectSignerArgs
 import com.nunchuk.android.core.signer.SelectSignerBottomSheet
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.signer.OnChainInheritanceGuide
 import com.nunchuk.android.core.signer.SignerIntroFlow
 import com.nunchuk.android.core.signer.SignerIntroRequest
 import com.nunchuk.android.signer.SignerIntroHostEvent
 import com.nunchuk.android.signer.SignerIntroEvent
 import com.nunchuk.android.signer.SignerIntroViewModel
+import com.nunchuk.android.signer.KeyType
 import com.nunchuk.android.signer.toSignerTypeAndTag
 
 /** Owns Compose navigation and sheets; device navigation stays at the Activity boundary. */
@@ -56,17 +58,26 @@ internal fun SignerIntroRoute(
                     is SignerIntroEvent.ShowInheritanceGuide -> navController.navigate(
                         InheritanceKeyIntroDestination(keyType = event.keyType.name)
                     ) { launchSingleTop = true }
+                    is SignerIntroEvent.ShowDeviceSafety -> navController.navigate(
+                        DeviceSafetyNoticeDestination(keyType = event.keyType.name)
+                    ) { launchSingleTop = true }
                     is SignerIntroHostEvent -> onEvent(event)
                 }
             }
         }
     }
 
+    val onChainKey = request.flow as? SignerIntroFlow.OnChainTimelockKey
     NunchukTheme {
         if (viewModel.verifyingKeyType == null) {
             NavHost(
                 navController = navController,
-                startDestination = SignerIntroDestination,
+                // A key picked from those already in the setup only needs the guide (no device).
+                startDestination = if (onChainKey?.guideOnly == true) {
+                    InheritanceKeyIntroDestination(keyType = KeyType.GENERIC_AIRGAP.name)
+                } else {
+                    SignerIntroDestination
+                },
             ) {
                 signerIntroDestination(
                     viewModel = viewModel,
@@ -77,6 +88,7 @@ internal fun SignerIntroRoute(
                 )
                 inheritanceKeyIntroDestination(
                     remainTime = remainTime,
+                    guide = onChainKey?.inheritanceGuide ?: OnChainInheritanceGuide.LEGACY,
                     onMoreClicked = onMore,
                     onContinueClicked = { keyType ->
                         navController.navigate(InheritancePassphraseNoticeDestination(keyType = keyType.name)) {
@@ -88,6 +100,11 @@ internal fun SignerIntroRoute(
                     remainTime = remainTime,
                     onMoreClicked = onMore,
                     onContinueClicked = viewModel::onInheritanceGuideCompleted,
+                )
+                deviceSafetyNoticeDestination(
+                    remainTime = remainTime,
+                    onMoreClicked = onMore,
+                    onContinueClicked = viewModel::onDeviceSafetyCompleted,
                 )
                 checkFirmwareDestination(
                     onChainAddSignerParam = request.deviceParams,

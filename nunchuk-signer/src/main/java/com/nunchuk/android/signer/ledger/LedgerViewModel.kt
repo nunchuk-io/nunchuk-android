@@ -2,6 +2,7 @@ package com.nunchuk.android.signer.ledger
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.model.inheritance.RecoveredKey
 import com.nunchuk.android.core.domain.utils.GetBip32PathUseCase
 import com.nunchuk.android.core.ledger.LedgerDevice
 import com.nunchuk.android.core.push.PushEvent
@@ -67,6 +68,9 @@ sealed class LedgerScanEvent {
     data class OpenSignerInfo(val signer: SingleSigner) : LedgerScanEvent()
 
     data class Error(val message: String) : LedgerScanEvent()
+
+    /** Verify mode: the restored device matched; [key] is null when its path could not be built. */
+    data class Verified(val xfp: String, val key: RecoveredKey?) : LedgerScanEvent()
 }
 
 @HiltViewModel
@@ -133,6 +137,25 @@ class LedgerViewModel @Inject constructor(
      * one lap of a loop: the signer is collected and the next account is requested over the same
      * session, so all of them are created together once the last xpub is in.
      */
+    /** Verify mode: hand back the restored account so the backup is checked against it. */
+    fun onVerifyXpubReceived(masterFingerprint: String, xpub: String) = viewModelScope.launch {
+        val config = _state.value
+        val xfp = masterFingerprint.lowercase()
+        val path = getBip32PathUseCase(
+            GetBip32PathUseCase.Param(
+                index = config.accountIndex,
+                walletType = config.walletType,
+                addressType = config.addressType,
+            )
+        ).getOrNull()
+        _event.emit(
+            LedgerScanEvent.Verified(
+                xfp = xfp,
+                key = path?.let { RecoveredKey(xfp = xfp, derivationPath = it, xpub = xpub) },
+            )
+        )
+    }
+
     fun onXpubReceived(
         masterFingerprint: String,
         xpub: String,

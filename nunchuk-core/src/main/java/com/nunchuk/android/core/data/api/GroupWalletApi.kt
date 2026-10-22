@@ -116,6 +116,14 @@ internal interface GroupWalletApi {
         @Body payload: SignerServerDto,
     ): Data<SignerServerDto>
 
+    /** Imports one account into a configurable draft for the open `request-add-key` [requestId]. */
+    @POST("/v1.1/group-wallets/groups/{group_id}/draft-wallets/add-key")
+    suspend fun addKeyForRequest(
+        @Path("group_id") groupId: String,
+        @Query("request_id") requestId: String,
+        @Body payload: SignerServerDto,
+    ): Data<SignerServerDto>
+
 
     @POST("/v1.1/group-wallets/groups/{group_id}/server-keys")
     suspend fun createGroupServerKey(

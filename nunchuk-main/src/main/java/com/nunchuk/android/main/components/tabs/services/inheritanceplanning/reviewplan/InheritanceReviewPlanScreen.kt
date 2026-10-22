@@ -89,7 +89,7 @@ import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.Inh
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceSetupFlowType
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.PrimaryInheritanceInfo
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.primaryInheritanceHeading
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.primaryKeysNeededSentence
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.primaryKeysToShareSentence
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.fallbackSettingsSummaryText
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.releaseScheduleBufferPeriodSummaryText
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.beneficiaryschedules.InheritanceBeneficiaryScheduleCardData
@@ -885,7 +885,7 @@ private fun PrimaryInheritanceReviewSection(info: PrimaryInheritanceInfo) {
             editable = false
         )
     }
-    primaryKeysNeededSentence(info)?.let { sentence ->
+    primaryKeysToShareSentence(info)?.let { sentence ->
         Text(
             text = sentence,
             modifier = Modifier.padding(top = 12.dp),

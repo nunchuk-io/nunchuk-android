@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
+import com.nunchuk.android.core.signer.OnChainInheritanceGuide
 import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.compose.HighlightMessageType
 import com.nunchuk.android.compose.NcHintMessage
@@ -50,6 +51,7 @@ data class InheritancePassphraseNoticeDestination(val keyType: String)
 
 fun NavGraphBuilder.inheritanceKeyIntroDestination(
     remainTime: Int = 0,
+    guide: OnChainInheritanceGuide = OnChainInheritanceGuide.LEGACY,
     onMoreClicked: () -> Unit = {},
     onContinueClicked: (KeyType) -> Unit = {},
 ) {
@@ -57,6 +59,7 @@ fun NavGraphBuilder.inheritanceKeyIntroDestination(
         val keyType = KeyType.valueOf(backStackEntry.toRoute<InheritanceKeyIntroDestination>().keyType)
         InheritanceKeyIntroContent(
             remainTime = remainTime,
+            guide = guide,
             onMoreClicked = onMoreClicked,
             onContinueClicked = { onContinueClicked(keyType) },
         )
@@ -81,6 +84,7 @@ fun NavGraphBuilder.inheritancePassphraseNoticeDestination(
 @Composable
 private fun InheritanceKeyIntroContent(
     remainTime: Int = 0,
+    guide: OnChainInheritanceGuide = OnChainInheritanceGuide.LEGACY,
     onMoreClicked: () -> Unit = {},
     onContinueClicked: () -> Unit = {},
 ) {
@@ -131,13 +135,24 @@ private fun InheritanceKeyIntroContent(
             ) {
                 Text(
                     modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
-                    text = stringResource(R.string.nc_your_inheritance_key),
+                    text = stringResource(
+                        if (guide == OnChainInheritanceGuide.PRIMARY) R.string.nc_your_primary_inheritance_key
+                        else R.string.nc_your_inheritance_key
+                    ),
                     style = NunchukTheme.typography.heading
                 )
                 Text(
                     modifier = Modifier.padding(16.dp),
                     text = buildAnnotatedString {
-                        append(stringResource(R.string.nc_inheritance_key_intro_purpose))
+                        append(
+                            stringResource(
+                                when (guide) {
+                                    OnChainInheritanceGuide.LEGACY -> R.string.nc_inheritance_key_intro_purpose
+                                    OnChainInheritanceGuide.DEFAULT_PRIMARY -> R.string.nc_default_primary_key_intro_purpose
+                                    OnChainInheritanceGuide.PRIMARY -> R.string.nc_primary_key_intro_purpose
+                                }
+                            )
+                        )
                         append("\n\n")
                         withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
                             append(stringResource(R.string.nc_inheritance_key_intro_seed_phrase_bold))
@@ -145,7 +160,15 @@ private fun InheritanceKeyIntroContent(
                         append(" ")
                         append(stringResource(R.string.nc_inheritance_key_intro_seed_phrase))
                         append("\n\n")
-                        append(stringResource(R.string.nc_inheritance_key_intro_share_backup))
+                        append(
+                            stringResource(
+                                when (guide) {
+                                    OnChainInheritanceGuide.LEGACY -> R.string.nc_inheritance_key_intro_share_backup
+                                    OnChainInheritanceGuide.DEFAULT_PRIMARY -> R.string.nc_default_primary_key_intro_share
+                                    OnChainInheritanceGuide.PRIMARY -> R.string.nc_primary_key_intro_share
+                                }
+                            )
+                        )
                     },
                     style = NunchukTheme.typography.body
                 )
@@ -158,4 +181,10 @@ private fun InheritanceKeyIntroContent(
 @Composable
 private fun InheritanceKeyIntroContentPreview() {
     InheritanceKeyIntroContent()
+}
+
+@PreviewLightDark
+@Composable
+private fun PrimaryInheritanceKeyIntroContentPreview() {
+    InheritanceKeyIntroContent(guide = OnChainInheritanceGuide.PRIMARY)
 }

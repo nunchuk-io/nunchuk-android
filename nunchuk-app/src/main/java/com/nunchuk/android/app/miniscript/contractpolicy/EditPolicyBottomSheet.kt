@@ -30,7 +30,7 @@ import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.R
-import com.nunchuk.android.wallet.personal.components.add.KeyManagementSection
+import com.nunchuk.android.compose.NcRequiredKeysCounter
 import kotlinx.coroutines.launch
 
 private const val MAX_REQUIRED_KEYS = 20
@@ -158,7 +158,7 @@ fun KeysAndRequiredKeysScreen(
         }
 
         if (showRequiredKeys) {
-            KeyManagementSection(
+            NcRequiredKeysCounter(
                 title = stringResource(id = R.string.nc_miniscript_required_keys),
                 description = stringResource(id = R.string.nc_miniscript_num_signatures_required),
                 value = requiredKeys,
@@ -174,7 +174,7 @@ fun KeysAndRequiredKeysScreen(
         }
 
         if (showTotalKeys) {
-            KeyManagementSection(
+            NcRequiredKeysCounter(
                 title = stringResource(id = R.string.nc_miniscript_total_number_of_keys),
                 description = stringResource(id = R.string.nc_miniscript_total_number_of_pubkeys),
                 value = totalKeys,

@@ -106,4 +106,5 @@ internal fun DraftWalletDto.toDraftWalletModel(): DraftWallet = DraftWallet(
     onChainInheritancePolicy = onChainInheritancePolicy?.toModel(),
     inheritanceCards = cards.orEmpty().mapNotNull { it.toModel() },
     validationErrors = validationErrors.orEmpty().map { it.toModel() },
+    finalized = finalized == true,
 )

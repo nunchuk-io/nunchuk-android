@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.signer.components.add
 
+import com.nunchuk.android.core.signer.toRecoveredKey
 import com.nunchuk.android.core.util.resolve
 import android.app.Activity
 import android.content.Intent
@@ -247,6 +248,7 @@ class AddAirgapSignerFragment : BaseCameraFragment<ViewBinding>(),
                         groupId = activity.groupId,
                         masterSignerId = signer.masterFingerprint,
                         verificationMethod = onChainAddSignerParam.claimOption,
+                        recoveredKey = signer.toRecoveredKey(),
                     )
                 }
             } else {

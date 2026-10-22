@@ -18,8 +18,11 @@ class SignerIntroCoordinator(val request: SignerIntroRequest) {
         is SignerIntroFlow.ClaimInheritance, is SignerIntroFlow.VerifyBackup -> true
     }
 
-    private val isAddingInheritanceKey = isInheritanceSetup ||
-        (flow as? SignerIntroFlow.OnChainTimelockKey)?.isInheritanceKey == true
+    private val onChainKey = flow as? SignerIntroFlow.OnChainTimelockKey
+    private val isAddingInheritanceKey = isInheritanceSetup || onChainKey?.isInheritanceKey == true
+
+    /** Guide-only run: the inheritance guide is the whole flow. */
+    val isGuideOnly: Boolean = onChainKey?.guideOnly == true
 
     /**
      * Adding an inheritance key with a seed phrase shows the seed-phrase and passphrase guides first;
@@ -27,15 +30,25 @@ class SignerIntroCoordinator(val request: SignerIntroRequest) {
      * back up for the Beneficiary, so it goes straight on.
      */
     fun select(keyType: KeyType): SignerIntroAction =
-        if (isAddingInheritanceKey && keyType.hasSeedPhrase) {
+        if (isAddingInheritanceKey && keyType.hasSeedPhrase && onChainKey?.showInheritanceGuide != false) {
             SignerIntroAction.ShowInheritanceGuide(keyType)
         } else guideCompleted(keyType)
 
     /** Continue after the inheritance guides, without showing them a second time. */
     fun guideCompleted(keyType: KeyType): SignerIntroAction {
+        if (isGuideOnly) return SignerIntroAction.ReturnGuideCompleted
         if (shouldOfferExisting(keyType)) return SignerIntroAction.OfferExisting(keyType)
-        return openNew(keyType)
+        return openNewDevice(keyType)
     }
+
+    /** "Before you use this device" is done; open the device. */
+    fun deviceSafetyCompleted(keyType: KeyType): SignerIntroAction = openNew(keyType)
+
+    /** A new device goes through the device-safety notice first when the caller asks for it. */
+    private fun openNewDevice(keyType: KeyType): SignerIntroAction =
+        if (onChainKey?.showDeviceSafety == true && keyType.isDevice) {
+            SignerIntroAction.ShowDeviceSafety(keyType)
+        } else openNew(keyType)
 
     private fun shouldOfferExisting(keyType: KeyType): Boolean = when (flow) {
         SignerIntroFlow.AddKey, SignerIntroFlow.AddWalletKey,
@@ -59,7 +72,7 @@ class SignerIntroCoordinator(val request: SignerIntroRequest) {
         if (keyType == KeyType.JADE && flow is SignerIntroFlow.ClaimInheritance && !flow.isOnChain) {
             // This guide completes the claim hand-off itself, like the firmware guide below.
             jadeGuide()
-        } else openNew(keyType)
+        } else openNewDevice(keyType)
 
     fun firmwareChecked(device: SignerFirmwareDevice): SignerDeviceAction = when (device) {
         SignerFirmwareDevice.COLDCARD -> SignerIntroAction.Coldcard(returnResult = true)
@@ -150,6 +163,8 @@ sealed interface HardwareMode {
 
 sealed interface SignerIntroAction {
     data class ShowInheritanceGuide(val keyType: KeyType) : SignerIntroAction
+    data class ShowDeviceSafety(val keyType: KeyType) : SignerIntroAction
+    data object ReturnGuideCompleted : SignerIntroAction
     data class OfferExisting(val keyType: KeyType) : SignerIntroAction
     data class CheckFirmware(val device: SignerFirmwareDevice) : SignerIntroAction
     data class Tapsigner(val returnResult: Boolean) : SignerDeviceAction
@@ -175,6 +190,10 @@ enum class SignerHardwareDevice(val tag: SignerTag) {
 enum class SignerFirmwareDevice(val tag: SignerTag) {
     COLDCARD(SignerTag.COLDCARD), JADE(SignerTag.JADE),
 }
+
+/** A physical key the owner touches: software keys and the Platform key are not. */
+private val KeyType.isDevice: Boolean
+    get() = this != KeyType.SOFTWARE && this != KeyType.PLATFORM_KEY
 
 /** TAPSIGNER never exposes its seed, and the platform key lives on the server. */
 private val KeyType.hasSeedPhrase: Boolean

@@ -26,6 +26,8 @@ data class DraftWallet(
     val inheritanceCards: List<DraftInheritanceCard> = emptyList(),
     /** Inline issues. Empty does not on its own mean setup is complete — see `finalized`. */
     val validationErrors: List<InheritanceValidationError> = emptyList(),
+    /** Backend readiness to create the wallet (`finalized`); no validation errors alone is not enough. */
+    val finalized: Boolean = false,
 )
 
 data class DraftWalletTimelock(
