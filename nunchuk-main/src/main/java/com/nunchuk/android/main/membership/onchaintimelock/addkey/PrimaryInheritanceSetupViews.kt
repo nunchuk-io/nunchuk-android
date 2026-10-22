@@ -60,14 +60,18 @@ internal fun afterTimelockPrimaryDescription(primary: PrimaryInheritanceConditio
             style = bold,
         )
     }
-    // SET-08b / PRI-07: the whole sentence is bold, and the signature count is spelled out.
-    val text = pluralStringResource(
-        R.plurals.nc_membership_after_timelock_customized_primary_desc,
+    // SET-08b / SET-16 / KEY-08 / PRI-07: the signature count is spelled out.
+    val prefix = stringResource(R.string.nc_membership_after_the_timelock)
+    val text = stringResource(
+        R.string.nc_membership_after_timelock_customized_primary_desc,
+        prefix,
+        pluralStringResource(R.plurals.nc_customized_primary_signatures, primary.m, numberInWords(primary.m)),
         primary.m,
-        numberInWords(primary.m),
         primary.n,
+        pluralStringResource(R.plurals.nc_customized_primary_selected_keys, primary.n, primary.n),
     )
-    return AnnotatedString(text, spanStyles = listOf(AnnotatedString.Range(bold, 0, text.length)))
+    val start = text.indexOf(prefix).coerceAtLeast(0)
+    return AnnotatedString(text, spanStyles = listOf(AnnotatedString.Range(bold, start, start + prefix.length)))
 }
 
 /** "two" for 2; the digits past the words the resources spell out. */

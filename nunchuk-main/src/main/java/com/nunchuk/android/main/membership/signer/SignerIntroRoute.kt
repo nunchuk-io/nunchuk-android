@@ -98,6 +98,7 @@ internal fun SignerIntroRoute(
                 )
                 inheritancePassphraseNoticeDestination(
                     remainTime = remainTime,
+                    guide = onChainKey?.inheritanceGuide ?: OnChainInheritanceGuide.LEGACY,
                     onMoreClicked = onMore,
                     onContinueClicked = viewModel::onInheritanceGuideCompleted,
                 )

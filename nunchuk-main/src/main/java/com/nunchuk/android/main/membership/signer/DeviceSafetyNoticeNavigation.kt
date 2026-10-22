@@ -64,7 +64,7 @@ private fun DeviceSafetyNoticeContent(
             modifier = Modifier.navigationBarsPadding(),
             topBar = {
                 NcImageAppBar(
-                    backgroundRes = R.drawable.bg_importance_passphrase_notice_illustration,
+                    backgroundRes = R.drawable.bg_device_safety_notice_illustration,
                     title = if (remainTime <= 0) "" else stringResource(id = R.string.nc_estimate_remain_time, remainTime),
                     actions = {
                         IconButton(onClick = onMoreClicked) {

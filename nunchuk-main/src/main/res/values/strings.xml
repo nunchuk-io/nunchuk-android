@@ -590,11 +590,14 @@
     <string name="nc_before_timelock">Before the timelock: </string>
     <string name="nc_after_timelock">After the timelock: </string>
     <string name="nc_before_timelock_desc">spending requires two signatures from a 2-of-4 multisig.</string>
-    <string name="nc_after_timelock_desc">spending only requires one signature from a 1-of-3 multisig.</string>
     <string name="nc_before_timelock_group_desc">spending requires three signatures from a 3-of-5 multisig.</string>
     <string name="nc_after_timelock_group_desc">spending requires two signatures from a 2-of-4 multisig.</string>
-    <string name="nc_select_inheritance_key_instruction">Among your keys, select one key to be the inheritance key.</string>
     <string name="nc_select_inheritance_key_group_instruction">Among your keys, select two keys to be the inheritance keys.</string>
+    <string name="nc_onchain_wallet_spending_paths_with_fallback_desc">Your new wallet will have two spending paths, before and after the timelock, plus an optional path for each fallback:</string>
+    <string name="nc_after_timelock_primary_inheritance_desc">spending requires two signatures from a 2-of-4 multisig: your 3 keys plus 1 new inheritance key.</string>
+    <string name="nc_after_each_fallback_timelock">After each fallback timelock</string>
+    <string name="nc_after_each_fallback_timelock_desc">(optional): that fallback’s own keys can claim, such as 1 of 1 or any 2 of 3. Fallbacks unlock later, in order.</string>
+    <string name="nc_onchain_add_keys_and_timelock_instruction">Next, add the keys to the spending paths and configure the timelock.</string>
 
     <!-- Check Firmware Strings -->
     <string name="nc_check_coldcard_firmware_title">Check your ColdCard firmware</string>
@@ -931,9 +934,15 @@
     <string name="nc_neither_trustee_nor_beneficiary_can_claim_alone">Neither the Trustee nor the Beneficiary can claim alone.</string>
     <!-- On-chain primary inheritance setup (NUN-10320, Figma SET-02a / PRI-02 / SET-12) -->
     <string name="nc_membership_after_timelock_default_primary_desc">%1$s, spending requires two signatures from a 2-of-4 multisig: your 3 keys plus 1 inheritance key.</string>
-    <plurals name="nc_membership_after_timelock_customized_primary_desc">
-        <item quantity="one">After the timelock, spending requires %1$s signature from the %2$d keys you choose.</item>
-        <item quantity="other">After the timelock, spending requires %1$s signatures from the %2$d keys you choose.</item>
+    <!-- %1$s = "After the timelock" (bold), %2$s = nc_customized_primary_signatures, %3$d-of-%4$d, %5$s = nc_customized_primary_selected_keys -->
+    <string name="nc_membership_after_timelock_customized_primary_desc">%1$s, spending requires %2$s from a %3$d-of-%4$d multisig: %5$s.</string>
+    <plurals name="nc_customized_primary_signatures">
+        <item quantity="one">%1$s signature</item>
+        <item quantity="other">%1$s signatures</item>
+    </plurals>
+    <plurals name="nc_customized_primary_selected_keys">
+        <item quantity="one">the %1$d key you selected</item>
+        <item quantity="other">the %1$d keys you selected</item>
     </plurals>
     <!-- Index = the number; past the end, the digits are shown. -->
     <string-array name="nc_number_words">
@@ -985,6 +994,8 @@
     <string name="nc_your_primary_inheritance_key">Your primary inheritance key</string>
     <string name="nc_primary_key_intro_purpose">This key will be used for primary inheritance. After the timelock, it can claim the funds together with the other keys primary inheritance requires.</string>
     <string name="nc_primary_key_intro_share">Later, you’ll share this seed phrase with the person you choose for primary inheritance.</string>
+    <string name="nc_onchain_passphrase_notice_advice">We strongly advise against using a passphrase for inheritance keys. It significantly complicates recovery and increases the risk of errors for whoever claims. It also doesn’t protect against a compromised device.</string>
+    <string name="nc_onchain_passphrase_notice_share">If you still choose to use a passphrase, recovering this key requires it along with the seed phrase backup. Share them together.</string>
     <string name="nc_device_safety_title">Before you use this device</string>
     <string name="nc_device_safety_risk_bold">A tampered device can expose your seed phrase and any passphrase you enter.</string>
     <string name="nc_device_safety_risk">Check the device’s source and follow the manufacturer’s official security checks before using it. If anything seems wrong, stop and use another device.</string>

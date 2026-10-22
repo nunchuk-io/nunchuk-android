@@ -38,7 +38,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.NcCircleImage
@@ -121,7 +120,7 @@ internal fun DraftSpendingCard(
 /**
  * One primary-inheritance slot (SET-02 / SET-15 / SET-08b / KEY-08 / PRI-07). Empty: Add. Filled:
  * Verify until its backup is checked (amber), then green; a key a validation error names is circled
- * in red. A customized slot can always be changed (Change). The guided default's inheritance key
+ * in red, and a flagged customized slot offers Change (PRI-07). The guided default's inheritance key
  * keeps Verify while [isVerificationPending] — it is the way into Verify backups, where the owner
  * key the Beneficiary gets is verified too.
  */
@@ -133,6 +132,8 @@ internal fun DraftPrimarySlotCard(
     isCustomized: Boolean,
     isHighlighted: Boolean,
     isVerificationPending: Boolean = false,
+    /** Every primary key is verified: a customized slot drops its Verified label (SET-16). */
+    isPrimaryVerified: Boolean = false,
     isDisabled: Boolean = false,
     onAddClicked: (DraftSetupCard, DraftSetupSlot) -> Unit = { _, _ -> },
     onVerifyClicked: (DraftSetupCard, DraftSetupSlot) -> Unit = { _, _ -> },
@@ -173,10 +174,6 @@ internal fun DraftPrimarySlotCard(
             title = signer.name,
             signer = signer,
             accountChips = listOf(accountChip(slot, 0)),
-            // Change is always offered on a customized slot; the button slot shows it for a flagged key.
-            footer = if (isCustomized && !isHighlighted && !isDisabled) {
-                { ChangeLink { onAddClicked(card, slot) } }
-            } else null,
         ) {
             when {
                 isHighlighted && isCustomized -> SmallOutlineButton(
@@ -189,7 +186,7 @@ internal fun DraftPrimarySlotCard(
                     enabled = !isDisabled,
                 ) { onVerifyClicked(card, slot) }
 
-                isCustomized -> CheckedLabel(stringResource(R.string.nc_verified))
+                isCustomized -> if (!isPrimaryVerified) CheckedLabel(stringResource(R.string.nc_verified))
                 else -> CheckedLabel(stringResource(R.string.nc_added))
             }
         }
@@ -218,7 +215,6 @@ private fun DraftKeyRow(
     title: String,
     signer: SignerModel?,
     accountChips: List<AccountChip>,
-    footer: (@Composable () -> Unit)? = null,
     trailing: @Composable () -> Unit,
 ) {
     Row(
@@ -254,21 +250,9 @@ private fun DraftKeyRow(
                     style = NunchukTheme.typography.bodySmall,
                 )
             }
-            footer?.invoke()
         }
         trailing()
     }
-}
-
-@Composable
-private fun ChangeLink(onClick: () -> Unit) {
-    Text(
-        modifier = Modifier
-            .padding(top = 4.dp)
-            .clickable(onClick = onClick),
-        text = stringResource(R.string.nc_change),
-        style = NunchukTheme.typography.titleSmall.copy(textDecoration = TextDecoration.Underline),
-    )
 }
 
 @Composable
@@ -391,6 +375,8 @@ internal fun VerifyBackupsScreen(
     remainingTime: Int,
     inheritanceKeys: List<DraftSetupSlot>,
     ownerKeys: List<DraftSetupSlot>,
+    /** Every account of each owner device in this setup, by XFP (VER-02: Acct 0 / Acct 1). */
+    ownerAccounts: Map<String, List<Int>> = emptyMap(),
     onVerifyClicked: (SignerModel) -> Unit = {},
     onMoreClicked: () -> Unit = {},
     onDone: () -> Unit = {},
@@ -441,7 +427,7 @@ internal fun VerifyBackupsScreen(
                 text = stringResource(R.string.nc_verify_backups_inheritance_key_required),
                 style = NunchukTheme.typography.title,
             )
-            inheritanceKeys.forEach { VerifyBackupRow(it, onVerifyClicked) }
+            inheritanceKeys.forEach { VerifyBackupRow(it, onVerifyClicked = onVerifyClicked) }
             Text(text = stringResource(R.string.nc_verify_backups_other_keys), style = NunchukTheme.typography.title)
             Text(
                 text = stringResource(
@@ -450,18 +436,26 @@ internal fun VerifyBackupsScreen(
                 style = NunchukTheme.typography.body,
                 color = MaterialTheme.colorScheme.textSecondary,
             )
-            ownerKeys.forEach { VerifyBackupRow(it, onVerifyClicked) }
+            ownerKeys.forEach { slot ->
+                VerifyBackupRow(slot, ownerAccounts[slot.signer?.fingerPrint?.lowercase()].orEmpty(), onVerifyClicked)
+            }
         }
     }
 }
 
 @Composable
-private fun VerifyBackupRow(slot: DraftSetupSlot, onVerifyClicked: (SignerModel) -> Unit) {
+private fun VerifyBackupRow(
+    slot: DraftSetupSlot,
+    accounts: List<Int> = emptyList(),
+    onVerifyClicked: (SignerModel) -> Unit,
+) {
     val signer = slot.signer ?: return
     DraftKeyRow(
         title = signer.name,
         signer = signer,
-        accountChips = listOf(AccountChip(stringResource(R.string.nc_acct_x, signer.index), isPlaceholder = false)),
+        accountChips = accounts.ifEmpty { listOf(signer.index) }.map {
+            AccountChip(stringResource(R.string.nc_acct_x, it), isPlaceholder = false)
+        },
     ) {
         if (slot.isVerified) {
             CheckedLabel(stringResource(R.string.nc_verified))

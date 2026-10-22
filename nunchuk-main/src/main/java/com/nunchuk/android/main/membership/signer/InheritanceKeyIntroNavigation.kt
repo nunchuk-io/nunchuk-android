@@ -68,6 +68,7 @@ fun NavGraphBuilder.inheritanceKeyIntroDestination(
 
 fun NavGraphBuilder.inheritancePassphraseNoticeDestination(
     remainTime: Int = 0,
+    guide: OnChainInheritanceGuide = OnChainInheritanceGuide.LEGACY,
     onMoreClicked: () -> Unit = {},
     onContinueClicked: (KeyType) -> Unit = {},
 ) {
@@ -75,6 +76,7 @@ fun NavGraphBuilder.inheritancePassphraseNoticeDestination(
         val keyType = KeyType.valueOf(backStackEntry.toRoute<InheritancePassphraseNoticeDestination>().keyType)
         ImportantNoticePassphraseContent(
             remainTime = remainTime,
+            guide = guide,
             onMoreClicked = onMoreClicked,
             onContinueClicked = { onContinueClicked(keyType) },
         )

@@ -1008,20 +1008,10 @@ private fun LazyListScope.configurableDraftItems(
             }
         }
     }
-    item(key = "pull_to_refresh") {
-        Text(
-            modifier = Modifier
-                .padding(top = 12.dp)
-                .fillMaxWidth(),
-            text = stringResource(R.string.nc_membership_pull_to_refresh_key_statuses),
-            style = NunchukTheme.typography.bodySmall,
-            textAlign = TextAlign.Center
-        )
-    }
     item(key = "primary_header") {
         Column {
             Text(
-                modifier = Modifier.padding(top = 16.dp, bottom = 16.dp),
+                modifier = Modifier.padding(bottom = 16.dp),
                 text = afterTimelockPrimaryDescription(primary),
                 style = NunchukTheme.typography.body,
             )
@@ -1038,6 +1028,7 @@ private fun LazyListScope.configurableDraftItems(
                     isCustomized = uiState.isPrimaryCustomized,
                     isHighlighted = slot.keyIndex in highlighted,
                     isVerificationPending = !uiState.isRequiredVerificationDone,
+                    isPrimaryVerified = uiState.primarySlots.all { it.isVerified },
                     isDisabled = isDisabled || isLimited,
                     onAddClicked = onDraftSlotAddClicked,
                     onVerifyClicked = onDraftSlotVerifyClicked,
@@ -1284,6 +1275,11 @@ fun OnChainTimelockAddKeyListContent(
                 remainingTime = remainingTime,
                 inheritanceKeys = uiState.primarySlots.filter { it.isFilled },
                 ownerKeys = uiState.ownerKeys,
+                ownerAccounts = uiState.spendingCards
+                    .flatMap { it.slots }
+                    .mapNotNull { slot -> slot.signer?.let { it.fingerPrint.lowercase() to it.index } }
+                    .groupBy({ it.first }, { it.second })
+                    .mapValues { (_, accounts) -> accounts.distinct().sorted() },
                 onVerifyClicked = onVerifyDraftKey,
                 onMoreClicked = onMoreClicked,
                 onDone = onVerifyBackupsDone,
