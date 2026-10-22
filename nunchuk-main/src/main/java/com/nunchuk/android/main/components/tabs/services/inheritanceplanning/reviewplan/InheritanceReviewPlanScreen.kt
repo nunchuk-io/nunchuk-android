@@ -76,6 +76,8 @@ import com.nunchuk.android.compose.whisper
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.compose.showNunchukSnackbar
 import com.nunchuk.android.core.util.copySensitiveToClipboard
+import com.nunchuk.android.model.InheritanceKey
+import com.nunchuk.android.model.inheritance.InheritanceSection
 import kotlinx.coroutines.launch
 import com.nunchuk.android.main.BuildConfig
 import com.nunchuk.android.main.R
@@ -421,7 +423,7 @@ fun InheritanceReviewPlanScreenContent(
                                         SpecialDetailPlanItem(
                                             iconId = R.drawable.ic_key,
                                             title = stringResource(R.string.nc_main_inheritance_key_number, index + 1),
-                                            subTitle = stringResource(R.string.nc_primary_key_account_xfp, key.uppercase()),
+                                            subTitle = stringResource(R.string.nc_primary_key_account_xfp, key.xfp.uppercase()),
                                             content = stringResource(R.string.nc_12_or_24_word_inheritance_key_backup),
                                             editable = false
                                         )
@@ -441,7 +443,7 @@ fun InheritanceReviewPlanScreenContent(
                                                 SpecialDetailPlanItem(
                                                     iconId = R.drawable.ic_key,
                                                     title = pluralStringResource(R.plurals.nc_inheritance_key, 1),
-                                                    subTitle = stringResource(R.string.nc_primary_key_account_xfp, key.uppercase()),
+                                                    subTitle = stringResource(R.string.nc_primary_key_account_xfp, key.xfp.uppercase()),
                                                     content = stringResource(R.string.nc_inheritance_key_backup_or_seed_desc),
                                                     actionText = stringResource(id = R.string.nc_text_info),
                                                     editable = true,
@@ -456,7 +458,7 @@ fun InheritanceReviewPlanScreenContent(
                                                 SpecialDetailPlanItem(
                                                     iconId = R.drawable.ic_key,
                                                     title = pluralStringResource(R.plurals.nc_inheritance_key, 1),
-                                                    subTitle = stringResource(R.string.nc_primary_key_account_xfp, key.uppercase()),
+                                                    subTitle = stringResource(R.string.nc_primary_key_account_xfp, key.xfp.uppercase()),
                                                     content = stringResource(R.string.nc_12_or_24_word_inheritance_key_backup),
                                                     actionText = stringResource(id = R.string.nc_text_info),
                                                     editable = true,
@@ -863,12 +865,13 @@ private fun PrimaryInheritanceReviewSection(info: PrimaryInheritanceInfo) {
         style = NunchukTheme.typography.title,
         color = Color.White
     )
-    info.inheritanceKeyXfps.forEachIndexed { index, xfp ->
+    info.inheritanceKeys.forEachIndexed { index, key ->
         Spacer(modifier = Modifier.height(12.dp))
         SpecialDetailPlanItem(
             iconId = R.drawable.ic_key,
-            title = stringResource(R.string.nc_main_inheritance_key_number, index + 1),
-            subTitle = stringResource(R.string.nc_primary_key_account_xfp, xfp.uppercase()),
+            // The server generates the label ("Inheritance key 1"); the index is only a fallback.
+            title = key.name.ifBlank { stringResource(R.string.nc_main_inheritance_key_number, index + 1) },
+            subTitle = stringResource(R.string.nc_primary_key_account_xfp, key.xfp.uppercase()),
             content = stringResource(R.string.nc_seed_phrase_of_this_key_backed_up),
             editable = false
         )
@@ -1486,7 +1489,9 @@ private fun InheritanceReviewPlanOnChainDefaultPrimaryPreview() {
             isCustomized = false,
             requiredSignatures = 2,
             totalKeys = 4,
-            inheritanceKeyXfps = listOf("6b35f210"),
+            inheritanceKeys = listOf(
+                InheritanceKey(xfp = "6b35f210", section = InheritanceSection.PRIMARY, name = "Inheritance key 1"),
+            ),
         ),
         state = InheritanceReviewPlanState(walletName = "My Wallet"),
         planFlow = InheritancePlanFlow.SETUP,
@@ -1508,7 +1513,11 @@ private fun InheritanceReviewPlanOnChainCustomizedPrimaryPreview() {
             isCustomized = true,
             requiredSignatures = 2,
             totalKeys = 3,
-            inheritanceKeyXfps = listOf("79eb35f4", "f91b570c", "8e41b2c7"),
+            inheritanceKeys = listOf(
+                InheritanceKey(xfp = "79eb35f4", section = InheritanceSection.PRIMARY, name = "Inheritance key 1"),
+                InheritanceKey(xfp = "f91b570c", section = InheritanceSection.PRIMARY, name = "Inheritance key 2"),
+                InheritanceKey(xfp = "8e41b2c7", section = InheritanceSection.PRIMARY, name = "Inheritance key 3"),
+            ),
         ),
         state = InheritanceReviewPlanState(walletName = "My Wallet"),
         planFlow = InheritancePlanFlow.SETUP,

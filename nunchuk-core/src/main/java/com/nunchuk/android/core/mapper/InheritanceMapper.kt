@@ -12,6 +12,8 @@ import com.nunchuk.android.core.data.model.membership.InheritanceKeyDto
 import com.nunchuk.android.core.data.model.membership.InheritanceNotificationPreferencesDto
 import com.nunchuk.android.core.data.model.membership.InheritanceStageDto
 import com.nunchuk.android.core.data.model.membership.KeyOriginDto
+import com.nunchuk.android.core.data.model.membership.toInheritanceSection
+import com.nunchuk.android.core.data.model.membership.toModel
 import com.nunchuk.android.model.Inheritance
 import com.nunchuk.android.model.InheritanceClaimingInit
 import com.nunchuk.android.model.InheritanceKey
@@ -69,6 +71,7 @@ internal fun InheritanceDto.toInheritance(): Inheritance {
         fallbackPolicy = fallbackPolicy?.toInheritancePlanFallbackPolicy(),
         stages = stages?.map { it.toInheritancePlanStage() }.orEmpty(),
         beneficiaries = beneficiaries?.map { it.toInheritancePlanBeneficiary() }.orEmpty(),
+        onChainInheritancePolicy = onChainInheritancePolicy?.toModel(),
     )
 }
 
@@ -102,13 +105,17 @@ internal fun BeneficiaryNotificationDto.toEmailNotificationSettings(): EmailNoti
         email = email.orEmpty(),
         notifyOnTimelockExpiry = notifyTimelockExpires ?: false,
         notifyOnWalletChanges = notifyWalletChanges ?: false,
-        includeWalletConfiguration = includeWalletConfig ?: false
+        includeWalletConfiguration = includeWalletConfig ?: false,
+        notifyFallbacks = notifyFallbacks,
     )
 }
 
 private fun InheritanceKeyDto.toInheritanceKey(): InheritanceKey {
     return InheritanceKey(
-        xfp = xfp.orEmpty()
+        xfp = xfp.orEmpty(),
+        section = section.toInheritanceSection(),
+        name = name.orEmpty(),
+        fallbackIndex = fallbackIndex,
     )
 }
 

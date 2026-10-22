@@ -42,7 +42,9 @@ import com.nunchuk.android.core.data.model.InheritanceClaimCreateTransactionRequ
 import com.nunchuk.android.core.data.model.InheritanceClaimDownloadBackupRequest
 import com.nunchuk.android.core.data.model.InheritanceClaimStatusRequest
 import com.nunchuk.android.core.data.model.InitWalletConfigRequest
+import com.nunchuk.android.core.data.model.PrimaryInheritancePayload
 import com.nunchuk.android.core.data.model.UpdateDraftWalletPayload
+import com.nunchuk.android.core.data.model.UpdatePrimaryInheritancePayload
 import com.nunchuk.android.core.data.model.LockdownUpdateRequest
 import com.nunchuk.android.core.data.model.MarkRecoverStatusRequest
 import com.nunchuk.android.core.data.model.QuestionsAndAnswerRequest
@@ -187,6 +189,7 @@ import com.nunchuk.android.model.inheritance.InheritancePlanBeneficiary
 import com.nunchuk.android.model.inheritance.InheritancePlanExpandedInstallment
 import com.nunchuk.android.model.inheritance.InheritancePlanFallbackPolicy
 import com.nunchuk.android.model.inheritance.InheritancePlanStage
+import com.nunchuk.android.model.inheritance.OnChainInheritancePolicyType
 import com.nunchuk.android.model.inheritance.InheritanceNotificationSettings
 import com.nunchuk.android.model.isAddInheritanceKey
 import com.nunchuk.android.model.isAllowSetupInheritance
@@ -853,7 +856,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                             email = setting.email,
                             notifyTimelockExpires = setting.notifyOnTimelockExpiry,
                             notifyWalletChanges = setting.notifyOnWalletChanges,
-                            includeWalletConfig = setting.includeWalletConfiguration
+                            includeWalletConfig = setting.includeWalletConfiguration,
+                            notifyFallbacks = setting.notifyFallbacks,
                         )
                     }
                 )
@@ -1057,7 +1061,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                                         email = settings.email,
                                         notifyTimelockExpires = settings.notifyOnTimelockExpiry,
                                         notifyWalletChanges = settings.notifyOnWalletChanges,
-                                        includeWalletConfig = settings.includeWalletConfiguration
+                                        includeWalletConfig = settings.includeWalletConfiguration,
+                                        notifyFallbacks = settings.notifyFallbacks,
                                     )
                                 }
                             )
@@ -3149,6 +3154,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         miniscriptTemplate: String?,
         addressType: String?,
         walletTemplate: String?,
+        inheritancePolicyType: OnChainInheritancePolicyType?,
     ) {
         val response = userWalletApiManager.walletApi.initDraftWallet(
             InitWalletConfigRequest(
@@ -3162,11 +3168,41 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 miniscriptTemplate = miniscriptTemplate,
                 addressType = addressType,
                 walletTemplate = walletTemplate,
+                inheritancePolicyType = inheritancePolicyType?.name,
             )
         )
         if (response.isSuccess.not()) {
             throw response.error
         }
+    }
+
+    override suspend fun updateDraftPrimaryInheritance(groupId: String?, m: Int, n: Int): DraftWallet {
+        val payload = UpdatePrimaryInheritancePayload(primary = PrimaryInheritancePayload(m = m, n = n))
+        val response = if (groupId.isNullOrEmpty()) {
+            userWalletApiManager.walletApi.updateDraftPrimaryInheritance(payload)
+        } else {
+            userWalletApiManager.groupWalletApi.updateDraftPrimaryInheritance(groupId, payload)
+        }
+        if (response.isSuccess.not()) {
+            throw response.error
+        }
+        val draftWallet =
+            response.data.draftWallet ?: throw NullPointerException("draftWallet null")
+        return draftWallet.toDraftWalletModel()
+    }
+
+    override suspend fun resetDraftPrimaryInheritance(groupId: String?): DraftWallet {
+        val response = if (groupId.isNullOrEmpty()) {
+            userWalletApiManager.walletApi.resetDraftPrimaryInheritance()
+        } else {
+            userWalletApiManager.groupWalletApi.resetDraftPrimaryInheritance(groupId)
+        }
+        if (response.isSuccess.not()) {
+            throw response.error
+        }
+        val draftWallet =
+            response.data.draftWallet ?: throw NullPointerException("draftWallet null")
+        return draftWallet.toDraftWalletModel()
     }
 
     override suspend fun updateDraftWallet(

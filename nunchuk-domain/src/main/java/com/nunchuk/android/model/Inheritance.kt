@@ -25,6 +25,8 @@ import com.nunchuk.android.model.inheritance.InheritanceNotificationSettings
 import com.nunchuk.android.model.inheritance.InheritancePlanBeneficiary
 import com.nunchuk.android.model.inheritance.InheritancePlanFallbackPolicy
 import com.nunchuk.android.model.inheritance.InheritancePlanStage
+import com.nunchuk.android.model.inheritance.InheritanceSection
+import com.nunchuk.android.model.inheritance.OnChainInheritancePolicy
 import com.nunchuk.android.type.WalletType
 import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
@@ -54,6 +56,8 @@ class Inheritance(
     val fallbackPolicy: InheritancePlanFallbackPolicy? = null,
     val stages: List<InheritancePlanStage> = emptyList(),
     val beneficiaries: List<InheritancePlanBeneficiary> = emptyList(),
+    /** On-chain only; null when the server sends none. */
+    val onChainInheritancePolicy: OnChainInheritancePolicy? = null,
 ) : Parcelable {
     @IgnoredOnParcel
     val isCustomizeDistribution = distributionMethod == InheritanceDistributionMethod.CUSTOMIZE
@@ -66,7 +70,17 @@ class InheritancePendingRequest(
     val dummyTransactionId: String,
 ) : Parcelable
 
+/**
+ * A plan key. On a configurable on-chain plan the server lists the primary keys marked for
+ * inheritance, then every fallback key; an XFP reused in another condition appears again.
+ *
+ * @property name server-generated label to display, e.g. "Inheritance key 1" / "Fallback key 1".
+ * @property fallbackIndex FALLBACK keys only — joins the policy's fallback `index`.
+ */
 @Parcelize
 class InheritanceKey(
     val xfp: String,
+    val section: InheritanceSection? = null,
+    val name: String = "",
+    val fallbackIndex: Int? = null,
 ) : Parcelable

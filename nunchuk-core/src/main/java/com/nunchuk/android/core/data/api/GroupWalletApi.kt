@@ -7,6 +7,7 @@ import com.nunchuk.android.core.data.model.DeleteAssistedWalletRequest
 import com.nunchuk.android.core.data.model.LockdownUpdateRequest
 import com.nunchuk.android.core.data.model.SyncTransactionRequest
 import com.nunchuk.android.core.data.model.UpdateDraftWalletPayload
+import com.nunchuk.android.core.data.model.UpdatePrimaryInheritancePayload
 import com.nunchuk.android.core.data.model.UpdateWalletPayload
 import com.nunchuk.android.core.data.model.byzantine.CreateDraftWalletRequest
 import com.nunchuk.android.core.data.model.byzantine.CreateGroupRequest
@@ -149,6 +150,17 @@ internal interface GroupWalletApi {
     suspend fun createGroupDraftWalletTimelock(
         @Path("group_id") groupId: String,
         @Body payload: CreateTimelockPayload
+    ): Data<DraftWalletResponse>
+
+    @PUT("/v1.1/group-wallets/groups/{group_id}/draft-wallets/primary")
+    suspend fun updateDraftPrimaryInheritance(
+        @Path("group_id") groupId: String,
+        @Body payload: UpdatePrimaryInheritancePayload
+    ): Data<DraftWalletResponse>
+
+    @DELETE("/v1.1/group-wallets/groups/{group_id}/draft-wallets/primary")
+    suspend fun resetDraftPrimaryInheritance(
+        @Path("group_id") groupId: String,
     ): Data<DraftWalletResponse>
 
     @GET("/v1.1/group-wallets/permissions/default")

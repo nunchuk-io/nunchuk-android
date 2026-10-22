@@ -225,6 +225,22 @@ internal data class InitWalletConfigRequest(
     // Optional. Current allowed value is DEFAULT.
     @SerializedName("wallet_template")
     val walletTemplate: String? = null,
+    // On-chain only: CONFIGURABLE enables primary/fallback editing. Omitted creates a legacy draft.
+    @SerializedName("inheritance_policy_type")
+    val inheritancePolicyType: String? = null,
+)
+
+/** Body for PUT /v1.1/(user|group)-wallets/.../draft-wallets/primary — customizes primary inheritance. */
+internal data class UpdatePrimaryInheritancePayload(
+    @SerializedName("primary")
+    val primary: PrimaryInheritancePayload,
+)
+
+internal data class PrimaryInheritancePayload(
+    @SerializedName("m")
+    val m: Int,
+    @SerializedName("n")
+    val n: Int,
 )
 
 /**

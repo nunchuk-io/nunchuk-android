@@ -13,6 +13,7 @@ import com.nunchuk.android.main.membership.model.toGroupWalletType
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.beneficiaryschedules.InheritanceBeneficiaryScheduleConfig
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.fallbacksettings.InheritanceFallbackSettingsValue
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.sharesecretinfo.toInheritanceKeyRoutes
+import com.nunchuk.android.model.InheritanceKey
 import com.nunchuk.android.model.Period
 import com.nunchuk.android.model.TimelockBased
 import com.nunchuk.android.model.Wallet
@@ -20,6 +21,7 @@ import com.nunchuk.android.model.WalletServer
 import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.model.inheritance.ClaimOption
 import com.nunchuk.android.model.inheritance.InheritanceNotificationSettings
+import com.nunchuk.android.model.inheritance.OnChainInheritancePolicy
 import com.nunchuk.android.model.signer.SignerServer
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.type.SignerTag
@@ -113,17 +115,13 @@ class InheritancePlanningViewModel @Inject constructor(
                     claimOptions = key.claimOptions,
                 )
             }
-        val inheritanceTaggedXfps = wallet.signers
-            .filter { it.tags.contains(SignerTag.INHERITANCE.name) }
-            .mapNotNull { it.xfp }
-            .toSet()
-        // The primary route's own unlock time when the server sends routes; the wallet timelock otherwise.
-        val timelock = wallet.inheritancePolicy?.primary?.timelock ?: wallet.timelock
+        // Primary inheritance's own unlock time when the server sends a policy; the wallet timelock otherwise.
+        val timelock = wallet.onChainInheritancePolicy?.primary?.timelock ?: wallet.timelock
         _state.update {
             it.copy(
                 inheritanceKeys = inheritanceKeys,
                 walletType = wallet.walletType,
-                primaryInheritance = wallet.inheritancePolicy?.toPrimaryInheritanceInfo(inheritanceTaggedXfps),
+                onChainInheritancePolicy = wallet.onChainInheritancePolicy,
                 setupOrReviewParam = it.setupOrReviewParam.copy(
                     activationDate = if (wallet.walletType == WalletType.MINISCRIPT) timelock.timelockValue * 1000 else it.setupOrReviewParam.activationDate,
                     selectedZoneId = timelock.timezone.takeIf { zone -> zone.isNotEmpty() } ?: it.setupOrReviewParam.selectedZoneId,
@@ -210,8 +208,8 @@ data class InheritancePlanningState(
     /** The plan's inheritance key(s) as the server reports them, in wallet order. */
     val inheritanceKeys: List<InheritanceKeyInfo> = emptyList(),
     val walletType: WalletType = WalletType.MULTI_SIG,
-    /** On-chain only; null for a legacy plan whose server response has no inheritance routes. */
-    val primaryInheritance: PrimaryInheritanceInfo? = null,
+    /** On-chain only; null when the server sends none. */
+    val onChainInheritancePolicy: OnChainInheritancePolicy? = null,
     val userEmail: String = "",
     val setupOrReviewParam: InheritancePlanningParam.SetupOrReview,
     val initialSetupOrReviewParam: InheritancePlanningParam.SetupOrReview? = null,
@@ -219,6 +217,10 @@ data class InheritancePlanningState(
 ) {
     val isMiniscriptWallet: Boolean
         get() = walletType == WalletType.MINISCRIPT
+
+    /** Configurable on-chain plans only; null keeps the legacy single-inheritance-key copy. */
+    val primaryInheritance: PrimaryInheritanceInfo?
+        get() = onChainInheritancePolicy?.toPrimaryInheritanceInfo(setupOrReviewParam.inheritanceKeys)
 
     /**
      * How the plan's inheritance key(s) reach the Beneficiary, as recorded on the server. Empty on a
@@ -356,7 +358,8 @@ sealed class InheritancePlanningParam {
         val sourceFlow: Int = InheritanceSourceFlow.NONE,
         val groupId: String = "",
         val dummyTransactionId: String = "",
-        val inheritanceKeys: List<String> = emptyList(),
+        /** The plan's keys from the server; on a configurable on-chain plan, each carries its condition. */
+        val inheritanceKeys: List<InheritanceKey> = emptyList(),
         val setupFlowType: InheritanceSetupFlowType = InheritanceSetupFlowType.OLD_FLOW,
         val releaseMethodType: InheritanceReleaseMethodType = InheritanceReleaseMethodType.SHARED_SCHEDULE,
         val beneficiaryAllocations: List<InheritanceBeneficiaryAllocation> = emptyList(),

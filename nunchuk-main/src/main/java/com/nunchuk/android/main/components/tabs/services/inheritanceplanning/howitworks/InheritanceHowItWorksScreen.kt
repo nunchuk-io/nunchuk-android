@@ -47,6 +47,8 @@ import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.PrimaryInheritanceInfo
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.primaryKeysPhrase
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.sharesecret.InheritanceShareSecretType
+import com.nunchuk.android.model.InheritanceKey
+import com.nunchuk.android.model.inheritance.InheritanceSection
 
 @Composable
 internal fun InheritanceHowItWorksScreen(
@@ -251,7 +253,9 @@ private fun InheritanceHowItWorksDefaultPrimaryPreview() {
             isCustomized = false,
             requiredSignatures = 2,
             totalKeys = 4,
-            inheritanceKeyXfps = listOf("6b35f210"),
+            inheritanceKeys = listOf(
+                InheritanceKey(xfp = "6b35f210", section = InheritanceSection.PRIMARY, name = "Inheritance key 1"),
+            ),
         ),
     )
 }
@@ -265,7 +269,11 @@ private fun InheritanceHowItWorksCustomizedJointPreview() {
             isCustomized = true,
             requiredSignatures = 2,
             totalKeys = 3,
-            inheritanceKeyXfps = listOf("79eb35f4", "f91b570c", "8e41b2c7"),
+            inheritanceKeys = listOf(
+                InheritanceKey(xfp = "79eb35f4", section = InheritanceSection.PRIMARY, name = "Inheritance key 1"),
+                InheritanceKey(xfp = "f91b570c", section = InheritanceSection.PRIMARY, name = "Inheritance key 2"),
+                InheritanceKey(xfp = "8e41b2c7", section = InheritanceSection.PRIMARY, name = "Inheritance key 3"),
+            ),
         ),
     )
 }

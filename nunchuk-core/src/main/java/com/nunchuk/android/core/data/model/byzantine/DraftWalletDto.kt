@@ -1,6 +1,9 @@
 package com.nunchuk.android.core.data.model.byzantine
 
 import com.google.gson.annotations.SerializedName
+import com.nunchuk.android.core.data.model.membership.DraftInheritanceCardDto
+import com.nunchuk.android.core.data.model.membership.InheritanceValidationErrorDto
+import com.nunchuk.android.core.data.model.membership.OnChainInheritancePolicyDto
 import com.nunchuk.android.core.data.model.membership.SignerServerDto
 import com.nunchuk.android.core.data.model.membership.toModel
 import com.nunchuk.android.model.TimelockBased
@@ -28,6 +31,9 @@ internal data class DraftWalletDto(
     @SerializedName("address_type") val addressType: String? = null,
     @SerializedName("wallet_template") val walletTemplate: String? = null,
     @SerializedName("is_customized") val isCustomized: Boolean? = null,
+    @SerializedName("onchain_inheritance_policy") val onChainInheritancePolicy: OnChainInheritancePolicyDto? = null,
+    @SerializedName("cards") val cards: List<DraftInheritanceCardDto>? = null,
+    @SerializedName("validation_errors") val validationErrors: List<InheritanceValidationErrorDto>? = null,
 )
 
 internal data class WalletConfigDto(
@@ -97,4 +103,7 @@ internal fun DraftWalletDto.toDraftWalletModel(): DraftWallet = DraftWallet(
     addressType = addressType,
     walletTemplate = walletTemplate,
     isCustomized = isCustomized == true,
+    onChainInheritancePolicy = onChainInheritancePolicy?.toModel(),
+    inheritanceCards = cards.orEmpty().mapNotNull { it.toModel() },
+    validationErrors = validationErrors.orEmpty().map { it.toModel() },
 )

@@ -1,15 +1,18 @@
 package com.nunchuk.android.model
 
+import android.os.Parcelable
 import com.nunchuk.android.model.inheritance.OnChainInheritancePolicy
 import com.nunchuk.android.model.signer.SignerServer
 import com.nunchuk.android.type.WalletType
+import kotlinx.parcelize.Parcelize
 
+@Parcelize
 data class WalletTimelock(
     val timelockValue: Long = 0L,
     val timezone: String = "",
     val based: TimelockBased = TimelockBased.TIME_LOCK,
     val blockHeight: Long? = null
-)
+) : Parcelable
 
 data class WalletServer(
     val id: String,
@@ -28,6 +31,6 @@ data class WalletServer(
     val sendBsmsEmail: Boolean = false,
     val requiresRegistration: Boolean = false,
     val timelock: WalletTimelock = WalletTimelock(),
-    /** Null for a wallet whose server response predates inheritance routes (legacy 1-of-3). */
-    val inheritancePolicy: OnChainInheritancePolicy? = null,
+    /** On-chain only; null when the server sends none. */
+    val onChainInheritancePolicy: OnChainInheritancePolicy? = null,
 )

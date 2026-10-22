@@ -42,6 +42,7 @@ import com.nunchuk.android.core.data.model.InheritanceClaimDownloadBackupRequest
 import com.nunchuk.android.core.data.model.InheritanceClaimStatusRequest
 import com.nunchuk.android.core.data.model.InitWalletConfigRequest
 import com.nunchuk.android.core.data.model.UpdateDraftWalletPayload
+import com.nunchuk.android.core.data.model.UpdatePrimaryInheritancePayload
 import com.nunchuk.android.core.data.model.LiquidNetworkStatusResponse
 import com.nunchuk.android.core.data.model.LockdownUpdateRequest
 import com.nunchuk.android.core.data.model.MarkRecoverStatusRequest
@@ -487,6 +488,14 @@ internal interface UserWalletsApi {
     suspend fun createDraftWalletTimelock(
         @Body payload: CreateTimelockPayload
     ): Data<DraftWalletResponse>
+
+    @PUT("/v1.1/user-wallets/draft-wallets/primary")
+    suspend fun updateDraftPrimaryInheritance(
+        @Body payload: UpdatePrimaryInheritancePayload
+    ): Data<DraftWalletResponse>
+
+    @DELETE("/v1.1/user-wallets/draft-wallets/primary")
+    suspend fun resetDraftPrimaryInheritance(): Data<DraftWalletResponse>
 
     @GET("/v1.1/user-wallets/draft-wallets/request-add-key/{request_id}")
     suspend fun getRequestAddKeyStatus(
