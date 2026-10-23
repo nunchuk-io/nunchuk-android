@@ -96,6 +96,9 @@ interface KeyRepository {
      * [verificationMethod] names which claim option of an off-chain inheritance key was just
      * verified, exactly as [setKeyVerified] does for the draft. Null on every other flow, where the
      * server keeps one verification per key.
+     *
+     * [recoveredKey] is the recovered account a configurable on-chain wallet verifies against
+     * (NUN-10320); required there, null for a legacy wallet.
      */
     suspend fun setReplaceKeyVerified(
         checkSum: String,
@@ -104,6 +107,7 @@ interface KeyRepository {
         groupId: String,
         walletId: String,
         verificationMethod: ClaimOption? = null,
+        recoveredKey: RecoveredKey? = null,
     )
 
     suspend fun initReplaceKey(

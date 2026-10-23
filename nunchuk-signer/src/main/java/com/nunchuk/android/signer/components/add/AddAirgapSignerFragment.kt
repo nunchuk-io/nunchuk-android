@@ -242,6 +242,7 @@ class AddAirgapSignerFragment : BaseCameraFragment<ViewBinding>(),
                         groupId = activity.groupId,
                         walletId = activity.walletId,
                         verificationMethod = onChainAddSignerParam.claimOption,
+                        recoveredKey = signer.toRecoveredKey(),
                     )
                 } else {
                     viewModel.setKeyVerified(

@@ -177,6 +177,7 @@ class ColdcardRecoverFragment : MembershipFragment(), BottomSheetOptionListener 
                                                     groupId = (activity as Mk4Activity).groupId,
                                                     walletId = (activity as Mk4Activity).walletId.orEmpty(),
                                                     verificationMethod = onChainAddSignerParam.claimOption,
+                                                    recoveredKey = event.signer.toRecoveredKey(),
                                                 )
                                             } else {
                                                 viewModel.setKeyVerified(

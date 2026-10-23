@@ -3,6 +3,7 @@ package com.nunchuk.android.core.signer
 import android.os.Parcelable
 import com.nunchuk.android.core.R
 import com.nunchuk.android.model.OnChainReplaceKeyStep
+import com.nunchuk.android.model.toIndex
 import com.nunchuk.android.model.inheritance.ClaimOption
 import kotlinx.parcelize.Parcelize
 
@@ -48,11 +49,18 @@ data class OnChainAddSignerParam(
         return replaceInfo != null && replaceInfo.replacedXfp.isNotEmpty()
     }
 
+    /**
+     * @property keyIndex a configurable wallet's server slot (`key_index`) the replacement fills;
+     *   null on a legacy wallet, whose slot comes from [step].
+     */
     @Parcelize
     data class ReplaceInfo(
         val replacedXfp: String,
-        val step: OnChainReplaceKeyStep?
-    ) : Parcelable
+        val step: OnChainReplaceKeyStep?,
+        val keyIndex: Int? = null,
+    ) : Parcelable {
+        fun replaceKeyIndex(isGroupWallet: Boolean): Int? = keyIndex ?: step?.toIndex(isGroupWallet)
+    }
 }
 
 /**

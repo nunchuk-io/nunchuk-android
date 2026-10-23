@@ -1018,4 +1018,16 @@
     <string name="nc_draft_key_wrong_account">This key must be added from Account %1$d. Add Account %1$d to continue.</string>
     <string name="nc_draft_key_slot_missing">This key could not be placed. Tap Add on the key’s card again.</string>
     <string name="nc_draft_key_account_not_read">The account of this key could not be read from the device. Try again.</string>
+    <!-- Replace key or change timelock on a configurable on-chain wallet (Figma Row 9 · REP) -->
+    <string name="nc_replace_key_same_device">Add Account %1$d from the same new key (XFP: %2$s) to continue.</string>
+    <string name="nc_replace_fallbacks_section">Fallbacks</string>
+    <string name="nc_replace_fallback_title">Fallback %1$d</string>
+    <plurals name="nc_replace_fallback_requires_all">
+        <item quantity="one">Requires %1$d of %2$d key</item>
+        <item quantity="other">Requires %1$d of %2$d keys</item>
+    </plurals>
+    <plurals name="nc_replace_fallback_requires_any">
+        <item quantity="one">Requires any %1$d of %2$d key</item>
+        <item quantity="other">Requires any %1$d of %2$d keys</item>
+    </plurals>
 </resources>

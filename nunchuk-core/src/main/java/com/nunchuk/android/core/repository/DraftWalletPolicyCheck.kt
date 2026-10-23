@@ -12,3 +12,13 @@ internal suspend fun UserWalletApiManager.isConfigurableDraft(groupId: String): 
     if (response.isSuccess.not()) throw response.error
     return response.data.draftWallet?.onChainInheritancePolicy?.type == OnChainInheritancePolicyType.CONFIGURABLE.name
 }
+
+/**
+ * Whether [walletId] (in [groupId], or personal) is a configurable on-chain wallet (NUN-10320). Throws
+ * if the wallet can't be read, so a caller never treats an unknown wallet as legacy.
+ */
+internal suspend fun UserWalletApiManager.isConfigurableWallet(groupId: String, walletId: String): Boolean {
+    val response = if (groupId.isEmpty()) walletApi.getWallet(walletId) else groupWalletApi.getGroupWallet(groupId)
+    if (response.isSuccess.not()) throw response.error
+    return response.data.wallet?.onChainInheritancePolicy?.type == OnChainInheritancePolicyType.CONFIGURABLE.name
+}

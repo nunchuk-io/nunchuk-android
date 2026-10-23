@@ -173,6 +173,7 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
                                             groupId = (activity as Mk4Activity).groupId,
                                             walletId = (activity as Mk4Activity).walletId.orEmpty(),
                                             verificationMethod = onChainAddSignerParam.claimOption,
+                                            recoveredKey = it.signer.toRecoveredKey(),
                                         )
                                     } else {
                                         viewModel.setKeyVerified(

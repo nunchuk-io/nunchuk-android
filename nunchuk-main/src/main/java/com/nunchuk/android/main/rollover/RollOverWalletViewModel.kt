@@ -25,6 +25,8 @@ import com.nunchuk.android.type.MiniscriptTimelockBased
 import com.nunchuk.android.usecase.CreateAndBroadcastRollOverTransactionsUseCase
 import com.nunchuk.android.usecase.EstimateFeeForSigningPathsUseCase
 import com.nunchuk.android.usecase.EstimateFeeUseCase
+import com.nunchuk.android.usecase.byzantine.SyncGroupWalletUseCase
+import com.nunchuk.android.usecase.wallet.GetServerWalletUseCase
 import com.nunchuk.android.usecase.EstimateRollOverFeeForSigningPathsUseCase
 import com.nunchuk.android.usecase.GetChainTipUseCase
 import com.nunchuk.android.usecase.coin.GetAllCoinUseCase
@@ -61,6 +63,8 @@ class RollOverWalletViewModel @Inject constructor(
     private val estimateRollOverFeeForSigningPathsUseCase: EstimateRollOverFeeForSigningPathsUseCase,
     private val estimateFeeForSigningPathsUseCase: EstimateFeeForSigningPathsUseCase,
     private val estimateFeeUseCase: EstimateFeeUseCase,
+    private val getServerWalletUseCase: GetServerWalletUseCase,
+    private val syncGroupWalletUseCase: SyncGroupWalletUseCase,
 ) : ViewModel() {
     private val mutex = Mutex()
 
@@ -119,6 +123,9 @@ class RollOverWalletViewModel @Inject constructor(
         }
         viewModelScope.launch {
             _uiState.update { it.copy(isFreeWallet = assistedWalletManager.getWalletPlan(oldWalletId) == MembershipPlan.NONE) }
+        }
+        if (source == RollOverWalletSource.REPLACE_KEY) {
+            loadInheritancePolicy(newWalletId)
         }
         viewModelScope.launch {
             fetchFeeRateIfNeeded()
@@ -281,6 +288,22 @@ class RollOverWalletViewModel @Inject constructor(
         return result.size
     }
 
+    /**
+     * A replacement keeps its policy type, so the new wallet tells whether the old one is a
+     * configurable on-chain wallet (NUN-10320), which must never ask to remove unused keys.
+     */
+    private fun loadInheritancePolicy(newWalletId: String) {
+        viewModelScope.launch {
+            val groupId = assistedWalletManager.getGroupId(newWalletId).orEmpty()
+            val wallet = if (groupId.isEmpty()) getServerWalletUseCase(newWalletId) else syncGroupWalletUseCase(groupId)
+            wallet.onSuccess { server ->
+                _uiState.update {
+                    it.copy(isConfigurableInheritance = server.onChainInheritancePolicy?.isConfigurable == true)
+                }
+            }
+        }
+    }
+
     fun updateReplaceKeyConfig(isRemoveKey: Boolean) {
         if (source == RollOverWalletSource.REPLACE_KEY) {
             viewModelScope.launch {
@@ -290,7 +313,7 @@ class RollOverWalletViewModel @Inject constructor(
                     UpdateReplaceKeyConfigUseCase.Param(
                         groupId = groupId,
                         walletId = walletId,
-                        isRemoveKey = isRemoveKey
+                        isRemoveKey = isRemoveKey && _uiState.value.canRemoveUnusedKeys
                     )
                 )
             }
@@ -367,4 +390,9 @@ data class RollOverWalletUiState(
     val spendableNowAmount: Amount? = null,
     val timelockedAmount: Amount? = null,
     val furthestTimelock: Pair<MiniscriptTimelockBased, Long>? = null,
-)
+    /** Null until known; a configurable on-chain wallet keeps every account (no "Remove unused keys"). */
+    val isConfigurableInheritance: Boolean? = null,
+) {
+    /** Offered only once the wallet is known not to be configurable. */
+    val canRemoveUnusedKeys: Boolean get() = isConfigurableInheritance == false
+}

@@ -22,6 +22,7 @@ package com.nunchuk.android.usecase.membership
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.model.inheritance.ClaimOption
+import com.nunchuk.android.model.inheritance.RecoveredKey
 import com.nunchuk.android.repository.KeyRepository
 import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
@@ -39,6 +40,7 @@ class SetReplaceKeyVerifiedUseCase @Inject constructor(
             groupId = parameters.groupId,
             walletId = parameters.walletId,
             verificationMethod = parameters.verificationMethod,
+            recoveredKey = parameters.recoveredKey,
         )
     }
 
@@ -54,5 +56,7 @@ class SetReplaceKeyVerifiedUseCase @Inject constructor(
          * not name its method would resolve the wrong one. Null everywhere else.
          */
         val verificationMethod: ClaimOption? = null,
+        /** The recovered account; required by a configurable on-chain wallet (NUN-10320). */
+        val recoveredKey: RecoveredKey? = null,
     )
 }

@@ -498,6 +498,45 @@ onCreateWallet() → FinalizeReplaceKeyUseCase(groupId, walletId)
                       : createWalletSuccess → createWalletSuccessFragment(walletId, replacedWalletId)
 ```
 
+### 6.5 Configurable wallets (NUN-10320, Figma Row 9 · REP)
+
+A wallet whose `onchain_inheritance_policy.type` is `CONFIGURABLE` has no fixed key indices, so
+`OnChainReplaceKeyStep` does not apply. `onWalletLoaded` skips `buildAddReplaceKeySteps` and the
+screen is built from the replacement status instead (`replacekey/ConfigurableReplaceCards.kt`):
+
+* `status.cards` (server order) joined by `key_index` to the wallet's signers and to
+  `status.signers[].replacements[]` → `ConfigurableReplaceState`: one `ReplaceKeyRow` per device per
+  card. A `section: null` slot with no key is a retained, unused account and is skipped.
+* **`ReplaceTarget` = one original XFP across all cards.** Replacing a key means supplying every
+  account it gives the wallet (e.g. Acct 0/1 for spending, Acct 2 for Fallback 1), all from one new
+  key, then verifying once. The row look follows the target: Replace → dashed with missing accounts
+  greyed (REP-02) → Verify (REP-03) → Remove (REP-03b).
+* `status.timelock` is the effective primary time, `status.fallback_timelocks[i]` fallback i; they
+  count as changed only when they differ from the wallet's policy.
+* Continue (`canContinue`) = something changed **and** every replaced key has all accounts and is
+  verified **and** `status.validation_errors` is empty. Errors are shown in their card; `keys`
+  errors circle the rows of `key_indices`, `timelock` errors the condition's timelock.
+
+Importing (`OnChainReplaceKeysViewModel`):
+
+* Replace → `ConfigurableReplaceRequest(originalXfp, keyIndex, accountIndex, isInheritance,
+  sameDevice)`, kept in `SavedStateHandle`. The first account opens the key picker
+  (`OpenConfigurableAdd`, `SignerIntroFlow.OnChainTimelockKey(keyIndex = account)`); the rest come
+  off `sameDevice` — reused if the app/server already holds that account (TAPSIGNER: derived), else
+  that device's own flow — and continue automatically after each import.
+* The slot's server index travels as `OnChainAddSignerParam.ReplaceInfo.keyIndex`
+  (`replaceKeyIndex()`); COLDCARD / air-gap call `replace` with it. `onReplaceKey` refuses a key at
+  another account or from another device.
+* Verify sends the recovered account (`SetReplaceKeyVerifiedUseCase.recoveredKey` → nested `key`):
+  COLDCARD, air-gap, Ledger / BitBox (`EXTRA_RECOVERED_KEY`), TAPSIGNER by-app, by-self and the
+  backup intro (`TapSignerRecoveredKeyResolver.replacementKey`, from the cached xpub at the
+  replacement's path). `KeyRepositoryImpl.setReplaceKeyVerified` refuses a configurable wallet
+  without it, except for a skip (`SKIPPED_VERIFICATION`), which proves no key.
+* Rollover after finalize: "Remove unused keys" is offered only once the new wallet is known not to
+  be configurable (`RollOverWalletUiState.canRemoveUnusedKeys`); otherwise `false` is sent.
+* Only the **primary** timelock has Change (`replacement/timelock` without `fallback_index`).
+  Fallback times are shown read-only until the fallback phase.
+
 ---
 
 ## 7. Flow E — Switching timelock type (on-chain ⇄ off-chain)

@@ -216,6 +216,15 @@ class CheckBackUpByAppViewModel @Inject constructor(
                     )
                 )
             if (result.isSuccess && result.getOrThrow()) {
+                // A configurable wallet verifies against the replacement's account (NUN-10320).
+                val recoveredKey = if (isOnChainBackUp) {
+                    tapSignerRecoveredKeyResolver.replacementKey(groupId, walletId, masterSignerId).getOrElse {
+                        _event.emit(CheckBackUpByAppEvent.ShowError(it))
+                        return@launch
+                    }
+                } else {
+                    null
+                }
                 val apiResult =
                     setReplaceKeyVerifiedUseCase(
                         SetReplaceKeyVerifiedUseCase.Param(
@@ -225,6 +234,7 @@ class CheckBackUpByAppViewModel @Inject constructor(
                             groupId = groupId,
                             walletId = walletId,
                             verificationMethod = verificationMethod,
+                            recoveredKey = recoveredKey,
                         )
                     )
                 if (apiResult.isSuccess) {

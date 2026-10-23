@@ -554,8 +554,19 @@ internal class KeyRepositoryImpl @Inject constructor(
         groupId: String,
         walletId: String,
         verificationMethod: ClaimOption?,
+        recoveredKey: RecoveredKey?,
     ) {
         val verifyToken = ncDataStore.passwordToken.first()
+        // Like the draft: a configurable wallet verifies the replacement against the recovered account.
+        // A skip proves no key, so it has no account to send.
+        if (recoveredKey == null && verifyType != VerifyType.SKIPPED_VERIFICATION &&
+            userWalletApiManager.isConfigurableWallet(groupId, walletId)
+        ) {
+            throw RecoveredKeyRequiredException()
+        }
+        val key = recoveredKey?.let {
+            VerifiedKeyPayload(xfp = it.xfp, derivationPath = it.derivationPath, xpub = it.xpub)
+        }
         val verifyTypeString = when (verifyType) {
             VerifyType.APP_VERIFIED -> "APP_VERIFIED"
             VerifyType.SELF_VERIFIED -> "SELF_VERIFIED"
@@ -570,7 +581,8 @@ internal class KeyRepositoryImpl @Inject constructor(
                 KeyVerifiedRequest(
                     checkSum,
                     verifyTypeString,
-                    verificationMethod?.name
+                    verificationMethod?.name,
+                    key = key,
                 )
             )
         } else {
@@ -582,7 +594,8 @@ internal class KeyRepositoryImpl @Inject constructor(
                 payload = KeyVerifiedRequest(
                     checkSum,
                     verifyTypeString,
-                    verificationMethod?.name
+                    verificationMethod?.name,
+                    key = key,
                 )
             )
         }

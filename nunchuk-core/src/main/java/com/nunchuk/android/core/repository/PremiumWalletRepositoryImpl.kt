@@ -99,6 +99,7 @@ import com.nunchuk.android.core.data.model.membership.toModel
 import com.nunchuk.android.core.data.model.membership.toServerTransaction
 import com.nunchuk.android.core.data.model.membership.toTransactionStatus
 import com.nunchuk.android.core.data.model.membership.toWalletOption
+import com.nunchuk.android.core.data.model.membership.toWalletTimelock
 import com.nunchuk.android.core.data.model.replacement.replacementsToModel
 import com.nunchuk.android.core.data.model.toConvertedTimelock
 import com.nunchuk.android.core.domain.membership.TargetAction
@@ -3177,7 +3178,10 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                     based = runCatching { TimelockBased.valueOf(it.based.orEmpty()) }.getOrDefault(TimelockBased.TIME_LOCK),
                     blockHeight = it.blockHeight
                 )
-            }
+            },
+            inheritanceCards = status.cards.orEmpty().mapNotNull { it.toModel() },
+            validationErrors = status.validationErrors.orEmpty().map { it.toModel() },
+            fallbackTimelocks = status.fallbackTimelocks.orEmpty().map { it.toWalletTimelock() },
         )
     }
 

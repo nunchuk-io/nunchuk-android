@@ -11,6 +11,7 @@ import com.nunchuk.android.model.inheritance.bip32AccountIndex
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.membership.SyncDraftWalletUseCase
+import com.nunchuk.android.usecase.replace.GetReplaceWalletStatusUseCase
 import com.nunchuk.android.usecase.signer.GetSignerFromMasterSignerByIndexUseCase
 import javax.inject.Inject
 
@@ -37,6 +38,7 @@ sealed interface TapSignerVerifyAccount {
  */
 class TapSignerRecoveredKeyResolver @Inject constructor(
     private val syncDraftWalletUseCase: SyncDraftWalletUseCase,
+    private val getReplaceWalletStatusUseCase: GetReplaceWalletStatusUseCase,
     private val getSignerFromMasterSignerByIndexUseCase: GetSignerFromMasterSignerByIndexUseCase,
     private val getSignerFromTapsignerMasterSignerByPathUseCase: GetSignerFromTapsignerMasterSignerByPathUseCase,
 ) {
@@ -53,6 +55,42 @@ class TapSignerRecoveredKeyResolver @Inject constructor(
                     index = account,
                 )
             )
+        }
+
+    /**
+     * The account a configurable wallet verifies a TAPSIGNER *replacement* against: the replacement
+     * was just imported from this phone, so its account is derived from the cached xpub. A legacy
+     * wallet (no cards) needs none.
+     */
+    suspend fun forReplacement(groupId: String, walletId: String, masterSignerId: String): TapSignerVerifyAccount {
+        val status = getReplaceWalletStatusUseCase(GetReplaceWalletStatusUseCase.Param(groupId, walletId))
+            .getOrElse { return TapSignerVerifyAccount.Failed(it) }
+        if (status.inheritanceCards.isEmpty()) return TapSignerVerifyAccount.NotRequired
+        val path = status.replacements.values.flatten()
+            .filter { it.xfp.equals(masterSignerId, ignoreCase = true) }
+            .firstNotNullOfOrNull { signer -> signer.derivationPath?.takeIf { bip32AccountIndex(it) != null } }
+            ?: return TapSignerVerifyAccount.Failed(IllegalStateException(MISSING_ACCOUNT))
+        val key = getSignerFromMasterSignerByIndexUseCase(
+            GetSignerFromMasterSignerByIndexUseCase.Param(
+                masterSignerId = masterSignerId,
+                walletType = WalletType.MULTI_SIG,
+                addressType = AddressType.NATIVE_SEGWIT,
+                index = bip32AccountIndex(path)!!,
+            )
+        ).getOrNull()?.toRecoveredKey() ?: return TapSignerVerifyAccount.Failed(IllegalStateException(MISSING_ACCOUNT))
+        return TapSignerVerifyAccount.Resolved(key)
+    }
+
+    /**
+     * [forReplacement] as what a replacement verify sends: the account, null for a legacy wallet, or
+     * a failure — never a configurable verify without its account.
+     */
+    suspend fun replacementKey(groupId: String, walletId: String, masterSignerId: String): Result<RecoveredKey?> =
+        when (val account = forReplacement(groupId, walletId, masterSignerId)) {
+            is TapSignerVerifyAccount.Resolved -> Result.success(account.key)
+            is TapSignerVerifyAccount.Failed -> Result.failure(account.error)
+            TapSignerVerifyAccount.NotRequired -> Result.success(null)
+            is TapSignerVerifyAccount.NeedsTap -> Result.failure(IllegalStateException(MISSING_ACCOUNT))
         }
 
     /** Reads [derivationPath] off the tapped card (and caches it) after a [TapSignerVerifyAccount.NeedsTap]. */
