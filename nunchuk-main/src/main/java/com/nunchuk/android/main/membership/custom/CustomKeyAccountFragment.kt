@@ -170,33 +170,23 @@ class CustomKeyAccountFragment : MembershipFragment(), BottomSheetOptionListener
                 }
             }
 
+            SheetOptionType.TYPE_ADD_COLDCARD_QR,
             SheetOptionType.TYPE_ADD_COLDCARD_FILE -> {
-                if (args.isFreeWallet) {
-                    coldcardOrAirgapLauncher.launch(
-                        Mk4Activity.buildIntent(
-                            activity = requireActivity(),
-                            args = SetupMk4Args(
-                                action = ColdcardAction.RECOVER_KEY,
-                                walletId = args.walletId,
-                                newIndex = viewModel.getNewIndex(),
-                                xfp = args.signer.fingerPrint,
-                                groupId = args.groupId.orEmpty()
-                            )
+                coldcardOrAirgapLauncher.launch(
+                    Mk4Activity.buildIntent(
+                        activity = requireActivity(),
+                        args = SetupMk4Args(
+                            fromMembershipFlow = !args.isFreeWallet,
+                            action = ColdcardAction.RECOVER_KEY,
+                            walletId = args.walletId,
+                            newIndex = viewModel.getNewIndex(),
+                            xfp = args.signer.fingerPrint,
+                            groupId = args.groupId.orEmpty(),
+                            replacedXfp = if (args.isFreeWallet) null else args.replacedXfp,
+                            isScanQRCode = option.type == SheetOptionType.TYPE_ADD_COLDCARD_QR,
                         )
                     )
-                } else {
-                    navigator.startSetupMk4ForResult(
-                        launcher = coldcardOrAirgapLauncher,
-                        activity = requireActivity(),
-                        fromMembershipFlow = true,
-                        action = ColdcardAction.RECOVER_KEY,
-                        groupId = args.groupId.orEmpty(),
-                        newIndex = viewModel.getNewIndex(),
-                        xfp = args.signer.fingerPrint,
-                        replacedXfp = args.replacedXfp,
-                        walletId = args.walletId,
-                    )
-                }
+                )
             }
         }
     }
@@ -350,6 +340,11 @@ class CustomKeyAccountFragment : MembershipFragment(), BottomSheetOptionListener
                     type = SheetOptionType.TYPE_ADD_COLDCARD_NFC,
                     label = getString(R.string.nc_add_coldcard_via_nfc),
                     resId = R.drawable.ic_nfc_indicator_small
+                ),
+                SheetOption(
+                    type = SheetOptionType.TYPE_ADD_COLDCARD_QR,
+                    label = getString(R.string.nc_add_coldcard_via_qr),
+                    resId = R.drawable.ic_qr
                 ),
                 SheetOption(
                     type = SheetOptionType.TYPE_ADD_COLDCARD_FILE,
