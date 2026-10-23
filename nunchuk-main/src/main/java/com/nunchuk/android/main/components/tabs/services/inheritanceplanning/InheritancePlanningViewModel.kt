@@ -223,6 +223,13 @@ data class InheritancePlanningState(
         get() = onChainInheritancePolicy?.toPrimaryInheritanceInfo(setupOrReviewParam.inheritanceKeys)
 
     /**
+     * The primary route's M-of-N from the wallet alone, for setup screens shown before the plan
+     * lists its keys. Null keeps the legacy copy.
+     */
+    val primaryInheritancePolicy: PrimaryInheritancePolicyInfo?
+        get() = onChainInheritancePolicy?.toPrimaryInheritancePolicyInfo()
+
+    /**
      * How the plan's inheritance key(s) reach the Beneficiary, as recorded on the server. Empty on a
      * legacy plan, which predates the choice — see `toInheritanceKeyRoutes()`.
      *

@@ -35,14 +35,45 @@ data class PrimaryInheritanceInfo(
 internal fun OnChainInheritancePolicy.toPrimaryInheritanceInfo(
     planKeys: List<InheritanceKey>,
 ): PrimaryInheritanceInfo? {
-    if (!isConfigurable) return null
-    val primary = primary ?: return null
+    val policy = toPrimaryInheritancePolicyInfo() ?: return null
     val primaryKeys = planKeys.filter { it.section == InheritanceSection.PRIMARY }
     if (primaryKeys.isEmpty()) return null
     return PrimaryInheritanceInfo(
+        isCustomized = policy.isCustomized,
+        requiredSignatures = policy.requiredSignatures,
+        totalKeys = policy.totalKeys,
+        inheritanceKeys = primaryKeys,
+    )
+}
+
+/**
+ * The primary route's M-of-N as the wallet's policy states it, for the plan setup screens that run
+ * before the plan lists its keys (Plan overview, Inheritance keys, About the timelock). Names no key.
+ */
+data class PrimaryInheritancePolicyInfo(
+    val isCustomized: Boolean,
+    val requiredSignatures: Int,
+    val totalKeys: Int,
+) {
+    /** Guided default only: every key but the one separate inheritance key is an owner key. */
+    val ownerKeyCount: Int
+        get() = if (isCustomized) 0 else (totalKeys - 1).coerceAtLeast(0)
+
+    val isSingleKey: Boolean
+        get() = totalKeys == 1
+
+    /** Seed phrases handed over: the guided default shares the inheritance key and one owner key. */
+    val sharedSeedPhraseCount: Int
+        get() = if (isCustomized) totalKeys else 2
+}
+
+/** Null for a legacy plan (or one with no primary condition), which keeps the legacy copy. */
+internal fun OnChainInheritancePolicy.toPrimaryInheritancePolicyInfo(): PrimaryInheritancePolicyInfo? {
+    if (!isConfigurable) return null
+    val primary = primary ?: return null
+    return PrimaryInheritancePolicyInfo(
         isCustomized = primary.isCustomized,
         requiredSignatures = primary.m,
         totalKeys = primary.n,
-        inheritanceKeys = primaryKeys,
     )
 }

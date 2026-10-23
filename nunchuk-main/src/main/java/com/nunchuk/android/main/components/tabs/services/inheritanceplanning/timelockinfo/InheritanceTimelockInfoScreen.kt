@@ -44,6 +44,7 @@ import com.nunchuk.android.compose.HighlightMessageType
 import com.nunchuk.android.compose.NcHintMessage
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.PrimaryInheritancePolicyInfo
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.main.R
@@ -52,6 +53,8 @@ import com.nunchuk.android.main.R
 @Composable
 internal fun InheritanceTimelockInfoContent(
     remainTime: Int = 0,
+    /** Null for a legacy plan, which keeps the single-inheritance-key hint. */
+    primaryInheritance: PrimaryInheritancePolicyInfo? = null,
     onContinueClicked: () -> Unit = {}
 ) {
     NunchukTheme {
@@ -68,7 +71,13 @@ internal fun InheritanceTimelockInfoContent(
                     NcHintMessage(
                         modifier = Modifier.padding(horizontal = 16.dp),
                         messages = listOf(
-                            ClickAbleText(stringResource(R.string.nc_timelock_info_hint))
+                            ClickAbleText(
+                                if (primaryInheritance != null) {
+                                    stringResource(R.string.nc_timelock_info_hint_primary)
+                                } else {
+                                    stringResource(R.string.nc_timelock_info_hint)
+                                }
+                            )
                         ),
                         type = HighlightMessageType.HINT
                     )
@@ -132,4 +141,12 @@ internal fun InheritanceTimelockInfoContent(
 @Composable
 private fun InheritanceTimelockInfoScreenPreview() {
     InheritanceTimelockInfoContent()
+}
+
+@PreviewLightDark
+@Composable
+private fun InheritanceTimelockInfoScreenDefaultPrimaryPreview() {
+    InheritanceTimelockInfoContent(
+        primaryInheritance = PrimaryInheritancePolicyInfo(isCustomized = false, requiredSignatures = 2, totalKeys = 4),
+    )
 }

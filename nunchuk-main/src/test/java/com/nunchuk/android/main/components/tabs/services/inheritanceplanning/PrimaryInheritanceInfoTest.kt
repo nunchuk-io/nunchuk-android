@@ -75,4 +75,30 @@ class PrimaryInheritanceInfoTest {
 
         assertNull(policy.toPrimaryInheritanceInfo(listOf(primaryKey("a", "Inheritance key 1"))))
     }
+
+    @Test
+    fun `policy-only default counts three owner keys and two shared seed phrases`() {
+        val info = policy(m = 2, n = 4, isCustomized = false).toPrimaryInheritancePolicyInfo()!!
+
+        assertEquals(3, info.ownerKeyCount)
+        assertEquals(2, info.sharedSeedPhraseCount)
+    }
+
+    @Test
+    fun `policy-only customized shares every primary key`() {
+        val info = policy(m = 2, n = 3, isCustomized = true).toPrimaryInheritancePolicyInfo()!!
+
+        assertEquals(0, info.ownerKeyCount)
+        assertEquals(3, info.sharedSeedPhraseCount)
+        assertTrue(policy(m = 1, n = 1, isCustomized = true).toPrimaryInheritancePolicyInfo()!!.isSingleKey)
+    }
+
+    @Test
+    fun `policy-only info is null for a legacy plan or a missing primary`() {
+        assertNull(policy(m = 1, n = 3, isCustomized = false, type = OnChainInheritancePolicyType.LEGACY).toPrimaryInheritancePolicyInfo())
+        assertNull(
+            OnChainInheritancePolicy(type = OnChainInheritancePolicyType.CONFIGURABLE, primary = null)
+                .toPrimaryInheritancePolicyInfo()
+        )
+    }
 }

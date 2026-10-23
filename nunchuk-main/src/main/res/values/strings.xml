@@ -932,6 +932,18 @@
     <string name="nc_self_serve_claim_desc_primary">Self-serve claim using the wallet configuration file (BSMS file) and %1$s.</string>
     <string name="nc_self_serve_claim_desc_primary_joint">Self-serve claim using the Trustee’s wallet configuration file (BSMS file) and %1$s.</string>
     <string name="nc_neither_trustee_nor_beneficiary_can_claim_alone">Neither the Trustee nor the Beneficiary can claim alone.</string>
+    <!-- On-chain primary inheritance: plan setup guidance (Figma Row 4 PLAN-13 / PLAN-14 / PLAN-05 / PLAN-15) -->
+    <string name="nc_plan_overview_primary_inheritance_keys">The keys for primary inheritance</string>
+    <string name="nc_inheritance_keys_used_to_claim">Inheritance keys are used to claim funds after the timelock.</string>
+    <string name="nc_inheritance_key_tip_default_primary_route">[B]Primary inheritance:[/B] any %1$d of %2$d keys. Your inheritance key and one of your %3$d owner keys are the ones you share.</string>
+    <string name="nc_inheritance_key_tip_primary_route_any">[B]Primary inheritance:[/B] any %1$d of the %2$d keys you selected.</string>
+    <string name="nc_inheritance_key_tip_primary_route_all">[B]Primary inheritance:[/B] %1$d of the %2$d keys you selected.</string>
+    <string name="nc_inheritance_key_tip_primary_route_single">[B]Primary inheritance:[/B] 1 of 1 key you selected.</string>
+    <string name="nc_inheritance_key_tip_default_primary_backup">[B]Back up the seed phrases of your inheritance key and the owner key you share on a steel plate or another durable, non-digital medium.[/B] You will need to share both with your Beneficiary or Trustee.</string>
+    <string name="nc_inheritance_key_tip_primary_backup">[B]Back up the seed phrase of every primary inheritance key on a steel plate or another durable, non-digital medium.[/B] You will need to share each seed phrase with the person who will use it.</string>
+    <string name="nc_inheritance_key_tip_default_primary_hint">You can also give the Beneficiary the hardware devices for these keys. However, because electronics can fail, it is essential to share the seed phrases in an analog format that can last many decades.</string>
+    <string name="nc_inheritance_key_tip_primary_hint">You can also give each person the hardware devices for the keys they will use. However, because electronics can fail, it is essential to share the seed phrases in an analog format that can last many decades.</string>
+    <string name="nc_timelock_info_hint_primary">Even with the required keys, no one can claim through primary inheritance before the timelock expires.</string>
     <!-- On-chain primary inheritance setup (NUN-10320, Figma SET-02a / PRI-02 / SET-12) -->
     <string name="nc_membership_after_timelock_default_primary_desc">%1$s, spending requires two signatures from a 2-of-4 multisig: your 3 keys plus 1 inheritance key.</string>
     <!-- %1$s = "After the timelock" (bold), %2$s = nc_customized_primary_signatures, %3$d-of-%4$d, %5$s = nc_customized_primary_selected_keys -->

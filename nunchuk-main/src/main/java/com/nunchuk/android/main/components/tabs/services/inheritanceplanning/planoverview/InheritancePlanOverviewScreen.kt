@@ -48,6 +48,7 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceSetupFlowType
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.PrimaryInheritancePolicyInfo
 import com.nunchuk.android.model.byzantine.GroupWalletType
 
 @Composable
@@ -56,6 +57,7 @@ internal fun InheritancePlanOverviewScreen(
     groupWalletType: GroupWalletType? = null,
     isMiniscriptWallet: Boolean,
     sharesSeedPhrase: Boolean = false,
+    primaryInheritance: PrimaryInheritancePolicyInfo? = null,
     setupFlowType: InheritanceSetupFlowType = InheritanceSetupFlowType.OLD_FLOW,
     onContinueClicked: () -> Unit = {},
 ) {
@@ -63,6 +65,7 @@ internal fun InheritancePlanOverviewScreen(
     InheritancePlanOverviewContent(
         isMiniscriptWallet = isMiniscriptWallet,
         sharesSeedPhrase = sharesSeedPhrase,
+        primaryInheritance = primaryInheritance,
         remainTime = remainTime,
         groupWalletType = groupWalletType,
         setupFlowType = setupFlowType,
@@ -74,6 +77,7 @@ internal fun InheritancePlanOverviewScreen(
 private fun InheritancePlanOverviewContent(
     isMiniscriptWallet: Boolean,
     sharesSeedPhrase: Boolean = false,
+    primaryInheritance: PrimaryInheritancePolicyInfo? = null,
     remainTime: Int = 0,
     groupWalletType: GroupWalletType? = null,
     setupFlowType: InheritanceSetupFlowType = InheritanceSetupFlowType.OLD_FLOW,
@@ -122,7 +126,10 @@ private fun InheritancePlanOverviewContent(
                     style = NunchukTheme.typography.body
                 )
                 if (isMiniscriptWallet) {
-                    MiniscriptOverviewItems(groupWalletType = groupWalletType)
+                    MiniscriptOverviewItems(
+                        groupWalletType = groupWalletType,
+                        primaryInheritance = primaryInheritance,
+                    )
                 } else when (setupFlowType) {
                     InheritanceSetupFlowType.OLD_FLOW -> OldFlowOverviewItems(
                         groupWalletType = groupWalletType,
@@ -143,8 +150,12 @@ private fun InheritancePlanOverviewContent(
     }
 }
 
+/** [primaryInheritance] is null for a legacy plan, which keeps the single-inheritance-key item. */
 @Composable
-private fun MiniscriptOverviewItems(groupWalletType: GroupWalletType? = null) {
+private fun MiniscriptOverviewItems(
+    groupWalletType: GroupWalletType? = null,
+    primaryInheritance: PrimaryInheritancePolicyInfo? = null,
+) {
     NCLabelWithIndex(
         modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
         index = 1,
@@ -153,10 +164,14 @@ private fun MiniscriptOverviewItems(groupWalletType: GroupWalletType? = null) {
     NCLabelWithIndex(
         modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
         index = 2,
-        label = if (groupWalletType == GroupWalletType.THREE_OF_FIVE_INHERITANCE) {
-            stringResource(R.string.nc_two_inheritance_keys)
-        } else {
-            stringResource(R.string.nc_an_inheritance_key)
+        // PLAN-13: the same item for the default and any customized primary.
+        label = when {
+            primaryInheritance != null -> stringResource(R.string.nc_plan_overview_primary_inheritance_keys)
+
+            groupWalletType == GroupWalletType.THREE_OF_FIVE_INHERITANCE ->
+                stringResource(R.string.nc_two_inheritance_keys)
+
+            else -> stringResource(R.string.nc_an_inheritance_key)
         },
     )
     NCLabelWithIndex(
@@ -323,4 +338,13 @@ private fun InheritancePlanOverviewScreenMultiBeneficiaryPreview() {
 @Composable
 private fun InheritancePlanOverviewScreenMiniscriptPreview() {
     InheritancePlanOverviewContent(isMiniscriptWallet = true)
+}
+
+@PreviewLightDark
+@Composable
+private fun InheritancePlanOverviewScreenDefaultPrimaryPreview() {
+    InheritancePlanOverviewContent(
+        isMiniscriptWallet = true,
+        primaryInheritance = PrimaryInheritancePolicyInfo(isCustomized = false, requiredSignatures = 2, totalKeys = 4),
+    )
 }
