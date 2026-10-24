@@ -52,9 +52,9 @@ playServicesBase = "18.2.0"
 playServicesAdsId = "18.1.0"
 playReview = "2.0.1"
 matrixSdk = "1.6.50"
-nativeSdk = "1.2.24"
+nativeSdk = "1.2.26"
 # Commit, not tag: a tag is mutable and nothing here records a checksum. See RELEASE_CHECKLIST.md.
-prebuildNativeSdk = "0c1b0be96d3ffd41e4099882dec398e4608a2c65" # tag 1.2.24
+prebuildNativeSdk = "e04ad5d928086040749b7e794998610ea4f347b6" # tag 1.2.26
 timber = "5.0.1"
 kotlinxSerializationJson = "1.6.3"
 moshi = "1.15.2"
