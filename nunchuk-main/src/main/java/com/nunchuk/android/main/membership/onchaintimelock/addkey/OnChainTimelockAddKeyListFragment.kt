@@ -112,6 +112,9 @@ import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragment
 import com.nunchuk.android.main.membership.onchaintimelock.customize.CustomizeInheritanceIntroFragment
+import com.nunchuk.android.main.membership.onchaintimelock.customize.FallbackInheritanceIntroFragment
+import com.nunchuk.android.main.membership.onchaintimelock.setuptimelock.FallbackTimelockTarget
+import com.nunchuk.android.model.toTimelockExtra
 import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragmentArgs
 import com.nunchuk.android.main.membership.model.AddKeyOnChainData
 import com.nunchuk.android.main.membership.model.StepData
@@ -288,6 +291,8 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                     isAddOnly = args.isAddOnly,
                     role = args.role,
                     onCustomizePrimaryClicked = ::onCustomizePrimaryClicked,
+                    onAddFallbackClicked = ::onAddFallbackClicked,
+                    onFallbackTimelockClicked = ::onFallbackTimelockClicked,
                     onConfigTimelockClicked = { data ->
                         if (isKeyHolderLimited) {
                             showFacilitatorInfoDialog()
@@ -322,6 +327,49 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                 OnChainTimelockAddKeyListFragmentDirections.actionOnChainTimelockAddKeyListFragmentToCustomizeInheritanceIntroFragment()
             )
         }
+    }
+
+    /** FBK-01 before the first fallback; the policy sheet (FBK-01a) straight away for the next ones. */
+    private fun onAddFallbackClicked() {
+        if (isKeyHolderLimited || isFacilitatorAdmin) {
+            showFacilitatorInfoDialog()
+            return
+        }
+        if (viewModel.state.value.fallbacks.isEmpty()) {
+            findNavController().navigate(
+                OnChainTimelockAddKeyListFragmentDirections.actionOnChainTimelockAddKeyListFragmentToFallbackInheritanceIntroFragment()
+            )
+        } else {
+            viewModel.showAddFallbackSheet()
+        }
+    }
+
+    /** Configure / Change on a fallback's timelock card (TIME-01 / TIME-02), bounded by its neighbours. */
+    private fun onFallbackTimelockClicked(index: Int) {
+        if (isKeyHolderLimited || isFacilitatorAdmin) {
+            showFacilitatorInfoDialog()
+            return
+        }
+        val state = viewModel.state.value
+        val fallbacks = state.fallbacks
+        val fallback = fallbacks.firstOrNull { it.index == index } ?: return
+        val previous = if (index == 0) {
+            state.inheritancePolicy?.primary?.timelock
+        } else {
+            fallbacks.firstOrNull { it.index == index - 1 }?.timelock
+        }
+        findNavController().navigate(
+            OnChainTimelockAddKeyListFragmentDirections.actionOnChainTimelockAddKeyListFragmentToOnChainSetUpTimelockFragment(
+                groupId = args.groupId ?: (activity as MembershipActivity).groupId,
+                timelockExtra = fallback.timelock?.toTimelockExtra(),
+                fallbackTarget = FallbackTimelockTarget(
+                    index = index,
+                    keyCount = fallback.n,
+                    previous = previous?.toTimelockExtra(),
+                    next = fallbacks.firstOrNull { it.index == index + 1 }?.timelock?.toTimelockExtra(),
+                ),
+            )
+        )
     }
 
     override fun extraMoreOptions(): List<SheetOption> =
@@ -385,6 +433,12 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                 viewModel.showPrimaryPolicySheet()
             }
             clearFragmentResult(CustomizeInheritanceIntroFragment.REQUEST_KEY)
+        }
+        setFragmentResultListener(FallbackInheritanceIntroFragment.REQUEST_KEY) { _, bundle ->
+            if (bundle.getBoolean(FallbackInheritanceIntroFragment.EXTRA_CONTINUE)) {
+                viewModel.showAddFallbackSheet()
+            }
+            clearFragmentResult(FallbackInheritanceIntroFragment.REQUEST_KEY)
         }
         setFragmentResultListener(ColdCardIntroFragment.REQUEST_KEY) { _, bundle ->
             val signerTag = bundle.getSerializable(GlobalResultKey.EXTRA_SIGNER_TAG) as? SignerTag
@@ -586,7 +640,7 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                     currentDraftOptions = event.options
                     handleSignerTypeLogic(event.type, event.tag)
                 }
-                is AddKeyListEvent.OpenInheritanceGuide -> openInheritanceGuide(event.guide)
+                is AddKeyListEvent.OpenInheritanceGuide -> openInheritanceGuide(event.guide, event.fallbackNumber)
                 AddKeyListEvent.SelectAirgapType -> {
 
                 }
@@ -754,6 +808,7 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                     currentSigner = options.sameDevice,
                     existingSigners = getAllExistingSigners(),
                     inheritanceGuide = options.inheritanceGuide,
+                    fallbackNumber = options.fallbackNumber,
                     showInheritanceGuide = options.showInheritanceGuide,
                     showDeviceSafety = options.showDeviceSafety,
                 ),
@@ -762,7 +817,7 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
         )
     }
 
-    private fun openInheritanceGuide(guide: OnChainInheritanceGuide) {
+    private fun openInheritanceGuide(guide: OnChainInheritanceGuide, fallbackNumber: Int) {
         navigator.openSignerIntroScreen(
             launcher = inheritanceGuideLauncher,
             activityContext = requireActivity(),
@@ -773,6 +828,7 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                 flow = SignerIntroFlow.OnChainTimelockKey(
                     isInheritanceKey = true,
                     inheritanceGuide = guide,
+                    fallbackNumber = fallbackNumber,
                     guideOnly = true,
                 ),
                 walletType = WalletType.MINISCRIPT,
@@ -920,6 +976,8 @@ fun AddKeyListScreen(
     isAddOnly: Boolean = false,
     role: String? = null,
     onCustomizePrimaryClicked: () -> Unit = {},
+    onAddFallbackClicked: () -> Unit = {},
+    onFallbackTimelockClicked: (index: Int) -> Unit = {},
     onConfigTimelockClicked: (AddKeyOnChainData) -> Unit
 ) {
     val keys by viewModel.key.collectAsStateWithLifecycle()
@@ -946,16 +1004,36 @@ fun AddKeyListScreen(
         onPrimaryPolicyDismiss = viewModel::dismissPrimaryPolicySheet,
         onDraftSlotAddClicked = viewModel::onDraftSlotAddClicked,
         onDraftSlotVerifyClicked = viewModel::onDraftSlotVerifyClicked,
-        chooseKeyOptions = uiState.chooseKeyTarget?.let { target ->
-            uiState.primarySlots.firstOrNull { it.keyIndex == target.keyIndex }?.let(viewModel::chooseKeyOptions)
-        }.orEmpty(),
+        chooseKeyOptions = uiState.chooseKeyTarget?.let { viewModel.chooseKeyOptions(it.card) }.orEmpty(),
         onChooseKeySelected = viewModel::onChooseKeySelected,
         onChooseKeyAddNew = viewModel::onChooseKeyAddNew,
         onChooseKeyDismiss = viewModel::dismissChooseKey,
         onVerifyDraftKey = viewModel::verifyDraftKey,
         onVerifyBackupsDone = viewModel::dismissVerifyBackups,
+        fallbackActions = FallbackSetupActions(
+            onAddFallback = onAddFallbackClicked,
+            onEditFallback = viewModel::showEditFallbackSheet,
+            onRemoveFallback = viewModel::requestRemoveFallback,
+            onFallbackTimelock = onFallbackTimelockClicked,
+            onPolicyContinue = viewModel::saveFallbackPolicy,
+            onPolicyDismiss = viewModel::dismissFallbackPolicySheet,
+            onRemoveConfirm = viewModel::confirmRemoveFallback,
+            onRemoveDismiss = viewModel::dismissRemoveFallback,
+        ),
     )
 }
+
+/** The fallback callbacks of the setup screen (Row 2 · FBK). */
+data class FallbackSetupActions(
+    val onAddFallback: () -> Unit = {},
+    val onEditFallback: (index: Int) -> Unit = {},
+    val onRemoveFallback: (index: Int) -> Unit = {},
+    val onFallbackTimelock: (index: Int) -> Unit = {},
+    val onPolicyContinue: (m: Int, n: Int) -> Unit = { _, _ -> },
+    val onPolicyDismiss: () -> Unit = {},
+    val onRemoveConfirm: () -> Unit = {},
+    val onRemoveDismiss: () -> Unit = {},
+)
 
 /**
  * "Let's configure your wallet" for a configurable draft (SET-02 … SET-16): the server's cards in
@@ -973,6 +1051,7 @@ private fun LazyListScope.configurableDraftItems(
     onDraftSlotAddClicked: (DraftSetupCard, DraftSetupSlot) -> Unit,
     onDraftSlotVerifyClicked: (DraftSetupCard, DraftSetupSlot) -> Unit,
     onCustomizePrimaryClicked: () -> Unit,
+    fallbackActions: FallbackSetupActions,
 ) {
     val isLimited = role == AssistedWalletRole.KEYHOLDER_LIMITED
     val isDisabled = role.isFacilitatorAdmin
@@ -1068,9 +1147,96 @@ private fun LazyListScope.configurableDraftItems(
             }
         }
     }
+    fallbackDraftItems(
+        uiState = uiState,
+        canEdit = !isAddOnly && !isLimited,
+        isDisabled = isDisabled || isLimited,
+        onDraftSlotAddClicked = onDraftSlotAddClicked,
+        onDraftSlotVerifyClicked = onDraftSlotVerifyClicked,
+        actions = fallbackActions,
+    )
     if (uiState.otherValidationErrors.isNotEmpty()) {
         item(key = "other_errors") {
             InheritanceValidationErrors(errors = uiState.otherValidationErrors)
+        }
+    }
+}
+
+/**
+ * The Fallbacks section (SET-09 / FBK-02 / FBK-03 / SET-11): per fallback its header with Edit /
+ * Remove, one slot per key, its unlock time and its issues; then Add (another) fallback.
+ */
+private fun LazyListScope.fallbackDraftItems(
+    uiState: AddKeyListState,
+    canEdit: Boolean,
+    isDisabled: Boolean,
+    onDraftSlotAddClicked: (DraftSetupCard, DraftSetupSlot) -> Unit,
+    onDraftSlotVerifyClicked: (DraftSetupCard, DraftSetupSlot) -> Unit,
+    actions: FallbackSetupActions,
+) {
+    val fallbacks = uiState.fallbacks
+    if (fallbacks.isEmpty() && !canEdit) return
+    item(key = "fallbacks_header") { FallbacksSectionHeader() }
+    fallbacks.forEach { fallback ->
+        val slots = uiState.fallbackSlots(fallback.index)
+        val highlighted = uiState.validationErrors.highlightedKeyIndices(InheritanceSection.FALLBACK, fallback.index)
+        item(key = "fallback_${fallback.index}_header") {
+            FallbackSetupHeader(
+                fallback = fallback,
+                showActions = canEdit,
+                enabled = !isDisabled,
+                onEditClicked = { actions.onEditFallback(fallback.index) },
+                onRemoveClicked = { actions.onRemoveFallback(fallback.index) },
+            )
+        }
+        uiState.fallbackCards(fallback.index).forEach { card ->
+            card.slots.forEach { slot ->
+                item(key = "fallback_${fallback.index}_${slot.keyIndex}") {
+                    DraftPrimarySlotCard(
+                        card = card,
+                        slot = slot,
+                        number = slots.indexOf(slot) + 1,
+                        isCustomized = true,
+                        isHighlighted = slot.keyIndex in highlighted,
+                        isFallback = true,
+                        isDisabled = isDisabled,
+                        onAddClicked = onDraftSlotAddClicked,
+                        onVerifyClicked = onDraftSlotVerifyClicked,
+                    )
+                }
+            }
+        }
+        item(key = "fallback_${fallback.index}_timelock") {
+            val timelockBorder = if (uiState.validationErrors.isTimelockHighlighted(InheritanceSection.FALLBACK, fallback.index)) {
+                Modifier.border(1.dp, MaterialTheme.colorScheme.error, RoundedCornerShape(8.dp))
+            } else {
+                Modifier
+            }
+            Column {
+                Box(timelockBorder) {
+                    AddKeyCard(
+                        item = AddKeyOnChainData(steps = listOf(MembershipStep.TIMELOCK)).updateStep(
+                            step = MembershipStep.TIMELOCK,
+                            signer = null,
+                            verifyType = VerifyType.NONE,
+                            timelock = fallback.timelock?.toTimelockExtra(),
+                        ),
+                        onAddClicked = { actions.onFallbackTimelock(fallback.index) },
+                        onChangeTimelockClicked = { actions.onFallbackTimelock(fallback.index) },
+                        isDisabled = isDisabled,
+                    )
+                }
+                InheritanceValidationErrors(errors = uiState.fallbackValidationErrors(fallback.index))
+            }
+        }
+    }
+    if (canEdit) {
+        item(key = "fallback_add") {
+            AddFallbackButton(
+                hasFallbacks = fallbacks.isNotEmpty(),
+                enabled = !isDisabled,
+                onClick = actions.onAddFallback,
+            )
         }
     }
 }
@@ -1102,6 +1268,7 @@ fun OnChainTimelockAddKeyListContent(
     onChooseKeyDismiss: () -> Unit = {},
     onVerifyDraftKey: (SignerModel) -> Unit = {},
     onVerifyBackupsDone: () -> Unit = {},
+    fallbackActions: FallbackSetupActions = FallbackSetupActions(),
 ) {
     val state = rememberPullRefreshState(isRefreshing, refresh)
 
@@ -1193,6 +1360,7 @@ fun OnChainTimelockAddKeyListContent(
                             onDraftSlotAddClicked = onDraftSlotAddClicked,
                             onDraftSlotVerifyClicked = onDraftSlotVerifyClicked,
                             onCustomizePrimaryClicked = onCustomizePrimaryClicked,
+                            fallbackActions = fallbackActions,
                         )
                     } else {
                     items(keys.filter { it.type != MembershipStep.TIMELOCK }) { key ->
@@ -1265,6 +1433,7 @@ fun OnChainTimelockAddKeyListContent(
         if (uiState.chooseKeyTarget != null) {
             ChooseKeySheet(
                 options = chooseKeyOptions,
+                fallbackNumber = uiState.chooseKeyTarget.card.fallbackNumber.takeIf { it > 0 },
                 onChooseKey = onChooseKeySelected,
                 onAddKey = onChooseKeyAddNew,
                 onDismiss = onChooseKeyDismiss,
@@ -1291,6 +1460,26 @@ fun OnChainTimelockAddKeyListContent(
                 onContinue = onPrimaryPolicyContinue,
                 onDismiss = onPrimaryPolicyDismiss,
             )
+        }
+        uiState.fallbackPolicyTarget?.let { target ->
+            val fallback = target.index?.let { index -> uiState.fallbacks.firstOrNull { it.index == index } }
+            InheritancePolicySheet(
+                title = stringResource(R.string.nc_fallback_policy, (target.index ?: uiState.fallbacks.size) + 1),
+                initialM = fallback?.m ?: DEFAULT_FALLBACK_REQUIRED_KEYS,
+                initialN = fallback?.n ?: DEFAULT_FALLBACK_TOTAL_KEYS,
+                onContinue = fallbackActions.onPolicyContinue,
+                onDismiss = fallbackActions.onPolicyDismiss,
+            )
+        }
+        uiState.removeFallbackIndex?.let { index ->
+            uiState.fallbacks.firstOrNull { it.index == index }?.let { fallback ->
+                RemoveFallbackSheet(
+                    fallback = fallback,
+                    fallbackCount = uiState.fallbacks.size,
+                    onConfirm = fallbackActions.onRemoveConfirm,
+                    onDismiss = fallbackActions.onRemoveDismiss,
+                )
+            }
         }
         if (uiState.isLoading) {
             NcLoadingDialog()

@@ -34,3 +34,10 @@ data class WalletServer(
     /** On-chain only; null when the server sends none. */
     val onChainInheritancePolicy: OnChainInheritancePolicy? = null,
 )
+/** The same lock in the shape the timelock screens and membership steps use. */
+fun WalletTimelock.toTimelockExtra() = TimelockExtra(
+    value = timelockValue,
+    timezone = timezone,
+    based = based,
+    blockHeight = blockHeight,
+)

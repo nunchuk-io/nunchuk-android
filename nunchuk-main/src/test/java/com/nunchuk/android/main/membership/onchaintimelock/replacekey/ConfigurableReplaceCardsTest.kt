@@ -1,5 +1,7 @@
 package com.nunchuk.android.main.membership.onchaintimelock.replacekey
 
+import com.nunchuk.android.main.membership.onchaintimelock.addkey.highlightedKeyIndices
+import com.nunchuk.android.main.membership.onchaintimelock.addkey.isTimelockHighlighted
 import com.nunchuk.android.model.TimelockBased
 import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.model.WalletTimelock
@@ -186,9 +188,9 @@ class ConfigurableReplaceCardsTest {
             fallbackIndex = null, field = InheritanceValidationField.KEYS, keyIndices = listOf(6),
         )
         val errors = listOf(error)
-        assertEquals(setOf(6), errors.highlightedKeys(InheritanceSection.PRIMARY, null))
-        assertTrue(errors.highlightedKeys(InheritanceSection.SPENDING, null).isEmpty())
-        assertTrue(errors.highlightedKeys(InheritanceSection.FALLBACK, 0).isEmpty())
+        assertEquals(setOf(6), errors.highlightedKeyIndices(InheritanceSection.PRIMARY, null))
+        assertTrue(errors.highlightedKeyIndices(InheritanceSection.SPENDING, null).isEmpty())
+        assertTrue(errors.highlightedKeyIndices(InheritanceSection.FALLBACK, 0).isEmpty())
     }
 
     @Test

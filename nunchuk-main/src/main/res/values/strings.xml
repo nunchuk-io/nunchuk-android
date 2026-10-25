@@ -1030,4 +1030,50 @@
         <item quantity="one">Requires any %1$d of %2$d key</item>
         <item quantity="other">Requires any %1$d of %2$d keys</item>
     </plurals>
+    <!-- Fallback inheritance setup (Figma Row 2 · FBK, Row 3 · TIME) -->
+    <string name="nc_your_fallback_key">Your Fallback %1$d key</string>
+    <string name="nc_fallback_key_intro_purpose">This key will be used for Fallback %1$d. After Fallback %1$d unlocks, it can spend the funds together with any other keys Fallback %1$d requires.</string>
+    <string name="nc_fallback_key_intro_share">Later, you’ll share this seed phrase with the person Fallback %1$d is intended for. That may be someone other than your primary inheritance recipient.</string>
+    <string name="nc_fallback_passphrase_notice_advice">We strongly advise against using a passphrase for fallback keys. It significantly complicates recovery and increases the risk of errors for whoever claims. It also doesn’t protect against a compromised device.</string>
+    <string name="nc_fallbacks_desc">Add another way to spend after a later unlock time.</string>
+    <string name="nc_add_fallback">Add fallback</string>
+    <string name="nc_add_another_fallback">Add another fallback</string>
+    <string name="nc_fallback_policy">Fallback %1$d policy</string>
+    <string name="nc_fallbacks_intro_desc">A fallback adds another way to claim the funds after a later unlock time. It can give the same person another way to claim, or provide a route for someone else if the original beneficiary cannot claim.</string>
+    <string name="nc_fallbacks_intro_each_has">Each fallback has:</string>
+    <string name="nc_fallbacks_intro_own_keys">Its own keys</string>
+    <string name="nc_fallbacks_intro_own_keys_desc">The keys required to claim through this route. Keys used in other routes are fine if this route adds a new way to claim. The Platform key can’t be used.</string>
+    <string name="nc_fallbacks_intro_own_timelock">Its own timelock</string>
+    <string name="nc_fallbacks_intro_own_timelock_desc">It unlocks after the route before it, starting after your primary inheritance timelock.</string>
+    <string name="nc_fallbacks_intro_single_key_hint">If a fallback needs only 1 key, that key can be a single point of failure: it alone can spend through the fallback after its unlock time. To avoid this, require multiple keys.</string>
+    <string name="nc_fallbacks_intro_no_reserve_hint">A fallback doesn’t replace earlier routes or reserve a separate share of the funds. Once it unlocks, any available route can be used to claim, with the keys of that one route.</string>
+    <string name="nc_remove_fallback_title">Remove Fallback %1$d?</string>
+    <plurals name="nc_remove_fallback_desc">
+        <item quantity="one">Its key and timelock will be removed from this wallet setup.</item>
+        <item quantity="other">Its keys and timelock will be removed from this wallet setup.</item>
+    </plurals>
+    <string name="nc_remove_fallback_renumber">Any later fallbacks move up one number and keep their keys and unlock times.</string>
+    <string name="nc_remove_fallback">Remove fallback</string>
+    <string name="nc_choose_key_for_fallback">Choose a key for Fallback %1$d</string>
+    <string name="nc_choose_key_for_fallback_desc">You’ve already added these keys in this setup. Choose one, or use a different key.</string>
+    <string name="nc_use_a_different_key">Use a different key</string>
+    <string name="nc_set_up_fallback_timelock">Set up Fallback %1$d timelock</string>
+    <string name="nc_edit_fallback_timelock">Edit Fallback %1$d timelock</string>
+    <string name="nc_set_up_fallback_timelock_desc_primary">Fallback %1$d becomes available after this time. It must be later than your primary inheritance timelock.</string>
+    <string name="nc_set_up_fallback_timelock_desc_fallback">Fallback %1$d becomes available after this time. It must be later than Fallback %2$d’s timelock.</string>
+    <string name="nc_set_up_fallback_timelock_immutable">On-chain timelocks are immutable. Once the wallet is created, this date can’t be changed without creating a new wallet and moving your funds.</string>
+    <string name="nc_edit_fallback_timelock_desc">Unlock times must stay in order, and no two can be the same. This fallback’s limits are shown below.</string>
+    <string name="nc_primary_inheritance_unlocks_after">Primary inheritance unlocks after</string>
+    <string name="nc_fallback_unlocks_after">Fallback %1$d unlocks after</string>
+    <string name="nc_timelock_not_set_yet">Not set yet</string>
+    <string name="nc_must_be_after_primary_inheritance">Must be after primary inheritance</string>
+    <string name="nc_must_be_after_fallback">Must be after Fallback %1$d</string>
+    <string name="nc_must_be_before_fallback">Must be before Fallback %1$d</string>
+    <plurals name="nc_fallback_timelock_hint">
+        <item quantity="one">Even with the fallback key, no one can claim through Fallback %1$d before this time.</item>
+        <item quantity="other">Even with the fallback keys, no one can claim through Fallback %1$d before this time.</item>
+    </plurals>
+    <string name="nc_fallback_timelock_too_early_primary">Fallback %1$d must unlock after primary inheritance (%2$s). Two routes can’t unlock at the same time. Please select a later date.</string>
+    <string name="nc_fallback_timelock_too_early_fallback">Fallback %1$d must unlock after Fallback %2$d (%3$s). Two routes can’t unlock at the same time. Please select a later date.</string>
+    <string name="nc_fallback_timelock_too_late">Fallback %1$d must unlock before Fallback %2$d (%3$s). Please select an earlier date.</string>
 </resources>

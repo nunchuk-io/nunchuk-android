@@ -43,7 +43,7 @@ import com.nunchuk.android.model.inheritance.PrimaryInheritanceCondition
 internal const val DEFAULT_PRIMARY_REQUIRED_KEYS = 2
 internal const val DEFAULT_PRIMARY_TOTAL_KEYS = 4
 
-/** Upper bound for the policy sheet's counters; the backend validates the real policy. */
+/** Upper bound for the policy sheets' counters; the backend validates the real policy. */
 internal const val MAX_PRIMARY_TOTAL_KEYS = 20
 
 /**
@@ -143,10 +143,31 @@ internal fun CustomizePrimaryInheritanceLink(
 }
 
 /** PRI-02 "Primary inheritance policy": M of N with the +/- buttons disabled at the limits. */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun PrimaryInheritancePolicySheet(
     primary: PrimaryInheritanceCondition?,
+    onContinue: (m: Int, n: Int) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    InheritancePolicySheet(
+        title = stringResource(R.string.nc_primary_inheritance_policy),
+        initialM = primary?.m ?: DEFAULT_PRIMARY_REQUIRED_KEYS,
+        initialN = primary?.n ?: DEFAULT_PRIMARY_TOTAL_KEYS,
+        onContinue = onContinue,
+        onDismiss = onDismiss,
+    )
+}
+
+/**
+ * The M-of-N policy sheet shared by primary inheritance (PRI-02) and fallbacks (FBK-01a): only the
+ * title and the starting values differ.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun InheritancePolicySheet(
+    title: String,
+    initialM: Int,
+    initialN: Int,
     onContinue: (m: Int, n: Int) -> Unit,
     onDismiss: () -> Unit,
 ) {
@@ -155,16 +176,18 @@ internal fun PrimaryInheritancePolicySheet(
         onDismissRequest = onDismiss,
         dragHandle = {},
     ) {
-        PrimaryInheritancePolicyContent(
-            initialM = primary?.m ?: DEFAULT_PRIMARY_REQUIRED_KEYS,
-            initialN = primary?.n ?: DEFAULT_PRIMARY_TOTAL_KEYS,
+        InheritancePolicyContent(
+            title = title,
+            initialM = initialM,
+            initialN = initialN,
             onContinue = onContinue,
         )
     }
 }
 
 @Composable
-private fun PrimaryInheritancePolicyContent(
+private fun InheritancePolicyContent(
+    title: String,
     initialM: Int,
     initialN: Int,
     onContinue: (m: Int, n: Int) -> Unit = { _, _ -> },
@@ -181,7 +204,7 @@ private fun PrimaryInheritancePolicyContent(
             .padding(16.dp)
     ) {
         Text(
-            text = stringResource(R.string.nc_primary_inheritance_policy),
+            text = title,
             style = NunchukTheme.typography.title,
         )
         Spacer(modifier = Modifier.height(16.dp))
@@ -222,7 +245,7 @@ private fun PrimaryInheritancePolicyContent(
 @Composable
 private fun PrimaryInheritancePolicyContentPreview() {
     NunchukTheme {
-        PrimaryInheritancePolicyContent(initialM = 2, initialN = 4)
+        InheritancePolicyContent(title = "Primary inheritance policy", initialM = 2, initialN = 4)
     }
 }
 

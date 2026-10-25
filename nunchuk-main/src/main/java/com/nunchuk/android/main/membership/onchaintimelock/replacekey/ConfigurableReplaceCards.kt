@@ -7,7 +7,6 @@ import com.nunchuk.android.model.WalletTimelock
 import com.nunchuk.android.model.inheritance.DraftInheritanceCard
 import com.nunchuk.android.model.inheritance.InheritanceSection
 import com.nunchuk.android.model.inheritance.InheritanceValidationError
-import com.nunchuk.android.model.inheritance.InheritanceValidationField
 import com.nunchuk.android.model.inheritance.OnChainInheritancePolicy
 import com.nunchuk.android.model.inheritance.bip32AccountIndex
 import com.nunchuk.android.model.signer.SignerServer
@@ -193,12 +192,3 @@ private fun SignerServer.toReplaceSigner(account: Int) = SignerModel(
 /** The server echoes the effective time; it is only a change when it differs from the wallet's. */
 private fun WalletTimelock.isSameTime(other: WalletTimelock?): Boolean =
     other != null && based == other.based && timelockValue == other.timelockValue && blockHeight == other.blockHeight
-
-/** Key indices a `keys` issue circles in [section] (and, for a fallback, [fallbackIndex]). */
-internal fun List<InheritanceValidationError>.highlightedKeys(section: InheritanceSection, fallbackIndex: Int?): Set<Int> =
-    filter { it.section == section && it.field == InheritanceValidationField.KEYS && it.fallbackIndex == fallbackIndex }
-        .flatMap { it.keyIndices }
-        .toSet()
-
-internal fun List<InheritanceValidationError>.isTimelockHighlighted(section: InheritanceSection, fallbackIndex: Int?): Boolean =
-    any { it.section == section && it.field == InheritanceValidationField.TIMELOCK && it.fallbackIndex == fallbackIndex }

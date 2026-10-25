@@ -116,6 +116,20 @@ class DraftSetupCardsTest {
         assertTrue(errors.isTimelockHighlighted(InheritanceSection.FALLBACK))
     }
 
+    @Test
+    fun `fallback errors circle only their own fallback`() {
+        val errors = listOf(
+            InheritanceValidationError("X", "m", InheritanceSection.FALLBACK, 0, InheritanceValidationField.KEYS, listOf(8)),
+            InheritanceValidationError("X", "m", InheritanceSection.FALLBACK, 1, InheritanceValidationField.KEYS, listOf(9)),
+            InheritanceValidationError("TIMELOCK_ORDER_INVALID", "m", InheritanceSection.FALLBACK, 1, InheritanceValidationField.TIMELOCK, emptyList()),
+        )
+
+        assertEquals(setOf(8), errors.highlightedKeyIndices(InheritanceSection.FALLBACK, 0))
+        assertEquals(setOf(9), errors.highlightedKeyIndices(InheritanceSection.FALLBACK, 1))
+        assertFalse(errors.isTimelockHighlighted(InheritanceSection.FALLBACK, 0))
+        assertTrue(errors.isTimelockHighlighted(InheritanceSection.FALLBACK, 1))
+    }
+
     private class MemoryStore : DraftKeySlotStore {
         var saved: DraftKeySlot? = null
         override fun load(): DraftKeySlot? = saved

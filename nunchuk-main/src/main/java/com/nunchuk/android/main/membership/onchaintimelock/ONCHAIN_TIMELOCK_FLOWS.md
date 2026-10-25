@@ -198,6 +198,32 @@ fixed step list:
   (PRI-02) → `UpdateDraftPrimaryInheritanceUseCase`; "Edit" opens the sheet; More → "Cancel
   customization" → `ResetDraftPrimaryInheritanceUseCase`. Validation messages show under the primary
   card (keys / timelock named by an error are circled), the rest at the end of the list.
+* **Fallbacks (Figma Row 2 · FBK, Row 3 · TIME)** sit under primary inheritance
+  (`fallbackDraftItems`, `FallbackInheritanceSetupViews.kt`); "Add fallback" shows even before the
+  primary time is set (SET-03). The first "Add fallback" runs `FallbackInheritanceIntroFragment`
+  (FBK-01), then the shared `InheritancePolicySheet` ("Fallback N policy", FBK-01a, starts at 1 of 1)
+  → `AddDraftFallbackInheritanceUseCase` (`POST draft-wallets/fallbacks`); later ones open the sheet
+  directly. Edit → the sheet with the fallback's M of N → `UpdateDraftFallbackInheritanceUseCase`
+  (`PUT …/fallbacks/{index}`); Remove → `RemoveFallbackSheet` (FBK-10 / FBK-11) →
+  `RemoveDraftFallbackInheritanceUseCase` (`DELETE …/fallbacks/{index}`; later fallbacks move down
+  and keep keys and times). Every call returns the draft, which is applied and then refreshed.
+  * Fallback slots (FALLBACK cards, joined by `fallback_index`) use `DraftPrimarySlotCard`; Add always
+    offers `ChooseKeySheet` in its fallback wording ("Choose a key for Fallback N", "Use a different
+    key") when other keys exist — a key already in the same route is not offered. The account comes
+    from the card's `account_index_by_xfp` as for the primary. The fallback guide
+    (`OnChainInheritanceGuide.FALLBACK` + `fallbackNumber`, KEY-05 / KEY-06) runs once per fallback
+    (`AddKeyListState.isGuideSeen`), also for a key picked from the setup.
+  * Verify on a fallback key runs that key's own backup check; every fallback key that is in must be
+    verified before Continue (`isRequiredVerificationDone`).
+  * The fallback's timelock card reuses `AddKeyCard` (Configure / Change) and opens
+    `OnChainSetUpTimelockFragment` with a `FallbackTimelockTarget` (index, N, the previous route's and
+    the next fallback's times): TIME-01 "Set up Fallback N timelock" / TIME-02 "Edit …" with the
+    limits, and the Invalid date dialog for a time at/before the previous route or at/after the next
+    fallback (TIME-03 / TIME-04). Save → `UpdateDraftFallbackInheritanceUseCase` with the timelock →
+    `DraftWalletUpdated`. Changing the primary time is not bounded here; the backend flags a fallback
+    that no longer fits (SET-13b).
+  * Errors for a fallback show under its timelock card (keys / timelock circled by
+    `highlightedKeyIndices` / `isTimelockHighlighted` with the fallback index).
 
 ### 3.3 "Add" — the dispatcher chain
 

@@ -109,11 +109,23 @@ private fun SignerServer.toSlotSigner(account: Int) = SignerModel(
     xpub = xpub.orEmpty(),
 )
 
-/** Key indices a `keys` validation error circles in [section] (never on spending cards). */
-internal fun List<InheritanceValidationError>.highlightedKeyIndices(section: InheritanceSection): Set<Int> =
-    filter { it.section == section && it.field == InheritanceValidationField.KEYS }
+/**
+ * Key indices a `keys` validation error circles in [section] (never on spending cards); for a
+ * fallback, only those of [fallbackIndex] when it is given.
+ */
+internal fun List<InheritanceValidationError>.highlightedKeyIndices(
+    section: InheritanceSection,
+    fallbackIndex: Int? = null,
+): Set<Int> =
+    filter { it.isFor(section, fallbackIndex) && it.field == InheritanceValidationField.KEYS }
         .flatMap { it.keyIndices }
         .toSet()
 
-internal fun List<InheritanceValidationError>.isTimelockHighlighted(section: InheritanceSection): Boolean =
-    any { it.section == section && it.field == InheritanceValidationField.TIMELOCK }
+internal fun List<InheritanceValidationError>.isTimelockHighlighted(
+    section: InheritanceSection,
+    fallbackIndex: Int? = null,
+): Boolean =
+    any { it.isFor(section, fallbackIndex) && it.field == InheritanceValidationField.TIMELOCK }
+
+private fun InheritanceValidationError.isFor(section: InheritanceSection, fallbackIndex: Int?): Boolean =
+    this.section == section && (fallbackIndex == null || this.fallbackIndex == fallbackIndex)

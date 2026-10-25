@@ -3,6 +3,7 @@ package com.nunchuk.android.main.membership.onchaintimelock.addkey
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.model.inheritance.DraftInheritanceCard
+import com.nunchuk.android.model.inheritance.FallbackInheritanceCondition
 import com.nunchuk.android.model.inheritance.InheritanceSection
 import com.nunchuk.android.model.inheritance.InheritanceValidationError
 import com.nunchuk.android.model.inheritance.InheritanceValidationField
@@ -42,10 +43,10 @@ class AddKeyListStateInheritanceTest {
         id = xfp, name = xfp, derivationPath = "", fingerPrint = xfp, isMasterSigner = false,
     )
 
-    private fun card(section: InheritanceSection, vararg slots: DraftSetupSlot) = DraftSetupCard(
+    private fun card(section: InheritanceSection, vararg slots: DraftSetupSlot, fallbackIndex: Int? = null) = DraftSetupCard(
         card = DraftInheritanceCard(
             section = section,
-            fallbackIndex = null,
+            fallbackIndex = fallbackIndex,
             isServerKey = false,
             tags = emptyList(),
             keys = emptyList(),
@@ -177,5 +178,87 @@ class AddKeyListStateInheritanceTest {
     fun `verification stays pending until the owner key is verified too`() {
         assertFalse(defaultState(inheritanceVerified = true, ownerAVerified = false).isRequiredVerificationDone)
         assertTrue(defaultState(inheritanceVerified = true, ownerAVerified = true).isRequiredVerificationDone)
+    }
+
+    /** Default HB, fully verified, plus fallbacks given as (index, slots). */
+    private fun withFallbacks(vararg fallbacks: Pair<Int, List<DraftSetupSlot>>): AddKeyListState {
+        val base = defaultState(inheritanceVerified = true, ownerAVerified = true)
+        return base.copy(
+            inheritancePolicy = base.inheritancePolicy!!.copy(
+                fallbacks = fallbacks.map { (index, slots) ->
+                    FallbackInheritanceCondition(index = index, m = 1, n = slots.size, timelock = null)
+                }.reversed(),
+            ),
+            draftCards = base.draftCards + fallbacks.map { (index, slots) ->
+                card(InheritanceSection.FALLBACK, *slots.toTypedArray(), fallbackIndex = index)
+            },
+        )
+    }
+
+    private fun fallbackSlot(index: Int, xfp: String?, verified: Boolean) =
+        slot(index, xfp, verified, InheritanceSection.FALLBACK)
+
+    @Test
+    fun `fallbacks come in order with their own cards`() {
+        val state = withFallbacks(
+            0 to listOf(fallbackSlot(8, "j", true)),
+            1 to listOf(fallbackSlot(9, "c", false), fallbackSlot(10, null, false)),
+        )
+
+        assertEquals(listOf(0, 1), state.fallbacks.map { it.index })
+        assertEquals(listOf(8), state.fallbackSlots(0).map { it.keyIndex })
+        assertEquals(listOf(9, 10), state.fallbackSlots(1).map { it.keyIndex })
+    }
+
+    @Test
+    fun `a legacy draft has no fallbacks`() {
+        val state = withFallbacks(0 to listOf(fallbackSlot(8, "j", true)))
+            .let { it.copy(inheritancePolicy = it.inheritancePolicy!!.copy(type = OnChainInheritancePolicyType.LEGACY)) }
+
+        assertTrue(state.fallbacks.isEmpty())
+    }
+
+    @Test
+    fun `an added fallback key must be verified before continue`() {
+        assertFalse(withFallbacks(0 to listOf(fallbackSlot(8, "j", false))).isRequiredVerificationDone)
+        assertTrue(withFallbacks(0 to listOf(fallbackSlot(8, "j", true))).isRequiredVerificationDone)
+        // An empty slot is left to the backend's `finalized`.
+        assertTrue(withFallbacks(0 to listOf(fallbackSlot(8, null, false))).isRequiredVerificationDone)
+    }
+
+    @Test
+    fun `fallback errors sit under their fallback, others stay at the end`() {
+        val own = error(InheritanceSection.FALLBACK, "fallback 1")
+        val gone = error(InheritanceSection.FALLBACK, "fallback 2").copy(fallbackIndex = 1)
+        val state = withFallbacks(0 to listOf(fallbackSlot(8, "j", true))).copy(validationErrors = listOf(own, gone))
+
+        assertEquals(listOf(own), state.fallbackValidationErrors(0))
+        assertEquals(listOf(gone), state.otherValidationErrors)
+    }
+
+    @Test
+    fun `fallback guide runs once per fallback`() {
+        val state = withFallbacks(
+            0 to listOf(fallbackSlot(8, null, false)),
+            1 to listOf(fallbackSlot(9, "c", false)),
+        )
+        val first = state.fallbackCards(0).single().card
+        val second = state.fallbackCards(1).single().card
+
+        // The primary guide having run does not cover a fallback.
+        assertTrue(state.isGuideSeen(state.primaryCards.single().card))
+        assertFalse(state.isGuideSeen(first))
+        assertTrue(state.copy(fallbackGuidesSeenInSession = setOf(0)).isGuideSeen(first))
+        // A key already in the fallback means its guide ran.
+        assertTrue(state.isGuideSeen(second))
+    }
+
+    @Test
+    fun `fallback number is one based and zero for other cards`() {
+        val state = withFallbacks(0 to listOf(fallbackSlot(8, null, false)), 2 to listOf(fallbackSlot(9, null, false)))
+
+        assertEquals(1, state.fallbackCards(0).single().card.fallbackNumber)
+        assertEquals(3, state.fallbackCards(2).single().card.fallbackNumber)
+        assertEquals(0, state.primaryCards.single().card.fallbackNumber)
     }
 }

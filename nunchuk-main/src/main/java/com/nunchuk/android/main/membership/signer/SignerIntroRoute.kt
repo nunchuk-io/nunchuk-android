@@ -89,6 +89,7 @@ internal fun SignerIntroRoute(
                 inheritanceKeyIntroDestination(
                     remainTime = remainTime,
                     guide = onChainKey?.inheritanceGuide ?: OnChainInheritanceGuide.LEGACY,
+                    fallbackNumber = onChainKey?.fallbackNumber ?: 0,
                     onMoreClicked = onMore,
                     onContinueClicked = { keyType ->
                         navController.navigate(InheritancePassphraseNoticeDestination(keyType = keyType.name)) {

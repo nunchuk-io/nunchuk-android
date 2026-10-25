@@ -134,6 +134,8 @@ internal fun DraftPrimarySlotCard(
     isVerificationPending: Boolean = false,
     /** Every primary key is verified: a customized slot drops its Verified label (SET-16). */
     isPrimaryVerified: Boolean = false,
+    /** A fallback slot: a verified key shows "Added" (FBK-10 / SET-11). */
+    isFallback: Boolean = false,
     isDisabled: Boolean = false,
     onAddClicked: (DraftSetupCard, DraftSetupSlot) -> Unit = { _, _ -> },
     onVerifyClicked: (DraftSetupCard, DraftSetupSlot) -> Unit = { _, _ -> },
@@ -186,7 +188,7 @@ internal fun DraftPrimarySlotCard(
                     enabled = !isDisabled,
                 ) { onVerifyClicked(card, slot) }
 
-                isCustomized -> if (!isPrimaryVerified) CheckedLabel(stringResource(R.string.nc_verified))
+                isCustomized && !isFallback -> if (!isPrimaryVerified) CheckedLabel(stringResource(R.string.nc_verified))
                 else -> CheckedLabel(stringResource(R.string.nc_added))
             }
         }
@@ -278,11 +280,15 @@ private fun CheckedLabel(text: String) {
     }
 }
 
-/** KEY-01a "Choose a key": a key already in this setup, or the regular add-key flow. */
+/**
+ * KEY-01a "Choose a key": a key already in this setup, or the regular add-key flow. [fallbackNumber]
+ * switches to the fallback wording ("Choose a key for Fallback 1").
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun ChooseKeySheet(
     options: List<SignerModel>,
+    fallbackNumber: Int? = null,
     onChooseKey: (xfp: String) -> Unit,
     onAddKey: () -> Unit,
     onDismiss: () -> Unit,
@@ -291,13 +297,19 @@ internal fun ChooseKeySheet(
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         onDismissRequest = onDismiss,
     ) {
-        ChooseKeyContent(options = options, onChooseKey = onChooseKey, onAddKey = onAddKey)
+        ChooseKeyContent(
+            options = options,
+            fallbackNumber = fallbackNumber,
+            onChooseKey = onChooseKey,
+            onAddKey = onAddKey,
+        )
     }
 }
 
 @Composable
 private fun ChooseKeyContent(
     options: List<SignerModel>,
+    fallbackNumber: Int? = null,
     onChooseKey: (xfp: String) -> Unit = {},
     onAddKey: () -> Unit = {},
 ) {
@@ -308,10 +320,19 @@ private fun ChooseKeyContent(
             .padding(horizontal = 16.dp)
             .padding(bottom = 16.dp)
     ) {
-        Text(text = stringResource(R.string.nc_choose_a_key), style = NunchukTheme.typography.title)
+        Text(
+            text = if (fallbackNumber != null) {
+                stringResource(R.string.nc_choose_key_for_fallback, fallbackNumber)
+            } else {
+                stringResource(R.string.nc_choose_a_key)
+            },
+            style = NunchukTheme.typography.title,
+        )
         Text(
             modifier = Modifier.padding(top = 8.dp, bottom = 8.dp),
-            text = stringResource(R.string.nc_choose_a_key_desc),
+            text = stringResource(
+                if (fallbackNumber != null) R.string.nc_choose_key_for_fallback_desc else R.string.nc_choose_a_key_desc
+            ),
             style = NunchukTheme.typography.body,
         )
         options.forEach { signer ->
@@ -361,7 +382,9 @@ private fun ChooseKeyContent(
                 .padding(top = 16.dp),
             onClick = onAddKey,
         ) {
-            Text(text = stringResource(R.string.nc_add_key))
+            Text(
+                text = stringResource(if (fallbackNumber != null) R.string.nc_use_a_different_key else R.string.nc_add_key)
+            )
         }
     }
 }

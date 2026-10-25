@@ -44,6 +44,7 @@ import com.nunchuk.android.core.data.model.InheritanceClaimStatusRequest
 import com.nunchuk.android.core.data.model.InitWalletConfigRequest
 import com.nunchuk.android.core.data.model.PrimaryInheritancePayload
 import com.nunchuk.android.core.data.model.UpdateDraftWalletPayload
+import com.nunchuk.android.core.data.model.FallbackInheritancePayload
 import com.nunchuk.android.core.data.model.UpdatePrimaryInheritancePayload
 import com.nunchuk.android.core.data.model.LockdownUpdateRequest
 import com.nunchuk.android.core.data.model.MarkRecoverStatusRequest
@@ -3261,6 +3262,67 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             userWalletApiManager.walletApi.resetDraftPrimaryInheritance()
         } else {
             userWalletApiManager.groupWalletApi.resetDraftPrimaryInheritance(groupId)
+        }
+        if (response.isSuccess.not()) {
+            throw response.error
+        }
+        val draftWallet =
+            response.data.draftWallet ?: throw NullPointerException("draftWallet null")
+        return draftWallet.toDraftWalletModel()
+    }
+
+    override suspend fun addDraftFallbackInheritance(groupId: String?, m: Int, n: Int): DraftWallet {
+        val payload = FallbackInheritancePayload(m = m, n = n)
+        val response = if (groupId.isNullOrEmpty()) {
+            userWalletApiManager.walletApi.addDraftFallbackInheritance(payload)
+        } else {
+            userWalletApiManager.groupWalletApi.addDraftFallbackInheritance(groupId, payload)
+        }
+        if (response.isSuccess.not()) {
+            throw response.error
+        }
+        val draftWallet =
+            response.data.draftWallet ?: throw NullPointerException("draftWallet null")
+        return draftWallet.toDraftWalletModel()
+    }
+
+    override suspend fun updateDraftFallbackInheritance(
+        groupId: String?,
+        index: Int,
+        m: Int?,
+        n: Int?,
+        timelock: WalletTimelock?,
+    ): DraftWallet {
+        val payload = FallbackInheritancePayload(
+            m = m,
+            n = n,
+            timelock = timelock?.let {
+                TimelockPayload(
+                    value = it.timelockValue,
+                    timezone = it.timezone,
+                    based = it.based.name,
+                    blockHeight = it.blockHeight,
+                )
+            },
+        )
+        val response = if (groupId.isNullOrEmpty()) {
+            userWalletApiManager.walletApi.updateDraftFallbackInheritance(index, payload)
+        } else {
+            userWalletApiManager.groupWalletApi.updateDraftFallbackInheritance(groupId, index, payload)
+        }
+        if (response.isSuccess.not()) {
+            throw response.error
+        }
+        val draftWallet =
+            response.data.draftWallet ?: throw NullPointerException("draftWallet null")
+        return draftWallet.toDraftWalletModel()
+    }
+
+    override suspend fun removeDraftFallbackInheritance(groupId: String?, index: Int): DraftWallet {
+        val response = if (groupId.isNullOrEmpty()) {
+            userWalletApiManager.walletApi.removeDraftFallbackInheritance(index)
+        } else {
+            userWalletApiManager.groupWalletApi.removeDraftFallbackInheritance(groupId, index)
         }
         if (response.isSuccess.not()) {
             throw response.error

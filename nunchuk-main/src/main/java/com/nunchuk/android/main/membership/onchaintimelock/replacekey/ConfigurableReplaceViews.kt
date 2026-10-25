@@ -42,6 +42,8 @@ import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.onchaintimelock.addkey.InheritanceValidationErrors
 import com.nunchuk.android.main.membership.onchaintimelock.addkey.PrimaryInheritanceHeader
 import com.nunchuk.android.main.membership.onchaintimelock.addkey.afterTimelockPrimaryDescription
+import com.nunchuk.android.main.membership.onchaintimelock.addkey.highlightedKeyIndices
+import com.nunchuk.android.main.membership.onchaintimelock.addkey.isTimelockHighlighted
 import com.nunchuk.android.model.TimelockBased
 import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.model.WalletTimelock
@@ -93,7 +95,7 @@ internal fun LazyListScope.configurableReplaceItems(
     }
 
     val primary = state.policy?.primary
-    val primaryHighlighted = state.validationErrors.highlightedKeys(InheritanceSection.PRIMARY, null)
+    val primaryHighlighted = state.validationErrors.highlightedKeyIndices(InheritanceSection.PRIMARY, null)
     item {
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
             Text(
@@ -133,7 +135,7 @@ internal fun LazyListScope.configurableReplaceItems(
         }
     }
     fallbacks.forEach { fallback ->
-        val highlighted = state.validationErrors.highlightedKeys(InheritanceSection.FALLBACK, fallback.index)
+        val highlighted = state.validationErrors.highlightedKeyIndices(InheritanceSection.FALLBACK, fallback.index)
         item { FallbackReplaceHeader(fallback) }
         items(
             state.cards

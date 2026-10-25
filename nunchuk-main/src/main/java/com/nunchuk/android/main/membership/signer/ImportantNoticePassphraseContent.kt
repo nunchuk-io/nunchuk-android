@@ -85,7 +85,12 @@ internal fun ImportantNoticePassphraseContent(
                             append(stringResource(R.string.nc_membership_passphrase_notice_intro))
                             append("\n\n")
                             withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                append(stringResource(R.string.nc_onchain_passphrase_notice_advice))
+                                append(
+                                    stringResource(
+                                        if (guide == OnChainInheritanceGuide.FALLBACK) R.string.nc_fallback_passphrase_notice_advice
+                                        else R.string.nc_onchain_passphrase_notice_advice
+                                    )
+                                )
                             }
                             append("\n\n")
                             append(stringResource(R.string.nc_onchain_passphrase_notice_share))

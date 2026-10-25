@@ -42,6 +42,7 @@ import com.nunchuk.android.core.data.model.InheritanceClaimDownloadBackupRequest
 import com.nunchuk.android.core.data.model.InheritanceClaimStatusRequest
 import com.nunchuk.android.core.data.model.InitWalletConfigRequest
 import com.nunchuk.android.core.data.model.UpdateDraftWalletPayload
+import com.nunchuk.android.core.data.model.FallbackInheritancePayload
 import com.nunchuk.android.core.data.model.UpdatePrimaryInheritancePayload
 import com.nunchuk.android.core.data.model.LiquidNetworkStatusResponse
 import com.nunchuk.android.core.data.model.LockdownUpdateRequest
@@ -503,6 +504,22 @@ internal interface UserWalletsApi {
 
     @DELETE("/v1.1/user-wallets/draft-wallets/primary")
     suspend fun resetDraftPrimaryInheritance(): Data<DraftWalletResponse>
+
+    @POST("/v1.1/user-wallets/draft-wallets/fallbacks")
+    suspend fun addDraftFallbackInheritance(
+        @Body payload: FallbackInheritancePayload
+    ): Data<DraftWalletResponse>
+
+    @PUT("/v1.1/user-wallets/draft-wallets/fallbacks/{index}")
+    suspend fun updateDraftFallbackInheritance(
+        @Path("index") index: Int,
+        @Body payload: FallbackInheritancePayload
+    ): Data<DraftWalletResponse>
+
+    @DELETE("/v1.1/user-wallets/draft-wallets/fallbacks/{index}")
+    suspend fun removeDraftFallbackInheritance(
+        @Path("index") index: Int,
+    ): Data<DraftWalletResponse>
 
     @GET("/v1.1/user-wallets/draft-wallets/request-add-key/{request_id}")
     suspend fun getRequestAddKeyStatus(

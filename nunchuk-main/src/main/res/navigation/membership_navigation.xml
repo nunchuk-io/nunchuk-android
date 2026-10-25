@@ -213,12 +213,24 @@
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <action
+            android:id="@+id/action_onChainTimelockAddKeyListFragment_to_fallbackInheritanceIntroFragment"
+            app:destination="@id/fallbackInheritanceIntroFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
     </fragment>
 
     <fragment
         android:id="@+id/customizeInheritanceIntroFragment"
         android:name="com.nunchuk.android.main.membership.onchaintimelock.customize.CustomizeInheritanceIntroFragment"
         android:label="CustomizeInheritanceIntroFragment" />
+
+    <fragment
+        android:id="@+id/fallbackInheritanceIntroFragment"
+        android:name="com.nunchuk.android.main.membership.onchaintimelock.customize.FallbackInheritanceIntroFragment"
+        android:label="FallbackInheritanceIntroFragment" />
 
     <fragment
         android:id="@+id/onChainSetUpTimelockFragment"
@@ -246,6 +258,12 @@
             android:name="wallet_id"
             android:defaultValue="@null"
             app:argType="string"
+            app:nullable="true" />
+
+        <argument
+            android:name="fallbackTarget"
+            android:defaultValue="@null"
+            app:argType="com.nunchuk.android.main.membership.onchaintimelock.setuptimelock.FallbackTimelockTarget"
             app:nullable="true" />
     </fragment>
 

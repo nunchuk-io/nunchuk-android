@@ -50,6 +50,7 @@ sealed class SignerIntroFlow : Parcelable {
 
     /**
      * @property inheritanceGuide which "Your … inheritance key" copy the guide shows.
+     * @property fallbackNumber the 1-based fallback the key is for, with [OnChainInheritanceGuide.FALLBACK].
      * @property showInheritanceGuide false once the guide ran in this wallet setup (configurable draft).
      * @property showDeviceSafety show "Before you use this device" before a new device is used.
      * @property guideOnly only run the inheritance guide and return RESULT_OK — the key was picked
@@ -63,6 +64,7 @@ sealed class SignerIntroFlow : Parcelable {
         val existingSigners: List<SignerModel> = emptyList(),
         val replaceInfo: OnChainAddSignerParam.ReplaceInfo? = null,
         val inheritanceGuide: OnChainInheritanceGuide = OnChainInheritanceGuide.LEGACY,
+        val fallbackNumber: Int = 0,
         val showInheritanceGuide: Boolean = true,
         val showDeviceSafety: Boolean = false,
         val guideOnly: Boolean = false,
@@ -134,4 +136,7 @@ enum class OnChainInheritanceGuide {
 
     /** Configurable draft, customized primary (KEY-03). */
     PRIMARY,
+
+    /** Configurable draft, a fallback key (KEY-05 / KEY-06); the flow carries the fallback number. */
+    FALLBACK,
 }

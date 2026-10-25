@@ -93,6 +93,7 @@ class OnChainSetUpTimelockFragment : MembershipFragment(), BottomSheetOptionList
                     timelockExtra = args.timelockExtra,
                     isReplaceKeyFlow = args.isReplaceKeyFlow,
                     walletId = args.walletId,
+                    fallbackTarget = args.fallbackTarget,
                     onMoreClicked = ::handleShowMore
                 )
             }
@@ -130,6 +131,7 @@ private fun OnChainSetUpTimelockScreen(
     timelockExtra: TimelockExtra? = null,
     isReplaceKeyFlow: Boolean = false,
     walletId: String? = null,
+    fallbackTarget: FallbackTimelockTarget? = null,
     onMoreClicked: () -> Unit = {},
 ) {
     val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
@@ -147,7 +149,8 @@ private fun OnChainSetUpTimelockScreen(
                 selectedTimeZone,
                 groupId = groupId,
                 isReplaceKeyFlow = isReplaceKeyFlow,
-                walletId = walletId
+                walletId = walletId,
+                fallbackTarget = fallbackTarget,
             )
         },
         onDateChanged = { selectedDate, selectedTimeZone ->
@@ -160,6 +163,9 @@ private fun OnChainSetUpTimelockScreen(
         showBlockBasedTimelockDialog = state.showBlockBasedTimelockDialog,
         maxTimelockYears = state.maxTimelockYears,
         isReplaceKeyFlow = isReplaceKeyFlow,
+        fallbackTarget = fallbackTarget,
+        fallbackBoundViolation = state.fallbackBoundViolation,
+        onDismissFallbackBoundDialog = viewModel::onDismissFallbackBoundDialog,
         isBlockBased = state.isBlockBased,
         blockHeight = state.blockHeight,
         onConfirmTimelockDate = { viewModel.onConfirmTimelockDate() },
@@ -175,6 +181,10 @@ private fun OnChainSetUpTimelockContent(
     remainTime: Int = 0,
     timelockExtra: TimelockExtra? = null,
     isReplaceKeyFlow: Boolean = false,
+    /** Set when this screen picks a fallback's unlock time (Row 3 · TIME). */
+    fallbackTarget: FallbackTimelockTarget? = null,
+    fallbackBoundViolation: FallbackTimelockBound? = null,
+    onDismissFallbackBoundDialog: () -> Unit = {},
     onMoreClicked: () -> Unit = {},
     onContinueClicked: (Calendar, TimeZoneDetail) -> Unit = { _, _ -> },
     onDateChanged: (Calendar, TimeZoneDetail) -> Unit = { _, _ -> },
@@ -256,7 +266,15 @@ private fun OnChainSetUpTimelockContent(
             ) {
                 NcHintMessage(
                     modifier = Modifier.padding(horizontal = 16.dp),
-                    messages = listOf(ClickAbleText(content = stringResource(R.string.nc_membership_timelock_beneficiary_cannot_claim)))
+                    messages = listOf(
+                        ClickAbleText(
+                            content = if (fallbackTarget != null) {
+                                fallbackTimelockHint(fallbackTarget)
+                            } else {
+                                stringResource(R.string.nc_membership_timelock_beneficiary_cannot_claim)
+                            }
+                        )
+                    )
                 )
 
                 NcPrimaryDarkButton(
@@ -277,16 +295,29 @@ private fun OnChainSetUpTimelockContent(
                     .fillMaxHeight()
                     .verticalScroll(rememberScrollState())
             ) {
+                val isFallbackEdit = timelockExtra != null && timelockExtra.value > 0
                 Text(
                     modifier = Modifier.padding(start = 16.dp, end = 16.dp),
-                    text = stringResource(if (isReplaceKeyFlow) R.string.nc_membership_change_on_chain_timelock else R.string.nc_membership_set_up_on_chain_timelock),
+                    text = when {
+                        fallbackTarget != null -> fallbackTimelockTitle(fallbackTarget, isEdit = isFallbackEdit)
+                        isReplaceKeyFlow -> stringResource(R.string.nc_membership_change_on_chain_timelock)
+                        else -> stringResource(R.string.nc_membership_set_up_on_chain_timelock)
+                    },
                     style = NunchukTheme.typography.heading
                 )
-                NcHighlightText(
-                    modifier = Modifier.padding(16.dp),
-                    text = stringResource(R.string.nc_membership_on_chain_timelock_explanation),
-                    style = NunchukTheme.typography.body
-                )
+                if (fallbackTarget != null) {
+                    FallbackTimelockIntro(
+                        modifier = Modifier.padding(16.dp),
+                        target = fallbackTarget,
+                        isEdit = isFallbackEdit,
+                    )
+                } else {
+                    NcHighlightText(
+                        modifier = Modifier.padding(16.dp),
+                        text = stringResource(R.string.nc_membership_on_chain_timelock_explanation),
+                        style = NunchukTheme.typography.body
+                    )
+                }
 
                 // Timezone field
                 NcTimeZoneField(
@@ -485,6 +516,17 @@ private fun OnChainSetUpTimelockContent(
         )
     }
 
+    // A fallback time outside its neighbours (TIME-03 / TIME-04)
+    if (fallbackTarget != null && fallbackBoundViolation != null) {
+        NcInfoDialog(
+            title = stringResource(id = R.string.nc_invalid_date_title),
+            message = fallbackBoundMessage(fallbackTarget, fallbackBoundViolation),
+            positiveButtonText = stringResource(id = com.nunchuk.android.widget.R.string.nc_text_got_it),
+            onDismiss = onDismissFallbackBoundDialog,
+            onPositiveClick = onDismissFallbackBoundDialog
+        )
+    }
+
     // Block-based timelock dialog
     if (showBlockBasedTimelockDialog) {
         NcConfirmationDialog(
@@ -521,5 +563,20 @@ private fun OnChainSetUpTimelockScreenBlockBasedPreview() {
         onDateChanged = { _, _ -> },
         isBlockBased = true,
         blockHeight = 1500123
+    )
+}
+
+@Preview
+@Composable
+private fun OnChainSetUpFallbackTimelockScreenPreview() {
+    OnChainSetUpTimelockContent(
+        remainTime = 0,
+        timelockExtra = null,
+        fallbackTarget = FallbackTimelockTarget(
+            index = 0,
+            keyCount = 1,
+            previous = TimelockExtra(value = 2063550300L, timezone = "Asia/Jakarta"),
+            next = null,
+        ),
     )
 }

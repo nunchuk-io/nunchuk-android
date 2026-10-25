@@ -244,6 +244,19 @@ internal data class PrimaryInheritancePayload(
 )
 
 /**
+ * Body for POST draft-wallets/fallbacks (append) and PUT draft-wallets/fallbacks/{index} (edit).
+ * Null fields are omitted, and an edit keeps whatever it omits.
+ */
+internal data class FallbackInheritancePayload(
+    @SerializedName("m")
+    val m: Int? = null,
+    @SerializedName("n")
+    val n: Int? = null,
+    @SerializedName("timelock")
+    val timelock: TimelockPayload? = null,
+)
+
+/**
  * Body for PUT /v1.1/(user|group)-wallets/.../draft-wallets/current.
  * Updates the current draft wallet, used by custom Miniscript setup.
  */

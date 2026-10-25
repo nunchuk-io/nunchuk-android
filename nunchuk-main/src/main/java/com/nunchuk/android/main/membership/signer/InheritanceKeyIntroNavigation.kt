@@ -52,6 +52,7 @@ data class InheritancePassphraseNoticeDestination(val keyType: String)
 fun NavGraphBuilder.inheritanceKeyIntroDestination(
     remainTime: Int = 0,
     guide: OnChainInheritanceGuide = OnChainInheritanceGuide.LEGACY,
+    fallbackNumber: Int = 0,
     onMoreClicked: () -> Unit = {},
     onContinueClicked: (KeyType) -> Unit = {},
 ) {
@@ -60,6 +61,7 @@ fun NavGraphBuilder.inheritanceKeyIntroDestination(
         InheritanceKeyIntroContent(
             remainTime = remainTime,
             guide = guide,
+            fallbackNumber = fallbackNumber,
             onMoreClicked = onMoreClicked,
             onContinueClicked = { onContinueClicked(keyType) },
         )
@@ -87,6 +89,8 @@ fun NavGraphBuilder.inheritancePassphraseNoticeDestination(
 private fun InheritanceKeyIntroContent(
     remainTime: Int = 0,
     guide: OnChainInheritanceGuide = OnChainInheritanceGuide.LEGACY,
+    /** KEY-05: the fallback the key is for, with [OnChainInheritanceGuide.FALLBACK]. */
+    fallbackNumber: Int = 0,
     onMoreClicked: () -> Unit = {},
     onContinueClicked: () -> Unit = {},
 ) {
@@ -137,23 +141,23 @@ private fun InheritanceKeyIntroContent(
             ) {
                 Text(
                     modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
-                    text = stringResource(
-                        if (guide == OnChainInheritanceGuide.PRIMARY) R.string.nc_your_primary_inheritance_key
-                        else R.string.nc_your_inheritance_key
-                    ),
+                    text = when (guide) {
+                        OnChainInheritanceGuide.PRIMARY -> stringResource(R.string.nc_your_primary_inheritance_key)
+                        OnChainInheritanceGuide.FALLBACK -> stringResource(R.string.nc_your_fallback_key, fallbackNumber)
+                        else -> stringResource(R.string.nc_your_inheritance_key)
+                    },
                     style = NunchukTheme.typography.heading
                 )
                 Text(
                     modifier = Modifier.padding(16.dp),
                     text = buildAnnotatedString {
                         append(
-                            stringResource(
-                                when (guide) {
-                                    OnChainInheritanceGuide.LEGACY -> R.string.nc_inheritance_key_intro_purpose
-                                    OnChainInheritanceGuide.DEFAULT_PRIMARY -> R.string.nc_default_primary_key_intro_purpose
-                                    OnChainInheritanceGuide.PRIMARY -> R.string.nc_primary_key_intro_purpose
-                                }
-                            )
+                            when (guide) {
+                                OnChainInheritanceGuide.LEGACY -> stringResource(R.string.nc_inheritance_key_intro_purpose)
+                                OnChainInheritanceGuide.DEFAULT_PRIMARY -> stringResource(R.string.nc_default_primary_key_intro_purpose)
+                                OnChainInheritanceGuide.PRIMARY -> stringResource(R.string.nc_primary_key_intro_purpose)
+                                OnChainInheritanceGuide.FALLBACK -> stringResource(R.string.nc_fallback_key_intro_purpose, fallbackNumber)
+                            }
                         )
                         append("\n\n")
                         withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
@@ -163,13 +167,12 @@ private fun InheritanceKeyIntroContent(
                         append(stringResource(R.string.nc_inheritance_key_intro_seed_phrase))
                         append("\n\n")
                         append(
-                            stringResource(
-                                when (guide) {
-                                    OnChainInheritanceGuide.LEGACY -> R.string.nc_inheritance_key_intro_share_backup
-                                    OnChainInheritanceGuide.DEFAULT_PRIMARY -> R.string.nc_default_primary_key_intro_share
-                                    OnChainInheritanceGuide.PRIMARY -> R.string.nc_primary_key_intro_share
-                                }
-                            )
+                            when (guide) {
+                                OnChainInheritanceGuide.LEGACY -> stringResource(R.string.nc_inheritance_key_intro_share_backup)
+                                OnChainInheritanceGuide.DEFAULT_PRIMARY -> stringResource(R.string.nc_default_primary_key_intro_share)
+                                OnChainInheritanceGuide.PRIMARY -> stringResource(R.string.nc_primary_key_intro_share)
+                                OnChainInheritanceGuide.FALLBACK -> stringResource(R.string.nc_fallback_key_intro_share, fallbackNumber)
+                            }
                         )
                     },
                     style = NunchukTheme.typography.body
@@ -189,4 +192,10 @@ private fun InheritanceKeyIntroContentPreview() {
 @Composable
 private fun PrimaryInheritanceKeyIntroContentPreview() {
     InheritanceKeyIntroContent(guide = OnChainInheritanceGuide.PRIMARY)
+}
+
+@PreviewLightDark
+@Composable
+private fun FallbackKeyIntroContentPreview() {
+    InheritanceKeyIntroContent(guide = OnChainInheritanceGuide.FALLBACK, fallbackNumber = 1)
 }

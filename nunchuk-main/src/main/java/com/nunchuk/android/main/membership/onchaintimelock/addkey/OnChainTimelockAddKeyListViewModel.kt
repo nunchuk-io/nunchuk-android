@@ -60,6 +60,7 @@ import com.nunchuk.android.model.inheritance.RecoveredKey
 import com.nunchuk.android.model.inheritance.DraftKeySlotHolder
 import com.nunchuk.android.model.inheritance.DraftInheritanceCard
 import com.nunchuk.android.model.byzantine.GroupWalletType
+import com.nunchuk.android.model.inheritance.FallbackInheritanceCondition
 import com.nunchuk.android.model.inheritance.InheritanceSection
 import com.nunchuk.android.model.inheritance.InheritanceValidationError
 import com.nunchuk.android.model.inheritance.OnChainInheritancePolicy
@@ -81,7 +82,10 @@ import com.nunchuk.android.usecase.membership.SyncKeyUseCase
 import com.nunchuk.android.usecase.signer.GetAllSignersUseCase
 import com.nunchuk.android.usecase.signer.GetSignerFromMasterSignerByIndexUseCase
 import com.nunchuk.android.usecase.signer.GetUnusedSignerFromMasterSignerV2UseCase
+import com.nunchuk.android.usecase.wallet.AddDraftFallbackInheritanceUseCase
+import com.nunchuk.android.usecase.wallet.RemoveDraftFallbackInheritanceUseCase
 import com.nunchuk.android.usecase.wallet.ResetDraftPrimaryInheritanceUseCase
+import com.nunchuk.android.usecase.wallet.UpdateDraftFallbackInheritanceUseCase
 import com.nunchuk.android.usecase.wallet.UpdateDraftPrimaryInheritanceUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -125,6 +129,9 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
     private val setKeyVerifiedUseCase: SetKeyVerifiedUseCase,
     private val updateDraftPrimaryInheritanceUseCase: UpdateDraftPrimaryInheritanceUseCase,
     private val resetDraftPrimaryInheritanceUseCase: ResetDraftPrimaryInheritanceUseCase,
+    private val addDraftFallbackInheritanceUseCase: AddDraftFallbackInheritanceUseCase,
+    private val updateDraftFallbackInheritanceUseCase: UpdateDraftFallbackInheritanceUseCase,
+    private val removeDraftFallbackInheritanceUseCase: RemoveDraftFallbackInheritanceUseCase,
     private val draftKeySlotHolder: DraftKeySlotHolder,
 ) : ViewModel() {
     private val _state = MutableStateFlow(AddKeyListState())
@@ -177,6 +184,9 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
     init {
         if (savedStateHandle.get<Boolean>(KEY_INHERITANCE_GUIDE_SEEN) == true) {
             _state.update { it.copy(isInheritanceGuideSeenInSession = true) }
+        }
+        savedStateHandle.get<IntArray>(KEY_FALLBACK_GUIDES_SEEN)?.let { seen ->
+            _state.update { it.copy(fallbackGuidesSeenInSession = seen.toSet()) }
         }
         configArg?.let { config ->
             initializeKeysFromConfig(config)
@@ -510,12 +520,13 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
 
     /**
      * Add (or Change) on a configurable-draft card. A spending card fills its next account; a
-     * primary slot of a customized policy first offers the keys already in this setup (KEY-01a).
+     * primary slot of a customized policy, and every fallback slot, first offers the keys already in
+     * this setup (KEY-01a).
      */
     fun onDraftSlotAddClicked(card: DraftSetupCard, slot: DraftSetupSlot) {
-        if (card.section == InheritanceSection.PRIMARY && _state.value.isPrimaryCustomized &&
-            chooseKeyOptions(slot).isNotEmpty()
-        ) {
+        val offersChoice = card.section == InheritanceSection.FALLBACK ||
+            (card.section == InheritanceSection.PRIMARY && _state.value.isPrimaryCustomized)
+        if (offersChoice && chooseKeyOptions(card.card).isNotEmpty()) {
             _state.update { it.copy(chooseKeyTarget = ChooseKeyTarget(card.card, slot.keyIndex)) }
             return
         }
@@ -541,13 +552,22 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
         _state.update { it.copy(chooseKeyTarget = null) }
     }
 
-    /** Keys already in this setup, one per device, for the choose-key sheet. */
-    fun chooseKeyOptions(slot: DraftSetupSlot): List<SignerModel> =
-        _state.value.draftCards
+    /**
+     * Keys already in this setup, one per device, for the choose-key sheet of a slot on [card]. A key
+     * already in that card (the slot's own included) is left out: one route can't use the same key
+     * twice.
+     */
+    fun chooseKeyOptions(card: DraftInheritanceCard): List<SignerModel> {
+        val cards = _state.value.draftCards
+        val inThisCard = cards.firstOrNull { it.card == card }?.slots.orEmpty()
+            .mapNotNull { it.signer?.fingerPrint?.lowercase() }
+            .toSet()
+        return cards
             .filterNot { it.isServerKey }
-            .flatMap { card -> card.slots.mapNotNull { it.signer } }
-            .filterNot { it.fingerPrint.equals(slot.signer?.fingerPrint, ignoreCase = true) }
+            .flatMap { it.slots.mapNotNull { slot -> slot.signer } }
+            .filterNot { it.fingerPrint.lowercase() in inThisCard }
             .distinctBy { it.fingerPrint.lowercase() }
+    }
 
     /**
      * KEY-01a "Choose key". The first inheritance key of this setup still runs the inheritance
@@ -556,9 +576,16 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
     fun onChooseKeySelected(xfp: String) {
         val target = _state.value.chooseKeyTarget ?: return
         _state.update { it.copy(chooseKeyTarget = null) }
-        if (!_state.value.isInheritanceGuideSeen) {
+        if (!_state.value.isGuideSeen(target.card)) {
             savedStateHandle[KEY_PENDING_CHOICE] = PendingKeyChoice(target.keyIndex, xfp)
-            viewModelScope.launch { _event.emit(AddKeyListEvent.OpenInheritanceGuide(inheritanceGuide())) }
+            viewModelScope.launch {
+                _event.emit(
+                    AddKeyListEvent.OpenInheritanceGuide(
+                        guide = inheritanceGuide(target.card),
+                        fallbackNumber = target.card.fallbackNumber,
+                    )
+                )
+            }
             return
         }
         importChosenKey(target.keyIndex, xfp)
@@ -566,8 +593,9 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
 
     /** The guide-only run finished: the guide counts as seen; resume a pending choice. */
     fun onInheritanceGuideDone() {
-        markInheritanceGuideSeen()
-        val choice = savedStateHandle.get<PendingKeyChoice>(KEY_PENDING_CHOICE) ?: return
+        val choice = savedStateHandle.get<PendingKeyChoice>(KEY_PENDING_CHOICE)
+        markInheritanceGuideSeen(choice?.let { cardOfKey(it.keyIndex)?.card })
+        choice ?: return
         savedStateHandle.remove<PendingKeyChoice>(KEY_PENDING_CHOICE)
         importChosenKey(choice.keyIndex, choice.xfp)
     }
@@ -577,18 +605,34 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
         savedStateHandle.remove<PendingKeyChoice>(KEY_PENDING_CHOICE)
     }
 
-    /** A primary add came back from the key picker, so its guide ran (or was not needed). */
+    /** An inheritance add came back from the key picker, so its guide ran (or was not needed). */
     fun onDraftSignerIntroCompleted() {
-        if (draftKeySlotHolder.slotFor(groupId)?.isInheritance == true) markInheritanceGuideSeen()
+        val slot = draftKeySlotHolder.slotFor(groupId) ?: return
+        if (slot.isInheritance) markInheritanceGuideSeen(cardOfKey(slot.keyIndex)?.card)
     }
 
-    private fun markInheritanceGuideSeen() {
-        savedStateHandle[KEY_INHERITANCE_GUIDE_SEEN] = true
-        _state.update { it.copy(isInheritanceGuideSeenInSession = true) }
+    private fun cardOfKey(keyIndex: Int): DraftSetupCard? =
+        _state.value.draftCards.firstOrNull { card -> card.slots.any { it.keyIndex == keyIndex } }
+
+    /** The primary guide runs once per setup; a fallback's guide once per fallback ([card] null: primary). */
+    private fun markInheritanceGuideSeen(card: DraftInheritanceCard?) {
+        val fallbackIndex = card?.fallbackIndex?.takeIf { card.section == InheritanceSection.FALLBACK }
+        if (fallbackIndex == null) {
+            savedStateHandle[KEY_INHERITANCE_GUIDE_SEEN] = true
+            _state.update { it.copy(isInheritanceGuideSeenInSession = true) }
+            return
+        }
+        val seen = _state.value.fallbackGuidesSeenInSession + fallbackIndex
+        savedStateHandle[KEY_FALLBACK_GUIDES_SEEN] = seen.toIntArray()
+        _state.update { it.copy(fallbackGuidesSeenInSession = seen) }
     }
 
-    private fun inheritanceGuide(): OnChainInheritanceGuide =
-        if (_state.value.isPrimaryCustomized) OnChainInheritanceGuide.PRIMARY else OnChainInheritanceGuide.DEFAULT_PRIMARY
+    /** KEY-03 / KEY-05 copy for a key going into [card]. */
+    private fun inheritanceGuide(card: DraftInheritanceCard): OnChainInheritanceGuide = when {
+        card.section == InheritanceSection.FALLBACK -> OnChainInheritanceGuide.FALLBACK
+        _state.value.isPrimaryCustomized -> OnChainInheritanceGuide.PRIMARY
+        else -> OnChainInheritanceGuide.DEFAULT_PRIMARY
+    }
 
     /**
      * Put [xfp]'s account for this slot (`account_index_by_xfp`) in the slot. Uses the account the app
@@ -603,7 +647,7 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
             viewModelScope.launch { _event.emit(AddKeyListEvent.ShowErrorRes(R.string.nc_draft_key_account_unavailable)) }
             return
         }
-        val device = chooseKeyOptions(slot).firstOrNull { it.fingerPrint.equals(xfp, ignoreCase = true) } ?: return
+        val device = chooseKeyOptions(card.card).firstOrNull { it.fingerPrint.equals(xfp, ignoreCase = true) } ?: return
         importDraftAccount(card, slot, device, account)
     }
 
@@ -648,8 +692,9 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
         val options = DraftAddOptions(
             accountIndex = account,
             isInheritance = isInheritance,
-            inheritanceGuide = inheritanceGuide(),
-            showInheritanceGuide = isInheritance && !_state.value.isInheritanceGuideSeen,
+            inheritanceGuide = inheritanceGuide(card.card),
+            fallbackNumber = card.card.fallbackNumber,
+            showInheritanceGuide = isInheritance && !_state.value.isGuideSeen(card.card),
             showDeviceSafety = true,
         )
         viewModelScope.launch {
@@ -690,7 +735,8 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
                         accountIndex = account,
                         sameDevice = device,
                         isInheritance = isInheritance,
-                        inheritanceGuide = inheritanceGuide(),
+                        inheritanceGuide = inheritanceGuide(card.card),
+                        fallbackNumber = card.card.fallbackNumber,
                         showInheritanceGuide = false,
                         showDeviceSafety = false,
                     ),
@@ -754,10 +800,10 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
 
     /**
      * Verify on a configurable-draft key. The guided default's inheritance key opens the Verify
-     * backups list (VER-01); everything else runs the key's own backup check.
+     * backups list (VER-01); everything else, fallback keys included, runs the key's own backup check.
      */
     fun onDraftSlotVerifyClicked(card: DraftSetupCard, slot: DraftSetupSlot) {
-        if (!_state.value.isPrimaryCustomized) {
+        if (card.section == InheritanceSection.PRIMARY && !_state.value.isPrimaryCustomized) {
             _state.update { it.copy(isVerifyBackupsVisible = true) }
             return
         }
@@ -796,34 +842,89 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
 
     /** PRI-02 Continue: customize the primary to any [m] of [n] keys (PUT draft-wallets/primary). */
     fun updatePrimaryPolicy(m: Int, n: Int) {
-        viewModelScope.launch {
-            _state.update { it.copy(isLoading = true, isPrimaryPolicySheetVisible = false) }
+        runDraftUpdate(beforeRun = { it.copy(isPrimaryPolicySheetVisible = false) }) {
             updateDraftPrimaryInheritanceUseCase(
                 UpdateDraftPrimaryInheritanceUseCase.Param(m = m, n = n, groupId = groupId)
-            ).onSuccess { draft ->
-                applyInheritancePolicy(draft)
-                refresh()
-            }.onFailure {
-                _event.emit(AddKeyListEvent.ShowError(it.message.orUnknownError()))
-            }
-            _state.update { it.copy(isLoading = false) }
+            )
         }
     }
 
     /** More → Cancel customization: back to the default 2-of-4; fallbacks are kept (DELETE draft-wallets/primary). */
     fun cancelPrimaryCustomization() {
-        viewModelScope.launch {
-            _state.update { it.copy(isLoading = true) }
-            resetDraftPrimaryInheritanceUseCase(
-                ResetDraftPrimaryInheritanceUseCase.Param(groupId = groupId)
-            ).onSuccess { draft ->
-                applyInheritancePolicy(draft)
-                refresh()
-            }.onFailure {
-                _event.emit(AddKeyListEvent.ShowError(it.message.orUnknownError()))
-            }
-            _state.update { it.copy(isLoading = false) }
+        runDraftUpdate {
+            resetDraftPrimaryInheritanceUseCase(ResetDraftPrimaryInheritanceUseCase.Param(groupId = groupId))
         }
+    }
+
+    /** FBK-01a for a new fallback (its intro already ran), starting at 1 of 1. */
+    fun showAddFallbackSheet() {
+        _state.update { it.copy(fallbackPolicyTarget = FallbackPolicyTarget(index = null)) }
+    }
+
+    /** Edit on a fallback: the same sheet, with its current M of N. */
+    fun showEditFallbackSheet(index: Int) {
+        _state.update { it.copy(fallbackPolicyTarget = FallbackPolicyTarget(index = index)) }
+    }
+
+    fun dismissFallbackPolicySheet() {
+        _state.update { it.copy(fallbackPolicyTarget = null) }
+    }
+
+    /**
+     * FBK-01a Continue: append a fallback (POST draft-wallets/fallbacks) or change one's M of N
+     * (PUT draft-wallets/fallbacks/{index}); the backend revalidates every route.
+     */
+    fun saveFallbackPolicy(m: Int, n: Int) {
+        val target = _state.value.fallbackPolicyTarget ?: return
+        runDraftUpdate(beforeRun = { it.copy(fallbackPolicyTarget = null) }) {
+            if (target.index == null) {
+                addDraftFallbackInheritanceUseCase(
+                    AddDraftFallbackInheritanceUseCase.Param(m = m, n = n, groupId = groupId)
+                )
+            } else {
+                updateDraftFallbackInheritanceUseCase(
+                    UpdateDraftFallbackInheritanceUseCase.Param(index = target.index, m = m, n = n, groupId = groupId)
+                )
+            }
+        }
+    }
+
+    fun requestRemoveFallback(index: Int) {
+        _state.update { it.copy(removeFallbackIndex = index) }
+    }
+
+    fun dismissRemoveFallback() {
+        _state.update { it.copy(removeFallbackIndex = null) }
+    }
+
+    /** FBK-10 / FBK-11: later fallbacks move down one index and keep their keys and times. */
+    fun confirmRemoveFallback() {
+        val index = _state.value.removeFallbackIndex ?: return
+        runDraftUpdate(beforeRun = { it.copy(removeFallbackIndex = null) }) {
+            removeDraftFallbackInheritanceUseCase(
+                RemoveDraftFallbackInheritanceUseCase.Param(index = index, groupId = groupId)
+            )
+        }.invokeOnCompletion {
+            // Fallback guides are tracked by index, which just shifted: forget the ones from here on.
+            val seen = _state.value.fallbackGuidesSeenInSession.filter { it < index }.toSet()
+            savedStateHandle[KEY_FALLBACK_GUIDES_SEEN] = seen.toIntArray()
+            _state.update { it.copy(fallbackGuidesSeenInSession = seen) }
+        }
+    }
+
+    /** One draft-edit call with the loading dialog, then the returned draft and a full refresh. */
+    private fun runDraftUpdate(
+        beforeRun: (AddKeyListState) -> AddKeyListState = { it },
+        call: suspend () -> kotlin.Result<DraftWallet>,
+    ): Job = viewModelScope.launch {
+        _state.update { beforeRun(it).copy(isLoading = true) }
+        call().onSuccess { draft ->
+            applyInheritancePolicy(draft)
+            refresh()
+        }.onFailure {
+            _event.emit(AddKeyListEvent.ShowError(it.message.orUnknownError()))
+        }
+        _state.update { it.copy(isLoading = false) }
     }
 
     fun onAddKeyClicked(data: AddKeyOnChainData) {
@@ -1267,6 +1368,7 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
         private const val KEY_PENDING_CHOICE = "pending_key_choice"
         private const val KEY_ACTIVE_DRAFT_ACCOUNT = "active_draft_account"
         private const val KEY_INHERITANCE_GUIDE_SEEN = "inheritance_guide_seen"
+        private const val KEY_FALLBACK_GUIDES_SEEN = "fallback_guides_seen"
         private const val KEY_TAPSIGNER_MASTER_ID = "tapsigner_master_id"
         private const val KEY_TAPSIGNER_PATH = "tapsigner_path"
         private const val KEY_TAPSIGNER_CONTEXT = "tapsigner_context"
@@ -1281,6 +1383,13 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
 
 /** The slot the choose-key sheet fills: the card plus the slot's `key_index`. */
 data class ChooseKeyTarget(val card: DraftInheritanceCard, val keyIndex: Int)
+
+/** The fallback the policy sheet (FBK-01a) edits; [index] null adds a new one. */
+data class FallbackPolicyTarget(val index: Int?)
+
+/** 1-based number of a FALLBACK card ("Fallback 1"); 0 for any other card. */
+val DraftInheritanceCard.fallbackNumber: Int
+    get() = if (section == InheritanceSection.FALLBACK) (fallbackIndex ?: 0) + 1 else 0
 
 /** A choose-key pick waiting for the inheritance guide to finish. */
 @Parcelize
@@ -1297,6 +1406,8 @@ data class DraftAddOptions(
     val sameDevice: SignerModel? = null,
     val isInheritance: Boolean,
     val inheritanceGuide: OnChainInheritanceGuide,
+    /** 1-based, for a fallback slot (KEY-05 "Your Fallback N key"); 0 otherwise. */
+    val fallbackNumber: Int = 0,
     val showInheritanceGuide: Boolean,
     val showDeviceSafety: Boolean,
 )
@@ -1328,7 +1439,7 @@ sealed class AddKeyListEvent {
     ) : AddKeyListEvent()
 
     /** Run only the inheritance guide (KEY-03/04) before a key picked from this setup is used. */
-    data class OpenInheritanceGuide(val guide: OnChainInheritanceGuide) : AddKeyListEvent()
+    data class OpenInheritanceGuide(val guide: OnChainInheritanceGuide, val fallbackNumber: Int = 0) : AddKeyListEvent()
     data class UpdateSignerTag(val signer: SignerModel) : AddKeyListEvent()
 }
 
@@ -1356,6 +1467,12 @@ data class AddKeyListState(
     val chooseKeyTarget: ChooseKeyTarget? = null,
     val isVerifyBackupsVisible: Boolean = false,
     val isInheritanceGuideSeenInSession: Boolean = false,
+    /** Fallback indices whose guide (KEY-05 / KEY-06) ran in this session. */
+    val fallbackGuidesSeenInSession: Set<Int> = emptySet(),
+    /** The fallback policy sheet (FBK-01a); null when hidden. */
+    val fallbackPolicyTarget: FallbackPolicyTarget? = null,
+    /** The fallback the remove confirmation (FBK-10 / FBK-11) is for; null when hidden. */
+    val removeFallbackIndex: Int? = null,
 ) {
     /**
      * The inheritance guide runs once per wallet setup: it ran in this session, or a primary key is
@@ -1364,8 +1481,31 @@ data class AddKeyListState(
     val isInheritanceGuideSeen: Boolean
         get() = isInheritanceGuideSeenInSession || primarySlots.any { it.isFilled }
 
+    /**
+     * Whether a key going into [card] still needs its guide: the primary guide runs once per setup,
+     * a fallback's once per fallback (or not at all once that fallback holds a key).
+     */
+    fun isGuideSeen(card: DraftInheritanceCard): Boolean {
+        if (card.section != InheritanceSection.FALLBACK) return isInheritanceGuideSeen
+        val index = card.fallbackIndex ?: return true
+        return index in fallbackGuidesSeenInSession || fallbackSlots(index).any { it.isFilled }
+    }
+
     val spendingCards: List<DraftSetupCard>
         get() = draftCards.filter { it.section == InheritanceSection.SPENDING }
+
+    /** The draft's fallbacks in order (FALLBACK cards join them by `fallback_index`). */
+    val fallbacks: List<FallbackInheritanceCondition>
+        get() = if (isConfigurableInheritance) inheritancePolicy?.fallbacks.orEmpty().sortedBy { it.index } else emptyList()
+
+    fun fallbackCards(index: Int): List<DraftSetupCard> =
+        draftCards.filter { it.section == InheritanceSection.FALLBACK && it.card.fallbackIndex == index }
+
+    fun fallbackSlots(index: Int): List<DraftSetupSlot> = fallbackCards(index).flatMap { it.slots }
+
+    /** Shown under a fallback's card. */
+    fun fallbackValidationErrors(index: Int): List<InheritanceValidationError> =
+        validationErrors.filter { it.section == InheritanceSection.FALLBACK && it.fallbackIndex == index }
 
     val primaryCards: List<DraftSetupCard>
         get() = draftCards.filter { it.section == InheritanceSection.PRIMARY }
@@ -1389,11 +1529,12 @@ data class AddKeyListState(
 
     /**
      * The guided default needs the inheritance key plus at least one owner key verified (the key
-     * shared with the Beneficiary); the backend's `finalized` covers the customized policy.
+     * shared with the Beneficiary); the backend's `finalized` covers the customized policy. Every
+     * fallback key that is in must be verified too (FBK-03: Verify before Continue).
      */
     val isRequiredVerificationDone: Boolean
-        get() = isPrimaryCustomized ||
-            (primarySlots.all { it.isVerified } && ownerKeys.any { it.isVerified })
+        get() = (isPrimaryCustomized || (primarySlots.all { it.isVerified } && ownerKeys.any { it.isVerified })) &&
+            fallbacks.all { fallback -> fallbackSlots(fallback.index).filter { it.isFilled }.all { it.isVerified } }
 
     /** Continue on a configurable draft: backend-ready, no setup issue, and the verification above. */
     val isDraftReadyToContinue: Boolean
@@ -1411,9 +1552,15 @@ data class AddKeyListState(
         get() = validationErrors.filter { it.section == InheritanceSection.PRIMARY }
 
     /**
-     * Shown at the end of the list until their own card exists (fallbacks are a later phase); never
-     * dropped, because each one still blocks Continue.
+     * Issues no card shows (spending, or a fallback the draft no longer lists), at the end of the
+     * list; never dropped, because each one still blocks Continue.
      */
     val otherValidationErrors: List<InheritanceValidationError>
-        get() = validationErrors.filter { it.section != InheritanceSection.PRIMARY }
+        get() {
+            val fallbackIndices = fallbacks.map { it.index }.toSet()
+            return validationErrors.filter {
+                it.section != InheritanceSection.PRIMARY &&
+                    !(it.section == InheritanceSection.FALLBACK && it.fallbackIndex in fallbackIndices)
+            }
+        }
 }

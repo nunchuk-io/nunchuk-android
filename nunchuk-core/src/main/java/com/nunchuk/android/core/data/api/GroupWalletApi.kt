@@ -7,6 +7,7 @@ import com.nunchuk.android.core.data.model.DeleteAssistedWalletRequest
 import com.nunchuk.android.core.data.model.LockdownUpdateRequest
 import com.nunchuk.android.core.data.model.SyncTransactionRequest
 import com.nunchuk.android.core.data.model.UpdateDraftWalletPayload
+import com.nunchuk.android.core.data.model.FallbackInheritancePayload
 import com.nunchuk.android.core.data.model.UpdatePrimaryInheritancePayload
 import com.nunchuk.android.core.data.model.UpdateWalletPayload
 import com.nunchuk.android.core.data.model.byzantine.CreateDraftWalletRequest
@@ -169,6 +170,25 @@ internal interface GroupWalletApi {
     @DELETE("/v1.1/group-wallets/groups/{group_id}/draft-wallets/primary")
     suspend fun resetDraftPrimaryInheritance(
         @Path("group_id") groupId: String,
+    ): Data<DraftWalletResponse>
+
+    @POST("/v1.1/group-wallets/groups/{group_id}/draft-wallets/fallbacks")
+    suspend fun addDraftFallbackInheritance(
+        @Path("group_id") groupId: String,
+        @Body payload: FallbackInheritancePayload
+    ): Data<DraftWalletResponse>
+
+    @PUT("/v1.1/group-wallets/groups/{group_id}/draft-wallets/fallbacks/{index}")
+    suspend fun updateDraftFallbackInheritance(
+        @Path("group_id") groupId: String,
+        @Path("index") index: Int,
+        @Body payload: FallbackInheritancePayload
+    ): Data<DraftWalletResponse>
+
+    @DELETE("/v1.1/group-wallets/groups/{group_id}/draft-wallets/fallbacks/{index}")
+    suspend fun removeDraftFallbackInheritance(
+        @Path("group_id") groupId: String,
+        @Path("index") index: Int,
     ): Data<DraftWalletResponse>
 
     @GET("/v1.1/group-wallets/permissions/default")
