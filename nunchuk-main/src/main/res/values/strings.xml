@@ -1069,6 +1069,16 @@
     <string name="nc_must_be_after_primary_inheritance">Must be after primary inheritance</string>
     <string name="nc_must_be_after_fallback">Must be after Fallback %1$d</string>
     <string name="nc_must_be_before_fallback">Must be before Fallback %1$d</string>
+    <!-- Plan screens with fallbacks (Figma Row 6 · REV, Row 5 · NOTIF) -->
+    <string name="nc_fallback_inheritance_any_keys">Fallback %1$d · any %2$d of %3$d keys</string>
+    <string name="nc_fallback_inheritance_all_keys">Fallback %1$d · %2$d of %3$d keys</string>
+    <string name="nc_fallback_inheritance_single_key">Fallback %1$d · 1 of 1 key</string>
+    <string name="nc_fallback_key">Fallback key</string>
+    <string name="nc_fallback_number">Fallback %1$d</string>
+    <string name="nc_unlock_notices">Unlock notices</string>
+    <string name="nc_notify_when_a_timelock_expires">Notify them when a timelock expires</string>
+    <string name="nc_notify_when_a_timelock_expires_desc">Choose which timelocks this person should hear about.</string>
+    <string name="nc_unlocks_after">Unlocks after %1$s</string>
     <plurals name="nc_fallback_timelock_hint">
         <item quantity="one">Even with the fallback key, no one can claim through Fallback %1$d before this time.</item>
         <item quantity="other">Even with the fallback keys, no one can claim through Fallback %1$d before this time.</item>

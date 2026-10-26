@@ -154,6 +154,16 @@ notifyPref ─ miniscript? notificationSettings : reviewPlan
 reviewPlan ─► (sign) ─► createSuccess ─► shareSecret ─► shareSecretInfo ─► howItWorks
 ```
 
+**On-chain plans with fallbacks** (configurable policy, NUN-10320): `InheritancePlanningState`
+derives `primaryInheritance` and `fallbackInheritances` (`FallbackInheritanceInfo.kt`) from the
+wallet's `onchain_inheritance_policy` + the plan's `inheritance_keys` (section / `fallback_index`;
+keys are never inferred from signers). Review lists each fallback after the primary date:
+"Fallback N · M of N keys", the server-named keys, and that fallback's own "Claimable after".
+`notificationSettings` then shows, per recipient, a "Notify them when a timelock expires" switch
+with one checkbox per timelock (NOTIF-03): primary = `notify_timelock_expires`, Fallback N =
+index N-1 in `notify_fallbacks` (`notificationsettings/UnlockNotices.kt`); Review shows the picks
+as "Unlock notices". Without fallbacks both screens keep the single Yes/No timelock notice.
+
 Supporting screens reachable from review/edit: `changetimezone`, `backupdownload`,
 `fallbacksettings`, `assetallocation`, `releasemethod`, `beneficiaryschedules`.
 

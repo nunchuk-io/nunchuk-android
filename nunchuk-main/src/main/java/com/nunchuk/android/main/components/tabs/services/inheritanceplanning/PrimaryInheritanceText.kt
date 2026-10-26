@@ -77,3 +77,13 @@ internal fun primaryKeysPhrase(info: PrimaryInheritanceInfo): String = when {
 
     else -> stringResource(R.string.nc_primary_keys_any_phrase, info.requiredSignatures, info.totalKeys)
 }
+
+/** "Fallback 2 · any 2 of 3 keys" — the heading above a fallback's key cards on Review your plan. */
+@Composable
+internal fun fallbackInheritanceHeading(info: FallbackInheritanceInfo): String = when {
+    info.isSingleKey -> stringResource(R.string.nc_fallback_inheritance_single_key, info.number)
+    info.requiredSignatures == info.totalKeys ->
+        stringResource(R.string.nc_fallback_inheritance_all_keys, info.number, info.requiredSignatures, info.totalKeys)
+
+    else -> stringResource(R.string.nc_fallback_inheritance_any_keys, info.number, info.requiredSignatures, info.totalKeys)
+}

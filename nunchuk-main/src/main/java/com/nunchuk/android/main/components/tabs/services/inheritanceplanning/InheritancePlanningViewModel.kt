@@ -222,6 +222,10 @@ data class InheritancePlanningState(
     val primaryInheritance: PrimaryInheritanceInfo?
         get() = onChainInheritancePolicy?.toPrimaryInheritanceInfo(setupOrReviewParam.inheritanceKeys)
 
+    /** Configurable on-chain plans only; empty when the plan has no fallback (or is legacy). */
+    val fallbackInheritances: List<FallbackInheritanceInfo>
+        get() = onChainInheritancePolicy?.toFallbackInheritanceInfos(setupOrReviewParam.inheritanceKeys).orEmpty()
+
     /**
      * The primary route's M-of-N from the wallet alone, for setup screens shown before the plan
      * lists its keys. Null keeps the legacy copy.

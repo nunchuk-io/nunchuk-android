@@ -278,6 +278,8 @@ fun NotificationPreferencesSection(
     textColor: Color = MaterialTheme.colorScheme.controlFillPrimary,
     emailTextColor: Color = MaterialTheme.colorScheme.controlFillPrimary,
     notifyTextColor: Color = MaterialTheme.colorScheme.controlFillPrimary,
+    /** On-chain plans with fallbacks show "Unlock notices" per recipient instead of a Yes/No. */
+    fallbackCount: Int = 0,
 ) {
     if (isMiniscriptWallet && notificationPreferences != null) {
         Column(modifier = modifier) {
@@ -292,6 +294,7 @@ fun NotificationPreferencesSection(
                 ProviderNotificationSettingsContent(
                     emailSettings = emailSettings,
                     textColor = textColor,
+                    fallbackCount = fallbackCount,
                 )
             }
         }
@@ -562,6 +565,7 @@ fun notificationPreferencesEqual(
         old.perEmailSettings.any { oldSettings ->
             oldSettings.email == newSettings.email &&
                     oldSettings.notifyOnTimelockExpiry == newSettings.notifyOnTimelockExpiry &&
+                    oldSettings.notifyFallbacks.orEmpty().sorted() == newSettings.notifyFallbacks.orEmpty().sorted() &&
                     oldSettings.notifyOnWalletChanges == newSettings.notifyOnWalletChanges &&
                     oldSettings.includeWalletConfiguration == newSettings.includeWalletConfiguration
         }

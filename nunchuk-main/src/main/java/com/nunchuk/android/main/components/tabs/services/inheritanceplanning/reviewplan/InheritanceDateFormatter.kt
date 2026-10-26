@@ -30,9 +30,11 @@ import java.util.TimeZone
  * Formats a timestamp in the specified timezone
  * @param timestamp The timestamp to format
  * @param isOnChainTimelock If true, includes time (MM/dd/yyyy HH:mm), if false, date only (MM/dd/yyyy)
+ * @param timeZoneId The zone the time is shown in — pass the one the screen labels it with. Blank
+ * (or unknown) is the device zone, which is also what a blank label resolves to ([getTimezoneDisplay]).
  * @return Formatted date string
  */
-fun formatDateTimeInTimezone(timestamp: Long, isOnChainTimelock: Boolean): String {
+fun formatDateTimeInTimezone(timestamp: Long, isOnChainTimelock: Boolean, timeZoneId: String = ""): String {
     if (timestamp <= 0) return ""
 
     val calendar = Calendar.getInstance().apply {
@@ -46,11 +48,15 @@ fun formatDateTimeInTimezone(timestamp: Long, isOnChainTimelock: Boolean): Strin
     }
 
     val dateTimeFormat = SimpleDateFormat(formatPattern, Locale.ENGLISH).apply {
-        this.timeZone = timeZone
+        this.timeZone = timeZoneId.toTimeZoneOrDefault()
     }
 
     return dateTimeFormat.format(calendar.time)
 }
+
+/** Unknown ids would silently become GMT in [TimeZone.getTimeZone]; use the device zone instead. */
+private fun String.toTimeZoneOrDefault(): TimeZone =
+    takeIf { it.isNotBlank() }?.let(TimeZone::getTimeZone)?.takeIf { it.id == this } ?: TimeZone.getDefault()
 
 /**
  * Formats a timestamp with date only in the specified timezone

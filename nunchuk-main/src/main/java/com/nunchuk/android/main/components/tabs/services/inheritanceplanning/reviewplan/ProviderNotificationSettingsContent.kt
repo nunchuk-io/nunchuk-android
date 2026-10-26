@@ -16,18 +16,23 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.controlFillPrimary
 import com.nunchuk.android.compose.greyLight
 import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.core.R
+import com.nunchuk.android.main.R as MainR
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.notificationsettings.unlockNoticesSummary
 import com.nunchuk.android.model.inheritance.EmailNotificationSettings
 
 @Composable
 fun ProviderNotificationSettingsContent(
     emailSettings: EmailNotificationSettings,
-    textColor: Color = MaterialTheme.colorScheme.controlFillPrimary
+    textColor: Color = MaterialTheme.colorScheme.controlFillPrimary,
+    /** On-chain plans with fallbacks list which unlocks this person hears about (REV-01). */
+    fallbackCount: Int = 0,
 ) {
     Box(
         modifier = Modifier
@@ -52,11 +57,22 @@ fun ProviderNotificationSettingsContent(
                 color = MaterialTheme.colorScheme.strokePrimary
             )
 
-            NotificationSettingRow(
-                label = stringResource(id = R.string.nc_notify_when_timelock_expires),
-                value = emailSettings.notifyOnTimelockExpiry,
-                textColor = textColor
-            )
+            if (fallbackCount > 0) {
+                NotificationSettingValueRow(
+                    label = stringResource(id = MainR.string.nc_unlock_notices),
+                    value = emailSettings.unlockNoticesSummary(fallbackCount),
+                    textColor = textColor,
+                    // "Primary inheritance, Fallback 1, Fallback 2, …" grows with the plan: give it a
+                    // fixed share so it wraps (REV-06) instead of squeezing the label out.
+                    isValueWrapping = true,
+                )
+            } else {
+                NotificationSettingRow(
+                    label = stringResource(id = R.string.nc_notify_when_timelock_expires),
+                    value = emailSettings.notifyOnTimelockExpiry,
+                    textColor = textColor
+                )
+            }
 
             NotificationSettingRow(
                 label = stringResource(id = R.string.nc_notify_when_wallet_changes),
@@ -79,6 +95,20 @@ fun NotificationSettingRow(
     value: Boolean,
     textColor: Color = MaterialTheme.colorScheme.controlFillPrimary
 ) {
+    NotificationSettingValueRow(
+        label = label,
+        value = if (value) stringResource(id = MainR.string.nc_text_yes) else stringResource(id = MainR.string.nc_text_no),
+        textColor = textColor,
+    )
+}
+
+@Composable
+private fun NotificationSettingValueRow(
+    label: String,
+    value: String,
+    textColor: Color = MaterialTheme.colorScheme.controlFillPrimary,
+    isValueWrapping: Boolean = false,
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -90,7 +120,11 @@ fun NotificationSettingRow(
             modifier = Modifier.weight(1f)
         )
         Text(
-            text = if (value) stringResource(id = com.nunchuk.android.main.R.string.nc_text_yes) else stringResource(id = com.nunchuk.android.main.R.string.nc_text_no),
+            modifier = Modifier
+                .then(if (isValueWrapping) Modifier.weight(1.2f, fill = false) else Modifier)
+                .padding(start = 12.dp),
+            text = value,
+            textAlign = TextAlign.End,
             style = NunchukTheme.typography.title.copy(color = textColor)
         )
     }

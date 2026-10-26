@@ -59,6 +59,7 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -87,7 +88,9 @@ import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.Inh
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceReleaseMethodType
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceSetupFlowType
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.FallbackInheritanceInfo
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.PrimaryInheritanceInfo
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.fallbackInheritanceHeading
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.primaryInheritanceHeading
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.primaryKeysToShareSentence
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.fallbackSettingsSummaryText
@@ -106,7 +109,9 @@ import com.nunchuk.android.model.TimelockBased
 import com.nunchuk.android.model.byzantine.isMasterOrAdmin
 import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.model.inheritance.ClaimOption
+import com.nunchuk.android.model.WalletTimelock
 import com.nunchuk.android.model.inheritance.EmailNotificationSettings
+import com.nunchuk.android.model.inheritance.InheritanceNotificationSettings
 import com.nunchuk.android.model.inheritance.InheritancePlanBeneficiary
 import com.nunchuk.android.utils.Utils
 import com.nunchuk.android.widget.R as WidgetR
@@ -149,6 +154,7 @@ fun InheritanceReviewPlanScreen(
     InheritanceReviewPlanScreenContent(
         isMiniscriptWallet = sharedUiState.isMiniscriptWallet,
         primaryInheritance = sharedUiState.primaryInheritance,
+        fallbackInheritances = sharedUiState.fallbackInheritances,
         userEmail = sharedUiState.userEmail,
         remainTime = remainTime,
         planFlow = setupOrReviewParam.planFlow,
@@ -192,6 +198,7 @@ fun InheritanceReviewPlanScreen(
 fun InheritanceReviewPlanScreenContent(
     isMiniscriptWallet: Boolean = false,
     primaryInheritance: PrimaryInheritanceInfo? = null,
+    fallbackInheritances: List<FallbackInheritanceInfo> = emptyList(),
     userEmail: String = "",
     remainTime: Int = 0,
     planFlow: Int = InheritancePlanFlow.VIEW,
@@ -247,6 +254,7 @@ fun InheritanceReviewPlanScreenContent(
     val changeHighlightColor = Color(0xFFCF4018)
     val shouldHighlightChangedSection = planFlow == InheritancePlanFlow.VIEW
     val highlights = state.changeHighlights
+    val onChainFallbacks = if (isMiniscriptWallet) fallbackInheritances else emptyList()
 
     NunchukTheme {
         NcScaffold(
@@ -390,7 +398,7 @@ fun InheritanceReviewPlanScreenContent(
 
                                 Text(
                                     text = stringResource(
-                                        if (isMiniscriptWallet && primaryInheritance?.isCustomized == true) R.string.nc_customized_inheritance_need_these_info_title
+                                        if (isMiniscriptWallet && (primaryInheritance?.isCustomized == true || onChainFallbacks.isNotEmpty())) R.string.nc_customized_inheritance_need_these_info_title
                                         else R.string.nc_provider_need_these_info_title
                                     ),
                                     modifier = Modifier.padding(top = 24.dp, bottom = 12.dp),
@@ -505,6 +513,12 @@ fun InheritanceReviewPlanScreenContent(
                                         onClick = {
                                             onEditActivationDateClick()
                                         }
+                                    )
+                                }
+                                onChainFallbacks.forEach { fallback ->
+                                    FallbackInheritanceReviewSection(
+                                        info = fallback,
+                                        fallbackTimeZoneId = setupOrReviewParam.selectedZoneId,
                                     )
                                 }
                                 if (isEditable && planFlow == InheritancePlanFlow.VIEW) {
@@ -730,6 +744,7 @@ fun InheritanceReviewPlanScreenContent(
                         userEmail = userEmail,
                         emails = setupOrReviewParam.emails,
                         isNotifyToday = setupOrReviewParam.isNotify,
+                        fallbackCount = onChainFallbacks.size,
                         textColor = if (shouldHighlightChangedSection && highlights.notificationSettingsChanged) {
                             changeHighlightColor
                         } else {
@@ -893,6 +908,54 @@ private fun PrimaryInheritanceReviewSection(info: PrimaryInheritanceInfo) {
             color = Color.White
         )
     }
+}
+
+/**
+ * One fallback on Review your plan (REV-01 / REV-05 / REV-06): "Fallback N · M of N keys", one card
+ * per key under the server's name ("Fallback key 3", numbered across all fallbacks), then that
+ * fallback's own unlock time. Read-only: fallbacks are edited in wallet setup, not in the plan.
+ */
+@Composable
+private fun FallbackInheritanceReviewSection(
+    info: FallbackInheritanceInfo,
+    fallbackTimeZoneId: String,
+) {
+    Text(
+        text = fallbackInheritanceHeading(info),
+        modifier = Modifier.padding(top = 24.dp),
+        style = NunchukTheme.typography.title,
+        color = Color.White
+    )
+    info.keys.forEach { key ->
+        Spacer(modifier = Modifier.height(12.dp))
+        SpecialDetailPlanItem(
+            iconId = R.drawable.ic_key,
+            // The server names fallback keys ("Fallback key 3"); there is no local numbering to fall back on.
+            title = key.name.ifBlank { stringResource(R.string.nc_fallback_key) },
+            subTitle = stringResource(R.string.nc_primary_key_account_xfp, key.xfp.uppercase()),
+            content = stringResource(R.string.nc_seed_phrase_of_this_key_backed_up),
+            editable = false
+        )
+    }
+    val timelock = info.timelock ?: return
+    Text(
+        text = stringResource(R.string.nc_claimable_after),
+        modifier = Modifier.padding(top = 24.dp, bottom = 12.dp),
+        style = NunchukTheme.typography.title,
+        color = Color.White
+    )
+    val timeZoneId = timelock.timezone.ifEmpty { fallbackTimeZoneId }
+    ActivationDateItem(
+        activationDate = formatDateTimeInTimezone(
+            timestamp = timelock.timelockValue * 1000,
+            isOnChainTimelock = true,
+            timeZoneId = timeZoneId,
+        ),
+        timeZoneId = timeZoneId,
+        editable = false,
+        isHeightLock = timelock.based == TimelockBased.HEIGHT_LOCK,
+        blockHeight = timelock.blockHeight,
+    )
 }
 
 @Composable
@@ -1450,6 +1513,22 @@ private fun ProviderNotificationSettingsPreview() {
     }
 }
 
+/** Every unlock picked on a narrow screen: the value wraps and "Unlock notices" keeps its share. */
+@Preview(widthDp = 280)
+@Composable
+private fun ProviderNotificationSettingsAllUnlocksPreview() {
+    NunchukTheme {
+        ProviderNotificationSettingsContent(
+            emailSettings = EmailNotificationSettings(
+                email = "bob245@gmail.com",
+                notifyOnTimelockExpiry = true,
+                notifyFallbacks = listOf(0, 1, 2),
+            ),
+            fallbackCount = 3,
+        )
+    }
+}
+
 @PreviewLightDark
 @Composable
 private fun SimpleNotificationCardPreview() {
@@ -1526,6 +1605,64 @@ private fun InheritanceReviewPlanOnChainCustomizedPrimaryPreview() {
             walletId = "wallet123",
             activationDate = System.currentTimeMillis(),
             magicalPhrase = "dolphin concert apple mirror",
+        ),
+    )
+}
+
+@PreviewLightDark
+@Composable
+private fun InheritanceReviewPlanOnChainWithFallbacksPreview() {
+    InheritanceReviewPlanScreenContent(
+        isMiniscriptWallet = true,
+        primaryInheritance = PrimaryInheritanceInfo(
+            isCustomized = false,
+            requiredSignatures = 2,
+            totalKeys = 4,
+            inheritanceKeys = listOf(
+                InheritanceKey(xfp = "6b35f210", section = InheritanceSection.PRIMARY, name = "Inheritance key 1"),
+            ),
+        ),
+        fallbackInheritances = listOf(
+            FallbackInheritanceInfo(
+                index = 0,
+                requiredSignatures = 1,
+                totalKeys = 1,
+                keys = listOf(
+                    InheritanceKey(xfp = "5c2d81a0", section = InheritanceSection.FALLBACK, name = "Fallback key 1", fallbackIndex = 0),
+                ),
+                timelock = WalletTimelock(timelockValue = 2_221_854_300L),
+            ),
+            FallbackInheritanceInfo(
+                index = 1,
+                requiredSignatures = 2,
+                totalKeys = 3,
+                keys = listOf(
+                    InheritanceKey(xfp = "8e41b2c7", section = InheritanceSection.FALLBACK, name = "Fallback key 2", fallbackIndex = 1),
+                    InheritanceKey(xfp = "2a9f3d10", section = InheritanceSection.FALLBACK, name = "Fallback key 3", fallbackIndex = 1),
+                    InheritanceKey(xfp = "61d0c4e9", section = InheritanceSection.FALLBACK, name = "Fallback key 4", fallbackIndex = 1),
+                ),
+                timelock = WalletTimelock(timelockValue = 2_379_620_700L),
+            ),
+        ),
+        userEmail = "owner123@gmail.com",
+        state = InheritanceReviewPlanState(walletName = "My Wallet"),
+        planFlow = InheritancePlanFlow.SETUP,
+        magicalPhrase = "dolphin concert apple mirror",
+        setupOrReviewParam = InheritancePlanningParam.SetupOrReview(
+            walletId = "wallet123",
+            activationDate = System.currentTimeMillis(),
+            magicalPhrase = "dolphin concert apple mirror",
+            emails = listOf("alice@gmail.com", "bob245@gmail.com"),
+            notificationSettings = InheritanceNotificationSettings(
+                perEmailSettings = listOf(
+                    EmailNotificationSettings(email = "alice@gmail.com", notifyFallbacks = emptyList()),
+                    EmailNotificationSettings(
+                        email = "bob245@gmail.com",
+                        notifyOnTimelockExpiry = false,
+                        notifyFallbacks = listOf(0, 1),
+                    ),
+                ),
+            ),
         ),
     )
 }
