@@ -20,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
@@ -126,6 +127,9 @@ private fun OnChainTimelockExplanationContent(
             modifier = Modifier.navigationBarsPadding(),
             topBar = {
                 NcImageAppBar(
+                    // The column diagram runs edge to edge: scale it to the screen width so its side
+                    // padding is never cropped on a screen narrower than 375dp.
+                    contentScale = ContentScale.FillWidth,
                     backgroundRes = if (isGroupWallet) {
                        if (allowInheritance) {
                             if (isByzantinePro) {

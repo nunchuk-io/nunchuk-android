@@ -190,8 +190,11 @@ fixed step list:
   (`TapSignerRecoveredKeyResolver`), asking for a tap when that xpub is not cached and stopping with
   an error otherwise. `KeyRepositoryImpl.setKeyVerified` refuses a configurable draft's verification
   without the account (`RecoveredKeyRequiredException`); fingerprint-only stays for legacy drafts. The default's inheritance key keeps Verify — the way into
-  `VerifyBackupsScreen` (VER-01) — until it and an owner key are verified; a customized primary
-  verifies each slot inline (KEY-08).
+  `VerifyBackupsScreen` (VER-01) — while any key on that screen (inheritance or owner) is
+  unverified (`hasUnverifiedBackup`, agreed in Slack 2026-10-26), even once Continue is allowed; a
+  customized primary verifies each slot inline (KEY-08). A configurable draft takes each key's
+  verification straight from `verification_type` (`toDraftWalletModel`), never the legacy
+  "non-inheritance hardware = APP_VERIFIED" default.
 * **Continue** = `finalized` && no `validation_errors` && (default only) inheritance key + one owner
   key verified (`isDraftReadyToContinue`). `AddKeyStepViewModel` also uses `finalized` for these drafts.
 * "Customize (advanced)" → `CustomizeInheritanceIntroFragment` (SET-02a) → `PrimaryInheritancePolicySheet`

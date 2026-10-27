@@ -263,9 +263,11 @@ class SignerIntroCoordinatorTest {
         )
         assertEquals(SignerIntroAction.ShowInheritanceGuide(KeyType.JADE), first.select(KeyType.JADE))
         assertEquals(SignerIntroAction.ShowDeviceSafety(KeyType.JADE), first.guideCompleted(KeyType.JADE))
-        // After the notice, the device opens exactly as it did before (Jade: its firmware gate).
+        // After the notice, the keys already on this phone are offered on top of it; "Add new key"
+        // then opens the device exactly as it did before (Jade: its firmware gate), with no second notice.
+        assertEquals(SignerIntroAction.OfferExisting(KeyType.JADE), first.deviceSafetyCompleted(KeyType.JADE))
         val legacy = router(SignerIntroFlow.OnChainTimelockKey(isInheritanceKey = true))
-        assertEquals(legacy.guideCompleted(KeyType.JADE), first.deviceSafetyCompleted(KeyType.JADE))
+        assertEquals(legacy.guideCompleted(KeyType.JADE), first.createNew(KeyType.JADE))
 
         val later = router(
             SignerIntroFlow.OnChainTimelockKey(isInheritanceKey = true, showInheritanceGuide = false, showDeviceSafety = true)
@@ -278,6 +280,17 @@ class SignerIntroCoordinatorTest {
     @Test fun `spending account of a new device also gets device safety, without the inheritance guide`() {
         val router = router(SignerIntroFlow.OnChainTimelockKey(keyIndex = 1, showDeviceSafety = true))
         assertEquals(SignerIntroAction.ShowDeviceSafety(KeyType.COLDCARD), router.select(KeyType.COLDCARD))
+    }
+
+    @Test fun `configurable draft - every device offers existing keys after device safety`() {
+        val router = router(SignerIntroFlow.OnChainTimelockKey(showDeviceSafety = true))
+        for ((key, device) in hardware) {
+            assertEquals(SignerIntroAction.ShowDeviceSafety(key), router.select(key))
+            assertEquals(SignerIntroAction.OfferExisting(key), router.deviceSafetyCompleted(key))
+            assertEquals(SignerIntroAction.ReturnHardwareTag(device.tag), router.createNew(key))
+        }
+        // TAPSIGNER waits for the notice too, instead of being offered before it.
+        assertEquals(SignerIntroAction.ShowDeviceSafety(KeyType.TAPSIGNER), router.select(KeyType.TAPSIGNER))
     }
 
     @Test fun `guide-only run returns after the guide`() {

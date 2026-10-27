@@ -122,11 +122,18 @@ class TapSignerBackingUpIntroOnChainViewModel @Inject constructor(
 
     fun setKeyVerified(groupId: String, masterSignerId: String) {
         viewModelScope.launch {
+            // A configurable draft (NUN-10320) marks the owner's own backup verified against the
+            // account; a legacy draft records the skip as before.
+            val recoveredKey = tapSignerRecoveredKeyResolver.draftKey(groupId, masterSignerId).getOrElse {
+                _event.emit(TapSignerBackingUpIntroOnChainEvent.ShowError(it))
+                return@launch
+            }
             val result = setKeyVerifiedUseCase(
                 SetKeyVerifiedUseCase.Param(
                     groupId = groupId,
                     masterSignerId = masterSignerId,
-                    verifyType = VerifyType.SKIPPED_VERIFICATION
+                    verifyType = if (recoveredKey != null) VerifyType.SELF_VERIFIED else VerifyType.SKIPPED_VERIFICATION,
+                    recoveredKey = recoveredKey,
                 )
             )
             if (result.isSuccess) {

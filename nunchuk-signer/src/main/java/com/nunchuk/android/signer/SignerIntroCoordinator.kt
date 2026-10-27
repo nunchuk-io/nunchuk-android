@@ -1,5 +1,6 @@
 package com.nunchuk.android.signer
 
+import com.nunchuk.android.core.signer.OnChainInheritanceGuide
 import com.nunchuk.android.core.signer.SignerIntroFlow
 import com.nunchuk.android.core.signer.SignerIntroRequest
 import com.nunchuk.android.type.SignerTag
@@ -24,6 +25,9 @@ class SignerIntroCoordinator(val request: SignerIntroRequest) {
     /** Guide-only run: the inheritance guide is the whole flow. */
     val isGuideOnly: Boolean = onChainKey?.guideOnly == true
 
+    /** A slot of a configurable on-chain draft (primary or fallback), not the legacy inheritance step. */
+    val isConfigurableDraft: Boolean = onChainKey != null && onChainKey.inheritanceGuide != OnChainInheritanceGuide.LEGACY
+
     /**
      * Adding an inheritance key with a seed phrase shows the seed-phrase and passphrase guides first;
      * [guideCompleted] then resumes with the same key. A key without one (TAPSIGNER) has nothing to
@@ -37,18 +41,20 @@ class SignerIntroCoordinator(val request: SignerIntroRequest) {
     /** Continue after the inheritance guides, without showing them a second time. */
     fun guideCompleted(keyType: KeyType): SignerIntroAction {
         if (isGuideOnly) return SignerIntroAction.ReturnGuideCompleted
+        if (showsDeviceSafety(keyType)) return SignerIntroAction.ShowDeviceSafety(keyType)
         if (shouldOfferExisting(keyType)) return SignerIntroAction.OfferExisting(keyType)
-        return openNewDevice(keyType)
+        return openNew(keyType)
     }
 
-    /** "Before you use this device" is done; open the device. */
-    fun deviceSafetyCompleted(keyType: KeyType): SignerIntroAction = openNew(keyType)
+    /**
+     * "Before you use this device" is done: offer the keys of that type already on this phone on
+     * top of it, so the owner never goes back to the key list for them; none found opens the device.
+     */
+    fun deviceSafetyCompleted(keyType: KeyType): SignerIntroAction = SignerIntroAction.OfferExisting(keyType)
 
-    /** A new device goes through the device-safety notice first when the caller asks for it. */
-    private fun openNewDevice(keyType: KeyType): SignerIntroAction =
-        if (onChainKey?.showDeviceSafety == true && keyType.isDevice) {
-            SignerIntroAction.ShowDeviceSafety(keyType)
-        } else openNew(keyType)
+    /** The device-safety notice comes first for a device when the caller asks for it. */
+    private fun showsDeviceSafety(keyType: KeyType): Boolean =
+        onChainKey?.showDeviceSafety == true && keyType.isDevice
 
     private fun shouldOfferExisting(keyType: KeyType): Boolean = when (flow) {
         SignerIntroFlow.AddKey, SignerIntroFlow.AddWalletKey,
@@ -67,12 +73,15 @@ class SignerIntroCoordinator(val request: SignerIntroRequest) {
         }
     }
 
-    /** Continue after the reuse offer, without running selection policy a second time. */
+    /**
+     * Continue after the reuse offer, without running selection policy a second time. The
+     * device-safety notice, when shown, already came before the offer.
+     */
     fun createNew(keyType: KeyType): SignerIntroAction =
         if (keyType == KeyType.JADE && flow is SignerIntroFlow.ClaimInheritance && !flow.isOnChain) {
             // This guide completes the claim hand-off itself, like the firmware guide below.
             jadeGuide()
-        } else openNewDevice(keyType)
+        } else openNew(keyType)
 
     fun firmwareChecked(device: SignerFirmwareDevice): SignerDeviceAction = when (device) {
         SignerFirmwareDevice.COLDCARD -> SignerIntroAction.Coldcard(returnResult = true)

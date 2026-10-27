@@ -104,6 +104,15 @@ class CheckBackUpBySelfViewModel @Inject constructor(
         verificationMethod: ClaimOption? = null,
     ) {
         viewModelScope.launch {
+            // A configurable on-chain draft verifies against the account (NUN-10320).
+            val recoveredKey = if (isOnChainBackUp) {
+                tapSignerRecoveredKeyResolver.draftKey(groupId, args.masterSignerId).getOrElse {
+                    _event.emit(ShowError(it))
+                    return@launch
+                }
+            } else {
+                null
+            }
             val result =
                 setKeyVerifiedUseCase(
                     SetKeyVerifiedUseCase.Param(
@@ -111,6 +120,7 @@ class CheckBackUpBySelfViewModel @Inject constructor(
                         masterSignerId = args.masterSignerId,
                         verifyType = VerifyType.SELF_VERIFIED,
                         verificationMethod = verificationMethod,
+                        recoveredKey = recoveredKey,
                     )
                 )
             if (result.isSuccess) {

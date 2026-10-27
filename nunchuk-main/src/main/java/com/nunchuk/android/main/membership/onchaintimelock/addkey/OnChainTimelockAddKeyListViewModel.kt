@@ -139,6 +139,7 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
     private val _event = MutableSharedFlow<AddKeyListEvent>()
     val event = _event.asSharedFlow()
     private var loadJob: Job? = null
+    private var refreshAgain = false
 
     // Get args from SavedStateHandle (for navigation arguments)
     val groupId: String = savedStateHandle.get<String>("group_id") ?: ""
@@ -309,22 +310,34 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
     }
 
     fun refresh() {
-        if (loadJob?.isActive == true) return
-        loadJob = viewModelScope.launch {
-            _state.update { it.copy(isRefresh = true) }
-            syncDraftWalletUseCase(groupId).onSuccess { draft ->
-                if (draft.walletType == WalletType.MULTI_SIG) {
-                    _event.emit(AddKeyListEvent.RequireReopenWallet)
-                } else {
-                    _state.update { it.copy(isCustomized = draft.isCustomized) }
-                    applyInheritancePolicy(draft)
-                    initializeKeysFromConfig(draft.config)
-                    loadSigners()
-                    rebuildDraftCards()
-                }
-            }
-            _state.update { it.copy(isRefresh = false) }
+        // A load already running may have fetched the draft before the change that asked for this
+        // one (e.g. a key added while returning from the guide), so run once more after it.
+        if (loadJob?.isActive == true) {
+            refreshAgain = true
+            return
         }
+        loadJob = viewModelScope.launch {
+            do {
+                refreshAgain = false
+                loadDraft()
+            } while (refreshAgain)
+        }
+    }
+
+    private suspend fun loadDraft() {
+        _state.update { it.copy(isRefresh = true) }
+        syncDraftWalletUseCase(groupId).onSuccess { draft ->
+            if (draft.walletType == WalletType.MULTI_SIG) {
+                _event.emit(AddKeyListEvent.RequireReopenWallet)
+            } else {
+                _state.update { it.copy(isCustomized = draft.isCustomized) }
+                applyInheritancePolicy(draft)
+                initializeKeysFromConfig(draft.config)
+                loadSigners()
+                rebuildDraftCards()
+            }
+        }
+        _state.update { it.copy(isRefresh = false) }
     }
 
     private fun initializeKeysFromConfig(config: com.nunchuk.android.model.WalletConfig) {
@@ -554,18 +567,21 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
 
     /**
      * Keys already in this setup, one per device, for the choose-key sheet of a slot on [card]. A key
-     * already in that card (the slot's own included) is left out: one route can't use the same key
-     * twice.
+     * already in that route (the slot's own included) is left out: one route can't use the same key
+     * twice. A customized primary comes as one card per key, so the route is every card of the same
+     * section and fallback.
      */
     fun chooseKeyOptions(card: DraftInheritanceCard): List<SignerModel> {
         val cards = _state.value.draftCards
-        val inThisCard = cards.firstOrNull { it.card == card }?.slots.orEmpty()
+        val inThisRoute = cards
+            .filter { it.card.section == card.section && it.card.fallbackIndex == card.fallbackIndex }
+            .flatMap { it.slots }
             .mapNotNull { it.signer?.fingerPrint?.lowercase() }
             .toSet()
         return cards
             .filterNot { it.isServerKey }
             .flatMap { it.slots.mapNotNull { slot -> slot.signer } }
-            .filterNot { it.fingerPrint.lowercase() in inThisCard }
+            .filterNot { it.fingerPrint.lowercase() in inThisRoute }
             .distinctBy { it.fingerPrint.lowercase() }
     }
 
@@ -661,11 +677,17 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
             it.xfp.equals(xfp, ignoreCase = true) &&
                 bip32AccountIndex(it.derivationPath.orEmpty()) == account && !it.xpub.isNullOrEmpty()
         }?.let { server ->
+            val serverXfp = server.xfp.orEmpty().lowercase()
+            // A TAPSIGNER's card details are read through its master signer (id = xfp); without the card
+            // on this phone it has to be tapped (importTapSignerAccount).
+            val masterSignerId = masterSigners.firstOrNull { it.id.equals(serverXfp, ignoreCase = true) }?.id.orEmpty()
+            if (server.type == SignerType.NFC && masterSignerId.isEmpty()) return null
             SingleSigner(
                 name = server.name.orEmpty(),
                 xpub = server.xpub.orEmpty(),
                 derivationPath = server.derivationPath.orEmpty(),
-                masterFingerprint = server.xfp.orEmpty().lowercase(),
+                masterFingerprint = serverXfp,
+                masterSignerId = masterSignerId,
                 type = server.type,
                 tags = server.tags.mapNotNull { tag -> SignerTag.entries.firstOrNull { it.name == tag } },
             )
@@ -1535,6 +1557,13 @@ data class AddKeyListState(
     val isRequiredVerificationDone: Boolean
         get() = (isPrimaryCustomized || (primarySlots.all { it.isVerified } && ownerKeys.any { it.isVerified })) &&
             fallbacks.all { fallback -> fallbackSlots(fallback.index).filter { it.isFilled }.all { it.isVerified } }
+
+    /**
+     * The guided default keeps Verify on its inheritance key while any key on Verify backups (the
+     * inheritance key or an owner key) is unverified: it is the only way back into that screen.
+     */
+    val hasUnverifiedBackup: Boolean
+        get() = primarySlots.any { it.isFilled && !it.isVerified } || ownerKeys.any { !it.isVerified }
 
     /** Continue on a configurable draft: backend-ready, no setup issue, and the verification above. */
     val isDraftReadyToContinue: Boolean

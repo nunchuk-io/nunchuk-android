@@ -10,9 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcSecondaryButton
+import com.nunchuk.android.compose.NcModalBottomSheet
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.inheritance.FallbackInheritanceCondition
@@ -140,10 +139,7 @@ internal fun RemoveFallbackSheet(
     onConfirm: () -> Unit,
     onDismiss: () -> Unit,
 ) {
-    ModalBottomSheet(
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-        onDismissRequest = onDismiss,
-    ) {
+    NcModalBottomSheet(onDismissRequest = onDismiss) {
         RemoveFallbackContent(
             fallback = fallback,
             fallbackCount = fallbackCount,
@@ -170,7 +166,7 @@ private fun RemoveFallbackContent(
         modifier = Modifier
             .navigationBarsPadding()
             .padding(horizontal = 16.dp)
-            .padding(bottom = 16.dp),
+            .padding(vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Text(

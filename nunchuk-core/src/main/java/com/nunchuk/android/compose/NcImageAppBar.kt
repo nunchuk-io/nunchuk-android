@@ -55,6 +55,7 @@ fun NcImageAppBar(
     onClosedClicked: (() -> Unit)? = null,
     title: String? = null,
     actions: @Composable RowScope.() -> Unit = {},
+    contentScale: ContentScale = ContentScale.Crop,
 ) {
     val onBackPressOwner = LocalOnBackPressedDispatcherOwner.current
     val defaultClosedClick = {
@@ -67,7 +68,7 @@ fun NcImageAppBar(
             Image(
                 modifier = Modifier.fillMaxWidth(),
                 painter = painterResource(id = backgroundRes),
-                contentScale = ContentScale.Crop,
+                contentScale = contentScale,
                 contentDescription = stringResource(R.string.nc_cd_background),
             )
             CenterAlignedTopAppBar(title = {

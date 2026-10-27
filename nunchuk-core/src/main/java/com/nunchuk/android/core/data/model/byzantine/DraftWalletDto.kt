@@ -10,6 +10,8 @@ import com.nunchuk.android.model.TimelockBased
 import com.nunchuk.android.model.WalletConfig
 import com.nunchuk.android.model.byzantine.DraftWallet
 import com.nunchuk.android.model.byzantine.DraftWalletTimelock
+import com.nunchuk.android.model.inheritance.OnChainInheritancePolicyType
+import com.nunchuk.android.model.toVerifyType
 import com.nunchuk.android.type.WalletType
 
 internal data class DraftWalletResponse(
@@ -90,11 +92,17 @@ internal fun TimelockDto?.toDraftWalletTimelock(): DraftWalletTimelock {
     )
 }
 
+internal val DraftWalletDto.isConfigurable: Boolean
+    get() = onChainInheritancePolicy?.type == OnChainInheritancePolicyType.CONFIGURABLE.name
+
 internal fun DraftWalletDto.toDraftWalletModel(): DraftWallet = DraftWallet(
     groupId = groupId,
     config = walletConfig.toModel(),
     isMasterSecurityQuestionSet = isMasterSecurityQuestionSet,
-    signers = signers.map { it.toModel() },
+    // A configurable draft (NUN-10320) reports every key's own verification; Continue depends on it.
+    signers = signers.map { dto ->
+        dto.toModel().let { if (isConfigurable) it.copy(verifyType = dto.verificationType.toVerifyType()) else it }
+    },
     walletType = walletType.toWalletType(),
     timelock = timelock.toDraftWalletTimelock(),
     replaceWallet = replaceWallet.toModel(),

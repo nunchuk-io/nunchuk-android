@@ -516,6 +516,12 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                 }
             }
 
+            // The key picker already offered this phone's keys after "Before you use this device":
+            // a tag back means "Add new key", so open the device instead of offering them again.
+            signerTag != null && currentDraftOptions?.showDeviceSafety == true -> {
+                openInAppHardwareOrDesktopFlow(signerTag)
+            }
+
             signerTag != null -> {
                 handleHardwareSignerTag(signerTag)
             }
@@ -539,8 +545,10 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
         }
     }
 
+    /** Keys already in this setup, so the key picker never offers one of them for another slot. */
     private fun getAllExistingSigners(): List<SignerModel> {
-        return viewModel.key.value.flatMap { it.getAllSigners() }
+        val draftSigners = viewModel.state.value.draftCards.flatMap { card -> card.slots.mapNotNull { it.signer } }
+        return viewModel.key.value.flatMap { it.getAllSigners() } + draftSigners
     }
 
     /**
@@ -1106,7 +1114,7 @@ private fun LazyListScope.configurableDraftItems(
                     number = uiState.primarySlots.indexOf(slot) + 1,
                     isCustomized = uiState.isPrimaryCustomized,
                     isHighlighted = slot.keyIndex in highlighted,
-                    isVerificationPending = !uiState.isRequiredVerificationDone,
+                    isVerificationPending = uiState.hasUnverifiedBackup,
                     isPrimaryVerified = uiState.primarySlots.all { it.isVerified },
                     isDisabled = isDisabled || isLimited,
                     onAddClicked = onDraftSlotAddClicked,

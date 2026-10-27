@@ -93,6 +93,25 @@ class TapSignerRecoveredKeyResolver @Inject constructor(
             is TapSignerVerifyAccount.NeedsTap -> Result.failure(IllegalStateException(MISSING_ACCOUNT))
         }
 
+    /**
+     * [invoke] as what a draft verify without a backup check of its own sends ("I'll do it myself",
+     * verify by yourself): the account from this phone's cached xpub — or, for a key added from
+     * another device, the draft's own copy of that account — null for a legacy draft, or a failure.
+     */
+    suspend fun draftKey(groupId: String, masterSignerId: String): Result<RecoveredKey?> =
+        when (val account = invoke(groupId, masterSignerId)) {
+            is TapSignerVerifyAccount.Resolved -> Result.success(account.key)
+            is TapSignerVerifyAccount.Failed -> Result.failure(account.error)
+            TapSignerVerifyAccount.NotRequired -> Result.success(null)
+            is TapSignerVerifyAccount.NeedsTap -> syncDraftWalletUseCase(groupId).mapCatching { draft ->
+                draft.signers.firstOrNull {
+                    it.xfp.equals(masterSignerId, ignoreCase = true) &&
+                        it.derivationPath == account.derivationPath && !it.xpub.isNullOrEmpty()
+                }?.let { RecoveredKey(xfp = masterSignerId, derivationPath = account.derivationPath, xpub = it.xpub!!) }
+                    ?: throw IllegalStateException(MISSING_ACCOUNT)
+            }
+        }
+
     /** Reads [derivationPath] off the tapped card (and caches it) after a [TapSignerVerifyAccount.NeedsTap]. */
     suspend fun readWithTap(
         isoDep: IsoDep,

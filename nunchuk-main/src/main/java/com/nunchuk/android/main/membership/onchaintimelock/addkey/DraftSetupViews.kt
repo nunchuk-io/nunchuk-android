@@ -22,10 +22,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -48,6 +46,7 @@ import com.nunchuk.android.compose.NcRadioButton
 import com.nunchuk.android.compose.NcSecondaryButton
 import com.nunchuk.android.compose.NcTag
 import com.nunchuk.android.compose.NcTopAppBar
+import com.nunchuk.android.compose.NcModalBottomSheet
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.signer.SignerModel
@@ -121,8 +120,8 @@ internal fun DraftSpendingCard(
  * One primary-inheritance slot (SET-02 / SET-15 / SET-08b / KEY-08 / PRI-07). Empty: Add. Filled:
  * Verify until its backup is checked (amber), then green; a key a validation error names is circled
  * in red, and a flagged customized slot offers Change (PRI-07). The guided default's inheritance key
- * keeps Verify while [isVerificationPending] — it is the way into Verify backups, where the owner
- * key the Beneficiary gets is verified too.
+ * keeps Verify while [isVerificationPending] (any key on Verify backups still unverified) — it is
+ * the way into Verify backups, where the owner keys are verified too.
  */
 @Composable
 internal fun DraftPrimarySlotCard(
@@ -162,9 +161,11 @@ internal fun DraftPrimarySlotCard(
         }
         return
     }
+    // The default's inheritance key stays amber while it still shows Verify (any backup unverified).
+    val showsVerify = !slot.isVerified || (!isCustomized && isVerificationPending)
     val background = when {
         isHighlighted -> MaterialTheme.colorScheme.background
-        slot.isVerified -> colorResource(R.color.nc_fill_slime)
+        !showsVerify -> colorResource(R.color.nc_fill_slime)
         else -> colorResource(R.color.nc_fill_beewax)
     }
     Box(
@@ -183,7 +184,7 @@ internal fun DraftPrimarySlotCard(
                     enabled = !isDisabled,
                 ) { onAddClicked(card, slot) }
 
-                !slot.isVerified || (!isCustomized && isVerificationPending) -> SmallOutlineButton(
+                showsVerify -> SmallOutlineButton(
                     text = stringResource(R.string.nc_verify),
                     enabled = !isDisabled,
                 ) { onVerifyClicked(card, slot) }
@@ -293,10 +294,7 @@ internal fun ChooseKeySheet(
     onAddKey: () -> Unit,
     onDismiss: () -> Unit,
 ) {
-    ModalBottomSheet(
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-        onDismissRequest = onDismiss,
-    ) {
+    NcModalBottomSheet(onDismissRequest = onDismiss) {
         ChooseKeyContent(
             options = options,
             fallbackNumber = fallbackNumber,
@@ -318,7 +316,7 @@ private fun ChooseKeyContent(
         modifier = Modifier
             .navigationBarsPadding()
             .padding(horizontal = 16.dp)
-            .padding(bottom = 16.dp)
+            .padding(vertical = 16.dp)
     ) {
         Text(
             text = if (fallbackNumber != null) {

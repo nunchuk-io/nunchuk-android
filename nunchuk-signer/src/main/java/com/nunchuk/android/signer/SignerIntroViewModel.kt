@@ -55,6 +55,8 @@ data class SignerIntroState(
      */
     val eligibleSupportedSigners: List<SupportedSigner> = emptyList(),
     val signerDisplayInfos: List<SignerDisplayInfo> = emptyList(),
+    /** A configurable on-chain draft slot (primary or fallback): KEY-01 titles the picker "Add key". */
+    val isConfigurableDraft: Boolean = false,
 )
 
 @HiltViewModel
@@ -77,6 +79,7 @@ class SignerIntroViewModel @Inject constructor(
 
     private var onChainAddSignerParam: OnChainAddSignerParam? = null
     private var isTestNet: Boolean = false
+    private var chain: Chain = Chain.MAIN
     private var pickerPolicy: SignerIntroPickerPolicy? = null
 
     private val _state = MutableStateFlow(SignerIntroState())
@@ -95,6 +98,7 @@ class SignerIntroViewModel @Inject constructor(
             getChainSettingFlowUseCase(Unit)
                 .map { it.getOrDefault(Chain.MAIN) }
                 .collect {
+                    chain = it
                     isTestNet = it == Chain.TESTNET
                 }
         }
@@ -107,7 +111,7 @@ class SignerIntroViewModel @Inject constructor(
         onChainAddSignerParam = request.deviceParams
         val policy = SignerIntroPickerPolicy(request)
         pickerPolicy = policy
-        _state.update { it.copy(supportedSigners = policy.initialSigners) }
+        _state.update { it.copy(supportedSigners = policy.initialSigners, isConfigurableDraft = routing.isConfigurableDraft) }
         if (policy.usesWalletConfigs) fetchUserWalletConfigs()
         if (policy.loadsExistingSigners) loadAllSigners() else existingSignersLoaded.complete(Unit)
         updateSignerDisplayInfos()
@@ -236,7 +240,7 @@ class SignerIntroViewModel @Inject constructor(
             coordinator?.request?.flow is SignerIntroFlow.ClaimInheritance
         ) SignerTag.COLDCARD else deviceTag
         return filterExistingSigners(
-            filterSignerByType(type, tag).filter { it.derivationPath.isRecommendedMultiSigPath }
+            filterSignerByType(type, tag).filter { it.derivationPath.isRecommendedMultiSigPath && it.derivationPath.matchesChain() }
         )
     }
 
@@ -272,6 +276,15 @@ class SignerIntroViewModel @Inject constructor(
                 existing.fingerPrint == signer.fingerPrint && existingDerivationPath == signerDerivationPath
             }
         }
+    }
+
+    /**
+     * A key imported with the other network's coin type (e.g. `m/48h/0h/…` on testnet) is rejected by the
+     * server as KEY_ORIGIN_MISMATCH, so it is never offered. A path without a coin type is kept.
+     */
+    private fun String.matchesChain(): Boolean {
+        val coinType = replace('\'', 'h').split("/").getOrNull(2) ?: return true
+        return coinType == if (chain == Chain.MAIN) "0h" else "1h"
     }
 
     private fun getPath(index: Int): String {

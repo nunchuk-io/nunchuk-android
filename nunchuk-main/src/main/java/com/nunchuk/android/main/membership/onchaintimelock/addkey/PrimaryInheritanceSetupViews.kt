@@ -12,9 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -33,6 +31,7 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcRequiredKeysCounter
+import com.nunchuk.android.compose.NcModalBottomSheet
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.annotatedStringWithStyledArg
@@ -171,11 +170,7 @@ internal fun InheritancePolicySheet(
     onContinue: (m: Int, n: Int) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    ModalBottomSheet(
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-        onDismissRequest = onDismiss,
-        dragHandle = {},
-    ) {
+    NcModalBottomSheet(onDismissRequest = onDismiss) {
         InheritancePolicyContent(
             title = title,
             initialM = initialM,

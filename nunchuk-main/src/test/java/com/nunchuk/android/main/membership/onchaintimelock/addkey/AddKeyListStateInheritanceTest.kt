@@ -180,6 +180,15 @@ class AddKeyListStateInheritanceTest {
         assertTrue(defaultState(inheritanceVerified = true, ownerAVerified = true).isRequiredVerificationDone)
     }
 
+    @Test
+    fun `default keeps Verify while any key on Verify backups is unverified`() {
+        // Owner B is never verified here: Continue is allowed, but Verify stays on the inheritance key.
+        val state = defaultState(inheritanceVerified = true, ownerAVerified = true)
+        assertTrue(state.isRequiredVerificationDone)
+        assertTrue(state.hasUnverifiedBackup)
+        assertTrue(defaultState(inheritanceVerified = false, ownerAVerified = true).hasUnverifiedBackup)
+    }
+
     /** Default HB, fully verified, plus fallbacks given as (index, slots). */
     private fun withFallbacks(vararg fallbacks: Pair<Int, List<DraftSetupSlot>>): AddKeyListState {
         val base = defaultState(inheritanceVerified = true, ownerAVerified = true)

@@ -1978,7 +1978,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
 
     /**
      * NUN-10320 import: open a request for [slot], check [signer] is the account the request (or the
-     * card) asks for, then `add-key?request_id=…`. A wrong account cancels the request.
+     * card) asks for, then `add-key?request_id=…`. A wrong account or a rejected key cancels the request.
      */
     private suspend fun addKeyToDraftSlot(groupId: String, slot: DraftKeySlot, signer: SingleSigner) {
         val requestResponse = if (groupId.isNotEmpty()) {
@@ -1991,22 +1991,31 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         if (requestResponse.isSuccess.not()) throw requestResponse.error
         val request = requestResponse.data.request ?: throw NullPointerException("request null")
         val requestId = request.id.orEmpty()
-        val expected = slot.expectedAccount(signer.masterFingerprint, request.derivationPath)
-        if (expected == null || bip32AccountIndex(signer.derivationPath) != expected) {
+        val cancelRequest: suspend () -> Unit = {
             runCatching {
                 if (groupId.isNotEmpty()) userWalletApiManager.groupWalletApi.cancelRequestAddKey(groupId, requestId)
                 else userWalletApiManager.walletApi.cancelRequestAddKey(requestId)
             }
+        }
+        val expected = slot.expectedAccount(signer.masterFingerprint, request.derivationPath)
+        if (expected == null || bip32AccountIndex(signer.derivationPath) != expected) {
+            cancelRequest()
             throw DraftKeyAccountMismatchException(expected)
         }
         val signerDto = serverSignerMapper(signer, slot.isInheritance)
             .copy(index = request.keyIndex ?: slot.keyIndex)
-        val response = if (groupId.isNotEmpty()) {
-            userWalletApiManager.groupWalletApi.addKeyForRequest(groupId, requestId, signerDto)
-        } else {
-            userWalletApiManager.walletApi.addKeyForRequest(requestId, signerDto)
+        // A rejected key (e.g. KEY_ORIGIN_MISMATCH) must not leave the request pending on the server.
+        try {
+            val response = if (groupId.isNotEmpty()) {
+                userWalletApiManager.groupWalletApi.addKeyForRequest(groupId, requestId, signerDto)
+            } else {
+                userWalletApiManager.walletApi.addKeyForRequest(requestId, signerDto)
+            }
+            if (response.isSuccess.not()) throw response.error
+        } catch (e: Throwable) {
+            cancelRequest()
+            throw e
         }
-        if (response.isSuccess.not()) throw response.error
     }
 
     override suspend fun requestAddKey(
