@@ -1086,4 +1086,36 @@
     <string name="nc_fallback_timelock_too_early_primary">Fallback %1$d must unlock after primary inheritance (%2$s). Two routes can’t unlock at the same time. Please select a later date.</string>
     <string name="nc_fallback_timelock_too_early_fallback">Fallback %1$d must unlock after Fallback %2$d (%3$s). Two routes can’t unlock at the same time. Please select a later date.</string>
     <string name="nc_fallback_timelock_too_late">Fallback %1$d must unlock before Fallback %2$d (%3$s). Please select an earlier date.</string>
+    <!-- Plan screens with fallbacks (Figma Row 7 · SHARE, Row 4 · PLAN-07…12 / PLAN-11b) -->
+    <string name="nc_onchain_share_fallbacks_beneficiary">For each fallback, share its keys with the person it’s intended for: the Beneficiary or someone else. That person also needs the Magic Phrase or the BSMS file. Each fallback needs only its own required keys:</string>
+    <string name="nc_onchain_share_fallbacks_trustee">For each fallback, share its keys with the person it’s intended for: the Trustee or someone else. That person also needs the Magic Phrase or the BSMS file. Each fallback needs only its own required keys:</string>
+    <string name="nc_onchain_share_fallbacks_joint">For each fallback, share its keys with the person it’s intended for: the Beneficiary, the Trustee or someone else. That person also needs the Magic Phrase or the BSMS file. Each fallback needs only its own required keys:</string>
+    <string name="nc_onchain_warning_fallbacks_beneficiary">You are solely responsible for sharing these items with the Beneficiary and with anyone a fallback is intended for. If you do not share these items, the inheritance cannot be claimed.</string>
+    <string name="nc_onchain_warning_fallbacks_trustee">You are solely responsible for sharing these items with the Trustee and with anyone a fallback is intended for. If you do not share these items, the inheritance cannot be claimed.</string>
+    <string name="nc_onchain_warning_fallbacks_joint">You are solely responsible for sharing these items with the Beneficiary and the Trustee and with anyone a fallback is intended for. If you do not share these items, the inheritance cannot be claimed.</string>
+    <string name="nc_fallback_key_number">Fallback key %1$d</string>
+    <string name="nc_fallback_keys_list">Fallback keys %1$s and %2$d</string>
+    <string name="nc_fallback_keys_required_single">1 of 1 required</string>
+    <string name="nc_fallback_keys_required_all">%1$d of %2$d required</string>
+    <string name="nc_fallback_keys_required_any">any %1$d of %2$d required</string>
+    <string name="nc_fallback_share_keys_line">%1$s · %2$s</string>
+    <string name="nc_wallet_configuration_bsms_file">Wallet configuration: BSMS file</string>
+    <string name="nc_guided_claim_desc_primary_or_fallback">Guided claim using the Magic Phrase and %1$s, or the keys of a fallback whose timelock has expired.</string>
+    <string name="nc_guided_claim_desc_primary_or_fallback_joint">Guided claim using the Trustee’s Magic Phrase and %1$s (kept by the Beneficiary), or the keys of a fallback whose timelock has expired.</string>
+    <string name="nc_self_serve_claim_desc_same_keys">Self-serve claim using the wallet configuration file (BSMS file) and the same keys.</string>
+    <string name="nc_self_serve_claim_desc_same_keys_joint">Self-serve claim using the Trustee’s wallet configuration file (BSMS file) and the same keys.</string>
+    <string name="nc_plan_overview_keys_with_one_fallback">The keys for primary inheritance and for Fallback 1</string>
+    <string name="nc_plan_overview_keys_with_fallbacks">The keys for primary inheritance and for each fallback</string>
+    <string name="nc_plan_overview_timelock_with_one_fallback">An on-chain timelock, plus a later timelock for Fallback 1</string>
+    <string name="nc_plan_overview_timelock_with_fallbacks">An on-chain timelock, plus a later timelock for each fallback</string>
+    <string name="nc_inheritance_and_fallback_keys_used_to_claim">Inheritance keys and fallback keys are used to claim funds after a route’s timelock. Each route needs its own required keys:</string>
+    <string name="nc_inheritance_key_tip_fallback_route_single">[B]Fallback %1$d:[/B] 1 key.</string>
+    <string name="nc_inheritance_key_tip_fallback_route_all">[B]Fallback %1$d:[/B] %2$d of its %3$d keys.</string>
+    <string name="nc_inheritance_key_tip_fallback_route_any">[B]Fallback %1$d:[/B] any %2$d of its %3$d keys.</string>
+    <string name="nc_inheritance_key_tip_fallback_backup">[B]Back up the seed phrase of every inheritance and fallback key on a steel plate or another durable, non-digital medium.[/B] You will need to share each seed phrase with the person who will use it: your Beneficiary or Trustee, or whoever a fallback is intended for.</string>
+    <string name="nc_about_the_timelock_description_1_one_fallback">Your inheritance plan uses on-chain timelocks, built-in delays that protect your funds. The wallet has two spending paths, before and after the timelock, plus a later path for Fallback 1, which unlocks after the primary timelock.</string>
+    <string name="nc_about_the_timelock_description_1_fallbacks">Your inheritance plan uses on-chain timelocks, built-in delays that protect your funds. The wallet has two spending paths, before and after the timelock, plus a later path for each fallback. Fallbacks unlock in order: Fallback 1 after the timelock, Fallback 2 after Fallback 1, and so on.</string>
+    <string name="nc_about_the_timelock_description_3_fallbacks">Review the plan annually and adjust the timelocks as needed.</string>
+    <string name="nc_timelock_info_hint_one_fallback">Even with the required keys, no one can claim through primary inheritance before its timelock expires. Fallback 1’s keys work only after its own, later timelock.</string>
+    <string name="nc_timelock_info_hint_fallbacks">Even with the required keys, no one can claim through primary inheritance before its timelock expires. Fallback keys work only after their own, later timelock.</string>
 </resources>

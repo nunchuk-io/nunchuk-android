@@ -34,6 +34,7 @@ fun NavGraphBuilder.inheritancePlanOverview(
             isMiniscriptWallet = sharedState.isMiniscriptWallet,
             sharesSeedPhrase = sharedState.sharesInheritanceSeedPhrase,
             primaryInheritance = sharedState.primaryInheritancePolicy,
+            fallbacks = sharedState.fallbackInheritances,
             setupFlowType = route.setupFlowType,
             onContinueClicked = { onContinueClicked(route.setupFlowType) },
         )

@@ -44,6 +44,7 @@ import com.nunchuk.android.compose.HighlightMessageType
 import com.nunchuk.android.compose.NcHintMessage
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.FallbackInheritanceInfo
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.PrimaryInheritancePolicyInfo
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.util.ClickAbleText
@@ -55,8 +56,11 @@ internal fun InheritanceTimelockInfoContent(
     remainTime: Int = 0,
     /** Null for a legacy plan, which keeps the single-inheritance-key hint. */
     primaryInheritance: PrimaryInheritancePolicyInfo? = null,
+    /** The plan’s fallbacks: PLAN-09 (one) / PLAN-12 (several) speak of timelocks in the plural. */
+    fallbacks: List<FallbackInheritanceInfo> = emptyList(),
     onContinueClicked: () -> Unit = {}
 ) {
+    val fallbackCount = if (primaryInheritance != null) fallbacks.size else 0
     NunchukTheme {
         Scaffold(
             modifier = Modifier.navigationBarsPadding(),
@@ -72,10 +76,11 @@ internal fun InheritanceTimelockInfoContent(
                         modifier = Modifier.padding(horizontal = 16.dp),
                         messages = listOf(
                             ClickAbleText(
-                                if (primaryInheritance != null) {
-                                    stringResource(R.string.nc_timelock_info_hint_primary)
-                                } else {
-                                    stringResource(R.string.nc_timelock_info_hint)
+                                when {
+                                    fallbackCount == 1 -> stringResource(R.string.nc_timelock_info_hint_one_fallback)
+                                    fallbackCount > 1 -> stringResource(R.string.nc_timelock_info_hint_fallbacks)
+                                    primaryInheritance != null -> stringResource(R.string.nc_timelock_info_hint_primary)
+                                    else -> stringResource(R.string.nc_timelock_info_hint)
                                 }
                             )
                         ),
@@ -109,7 +114,13 @@ internal fun InheritanceTimelockInfoContent(
 
                 Text(
                     modifier = Modifier.padding(horizontal = 16.dp),
-                    text = stringResource(R.string.nc_about_the_timelock_description_1),
+                    text = stringResource(
+                        when {
+                            fallbackCount == 1 -> R.string.nc_about_the_timelock_description_1_one_fallback
+                            fallbackCount > 1 -> R.string.nc_about_the_timelock_description_1_fallbacks
+                            else -> R.string.nc_about_the_timelock_description_1
+                        }
+                    ),
                     style = NunchukTheme.typography.body
                 )
 
@@ -125,7 +136,10 @@ internal fun InheritanceTimelockInfoContent(
 
                 Text(
                     modifier = Modifier.padding(horizontal = 16.dp),
-                    text = stringResource(R.string.nc_about_the_timelock_description_3),
+                    text = stringResource(
+                        if (fallbackCount > 0) R.string.nc_about_the_timelock_description_3_fallbacks
+                        else R.string.nc_about_the_timelock_description_3
+                    ),
                     style = NunchukTheme.typography.body.copy(
                         fontWeight = FontWeight.Bold
                     )
@@ -148,5 +162,28 @@ private fun InheritanceTimelockInfoScreenPreview() {
 private fun InheritanceTimelockInfoScreenDefaultPrimaryPreview() {
     InheritanceTimelockInfoContent(
         primaryInheritance = PrimaryInheritancePolicyInfo(isCustomized = false, requiredSignatures = 2, totalKeys = 4),
+    )
+}
+
+@PreviewLightDark
+@Composable
+private fun InheritanceTimelockInfoScreenOneFallbackPreview() {
+    InheritanceTimelockInfoContent(
+        primaryInheritance = PrimaryInheritancePolicyInfo(isCustomized = false, requiredSignatures = 2, totalKeys = 4),
+        fallbacks = listOf(
+            FallbackInheritanceInfo(index = 0, requiredSignatures = 1, totalKeys = 1, keys = emptyList(), timelock = null),
+        ),
+    )
+}
+
+@PreviewLightDark
+@Composable
+private fun InheritanceTimelockInfoScreenMultipleFallbacksPreview() {
+    InheritanceTimelockInfoContent(
+        primaryInheritance = PrimaryInheritancePolicyInfo(isCustomized = false, requiredSignatures = 2, totalKeys = 4),
+        fallbacks = listOf(
+            FallbackInheritanceInfo(index = 0, requiredSignatures = 1, totalKeys = 1, keys = emptyList(), timelock = null),
+            FallbackInheritanceInfo(index = 1, requiredSignatures = 2, totalKeys = 3, keys = emptyList(), timelock = null),
+        ),
     )
 }

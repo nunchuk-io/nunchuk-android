@@ -28,6 +28,7 @@ fun NavGraphBuilder.inheritanceTimelockInfo(
         InheritanceTimelockInfoContent(
             remainTime = remainTime,
             primaryInheritance = sharedState.primaryInheritancePolicy,
+            fallbacks = sharedState.fallbackInheritances,
             onContinueClicked = onContinueClicked,
         )
     }

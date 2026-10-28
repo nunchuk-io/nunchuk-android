@@ -87,3 +87,47 @@ internal fun fallbackInheritanceHeading(info: FallbackInheritanceInfo): String =
 
     else -> stringResource(R.string.nc_fallback_inheritance_any_keys, info.number, info.requiredSignatures, info.totalKeys)
 }
+
+/**
+ * One line of the fallback list on Share your secrets (SHARE-03 / SHARE-14): "Fallback keys 2, 3 and
+ * 4 · any 2 of 3 required". [keyNumbers] come from [fallbackKeyNumbers].
+ */
+@Composable
+internal fun fallbackShareKeysLine(info: FallbackInheritanceInfo, keyNumbers: List<Int>): String {
+    val keys = if (keyNumbers.size <= 1) {
+        stringResource(R.string.nc_fallback_key_number, keyNumbers.firstOrNull() ?: info.number)
+    } else {
+        stringResource(
+            R.string.nc_fallback_keys_list,
+            keyNumbers.dropLast(1).joinToString(", "),
+            keyNumbers.last(),
+        )
+    }
+    val required = when {
+        info.isSingleKey -> stringResource(R.string.nc_fallback_keys_required_single)
+        info.requiredSignatures == info.totalKeys ->
+            stringResource(R.string.nc_fallback_keys_required_all, info.requiredSignatures, info.totalKeys)
+
+        else -> stringResource(R.string.nc_fallback_keys_required_any, info.requiredSignatures, info.totalKeys)
+    }
+    return stringResource(R.string.nc_fallback_share_keys_line, keys, required)
+}
+
+/** A fallback's bullet on the Inheritance keys screen (PLAN-08 / PLAN-11): "Fallback 2: any 2 of its 3 keys." */
+@Composable
+internal fun fallbackKeyTipRoute(info: FallbackInheritanceInfo): String = when {
+    info.isSingleKey -> stringResource(R.string.nc_inheritance_key_tip_fallback_route_single, info.number)
+    info.requiredSignatures == info.totalKeys -> stringResource(
+        R.string.nc_inheritance_key_tip_fallback_route_all,
+        info.number,
+        info.requiredSignatures,
+        info.totalKeys,
+    )
+
+    else -> stringResource(
+        R.string.nc_inheritance_key_tip_fallback_route_any,
+        info.number,
+        info.requiredSignatures,
+        info.totalKeys,
+    )
+}

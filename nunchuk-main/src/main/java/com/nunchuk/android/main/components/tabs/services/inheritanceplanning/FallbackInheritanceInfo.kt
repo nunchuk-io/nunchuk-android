@@ -46,3 +46,25 @@ internal fun OnChainInheritancePolicy.toFallbackInheritanceInfos(
         )
     }
 }
+
+/**
+ * The numbers Share your secrets lists for each fallback's keys ("Fallback keys 2, 3 and 4"),
+ * numbered across all fallbacks in order. When the server has named every key of a fallback
+ * ("Fallback key 3"), those numbers are used so the screen matches Review your plan; otherwise —
+ * during setup, before the plan lists its keys — they continue from the previous fallback.
+ */
+internal fun List<FallbackInheritanceInfo>.fallbackKeyNumbers(): List<List<Int>> {
+    var next = 1
+    return map { fallback ->
+        val named = fallback.keys.mapNotNull { TRAILING_NUMBER.find(it.name)?.value?.toIntOrNull() }
+        val numbers = if (fallback.keys.size == fallback.totalKeys && named.size == fallback.totalKeys) {
+            named
+        } else {
+            (next until next + fallback.totalKeys).toList()
+        }
+        next = (numbers.maxOrNull() ?: (next - 1)) + 1
+        numbers
+    }
+}
+
+private val TRAILING_NUMBER = Regex("\\d+$")

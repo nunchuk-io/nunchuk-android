@@ -47,6 +47,7 @@ import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.FallbackInheritanceInfo
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceSetupFlowType
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.PrimaryInheritancePolicyInfo
 import com.nunchuk.android.model.byzantine.GroupWalletType
@@ -58,6 +59,7 @@ internal fun InheritancePlanOverviewScreen(
     isMiniscriptWallet: Boolean,
     sharesSeedPhrase: Boolean = false,
     primaryInheritance: PrimaryInheritancePolicyInfo? = null,
+    fallbacks: List<FallbackInheritanceInfo> = emptyList(),
     setupFlowType: InheritanceSetupFlowType = InheritanceSetupFlowType.OLD_FLOW,
     onContinueClicked: () -> Unit = {},
 ) {
@@ -66,6 +68,7 @@ internal fun InheritancePlanOverviewScreen(
         isMiniscriptWallet = isMiniscriptWallet,
         sharesSeedPhrase = sharesSeedPhrase,
         primaryInheritance = primaryInheritance,
+        fallbacks = fallbacks,
         remainTime = remainTime,
         groupWalletType = groupWalletType,
         setupFlowType = setupFlowType,
@@ -78,6 +81,7 @@ private fun InheritancePlanOverviewContent(
     isMiniscriptWallet: Boolean,
     sharesSeedPhrase: Boolean = false,
     primaryInheritance: PrimaryInheritancePolicyInfo? = null,
+    fallbacks: List<FallbackInheritanceInfo> = emptyList(),
     remainTime: Int = 0,
     groupWalletType: GroupWalletType? = null,
     setupFlowType: InheritanceSetupFlowType = InheritanceSetupFlowType.OLD_FLOW,
@@ -129,6 +133,7 @@ private fun InheritancePlanOverviewContent(
                     MiniscriptOverviewItems(
                         groupWalletType = groupWalletType,
                         primaryInheritance = primaryInheritance,
+                        fallbacks = fallbacks,
                     )
                 } else when (setupFlowType) {
                     InheritanceSetupFlowType.OLD_FLOW -> OldFlowOverviewItems(
@@ -150,11 +155,15 @@ private fun InheritancePlanOverviewContent(
     }
 }
 
-/** [primaryInheritance] is null for a legacy plan, which keeps the single-inheritance-key item. */
+/**
+ * [primaryInheritance] is null for a legacy plan, which keeps the single-inheritance-key item.
+ * [fallbacks] adds them to the keys and timelock items (PLAN-07 one fallback, PLAN-10 several).
+ */
 @Composable
 private fun MiniscriptOverviewItems(
     groupWalletType: GroupWalletType? = null,
     primaryInheritance: PrimaryInheritancePolicyInfo? = null,
+    fallbacks: List<FallbackInheritanceInfo> = emptyList(),
 ) {
     NCLabelWithIndex(
         modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
@@ -166,6 +175,8 @@ private fun MiniscriptOverviewItems(
         index = 2,
         // PLAN-13: the same item for the default and any customized primary.
         label = when {
+            fallbacks.size == 1 -> stringResource(R.string.nc_plan_overview_keys_with_one_fallback)
+            fallbacks.size > 1 -> stringResource(R.string.nc_plan_overview_keys_with_fallbacks)
             primaryInheritance != null -> stringResource(R.string.nc_plan_overview_primary_inheritance_keys)
 
             groupWalletType == GroupWalletType.THREE_OF_FIVE_INHERITANCE ->
@@ -177,7 +188,11 @@ private fun MiniscriptOverviewItems(
     NCLabelWithIndex(
         modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
         index = 3,
-        label = stringResource(R.string.nc_an_on_chain_timelock),
+        label = when {
+            fallbacks.size == 1 -> stringResource(R.string.nc_plan_overview_timelock_with_one_fallback)
+            fallbacks.size > 1 -> stringResource(R.string.nc_plan_overview_timelock_with_fallbacks)
+            else -> stringResource(R.string.nc_an_on_chain_timelock)
+        },
     )
     Text(
         modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
@@ -346,5 +361,30 @@ private fun InheritancePlanOverviewScreenDefaultPrimaryPreview() {
     InheritancePlanOverviewContent(
         isMiniscriptWallet = true,
         primaryInheritance = PrimaryInheritancePolicyInfo(isCustomized = false, requiredSignatures = 2, totalKeys = 4),
+    )
+}
+
+@PreviewLightDark
+@Composable
+private fun InheritancePlanOverviewScreenOneFallbackPreview() {
+    InheritancePlanOverviewContent(
+        isMiniscriptWallet = true,
+        primaryInheritance = PrimaryInheritancePolicyInfo(isCustomized = false, requiredSignatures = 2, totalKeys = 4),
+        fallbacks = listOf(
+            FallbackInheritanceInfo(index = 0, requiredSignatures = 1, totalKeys = 1, keys = emptyList(), timelock = null),
+        ),
+    )
+}
+
+@PreviewLightDark
+@Composable
+private fun InheritancePlanOverviewScreenMultipleFallbacksPreview() {
+    InheritancePlanOverviewContent(
+        isMiniscriptWallet = true,
+        primaryInheritance = PrimaryInheritancePolicyInfo(isCustomized = false, requiredSignatures = 2, totalKeys = 4),
+        fallbacks = listOf(
+            FallbackInheritanceInfo(index = 0, requiredSignatures = 1, totalKeys = 1, keys = emptyList(), timelock = null),
+            FallbackInheritanceInfo(index = 1, requiredSignatures = 2, totalKeys = 3, keys = emptyList(), timelock = null),
+        ),
     )
 }

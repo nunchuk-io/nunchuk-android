@@ -54,11 +54,13 @@ import com.nunchuk.android.model.inheritance.InheritanceSection
 internal fun InheritanceHowItWorksScreen(
     type: InheritanceShareSecretType,
     primaryInheritance: PrimaryInheritanceInfo? = null,
+    hasFallbacks: Boolean = false,
     onDoneClick: () -> Unit = {}
 ) {
     InheritanceHowItWorksContent(
         type = type,
         primaryInheritance = primaryInheritance,
+        hasFallbacks = hasFallbacks,
         onDoneClick = onDoneClick
     )
 }
@@ -66,11 +68,14 @@ internal fun InheritanceHowItWorksScreen(
 /**
  * [primaryInheritance] is null for a legacy plan, which keeps the single-inheritance-key copy;
  * otherwise both methods name the keys the plan's primary route actually needs.
+ * With [hasFallbacks] the guided claim adds "or the keys of a fallback whose timelock has expired" and
+ * the self-serve claim reads "the same keys" (SHARE-04 / SHARE-12 / SHARE-15).
  */
 @Composable
 private fun InheritanceHowItWorksContent(
     type: InheritanceShareSecretType = InheritanceShareSecretType.DIRECT,
     primaryInheritance: PrimaryInheritanceInfo? = null,
+    hasFallbacks: Boolean = false,
     onDoneClick: () -> Unit = {}
 ) {
     // Only a customized route has Trustee-specific wording (SHARE-31); the guided default reads the
@@ -142,6 +147,12 @@ private fun InheritanceHowItWorksContent(
 
                     val guidedClaimDesc = when {
                         primaryInheritance == null -> stringResource(R.string.nc_guided_claim_desc)
+                        hasFallbacks -> stringResource(
+                            if (isCustomizedJointControl) R.string.nc_guided_claim_desc_primary_or_fallback_joint
+                            else R.string.nc_guided_claim_desc_primary_or_fallback,
+                            primaryKeysPhrase(primaryInheritance)
+                        )
+
                         isCustomizedJointControl -> stringResource(
                             R.string.nc_guided_claim_desc_primary_joint,
                             primaryKeysPhrase(primaryInheritance)
@@ -179,6 +190,11 @@ private fun InheritanceHowItWorksContent(
 
                     val selfServeDesc = when {
                         primaryInheritance == null -> stringResource(selfServeDescRes)
+                        hasFallbacks -> stringResource(
+                            if (isCustomizedJointControl) R.string.nc_self_serve_claim_desc_same_keys_joint
+                            else R.string.nc_self_serve_claim_desc_same_keys
+                        )
+
                         isCustomizedJointControl -> stringResource(
                             R.string.nc_self_serve_claim_desc_primary_joint,
                             primaryKeysPhrase(primaryInheritance)
@@ -275,5 +291,41 @@ private fun InheritanceHowItWorksCustomizedJointPreview() {
                 InheritanceKey(xfp = "8e41b2c7", section = InheritanceSection.PRIMARY, name = "Inheritance key 3"),
             ),
         ),
+    )
+}
+
+@PreviewLightDark
+@Composable
+private fun InheritanceHowItWorksDefaultPrimaryWithFallbacksPreview() {
+    InheritanceHowItWorksContent(
+        type = InheritanceShareSecretType.DIRECT,
+        primaryInheritance = PrimaryInheritanceInfo(
+            isCustomized = false,
+            requiredSignatures = 2,
+            totalKeys = 4,
+            inheritanceKeys = listOf(
+                InheritanceKey(xfp = "6b35f210", section = InheritanceSection.PRIMARY, name = "Inheritance key 1"),
+            ),
+        ),
+        hasFallbacks = true,
+    )
+}
+
+@PreviewLightDark
+@Composable
+private fun InheritanceHowItWorksCustomizedJointWithFallbacksPreview() {
+    InheritanceHowItWorksContent(
+        type = InheritanceShareSecretType.JOINT_CONTROL,
+        primaryInheritance = PrimaryInheritanceInfo(
+            isCustomized = true,
+            requiredSignatures = 2,
+            totalKeys = 3,
+            inheritanceKeys = listOf(
+                InheritanceKey(xfp = "79eb35f4", section = InheritanceSection.PRIMARY, name = "Inheritance key 1"),
+                InheritanceKey(xfp = "f91b570c", section = InheritanceSection.PRIMARY, name = "Inheritance key 2"),
+                InheritanceKey(xfp = "8e41b2c7", section = InheritanceSection.PRIMARY, name = "Inheritance key 3"),
+            ),
+        ),
+        hasFallbacks = true,
     )
 }

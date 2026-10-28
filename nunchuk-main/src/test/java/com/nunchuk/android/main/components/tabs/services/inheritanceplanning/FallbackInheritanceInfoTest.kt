@@ -78,4 +78,35 @@ class FallbackInheritanceInfoTest {
 
         assertTrue(infos.isEmpty())
     }
+
+    private fun info(index: Int, n: Int, keys: List<InheritanceKey> = emptyList()) =
+        FallbackInheritanceInfo(index = index, requiredSignatures = 1, totalKeys = n, keys = keys, timelock = null)
+
+    @Test
+    fun `fallback key numbers continue across fallbacks when the plan lists no keys`() {
+        val numbers = listOf(info(0, 1), info(1, 3), info(2, 2)).fallbackKeyNumbers()
+
+        assertEquals(listOf(listOf(1), listOf(2, 3, 4), listOf(5, 6)), numbers)
+    }
+
+    @Test
+    fun `fallback key numbers follow the server names when every key is named`() {
+        val numbers = listOf(
+            info(0, 1, listOf(fallbackKey("a", "Fallback key 1", 0))),
+            info(1, 2, listOf(fallbackKey("b", "Fallback key 3", 1), fallbackKey("c", "Fallback key 4", 1))),
+            info(2, 1),
+        ).fallbackKeyNumbers()
+
+        assertEquals(listOf(listOf(1), listOf(3, 4), listOf(5)), numbers)
+    }
+
+    @Test
+    fun `a fallback with unnamed or missing keys is numbered from the previous one`() {
+        val numbers = listOf(
+            info(0, 2, listOf(fallbackKey("a", "Fallback key 1", 0))),
+            info(1, 1, listOf(fallbackKey("b", "", 1))),
+        ).fallbackKeyNumbers()
+
+        assertEquals(listOf(listOf(1, 2), listOf(3)), numbers)
+    }
 }

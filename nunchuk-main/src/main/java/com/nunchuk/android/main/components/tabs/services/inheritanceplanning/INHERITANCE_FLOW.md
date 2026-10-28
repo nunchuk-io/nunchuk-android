@@ -164,6 +164,19 @@ with one checkbox per timelock (NOTIF-03): primary = `notify_timelock_expires`, 
 index N-1 in `notify_fallbacks` (`notificationsettings/UnlockNotices.kt`); Review shows the picks
 as "Unlock notices". Without fallbacks both screens keep the single Yes/No timelock notice.
 
+The same `fallbackInheritances` drive the rest of the plan screens (Row 7 · SHARE, Row 4 · PLAN):
+- `shareSecretInfo` adds item 3 "For each fallback, share its keys with the person it's intended
+  for…" with a box listing "Fallback N" / "Fallback keys 2, 3 and 4 · any 2 of 3 required" (keys
+  numbered across fallbacks by `fallbackKeyNumbers()`: the server's names when every key is named,
+  otherwise continuing from the previous fallback), and the warning adds "and with anyone a
+  fallback is intended for".
+- `howItWorks`: the guided claim ends "…or the keys of a fallback whose timelock has expired", the
+  self-serve claim reads "…and the same keys".
+- Setup guidance (these run before the plan lists keys, so only M-of-N is used): Plan overview
+  items 2 / 3 name "Fallback 1" or "each fallback" (PLAN-07 / PLAN-10); Inheritance keys adds one
+  bullet per fallback and the inheritance-and-fallback backup copy (PLAN-08 / PLAN-11 / PLAN-11b);
+  About the timelock switches to "timelocks" and the fallback hint (PLAN-09 / PLAN-12).
+
 Supporting screens reachable from review/edit: `changetimezone`, `backupdownload`,
 `fallbacksettings`, `assetallocation`, `releasemethod`, `beneficiaryschedules`.
 

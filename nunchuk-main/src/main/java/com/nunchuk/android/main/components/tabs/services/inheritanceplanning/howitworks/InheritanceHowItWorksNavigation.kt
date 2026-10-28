@@ -31,6 +31,7 @@ fun NavGraphBuilder.inheritanceHowItWorks(
                 InheritanceShareSecretType.DIRECT
             },
             primaryInheritance = sharedUiState.primaryInheritance,
+            hasFallbacks = sharedUiState.fallbackInheritances.isNotEmpty(),
             onDoneClick = onDoneClick,
         )
     }
