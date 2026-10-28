@@ -53,8 +53,6 @@ sealed class SignerIntroFlow : Parcelable {
      * @property fallbackNumber the 1-based fallback the key is for, with [OnChainInheritanceGuide.FALLBACK].
      * @property showInheritanceGuide false once the guide ran in this wallet setup (configurable draft).
      * @property showDeviceSafety show "Before you use this device" before a new device is used.
-     * @property guideOnly only run the inheritance guide and return RESULT_OK — the key was picked
-     *   from those already in the setup, so no device is involved.
      */
     @Parcelize
     data class OnChainTimelockKey(
@@ -67,7 +65,6 @@ sealed class SignerIntroFlow : Parcelable {
         val fallbackNumber: Int = 0,
         val showInheritanceGuide: Boolean = true,
         val showDeviceSafety: Boolean = false,
-        val guideOnly: Boolean = false,
     ) : SignerIntroFlow()
 
     /** Owner setting up (or replacing) an off-chain inheritance key. */

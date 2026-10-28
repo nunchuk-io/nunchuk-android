@@ -293,12 +293,6 @@ class SignerIntroCoordinatorTest {
         assertEquals(SignerIntroAction.ShowDeviceSafety(KeyType.TAPSIGNER), router.select(KeyType.TAPSIGNER))
     }
 
-    @Test fun `guide-only run returns after the guide`() {
-        val router = router(SignerIntroFlow.OnChainTimelockKey(isInheritanceKey = true, guideOnly = true))
-        assertTrue(router.isGuideOnly)
-        assertEquals(SignerIntroAction.ReturnGuideCompleted, router.guideCompleted(KeyType.GENERIC_AIRGAP))
-    }
-
     @Test fun `legacy on-chain flow is unchanged - no device safety`() {
         val router = router(SignerIntroFlow.OnChainTimelockKey(isInheritanceKey = true))
         for (key in seedPhraseKeys) {

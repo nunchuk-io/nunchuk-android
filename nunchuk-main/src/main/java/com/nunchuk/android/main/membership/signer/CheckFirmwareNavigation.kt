@@ -63,6 +63,8 @@ data class CheckFirmwareDestination(
 
 fun NavGraphBuilder.checkFirmwareDestination(
     onChainAddSignerParam: OnChainAddSignerParam?,
+    /** False when the key picker already offered this phone's keys (after "Before you use this device"). */
+    offersExistingKeys: Boolean = true,
     onMoreClicked: () -> Unit = {},
     onFilteredSignersReady: (SignerModel) -> Unit = {},
     onOpenNextScreen: (SignerFirmwareDevice) -> Unit = {}
@@ -80,6 +82,7 @@ fun NavGraphBuilder.checkFirmwareDestination(
         CheckFirmwareNavigationScreen(
             args = args,
             onMoreClicked = onMoreClicked,
+            offersExistingKeys = offersExistingKeys,
             onFilteredSignersReady = onFilteredSignersReady,
             onOpenNextScreen = { onOpenNextScreen(device) }
         )
@@ -91,14 +94,15 @@ fun NavGraphBuilder.checkFirmwareDestination(
 private fun CheckFirmwareNavigationScreen(
     args: CheckFirmwareArgs,
     viewModel: CheckFirmwareViewModel = hiltViewModel(),
+    offersExistingKeys: Boolean = true,
     onMoreClicked: () -> Unit = {},
     onFilteredSignersReady: (SignerModel) -> Unit = {},
     onOpenNextScreen: () -> Unit = {}
 ) {
     val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
     val firmwareVersion by viewModel.firmwareVersion.collectAsStateWithLifecycle()
-    val filteredSigners by viewModel.filteredSigners.collectAsStateWithLifecycle()
-    var showSignerBottomSheet by remember { mutableStateOf(false) }
+    // The sheet shows the keys the event carries: those are filtered by network and setup.
+    var sheetSigners by remember { mutableStateOf<List<SignerModel>>(emptyList()) }
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     LaunchedEffect(Unit) {
@@ -106,7 +110,7 @@ private fun CheckFirmwareNavigationScreen(
         viewModel.event.collect { event ->
             when (event) {
                 is CheckFirmwareEvent.ShowFilteredSigners -> {
-                    showSignerBottomSheet = true
+                    sheetSigners = event.signers
                 }
 
                 CheckFirmwareEvent.OpenNextScreen -> {
@@ -121,25 +125,25 @@ private fun CheckFirmwareNavigationScreen(
         onMoreClicked = onMoreClicked,
         remainTime = remainTime,
         firmwareVersion = firmwareVersion,
-        onContinueClicked = viewModel::onContinueClicked
+        onContinueClicked = if (offersExistingKeys) viewModel::onContinueClicked else onOpenNextScreen,
     )
 
-    if (showSignerBottomSheet && filteredSigners.isNotEmpty()) {
+    if (sheetSigners.isNotEmpty()) {
         SelectSignerBottomSheet(
             sheetState = bottomSheetState,
             onDismiss = {
-                showSignerBottomSheet = false
+                sheetSigners = emptyList()
             },
             onAddExistKey = { signer ->
-                showSignerBottomSheet = false
+                sheetSigners = emptyList()
                 onFilteredSignersReady(signer)
             },
             onAddNewKey = {
-                showSignerBottomSheet = false
+                sheetSigners = emptyList()
                 onOpenNextScreen()
             },
             args = SelectSignerArgs(
-                signers = filteredSigners,
+                signers = sheetSigners,
                 type = when (args.signerTag) {
                     SignerTag.COLDCARD -> SignerType.COLDCARD_NFC
                     SignerTag.JADE -> SignerType.AIRGAP

@@ -179,8 +179,8 @@ fixed step list:
 * **Onboarding:** a new device goes through "Before you use this device"
   (`DeviceSafetyNoticeNavigation.kt`, `showDeviceSafety`). The inheritance guide (intro + passphrase
   notice, copy per `OnChainInheritanceGuide`) runs once per setup — skipped once a primary key is in or
-  the guide ran this session (`isInheritanceGuideSeen`). Picking a key already in the setup runs the
-  guide alone (`guideOnly`) and resumes the pick (`PendingKeyChoice`); no device-safety notice then.
+  the guide ran this session (`isInheritanceGuideSeen`). Picking a key already in the setup (KEY-01a
+  "Choose key") puts it in the slot straight away: no guide, no device-safety notice.
 * **Customized primary:** Add or Change (offered on every filled slot) opens `ChooseKeySheet` (KEY-01a)
   when keys exist; the account comes from `DraftKeySlot.expectedAccount` (absent → 0, null → refused).
   Cancel changes nothing.

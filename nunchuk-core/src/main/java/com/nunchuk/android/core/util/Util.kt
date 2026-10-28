@@ -40,6 +40,7 @@ import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.network.UNKNOWN_ERROR
 import com.nunchuk.android.exception.NCNativeException
 import com.nunchuk.android.model.Transaction
+import com.nunchuk.android.type.Chain
 import com.nunchuk.android.utils.CrashlyticsReporter
 import java.io.File
 import java.io.InputStream
@@ -323,6 +324,15 @@ fun Context.getTextBtcUnit() = when (CURRENT_DISPLAY_UNIT_TYPE) {
 
 val String.isTestNetSigner: Boolean
     get() = split("/").getOrNull(2) == "1h"
+
+/**
+ * The path's coin type is [chain]'s (`0h` mainnet, `1h` otherwise); a path without one matches. A key
+ * imported with the other network's coin type is rejected by the server as KEY_ORIGIN_MISMATCH.
+ */
+fun String.matchesChain(chain: Chain): Boolean {
+    val coinType = replace('\'', 'h').split("/").getOrNull(2) ?: return true
+    return coinType == if (chain == Chain.MAIN) "0h" else "1h"
+}
 
 /**
  * Account of a BIP-48 multisig path (`m/48h/0h/<account>h/2h`), or null when the path is not one

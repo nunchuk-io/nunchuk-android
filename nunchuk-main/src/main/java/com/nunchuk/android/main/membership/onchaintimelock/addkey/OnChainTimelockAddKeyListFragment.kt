@@ -98,7 +98,6 @@ import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.core.signer.SignerModel
-import com.nunchuk.android.core.signer.OnChainInheritanceGuide
 import com.nunchuk.android.core.signer.toSingleSigner
 import com.nunchuk.android.core.signer.SignerIntroFlow
 import com.nunchuk.android.core.signer.SignerIntroRequest
@@ -201,18 +200,6 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
 
     private fun isTargetInheritanceKey(): Boolean =
         currentDraftOptions?.isInheritance ?: (currentKeyData?.type?.isAddInheritanceKey == true)
-
-    /** KEY-03/04 only, for a key picked from those already in the setup. */
-    private val inheritanceGuideLauncher = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        if (result.isExitWizard()) {
-            requireActivity().finish()
-            return@registerForActivityResult
-        }
-        if (result.resultCode == Activity.RESULT_OK) viewModel.onInheritanceGuideDone()
-        else viewModel.onInheritanceGuideCancelled()
-    }
 
     private val addTapSignerLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -648,7 +635,6 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                     currentDraftOptions = event.options
                     handleSignerTypeLogic(event.type, event.tag)
                 }
-                is AddKeyListEvent.OpenInheritanceGuide -> openInheritanceGuide(event.guide, event.fallbackNumber)
                 AddKeyListEvent.SelectAirgapType -> {
 
                 }
@@ -819,25 +805,6 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                     fallbackNumber = options.fallbackNumber,
                     showInheritanceGuide = options.showInheritanceGuide,
                     showDeviceSafety = options.showDeviceSafety,
-                ),
-                walletType = WalletType.MINISCRIPT,
-            ),
-        )
-    }
-
-    private fun openInheritanceGuide(guide: OnChainInheritanceGuide, fallbackNumber: Int) {
-        navigator.openSignerIntroScreen(
-            launcher = inheritanceGuideLauncher,
-            activityContext = requireActivity(),
-            request = SignerIntroRequest(
-                canRestartWizard = canRestartWizard,
-                walletId = (activity as MembershipActivity).walletId,
-                groupId = args.groupId ?: (activity as MembershipActivity).groupId,
-                flow = SignerIntroFlow.OnChainTimelockKey(
-                    isInheritanceKey = true,
-                    inheritanceGuide = guide,
-                    fallbackNumber = fallbackNumber,
-                    guideOnly = true,
                 ),
                 walletType = WalletType.MINISCRIPT,
             ),

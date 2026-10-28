@@ -11,6 +11,7 @@ import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.signer.SignerIntroFlow
 import com.nunchuk.android.core.signer.SignerIntroRequest
 import com.nunchuk.android.core.util.isRecommendedMultiSigPath
+import com.nunchuk.android.core.util.matchesChain
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.MembershipPlan
@@ -216,7 +217,6 @@ class SignerIntroViewModel @Inject constructor(
             is SignerIntroAction.OfferExisting -> offerExisting(action.keyType)
             is SignerIntroAction.ShowInheritanceGuide -> sendEvent(SignerIntroEvent.ShowInheritanceGuide(action.keyType))
             is SignerIntroAction.ShowDeviceSafety -> sendEvent(SignerIntroEvent.ShowDeviceSafety(action.keyType))
-            SignerIntroAction.ReturnGuideCompleted -> sendEvent(SignerIntroEvent.ReturnGuideCompleted)
             SignerIntroAction.RecoverSoftware -> {
                 savedStateHandle[RECOVERY_VISIBLE] = true
                 _state.update { it.copy(showRecoveryOptions = true) }
@@ -240,7 +240,7 @@ class SignerIntroViewModel @Inject constructor(
             coordinator?.request?.flow is SignerIntroFlow.ClaimInheritance
         ) SignerTag.COLDCARD else deviceTag
         return filterExistingSigners(
-            filterSignerByType(type, tag).filter { it.derivationPath.isRecommendedMultiSigPath && it.derivationPath.matchesChain() }
+            filterSignerByType(type, tag).filter { it.derivationPath.isRecommendedMultiSigPath && it.derivationPath.matchesChain(chain) }
         )
     }
 
@@ -276,15 +276,6 @@ class SignerIntroViewModel @Inject constructor(
                 existing.fingerPrint == signer.fingerPrint && existingDerivationPath == signerDerivationPath
             }
         }
-    }
-
-    /**
-     * A key imported with the other network's coin type (e.g. `m/48h/0h/…` on testnet) is rejected by the
-     * server as KEY_ORIGIN_MISMATCH, so it is never offered. A path without a coin type is kept.
-     */
-    private fun String.matchesChain(): Boolean {
-        val coinType = replace('\'', 'h').split("/").getOrNull(2) ?: return true
-        return coinType == if (chain == Chain.MAIN) "0h" else "1h"
     }
 
     private fun getPath(index: Int): String {
@@ -358,7 +349,6 @@ sealed interface SignerIntroEvent {
     data class CheckFirmware(val device: SignerFirmwareDevice) : SignerIntroEvent
     data class ShowInheritanceGuide(val keyType: KeyType) : SignerIntroEvent
     data class ShowDeviceSafety(val keyType: KeyType) : SignerIntroEvent
-    data object ReturnGuideCompleted : SignerIntroHostEvent
     data class OpenDevice(val action: SignerDeviceAction) : SignerIntroHostEvent
     data class ReturnHardwareTag(val tag: SignerTag) : SignerIntroHostEvent
     data class ReturnKeyType(val keyType: KeyType) : SignerIntroHostEvent

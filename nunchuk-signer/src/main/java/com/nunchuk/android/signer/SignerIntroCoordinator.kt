@@ -22,9 +22,6 @@ class SignerIntroCoordinator(val request: SignerIntroRequest) {
     private val onChainKey = flow as? SignerIntroFlow.OnChainTimelockKey
     private val isAddingInheritanceKey = isInheritanceSetup || onChainKey?.isInheritanceKey == true
 
-    /** Guide-only run: the inheritance guide is the whole flow. */
-    val isGuideOnly: Boolean = onChainKey?.guideOnly == true
-
     /** A slot of a configurable on-chain draft (primary or fallback), not the legacy inheritance step. */
     val isConfigurableDraft: Boolean = onChainKey != null && onChainKey.inheritanceGuide != OnChainInheritanceGuide.LEGACY
 
@@ -40,7 +37,6 @@ class SignerIntroCoordinator(val request: SignerIntroRequest) {
 
     /** Continue after the inheritance guides, without showing them a second time. */
     fun guideCompleted(keyType: KeyType): SignerIntroAction {
-        if (isGuideOnly) return SignerIntroAction.ReturnGuideCompleted
         if (showsDeviceSafety(keyType)) return SignerIntroAction.ShowDeviceSafety(keyType)
         if (shouldOfferExisting(keyType)) return SignerIntroAction.OfferExisting(keyType)
         return openNew(keyType)
@@ -173,7 +169,6 @@ sealed interface HardwareMode {
 sealed interface SignerIntroAction {
     data class ShowInheritanceGuide(val keyType: KeyType) : SignerIntroAction
     data class ShowDeviceSafety(val keyType: KeyType) : SignerIntroAction
-    data object ReturnGuideCompleted : SignerIntroAction
     data class OfferExisting(val keyType: KeyType) : SignerIntroAction
     data class CheckFirmware(val device: SignerFirmwareDevice) : SignerIntroAction
     data class Tapsigner(val returnResult: Boolean) : SignerDeviceAction

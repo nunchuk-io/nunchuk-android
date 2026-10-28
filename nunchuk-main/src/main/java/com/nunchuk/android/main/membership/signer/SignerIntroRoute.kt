@@ -23,7 +23,6 @@ import com.nunchuk.android.core.signer.SignerIntroRequest
 import com.nunchuk.android.signer.SignerIntroHostEvent
 import com.nunchuk.android.signer.SignerIntroEvent
 import com.nunchuk.android.signer.SignerIntroViewModel
-import com.nunchuk.android.signer.KeyType
 import com.nunchuk.android.signer.toSignerTypeAndTag
 
 /** Owns Compose navigation and sheets; device navigation stays at the Activity boundary. */
@@ -72,12 +71,7 @@ internal fun SignerIntroRoute(
         if (viewModel.verifyingKeyType == null) {
             NavHost(
                 navController = navController,
-                // A key picked from those already in the setup only needs the guide (no device).
-                startDestination = if (onChainKey?.guideOnly == true) {
-                    InheritanceKeyIntroDestination(keyType = KeyType.GENERIC_AIRGAP.name)
-                } else {
-                    SignerIntroDestination
-                },
+                startDestination = SignerIntroDestination,
             ) {
                 signerIntroDestination(
                     viewModel = viewModel,
@@ -110,6 +104,7 @@ internal fun SignerIntroRoute(
                 )
                 checkFirmwareDestination(
                     onChainAddSignerParam = request.deviceParams,
+                    offersExistingKeys = onChainKey?.showDeviceSafety != true,
                     onMoreClicked = onMore,
                     onFilteredSignersReady = onSigner,
                     onOpenNextScreen = viewModel::onFirmwareChecked,

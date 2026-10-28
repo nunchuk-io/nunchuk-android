@@ -25,8 +25,6 @@ import com.nunchuk.android.model.inheritance.DraftKeyAccountMismatchException
 import com.nunchuk.android.model.inheritance.DraftKeySlotMissingException
 import com.nunchuk.android.model.inheritance.RecoveredKeyRequiredException
 import com.nunchuk.android.core.signer.OnChainInheritanceGuide
-import kotlinx.parcelize.Parcelize
-import android.os.Parcelable
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -586,39 +584,12 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
     }
 
     /**
-     * KEY-01a "Choose key". The first inheritance key of this setup still runs the inheritance
-     * guide (intro + passphrase notice); the choice is kept and resumed in [onInheritanceGuideDone].
+     * KEY-01a "Choose key": the key goes straight into the slot and the setup card comes back. Only
+     * "Add key" runs the inheritance guide (KEY-03 → KEY-04 → KEY-02).
      */
     fun onChooseKeySelected(xfp: String) {
-        val target = _state.value.chooseKeyTarget ?: return
-        _state.update { it.copy(chooseKeyTarget = null) }
-        if (!_state.value.isGuideSeen(target.card)) {
-            savedStateHandle[KEY_PENDING_CHOICE] = PendingKeyChoice(target.keyIndex, xfp)
-            viewModelScope.launch {
-                _event.emit(
-                    AddKeyListEvent.OpenInheritanceGuide(
-                        guide = inheritanceGuide(target.card),
-                        fallbackNumber = target.card.fallbackNumber,
-                    )
-                )
-            }
-            return
-        }
-        importChosenKey(target.keyIndex, xfp)
-    }
-
-    /** The guide-only run finished: the guide counts as seen; resume a pending choice. */
-    fun onInheritanceGuideDone() {
-        val choice = savedStateHandle.get<PendingKeyChoice>(KEY_PENDING_CHOICE)
-        markInheritanceGuideSeen(choice?.let { cardOfKey(it.keyIndex)?.card })
-        choice ?: return
-        savedStateHandle.remove<PendingKeyChoice>(KEY_PENDING_CHOICE)
-        importChosenKey(choice.keyIndex, choice.xfp)
-    }
-
-    /** The guide was left: drop the pending choice, the slot keeps its key. */
-    fun onInheritanceGuideCancelled() {
-        savedStateHandle.remove<PendingKeyChoice>(KEY_PENDING_CHOICE)
+        val (card, slot) = takeChooseKeyTarget() ?: return
+        importChosenKey(card, slot, xfp)
     }
 
     /** An inheritance add came back from the key picker, so its guide ran (or was not needed). */
@@ -655,9 +626,7 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
      * or the draft already holds; otherwise reads it off that device (no device-safety notice: the
      * device is already in this setup).
      */
-    private fun importChosenKey(keyIndex: Int, xfp: String) {
-        val card = _state.value.draftCards.firstOrNull { card -> card.slots.any { it.keyIndex == keyIndex } } ?: return
-        val slot = card.slots.first { it.keyIndex == keyIndex }
+    private fun importChosenKey(card: DraftSetupCard, slot: DraftSetupSlot, xfp: String) {
         val draftSlot = card.slotToAdd(groupId, slot)
         val account = draftSlot.expectedAccount(xfp) ?: run {
             viewModelScope.launch { _event.emit(AddKeyListEvent.ShowErrorRes(R.string.nc_draft_key_account_unavailable)) }
@@ -1387,7 +1356,6 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
         private val DRAFT_SPENDING_DISPATCH_STEP_ACCOUNT_1 = MembershipStep.HONEY_ADD_HARDWARE_KEY_1
         private val DRAFT_PRIMARY_DISPATCH_STEP = MembershipStep.HONEY_ADD_INHERITANCE_KEY_TIMELOCK
         private const val KEY_CURRENT_STEP = "current_step"
-        private const val KEY_PENDING_CHOICE = "pending_key_choice"
         private const val KEY_ACTIVE_DRAFT_ACCOUNT = "active_draft_account"
         private const val KEY_INHERITANCE_GUIDE_SEEN = "inheritance_guide_seen"
         private const val KEY_FALLBACK_GUIDES_SEEN = "fallback_guides_seen"
@@ -1412,10 +1380,6 @@ data class FallbackPolicyTarget(val index: Int?)
 /** 1-based number of a FALLBACK card ("Fallback 1"); 0 for any other card. */
 val DraftInheritanceCard.fallbackNumber: Int
     get() = if (section == InheritanceSection.FALLBACK) (fallbackIndex ?: 0) + 1 else 0
-
-/** A choose-key pick waiting for the inheritance guide to finish. */
-@Parcelize
-data class PendingKeyChoice(val keyIndex: Int, val xfp: String) : Parcelable
 
 /**
  * How the fragment starts a device flow for a configurable-draft slot.
@@ -1461,7 +1425,6 @@ sealed class AddKeyListEvent {
     ) : AddKeyListEvent()
 
     /** Run only the inheritance guide (KEY-03/04) before a key picked from this setup is used. */
-    data class OpenInheritanceGuide(val guide: OnChainInheritanceGuide, val fallbackNumber: Int = 0) : AddKeyListEvent()
     data class UpdateSignerTag(val signer: SignerModel) : AddKeyListEvent()
 }
 
