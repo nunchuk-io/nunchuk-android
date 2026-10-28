@@ -31,16 +31,20 @@ import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.matrix.MatrixInitializerUseCase
+import com.nunchuk.android.listener.InvalidTransactionListener
 import com.nunchuk.android.log.FileLogTree
 import com.nunchuk.android.share.InitNunchukUseCase
 import com.nunchuk.android.usecase.darkmode.ConfigThemeUseCase
 import com.nunchuk.android.util.FileHelper
+import com.nunchuk.android.widget.R
 import com.nunchuk.android.utils.onException
 import dagger.Lazy
 import dagger.hilt.android.HiltAndroidApp
 import io.branch.referral.Branch
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.Dispatchers.Main
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.launch
@@ -109,6 +113,7 @@ internal class NunchukApplication : MultiDexApplication(), Configuration.Provide
         fileHelper.getOrCreateNunchukRootDir()
         registerActivityLifecycleCallbacks(ActivityManager)
         registerAppForegroundListener()
+        observeInvalidTransactions()
         getDisplayUnitSetting()
         configThemeUseCase(Unit).launchIn(applicationScope)
     }
@@ -117,6 +122,23 @@ internal class NunchukApplication : MultiDexApplication(), Configuration.Provide
         ProcessLifecycleOwner.get().lifecycle.apply {
             addObserver(NcToastManager)
             addObserver(appStateManager)
+        }
+    }
+
+    // libnunchuk reports a pending tx whose signature check failed, i.e. a faulty or malicious
+    // Electrum server; it can repeat on every sync, so each tx is shown once per process.
+    private fun observeInvalidTransactions() {
+        val shownTxIds = mutableSetOf<String>()
+        applicationScope.launch(Main) {
+            InvalidTransactionListener.invalidTransactionFlow
+                .filter { shownTxIds.add(it.txId) }
+                .collect {
+                    Timber.w("Invalid transaction from Electrum: ${it.txId} wallet: ${it.walletId}")
+                    NcToastManager.scheduleShowMessage(
+                        message = getString(R.string.nc_invalid_electrum_transaction, it.txId),
+                        type = NcToastManager.MessageType.ERROR,
+                    )
+                }
         }
     }
 

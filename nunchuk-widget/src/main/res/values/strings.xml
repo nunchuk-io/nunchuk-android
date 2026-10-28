@@ -38,4 +38,5 @@
     <string name="nc_sign_up">Sign up</string>
     <string name="nc_widget_confirmation_code">Confirmation code</string>
     <string name="nc_widget_save_pdf">Save PDF</string>
+    <string name="nc_invalid_electrum_transaction">Transaction %1$s returned by the connected Electrum server failed signature verification. The server may be faulty. Consider switching to another server.</string>
 </resources>
