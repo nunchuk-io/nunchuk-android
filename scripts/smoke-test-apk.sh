@@ -36,6 +36,9 @@ set -euo pipefail
 PKG="io.nunchuk.android"
 SDK="${ANDROID_SDK:-$HOME/Library/Android/sdk}"
 ADB="$SDK/platform-tools/adb"
+# Pin every adb call to the emulator: a plugged-in phone must never be touched
+# (an unpinned run once uninstalled the app, and its data, from a real device).
+export ANDROID_SERIAL=emulator-5554
 EMULATOR="$SDK/emulator/emulator"
 AAPT2="$(ls -1 "$SDK"/build-tools/*/aapt2 2>/dev/null | sort -V | tail -1 || true)"
 
