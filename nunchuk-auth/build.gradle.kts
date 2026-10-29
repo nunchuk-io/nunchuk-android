@@ -28,4 +28,6 @@ dependencies {
     implementation(libs.androidx.credentials.play.services.auth)
     implementation(libs.googleid)
     implementation(libs.androidx.browser)
+
+    testImplementation(libs.junit)
 }

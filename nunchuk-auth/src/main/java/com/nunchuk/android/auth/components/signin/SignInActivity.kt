@@ -22,6 +22,7 @@ package com.nunchuk.android.auth.components.signin
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.widget.EditText
 import androidx.activity.enableEdgeToEdge
@@ -58,6 +59,7 @@ import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.biometric.BiometricPromptManager
 import com.nunchuk.android.core.network.ApiErrorCode.NEW_DEVICE
 import com.nunchuk.android.core.network.ErrorDetail
+import com.nunchuk.android.core.persistence.NCSharePreferences
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.linkify
 import com.nunchuk.android.core.util.showKeyboard
@@ -71,6 +73,7 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.net.URLDecoder
 import java.util.UUID
+import javax.inject.Inject
 
 
 @AndroidEntryPoint
@@ -90,30 +93,50 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
 
     private val viewModel: SignInViewModel by viewModels()
 
+    @Inject
+    lateinit var sharePreferences: NCSharePreferences
+
     override fun initializeBinding() = ActivitySigninBinding.inflate(layoutInflater).also {
         enableEdgeToEdge()
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        Timber.d("Intent data ${intent.data}")
+        // onResume follows and handles the callback.
+        setIntent(intent)
+    }
+
+    override fun onResume() {
+        super.onResume()
         val uri = intent.data ?: return
+        // Consume the callback so later resumes do not apply it again.
+        intent.data = null
+        handleAppleSignInCallback(uri)
+    }
+
+    private fun handleAppleSignInCallback(uri: Uri) {
         val encodedResponse = uri.getQueryParameter("response") ?: return
+        val accepted = AppleSignInCallbackValidator.isAccepted(
+            pendingState = sharePreferences.pendingAppleSignInState,
+            pendingStartedAt = sharePreferences.pendingAppleSignInStartedAt,
+            now = System.currentTimeMillis(),
+            callbackState = uri.getQueryParameter("state"),
+        )
+        if (!accepted) {
+            // Keep the pending request: a forged callback must not cancel the user's real sign-in.
+            Timber.w("Ignored Apple sign-in callback that this device did not request")
+            return
+        }
+        clearPendingAppleSignIn()
         val decodedJson = URLDecoder.decode(encodedResponse, Charsets.UTF_8.name())
         if (decodedJson.isNotEmpty()) {
             viewModel.appleSignIn(decodedJson)
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-        Timber.d("Intent data ${intent.data}")
-        val uri = intent.data ?: return
-        val encodedResponse = uri.getQueryParameter("response") ?: return
-        val decodedJson = URLDecoder.decode(encodedResponse, Charsets.UTF_8.name())
-        if (decodedJson.isNotEmpty()) {
-            viewModel.appleSignIn(decodedJson)
-        }
+    private fun clearPendingAppleSignIn() {
+        sharePreferences.pendingAppleSignInState = ""
+        sharePreferences.pendingAppleSignInStartedAt = 0L
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -384,6 +407,9 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
     }
 
     private fun signInWithApple() = runCatching {
+        val state = "android_${UUID.randomUUID()}"
+        sharePreferences.pendingAppleSignInState = state
+        sharePreferences.pendingAppleSignInStartedAt = System.currentTimeMillis()
         val authUri = "https://appleid.apple.com/auth/authorize".toUri().buildUpon()
             .appendQueryParameter("response_type", "code")
             .appendQueryParameter(
@@ -393,7 +419,7 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
             .appendQueryParameter("client_id", APPLE_CLIENT_ID)
             .appendQueryParameter("redirect_uri", APPLE_REDIRECT_URI)
             .appendQueryParameter("scope", "name email")
-            .appendQueryParameter("state", "android_${UUID.randomUUID()}")
+            .appendQueryParameter("state", state)
             .build()
 
         val intent = CustomTabsIntent.Builder().build()

@@ -61,6 +61,14 @@ class NCSharePreferences @Inject constructor(context: Context) {
         get() = prefs.getString(SP_KEY_CUSTOM_SIGNET_SERVER, "").orEmpty()
         set(value) = prefs.edit().putString(SP_KEY_CUSTOM_SIGNET_SERVER, value).apply()
 
+    var pendingAppleSignInState: String
+        get() = prefs.getString(SP_KEY_PENDING_APPLE_SIGN_IN_STATE, "").orEmpty()
+        set(value) = prefs.edit().putString(SP_KEY_PENDING_APPLE_SIGN_IN_STATE, value).apply()
+
+    var pendingAppleSignInStartedAt: Long
+        get() = prefs.getLong(SP_KEY_PENDING_APPLE_SIGN_IN_STARTED_AT, 0L)
+        set(value) = prefs.edit().putLong(SP_KEY_PENDING_APPLE_SIGN_IN_STARTED_AT, value).apply()
+
     companion object {
         private const val PACKAGE_PREFIX = "com.nunchuk.android"
         private const val APP_SHARE_PREFERENCE_NAME = "${PACKAGE_PREFIX}.pref"
@@ -73,5 +81,7 @@ class NCSharePreferences @Inject constructor(context: Context) {
         private const val SP_KEY_CUSTOM_MAINNET_SERVER = "${PACKAGE_PREFIX}.key.custom.server.mainnet"
         private const val SP_KEY_CUSTOM_TESTNET_SERVER = "${PACKAGE_PREFIX}.key.custom.server.testnet"
         private const val SP_KEY_CUSTOM_SIGNET_SERVER = "${PACKAGE_PREFIX}.key.custom.server.signet"
+        private const val SP_KEY_PENDING_APPLE_SIGN_IN_STATE = "${PACKAGE_PREFIX}.key.pending.apple.sign.in.state"
+        private const val SP_KEY_PENDING_APPLE_SIGN_IN_STARTED_AT = "${PACKAGE_PREFIX}.key.pending.apple.sign.in.started.at"
     }
 }
