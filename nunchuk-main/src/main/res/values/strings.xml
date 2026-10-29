@@ -621,8 +621,11 @@
     <string name="nc_12_or_24_word_inheritance_key_backup">Seed phrase of inheritance key you backed up earlier</string>
     
     <!-- Add inheritance key screen -->
-    <string name="nc_your_plan_requires">Your plan requires %1$d inheritance keys</string>
-    <string name="nc_add_first_key_desc">To unlock this inheritance plan, you must add 2 inheritance keys that belong to this plan. Start by adding the first inheritance key.</string>
+    <plurals name="nc_your_plan_requires">
+        <item quantity="one">Your plan requires %1$d inheritance key</item>
+        <item quantity="other">Your plan requires %1$d inheritance keys</item>
+    </plurals>
+    <string name="nc_add_first_key_desc">To unlock this inheritance plan, you must add %1$d inheritance keys that belong to this plan. Start by adding the first inheritance key.</string>
     <string name="nc_successfully_added_the_first">You\'ve successfully added the first inheritance key.</string>
     <string name="nc_add_second_key_desc">To unlock your plan, please add the second inheritance key.</string>
     <string name="nc_add_the_first_inheritance_key">Add the first inheritance key</string>
@@ -1118,4 +1121,31 @@
     <string name="nc_about_the_timelock_description_3_fallbacks">Review the plan annually and adjust the timelocks as needed.</string>
     <string name="nc_timelock_info_hint_one_fallback">Even with the required keys, no one can claim through primary inheritance before its timelock expires. Fallback 1’s keys work only after its own, later timelock.</string>
     <string name="nc_timelock_info_hint_fallbacks">Even with the required keys, no one can claim through primary inheritance before its timelock expires. Fallback keys work only after their own, later timelock.</string>
+    <!-- On-chain claim (Figma Row 8 · CLM) -->
+    <string name="nc_claim_key_count_title">How many keys or seed phrases did you receive?</string>
+    <string name="nc_claim_key_count_desc">Select how many different keys you received. A hardware device and its seed phrase backup count as one key.</string>
+    <plurals name="nc_claim_key_count_option">
+        <item quantity="one">%1$d key or seed phrase</item>
+        <item quantity="other">%1$d keys or seed phrases</item>
+    </plurals>
+    <string name="nc_claim_keys_added_progress">You’ve added %1$d of the %2$d required keys.</string>
+    <string name="nc_claim_keys_added">You’ve added %1$d keys.</string>
+    <string name="nc_claim_add_another_key_to_continue">Add another key to continue.</string>
+    <string name="nc_claim_add_another_key">Add another key</string>
+    <string name="nc_claim_safety_recover_title">Before you recover this key</string>
+    <string name="nc_claim_safety_restore_lead">Only restore this seed phrase on a device you trust.</string>
+    <string name="nc_claim_safety_restore_body">If you need more than one key, restore each seed phrase on its own device. Several seed phrases on one device mean a single compromise exposes all of them.</string>
+    <string name="nc_claim_safety_restore_warning">A compromised device can steal the seed phrase as you enter it. Follow the manufacturer’s official security checks first. If the device is suspicious, go back and use another device.</string>
+    <string name="nc_claim_safety_existing_lead">Only use a device you trust.</string>
+    <string name="nc_claim_safety_existing_body">• A device you received already set up isn’t, by itself, a sign of tampering.\n• Resetting a suspicious device doesn’t fix possible hardware tampering.</string>
+    <string name="nc_claim_safety_existing_warning">A compromised device can expose the key stored on it. Follow the manufacturer’s official security checks before connecting it. If the device seems suspicious, go back and choose another way to provide the key.</string>
+    <string name="nc_claim_safety_software_lead">Only enter this seed phrase on a phone or computer you trust.</string>
+    <string name="nc_claim_safety_software_body">If you need more than one key, entering several seed phrases on one phone or computer means a single compromise exposes all of them.</string>
+    <string name="nc_claim_safety_software_warning">Malware on it can capture the seed phrase as you type it. Use a device only you control, with up-to-date software. If anything seems wrong, go back and choose another way.</string>
+    <string name="nc_claim_add_account_title">Add Account %1$d from this %2$s</string>
+    <string name="nc_claim_add_account_desc">This %1$s is part of this plan, but the plan uses its Account %2$d. Add Account %2$d from the same %1$s to continue.</string>
+    <string name="nc_claim_add_account_wired_desc">This %1$s is part of this plan, but the plan uses its Account %2$d. Connect the %1$s and Nunchuk will add Account %2$d for you.</string>
+    <string name="nc_claim_add_account_action">Add Account %1$d</string>
+    <string name="nc_claim_show_me_how">Show me how</string>
+    <string name="nc_claim_this_device">device</string>
 </resources>

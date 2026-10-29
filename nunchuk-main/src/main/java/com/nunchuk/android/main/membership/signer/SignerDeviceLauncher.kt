@@ -63,18 +63,25 @@ internal class SignerDeviceLauncher(
     private val claimLaunchers = SignerHardwareDevice.entries.associateWith { device ->
         activity.registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             val data = result.data
-            if (result.resultCode == Activity.RESULT_OK && data != null) {
-                val signer = data.parcelable<SingleSigner>(GlobalResultKey.EXTRA_SIGNER)
-                if (signer != null) onSigner(signer.toModel())
-                else if (device.isDesktopHandoff(data)) {
-                    navigator.openAddDesktopKey(
-                        activity,
-                        signerTag = device.tag,
-                        step = MembershipStep.SETUP_INHERITANCE,
-                        isInheritanceKey = true,
-                        magic = params?.magic.orEmpty(),
-                    )
-                }
+            val isOk = result.resultCode == Activity.RESULT_OK && data != null
+            val signer = data?.takeIf { isOk }?.parcelable<SingleSigner>(GlobalResultKey.EXTRA_SIGNER)
+            when (
+                claimResultOutcome(
+                    hasSigner = signer != null,
+                    isDesktopHandoff = isOk && device.isDesktopHandoff(requireNotNull(data)),
+                    skipPicker = skipPicker,
+                )
+            ) {
+                ClaimResultOutcome.SIGNER -> onSigner(requireNotNull(signer).toModel())
+                ClaimResultOutcome.DESKTOP_HANDOFF -> navigator.openAddDesktopKey(
+                    activity,
+                    signerTag = device.tag,
+                    step = MembershipStep.SETUP_INHERITANCE,
+                    isInheritanceKey = true,
+                    magic = params?.magic.orEmpty(),
+                )
+                ClaimResultOutcome.RETURN_TO_CALLER -> onResult(result.resultCode, data)
+                ClaimResultOutcome.STAY_ON_PICKER -> Unit
             }
         }
     }
@@ -171,6 +178,20 @@ internal class SignerDeviceLauncher(
 }
 
 /** Device-specific intent/result details; the flow policy is shared in SignerIntroCoordinator. */
+internal enum class ClaimResultOutcome { SIGNER, DESKTOP_HANDOFF, RETURN_TO_CALLER, STAY_ON_PICKER }
+
+/**
+ * A claim device screen's result. Anything else (back, cancel) returns to the picker, or straight
+ * to the caller when there is none ([skipPicker], e.g. a claim account of a device already added):
+ * an empty intro screen must never be left behind.
+ */
+internal fun claimResultOutcome(hasSigner: Boolean, isDesktopHandoff: Boolean, skipPicker: Boolean) = when {
+    hasSigner -> ClaimResultOutcome.SIGNER
+    isDesktopHandoff -> ClaimResultOutcome.DESKTOP_HANDOFF
+    skipPicker -> ClaimResultOutcome.RETURN_TO_CALLER
+    else -> ClaimResultOutcome.STAY_ON_PICKER
+}
+
 private fun SignerHardwareDevice.isDesktopHandoff(data: Intent): Boolean = when (this) {
     SignerHardwareDevice.LEDGER -> data.getStringExtra(LedgerActivity.EXTRA_RESULT_ACTION) == LedgerActivity.RESULT_ACTION_OPEN_DESKTOP_FLOW
     SignerHardwareDevice.BITBOX -> data.getStringExtra(BitBoxActivity.EXTRA_RESULT_ACTION) == BitBoxActivity.RESULT_ACTION_OPEN_DESKTOP_FLOW

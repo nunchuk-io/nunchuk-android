@@ -248,6 +248,36 @@ class SignerIntroCoordinatorTest {
         assertEquals(SignerHardwareDevice.entries.toSet(), devices.toSet())
     }
 
+    @Test fun `claim account of an added device opens that device directly at the account`() {
+        for ((key, device) in hardware) {
+            val router = router(SignerIntroFlow.ClaimInheritance("claim", true, keyIndex = 2,
+                accountDevice = signer(SignerType.HARDWARE, listOf(device.tag))))
+            assertEquals(key, router.directKeyType)
+            // Wired devices connect and read Account 2 themselves.
+            assertEquals(SignerIntroAction.Hardware(device, HardwareMode.Claim(2)), router.select(key))
+        }
+        // Air-gapped devices go to their guided export without the firmware gate or a saved-key offer.
+        val jade = router(SignerIntroFlow.ClaimInheritance("claim", true, keyIndex = 2,
+            accountDevice = signer(SignerType.AIRGAP, listOf(SignerTag.JADE))))
+        assertEquals(KeyType.JADE, jade.directKeyType)
+        assertEquals(SignerIntroAction.Airgap(SignerTag.JADE, true, null), jade.select(KeyType.JADE))
+        val coldcard = router(SignerIntroFlow.ClaimInheritance("claim", true, keyIndex = 2,
+            accountDevice = signer(SignerType.COLDCARD_NFC, listOf(SignerTag.COLDCARD))))
+        assertEquals(KeyType.COLDCARD, coldcard.directKeyType)
+        assertEquals(SignerIntroAction.Coldcard(true), coldcard.select(KeyType.COLDCARD))
+        // TAPSIGNER must be tapped for the account, never picked from saved keys.
+        val tapsigner = router(SignerIntroFlow.ClaimInheritance("claim", true, keyIndex = 2,
+            accountDevice = signer(SignerType.NFC)))
+        assertEquals(SignerIntroAction.Tapsigner(true), tapsigner.select(KeyType.TAPSIGNER))
+    }
+
+    @Test fun `a new claim key still uses the picker, firmware gate and saved-key offer`() {
+        val router = router(SignerIntroFlow.ClaimInheritance("claim", true))
+        assertNull(router.directKeyType)
+        assertEquals(SignerIntroAction.CheckFirmware(SignerFirmwareDevice.JADE), router.select(KeyType.JADE))
+        assertEquals(SignerIntroAction.OfferExisting(KeyType.TAPSIGNER), router.select(KeyType.TAPSIGNER))
+    }
+
     private fun signer(type: SignerType, tags: List<SignerTag> = emptyList()) = SignerModel(
         id = "key", name = "Key", derivationPath = "m/48h/0h/0h/2h",
         fingerPrint = "1234abcd", type = type, tags = tags, isMasterSigner = true,

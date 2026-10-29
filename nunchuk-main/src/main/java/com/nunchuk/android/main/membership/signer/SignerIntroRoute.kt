@@ -68,7 +68,7 @@ internal fun SignerIntroRoute(
 
     val onChainKey = request.flow as? SignerIntroFlow.OnChainTimelockKey
     NunchukTheme {
-        if (viewModel.verifyingKeyType == null) {
+        if (viewModel.directKeyType == null) {
             NavHost(
                 navController = navController,
                 startDestination = SignerIntroDestination,

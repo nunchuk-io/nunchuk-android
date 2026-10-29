@@ -11,6 +11,14 @@ class SignerIntroCoordinator(val request: SignerIntroRequest) {
     val isInheritanceSetup = flow is SignerIntroFlow.OffChainInheritanceKey
     val verifyingKeyType = (flow as? SignerIntroFlow.VerifyBackup)?.currentSigner?.toReAddKeyType()
 
+    private val claimAccountDevice = (flow as? SignerIntroFlow.ClaimInheritance)?.accountDevice
+
+    /**
+     * Key type whose flow opens straight away, without the picker: the key being verified, or the
+     * device a claim needs another account of.
+     */
+    val directKeyType: KeyType? = verifyingKeyType ?: claimAccountDevice?.toReAddKeyType()
+
     private val isManagedKeyFlow = when (flow) {
         SignerIntroFlow.AddKey, SignerIntroFlow.AddWalletKey,
         SignerIntroFlow.AddAssistedWalletKey, SignerIntroFlow.ReplaceWalletKey,
@@ -60,7 +68,8 @@ class SignerIntroCoordinator(val request: SignerIntroRequest) {
         is SignerIntroFlow.OffChainAssistedKey -> keyType != KeyType.SOFTWARE && keyType != KeyType.PLATFORM_KEY
         is SignerIntroFlow.OffChainInheritanceKey -> true
         is SignerIntroFlow.OnChainTimelockKey -> keyType == KeyType.TAPSIGNER
-        is SignerIntroFlow.ClaimInheritance -> when (keyType) {
+        // Another account of a device already added has to come off that device, not a saved key.
+        is SignerIntroFlow.ClaimInheritance -> if (flow.accountDevice != null) false else when (keyType) {
             KeyType.TAPSIGNER, KeyType.SOFTWARE -> true
             KeyType.COLDCARD, KeyType.JADE, KeyType.SEEDSIGNER, KeyType.KEYSTONE,
             KeyType.FOUNDATION, KeyType.KRUX -> !flow.isOnChain
@@ -112,8 +121,9 @@ class SignerIntroCoordinator(val request: SignerIntroRequest) {
     }
 
     private val needsFirmwareCheck: Boolean
+        // A claim account of a device already added skips it: that device passed it for account 0.
         get() = flow is SignerIntroFlow.OnChainTimelockKey ||
-            (flow is SignerIntroFlow.ClaimInheritance && flow.isOnChain)
+            (flow is SignerIntroFlow.ClaimInheritance && flow.isOnChain && flow.accountDevice == null)
 
     private fun hardware(device: SignerHardwareDevice): SignerIntroAction {
         val tag = device.tag

@@ -74,11 +74,16 @@ sealed class SignerIntroFlow : Parcelable {
         val replaceInfo: OnChainAddSignerParam.ReplaceInfo? = null,
     ) : SignerIntroFlow()
 
+    /**
+     * @property accountDevice set when the plan needs another account ([keyIndex]) of a device the heir
+     *   already added (CLM-16): that device's own flow opens directly, without the picker.
+     */
     @Parcelize
     data class ClaimInheritance(
         val magic: String,
         val isOnChain: Boolean,
         val keyIndex: Int = -1,
+        val accountDevice: SignerModel? = null,
     ) : SignerIntroFlow()
 
     @Parcelize

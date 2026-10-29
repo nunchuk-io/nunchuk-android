@@ -111,6 +111,7 @@ import com.nunchuk.android.core.manager.UserWalletApiManager
 import com.nunchuk.android.core.mapper.ServerSignerMapper
 import com.nunchuk.android.core.mapper.toAlert
 import com.nunchuk.android.core.mapper.toBackupKey
+import com.nunchuk.android.core.mapper.toBufferPeriodCountdown
 import com.nunchuk.android.core.mapper.toByzantineGroup
 import com.nunchuk.android.core.mapper.toCalculateRequiredSignatures
 import com.nunchuk.android.core.mapper.toCalculateRequiredSignaturesEx
@@ -136,7 +137,6 @@ import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.core.util.toSignerType
 import com.nunchuk.android.model.Alert
 import com.nunchuk.android.model.BackupKey
-import com.nunchuk.android.model.BufferPeriodCountdown
 import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.CalculateRequiredSignatures
 import com.nunchuk.android.model.CalculateRequiredSignaturesAction
@@ -946,18 +946,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 if (it.isSuccess) ncDataStore.setClaimedWalletUserId(accountManager.getAccount().chatId + chain.toString())
             }.data
 
-        val bufferPeriodCountdown = if (response.bufferPeriodCountdown == null) {
-            null
-        } else {
-            BufferPeriodCountdown(
-                activationTimeMilis = response.bufferPeriodCountdown.activationTimeMilis ?: 0,
-                claimableTimeMilis = response.bufferPeriodCountdown.claimableTimeMilis ?: 0,
-                bufferInterval = response.bufferPeriodCountdown.bufferInterval.orEmpty(),
-                bufferIntervalCount = response.bufferPeriodCountdown.bufferIntervalCount ?: 0,
-                remainingCount = response.bufferPeriodCountdown.remainingCount ?: 0,
-                remainingDisplayName = response.bufferPeriodCountdown.remainingDisplayName.orEmpty()
-            )
-        }
+        val bufferPeriodCountdown = response.bufferPeriodCountdown?.toBufferPeriodCountdown()
 
         return InheritanceAdditional(
             inheritance = response.inheritance?.toInheritance(),

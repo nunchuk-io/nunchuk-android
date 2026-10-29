@@ -92,7 +92,8 @@ class SignerIntroViewModel @Inject constructor(
     private val selectionState = SignerIntroSelectionState(savedStateHandle)
     /** Completes once the existing keys are known, so a fast pick cannot read the list as empty. */
     private val existingSignersLoaded = CompletableDeferred<Unit>()
-    val verifyingKeyType: KeyType? get() = requireNotNull(coordinator).verifyingKeyType
+    /** Opens this key type's flow without the picker (backup verification, a claim account). */
+    val directKeyType: KeyType? get() = requireNotNull(coordinator).directKeyType
 
     init {
         viewModelScope.launch {
@@ -117,9 +118,9 @@ class SignerIntroViewModel @Inject constructor(
         if (policy.loadsExistingSigners) loadAllSigners() else existingSignersLoaded.complete(Unit)
         updateSignerDisplayInfos()
         _state.update { it.copy(showRecoveryOptions = savedStateHandle[RECOVERY_VISIBLE] ?: false) }
-        if (routing.verifyingKeyType != null && savedStateHandle.get<Boolean>(VERIFICATION_OPENED) != true) {
+        if (routing.directKeyType != null && savedStateHandle.get<Boolean>(VERIFICATION_OPENED) != true) {
             savedStateHandle[VERIFICATION_OPENED] = true
-            onKeySelected(routing.verifyingKeyType)
+            onKeySelected(routing.directKeyType)
         }
     }
 
