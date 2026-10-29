@@ -36,7 +36,7 @@ import com.nunchuk.android.compose.NcToastType
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.R
-import com.nunchuk.android.core.util.copyToClipboard
+import com.nunchuk.android.core.util.copySensitiveToClipboard
 import com.nunchuk.android.model.StateEvent
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
@@ -168,7 +168,7 @@ fun RecoverByXprvContent(
                             .fillMaxWidth()
                             .padding(top = 16.dp),
                         onClick = {
-                            context.copyToClipboard("Nunchuk", state.xprv)
+                            context.copySensitiveToClipboard("Nunchuk", state.xprv)
                             coroutineScope.launch {
                                 snackState.showSnackbar(
                                     NcSnackbarVisuals(

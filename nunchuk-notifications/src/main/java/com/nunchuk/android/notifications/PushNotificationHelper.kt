@@ -71,7 +71,7 @@ class PushNotificationHelper @Inject constructor(
 @SuppressLint("InlinedApi")
 fun Context.showNotification(data: PushNotificationData, mainIntent: Intent? = null) {
     val builder = NotificationCompat.Builder(applicationContext, CHANNEL_ID)
-        .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+        .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
         .setSmallIcon(R.drawable.ic_logo_notification)
         .setContentTitle(data.title)
         .setContentText(data.message)

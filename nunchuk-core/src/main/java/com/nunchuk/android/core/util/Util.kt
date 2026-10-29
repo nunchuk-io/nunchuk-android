@@ -19,14 +19,24 @@
 
 package com.nunchuk.android.core.util
 
+import android.app.Activity
+import android.app.Application
 import android.content.ClipData
+import android.content.ClipDescription
 import android.content.ClipboardManager
 import android.content.Context
+import android.os.Build
+import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.os.PersistableBundle
 import android.text.util.Linkify
+import android.view.ViewTreeObserver
 import android.widget.TextView
 import com.nunchuk.android.core.R
 import com.nunchuk.android.core.domain.data.CURRENT_DISPLAY_UNIT_TYPE
 import com.nunchuk.android.core.domain.data.SAT
+import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.network.UNKNOWN_ERROR
 import com.nunchuk.android.exception.NCNativeException
 import com.nunchuk.android.model.Transaction
@@ -191,6 +201,119 @@ fun Context.copyToClipboard(label: String, text: String) {
     val clip =
         ClipData.newPlainText(label, text)
     clipboard.setPrimaryClip(clip)
+}
+
+private const val SENSITIVE_CLIP_CLEAR_DELAY_MS = 60_000L
+private const val EXTRA_IS_SENSITIVE_COMPAT = "android.content.extra.IS_SENSITIVE"
+
+/**
+ * Copies a secret (xprv, recovery phrase, …): the clip is flagged sensitive so the system
+ * clipboard preview and keyboard suggestions hide it, and it is cleared after a short delay.
+ */
+fun Context.copySensitiveToClipboard(label: String, text: String) {
+    val clipboard = applicationContext.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+    val clip = ClipData.newPlainText(label, text).apply {
+        description.extras = PersistableBundle().apply {
+            val key = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                ClipDescription.EXTRA_IS_SENSITIVE
+            } else {
+                EXTRA_IS_SENSITIVE_COMPAT
+            }
+            putBoolean(key, true)
+        }
+    }
+    clipboard.setPrimaryClip(clip)
+    val application = applicationContext as Application
+    Handler(Looper.getMainLooper()).postDelayed({
+        if (!clipboard.clearIfStillHolds(text)) {
+            SensitiveClipClearer(application, clipboard, text).start()
+        }
+    }, SENSITIVE_CLIP_CLEAR_DELAY_MS)
+}
+
+/**
+ * From Android 10 the clipboard is readable only while an app window has input focus, so
+ * whether the user has copied something else since is unknown until then. Focus can return
+ * without any lifecycle change (e.g. closing the notification shade), so the check runs on
+ * window focus of whichever activity is resumed, and stays armed until the clip is read.
+ */
+private class SensitiveClipClearer(
+    private val application: Application,
+    private val clipboard: ClipboardManager,
+    private val text: String,
+) : Application.ActivityLifecycleCallbacks, ViewTreeObserver.OnWindowFocusChangeListener {
+    private var attached: Activity? = null
+
+    fun start() {
+        application.registerActivityLifecycleCallbacks(this)
+        @Suppress("DEPRECATION")
+        ActivityManager.peek()?.takeIf { !it.isFinishing && !it.isDestroyed }?.let(::attach)
+    }
+
+    override fun onActivityResumed(activity: Activity) = attach(activity)
+
+    override fun onActivityPaused(activity: Activity) {
+        if (activity == attached) detach()
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        if (!hasFocus) return
+        // Clipboard access follows window focus after a short delay; recheck once before
+        // reading a null as an empty clipboard.
+        if (clipboard.clearIfStillHolds(text)) {
+            finish()
+        } else {
+            attached?.window?.decorView?.postDelayed({
+                val activity = attached ?: return@postDelayed
+                if (clipboard.clearIfStillHolds(text) || activity.hasWindowFocus()) finish()
+            }, FOCUS_SETTLE_DELAY_MS)
+        }
+    }
+
+    private fun attach(activity: Activity) {
+        if (activity == attached) return
+        detach()
+        attached = activity
+        activity.window.decorView.viewTreeObserver.addOnWindowFocusChangeListener(this)
+        if (activity.hasWindowFocus()) onWindowFocusChanged(true)
+    }
+
+    private fun detach() {
+        attached?.window?.decorView?.viewTreeObserver?.let {
+            if (it.isAlive) it.removeOnWindowFocusChangeListener(this)
+        }
+        attached = null
+    }
+
+    private fun finish() {
+        detach()
+        application.unregisterActivityLifecycleCallbacks(this)
+    }
+
+    override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) = Unit
+    override fun onActivityStarted(activity: Activity) = Unit
+    override fun onActivityStopped(activity: Activity) = Unit
+    override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) = Unit
+    override fun onActivityDestroyed(activity: Activity) {
+        if (activity == attached) detach()
+    }
+
+    private companion object {
+        const val FOCUS_SETTLE_DELAY_MS = 200L
+    }
+}
+
+/** Clears the clipboard if it still holds [text]; false when the clipboard cannot be read. */
+private fun ClipboardManager.clearIfStillHolds(text: String): Boolean {
+    val clip = runCatching { primaryClip }.getOrNull() ?: return false
+    if (clip.itemCount > 0 && clip.getItemAt(0).text?.toString() == text) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            clearPrimaryClip()
+        } else {
+            setPrimaryClip(ClipData.newPlainText("", ""))
+        }
+    }
+    return true
 }
 
 fun Context.getTextBtcUnit() = when (CURRENT_DISPLAY_UNIT_TYPE) {

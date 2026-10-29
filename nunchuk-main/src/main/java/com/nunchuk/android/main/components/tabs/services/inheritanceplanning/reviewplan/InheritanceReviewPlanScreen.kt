@@ -75,7 +75,7 @@ import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.compose.whisper
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.compose.showNunchukSnackbar
-import com.nunchuk.android.core.util.copyToClipboard
+import com.nunchuk.android.core.util.copySensitiveToClipboard
 import kotlinx.coroutines.launch
 import com.nunchuk.android.main.BuildConfig
 import com.nunchuk.android.main.R
@@ -229,7 +229,7 @@ fun InheritanceReviewPlanScreenContent(
     val copiedMessage = stringResource(id = R.string.nc_copied_to_clipboard)
     val onCopyMagicPhrase: ((String) -> Unit)? = if (BuildConfig.DEBUG) {
         { phrase ->
-            context.copyToClipboard(label = "Magical phrase", text = phrase)
+            context.copySensitiveToClipboard(label = "Magical phrase", text = phrase)
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
                 coroutineScope.launch { snackState.showNunchukSnackbar(message = copiedMessage) }
             }
