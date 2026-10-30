@@ -424,39 +424,45 @@ class AddByzantineKeyListViewModel @Inject constructor(
 
     fun handleSignerNewIndex(signer: SingleSigner) {
         viewModelScope.launch {
-            syncKeyUseCase(
-                SyncKeyUseCase.Param(
-                    groupId = args.groupId,
-                    step = membershipStepManager.currentStep
-                        ?: throw IllegalArgumentException("Current step empty"),
-                    signer = signer,
-                    walletType = _state.value.walletType ?: WalletType.MULTI_SIG
+            val step = membershipStepManager.currentStep
+                ?: throw IllegalArgumentException("Current step empty")
+            // A key added inside the inheritance picker (Coldcard via NFC/QR/file, air-gap) was put on
+            // the draft and saved against this step by that flow already. Asking the server to add it
+            // again is what it answers with "Duplicate key xfp", and re-saving the step would also
+            // overwrite the flow's own verification state, so only the refresh below is left to do.
+            if (!membershipStepManager.isKeySavedForStep(step, signer.masterFingerprint)) {
+                syncKeyUseCase(
+                    SyncKeyUseCase.Param(
+                        groupId = args.groupId,
+                        step = step,
+                        signer = signer,
+                        walletType = _state.value.walletType ?: WalletType.MULTI_SIG
+                    )
+                ).onFailure {
+                    _event.emit(AddKeyListEvent.ShowError(it.message.orUnknownError()))
+                    return@launch
+                }
+                saveMembershipStepUseCase(
+                    MembershipStepInfo(
+                        step = step,
+                        masterSignerId = signer.masterFingerprint,
+                        plan = MembershipPlan.NONE,
+                        verifyType = VerifyType.APP_VERIFIED,
+                        extraData = gson.toJson(
+                            SignerExtra(
+                                derivationPath = signer.derivationPath,
+                                isAddNew = false,
+                                signerType = signer.type,
+                                userKeyFileName = ""
+                            )
+                        ),
+                        groupId = args.groupId
+                    )
                 )
-            ).onFailure {
-                _event.emit(AddKeyListEvent.ShowError(it.message.orUnknownError()))
-                return@launch
             }
-            saveMembershipStepUseCase(
-                MembershipStepInfo(
-                    step = membershipStepManager.currentStep
-                        ?: throw IllegalArgumentException("Current step empty"),
-                    masterSignerId = signer.masterFingerprint,
-                    plan = MembershipPlan.NONE,
-                    verifyType = VerifyType.APP_VERIFIED,
-                    extraData = gson.toJson(
-                        SignerExtra(
-                            derivationPath = signer.derivationPath,
-                            isAddNew = false,
-                            signerType = signer.type,
-                            userKeyFileName = ""
-                        )
-                    ),
-                    groupId = args.groupId
-                )
-            )
             // Only an inheritance key needs the draft re-synced here: the claim options that decide
             // what comes next live there, and the local step alone cannot tell us.
-            if (membershipStepManager.currentStep?.isAddInheritanceKey == true) {
+            if (step.isAddInheritanceKey) {
                 onInheritanceKeyAdded(signer.masterFingerprint)
                 refresh()
             }
