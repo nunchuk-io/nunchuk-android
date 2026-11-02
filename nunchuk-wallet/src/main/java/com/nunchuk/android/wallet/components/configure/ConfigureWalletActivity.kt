@@ -24,6 +24,7 @@ import android.content.Intent
 import android.nfc.tech.IsoDep
 import android.os.Bundle
 import androidx.activity.viewModels
+import androidx.activity.result.contract.ActivityResultContracts
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
@@ -64,6 +65,13 @@ class ConfigureWalletActivity : BaseNfcActivity<ActivityConfigureWalletBinding>(
     private val args: ConfigureWalletArgs by lazy { ConfigureWalletArgs.deserializeFrom(intent) }
 
     private val viewModel: ConfigureWalletViewModel by viewModels()
+
+    private val reviewWalletLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == RESULT_OK) {
+                viewModel.removeSigners(ReviewWalletArgs.getRemovedSigners(result.data))
+            }
+        }
 
     override fun initializeBinding() = ActivityConfigureWalletBinding.inflate(layoutInflater)
 
@@ -173,7 +181,8 @@ class ConfigureWalletActivity : BaseNfcActivity<ActivityConfigureWalletBinding>(
                 totalRequireSigns = totalRequireSigns,
                 signers = signers,
                 quickWalletParam = args.quickWalletParam,
-            )
+            ),
+            launcher = reviewWalletLauncher,
         )
     }
 

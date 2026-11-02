@@ -127,8 +127,12 @@ interface WalletNavigatorDelegate : WalletNavigator {
         ConfigureWalletActivity.start(activityContext, args)
     }
 
-    override fun openReviewWalletScreen(activityContext: Context, args: ReviewWalletArgs) {
-        ReviewWalletActivity.start(activityContext, args)
+    override fun openReviewWalletScreen(
+        activityContext: Context,
+        args: ReviewWalletArgs,
+        launcher: ActivityResultLauncher<Intent>?,
+    ) {
+        ReviewWalletActivity.start(activityContext, args, launcher)
     }
 
     override fun openBackupWalletScreen(

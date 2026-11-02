@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.wallet.components.review
 
+import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Wallet
 
 sealed class ReviewWalletEvent {
@@ -26,4 +27,13 @@ sealed class ReviewWalletEvent {
     data class CreateWalletSuccessEvent(val wallet: Wallet) : ReviewWalletEvent()
     data class CreateFreeGroupWalletSuccessEvent(val walletId: String) : ReviewWalletEvent()
     data class CreateWalletErrorEvent(val message: String) : ReviewWalletEvent()
+
+    /**
+     * [signers] are the keys to drop from the personal draft; empty for a group wallet (removed in the
+     * sandbox). [errorMessage] is set when a group removal failed part-way.
+     */
+    data class RemoveNonStandardKeysEvent(
+        val signers: List<SingleSigner>,
+        val errorMessage: String? = null,
+    ) : ReviewWalletEvent()
 }

@@ -25,9 +25,11 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.nunchuk.android.core.data.model.QuickWalletParam
@@ -53,6 +55,7 @@ import com.nunchuk.android.wallet.InputBipPathBottomSheetListener
 import com.nunchuk.android.wallet.personal.R
 import com.nunchuk.android.wallet.personal.components.taproot.configure.configureValueKeySetScreen
 import com.nunchuk.android.wallet.personal.components.taproot.configure.navigateConfigureValueKeySet
+import com.nunchuk.android.wallet.personal.components.taproot.configure.TaprootConfigScreenRoute
 import com.nunchuk.android.wallet.personal.components.taproot.configure.navigateTaprootConfigScreen
 import com.nunchuk.android.wallet.personal.components.taproot.configure.taprootConfigScreen
 import com.nunchuk.android.widget.NCInfoDialog
@@ -69,6 +72,24 @@ class TaprootActivity : BaseComposeNfcActivity(), InputBipPathBottomSheetListene
 
     private val args: TaprootWarningArgs by lazy { TaprootWarningArgs.deserializeFrom(intent) }
     private val viewModel: ConfigureWalletViewModel by viewModels()
+    private var navController: NavHostController? = null
+
+    private val reviewWalletLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode != RESULT_OK) return@registerForActivityResult
+            if (args.groupSandboxId.isNotEmpty()) {
+                // Keys were removed from the group sandbox; key selection lives on the group screen.
+                finish()
+            } else {
+                viewModel.removeSigners(ReviewWalletArgs.getRemovedSigners(result.data))
+                viewModel.resetKeySet()
+                navController?.let { nav ->
+                    if (!nav.popBackStack(TaprootConfigScreenRoute, inclusive = false)) {
+                        nav.navigateTaprootConfigScreen()
+                    }
+                }
+            }
+        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -86,6 +107,7 @@ class TaprootActivity : BaseComposeNfcActivity(), InputBipPathBottomSheetListene
         viewModel.initGroupSandBox(args.groupSandboxId)
         setContent {
             val navController = rememberNavController()
+            this.navController = navController
 
             LaunchedEffect(Unit) {
                 viewModel.event.collect {
@@ -266,7 +288,8 @@ class TaprootActivity : BaseComposeNfcActivity(), InputBipPathBottomSheetListene
                 groupId = args.groupSandboxId,
                 isValueKeySetEnable = viewModel.isValueKeySetEnable(),
                 quickWalletParam = args.quickWalletParam,
-            )
+            ),
+            launcher = reviewWalletLauncher,
         )
     }
 

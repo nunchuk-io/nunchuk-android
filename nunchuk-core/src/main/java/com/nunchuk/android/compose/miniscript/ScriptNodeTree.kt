@@ -60,6 +60,8 @@ import com.nunchuk.android.compose.provider.ScriptNodeProvider
 import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.R
+import com.nunchuk.android.compose.wallet.NonStandardPathFlag
+import com.nunchuk.android.compose.wallet.pathKey
 import com.nunchuk.android.core.miniscript.ScriptNodeType
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.getBTCAmount
@@ -474,6 +476,9 @@ internal fun CreateKeyItem(
                             )
                         }
                     }
+                    if (data.nonStandardPathKeys.contains(signer.pathKey())) {
+                        NonStandardPathFlag(modifier = Modifier.padding(top = 4.dp))
+                    }
                 }
 
                 if (isPlatformKey && data.mode == ScriptMode.CONFIG && !data.platformKeySubtitle.isNullOrEmpty()) {
@@ -688,6 +693,8 @@ data class ScriptNodeData(
     val signedSigners: Set<SignerModel> = emptySet(),
     val signedXfp: Map<String, Boolean> = emptyMap(),
     val duplicateSignerKeys: Set<String> = emptySet(),
+    // `xfp|path` keys (see SignerModel.pathKey) whose BIP32 path isn't standard for the wallet.
+    val nonStandardPathKeys: Set<String> = emptySet(),
     val signingPath: SigningPath = SigningPath(path = emptyList()),
     val satisfiableMap: Map<String, Boolean> = emptyMap(),
     val keySetStatues: Map<String, KeySetStatus> = emptyMap(),

@@ -27,6 +27,9 @@ import com.nunchuk.android.core.domain.HasSignerUseCase
 import com.nunchuk.android.core.mapper.SingleSignerMapper
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
+import com.nunchuk.android.compose.wallet.pathKey
+import com.nunchuk.android.core.signer.toSingleSigner
+import com.nunchuk.android.core.util.isPlatformKey
 import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.listener.GroupDeleteListener
@@ -37,6 +40,9 @@ import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.type.WalletType.ESCROW
 import com.nunchuk.android.type.WalletType.SINGLE_SIG
 import com.nunchuk.android.usecase.CreateWalletUseCase
+import com.nunchuk.android.usecase.GetNonStandardPathSignersUseCase
+import com.nunchuk.android.usecase.free.groupwallet.RemoveSignerFromGroupUseCase
+import com.nunchuk.android.usecase.pathKey
 import com.nunchuk.android.usecase.free.groupwallet.FinalizeGroupSandboxUseCase
 import com.nunchuk.android.usecase.free.groupwallet.GetGroupSandboxUseCase
 import com.nunchuk.android.usecase.signer.GetSignerUseCase
@@ -63,16 +69,23 @@ internal class ReviewWalletViewModel @AssistedInject constructor(
     private val finalizeGroupSandboxUseCase: FinalizeGroupSandboxUseCase,
     private val getGroupSandboxUseCase: GetGroupSandboxUseCase,
     private val singleSignerMapper: SingleSignerMapper,
+    private val getNonStandardPathSignersUseCase: GetNonStandardPathSignersUseCase,
+    private val removeSignerFromGroupUseCase: RemoveSignerFromGroupUseCase,
 ) : NunchukViewModel<Unit, ReviewWalletEvent>() {
-    private val _uiState = MutableStateFlow(ReviewWalletUiState())
+    private val _uiState = MutableStateFlow(ReviewWalletUiState(isGroupWallet = args.groupId.isNotEmpty()))
     val uiState = _uiState.asStateFlow()
 
     private var groupUpdateJob: Job? = null
+
+    // Create wallet waits for both, otherwise a fast tap would skip the compatibility warning.
+    private var mapSignersJob: Job? = null
+    private var pathCheckJob: Job? = null
 
     override val initialState = Unit
 
     init {
         mapSigners()
+        checkNonStandardPaths()
         if (args.groupId.isNotEmpty()) {
             listenGroupSandbox()
         }
@@ -99,7 +112,115 @@ internal class ReviewWalletViewModel @AssistedInject constructor(
         }
     }
 
-    fun handleContinueEvent() {
+    private fun checkNonStandardPaths() {
+        pathCheckJob = viewModelScope.launch {
+            val signers = (args.signers + args.namedSigners.mapNotNull { it.signer?.toSingleSigner() })
+                .filterNot { it.type.isPlatformKey }
+                .distinctBy { it.pathKey() }
+            getNonStandardPathSignersUseCase(
+                GetNonStandardPathSignersUseCase.Param(
+                    signers = signers,
+                    addressType = args.addressType,
+                    walletType = args.walletType,
+                )
+            ).onSuccess { keys ->
+                _uiState.update { it.copy(nonStandardPathKeys = keys) }
+            }
+        }
+    }
+
+    fun handleContinueEvent() = viewModelScope.launch {
+        mapSignersJob?.join()
+        pathCheckJob?.join()
+        if (_uiState.value.nonStandardSigners.isNotEmpty()) {
+            _uiState.update { it.copy(showKeyCompatibilityWarning = true) }
+        } else {
+            createWallet()
+        }
+    }
+
+    fun dismissKeyCompatibilityWarning() {
+        _uiState.update { it.copy(showKeyCompatibilityWarning = false) }
+    }
+
+    fun createAnyway() {
+        dismissKeyCompatibilityWarning()
+        createWallet()
+    }
+
+    /**
+     * Removes the non-standard keys from the draft. A personal wallet hands them back to the
+     * key-selection screen (it owns the selection); a group wallet removes them from the sandbox,
+     * limited to the keys local to this device.
+     */
+    fun removeNonStandardKeys() {
+        dismissKeyCompatibilityWarning()
+        val nonStandardSigners = _uiState.value.removableNonStandardSigners
+        if (nonStandardSigners.isEmpty()) return
+        if (args.groupId.isEmpty()) {
+            val keys = nonStandardSigners.map { it.pathKey() }.toSet()
+            setEvent(
+                ReviewWalletEvent.RemoveNonStandardKeysEvent(
+                    args.signers.filter { keys.contains(it.pathKey()) }
+                )
+            )
+        } else {
+            removeNonStandardKeysFromGroup(nonStandardSigners)
+        }
+    }
+
+    private fun removeNonStandardKeysFromGroup(nonStandardSigners: List<SignerModel>) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+            val keys = nonStandardSigners.map { it.pathKey() }.toSet()
+            var removedCount = 0
+            val result = runCatching {
+                if (args.walletType == WalletType.MINISCRIPT) {
+                    args.namedSigners
+                        .filter { named -> named.signer?.let { keys.contains(it.pathKey()) } == true }
+                        .forEach { named ->
+                            removeSignerFromGroupUseCase(
+                                RemoveSignerFromGroupUseCase.Params(
+                                    groupId = args.groupId,
+                                    index = -1,
+                                    keyName = named.keyName,
+                                )
+                            ).getOrThrow()
+                            removedCount++
+                        }
+                } else {
+                    val group = getGroupSandboxUseCase(args.groupId).getOrThrow()
+                    group.signers.forEachIndexed { index, signer ->
+                        if (signer.masterFingerprint.isNotEmpty() && keys.contains(signer.pathKey())) {
+                            removeSignerFromGroupUseCase(
+                                RemoveSignerFromGroupUseCase.Params(groupId = args.groupId, index = index)
+                            ).getOrThrow()
+                            removedCount++
+                        }
+                    }
+                }
+            }
+            _uiState.update { it.copy(isLoading = false) }
+            result.onSuccess {
+                setEvent(ReviewWalletEvent.RemoveNonStandardKeysEvent(emptyList()))
+            }.onFailure { error ->
+                if (removedCount > 0) {
+                    // Part of the draft already changed: Review's signer list is stale, so go back to
+                    // key selection (it reloads the sandbox) and report the error there.
+                    setEvent(
+                        ReviewWalletEvent.RemoveNonStandardKeysEvent(
+                            signers = emptyList(),
+                            errorMessage = error.message.orUnknownError(),
+                        )
+                    )
+                } else {
+                    setEvent(CreateWalletErrorEvent(error.message.orUnknownError()))
+                }
+            }
+        }
+    }
+
+    private fun createWallet() {
         if (args.groupId.isNotEmpty()) {
             createFreeGroupWallet()
         } else {
@@ -164,7 +285,7 @@ internal class ReviewWalletViewModel @AssistedInject constructor(
     }
 
     private fun mapSigners() {
-        viewModelScope.launch {
+        mapSignersJob = viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             if (args.groupId.isNotEmpty()) {
                 val signers = args.signers.map { signer ->
@@ -205,5 +326,19 @@ data class ReviewWalletUiState(
     val signers: List<SignerModel> = emptyList(),
     val groupWalletUnavailable: Boolean = false,
     val isLoading: Boolean = false,
-    val finalizedWalletId: String = ""
-)
+    val finalizedWalletId: String = "",
+    val nonStandardPathKeys: Set<String> = emptySet(),
+    val showKeyCompatibilityWarning: Boolean = false,
+    val isGroupWallet: Boolean = false,
+) {
+    val nonStandardSigners: List<SignerModel>
+        get() = signers.filter { nonStandardPathKeys.contains(it.pathKey()) }.distinctBy { it.pathKey() }
+
+    /**
+     * Keys "Remove non-standard keys" may drop. A personal wallet only has local keys. In a group
+     * wallet only keys local to this device can be removed: `isVisible` is set from
+     * `HasSignerUseCase` in `mapSigners()`, other members' keys are `isVisible = false`.
+     */
+    val removableNonStandardSigners: List<SignerModel>
+        get() = if (isGroupWallet) nonStandardSigners.filter { it.isVisible } else nonStandardSigners
+}

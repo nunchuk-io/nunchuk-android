@@ -69,6 +69,7 @@ interface PersonalWalletNavigator {
     fun openReviewWalletScreen(
         activityContext: Context,
         args: ReviewWalletArgs,
+        launcher: ActivityResultLauncher<Intent>? = null,
     )
 }
 

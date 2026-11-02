@@ -32,6 +32,8 @@ import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.CreateMiniscriptWalletUseCase
 import com.nunchuk.android.usecase.GetMasterSignerUseCase
+import com.nunchuk.android.usecase.GetNonStandardPathSignersUseCase
+import com.nunchuk.android.compose.wallet.pathKey
 import com.nunchuk.android.usecase.GetScriptNodeFromMiniscriptTemplateUseCase
 import com.nunchuk.android.usecase.GetSignerFromMasterSignerUseCase
 import com.nunchuk.android.usecase.SendSignerPassphraseUseCase
@@ -48,6 +50,7 @@ import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -71,6 +74,7 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
     private val accountManager: AccountManager,
     private val getMasterSignerUseCase: GetMasterSignerUseCase,
     private val sendSignerPassphraseUseCase: SendSignerPassphraseUseCase,
+    private val getNonStandardPathSignersUseCase: GetNonStandardPathSignersUseCase,
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -1055,6 +1059,62 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
         return result
     }
 
+    private var createWalletJob: Job? = null
+
+    /** Keys (see `pathKey`) whose BIP32 path isn't standard, computed from the current signers. */
+    private suspend fun loadNonStandardPathKeys(): Set<String> {
+        val state = _uiState.value
+        return getNonStandardPathSignersUseCase(
+            GetNonStandardPathSignersUseCase.Param(
+                signers = state.signers.values.filterNotNull().map { it.toSingleSigner() },
+                addressType = state.addressType,
+                walletType = WalletType.MINISCRIPT,
+            )
+        ).getOrDefault(emptySet())
+    }
+
+    /** Flags the keys inline when Review wallet opens. */
+    fun checkNonStandardPaths() {
+        viewModelScope.launch {
+            val keys = loadNonStandardPathKeys()
+            _uiState.update { it.copy(nonStandardPathKeys = keys) }
+        }
+    }
+
+    /**
+     * Create wallet: re-checks the current signers (never relies on the inline check having
+     * finished), then either shows the compatibility sheet or creates the wallet.
+     */
+    fun onCreateWalletClicked() {
+        if (createWalletJob?.isActive == true) return
+        createWalletJob = viewModelScope.launch {
+            val keys = loadNonStandardPathKeys()
+            _uiState.update {
+                it.copy(nonStandardPathKeys = keys, showKeyCompatibilityWarning = keys.isNotEmpty())
+            }
+            if (keys.isEmpty()) createMiniscriptWallet()
+        }
+    }
+
+    fun dismissKeyCompatibilityWarning() {
+        _uiState.update { it.copy(showKeyCompatibilityWarning = false) }
+    }
+
+    fun createAnyway() {
+        dismissKeyCompatibilityWarning()
+        createMiniscriptWallet()
+    }
+
+    /** "Remove non-standard keys": empties those slots so they can be re-added on key selection. */
+    fun removeNonStandardSigners() {
+        val keys = _uiState.value.nonStandardPathKeys
+        _uiState.value.signers
+            .filterValues { signer -> signer != null && keys.contains(signer.pathKey()) }
+            .keys
+            .forEach(::removeSigner)
+        _uiState.update { it.copy(nonStandardPathKeys = emptySet(), showKeyCompatibilityWarning = false) }
+    }
+
     fun createMiniscriptWallet() {
         val signers = _uiState.value.signers.values.filterNotNull()
 
@@ -1311,7 +1371,9 @@ data class MiniscriptSharedWalletState(
     val showBip32PathForDuplicates: Boolean = false,
     val pendingBip32Update: PendingBip32Update? = null,
     val pendingPassphraseState: PendingPassphraseState? = null,
-    val reuseSigner: Boolean = false
+    val reuseSigner: Boolean = false,
+    val nonStandardPathKeys: Set<String> = emptySet(),
+    val showKeyCompatibilityWarning: Boolean = false,
 )
 
 sealed class MiniscriptSharedWalletEvent {

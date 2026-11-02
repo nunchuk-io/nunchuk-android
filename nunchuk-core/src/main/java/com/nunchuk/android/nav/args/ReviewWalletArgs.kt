@@ -112,6 +112,15 @@ data class ReviewWalletArgs(
         private const val EXTRA_KEY_PATH = "EXTRA_KEY_PATH"
         private const val EXTRA_NAMED_SIGNERS = "EXTRA_NAMED_SIGNERS"
         private const val EXTRA_SUPPORTED_TYPES = "EXTRA_SUPPORTED_TYPES"
+        private const val EXTRA_REMOVED_SIGNERS = "EXTRA_REMOVED_SIGNERS"
+
+        /** Result of Review wallet → "Remove non-standard keys": the keys to drop from the draft. */
+        fun buildRemovedSignersResult(signers: List<SingleSigner>) = Intent().apply {
+            putParcelableArrayListExtra(EXTRA_REMOVED_SIGNERS, ArrayList(signers))
+        }
+
+        fun getRemovedSigners(intent: Intent?): List<SingleSigner> =
+            intent?.parcelableArrayList<SingleSigner>(EXTRA_REMOVED_SIGNERS).orEmpty()
 
         fun deserializeFrom(intent: Intent): ReviewWalletArgs = ReviewWalletArgs(
             intent.extras.getStringValue(EXTRA_WALLET_NAME),

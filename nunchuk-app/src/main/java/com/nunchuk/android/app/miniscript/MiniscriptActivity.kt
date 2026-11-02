@@ -215,7 +215,8 @@ class MiniscriptActivity : BaseComposeNfcActivity(), InputBipPathBottomSheetList
                         )
 
                         miniscriptReviewWalletDestination(
-                            viewModel = sharedWalletViewModel
+                            viewModel = sharedWalletViewModel,
+                            onRemoveNonStandardKeys = { navHostController.popBackStack() },
                         ) { wallet ->
                             navigator.openWalletDetailsScreen(
                                 activityContext = this@MiniscriptActivity,

@@ -38,6 +38,8 @@ import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.usecase.pathKey
+import com.nunchuk.android.compose.wallet.pathKey as signerPathKey
 import com.nunchuk.android.nav.args.ConfigureWalletArgs
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.WalletType
@@ -260,6 +262,28 @@ class ConfigureWalletViewModel @Inject constructor(
         val currentNum = state.totalRequireSigns
         if (currentNum == 0 || state.totalRequireSigns > state.selectedSigners.size) {
             _state.update { it.copy(totalRequireSigns = state.selectedSigners.size) }
+        }
+    }
+
+    /**
+     * Deselects keys dropped on Review wallet ("Remove non-standard keys") so their slots are empty
+     * again on key selection.
+     */
+    fun removeSigners(signers: List<SingleSigner>) {
+        if (signers.isEmpty()) return
+        val removedKeys = signers.map { it.pathKey() }.toSet()
+        val removedXfps = signers.map { it.masterFingerprint.lowercase() }.toSet()
+        // A master signer is selected once per device, so its xfp alone identifies it.
+        fun SignerModel.isRemoved() = removedKeys.contains(signerPathKey()) ||
+            (isMasterSigner && removedXfps.contains(fingerPrint.lowercase()))
+        val state = getState()
+        val newSet = state.selectedSigners.filterNot { it.isRemoved() }.toSet()
+        updateSelectedSigners(newSet)
+        _state.update {
+            it.copy(
+                keySet = it.keySet.filterNot { signer -> signer.isRemoved() }.toSet(),
+                totalRequireSigns = it.totalRequireSigns.coerceAtMost(newSet.size),
+            )
         }
     }
 

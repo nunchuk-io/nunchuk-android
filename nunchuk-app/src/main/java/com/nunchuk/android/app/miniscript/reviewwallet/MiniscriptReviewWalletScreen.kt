@@ -20,6 +20,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import com.nunchuk.android.compose.wallet.KeyCompatibilityWarningBottomSheet
+import com.nunchuk.android.compose.wallet.pathKey
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -55,10 +57,15 @@ object MiniscriptReviewWallet
 @Composable
 fun MiniscriptReviewWalletScreen(
     viewModel: MiniscriptSharedWalletViewModel = hiltViewModel(),
+    onRemoveNonStandardKeys: () -> Unit = {},
     onNext: (Wallet) -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        viewModel.checkNonStandardPaths()
+    }
 
     LaunchedEffect(uiState.event) {
         when (val event = uiState.event) {
@@ -71,6 +78,21 @@ fun MiniscriptReviewWalletScreen(
     }
 
     NunchukTheme {
+        if (uiState.showKeyCompatibilityWarning) {
+            val nonStandardSigners = uiState.signers.values.filterNotNull()
+                .filter { uiState.nonStandardPathKeys.contains(it.pathKey()) }
+                .distinctBy { it.pathKey() }
+            KeyCompatibilityWarningBottomSheet(
+                signers = nonStandardSigners,
+                removableCount = nonStandardSigners.size,
+                onRemoveNonStandardKeys = {
+                    viewModel.removeNonStandardSigners()
+                    onRemoveNonStandardKeys()
+                },
+                onCreateAnyway = viewModel::createAnyway,
+                onDismiss = viewModel::dismissKeyCompatibilityWarning,
+            )
+        }
         Scaffold(
             modifier = Modifier.navigationBarsPadding(),
             bottomBar = {
@@ -82,9 +104,7 @@ fun MiniscriptReviewWalletScreen(
                         getDuplicateSignerKeys(uiState.signers).isNotEmpty()
                     NcPrimaryDarkButton(
                         modifier = Modifier.fillMaxWidth(),
-                        onClick = {
-                            viewModel.createMiniscriptWallet()
-                        },
+                        onClick = viewModel::onCreateWalletClicked,
                         enabled = uiState.areAllKeysAssigned && !hasDuplicateSigners
                     ) {
                         Text(text = stringResource(R.string.nc_miniscript_create_wallet))
@@ -173,7 +193,8 @@ fun MiniscriptReviewWalletScreen(
                                 mode = ScriptMode.VIEW,
                                 signers = uiState.signers,
                                 showBip32Path = true,
-                                duplicateSignerKeys = getDuplicateSignerKeys(uiState.signers)
+                                duplicateSignerKeys = getDuplicateSignerKeys(uiState.signers),
+                                nonStandardPathKeys = uiState.nonStandardPathKeys,
                             ),
                             onChangeBip32Path = { _, _ -> },
                             onActionKey = { _, _ -> }
@@ -200,7 +221,8 @@ private fun TaprootAddressContent(
                     mode = ScriptMode.VIEW,
                     signers = uiState.signers,
                     showBip32Path = true,
-                    duplicateSignerKeys = getDuplicateSignerKeys(uiState.signers)
+                    duplicateSignerKeys = getDuplicateSignerKeys(uiState.signers),
+                    nonStandardPathKeys = uiState.nonStandardPathKeys,
                 ),
                 signer = if (uiState.keyPaths.isNotEmpty()) uiState.signers[uiState.keyPaths.first()] else null,
                 onChangeBip32Path = { _, _ -> },
@@ -220,7 +242,8 @@ private fun TaprootAddressContent(
                         mode = ScriptMode.VIEW,
                         signers = uiState.signers,
                         showBip32Path = true,
-                        duplicateSignerKeys = getDuplicateSignerKeys(uiState.signers)
+                        duplicateSignerKeys = getDuplicateSignerKeys(uiState.signers),
+                        nonStandardPathKeys = uiState.nonStandardPathKeys,
                     ),
                     onChangeBip32Path = { _, _ -> },
                     onActionKey = { _, _ -> }
@@ -270,9 +293,14 @@ private fun getDuplicateSignerKeys(
 
 fun NavGraphBuilder.miniscriptReviewWalletDestination(
     viewModel: MiniscriptSharedWalletViewModel,
+    onRemoveNonStandardKeys: () -> Unit = {},
     onNext: (Wallet) -> Unit = {}
 ) {
     composable<MiniscriptReviewWallet> {
-        MiniscriptReviewWalletScreen(viewModel = viewModel, onNext = onNext)
+        MiniscriptReviewWalletScreen(
+            viewModel = viewModel,
+            onRemoveNonStandardKeys = onRemoveNonStandardKeys,
+            onNext = onNext,
+        )
     }
 }

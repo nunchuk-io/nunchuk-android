@@ -9,6 +9,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
@@ -35,6 +36,7 @@ fun SignerCard(
     signerIcon: Int? = null,
     isShowKeyTypeBadge: Boolean = true,
     ignoreIndexCheckForAcctX: Boolean = false,
+    circleColor: Color = MaterialTheme.colorScheme.greyLight,
     xfpContent: @Composable (() -> Unit)? = null,
     content: @Composable () -> Unit = {}
 ) {
@@ -44,7 +46,7 @@ fun SignerCard(
     ) {
         NcCircleImage(
             resId = signerIcon ?: item.toReadableDrawableResId(),
-            color = MaterialTheme.colorScheme.greyLight,
+            color = circleColor,
             iconTintColor = MaterialTheme.colorScheme.textPrimary,
         )
         Column(

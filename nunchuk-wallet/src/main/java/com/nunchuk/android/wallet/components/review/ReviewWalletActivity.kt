@@ -22,6 +22,7 @@ package com.nunchuk.android.wallet.components.review
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
@@ -71,6 +72,9 @@ import com.nunchuk.android.compose.provider.SignersModelProvider
 import com.nunchuk.android.compose.signer.SignerCard
 import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.textSecondary
+import com.nunchuk.android.compose.wallet.KeyCompatibilityWarningBottomSheet
+import com.nunchuk.android.compose.wallet.NonStandardPathFlag
+import com.nunchuk.android.compose.wallet.pathKey
 import com.nunchuk.android.core.base.BaseComposeActivity
 import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.signer.SignerModel
@@ -138,6 +142,9 @@ class ReviewWalletActivity : BaseComposeActivity() {
                 onContinue = {
                     viewModel.handleContinueEvent()
                 },
+                onRemoveNonStandardKeys = viewModel::removeNonStandardKeys,
+                onCreateAnyway = viewModel::createAnyway,
+                onDismissKeyCompatibilityWarning = viewModel::dismissKeyCompatibilityWarning,
                 openMainScreen = {
                     navigator.openMainScreen(this)
                 }
@@ -157,6 +164,13 @@ class ReviewWalletActivity : BaseComposeActivity() {
             is CreateWalletSuccessEvent -> onCreateWalletSuccess(event)
             is CreateWalletErrorEvent -> onCreateWalletError(event)
             is ReviewWalletEvent.CreateFreeGroupWalletSuccessEvent -> onCreateFreeGroupWallet(event)
+            is ReviewWalletEvent.RemoveNonStandardKeysEvent -> {
+                event.errorMessage?.let {
+                    NcToastManager.scheduleShowMessage(it, type = NcToastManager.MessageType.ERROR)
+                }
+                setResult(RESULT_OK, ReviewWalletArgs.buildRemovedSignersResult(event.signers))
+                finish()
+            }
         }
     }
 
@@ -205,13 +219,13 @@ class ReviewWalletActivity : BaseComposeActivity() {
 
         fun start(
             activityContext: Context,
-            args: ReviewWalletArgs
+            args: ReviewWalletArgs,
+            launcher: ActivityResultLauncher<Intent>? = null,
         ) {
-            activityContext.startActivity(
-                Intent(activityContext, ReviewWalletActivity::class.java).apply {
-                    putExtras(args.buildBundle())
-                }
-            )
+            val intent = Intent(activityContext, ReviewWalletActivity::class.java).apply {
+                putExtras(args.buildBundle())
+            }
+            if (launcher != null) launcher.launch(intent) else activityContext.startActivity(intent)
         }
     }
 }
@@ -222,11 +236,23 @@ fun ReviewWalletContent(
     args: ReviewWalletArgs,
     signers: List<SignerModel>,
     onContinue: () -> Unit = {},
+    onRemoveNonStandardKeys: () -> Unit = {},
+    onCreateAnyway: () -> Unit = {},
+    onDismissKeyCompatibilityWarning: () -> Unit = {},
     openMainScreen: () -> Unit = {},
 ) {
     NunchukTheme {
         if (uiState.isLoading) {
             NcLoadingDialog()
+        }
+        if (uiState.showKeyCompatibilityWarning) {
+            KeyCompatibilityWarningBottomSheet(
+                signers = uiState.nonStandardSigners,
+                removableCount = uiState.removableNonStandardSigners.size,
+                onRemoveNonStandardKeys = onRemoveNonStandardKeys,
+                onCreateAnyway = onCreateAnyway,
+                onDismiss = onDismissKeyCompatibilityWarning,
+            )
         }
         NcScaffold(
             modifier = Modifier.navigationBarsPadding(),
@@ -329,6 +355,7 @@ fun ReviewWalletContent(
 
                         TaprootAddressContent(
                             args = args,
+                            nonStandardPathKeys = uiState.nonStandardPathKeys,
                             namedSigners = namedSignersMap,
                             showBip32Path = true,
                             onChangeBip32Path = { index, signer -> },
@@ -341,7 +368,8 @@ fun ReviewWalletContent(
                                 data = ScriptNodeData(
                                     mode = ScriptMode.VIEW,
                                     signers = namedSignersMap,
-                                    showBip32Path = false
+                                    showBip32Path = true,
+                                    nonStandardPathKeys = uiState.nonStandardPathKeys,
                                 ),
                                 onChangeBip32Path = { _, _ -> },
                                 onActionKey = { _, _ -> }
@@ -385,6 +413,9 @@ fun ReviewWalletContent(
                                         color = MaterialTheme.colorScheme.textSecondary
                                     )
                                 }
+                                if (uiState.nonStandardPathKeys.contains(signer.pathKey())) {
+                                    NonStandardPathFlag(modifier = Modifier.padding(top = 4.dp))
+                                }
                             }
                         } else {
                             SignerCard(
@@ -404,6 +435,9 @@ fun ReviewWalletContent(
                                         style = NunchukTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.textSecondary
                                     )
+                                }
+                                if (uiState.nonStandardPathKeys.contains(signer.pathKey())) {
+                                    NonStandardPathFlag(modifier = Modifier.padding(top = 4.dp))
                                 }
                             }
                         }
@@ -431,6 +465,7 @@ fun ReviewWalletContent(
 @Composable
 private fun TaprootAddressContent(
     args: ReviewWalletArgs,
+    nonStandardPathKeys: Set<String>,
     namedSigners: Map<String, SignerModel?>,
     showBip32Path: Boolean,
     onChangeBip32Path: (Int, SignerModel) -> Unit,
@@ -443,7 +478,8 @@ private fun TaprootAddressContent(
             data = ScriptNodeData(
                 mode = ScriptMode.VIEW,
                 signers = namedSigners,
-                showBip32Path = showBip32Path
+                showBip32Path = showBip32Path,
+                nonStandardPathKeys = nonStandardPathKeys,
             ),
             signer = if (args.keyPath.isNotEmpty() && args.signers.isNotEmpty()) {
                 args.signers.first().toModel()
@@ -482,7 +518,8 @@ private fun TaprootAddressContent(
                 data = ScriptNodeData(
                     mode = ScriptMode.CONFIG,
                     signers = namedSigners,
-                    showBip32Path = showBip32Path
+                    showBip32Path = showBip32Path,
+                    nonStandardPathKeys = nonStandardPathKeys,
                 ),
                 onChangeBip32Path = { keyPath, signer ->
                     // Convert the keyPath string to index for the onChangeBip32Path callback
