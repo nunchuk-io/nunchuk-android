@@ -25,6 +25,7 @@ import com.nunchuk.android.model.inheritance.DraftKeyAccountMismatchException
 import com.nunchuk.android.model.inheritance.DraftKeySlotMissingException
 import com.nunchuk.android.model.inheritance.RecoveredKeyRequiredException
 import com.nunchuk.android.core.signer.OnChainInheritanceGuide
+import com.nunchuk.android.core.signer.OnChainInheritanceRoute
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -1399,6 +1400,13 @@ data class DraftAddOptions(
     val showInheritanceGuide: Boolean,
     val showDeviceSafety: Boolean,
 )
+
+/**
+ * Primary-inheritance and fallback cards hold one account of the device, so their key gets the
+ * single-account intro copy; a spending card adds each device twice.
+ */
+internal fun DraftAddOptions.inheritanceRoute(): OnChainInheritanceRoute? =
+    if (isInheritance) OnChainInheritanceRoute(fallbackNumber = fallbackNumber) else null
 
 sealed class AddKeyListEvent {
     /** [draftOptions] is set for a configurable-draft slot. */

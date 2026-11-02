@@ -27,6 +27,8 @@ import com.nunchuk.android.compose.NcHighlightText
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
+import com.nunchuk.android.core.signer.singleAccountRoute
+import com.nunchuk.android.core.signer.singleAccountRouteDescription
 import com.nunchuk.android.core.signer.isOnChainTimelockKey
 import com.nunchuk.android.core.signer.isVerifyOnChainTimelockBackup
 import com.nunchuk.android.model.MembershipStep
@@ -145,6 +147,8 @@ internal fun ColdCardIntroScreen(
     // ordinary add, the same as any other membership key.
     val isOnChainTimelockKey = onChainAddSignerParam.isOnChainTimelockKey()
     val onChainKeyIndex = onChainAddSignerParam?.keyIndex?.takeIf { it >= 0 } ?: 0
+    // A configurable draft's primary-inheritance or fallback key is a single account (KEY-05b/c).
+    val singleAccountRoute = onChainAddSignerParam.singleAccountRoute()
     NunchukTheme {
         Scaffold(topBar = {
             NcImageAppBar(
@@ -169,7 +173,7 @@ internal fun ColdCardIntroScreen(
             ) {
                 Text(
                     modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
-                    text = if (isOnChainTimelockKey) {
+                    text = if (isOnChainTimelockKey && singleAccountRoute == null) {
                         stringResource(R.string.nc_add_coldcard_step, onChainKeyIndex + 1)
                     } else {
                         stringResource(R.string.nc_add_coldcard_mk4)
@@ -184,6 +188,9 @@ internal fun ColdCardIntroScreen(
 
                     isVerifyOnChainTimelockBackup ->
                         stringResource(R.string.nc_coldcard_onchain_verify_backup_desc)
+
+                    singleAccountRoute != null ->
+                        singleAccountRouteDescription(singleAccountRoute, onChainKeyIndex)
 
                     isOnChainTimelockKey && onChainKeyIndex == 0 ->
                         stringResource(R.string.nc_coldcard_onchain_first_key_desc)

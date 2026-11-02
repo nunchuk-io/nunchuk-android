@@ -22,6 +22,13 @@ data class OnChainAddSignerParam(
      * on-chain timelock flow, which keeps a single verification per key.
      */
     val claimOption: ClaimOption? = null,
+    /**
+     * Set for a key of a configurable draft's primary-inheritance or fallback card. Those routes hold
+     * a single account of the device, so the device intro names the route and the account instead of
+     * "each device must be added twice … (n/2)" (Figma KEY-05b / KEY-05c). Null for a spending key,
+     * which is added twice around the timelock, and for every legacy-wallet key.
+     */
+    val inheritanceRoute: OnChainInheritanceRoute? = null,
 ) : Parcelable {
 
     val isClaiming: Boolean
@@ -62,6 +69,14 @@ data class OnChainAddSignerParam(
         fun replaceKeyIndex(isGroupWallet: Boolean): Int? = keyIndex ?: step?.toIndex(isGroupWallet)
     }
 }
+
+/** A single-account inheritance route of a configurable draft: [fallbackNumber] is 1-based, 0 = primary. */
+@Parcelize
+data class OnChainInheritanceRoute(val fallbackNumber: Int = 0) : Parcelable
+
+/** The single-account route of an on-chain timelock key being added, or null when it is added twice. */
+fun OnChainAddSignerParam?.singleAccountRoute(): OnChainInheritanceRoute? =
+    this?.inheritanceRoute?.takeIf { isOnChainTimelockKey() }
 
 /**
  * True only for a key of the on-chain timelock wallet, the one flow that adds each device twice

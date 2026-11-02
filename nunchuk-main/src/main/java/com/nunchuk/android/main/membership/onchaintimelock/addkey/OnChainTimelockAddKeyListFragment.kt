@@ -97,6 +97,7 @@ import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.signer.OnChainAddSignerParam
+import com.nunchuk.android.core.signer.OnChainInheritanceRoute
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toSingleSigner
 import com.nunchuk.android.core.signer.SignerIntroFlow
@@ -200,6 +201,9 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
 
     private fun isTargetInheritanceKey(): Boolean =
         currentDraftOptions?.isInheritance ?: (currentKeyData?.type?.isAddInheritanceKey == true)
+
+    /** A draft primary-inheritance or fallback slot is one account of the device (KEY-05b / KEY-05c). */
+    private fun targetInheritanceRoute(): OnChainInheritanceRoute? = currentDraftOptions?.inheritanceRoute()
 
     private val addTapSignerLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -601,7 +605,8 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                     flags = if (isTargetInheritanceKey()) OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER else OnChainAddSignerParam.FLAG_ADD_SIGNER,
                     keyIndex = targetAccountIndex(),
                     currentSigner = targetSameDevice(),
-                    existingSigners = getAllExistingSigners()
+                    existingSigners = getAllExistingSigners(),
+                    inheritanceRoute = targetInheritanceRoute(),
                 )
             )
         )
@@ -807,6 +812,7 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                     fallbackNumber = options.fallbackNumber,
                     showInheritanceGuide = options.showInheritanceGuide,
                     showDeviceSafety = options.showDeviceSafety,
+                    inheritanceRoute = options.inheritanceRoute(),
                 ),
                 walletType = WalletType.MINISCRIPT,
             ),
@@ -862,7 +868,8 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                     flags = if (isTargetInheritanceKey()) OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER else OnChainAddSignerParam.FLAG_ADD_SIGNER,
                     keyIndex = targetAccountIndex(),
                     currentSigner = targetSameDevice(),
-                    existingSigners = getAllExistingSigners()
+                    existingSigners = getAllExistingSigners(),
+                    inheritanceRoute = targetInheritanceRoute(),
                 )
             )
         )
@@ -881,7 +888,8 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                     flags = if (isTargetInheritanceKey()) OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER else OnChainAddSignerParam.FLAG_ADD_SIGNER,
                     keyIndex = targetAccountIndex(),
                     currentSigner = targetSameDevice(),
-                    existingSigners = getAllExistingSigners()
+                    existingSigners = getAllExistingSigners(),
+                    inheritanceRoute = targetInheritanceRoute(),
                 )
             )
         )

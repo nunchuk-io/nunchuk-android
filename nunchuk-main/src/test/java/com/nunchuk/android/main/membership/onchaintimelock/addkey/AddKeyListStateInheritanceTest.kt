@@ -1,6 +1,10 @@
 package com.nunchuk.android.main.membership.onchaintimelock.addkey
 
+import com.nunchuk.android.core.signer.OnChainAddSignerParam
+import com.nunchuk.android.core.signer.OnChainInheritanceGuide
+import com.nunchuk.android.core.signer.OnChainInheritanceRoute
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.signer.singleAccountRoute
 import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.model.inheritance.DraftInheritanceCard
 import com.nunchuk.android.model.inheritance.FallbackInheritanceCondition
@@ -13,6 +17,7 @@ import com.nunchuk.android.model.inheritance.PrimaryInheritanceCondition
 import com.nunchuk.android.type.SignerType
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -320,5 +325,32 @@ class AddKeyListStateInheritanceTest {
         assertEquals(1, state.fallbackCards(0).single().card.fallbackNumber)
         assertEquals(3, state.fallbackCards(2).single().card.fallbackNumber)
         assertEquals(0, state.primaryCards.single().card.fallbackNumber)
+    }
+
+    @Test
+    fun `primary and fallback draft keys get the single-account intro, spending keys do not`() {
+        fun options(isInheritance: Boolean, fallbackNumber: Int) = DraftAddOptions(
+            accountIndex = 0,
+            isInheritance = isInheritance,
+            inheritanceGuide = OnChainInheritanceGuide.PRIMARY,
+            fallbackNumber = fallbackNumber,
+            showInheritanceGuide = false,
+            showDeviceSafety = false,
+        )
+
+        assertEquals(OnChainInheritanceRoute(fallbackNumber = 0), options(isInheritance = true, fallbackNumber = 0).inheritanceRoute())
+        assertEquals(OnChainInheritanceRoute(fallbackNumber = 2), options(isInheritance = true, fallbackNumber = 2).inheritanceRoute())
+        assertNull(options(isInheritance = false, fallbackNumber = 0).inheritanceRoute())
+    }
+
+    @Test
+    fun `only an on-chain add uses the single-account route`() {
+        val route = OnChainInheritanceRoute(fallbackNumber = 1)
+        val add = OnChainAddSignerParam(flags = OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER, inheritanceRoute = route)
+
+        assertEquals(route, add.singleAccountRoute())
+        assertNull(add.copy(flags = OnChainAddSignerParam.FLAG_VERIFY_BACKUP_SEED_PHRASE).singleAccountRoute())
+        assertNull(add.copy(magic = "claim").singleAccountRoute())
+        assertNull(OnChainAddSignerParam(flags = OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER).singleAccountRoute())
     }
 }

@@ -65,6 +65,8 @@ sealed class SignerIntroFlow : Parcelable {
         val fallbackNumber: Int = 0,
         val showInheritanceGuide: Boolean = true,
         val showDeviceSafety: Boolean = false,
+        /** Set for a configurable draft's primary-inheritance or fallback key; see [OnChainAddSignerParam.inheritanceRoute]. */
+        val inheritanceRoute: OnChainInheritanceRoute? = null,
     ) : SignerIntroFlow()
 
     /** Owner setting up (or replacing) an off-chain inheritance key. */
@@ -107,6 +109,7 @@ private val SignerIntroFlow.deviceParams: OnChainAddSignerParam?
             currentSigner = currentSigner,
             existingSigners = existingSigners,
             replaceInfo = replaceInfo,
+            inheritanceRoute = inheritanceRoute,
         )
         is SignerIntroFlow.OffChainInheritanceKey -> OnChainAddSignerParam(
             flags = OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER or
