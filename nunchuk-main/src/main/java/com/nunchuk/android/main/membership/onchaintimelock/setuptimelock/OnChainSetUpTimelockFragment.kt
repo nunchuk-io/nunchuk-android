@@ -94,6 +94,7 @@ class OnChainSetUpTimelockFragment : MembershipFragment(), BottomSheetOptionList
                     isReplaceKeyFlow = args.isReplaceKeyFlow,
                     walletId = args.walletId,
                     fallbackTarget = args.fallbackTarget,
+                    firstFallbackTimelock = args.firstFallbackTimelock,
                     onMoreClicked = ::handleShowMore
                 )
             }
@@ -132,6 +133,8 @@ private fun OnChainSetUpTimelockScreen(
     isReplaceKeyFlow: Boolean = false,
     walletId: String? = null,
     fallbackTarget: FallbackTimelockTarget? = null,
+    /** Fallback 1's unlock time, when this screen sets the primary time of a plan with fallbacks. */
+    firstFallbackTimelock: TimelockExtra? = null,
     onMoreClicked: () -> Unit = {},
 ) {
     val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
@@ -151,6 +154,7 @@ private fun OnChainSetUpTimelockScreen(
                 isReplaceKeyFlow = isReplaceKeyFlow,
                 walletId = walletId,
                 fallbackTarget = fallbackTarget,
+                firstFallbackTimelock = firstFallbackTimelock,
             )
         },
         onDateChanged = { selectedDate, selectedTimeZone ->
@@ -166,6 +170,8 @@ private fun OnChainSetUpTimelockScreen(
         fallbackTarget = fallbackTarget,
         fallbackBoundViolation = state.fallbackBoundViolation,
         onDismissFallbackBoundDialog = viewModel::onDismissFallbackBoundDialog,
+        firstFallbackTimelock = firstFallbackTimelock.takeIf { state.showPrimaryTooLateDialog },
+        onDismissPrimaryTooLateDialog = viewModel::onDismissPrimaryTooLateDialog,
         isBlockBased = state.isBlockBased,
         blockHeight = state.blockHeight,
         onConfirmTimelockDate = { viewModel.onConfirmTimelockDate() },
@@ -185,6 +191,9 @@ private fun OnChainSetUpTimelockContent(
     fallbackTarget: FallbackTimelockTarget? = null,
     fallbackBoundViolation: FallbackTimelockBound? = null,
     onDismissFallbackBoundDialog: () -> Unit = {},
+    /** Set while the "must unlock before Fallback 1" dialog shows. */
+    firstFallbackTimelock: TimelockExtra? = null,
+    onDismissPrimaryTooLateDialog: () -> Unit = {},
     onMoreClicked: () -> Unit = {},
     onContinueClicked: (Calendar, TimeZoneDetail) -> Unit = { _, _ -> },
     onDateChanged: (Calendar, TimeZoneDetail) -> Unit = { _, _ -> },
@@ -488,55 +497,66 @@ private fun OnChainSetUpTimelockContent(
                 Spacer(modifier = Modifier.height(40.dp))
             }
         }
-    }
 
-    // Confirm timelock date dialog
-    if (showConfirmDialog && maxTimelockYears != null) {
-        NcConfirmationDialog(
-            title = stringResource(id = R.string.nc_confirm_timelock_date_title),
-            message = stringResource(
-                id = R.string.nc_confirm_timelock_date_message,
-                maxTimelockYears
-            ),
-            positiveButtonText = stringResource(id = com.nunchuk.android.widget.R.string.nc_text_confirm),
-            negativeButtonText = stringResource(id = R.string.nc_change_date),
-            onPositiveClick = onConfirmTimelockDate,
-            onDismiss = onDismissConfirmDialog
-        )
-    }
+        // Confirm timelock date dialog
+        if (showConfirmDialog && maxTimelockYears != null) {
+            NcConfirmationDialog(
+                title = stringResource(id = R.string.nc_confirm_timelock_date_title),
+                message = stringResource(
+                    id = R.string.nc_confirm_timelock_date_message,
+                    maxTimelockYears
+                ),
+                positiveButtonText = stringResource(id = com.nunchuk.android.widget.R.string.nc_text_confirm),
+                negativeButtonText = stringResource(id = R.string.nc_change_date),
+                onPositiveClick = onConfirmTimelockDate,
+                onDismiss = onDismissConfirmDialog
+            )
+        }
 
-    // Invalid date dialog
-    if (showInvalidDateDialog) {
-        NcInfoDialog(
-            title = stringResource(id = R.string.nc_invalid_date_title),
-            message = stringResource(id = R.string.nc_invalid_date_message),
-            positiveButtonText = stringResource(id = com.nunchuk.android.widget.R.string.nc_text_got_it),
-            onDismiss = onDismissInvalidDateDialog,
-            onPositiveClick = onDismissInvalidDateDialog
-        )
-    }
+        // Invalid date dialog
+        if (showInvalidDateDialog) {
+            NcInfoDialog(
+                title = stringResource(id = R.string.nc_invalid_date_title),
+                message = stringResource(id = R.string.nc_invalid_date_message),
+                positiveButtonText = stringResource(id = com.nunchuk.android.widget.R.string.nc_text_got_it),
+                onDismiss = onDismissInvalidDateDialog,
+                onPositiveClick = onDismissInvalidDateDialog
+            )
+        }
 
-    // A fallback time outside its neighbours (TIME-03 / TIME-04)
-    if (fallbackTarget != null && fallbackBoundViolation != null) {
-        NcInfoDialog(
-            title = stringResource(id = R.string.nc_invalid_date_title),
-            message = fallbackBoundMessage(fallbackTarget, fallbackBoundViolation),
-            positiveButtonText = stringResource(id = com.nunchuk.android.widget.R.string.nc_text_got_it),
-            onDismiss = onDismissFallbackBoundDialog,
-            onPositiveClick = onDismissFallbackBoundDialog
-        )
-    }
+        // A fallback time outside its neighbours (TIME-03 / TIME-04)
+        if (fallbackTarget != null && fallbackBoundViolation != null) {
+            NcInfoDialog(
+                title = stringResource(id = R.string.nc_invalid_date_title),
+                message = fallbackBoundMessage(fallbackTarget, fallbackBoundViolation),
+                positiveButtonText = stringResource(id = com.nunchuk.android.widget.R.string.nc_text_got_it),
+                onDismiss = onDismissFallbackBoundDialog,
+                onPositiveClick = onDismissFallbackBoundDialog
+            )
+        }
 
-    // Block-based timelock dialog
-    if (showBlockBasedTimelockDialog) {
-        NcConfirmationDialog(
-            title = stringResource(id = R.string.nc_block_based_timelock_title),
-            message = stringResource(id = R.string.nc_block_based_timelock_message),
-            positiveButtonText = stringResource(id = com.nunchuk.android.widget.R.string.nc_text_confirm),
-            negativeButtonText = stringResource(id = R.string.nc_change_date),
-            onPositiveClick = onConfirmBlockBasedTimelock,
-            onDismiss = onDismissBlockBasedTimelockDialog
-        )
+        // A primary time at or after Fallback 1's
+        if (firstFallbackTimelock != null) {
+            NcInfoDialog(
+                title = stringResource(id = R.string.nc_invalid_date_title),
+                message = stringResource(R.string.nc_primary_timelock_too_late, formatTimelockWithZone(firstFallbackTimelock)),
+                positiveButtonText = stringResource(id = com.nunchuk.android.widget.R.string.nc_text_got_it),
+                onDismiss = onDismissPrimaryTooLateDialog,
+                onPositiveClick = onDismissPrimaryTooLateDialog
+            )
+        }
+
+        // Block-based timelock dialog
+        if (showBlockBasedTimelockDialog) {
+            NcConfirmationDialog(
+                title = stringResource(id = R.string.nc_block_based_timelock_title),
+                message = stringResource(id = R.string.nc_block_based_timelock_message),
+                positiveButtonText = stringResource(id = com.nunchuk.android.widget.R.string.nc_text_confirm),
+                negativeButtonText = stringResource(id = R.string.nc_change_date),
+                onPositiveClick = onConfirmBlockBasedTimelock,
+                onDismiss = onDismissBlockBasedTimelockDialog
+            )
+        }
     }
 }
 

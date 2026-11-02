@@ -263,6 +263,43 @@ class AddKeyListStateInheritanceTest {
     }
 
     @Test
+    fun `an owner key reused in a fallback needs its new account verified`() {
+        // Owner A is verified on its spending accounts; its fallback account (Account 2) is new.
+        val state = withFallbacks(0 to listOf(fallbackSlot(8, "a", false)))
+
+        assertTrue(state.ownerKeys.first { it.signer?.fingerPrint == "a" }.isVerified)
+        assertFalse(state.isRequiredVerificationDone)
+        assertTrue(withFallbacks(0 to listOf(fallbackSlot(8, "a", true))).isRequiredVerificationDone)
+    }
+
+    @Test
+    fun `choose key leaves out the platform key and keys already in that route`() {
+        val platform = card(InheritanceSection.SPENDING, slot(6, "platform", true, InheritanceSection.SPENDING))
+            .let { it.copy(card = it.card.copy(isServerKey = true)) }
+        val state = withFallbacks(
+            0 to listOf(fallbackSlot(8, "b", true), fallbackSlot(9, null, false)),
+            1 to listOf(fallbackSlot(10, null, false)),
+        ).let { it.copy(draftCards = it.draftCards + platform) }
+
+        // Fallback 1 already holds B: offer A and the inheritance key J, once each.
+        assertEquals(listOf("a", "j"), state.draftCards.chooseKeyOptions(state.fallbackCards(0).single().card).map { it.fingerPrint })
+        // Fallback 2 may reuse keys of other routes, B included.
+        assertEquals(listOf("a", "b", "j"), state.draftCards.chooseKeyOptions(state.fallbackCards(1).single().card).map { it.fingerPrint })
+        // The primary already holds J.
+        assertEquals(listOf("a", "b"), state.draftCards.chooseKeyOptions(state.primaryCards.single().card).map { it.fingerPrint })
+    }
+
+    @Test
+    fun `removing a fallback renumbers the guides seen after it`() {
+        val seen = setOf(0, 1, 2, 3)
+
+        assertEquals(setOf(0, 1, 2), seen.afterFallbackRemoved(1))
+        assertEquals(setOf(0, 1, 2), seen.afterFallbackRemoved(3))
+        assertEquals(setOf(0, 1), setOf(0, 2).afterFallbackRemoved(1))
+        assertEquals(emptySet<Int>(), setOf(0).afterFallbackRemoved(0))
+    }
+
+    @Test
     fun `fallback number is one based and zero for other cards`() {
         val state = withFallbacks(0 to listOf(fallbackSlot(8, null, false)), 2 to listOf(fallbackSlot(9, null, false)))
 

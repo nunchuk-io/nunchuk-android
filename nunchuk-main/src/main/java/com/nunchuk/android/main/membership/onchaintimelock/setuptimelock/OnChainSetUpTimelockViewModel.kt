@@ -78,6 +78,7 @@ class OnChainSetUpTimelockViewModel @Inject constructor(
         isReplaceKeyFlow: Boolean = false,
         walletId: String? = null,
         fallbackTarget: FallbackTimelockTarget? = null,
+        firstFallbackTimelock: TimelockExtra? = null,
     ) {
         viewModelScope.launch {
             val now = Calendar.getInstance()
@@ -91,6 +92,14 @@ class OnChainSetUpTimelockViewModel @Inject constructor(
             // A fallback stays between its neighbours (TIME-03 / TIME-04); the entered value is kept.
             fallbackTarget?.boundViolation(selectedDate.timeInMillis / 1000)?.let { bound ->
                 _state.update { it.copy(fallbackBoundViolation = bound) }
+                return@launch
+            }
+
+            // The primary time stays before Fallback 1; the entered value is kept.
+            if (fallbackTarget == null &&
+                isPrimaryAtOrAfterFirstFallback(selectedDate.timeInMillis / 1000, firstFallbackTimelock)
+            ) {
+                _state.update { it.copy(showPrimaryTooLateDialog = true) }
                 return@launch
             }
 
@@ -136,6 +145,10 @@ class OnChainSetUpTimelockViewModel @Inject constructor(
 
     fun onDismissFallbackBoundDialog() {
         _state.update { it.copy(fallbackBoundViolation = null) }
+    }
+
+    fun onDismissPrimaryTooLateDialog() {
+        _state.update { it.copy(showPrimaryTooLateDialog = false) }
     }
 
     fun onConfirmBlockBasedTimelock() {
@@ -363,6 +376,8 @@ data class OnChainSetUpTimelockState(
     val isLoading: Boolean = false,
     /** A fallback time outside its neighbours (TIME-03 / TIME-04); null when no dialog. */
     val fallbackBoundViolation: FallbackTimelockBound? = null,
+    /** A primary time at or after Fallback 1's. */
+    val showPrimaryTooLateDialog: Boolean = false,
 )
 
 sealed class OnChainSetUpTimelockEvent {

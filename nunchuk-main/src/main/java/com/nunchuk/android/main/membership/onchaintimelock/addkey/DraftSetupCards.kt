@@ -94,6 +94,23 @@ internal fun buildDraftSetupCards(
     }
 }
 
+/**
+ * Keys already in this setup, one per device, that the choose-key sheet (KEY-01a) offers for a slot
+ * on [card]. The Platform key and any key already in that route are left out; keys of other routes
+ * are offered, because routes may share keys. A route is every card of the same section and fallback
+ * (a customized primary comes as one card per key).
+ */
+internal fun List<DraftSetupCard>.chooseKeyOptions(card: DraftInheritanceCard): List<SignerModel> {
+    val inThisRoute = filter { it.card.section == card.section && it.card.fallbackIndex == card.fallbackIndex }
+        .flatMap { it.slots }
+        .mapNotNull { it.signer?.fingerPrint?.lowercase() }
+        .toSet()
+    return filterNot { it.isServerKey }
+        .flatMap { it.slots.mapNotNull { slot -> slot.signer } }
+        .filterNot { it.fingerPrint.lowercase() in inThisRoute }
+        .distinctBy { it.fingerPrint.lowercase() }
+}
+
 /** A draft key the app has no copy of; unknown tags are dropped rather than failing the screen. */
 private fun SignerServer.toSlotSigner(account: Int) = SignerModel(
     id = xfp.orEmpty(),

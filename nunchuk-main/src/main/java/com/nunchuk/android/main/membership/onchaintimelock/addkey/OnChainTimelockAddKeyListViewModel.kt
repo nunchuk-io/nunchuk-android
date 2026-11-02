@@ -569,19 +569,8 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
      * twice. A customized primary comes as one card per key, so the route is every card of the same
      * section and fallback.
      */
-    fun chooseKeyOptions(card: DraftInheritanceCard): List<SignerModel> {
-        val cards = _state.value.draftCards
-        val inThisRoute = cards
-            .filter { it.card.section == card.section && it.card.fallbackIndex == card.fallbackIndex }
-            .flatMap { it.slots }
-            .mapNotNull { it.signer?.fingerPrint?.lowercase() }
-            .toSet()
-        return cards
-            .filterNot { it.isServerKey }
-            .flatMap { it.slots.mapNotNull { slot -> slot.signer } }
-            .filterNot { it.fingerPrint.lowercase() in inThisRoute }
-            .distinctBy { it.fingerPrint.lowercase() }
-    }
+    fun chooseKeyOptions(card: DraftInheritanceCard): List<SignerModel> =
+        _state.value.draftCards.chooseKeyOptions(card)
 
     /**
      * KEY-01a "Choose key": the key goes straight into the slot and the setup card comes back. Only
@@ -894,12 +883,12 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
         runDraftUpdate(beforeRun = { it.copy(removeFallbackIndex = null) }) {
             removeDraftFallbackInheritanceUseCase(
                 RemoveDraftFallbackInheritanceUseCase.Param(index = index, groupId = groupId)
-            )
-        }.invokeOnCompletion {
-            // Fallback guides are tracked by index, which just shifted: forget the ones from here on.
-            val seen = _state.value.fallbackGuidesSeenInSession.filter { it < index }.toSet()
-            savedStateHandle[KEY_FALLBACK_GUIDES_SEEN] = seen.toIntArray()
-            _state.update { it.copy(fallbackGuidesSeenInSession = seen) }
+            ).onSuccess {
+                // Fallback guides are tracked by index, which just shifted with the fallbacks.
+                val seen = _state.value.fallbackGuidesSeenInSession.afterFallbackRemoved(index)
+                savedStateHandle[KEY_FALLBACK_GUIDES_SEEN] = seen.toIntArray()
+                _state.update { it.copy(fallbackGuidesSeenInSession = seen) }
+            }
         }
     }
 
@@ -1376,6 +1365,19 @@ data class ChooseKeyTarget(val card: DraftInheritanceCard, val keyIndex: Int)
 
 /** The fallback the policy sheet (FBK-01a) edits; [index] null adds a new one. */
 data class FallbackPolicyTarget(val index: Int?)
+
+/**
+ * Fallback indices whose guide ran, once fallback [removed] is gone: its own entry is dropped and
+ * later fallbacks move down one index, as the backend renumbers them.
+ */
+internal fun Set<Int>.afterFallbackRemoved(removed: Int): Set<Int> =
+    mapNotNull { index ->
+        when {
+            index < removed -> index
+            index > removed -> index - 1
+            else -> null
+        }
+    }.toSet()
 
 /** 1-based number of a FALLBACK card ("Fallback 1"); 0 for any other card. */
 val DraftInheritanceCard.fallbackNumber: Int

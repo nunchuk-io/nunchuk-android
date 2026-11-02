@@ -32,3 +32,10 @@ data class FallbackTimelockTarget(
 }
 
 enum class FallbackTimelockBound { TOO_EARLY, TOO_LATE }
+
+/**
+ * Primary inheritance must unlock before Fallback 1: whether a primary [value] (unix seconds) is at
+ * or after [firstFallback]. An unset Fallback 1 time sets no limit.
+ */
+fun isPrimaryAtOrAfterFirstFallback(value: Long, firstFallback: TimelockExtra?): Boolean =
+    firstFallback != null && firstFallback.value > 0 && value >= firstFallback.value

@@ -107,6 +107,7 @@ import com.nunchuk.android.model.TimelockBased
 import com.nunchuk.android.model.TimelockExtra
 import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.model.WalletTimelock
+import com.nunchuk.android.model.toTimelockExtra
 import com.nunchuk.android.model.inheritance.RecoveredKey
 import com.nunchuk.android.model.byzantine.isFacilitatorAdmin
 import com.nunchuk.android.model.isAddInheritanceKey
@@ -340,7 +341,8 @@ class OnChainReplaceKeysFragment : Fragment() {
                     blockHeight = walletTimelock?.blockHeight
                 ),
                 isReplaceKeyFlow = true,
-                walletId = (activity as MembershipActivity).walletId
+                walletId = (activity as MembershipActivity).walletId,
+                firstFallbackTimelock = viewModel.configurable.value?.fallbackTimelocks?.get(0)?.effective?.toTimelockExtra(),
             )
         )
     }

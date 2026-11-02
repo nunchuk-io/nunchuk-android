@@ -290,7 +290,9 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                         findNavController().navigate(
                             OnChainTimelockAddKeyListFragmentDirections.actionOnChainTimelockAddKeyListFragmentToOnChainSetUpTimelockFragment(
                                 groupId = args.groupId ?: (activity as MembershipActivity).groupId,
-                                timelockExtra = timelockExtra
+                                timelockExtra = timelockExtra,
+                                firstFallbackTimelock = viewModel.state.value.fallbacks
+                                    .firstOrNull { it.index == 0 }?.timelock?.toTimelockExtra(),
                             )
                         )
                     })
@@ -1193,7 +1195,8 @@ private fun LazyListScope.fallbackDraftItems(
                         item = AddKeyOnChainData(steps = listOf(MembershipStep.TIMELOCK)).updateStep(
                             step = MembershipStep.TIMELOCK,
                             signer = null,
-                            verifyType = VerifyType.NONE,
+                            // A set time draws the filled card with Change (SET-10), like the primary's.
+                            verifyType = if ((fallback.timelock?.timelockValue ?: 0L) > 0) VerifyType.APP_VERIFIED else VerifyType.NONE,
                             timelock = fallback.timelock?.toTimelockExtra(),
                         ),
                         onAddClicked = { actions.onFallbackTimelock(fallback.index) },

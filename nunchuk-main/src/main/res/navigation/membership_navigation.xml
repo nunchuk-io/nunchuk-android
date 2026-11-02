@@ -265,6 +265,12 @@
             android:defaultValue="@null"
             app:argType="com.nunchuk.android.main.membership.onchaintimelock.setuptimelock.FallbackTimelockTarget"
             app:nullable="true" />
+
+        <argument
+            android:name="firstFallbackTimelock"
+            android:defaultValue="@null"
+            app:argType="com.nunchuk.android.model.TimelockExtra"
+            app:nullable="true" />
     </fragment>
 
     <fragment

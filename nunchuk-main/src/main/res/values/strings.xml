@@ -1089,6 +1089,7 @@
     <string name="nc_fallback_timelock_too_early_primary">Fallback %1$d must unlock after primary inheritance (%2$s). Two routes can’t unlock at the same time. Please select a later date.</string>
     <string name="nc_fallback_timelock_too_early_fallback">Fallback %1$d must unlock after Fallback %2$d (%3$s). Two routes can’t unlock at the same time. Please select a later date.</string>
     <string name="nc_fallback_timelock_too_late">Fallback %1$d must unlock before Fallback %2$d (%3$s). Please select an earlier date.</string>
+    <string name="nc_primary_timelock_too_late">Primary inheritance must unlock before Fallback 1 (%1$s). Please select an earlier date.</string>
     <!-- Plan screens with fallbacks (Figma Row 7 · SHARE, Row 4 · PLAN-07…12 / PLAN-11b) -->
     <string name="nc_onchain_share_fallbacks_beneficiary">For each fallback, share its keys with the person it’s intended for: the Beneficiary or someone else. That person also needs the Magic Phrase or the BSMS file. Each fallback needs only its own required keys:</string>
     <string name="nc_onchain_share_fallbacks_trustee">For each fallback, share its keys with the person it’s intended for: the Trustee or someone else. That person also needs the Magic Phrase or the BSMS file. Each fallback needs only its own required keys:</string>
