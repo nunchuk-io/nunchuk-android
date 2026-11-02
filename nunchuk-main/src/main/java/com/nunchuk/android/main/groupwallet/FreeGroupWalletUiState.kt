@@ -43,6 +43,8 @@ data class FreeGroupWalletUiState(
     val isTestNet: Boolean = false,
     val pendingAddSignerState: PendingAddSignerState? = null,
     val miniscriptReuseSigner: Boolean = false,
+    // `xfp|path` keys (see pathKey) of added keys on a non-standard path for this group's wallet.
+    val nonStandardPathKeys: Set<String> = emptySet(),
 )
 
 sealed class FreeGroupWalletEvent {

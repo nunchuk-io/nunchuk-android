@@ -433,7 +433,10 @@ internal fun CreateKeyItem(
             replaceKeyData = data.replaceKeyData[key],
             keyIconResId = if (isPlatformKey) R.drawable.ic_server_key_dark else R.drawable.ic_key,
             bottomContent = {
-                if (data.showBip32Path && signer != null && !signer.type.isPlatformKey) {
+                // A key on a non-standard path always shows its path, with the flag under it.
+                val isNonStandardPath =
+                    signer != null && data.nonStandardPathKeys.contains(signer.pathKey())
+                if ((data.showBip32Path || isNonStandardPath) && signer != null && !signer.type.isPlatformKey) {
                     val isDuplicateSigner =
                         data.duplicateSignerKeys.contains(signer.signerKey())
                     Row(
@@ -476,7 +479,7 @@ internal fun CreateKeyItem(
                             )
                         }
                     }
-                    if (data.nonStandardPathKeys.contains(signer.pathKey())) {
+                    if (isNonStandardPath) {
                         NonStandardPathFlag(modifier = Modifier.padding(top = 4.dp))
                     }
                 }

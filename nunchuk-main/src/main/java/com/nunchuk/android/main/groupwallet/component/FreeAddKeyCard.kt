@@ -37,6 +37,7 @@ import com.nunchuk.android.compose.provider.SignerModelProvider
 import com.nunchuk.android.compose.signer.SignerCard
 import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.compose.textSecondary
+import com.nunchuk.android.compose.wallet.NonStandardPathFlag
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.groupwallet.KEY_NOT_SYNCED_NAME
@@ -59,6 +60,7 @@ fun FreeAddKeyCard(
     onChangeBip32Path: (Int, SignerModel) -> Unit = { _, _ -> },
     avatarColor: Color = avatarColors[0],
     isInReplace: Boolean = false,
+    isNonStandardPath: Boolean = false,
 ) {
     val pendingReplaceSigner = replacedSigner
         ?.takeUnless { isInReplace && it.isPendingReplacementPlaceholder() }
@@ -76,6 +78,7 @@ fun FreeAddKeyCard(
             index = index,
             avatarColor = avatarColor,
             showSignerCardForInvisibleSigner = isInReplace && !isReplaced,
+            isNonStandardPath = isNonStandardPath,
             onRemoveOrReplaceClicked = onRemoveOrReplaceClicked,
         )
     } else {
@@ -194,9 +197,12 @@ private fun KeyAddedView(
     index: Int,
     avatarColor: Color,
     showSignerCardForInvisibleSigner: Boolean,
+    isNonStandardPath: Boolean,
     onRemoveOrReplaceClicked: (Boolean) -> Unit
 ) {
     val targetSigner = replacedSigner ?: signer
+    // A key on a non-standard path always shows its path, with the flag under the card.
+    val showPath = showBip32Path || isNonStandardPath
     val color = when {
         replacedSigner != null -> MaterialTheme.colorScheme.fillSlimeT2
         isInReplace -> MaterialTheme.colorScheme.fillBeewax
@@ -216,7 +222,7 @@ private fun KeyAddedView(
         ) {
             if (targetSigner.isVisible || showSignerCardForInvisibleSigner) {
                 SignerCard(item = targetSigner, modifier = Modifier.weight(1.0f)) {
-                    if (showBip32Path) {
+                    if (showPath) {
                         Row(
                             modifier = Modifier.clickable(
                                 onClick = {
@@ -289,7 +295,7 @@ private fun KeyAddedView(
                             style = NunchukTheme.typography.bodySmall,
                         )
                     }
-                    if (showBip32Path) {
+                    if (showPath) {
                         Text(
                             text = stringResource(
                                 R.string.nc_bip32_path,
@@ -319,6 +325,11 @@ private fun KeyAddedView(
                     )
                 }
             }
+        }
+
+        if (isNonStandardPath) {
+            // Lines up with the key's text: card padding 12dp + avatar 48dp + gap 8dp (Figma F1).
+            NonStandardPathFlag(modifier = Modifier.padding(start = 68.dp, top = 4.dp))
         }
 
         if (replacedSigner != null) {

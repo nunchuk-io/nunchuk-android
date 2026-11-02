@@ -272,7 +272,7 @@ fun TaprootConfigScreen(
                             checkable = checkable,
                             isChecked = isSelected,
                             isShowPath = state.isShowPath,
-                            isNonStandardPath = state.nonStandardPathKeys.contains(signer.pathKey()),
+                            isNonStandardPath = isSelected && state.nonStandardPathKeys.contains(signer.pathKey()),
                             onSelectSigner = onSelectSigner,
                             onEditPath = onEditPath,
                         )

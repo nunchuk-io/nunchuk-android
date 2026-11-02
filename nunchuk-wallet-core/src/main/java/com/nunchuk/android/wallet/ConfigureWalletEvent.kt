@@ -52,6 +52,6 @@ data class ConfigureWalletState(
     val keySet: Set<SignerModel> = emptySet(),
     val groupSigners: List<SingleSigner> = emptyList(),
     val isKeySetEnable: Boolean = false,
-    // `xfp|path` keys (see pathKey) removed on Review wallet as non-standard; they keep the flag here.
+    // `xfp|path` keys (see pathKey) of ticked keys on a non-standard path for the wallet the selection makes.
     val nonStandardPathKeys: Set<String> = emptySet(),
 )

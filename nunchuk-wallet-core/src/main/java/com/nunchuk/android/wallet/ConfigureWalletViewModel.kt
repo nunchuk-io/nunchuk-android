@@ -25,6 +25,7 @@ import android.nfc.tech.IsoDep
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.compose.wallet.pathKey as signerPathKey
 import com.nunchuk.android.core.account.PrimaryKeySignerInfoHolder
 import com.nunchuk.android.core.domain.CacheDefaultTapsignerMasterSignerXPubUseCase
 import com.nunchuk.android.core.domain.HasSignerUseCase
@@ -34,20 +35,21 @@ import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.mapper.SingleSignerMapper
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
+import com.nunchuk.android.core.signer.toSingleSigner
 import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
-import com.nunchuk.android.usecase.pathKey
-import com.nunchuk.android.compose.wallet.pathKey as signerPathKey
 import com.nunchuk.android.nav.args.ConfigureWalletArgs
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.GetCompoundSignersUseCase
+import com.nunchuk.android.usecase.GetNonStandardPathSignersUseCase
 import com.nunchuk.android.usecase.GetSignerFromMasterSignerUseCase
 import com.nunchuk.android.usecase.GetUnusedSignerFromMasterSignerUseCase
 import com.nunchuk.android.usecase.SendSignerPassphraseUseCase
 import com.nunchuk.android.usecase.free.groupwallet.GetGroupSandboxUseCase
+import com.nunchuk.android.usecase.pathKey
 import com.nunchuk.android.usecase.signer.GetSignerUseCase
 import com.nunchuk.android.usecase.signer.GetSupportedSignersUseCase
 import com.nunchuk.android.usecase.wallet.GetWallets2UseCase
@@ -60,6 +62,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
@@ -88,6 +91,7 @@ class ConfigureWalletViewModel @Inject constructor(
     private val getSignerUseCase: GetSignerUseCase,
     private val hasSignerUseCase: HasSignerUseCase,
     private val singleSignerMapper: SingleSignerMapper,
+    private val getNonStandardPathSignersUseCase: GetNonStandardPathSignersUseCase,
     @ApplicationContext private val context: Context,
 ) : ViewModel() {
 
@@ -117,6 +121,31 @@ class ConfigureWalletViewModel @Inject constructor(
                     }
                 }
         }
+        viewModelScope.launch {
+            state.map { it.selectedSigners }
+                .distinctUntilChanged()
+                .collectLatest { checkNonStandardPaths(it) }
+        }
+    }
+
+    /**
+     * Flags ticked keys whose BIP32 path isn't the standard one for the wallet the current selection
+     * makes (Figma K1, requirements §07). Unticked keys are never flagged, and one ticked key is a
+     * single-sig draft, which is out of scope, so nothing is flagged then.
+     */
+    private suspend fun checkNonStandardPaths(selectedSigners: Set<SignerModel>) {
+        val keys = if (selectedSigners.size < 2 || !::args.isInitialized) {
+            emptySet()
+        } else {
+            getNonStandardPathSignersUseCase(
+                GetNonStandardPathSignersUseCase.Param(
+                    signers = selectedSigners.map { it.toSingleSigner() },
+                    addressType = args.addressType,
+                    walletType = WalletType.MULTI_SIG,
+                )
+            ).getOrDefault(emptySet())
+        }
+        _state.update { it.copy(nonStandardPathKeys = keys) }
     }
 
     private fun getState() = _state.value
@@ -267,8 +296,8 @@ class ConfigureWalletViewModel @Inject constructor(
 
     /**
      * Deselects keys dropped on Review wallet ("Remove non-standard keys") so their slots are empty
-     * again on key selection. The removed keys keep the non-standard flag (Figma E1); Required keys
-     * drops to the number of keys still ticked.
+     * again on key selection. Unticked, they show no flag until ticked again (Figma E1); Required
+     * keys drops to the number of keys still ticked.
      */
     fun removeSigners(signers: List<SingleSigner>) {
         if (signers.isEmpty()) return
@@ -284,7 +313,6 @@ class ConfigureWalletViewModel @Inject constructor(
             it.copy(
                 keySet = it.keySet.filterNot { signer -> signer.isRemoved() }.toSet(),
                 totalRequireSigns = it.totalRequireSigns.coerceAtMost(newSet.size),
-                nonStandardPathKeys = it.nonStandardPathKeys + removedKeys,
             )
         }
     }

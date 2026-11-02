@@ -50,8 +50,8 @@ internal class SignersViewBinder(
         binding.ivSignerType.setImageDrawable(model.toReadableDrawable(context))
         binding.signerName.text = model.name
         binding.xfp.text = model.getXfpOrCardIdLabel()
-        // Keys removed on Review wallet as non-standard always show their path and the flag.
-        val isNonStandardPath = nonStandardPathKeys.contains(model.pathKey())
+        // A ticked key on a non-standard path always shows its path and the flag; unticked keys never do.
+        val isNonStandardPath = selectedSigners.contains(model) && nonStandardPathKeys.contains(model.pathKey())
         binding.tvBip32Path.isVisible = model.derivationPath.isNotEmpty() && (isShowPath || isNonStandardPath)
         binding.nonStandardFlag.isVisible = isNonStandardPath
         binding.tvBip32Path.text = context.getString(R.string.nc_bip32_path, model.derivationPath)

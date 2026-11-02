@@ -22,6 +22,7 @@ import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
+import com.nunchuk.android.core.signer.toSingleSigner
 import com.nunchuk.android.core.util.isPlatformKey
 import com.nunchuk.android.core.util.filterTaprootSigners
 import com.nunchuk.android.core.util.isTaproot
@@ -43,6 +44,7 @@ import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.MiniscriptTimelockType
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.WalletType
+import com.nunchuk.android.usecase.GetNonStandardPathSignersUseCase
 import com.nunchuk.android.usecase.GetScriptNodeFromMiniscriptTemplateUseCase
 import com.nunchuk.android.usecase.GetSignerFromMasterSignerUseCase
 import com.nunchuk.android.usecase.free.groupwallet.AddSignerToGroupUseCase
@@ -68,6 +70,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
@@ -112,6 +116,7 @@ class FreeGroupWalletViewModel @Inject constructor(
     private val getScriptNodeFromMiniscriptTemplateUseCase: GetScriptNodeFromMiniscriptTemplateUseCase,
     private val application: Application,
     private val getChainSettingFlowUseCase: GetChainSettingFlowUseCase,
+    private val getNonStandardPathSignersUseCase: GetNonStandardPathSignersUseCase,
 ) : ViewModel() {
     val groupId: String
         get() = savedStateHandle.get<String>(FreeGroupWalletActivity.EXTRA_GROUP_ID).orEmpty()
@@ -154,6 +159,7 @@ class FreeGroupWalletViewModel @Inject constructor(
     init {
         loadSigners()
         listenGroupSandbox()
+        listenNonStandardPaths()
         listenGroupOnline()
         listenGroupDelete()
         if (replaceWalletId.isEmpty() && actionType == FreeGroupActionType.NONE) {
@@ -258,6 +264,42 @@ class FreeGroupWalletViewModel @Inject constructor(
                     _uiState.update { it.copy(groupWalletUnavailable = true) }
                 }
             }
+        }
+    }
+
+
+    /**
+     * Flags added keys whose BIP32 path isn't the standard one for this group's wallet (Figma F1,
+     * requirements §07), rechecked whenever the keys, address type or wallet type change, so each
+     * member sees the flag before anyone creates the wallet. Review wallet stays the final check.
+     */
+    private fun listenNonStandardPaths() {
+        viewModelScope.launch {
+            _uiState.map { state ->
+                Triple(
+                    state.group?.addressType,
+                    state.group?.walletType,
+                    (state.signers + state.namedSigners.values).filterNotNull()
+                        .filter { it.fingerPrint.isNotEmpty() && it.name != KEY_NOT_SYNCED_NAME },
+                )
+            }
+                .distinctUntilChanged()
+                .collectLatest { (addressType, walletType, signers) ->
+                    val keys = if (addressType == null || walletType == null ||
+                        walletType == WalletType.SINGLE_SIG || signers.isEmpty()
+                    ) {
+                        emptySet()
+                    } else {
+                        getNonStandardPathSignersUseCase(
+                            GetNonStandardPathSignersUseCase.Param(
+                                signers = signers.map { it.toSingleSigner() },
+                                addressType = addressType,
+                                walletType = walletType,
+                            )
+                        ).getOrDefault(emptySet())
+                    }
+                    _uiState.update { it.copy(nonStandardPathKeys = keys) }
+                }
         }
     }
 

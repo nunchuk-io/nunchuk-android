@@ -70,6 +70,7 @@ import com.nunchuk.android.compose.pullrefresh.pullRefresh
 import com.nunchuk.android.compose.pullrefresh.rememberPullRefreshState
 import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.textSecondary
+import com.nunchuk.android.compose.wallet.pathKey
 import com.nunchuk.android.core.domain.signer.DuplicateSignerData
 import com.nunchuk.android.core.miniscript.ScriptNodeType
 import com.nunchuk.android.core.signer.SignerModel
@@ -487,6 +488,7 @@ fun FreeGroupWalletScreen(
                                     duplicateSignerKeys = duplicateSignerKeys,
                                     allowTimelockChange = isInReplace,
                                     waitingToJoinKeys = state.waitingToJoinKeys,
+                                    nonStandardPathKeys = if (isInReplace) emptySet() else state.nonStandardPathKeys,
                                 ),
                                 onChangeBip32Path = { keyPath, signer ->
                                     onSetCurrentKey(keyPath)
@@ -652,6 +654,8 @@ fun FreeGroupWalletScreen(
                                 onChangeBip32Path = onChangeBip32Path,
                                 avatarColor = if (signer?.isVisible == false) avatarColors[colorIndex++ % avatarColors.size] else avatarColors[0],
                                 isInReplace = isInReplace,
+                                isNonStandardPath = !isInReplace && signer != null &&
+                                        state.nonStandardPathKeys.contains(signer.pathKey()),
                             )
                         }
                     }
@@ -897,6 +901,7 @@ private fun TaprootAddressContent(
                     showBip32Path = showBip32Path,
                     occupiedSlots = state.namedOccupied,
                     platformKeySubtitle = platformKeySubtitle,
+                    nonStandardPathKeys = if (state.isInReplaceMode) emptySet() else state.nonStandardPathKeys,
                 ),
                 signer = if (state.keyPath.isNotEmpty() && state.signers.isNotEmpty()) state.signers.first() else null,
                 onChangeBip32Path = { keyPath, signer ->
@@ -924,6 +929,7 @@ private fun TaprootAddressContent(
                         occupiedSlots = state.namedOccupied,
                         colorIndex = startingColorIndex,
                         platformKeySubtitle = platformKeySubtitle,
+                        nonStandardPathKeys = if (state.isInReplaceMode) emptySet() else state.nonStandardPathKeys,
                     ),
                     onChangeBip32Path = { keyPath, signer ->
                         onActionKey(keyPath, signer)
