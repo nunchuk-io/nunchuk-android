@@ -10,6 +10,7 @@ import com.nunchuk.android.model.inheritance.InheritanceValidationField
 import com.nunchuk.android.model.inheritance.OnChainInheritancePolicy
 import com.nunchuk.android.model.inheritance.OnChainInheritancePolicyType
 import com.nunchuk.android.model.inheritance.PrimaryInheritanceCondition
+import com.nunchuk.android.type.SignerType
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -286,6 +287,19 @@ class AddKeyListStateInheritanceTest {
         // Fallback 2 may reuse keys of other routes, B included.
         assertEquals(listOf("a", "b", "j"), state.draftCards.chooseKeyOptions(state.fallbackCards(1).single().card).map { it.fingerPrint })
         // The primary already holds J.
+        assertEquals(listOf("a", "b"), state.draftCards.chooseKeyOptions(state.primaryCards.single().card).map { it.fingerPrint })
+    }
+
+    @Test
+    fun `choose key never offers a TAPSIGNER for an inheritance route`() {
+        val tapsigner = DraftSetupSlot(
+            keyIndex = 4, accountIndex = 0, section = InheritanceSection.PRIMARY,
+            signer = signer("t").copy(type = SignerType.NFC), verifyType = VerifyType.APP_VERIFIED,
+        )
+        val state = withFallbacks(0 to listOf(fallbackSlot(8, null, false)))
+            .let { it.copy(draftCards = it.draftCards + card(InheritanceSection.SPENDING, tapsigner)) }
+
+        assertEquals(listOf("a", "b", "j"), state.draftCards.chooseKeyOptions(state.fallbackCards(0).single().card).map { it.fingerPrint })
         assertEquals(listOf("a", "b"), state.draftCards.chooseKeyOptions(state.primaryCards.single().card).map { it.fingerPrint })
     }
 

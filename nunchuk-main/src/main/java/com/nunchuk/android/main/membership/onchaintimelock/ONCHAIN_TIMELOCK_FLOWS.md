@@ -182,7 +182,7 @@ fixed step list:
   the guide ran this session (`isInheritanceGuideSeen`). Picking a key already in the setup (KEY-01a
   "Choose key") puts it in the slot straight away: no guide, no device-safety notice.
 * **Customized primary:** Add or Change (offered on every filled slot) opens `ChooseKeySheet` (KEY-01a)
-  when keys exist; the account comes from `DraftKeySlot.expectedAccount` (absent → 0, null → refused).
+  when keys exist (never a TAPSIGNER: on-chain inheritance keys need a BIP39 seed phrase); the account comes from `DraftKeySlot.expectedAccount` (absent → 0, null → refused).
   Cancel changes nothing.
 * **Verification** sends the recovered account (`key: {xfp, derivation_path, xpub}`): COLDCARD and
   air-gap pass the re-added signer; Ledger / BitBox / Trezor return `EXTRA_RECOVERED_KEY`; TAPSIGNER
@@ -212,7 +212,8 @@ fixed step list:
   and keep keys and times). Every call returns the draft, which is applied and then refreshed.
   * Fallback slots (FALLBACK cards, joined by `fallback_index`) use `DraftPrimarySlotCard`; Add always
     offers `ChooseKeySheet` in its fallback wording ("Choose a key for Fallback N", "Use a different
-    key") when other keys exist — a key already in the same route is not offered. The account comes
+    key") when other keys exist — a key already in the same route is not offered, and neither is a
+    TAPSIGNER (no BIP39 seed phrase, so never an on-chain inheritance key; `chooseKeyOptions`). The account comes
     from the card's `account_index_by_xfp` as for the primary. The fallback guide
     (`OnChainInheritanceGuide.FALLBACK` + `fallbackNumber`, KEY-05 / KEY-06) runs once per fallback
     (`AddKeyListState.isGuideSeen`), also for a key picked from the setup.

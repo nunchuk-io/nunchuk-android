@@ -10,6 +10,7 @@ import com.nunchuk.android.model.inheritance.InheritanceValidationField
 import com.nunchuk.android.model.inheritance.bip32AccountIndex
 import com.nunchuk.android.model.signer.SignerServer
 import com.nunchuk.android.type.SignerTag
+import com.nunchuk.android.type.SignerType
 
 /**
  * One account slot of a configurable on-chain draft card (NUN-10320 `cards[].keys[]`), joined to the
@@ -96,9 +97,12 @@ internal fun buildDraftSetupCards(
 
 /**
  * Keys already in this setup, one per device, that the choose-key sheet (KEY-01a) offers for a slot
- * on [card]. The Platform key and any key already in that route are left out; keys of other routes
- * are offered, because routes may share keys. A route is every card of the same section and fallback
- * (a customized primary comes as one card per key).
+ * on [card]. The Platform key, TAPSIGNER and any key already in that route are left out; keys of
+ * other routes are offered, because routes may share keys. A route is every card of the same section
+ * and fallback (a customized primary comes as one card per key).
+ *
+ * TAPSIGNER has no BIP39 seed phrase to hand over, so it is never an on-chain inheritance key,
+ * primary or fallback (design, 2026-11-02); "Add key" already hides it through the server's list.
  */
 internal fun List<DraftSetupCard>.chooseKeyOptions(card: DraftInheritanceCard): List<SignerModel> {
     val inThisRoute = filter { it.card.section == card.section && it.card.fallbackIndex == card.fallbackIndex }
@@ -107,7 +111,7 @@ internal fun List<DraftSetupCard>.chooseKeyOptions(card: DraftInheritanceCard): 
         .toSet()
     return filterNot { it.isServerKey }
         .flatMap { it.slots.mapNotNull { slot -> slot.signer } }
-        .filterNot { it.fingerPrint.lowercase() in inThisRoute }
+        .filterNot { it.type == SignerType.NFC || it.fingerPrint.lowercase() in inThisRoute }
         .distinctBy { it.fingerPrint.lowercase() }
 }
 
