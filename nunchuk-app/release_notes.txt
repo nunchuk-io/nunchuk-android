@@ -1,20 +1,29 @@
 Key compatibility warning — wallet creation (NUN-10341). Free and free group wallets only.
 
-How to get a non-standard key: on Configure wallet, More → Show BIP32 path, tap a key's path and
-change it (e.g. m/44h/0h/0h for a Native SegWit wallet), or use a key added at such a path.
+How to get a non-standard key: on Configure wallet (or Set up group wallet), More → Show BIP32 path,
+tap a key's path and change it (e.g. m/84h/0h/0h for a Native SegWit multisig).
 
-1. Review wallet
-   - Each affected key shows "Not the standard path for this wallet type." under its BIP32 path.
-   - Create wallet stays enabled.
+1. Key selection — Configure wallet (personal) / Taproot key selection
+   - Only TICKED keys are checked, for the wallet the selection makes (2+ ticked = multisig).
+   - A failing ticked key shows its BIP32 path (even when paths are hidden) and
+     "Not the standard path for this wallet type." Continue stays enabled.
+   - 1 ticked key (single-sig) or unticked keys: never flagged. Tick/untick updates the flag.
 
-2. Create wallet → "Review key compatibility" sheet
+2. Set up group wallet (free group)
+   - Each added key on a non-standard path is flagged under its card (also other members' keys),
+     with its path shown even when paths are hidden. Miniscript: flag under the key in the tree.
+
+3. Review wallet
+   - Each affected key shows the same flag under its BIP32 path. Create wallet stays enabled.
+
+4. Create wallet → "Review key compatibility" sheet
    - Lists the affected keys; copy says "This key…" (one) or "These keys…" (several).
    - Many keys: only the key list scrolls; the sentence and buttons stay visible.
    - Create anyway: wallet is created as configured. Back / swipe down: nothing is created.
 
-3. Remove non-standard key(s)
-   - Personal: back on Configure wallet (or Taproot key selection), the removed keys are unticked,
-     still flagged with their path shown; Required keys follows the ticked count.
+5. Remove non-standard key(s)
+   - Personal: back on Configure wallet (or Taproot key selection), the removed keys are unticked
+     and show no flag; ticking one again brings its flag back. Required keys follows the ticked count.
    - Group: only keys on THIS device are removed from the group; other members' flagged keys stay.
      If every flagged key belongs to another member, the sheet shows only Create anyway.
    - Miniscript: back to the configure step with those slots empty.
