@@ -1374,6 +1374,10 @@
         <item quantity="one">This key doesn’t use the standard BIP32 path for this wallet type.</item>
         <item quantity="other">These keys don’t use the standard BIP32 path for this wallet type.</item>
     </plurals>
+    <plurals name="nc_review_key_compatibility_desc_native_segwit_multisig">
+        <item quantity="one">This key doesn’t use the standard BIP32 path for a Native SegWit multisig wallet (%1$s).</item>
+        <item quantity="other">These keys don’t use the standard BIP32 path for a Native SegWit multisig wallet (%1$s).</item>
+    </plurals>
     <string name="nc_review_key_compatibility_create_anyway_desc">If you create it anyway, some signing devices may not be able to sign this wallet’s transactions, and other wallet apps may not import it.</string>
     <plurals name="nc_remove_non_standard_keys">
         <item quantity="one">Remove non-standard key</item>

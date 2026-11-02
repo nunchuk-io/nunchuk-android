@@ -252,6 +252,7 @@ fun ReviewWalletContent(
                 onRemoveNonStandardKeys = onRemoveNonStandardKeys,
                 onCreateAnyway = onCreateAnyway,
                 onDismiss = onDismissKeyCompatibilityWarning,
+                nativeSegwitMultisigPath = uiState.nativeSegwitMultisigPath,
             )
         }
         NcScaffold(

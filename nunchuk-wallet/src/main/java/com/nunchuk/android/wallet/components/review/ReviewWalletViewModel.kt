@@ -24,6 +24,7 @@ import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.GetTapSignerStatusByIdUseCase
 import com.nunchuk.android.core.domain.HasSignerUseCase
+import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
 import com.nunchuk.android.core.mapper.SingleSignerMapper
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
@@ -35,6 +36,8 @@ import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.listener.GroupDeleteListener
 import com.nunchuk.android.listener.GroupSandboxListener
 import com.nunchuk.android.nav.args.ReviewWalletArgs
+import com.nunchuk.android.type.AddressType
+import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.type.WalletType.ESCROW
@@ -54,6 +57,7 @@ import dagger.assisted.AssistedInject
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -71,6 +75,7 @@ internal class ReviewWalletViewModel @AssistedInject constructor(
     private val singleSignerMapper: SingleSignerMapper,
     private val getNonStandardPathSignersUseCase: GetNonStandardPathSignersUseCase,
     private val removeSignerFromGroupUseCase: RemoveSignerFromGroupUseCase,
+    private val getChainSettingFlowUseCase: GetChainSettingFlowUseCase,
 ) : NunchukViewModel<Unit, ReviewWalletEvent>() {
     private val _uiState = MutableStateFlow(ReviewWalletUiState(isGroupWallet = args.groupId.isNotEmpty()))
     val uiState = _uiState.asStateFlow()
@@ -86,6 +91,7 @@ internal class ReviewWalletViewModel @AssistedInject constructor(
     init {
         mapSigners()
         checkNonStandardPaths()
+        loadNativeSegwitMultisigPath()
         if (args.groupId.isNotEmpty()) {
             listenGroupSandbox()
         }
@@ -126,6 +132,19 @@ internal class ReviewWalletViewModel @AssistedInject constructor(
             ).onSuccess { keys ->
                 _uiState.update { it.copy(nonStandardPathKeys = keys) }
             }
+        }
+    }
+
+    /**
+     * The warning sheet names the standard path for a Native SegWit multisig wallet, with the coin
+     * type of the active network (0' mainnet, 1' testnet / signet).
+     */
+    private fun loadNativeSegwitMultisigPath() {
+        if (args.addressType != AddressType.NATIVE_SEGWIT || args.walletType != WalletType.MULTI_SIG) return
+        viewModelScope.launch {
+            val chain = getChainSettingFlowUseCase(Unit).first().getOrDefault(Chain.MAIN)
+            val coinType = if (chain == Chain.MAIN) 0 else 1
+            _uiState.update { it.copy(nativeSegwitMultisigPath = "m/48'/$coinType'/0'/2'") }
         }
     }
 
@@ -330,6 +349,7 @@ data class ReviewWalletUiState(
     val nonStandardPathKeys: Set<String> = emptySet(),
     val showKeyCompatibilityWarning: Boolean = false,
     val isGroupWallet: Boolean = false,
+    val nativeSegwitMultisigPath: String? = null,
 ) {
     val nonStandardSigners: List<SignerModel>
         get() = signers.filter { nonStandardPathKeys.contains(it.pathKey()) }.distinctBy { it.pathKey() }

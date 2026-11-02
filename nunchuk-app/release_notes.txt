@@ -18,6 +18,9 @@ tap a key's path and change it (e.g. m/84h/0h/0h for a Native SegWit multisig).
 
 4. Create wallet → "Review key compatibility" sheet
    - Lists the affected keys; copy says "This key…" (one) or "These keys…" (several).
+   - Native SegWit multisig (personal or free group) names the standard path:
+     "…for a Native SegWit multisig wallet (m/48'/0'/0'/2')." — m/48'/1'/0'/2' on testnet/signet.
+     Every other wallet (Nested SegWit, Legacy, Taproot, Miniscript, single-sig): "…for this wallet type."
    - Many keys: only the key list scrolls; the sentence and buttons stay visible.
    - Create anyway: wallet is created as configured. Back / swipe down: nothing is created.
 

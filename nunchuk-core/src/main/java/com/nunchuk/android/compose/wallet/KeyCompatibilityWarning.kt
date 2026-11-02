@@ -88,6 +88,7 @@ fun KeyCompatibilityWarningBottomSheet(
     onRemoveNonStandardKeys: () -> Unit,
     onCreateAnyway: () -> Unit,
     onDismiss: () -> Unit,
+    nativeSegwitMultisigPath: String? = null,
 ) {
     ModalBottomSheet(
         containerColor = MaterialTheme.colorScheme.backgroundPrimary,
@@ -101,6 +102,7 @@ fun KeyCompatibilityWarningBottomSheet(
             removableCount = removableCount,
             onRemoveNonStandardKeys = onRemoveNonStandardKeys,
             onCreateAnyway = onCreateAnyway,
+            nativeSegwitMultisigPath = nativeSegwitMultisigPath,
         )
     }
 }
@@ -111,6 +113,7 @@ private fun KeyCompatibilityWarningContent(
     removableCount: Int,
     onRemoveNonStandardKeys: () -> Unit = {},
     onCreateAnyway: () -> Unit = {},
+    nativeSegwitMultisigPath: String? = null,
 ) {
     val maxListHeight = (LocalConfiguration.current.screenHeightDp * 0.45f).dp
     Column(modifier = Modifier.navigationBarsPadding()) {
@@ -124,10 +127,19 @@ private fun KeyCompatibilityWarningContent(
                     style = NunchukTheme.typography.title,
                 )
                 Text(
-                    text = pluralStringResource(
-                        R.plurals.nc_review_key_compatibility_desc,
-                        signers.size,
-                    ),
+                    // Native SegWit multisig names its standard path; every other wallet stays generic.
+                    text = if (nativeSegwitMultisigPath != null) {
+                        pluralStringResource(
+                            R.plurals.nc_review_key_compatibility_desc_native_segwit_multisig,
+                            signers.size,
+                            nativeSegwitMultisigPath,
+                        )
+                    } else {
+                        pluralStringResource(
+                            R.plurals.nc_review_key_compatibility_desc,
+                            signers.size,
+                        )
+                    },
                     style = NunchukTheme.typography.body,
                 )
             }
@@ -239,6 +251,7 @@ private fun KeyCompatibilityWarningContentPreview() {
                     ),
                 ),
                 removableCount = 1,
+                nativeSegwitMultisigPath = "m/48'/0'/0'/2'",
             )
             NonStandardPathFlag(modifier = Modifier.padding(16.dp))
         }
