@@ -49,6 +49,7 @@ import com.nunchuk.android.compose.provider.SignersModelProvider
 import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.textSecondary
+import com.nunchuk.android.compose.wallet.pathKey
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.model.signer.SupportedSigner
 import com.nunchuk.android.model.signer.matches
@@ -271,6 +272,7 @@ fun TaprootConfigScreen(
                             checkable = checkable,
                             isChecked = isSelected,
                             isShowPath = state.isShowPath,
+                            isNonStandardPath = state.nonStandardPathKeys.contains(signer.pathKey()),
                             onSelectSigner = onSelectSigner,
                             onEditPath = onEditPath,
                         )

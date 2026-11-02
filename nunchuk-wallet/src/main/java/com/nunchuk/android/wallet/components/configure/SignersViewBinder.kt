@@ -22,6 +22,7 @@ package com.nunchuk.android.wallet.components.configure
 import android.view.ViewGroup
 import androidx.core.view.get
 import androidx.core.view.isVisible
+import com.nunchuk.android.compose.wallet.pathKey
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.toReadableDrawable
 import com.nunchuk.android.core.util.toReadableSignerType
@@ -37,6 +38,7 @@ internal class SignersViewBinder(
     val onItemSelectedListener: (SignerModel, Boolean) -> Unit,
     val onEditPath: (SignerModel) -> Unit,
     private val isShowPath: Boolean,
+    private val nonStandardPathKeys: Set<String> = emptySet(),
 ) : AbsViewBinder<SignerModel, ItemAssignSignerBinding>(container, signers) {
 
     override fun initializeBinding() = ItemAssignSignerBinding.inflate(inflater, container, false)
@@ -48,7 +50,10 @@ internal class SignersViewBinder(
         binding.ivSignerType.setImageDrawable(model.toReadableDrawable(context))
         binding.signerName.text = model.name
         binding.xfp.text = model.getXfpOrCardIdLabel()
-        binding.tvBip32Path.isVisible = model.derivationPath.isNotEmpty() && isShowPath
+        // Keys removed on Review wallet as non-standard always show their path and the flag.
+        val isNonStandardPath = nonStandardPathKeys.contains(model.pathKey())
+        binding.tvBip32Path.isVisible = model.derivationPath.isNotEmpty() && (isShowPath || isNonStandardPath)
+        binding.nonStandardFlag.isVisible = isNonStandardPath
         binding.tvBip32Path.text = context.getString(R.string.nc_bip32_path, model.derivationPath)
         if (model.isEditablePath.not()) {
             binding.tvBip32Path.setCompoundDrawablesRelativeWithIntrinsicBounds(0,0,0,0)

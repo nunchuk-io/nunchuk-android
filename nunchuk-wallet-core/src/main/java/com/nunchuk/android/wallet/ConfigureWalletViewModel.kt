@@ -267,7 +267,8 @@ class ConfigureWalletViewModel @Inject constructor(
 
     /**
      * Deselects keys dropped on Review wallet ("Remove non-standard keys") so their slots are empty
-     * again on key selection.
+     * again on key selection. The removed keys keep the non-standard flag (Figma E1); Required keys
+     * drops to the number of keys still ticked.
      */
     fun removeSigners(signers: List<SingleSigner>) {
         if (signers.isEmpty()) return
@@ -283,6 +284,7 @@ class ConfigureWalletViewModel @Inject constructor(
             it.copy(
                 keySet = it.keySet.filterNot { signer -> signer.isRemoved() }.toSet(),
                 totalRequireSigns = it.totalRequireSigns.coerceAtMost(newSet.size),
+                nonStandardPathKeys = it.nonStandardPathKeys + removedKeys,
             )
         }
     }

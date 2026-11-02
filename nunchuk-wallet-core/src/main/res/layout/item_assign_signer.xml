@@ -118,6 +118,39 @@
         app:layout_constraintTop_toBottomOf="@+id/xfp"
         tools:text="BIP32 path: m/48h/0h/0h" />
 
+    <!-- Key removed on Review wallet as non-standard (Figma key compatibility warning, E1). -->
+    <LinearLayout
+        android:id="@+id/non_standard_flag"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/nc_padding_16"
+        android:layout_marginTop="@dimen/nc_padding_4"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:visibility="gone"
+        app:layout_constraintEnd_toStartOf="@+id/checkbox"
+        app:layout_constraintStart_toEndOf="@+id/barrier"
+        app:layout_constraintTop_toBottomOf="@+id/tv_bip32_path"
+        tools:visibility="visible">
+
+        <ImageView
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:importantForAccessibility="no"
+            android:src="@drawable/ic_warning_outline"
+            app:tint="@color/nc_beeswax_dark" />
+
+        <com.nunchuk.android.widget.NCFontTextView
+            style="@style/NCText.Body.Small"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/nc_padding_4"
+            android:text="@string/nc_non_standard_path_flag"
+            android:textColor="@color/nc_beeswax_dark"
+            android:textSize="12sp"
+            app:fontTextStyle="bold" />
+    </LinearLayout>
+
     <CheckBox
         android:id="@+id/checkbox"
         android:layout_width="wrap_content"

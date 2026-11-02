@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.NcCheckBox
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.signer.SignerCard
+import com.nunchuk.android.compose.wallet.NonStandardPathFlag
 import com.nunchuk.android.core.R
 import com.nunchuk.android.core.signer.SignerModel
 
@@ -22,6 +23,7 @@ fun ConfigSignerItem(
     checkable: Boolean = true,
     isChecked: Boolean = false,
     isShowPath: Boolean = false,
+    isNonStandardPath: Boolean = false,
     onSelectSigner: (SignerModel, Boolean) -> Unit,
     onEditPath: (SignerModel) -> Unit = {},
 ) {
@@ -37,7 +39,7 @@ fun ConfigSignerItem(
                 modifier = Modifier.weight(1f),
                 item = signer,
             ) {
-                if (isShowPath && signer.derivationPath.isNotEmpty()) {
+                if ((isShowPath || isNonStandardPath) && signer.derivationPath.isNotEmpty()) {
                     Text(
                         modifier = Modifier
                             .padding(top = 4.dp)
@@ -45,6 +47,9 @@ fun ConfigSignerItem(
                         text = stringResource(R.string.nc_bip32_path, signer.derivationPath),
                         style = NunchukTheme.typography.bodySmall
                     )
+                }
+                if (isNonStandardPath) {
+                    NonStandardPathFlag(modifier = Modifier.padding(top = 4.dp))
                 }
             }
         } else {
@@ -54,7 +59,7 @@ fun ConfigSignerItem(
                 signerIcon = R.drawable.ic_signer_empty_state,
                 isShowKeyTypeBadge = false,
             ) {
-                if (isShowPath && signer.derivationPath.isNotEmpty()) {
+                if ((isShowPath || isNonStandardPath) && signer.derivationPath.isNotEmpty()) {
                     Text(
                         modifier = Modifier
                             .padding(top = 4.dp)
@@ -62,6 +67,9 @@ fun ConfigSignerItem(
                         text = stringResource(R.string.nc_bip32_path, signer.derivationPath),
                         style = NunchukTheme.typography.bodySmall
                     )
+                }
+                if (isNonStandardPath) {
+                    NonStandardPathFlag(modifier = Modifier.padding(top = 4.dp))
                 }
             }
         }

@@ -192,7 +192,8 @@ class ConfigureWalletActivity : BaseNfcActivity<ActivityConfigureWalletBinding>(
         bindSigners(
             state.allSigners,
             state.selectedSigners,
-            state.isShowPath
+            state.isShowPath,
+            state.nonStandardPathKeys,
         )
         bindTotalRequireSigns(requireSigns)
         binding.totalRequireSigns.bindWalletConfiguration(
@@ -209,9 +210,11 @@ class ConfigureWalletActivity : BaseNfcActivity<ActivityConfigureWalletBinding>(
     private fun bindSigners(
         signers: List<SignerModel>,
         selectedPFXs: Set<SignerModel>,
-        isShowPath: Boolean
+        isShowPath: Boolean,
+        nonStandardPathKeys: Set<String>,
     ) {
         SignersViewBinder(
+            nonStandardPathKeys = nonStandardPathKeys,
             container = binding.signersContainer,
             signers = signers,
             selectedSigners = selectedPFXs,
