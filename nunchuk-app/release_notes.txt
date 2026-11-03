@@ -4,10 +4,11 @@ How to get a non-standard key: on Configure wallet (or Set up group wallet), Mor
 tap a key's path and change it (e.g. m/84h/0h/0h for a Native SegWit multisig).
 
 1. Key selection — Configure wallet (personal) / Taproot key selection
-   - Only TICKED keys are checked, for the wallet the selection makes (2+ ticked = multisig).
+   - Only TICKED keys are checked, for the wallet the selection makes (1 ticked = single-sig, 2+ = multisig).
    - A failing ticked key shows its BIP32 path (even when paths are hidden) and the flag.
      Continue stays enabled.
-   - 1 ticked key (single-sig) or unticked keys: never flagged. Tick/untick updates the flag.
+   - 1 ticked key is checked as single-sig (e.g. Legacy expects m/44h/0h/0h); unticked keys are never
+     flagged. Tick/untick updates the flag.
 
 2. Set up group wallet (free group)
    - Each added key on a non-standard path is flagged inside its card, under the BIP32 path (also other members' keys),

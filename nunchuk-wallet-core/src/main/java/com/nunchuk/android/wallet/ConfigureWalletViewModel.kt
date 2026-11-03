@@ -130,18 +130,18 @@ class ConfigureWalletViewModel @Inject constructor(
 
     /**
      * Flags ticked keys whose BIP32 path isn't the standard one for the wallet the current selection
-     * makes (Figma K1, requirements §07). Unticked keys are never flagged, and one ticked key is a
-     * single-sig draft, which is out of scope, so nothing is flagged then.
+     * makes (Figma K1, requirements §07): one ticked key is checked as single-sig, two or more as
+     * multisig. Unticked keys are never flagged.
      */
     private suspend fun checkNonStandardPaths(selectedSigners: Set<SignerModel>) {
-        val keys = if (selectedSigners.size < 2 || !::args.isInitialized) {
+        val keys = if (selectedSigners.isEmpty() || !::args.isInitialized) {
             emptySet()
         } else {
             getNonStandardPathSignersUseCase(
                 GetNonStandardPathSignersUseCase.Param(
                     signers = selectedSigners.map { it.toSingleSigner() },
                     addressType = args.addressType,
-                    walletType = WalletType.MULTI_SIG,
+                    walletType = if (selectedSigners.size == 1) WalletType.SINGLE_SIG else WalletType.MULTI_SIG,
                 )
             ).getOrDefault(emptySet())
         }
