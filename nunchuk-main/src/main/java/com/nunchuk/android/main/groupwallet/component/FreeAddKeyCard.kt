@@ -212,7 +212,7 @@ private fun KeyAddedView(
         else -> MaterialTheme.colorScheme.surface
     }
     Column {
-        Row(
+        Column(
             modifier = modifier
                 .border(
                     width = 1.dp,
@@ -221,121 +221,121 @@ private fun KeyAddedView(
                 )
                 .background(color, shape = RoundedCornerShape(8.dp))
                 .padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically
         ) {
-            if (targetSigner.isVisible || showSignerCardForInvisibleSigner) {
-                SignerCard(item = targetSigner, modifier = Modifier.weight(1.0f)) {
-                    if (showPath) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (targetSigner.isVisible || showSignerCardForInvisibleSigner) {
+                    SignerCard(item = targetSigner, modifier = Modifier.weight(1.0f)) {
+                        if (showPath) {
+                            Row(
+                                modifier = Modifier.clickable(
+                                    onClick = {
+                                        onChangeBip32Path(index, targetSigner)
+                                    },
+                                    enabled = targetSigner.isMasterSigner,
+                                ),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            ) {
+                                Text(
+                                    modifier = Modifier.weight(1f, false),
+                                    text = stringResource(
+                                        R.string.nc_bip32_path,
+                                        targetSigner.derivationPath
+                                    ),
+                                    style = if (targetSigner.isMasterSigner) {
+                                        NunchukTheme.typography.bodySmall.copy(textDecoration = TextDecoration.Underline)
+                                    } else {
+                                        NunchukTheme.typography.bodySmall
+                                    },
+                                    color = MaterialTheme.colorScheme.textSecondary
+                                )
+                                if (targetSigner.isMasterSigner) {
+                                    NcIcon(
+                                        modifier = Modifier.size(12.dp),
+                                        painter = painterResource(id = R.drawable.ic_edit_small),
+                                        contentDescription = stringResource(R.string.nc_main_cd_edit_icon)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    NcCircleImage(
+                        iconSize = 24.dp,
+                        resId = R.drawable.ic_user,
+                        color = avatarColor,
+                        iconTintColor = Color.White,
+                        size = 48.dp
+                    )
+                    Column(
+                        modifier = Modifier
+                            .weight(1.0f)
+                            .padding(start = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.nc_key_with_index, "#${index + 1}"),
+                            style = NunchukTheme.typography.body
+                        )
                         Row(
-                            modifier = Modifier.clickable(
-                                onClick = {
-                                    onChangeBip32Path(index, targetSigner)
-                                },
-                                enabled = targetSigner.isMasterSigner,
-                            ),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
+                            if (targetSigner.isShowAcctX()) {
+                                NcTag(
+                                    label = stringResource(
+                                        com.nunchuk.android.core.R.string.nc_acct_x,
+                                        targetSigner.index
+                                    ),
+                                    backgroundColor = colorResource(
+                                        id = com.nunchuk.android.core.R.color.nc_bg_mid_gray
+                                    ),
+                                )
+                            }
+                        }
+                        if (targetSigner.type != SignerType.SERVER) {
                             Text(
-                                modifier = Modifier.weight(1f, false),
+                                text = targetSigner.getXfpOrCardIdLabel(),
+                                style = NunchukTheme.typography.bodySmall,
+                            )
+                        }
+                        if (showPath) {
+                            Text(
                                 text = stringResource(
                                     R.string.nc_bip32_path,
                                     targetSigner.derivationPath
                                 ),
-                                style = if (targetSigner.isMasterSigner) {
-                                    NunchukTheme.typography.bodySmall.copy(textDecoration = TextDecoration.Underline)
-                                } else {
-                                    NunchukTheme.typography.bodySmall
-                                },
+                                style = NunchukTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.textSecondary
                             )
-                            if (targetSigner.isMasterSigner) {
-                                NcIcon(
-                                    modifier = Modifier.size(12.dp),
-                                    painter = painterResource(id = R.drawable.ic_edit_small),
-                                    contentDescription = stringResource(R.string.nc_main_cd_edit_icon)
-                                )
-                            }
                         }
-                    }
-                    if (isNonStandardPath) {
-                        NonStandardPathFlag(
-                            modifier = Modifier.padding(top = 4.dp),
-                            isNativeSegwitMultisig = isNativeSegwitMultisig,
-                        )
                     }
                 }
-            } else {
-                NcCircleImage(
-                    iconSize = 24.dp,
-                    resId = R.drawable.ic_user,
-                    color = avatarColor,
-                    iconTintColor = Color.White,
-                    size = 48.dp
-                )
-                Column(
-                    modifier = Modifier
-                        .weight(1.0f)
-                        .padding(start = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    Text(
-                        text = stringResource(R.string.nc_key_with_index, "#${index + 1}"),
-                        style = NunchukTheme.typography.body
-                    )
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                if (targetSigner.isVisible || isInReplace) {
+                    val isReplaced = replacedSigner != null
+                    NcOutlineButton(
+                        height = 36.dp,
+                        onClick = { onRemoveOrReplaceClicked(isInReplace && !isReplaced) },
                     ) {
-                        if (targetSigner.isShowAcctX()) {
-                            NcTag(
-                                label = stringResource(
-                                    com.nunchuk.android.core.R.string.nc_acct_x,
-                                    targetSigner.index
-                                ),
-                                backgroundColor = colorResource(
-                                    id = com.nunchuk.android.core.R.color.nc_bg_mid_gray
-                                ),
-                            )
-                        }
-                    }
-                    if (targetSigner.type != SignerType.SERVER) {
-                        Text(
-                            text = targetSigner.getXfpOrCardIdLabel(),
-                            style = NunchukTheme.typography.bodySmall,
-                        )
-                    }
-                    if (showPath) {
                         Text(
                             text = stringResource(
-                                R.string.nc_bip32_path,
-                                targetSigner.derivationPath
+                                id =
+                                if (isInReplace && !isReplaced)
+                                    R.string.nc_replace
+                                else
+                                    R.string.nc_remove
                             ),
-                            style = NunchukTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.textSecondary
+                            style = NunchukTheme.typography.captionTitle
                         )
-                    }
-                    if (isNonStandardPath) {
-                        NonStandardPathFlag(isNativeSegwitMultisig = isNativeSegwitMultisig)
                     }
                 }
             }
-            if (targetSigner.isVisible || isInReplace) {
-                val isReplaced = replacedSigner != null
-                NcOutlineButton(
-                    height = 36.dp,
-                    onClick = { onRemoveOrReplaceClicked(isInReplace && !isReplaced) },
-                ) {
-                    Text(
-                        text = stringResource(
-                            id =
-                            if (isInReplace && !isReplaced)
-                                R.string.nc_replace
-                            else
-                                R.string.nc_remove
-                        ),
-                        style = NunchukTheme.typography.captionTitle
-                    )
-                }
+            if (isNonStandardPath) {
+                // Below the whole key row, full width, so Remove stays centred on the row (Figma F1).
+                // Starts under the key name: avatar 48dp + gap 8dp.
+                NonStandardPathFlag(
+                    modifier = Modifier.padding(start = 56.dp, top = 4.dp),
+                    isNativeSegwitMultisig = isNativeSegwitMultisig,
+                )
             }
         }
 
