@@ -20,15 +20,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.Velocity
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.backgroundPrimary
@@ -95,6 +92,8 @@ fun KeyCompatibilityWarningBottomSheet(
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
         onDismissRequest = onDismiss,
+        // The key list scrolls; sheet gestures make a fling past its end bounce the whole sheet.
+        sheetGesturesEnabled = false,
         tonalElevation = 0.dp,
     ) {
         KeyCompatibilityWarningContent(
@@ -144,9 +143,7 @@ private fun KeyCompatibilityWarningContent(
                 )
             }
             LazyColumn(
-                modifier = Modifier
-                    .heightIn(max = maxListHeight)
-                    .nestedScroll(ConsumeUpwardFlingConnection),
+                modifier = Modifier.heightIn(max = maxListHeight),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 items(signers, key = { "${it.fingerPrint}|${it.derivationPath}" }) { signer ->
@@ -209,15 +206,6 @@ private fun KeyCompatibilityWarningContent(
             }
         }
     }
-}
-
-/**
- * Keeps the list's leftover upward fling from reaching [ModalBottomSheet]: the sheet settles with
- * that velocity even when already expanded, so it overshoots past the top and bounces back.
- */
-private val ConsumeUpwardFlingConnection = object : NestedScrollConnection {
-    override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity =
-        if (available.y < 0) available else Velocity.Zero
 }
 
 @Composable
