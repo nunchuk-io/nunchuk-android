@@ -151,6 +151,13 @@ private fun KeyCompatibilityWarningContent(
                     NonStandardKeyCard(signer = signer)
                 }
             }
+            // Group wallet: some flagged keys were added by other members (F2, F2b).
+            if (removableCount < signers.size) {
+                Text(
+                    text = stringResource(R.string.nc_review_key_compatibility_only_owner_can_remove),
+                    style = NunchukTheme.typography.body,
+                )
+            }
             Text(
                 modifier = Modifier.padding(bottom = 16.dp),
                 text = stringResource(R.string.nc_review_key_compatibility_create_anyway_desc),

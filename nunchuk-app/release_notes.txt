@@ -29,6 +29,8 @@ tap a key's path and change it (e.g. m/84h/0h/0h for a Native SegWit multisig).
      and show no flag; ticking one again brings its flag back. Required keys follows the ticked count.
    - Group: only keys on THIS device are removed from the group; other members' flagged keys stay.
      If every flagged key belongs to another member, the sheet shows only Create anyway.
+   - Group: when any flagged key belongs to another member, the sheet also says
+     "Only the member who added a key can remove it."
    - Miniscript: back to the configure step with those slots empty.
 
 Report: screen, steps, and a screenshot for anything that looks off.

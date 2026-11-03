@@ -1379,6 +1379,7 @@
         <item quantity="other">These keys don’t use the standard BIP32 path for a Native SegWit multisig wallet (%1$s).</item>
     </plurals>
     <string name="nc_review_key_compatibility_create_anyway_desc">If you create it anyway, some signing devices may not be able to sign this wallet’s transactions, and other wallet apps may not import it.</string>
+    <string name="nc_review_key_compatibility_only_owner_can_remove">Only the member who added a key can remove it.</string>
     <plurals name="nc_remove_non_standard_keys">
         <item quantity="one">Remove non-standard key</item>
         <item quantity="other">Remove non-standard keys</item>
