@@ -22,11 +22,13 @@ package com.nunchuk.android.wallet.components.configure
 import android.view.ViewGroup
 import androidx.core.view.get
 import androidx.core.view.isVisible
+import com.nunchuk.android.compose.wallet.NON_STANDARD_PATH_FLAG_ICON
 import com.nunchuk.android.compose.wallet.pathKey
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.toReadableDrawable
 import com.nunchuk.android.core.util.toReadableSignerType
 import com.nunchuk.android.wallet.R
+import com.nunchuk.android.core.R as CoreR
 import com.nunchuk.android.wallet.core.databinding.ItemAssignSignerBinding
 import com.nunchuk.android.widget.util.AbsViewBinder
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
@@ -39,6 +41,8 @@ internal class SignersViewBinder(
     val onEditPath: (SignerModel) -> Unit,
     private val isShowPath: Boolean,
     private val nonStandardPathKeys: Set<String> = emptySet(),
+    // Native SegWit with 2+ ticked keys: the flag names multisig and BIP48.
+    private val isNativeSegwitMultisig: Boolean = false,
 ) : AbsViewBinder<SignerModel, ItemAssignSignerBinding>(container, signers) {
 
     override fun initializeBinding() = ItemAssignSignerBinding.inflate(inflater, container, false)
@@ -54,6 +58,10 @@ internal class SignersViewBinder(
         val isNonStandardPath = selectedSigners.contains(model) && nonStandardPathKeys.contains(model.pathKey())
         binding.tvBip32Path.isVisible = model.derivationPath.isNotEmpty() && (isShowPath || isNonStandardPath)
         binding.nonStandardFlag.isVisible = isNonStandardPath
+        binding.nonStandardFlag.text = NON_STANDARD_PATH_FLAG_ICON + context.getString(
+            if (isNativeSegwitMultisig) CoreR.string.nc_non_standard_path_flag_multisig
+            else CoreR.string.nc_non_standard_path_flag
+        )
         binding.tvBip32Path.text = context.getString(R.string.nc_bip32_path, model.derivationPath)
         if (model.isEditablePath.not()) {
             binding.tvBip32Path.setCompoundDrawablesRelativeWithIntrinsicBounds(0,0,0,0)

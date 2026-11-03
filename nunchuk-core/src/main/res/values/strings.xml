@@ -1369,6 +1369,7 @@
     <string name="nc_miniscript_days">Days</string>
     <string name="nc_miniscript_hours">Hours</string>
     <string name="nc_non_standard_path_flag">Not the standard path for this wallet type.</string>
+    <string name="nc_non_standard_path_flag_multisig">Not the standard path for multisig. Please use BIP48 derivation.</string>
     <string name="nc_review_key_compatibility">Review key compatibility</string>
     <plurals name="nc_review_key_compatibility_desc">
         <item quantity="one">This key doesn’t use the standard BIP32 path for this wallet type.</item>

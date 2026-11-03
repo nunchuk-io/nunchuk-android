@@ -656,6 +656,8 @@ fun FreeGroupWalletScreen(
                                 isInReplace = isInReplace,
                                 isNonStandardPath = !isInReplace && signer != null &&
                                         state.nonStandardPathKeys.contains(signer.pathKey()),
+                                isNativeSegwitMultisig = state.group?.addressType == AddressType.NATIVE_SEGWIT &&
+                                        state.group?.walletType != WalletType.MINISCRIPT,
                             )
                         }
                     }

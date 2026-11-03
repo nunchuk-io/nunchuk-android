@@ -5,12 +5,12 @@ tap a key's path and change it (e.g. m/84h/0h/0h for a Native SegWit multisig).
 
 1. Key selection — Configure wallet (personal) / Taproot key selection
    - Only TICKED keys are checked, for the wallet the selection makes (2+ ticked = multisig).
-   - A failing ticked key shows its BIP32 path (even when paths are hidden) and
-     "Not the standard path for this wallet type." Continue stays enabled.
+   - A failing ticked key shows its BIP32 path (even when paths are hidden) and the flag.
+     Continue stays enabled.
    - 1 ticked key (single-sig) or unticked keys: never flagged. Tick/untick updates the flag.
 
 2. Set up group wallet (free group)
-   - Each added key on a non-standard path is flagged under its card (also other members' keys),
+   - Each added key on a non-standard path is flagged inside its card, under the BIP32 path (also other members' keys),
      with its path shown even when paths are hidden. Miniscript: flag under the key in the tree.
 
 3. Review wallet
@@ -32,5 +32,9 @@ tap a key's path and change it (e.g. m/84h/0h/0h for a Native SegWit multisig).
    - Group: when any flagged key belongs to another member, the sheet also says
      "Only the member who added a key can remove it."
    - Miniscript: back to the configure step with those slots empty.
+
+Flag copy (with an inline ⚠ that wraps with the text):
+   - Native SegWit multisig (personal 2+ ticked keys, or free group): "Not the standard path for multisig. Please use BIP48 derivation."
+   - Every other wallet type (single-sig, Nested SegWit, Legacy, Taproot, Miniscript): "Not the standard path for this wallet type."
 
 Report: screen, steps, and a screenshot for anything that looks off.

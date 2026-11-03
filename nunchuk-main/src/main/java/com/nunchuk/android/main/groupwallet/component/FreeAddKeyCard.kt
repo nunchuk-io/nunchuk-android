@@ -61,6 +61,7 @@ fun FreeAddKeyCard(
     avatarColor: Color = avatarColors[0],
     isInReplace: Boolean = false,
     isNonStandardPath: Boolean = false,
+    isNativeSegwitMultisig: Boolean = false,
 ) {
     val pendingReplaceSigner = replacedSigner
         ?.takeUnless { isInReplace && it.isPendingReplacementPlaceholder() }
@@ -79,6 +80,7 @@ fun FreeAddKeyCard(
             avatarColor = avatarColor,
             showSignerCardForInvisibleSigner = isInReplace && !isReplaced,
             isNonStandardPath = isNonStandardPath,
+            isNativeSegwitMultisig = isNativeSegwitMultisig,
             onRemoveOrReplaceClicked = onRemoveOrReplaceClicked,
         )
     } else {
@@ -198,10 +200,11 @@ private fun KeyAddedView(
     avatarColor: Color,
     showSignerCardForInvisibleSigner: Boolean,
     isNonStandardPath: Boolean,
+    isNativeSegwitMultisig: Boolean,
     onRemoveOrReplaceClicked: (Boolean) -> Unit
 ) {
     val targetSigner = replacedSigner ?: signer
-    // A key on a non-standard path always shows its path, with the flag under the card.
+    // A key on a non-standard path always shows its path, with the flag under it inside the card.
     val showPath = showBip32Path || isNonStandardPath
     val color = when {
         replacedSigner != null -> MaterialTheme.colorScheme.fillSlimeT2
@@ -255,6 +258,12 @@ private fun KeyAddedView(
                             }
                         }
                     }
+                    if (isNonStandardPath) {
+                        NonStandardPathFlag(
+                            modifier = Modifier.padding(top = 4.dp),
+                            isNativeSegwitMultisig = isNativeSegwitMultisig,
+                        )
+                    }
                 }
             } else {
                 NcCircleImage(
@@ -305,6 +314,9 @@ private fun KeyAddedView(
                             color = MaterialTheme.colorScheme.textSecondary
                         )
                     }
+                    if (isNonStandardPath) {
+                        NonStandardPathFlag(isNativeSegwitMultisig = isNativeSegwitMultisig)
+                    }
                 }
             }
             if (targetSigner.isVisible || isInReplace) {
@@ -325,11 +337,6 @@ private fun KeyAddedView(
                     )
                 }
             }
-        }
-
-        if (isNonStandardPath) {
-            // Lines up with the key's text: card padding 12dp + avatar 48dp + gap 8dp (Figma F1).
-            NonStandardPathFlag(modifier = Modifier.padding(start = 68.dp, top = 4.dp))
         }
 
         if (replacedSigner != null) {

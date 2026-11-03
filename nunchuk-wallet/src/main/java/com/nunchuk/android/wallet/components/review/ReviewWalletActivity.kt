@@ -415,7 +415,10 @@ fun ReviewWalletContent(
                                     )
                                 }
                                 if (uiState.nonStandardPathKeys.contains(signer.pathKey())) {
-                                    NonStandardPathFlag(modifier = Modifier.padding(top = 4.dp))
+                                    NonStandardPathFlag(
+                                        modifier = Modifier.padding(top = 4.dp),
+                                        isNativeSegwitMultisig = uiState.nativeSegwitMultisigPath != null,
+                                    )
                                 }
                             }
                         } else {
@@ -438,7 +441,10 @@ fun ReviewWalletContent(
                                     )
                                 }
                                 if (uiState.nonStandardPathKeys.contains(signer.pathKey())) {
-                                    NonStandardPathFlag(modifier = Modifier.padding(top = 4.dp))
+                                    NonStandardPathFlag(
+                                        modifier = Modifier.padding(top = 4.dp),
+                                        isNativeSegwitMultisig = uiState.nativeSegwitMultisigPath != null,
+                                    )
                                 }
                             }
                         }

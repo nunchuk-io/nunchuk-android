@@ -3,12 +3,10 @@ package com.nunchuk.android.compose.wallet
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -21,16 +19,13 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.backgroundPrimary
@@ -48,28 +43,30 @@ import com.nunchuk.android.usecase.pathKey
 fun SignerModel.pathKey(): String = pathKey(fingerPrint, derivationPath)
 
 /**
- * Inline flag shown under a key whose BIP32 path isn't the standard one for the wallet
- * ("Not the standard path for this wallet type.").
+ * Warning sign embedded in the flag text (text presentation, so it takes the text colour and
+ * wraps with the copy instead of standing alone).
+ */
+const val NON_STANDARD_PATH_FLAG_ICON = "⚠︎ "
+
+/**
+ * Inline flag shown under a key whose BIP32 path isn't the standard one for the wallet.
+ * Native SegWit multisig: "Not the standard path for multisig. Please use BIP48 derivation.";
+ * every other wallet type: "Not the standard path for this wallet type.".
  */
 @Composable
-fun NonStandardPathFlag(modifier: Modifier = Modifier) {
-    Row(
+fun NonStandardPathFlag(
+    modifier: Modifier = Modifier,
+    isNativeSegwitMultisig: Boolean = false,
+) {
+    Text(
         modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
-    ) {
-        NcIcon(
-            modifier = Modifier.size(16.dp),
-            painter = painterResource(id = R.drawable.ic_warning_outline),
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.beeswaxDark,
-        )
-        Text(
-            text = stringResource(R.string.nc_non_standard_path_flag),
-            style = NunchukTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
-            color = MaterialTheme.colorScheme.beeswaxDark,
-        )
-    }
+        text = NON_STANDARD_PATH_FLAG_ICON + stringResource(
+            if (isNativeSegwitMultisig) R.string.nc_non_standard_path_flag_multisig
+            else R.string.nc_non_standard_path_flag
+        ),
+        style = NunchukTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
+        color = MaterialTheme.colorScheme.beeswaxDark,
+    )
 }
 
 /**
@@ -260,7 +257,7 @@ private fun KeyCompatibilityWarningContentPreview() {
                 removableCount = 1,
                 nativeSegwitMultisigPath = "m/48'/0'/0'/2'",
             )
-            NonStandardPathFlag(modifier = Modifier.padding(16.dp))
+            NonStandardPathFlag(modifier = Modifier.padding(16.dp), isNativeSegwitMultisig = true)
         }
     }
 }

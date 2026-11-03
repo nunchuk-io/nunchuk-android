@@ -38,6 +38,7 @@ import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.nav.args.ConfigureWalletArgs
 import com.nunchuk.android.nav.args.ReviewWalletArgs
 import com.nunchuk.android.share.wallet.bindWalletConfiguration
+import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.wallet.ConfigureWalletEvent
@@ -215,6 +216,7 @@ class ConfigureWalletActivity : BaseNfcActivity<ActivityConfigureWalletBinding>(
     ) {
         SignersViewBinder(
             nonStandardPathKeys = nonStandardPathKeys,
+            isNativeSegwitMultisig = args.addressType == AddressType.NATIVE_SEGWIT && selectedPFXs.size > 1,
             container = binding.signersContainer,
             signers = signers,
             selectedSigners = selectedPFXs,
