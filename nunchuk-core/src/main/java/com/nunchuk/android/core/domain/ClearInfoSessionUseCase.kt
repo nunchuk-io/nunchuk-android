@@ -22,6 +22,7 @@ package com.nunchuk.android.core.domain
 import com.google.firebase.messaging.FirebaseMessaging
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.account.PrimaryKeySignerInfoHolder
+import com.nunchuk.android.core.matrix.MatrixSessionRecovery
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.persistence.NcDataStore
 import com.nunchuk.android.core.persistence.NcEncryptedPreferences
@@ -46,12 +47,15 @@ class ClearInfoSessionUseCase @Inject constructor(
     private val notificationDeviceUnregisterUseCase: NotificationDeviceUnregisterUseCase,
     private val settingRepository: SettingRepository,
     private val encryptedPreferences: NcEncryptedPreferences,
+    private val matrixSessionRecovery: MatrixSessionRecovery,
 ) : UseCase<Unit, Unit>(dispatcher) {
 
     override suspend fun execute(parameters: Unit) {
         // Must run before the account is cleared, otherwise the request goes out without
         // the Authorization header and the server keeps the device registered.
         unregisterNotificationDevice()
+        // A recovery finishing after this point must not install a session for the old account.
+        matrixSessionRecovery.cancel()
         sessionHolder.clearActiveSession()
         val currentChatId = accountManager.getAccount().chatId
         if (currentChatId.isNotEmpty()) {

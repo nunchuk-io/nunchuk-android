@@ -26,6 +26,8 @@ import com.nunchuk.android.core.network.ApiConstant.HEADER_CONTENT_TYPE
 import com.nunchuk.android.core.network.ApiConstant.HEADER_CONTENT_TYPE_VALUE
 import com.nunchuk.android.core.network.ApiConstant.HEADER_DEVICE_CLASS
 import com.nunchuk.android.core.network.ApiConstant.HEADER_DEVICE_ID
+import com.nunchuk.android.core.network.ApiConstant.HEADER_DEVICE_NAME
+import com.nunchuk.android.core.network.ApiConstant.HEADER_DEVICE_NAME_MAX_LENGTH
 import com.nunchuk.android.core.network.ApiConstant.HEADER_OS_NAME
 import com.nunchuk.android.core.network.ApiConstant.HEADER_OS_VERSION
 import com.nunchuk.android.core.network.ApiConstant.HEADER_TOKEN_TYPE
@@ -41,6 +43,7 @@ class HeaderInterceptor @Inject constructor(
     override fun intercept(chain: Interceptor.Chain): Response {
         val request = chain.request().newBuilder()
             .validHeader(HEADER_DEVICE_ID, headerProvider.getDeviceId())
+            .validHeader(HEADER_DEVICE_NAME, sanitizeDeviceName(headerProvider.getDeviceName()))
             .validHeader(HEADER_APP_VERSION, headerProvider.getAppVersion())
             .validHeader(HEADER_OS_VERSION, headerProvider.getOsVersion())
             .validHeader(HEADER_OS_NAME, headerProvider.getOSName())
@@ -60,4 +63,16 @@ internal fun Request.Builder.validHeader(name: String, value: String?): Request.
         header(name, value)
     }
     return this
+}
+
+/**
+ * The phone model as a header value, or null to omit the header. OkHttp throws on characters
+ * outside printable ASCII, so anything it would reject (control characters, non-ASCII, over-long)
+ * drops the header rather than failing the request.
+ */
+internal fun sanitizeDeviceName(name: String?): String? {
+    val value = name?.trim().orEmpty()
+    if (value.isEmpty() || value.length > HEADER_DEVICE_NAME_MAX_LENGTH) return null
+    if (value.any { it !in '\u0020'..'\u007e' }) return null
+    return value
 }

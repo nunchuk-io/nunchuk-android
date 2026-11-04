@@ -27,6 +27,9 @@ import androidx.activity.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.matrix.MatrixEvenBus
+import com.nunchuk.android.core.matrix.MatrixEvent
+import com.nunchuk.android.core.matrix.MatrixEventListener
 import com.nunchuk.android.core.profile.UserDeviceResponse
 import com.nunchuk.android.settings.R
 import com.nunchuk.android.settings.databinding.ActivityUserDevicesBinding
@@ -41,6 +44,14 @@ class UserDevicesActivity : BaseActivity<ActivityUserDevicesBinding>() {
 
     private lateinit var adapter: UserDevicesAdapter
 
+
+    // A recovered Matrix session can change which row is this phone (API ID -> Matrix ID), so reload.
+    private val matrixEventListener: MatrixEventListener = {
+        if (it is MatrixEvent.SignedInEvent) {
+            runOnUiThread { viewModel.getUserDevices() }
+        }
+    }
+
     override fun initializeBinding() = ActivityUserDevicesBinding.inflate(layoutInflater).also {
         enableEdgeToEdge()
     }
@@ -51,6 +62,12 @@ class UserDevicesActivity : BaseActivity<ActivityUserDevicesBinding>() {
         setupViews()
         setupDate()
         observeEvent()
+        MatrixEvenBus.instance.subscribe(matrixEventListener)
+    }
+
+    override fun onDestroy() {
+        MatrixEvenBus.instance.unsubscribe(matrixEventListener)
+        super.onDestroy()
     }
 
     private fun setupDate() {

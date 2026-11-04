@@ -24,6 +24,7 @@ import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.messages.components.list.isServerNotices
 import com.nunchuk.android.usecase.contact.GetContactByChatIdUseCase
 import com.nunchuk.android.utils.CrashlyticsReporter
+import dagger.Lazy
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.launch
@@ -37,10 +38,20 @@ import javax.inject.Singleton
 class SessionListener @Inject constructor(
     @IoDispatcher private val dispatcher: CoroutineDispatcher,
     private val getContactByChatIdUseCase: GetContactByChatIdUseCase,
+    // Lazy: the recovery installs sessions through SessionHolder, which depends on this listener.
+    private val sessionRecovery: Lazy<MatrixSessionRecovery>,
 ) : Session.Listener {
     override fun onGlobalError(session: Session, globalError: GlobalError) {
-        if (globalError is GlobalError.InvalidToken || globalError === GlobalError.ExpiredAccount) {
-            CrashlyticsReporter.recordException(UnauthorizedException("Matrix unauthorized"))
+        when {
+            globalError is GlobalError.InvalidToken -> {
+                CrashlyticsReporter.recordException(UnauthorizedException("Matrix invalid token, softLogout=${globalError.softLogout}"))
+                sessionRecovery.get().onInvalidToken(session, globalError.softLogout)
+            }
+
+            globalError === GlobalError.ExpiredAccount -> {
+                CrashlyticsReporter.recordException(UnauthorizedException("Matrix account expired"))
+                sessionRecovery.get().onAccountExpired()
+            }
         }
     }
 

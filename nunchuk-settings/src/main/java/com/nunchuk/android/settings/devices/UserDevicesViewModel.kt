@@ -21,11 +21,12 @@ package com.nunchuk.android.settings.devices
 
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
+import com.nunchuk.android.core.account.AccountManager
+import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.profile.CompromiseUserDevicesUseCase
 import com.nunchuk.android.core.profile.DeleteUserDevicesUseCase
 import com.nunchuk.android.core.profile.GetUserDevicesUseCase
 import com.nunchuk.android.core.profile.UserDeviceResponse
-import com.nunchuk.android.utils.DeviceManager
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -39,7 +40,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 internal class UserDevicesViewModel @Inject constructor(
-    private val deviceManager: DeviceManager,
+    private val accountManager: AccountManager,
+    private val sessionHolder: SessionHolder,
     private val getUserDevicesUseCase: GetUserDevicesUseCase,
     private val deleteUserDevicesUseCase: DeleteUserDevicesUseCase,
     private val compromiseUserDevicesUseCase: CompromiseUserDevicesUseCase
@@ -47,15 +49,7 @@ internal class UserDevicesViewModel @Inject constructor(
 
     override val initialState = UserDeviceState()
 
-    private fun getCurrentDeviceId(): String {
-        return deviceManager.getDeviceId()
-    }
-
-    private fun findCurrentDevice(devices: List<UserDeviceResponse>): UserDeviceResponse? {
-        return devices.find { it.id == getCurrentDeviceId() }
-    }
-
-    fun getCurrentDeviceList() = state.value?.devices.orEmpty()
+    fun getCurrentDeviceList() = state.value?.devices.orEmpty().map { it.device }
 
     fun getUserDevices() {
         viewModelScope.launch {
@@ -71,7 +65,11 @@ internal class UserDevicesViewModel @Inject constructor(
                     event(UserDeviceEvent.Loading(false))
                 }
                 .collect {
-                    val newSortedDevices = generateNewSortedDevices(it)
+                    val newSortedDevices = buildUserDeviceList(
+                        devices = it,
+                        matrixDeviceId = currentMatrixDeviceId(),
+                        apiDeviceId = accountManager.getAccount().deviceId,
+                    )
                     updateState {
                         copy(
                             devices = newSortedDevices
@@ -81,19 +79,9 @@ internal class UserDevicesViewModel @Inject constructor(
         }
     }
 
-    private fun generateNewSortedDevices(devices: List<UserDeviceResponse>): List<UserDeviceResponse> {
-        val currentDevice = findCurrentDevice(devices)
-        val result = mutableListOf<UserDeviceResponse>()
-        currentDevice?.let { device ->
-            result.add(device)
-        }
-
-        val oldSortedDevices = devices.sortedByDescending { device -> device.lastTs }.toMutableList()
-        oldSortedDevices.remove(currentDevice)
-
-        result.addAll(oldSortedDevices)
-        return result
-    }
+    // Only a session for the signed-in account identifies this phone; another account's session must not.
+    private fun currentMatrixDeviceId(): String? =
+        sessionHolder.getMatrixDeviceId(accountManager.getAccount().chatId)
 
     fun deleteDevices(devices: List<UserDeviceResponse>) {
         if (devices.isEmpty()) {

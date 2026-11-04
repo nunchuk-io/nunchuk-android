@@ -141,7 +141,11 @@ internal class SyncRoomViewModel @Inject constructor(
         userName = userName,
         password = password,
         encryptedDeviceId = encryptedDeviceId
-    ).onException {}
+    ).onException {
+        // Category only: never log the token used as the Matrix password.
+        fileLog("login matrix failed: ${it.javaClass.simpleName}")
+        Timber.tag(TAG).w("Matrix login failed: %s", it.javaClass.simpleName)
+    }
 
     companion object {
         private const val TAG = "SyncRoomViewModel"

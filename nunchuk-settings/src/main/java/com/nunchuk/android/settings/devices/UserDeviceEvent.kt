@@ -21,8 +21,8 @@ package com.nunchuk.android.settings.devices
 
 import com.nunchuk.android.core.profile.UserDeviceResponse
 
-data class UserDeviceState(
-    val devices: List<UserDeviceResponse> = emptyList()
+internal data class UserDeviceState(
+    val devices: List<UserDeviceUiModel> = emptyList()
 )
 
 sealed class UserDeviceEvent {

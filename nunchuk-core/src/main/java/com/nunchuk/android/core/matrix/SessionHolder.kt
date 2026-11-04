@@ -106,6 +106,15 @@ class SessionHolder @Inject constructor(
 
     fun hasActiveSession() = activeSessionReference.get() != null
 
+    /** Matrix device ID of the active session, only when that session belongs to [chatId]. */
+    fun getMatrixDeviceId(chatId: String): String? {
+        if (chatId.isBlank()) return null
+        return getSafeActiveSession()
+            ?.takeIf { it.myUserId == chatId }
+            ?.sessionParams?.deviceId
+            ?.takeIf { it.isNotBlank() }
+    }
+
     fun hasActiveRoom() = currentRoomId != null
 
     fun getActiveRoomId() = currentRoomId.orEmpty()

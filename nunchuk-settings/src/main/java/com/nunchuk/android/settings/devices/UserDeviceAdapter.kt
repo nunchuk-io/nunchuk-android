@@ -33,7 +33,7 @@ internal class UserDevicesAdapter(
     private val listener: (UserDeviceResponse) -> Unit
 ) : RecyclerView.Adapter<UserDeviceViewHolder>() {
 
-    internal var items: List<UserDeviceResponse> = ArrayList()
+    internal var items: List<UserDeviceUiModel> = emptyList()
         set(value) {
             field = value
             notifyDataSetChanged()
@@ -57,15 +57,15 @@ internal class UserDevicesAdapter(
 internal class UserDeviceViewHolder(
     itemView: View,
     val onItemSelectedListener: (UserDeviceResponse) -> Unit
-) : BaseViewHolder<UserDeviceResponse>(itemView) {
+) : BaseViewHolder<UserDeviceUiModel>(itemView) {
 
     private val binding = ItemUserDeviceBinding.bind(itemView)
 
-    override fun bind(data: UserDeviceResponse) {
-        binding.deviceName.text = data.name
-        binding.deviceInfo.isVisible = adapterPosition == 0
-        binding.btnMore.isVisible = adapterPosition != 0
-        binding.btnMore.setOnClickListener { onItemSelectedListener.invoke(data) }
+    override fun bind(data: UserDeviceUiModel) {
+        binding.deviceName.text = data.device.name
+        binding.deviceInfo.isVisible = data.isCurrentDevice
+        binding.btnMore.isVisible = !data.isCurrentDevice
+        binding.btnMore.setOnClickListener { onItemSelectedListener.invoke(data.device) }
     }
 
 }

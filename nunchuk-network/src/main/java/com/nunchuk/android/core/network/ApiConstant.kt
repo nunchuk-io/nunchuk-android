@@ -31,6 +31,8 @@ internal object ApiConstant {
 
     internal const val HEADER_TOKEN_TYPE = "Authorization"
     internal const val HEADER_DEVICE_ID = "x-nc-device-id"
+    internal const val HEADER_DEVICE_NAME = "X-NC-DEVICE-NAME"
+    internal const val HEADER_DEVICE_NAME_MAX_LENGTH = 100
     internal const val HEADER_APP_VERSION = "x-nc-app-version"
     internal const val HEADER_OS_VERSION = "x-nc-os-version"
     internal const val HEADER_OS_NAME = "x-nc-os-name"

@@ -12,4 +12,5 @@ android {
 
 dependencies {
     implementation(libs.bundles.network)
+    testImplementation(libs.junit)
 }
