@@ -1,3 +1,24 @@
+NEW in this build — Logged-in devices & Matrix session recovery
+
+1. Profile → Account settings → Logged-in devices
+   - "(This device)" is on the phone you are using, matched by device ID — not the most recent login.
+     Check: sign in on a browser/emulator, then open the list on the phone: the phone keeps the badge,
+     the newer login appears as a separate row with its ⋯ menu.
+   - Every device is listed; rows with the same name are not merged.
+   - If the app cannot tell which row is this phone, no row is marked (no wrong badge).
+
+2. Device name: the server now receives the phone model (X-NC-DEVICE-NAME) on login and on the device
+   list, even before chat connects.
+
+3. Chat (Matrix) recovers without signing out
+   - If chat stops working because its session was rejected, the app reconnects by itself (no logout);
+     Messages, sync and the device list come back. Signing out of the app still works as before.
+   - A revoked/expired app session still goes to the normal sign-in screen.
+
+Report: what you did, what you saw, and a screenshot of Logged-in devices.
+
+────────────────────────────────────────
+
 Key compatibility warning — wallet creation (NUN-10341). Free and free group wallets only.
 
 How to get a non-standard key: on Configure wallet (or Set up group wallet), More → Show BIP32 path,
