@@ -303,8 +303,13 @@ inheritanceError            (INHERITANCE_PLAN_NOT_FOUND / NOT_ACTIVE)
 
 Key details:
 
-- `addSigner` validates the signer against `keyOrigins` (xfp, plus derivation path for non-master
-  signers) and rejects duplicates (`KeyAlreadyAdded`).
+- `addSigner` validates the signer against `keyOrigins` (`isInPlanOrigins`: xfp, plus derivation
+  path for non-master signers) and rejects duplicates (`KeyAlreadyAdded`). XFPs compare ignoring
+  case and paths across `h` / `'` (`normalizedPath`). On-chain, `addOnChainSigner` runs the checks
+  in this order: a device with a pending account that came back at another one (usually Account 0
+  again, already added) → CLM-16 (`WrongAccount`; never for a software key, whose accounts the app
+  derives); then the plan check, skipped for a requested account since init's `key_origins` may
+  list only account 0 (`NotInPlan`); then the duplicate (`AlreadyAdded`).
 - **Configurable on-chain claims (NUN-10320 §7).** `claiming/init` returns `required_key_counts`
   (`InheritanceClaimingInit.requiredKeyCounts`). It is empty from an older backend, which keeps the
   single `inheritance_key_count` and the old per-signer counting. With several counts,

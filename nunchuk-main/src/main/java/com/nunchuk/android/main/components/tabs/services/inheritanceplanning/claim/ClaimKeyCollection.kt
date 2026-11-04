@@ -12,6 +12,12 @@ internal sealed interface OnChainKeyStep {
     /** A device with a requested account came back with another one: ask for [origin] again. */
     data class WrongAccount(val origin: KeyOrigin) : OnChainKeyStep
 
+    /** Not a key of this plan (init `key_origins`). */
+    data object NotInPlan : OnChainKeyStep
+
+    /** This exact account is already in. */
+    data object AlreadyAdded : OnChainKeyStep
+
     /** Submit [data]'s keys now: a requested account was imported, or enough keys are in. */
     data class Download(val data: ClaimData) : OnChainKeyStep
 
@@ -22,12 +28,20 @@ internal sealed interface OnChainKeyStep {
 /**
  * Adds [signer]. A requested account is submitted straight away, with the accepted keys, so a route
  * it completes is not held up by another device's pending account (NUN-10320 §7).
+ *
+ * The wrong-account check runs before the duplicate check: a device asked for Account N usually
+ * comes back with Account 0 again, which is already in, and must lead to CLM-16, not "already added".
  */
 internal fun ClaimData.addOnChainSigner(signer: SignerModel): OnChainKeyStep {
-    if (isPendingDevice(signer) && pendingOriginOf(signer) == null) {
+    val requested = pendingOriginOf(signer)
+    // A software key's accounts are derived in the app (nextAccountImport), never asked of the heir.
+    if (requested == null && signer.type != SignerType.SOFTWARE && isPendingDevice(signer)) {
         return OnChainKeyStep.WrongAccount(pendingKeyOrigins.first { it.xfp.equals(signer.fingerPrint, ignoreCase = true) })
     }
-    val requested = pendingOriginOf(signer)
+    // A requested account comes from download-wallet, so it counts as part of the plan even when
+    // init's `key_origins` lists only account 0.
+    if (requested == null && !isInPlanOrigins(signer)) return OnChainKeyStep.NotInPlan
+    if (signers.any { it.isSameAccount(signer) }) return OnChainKeyStep.AlreadyAdded
     val next = copy(signers = signers + signer, pendingKeyOrigins = pendingKeyOrigins - setOfNotNull(requested))
     return if (requested != null || next.addedKeyCount >= next.requiredKeyCount) {
         OnChainKeyStep.Download(next)
@@ -82,3 +96,12 @@ internal fun AddAccountPrompt.signerIntroRequest(claimData: ClaimData) = SignerI
  */
 internal val ClaimData.returnsToKeyCollectionOnCancel: Boolean
     get() = isOnChainClaim && pendingKeyOrigins.isNotEmpty()
+
+/** Init `key_origins`; an empty list means the plan does not name them (configurable plans). */
+internal fun ClaimData.isInPlanOrigins(signer: SignerModel): Boolean = keyOrigins.isEmpty() || keyOrigins.any {
+    if (signer.isMasterSigner) it.xfp.equals(signer.fingerPrint, ignoreCase = true) else it.matches(signer)
+}
+
+internal fun SignerModel.isSameAccount(other: SignerModel): Boolean =
+    fingerPrint.equals(other.fingerPrint, ignoreCase = true) &&
+        derivationPath.normalizedPath() == other.derivationPath.normalizedPath()

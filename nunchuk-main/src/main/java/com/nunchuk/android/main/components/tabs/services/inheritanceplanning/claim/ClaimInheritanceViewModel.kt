@@ -197,59 +197,58 @@ class ClaimInheritanceViewModel @Inject constructor(
     }
 
     fun addSigner(signer: SignerModel) {
-        val keyOrigins = _claimData.value.keyOrigins
-        val isKeyInOrigins = keyOrigins.isEmpty() || keyOrigins.any {
-            if (signer.isMasterSigner) {
-                it.xfp == signer.fingerPrint
-            } else {
-                it.xfp == signer.fingerPrint && it.derivationPath == signer.derivationPath
-            }
-        }
-        if (!isKeyInOrigins) {
-            _uiState.update {
-                it.copy(
-                    event = ClaimInheritanceEvent.ShowError(UiText.resource(R.string.nc_main_incorrect_key_add_correct_key)),
-                    isLoading = false
-                )
-            }
+        val data = _claimData.value
+        if (!data.isOnChainClaim) {
+            addOffChainSigner(data, signer)
             return
         }
-        val hasSigner = _claimData.value.signers.any {
-            it.fingerPrint == signer.fingerPrint && it.derivationPath == signer.derivationPath
+        when (val step = data.addOnChainSigner(signer)) {
+            is OnChainKeyStep.WrongAccount -> showAddAccount(step.origin)
+            OnChainKeyStep.NotInPlan -> showIncorrectKey()
+            OnChainKeyStep.AlreadyAdded -> _uiState.update {
+                it.copy(event = ClaimInheritanceEvent.KeyAlreadyAdded, isLoading = false)
+            }
+            is OnChainKeyStep.Download -> {
+                _claimData.update { step.data }
+                _uiState.update { it.copy(event = ClaimInheritanceEvent.SignerAdded) }
+                viewModelScope.launch { downloadWalletForClaim() }
+            }
+            is OnChainKeyStep.AddMore -> {
+                _claimData.update { step.data }
+                _uiState.update {
+                    it.copy(
+                        event = ClaimInheritanceEvent.AddMoreSigners,
+                        isLoading = false
+                    )
+                }
+            }
         }
-        if (hasSigner) {
-            _uiState.update {
-                it.copy(
-                    event = ClaimInheritanceEvent.KeyAlreadyAdded,
-                    isLoading = false
-                )
+    }
+
+    private fun addOffChainSigner(data: ClaimData, signer: SignerModel) {
+        when {
+            !data.isInPlanOrigins(signer) -> showIncorrectKey()
+            data.signers.any { it.isSameAccount(signer) } -> _uiState.update {
+                it.copy(event = ClaimInheritanceEvent.KeyAlreadyAdded, isLoading = false)
             }
-        } else if (!_claimData.value.isOnChainClaim) {
-            _claimData.update { it.copy(signers = it.signers + signer) }
-            _uiState.update {
-                it.copy(
-                    event = ClaimInheritanceEvent.SignMessage(signer),
-                    isLoading = false
-                )
-            }
-        } else {
-            when (val step = _claimData.value.addOnChainSigner(signer)) {
-                is OnChainKeyStep.WrongAccount -> showAddAccount(step.origin)
-                is OnChainKeyStep.Download -> {
-                    _claimData.update { step.data }
-                    _uiState.update { it.copy(event = ClaimInheritanceEvent.SignerAdded) }
-                    viewModelScope.launch { downloadWalletForClaim() }
-                }
-                is OnChainKeyStep.AddMore -> {
-                    _claimData.update { step.data }
-                    _uiState.update {
-                        it.copy(
-                            event = ClaimInheritanceEvent.AddMoreSigners,
-                            isLoading = false
-                        )
-                    }
+            else -> {
+                _claimData.update { it.copy(signers = it.signers + signer) }
+                _uiState.update {
+                    it.copy(
+                        event = ClaimInheritanceEvent.SignMessage(signer),
+                        isLoading = false
+                    )
                 }
             }
+        }
+    }
+
+    private fun showIncorrectKey() {
+        _uiState.update {
+            it.copy(
+                event = ClaimInheritanceEvent.ShowError(UiText.resource(R.string.nc_main_incorrect_key_add_correct_key)),
+                isLoading = false
+            )
         }
     }
 
@@ -694,7 +693,7 @@ data class ClaimData(
             ?.derivationPath?.multiSigAccountIndex ?: -1
 }
 
-private fun String.normalizedPath(): String = trim().lowercase().replace('h', '\'')
+internal fun String.normalizedPath(): String = trim().lowercase().replace('h', '\'')
 
 internal fun KeyOrigin.matches(signer: SignerModel): Boolean =
     xfp.equals(signer.fingerPrint, ignoreCase = true) &&

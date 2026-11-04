@@ -61,6 +61,45 @@ class ClaimKeyCollectionTest {
     }
 
     @Test
+    fun `a pending device back at account 0 is asked again, not reported as already added`() {
+        assertEquals(OnChainKeyStep.WrongAccount(origin("aaaa", 2)), twoPending.addOnChainSigner(signer("aaaa", 0)))
+    }
+
+    @Test
+    fun `an account already in is reported when its device has nothing pending`() {
+        val data = twoPending.copy(pendingKeyOrigins = listOf(origin("bbbb", 3)))
+        assertEquals(OnChainKeyStep.AlreadyAdded, data.addOnChainSigner(signer("aaaa", 0)))
+    }
+
+    @Test
+    fun `a pending software key is never prompted, its account is derived`() {
+        val data = ClaimData(
+            signers = linkedSetOf(signer("ssss", type = SignerType.SOFTWARE)),
+            requiredKeyCounts = listOf(2),
+            requiredKeyCount = 2,
+            pendingKeyOrigins = listOf(origin("ssss", 2)),
+        )
+        assertEquals(OnChainKeyStep.AlreadyAdded, data.addOnChainSigner(signer("ssss", type = SignerType.SOFTWARE)))
+    }
+
+    @Test
+    fun `a requested account is accepted even when init key origins list only account 0`() {
+        val data = twoPending.copy(keyOrigins = listOf(origin("aaaa", 0), origin("bbbb", 0)))
+        assertTrue(data.addOnChainSigner(signer("aaaa", 2)) is OnChainKeyStep.Download)
+        assertEquals(OnChainKeyStep.NotInPlan, data.addOnChainSigner(signer("cccc")))
+    }
+
+    @Test
+    fun `paths compare across h and apostrophe notation`() {
+        val data = ClaimData(
+            signers = linkedSetOf(signer("aaaa")),
+            keyOrigins = listOf(KeyOrigin(xfp = "AAAA", derivationPath = "m/48h/0h/0h/2h")),
+        )
+        assertTrue(data.isInPlanOrigins(signer("aaaa")))
+        assertEquals(OnChainKeyStep.AlreadyAdded, data.addOnChainSigner(signer("aaaa").copy(derivationPath = "m/48h/0h/0h/2h")))
+    }
+
+    @Test
     fun `collection continues until the chosen count`() {
         val data = ClaimData(requiredKeyCounts = listOf(1, 2), requiredKeyCount = 2)
         assertTrue(data.addOnChainSigner(signer("aaaa")) is OnChainKeyStep.AddMore)
