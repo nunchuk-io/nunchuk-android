@@ -236,6 +236,20 @@ WALLET_ID)` + `finish()`.
 Continue rebuilds the *same* user data from the payload (not from local state) so the signature
 matches. `cancelChange()` deletes the dummy tx.
 
+`InheritanceAlertReviewScreen` (`oldFlowItems`, miniscript or lump-sum plans) highlights only what
+changed against the previous plan (`oldData`):
+
+* Configurable on-chain plans (`onChainInheritancePolicy.isConfigurable`) drop the timelock box —
+  each route's unlock time lives in the wallet policy, not in the plan (Figma REV-11 `4664:25401`).
+* Notification preferences go through the shared `NotificationPreferencesSection`. With fallbacks
+  (`fallbackCount` = the wallet policy's fallbacks) each recipient shows "Unlock notices"
+  (`unlockNoticeRoutes`); without them the single Yes/No timelock row.
+* Per recipient, `EmailNotificationSettings.changesFrom(previous, fallbackCount)`
+  (`reviewplan/NotificationPreferenceChanges.kt`) returns a `RecipientNotificationChanges`; only
+  the changed rows use `changedTextColor`. Recipients are matched by email; a new one is all
+  changed (`RecipientNotificationChanges.ALL`). The owner's "Email me wallet configuration" row is
+  highlighted when `emailMeWalletConfig` differs. With no `oldData` (plan creation) nothing is red.
+
 ### 1.9 `VIEW` flow — rehydrating an existing plan
 
 `Inheritance.toSetupOrReviewParamForView(...)` (bottom of `InheritancePlanningActivity.kt`) is the

@@ -381,7 +381,11 @@ Commit:
 | flow | use case | push event |
 |---|---|---|
 | creation (`isReplaceKeyFlow = false`) | `CreateTimelockUseCase(groupId, value, timezone, plan, based, blockHeight)` | `DraftWalletTimelockSet(groupId)` |
-| replace (`isReplaceKeyFlow = true`, `walletId != null`) | `ReplaceTimelockUseCase(groupId, walletId, value, timezone, based, blockHeight)` | `ReplaceKeyChange(walletId)` |
+| replace (`isReplaceKeyFlow = true`, `walletId != null`) | `ReplaceTimelockUseCase(groupId, walletId, value, timezone, based, blockHeight, fallbackIndex)` | `ReplaceKeyChange(walletId)` |
+
+The replace branch is checked first, so a replace with a `fallbackTarget` sends
+`fallback_index = fallbackTarget.index` (`CreateTimelockPayload.fallbackIndex`, omitted when null →
+primary) instead of updating a draft fallback.
 
 On success the screen simply pops (`onBackPressedDispatcher.onBackPressed()`); the list screen picks
 up the change through the push event. Errors surface as `NCToastMessage`.
@@ -564,8 +568,13 @@ Importing (`OnChainReplaceKeysViewModel`):
   without it, except for a skip (`SKIPPED_VERIFICATION`), which proves no key.
 * Rollover after finalize: "Remove unused keys" is offered only once the new wallet is known not to
   be configurable (`RollOverWalletUiState.canRemoveUnusedKeys`); otherwise `false` is sent.
-* Only the **primary** timelock has Change (`replacement/timelock` without `fallback_index`).
-  Fallback times are shown read-only until the fallback phase.
+* Every timelock has Change. Primary → `replacement/timelock` without `fallback_index` (bounded
+  by Fallback 1, `firstFallbackTimelock`). Fallback i → `openReplaceFallbackTimelock(i)` opens the
+  timelock screen with `fallbackTarget = ConfigurableReplaceState.fallbackTimelockTarget(i)`
+  (TIME-02 "Edit Fallback N timelock"): `previous` is the effective time of the route before it
+  (primary for Fallback 1, else `fallback_timelocks[i-1]`), `next` that of `fallback_timelocks[i+1]`,
+  both taking a pending replacement over the wallet's value. Save → `replacement/timelock` with
+  `fallback_index = i`; the card then reads "Replacing existing timelock (…)".
 
 ---
 
