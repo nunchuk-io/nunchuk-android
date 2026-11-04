@@ -620,7 +620,8 @@ interface PremiumWalletRepository {
         timelockValue: Long,
         timezone: String,
         based: TimelockBased = TimelockBased.TIME_LOCK,
-        blockHeight: Long? = null
+        blockHeight: Long? = null,
+        fallbackIndex: Int? = null,
     )
 
     suspend fun convertTimelock(

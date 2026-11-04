@@ -38,7 +38,10 @@ internal data class CreateServerKeysPayload(
 
 internal data class CreateTimelockPayload(
     @SerializedName("timelock")
-    val timelock: TimelockPayload
+    val timelock: TimelockPayload,
+    /** Replacement only (NUN-10320): the existing fallback whose time changes; null (omitted) = primary. */
+    @SerializedName("fallback_index")
+    val fallbackIndex: Int? = null,
 )
 
 internal data class TimelockPayload(

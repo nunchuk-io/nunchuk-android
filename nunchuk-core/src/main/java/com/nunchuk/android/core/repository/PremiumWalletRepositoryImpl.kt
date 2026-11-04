@@ -3418,7 +3418,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         timelockValue: Long,
         timezone: String,
         based: TimelockBased,
-        blockHeight: Long?
+        blockHeight: Long?,
+        fallbackIndex: Int?,
     ) {
         val verifyToken = ncDataStore.passwordToken.first()
         val payload = CreateTimelockPayload(
@@ -3427,7 +3428,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 timezone = timezone,
                 based = based.name,
                 blockHeight = blockHeight
-            )
+            ),
+            fallbackIndex = fallbackIndex,
         )
         val response = if (!groupId.isNullOrEmpty()) {
             userWalletApiManager.groupWalletApi.replaceTimelock(

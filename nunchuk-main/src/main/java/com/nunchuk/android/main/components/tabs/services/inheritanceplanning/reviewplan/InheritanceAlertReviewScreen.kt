@@ -58,6 +58,12 @@ import com.nunchuk.android.model.byzantine.DummyTransactionType
 import com.nunchuk.android.model.inheritance.InheritanceDistributionMethod
 import com.nunchuk.android.model.inheritance.InheritanceNotificationSettings
 import com.nunchuk.android.model.inheritance.InheritancePlanBeneficiary
+import com.nunchuk.android.type.WalletType
+import com.nunchuk.android.model.inheritance.FallbackInheritanceCondition
+import com.nunchuk.android.model.inheritance.PrimaryInheritanceCondition
+import com.nunchuk.android.model.inheritance.OnChainInheritancePolicyType
+import com.nunchuk.android.model.inheritance.OnChainInheritancePolicy
+import com.nunchuk.android.model.inheritance.EmailNotificationSettings
 import com.nunchuk.android.model.inheritance.InheritancePlanFallbackPolicy
 import com.nunchuk.android.model.inheritance.InheritancePlanStage
 import com.nunchuk.android.utils.simpleGlobalDateFormat
@@ -576,8 +582,17 @@ private fun androidx.compose.foundation.lazy.LazyListScope.oldFlowItems(
 ) {
     item {
         if (uiState.dummyTransactionId.isNotEmpty() && uiState.walletName.isNotEmpty()) {
+            // A configurable on-chain plan's unlock times belong to the wallet, not to this change
+            // (REV-11 has no timelock section); legacy plans keep the timelock box.
+            val isConfigurableOnChain = uiState.isMiniscriptWallet &&
+                    sharedUiState.onChainInheritancePolicy?.isConfigurable == true
+            val fallbackCount = if (uiState.isMiniscriptWallet) {
+                sharedUiState.onChainInheritancePolicy?.fallbacks.orEmpty().size
+            } else {
+                0
+            }
             // Timelock
-            Column(
+            if (!isConfigurableOnChain) Column(
                 modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 24.dp)
             ) {
                 val timelockLabel = if (uiState.isMiniscriptWallet) {
@@ -701,16 +716,16 @@ private fun androidx.compose.foundation.lazy.LazyListScope.oldFlowItems(
                     userEmail = uiState.userEmail,
                     emails = newData?.notificationEmails.orEmpty(),
                     isNotifyToday = newData?.notifyToday.orFalse(),
-                    textColor = onTextColor(
-                        !notificationPreferencesEqual(
-                            newNotificationPreferences,
-                            oldData?.notificationPreferences
-                        )
-                    ),
+                    // Unchanged values; the changed ones are picked per value below.
+                    textColor = onTextColor(false),
                     emailTextColor = onTextColor(
                         newData?.notificationEmails != oldData?.notificationEmails
                     ),
                     notifyTextColor = onTextColor(notifyTodayChanged(newData, oldData)),
+                    fallbackCount = fallbackCount,
+                    // REV-11: on an edit, only the values that change take the changed color.
+                    previousPreferences = oldData?.notificationPreferences,
+                    changedTextColor = if (oldData != null) CHANGED_TEXT_COLOR else null,
                 )
             }
         }
@@ -831,6 +846,55 @@ private fun scheduleHighlights(
 }
 
 // ─── Previews ───────────────────────────────────────────────────────────────
+
+/** REV-11: configurable on-chain plan with two fallbacks; only the changed values are highlighted. */
+@PreviewLightDark
+@Composable
+private fun InheritanceAlertReviewOnChainFallbacksPreview() {
+    val note = "Our key backups are in the home safe. Please call our lawyer, Jane, before you start a claim."
+    fun data(alice: EmailNotificationSettings, bob: EmailNotificationSettings, note: String) = InheritanceDataExtended(
+        activationTimeMilis = 0L,
+        note = note,
+        bufferPeriod = null,
+        notificationEmails = emptyList(),
+        notificationPreferences = InheritanceNotificationSettings(
+            emailMeWalletConfig = true,
+            perEmailSettings = listOf(alice, bob),
+        ),
+        walletId = "wallet123",
+        notifyToday = false,
+        groupId = "",
+    )
+    val alice = EmailNotificationSettings(email = "alice@gmail.com", notifyFallbacks = emptyList())
+    val bob = EmailNotificationSettings(email = "bob245@gmail.com", notifyOnTimelockExpiry = false, notifyFallbacks = listOf(0, 1))
+    InheritanceAlertReviewScreenContent(
+        sharedUiState = InheritancePlanningState(
+            setupOrReviewParam = InheritancePlanningParam.SetupOrReview(walletId = "wallet123"),
+            walletType = WalletType.MINISCRIPT,
+            onChainInheritancePolicy = OnChainInheritancePolicy(
+                type = OnChainInheritancePolicyType.CONFIGURABLE,
+                primary = PrimaryInheritanceCondition(m = 2, n = 4, isCustomized = false, timelock = null),
+                fallbacks = listOf(
+                    FallbackInheritanceCondition(index = 0, m = 1, n = 1, timelock = null),
+                    FallbackInheritanceCondition(index = 1, m = 1, n = 1, timelock = null),
+                ),
+            ),
+        ),
+        uiState = InheritanceAlertReviewState(
+            dummyTransactionId = "tx123",
+            walletName = "[wallet name]",
+            type = DummyTransactionType.UPDATE_INHERITANCE_PLAN,
+            pendingSignatures = 2,
+            isMiniscriptWallet = true,
+            userEmail = "owner123@gmail.com",
+            payload = InheritancePayload(
+                newData = data(alice.copy(includeWalletConfiguration = false), bob, note),
+                oldData = data(alice, bob.copy(notifyFallbacks = listOf(0)), note),
+            ),
+        ),
+    )
+}
+
 
 @PreviewLightDark
 @Composable

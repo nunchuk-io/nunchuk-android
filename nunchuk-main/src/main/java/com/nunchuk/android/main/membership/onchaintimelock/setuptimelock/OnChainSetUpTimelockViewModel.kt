@@ -286,7 +286,25 @@ class OnChainSetUpTimelockViewModel @Inject constructor(
             val isBlockBased = _state.value.isBlockBased
             val blockHeight = _state.value.blockHeight
 
-            if (fallbackTarget != null) {
+            if (isReplaceKeyFlow && walletId != null) {
+                // Replacement of an existing wallet: primary or, with fallback_index, a fallback (NUN-10320).
+                replaceTimelockUseCase(
+                    ReplaceTimelockUseCase.Param(
+                        groupId = groupId,
+                        walletId = walletId,
+                        timelockValue = timelockValue,
+                        timezone = selectedTimeZone.id,
+                        based = if (isBlockBased) TimelockBased.HEIGHT_LOCK else TimelockBased.TIME_LOCK,
+                        blockHeight = blockHeight,
+                        fallbackIndex = fallbackTarget?.index,
+                    )
+                ).onSuccess {
+                    pushEventManager.push(PushEvent.ReplaceKeyChange(walletId))
+                    _event.emit(OnChainSetUpTimelockEvent.Success)
+                }.onFailure {
+                    _event.emit(OnChainSetUpTimelockEvent.Error(it.message ?: "Unknown error"))
+                }
+            } else if (fallbackTarget != null) {
                 // A fallback's unlock time on a configurable draft (PUT draft-wallets/fallbacks/{index}).
                 updateDraftFallbackInheritanceUseCase(
                     UpdateDraftFallbackInheritanceUseCase.Param(
@@ -304,29 +322,6 @@ class OnChainSetUpTimelockViewModel @Inject constructor(
                     _event.emit(OnChainSetUpTimelockEvent.Success)
                 }.onFailure {
                     _event.emit(OnChainSetUpTimelockEvent.Error(it.message ?: "Unknown error"))
-                }
-            } else if (isReplaceKeyFlow && walletId != null) {
-                // Use ReplaceTimelockUseCase for replace key flow
-                val result = replaceTimelockUseCase(
-                    ReplaceTimelockUseCase.Param(
-                        groupId = groupId,
-                        walletId = walletId,
-                        timelockValue = timelockValue,
-                        timezone = selectedTimeZone.id,
-                        based = if (isBlockBased) TimelockBased.HEIGHT_LOCK else TimelockBased.TIME_LOCK,
-                        blockHeight = blockHeight
-                    )
-                )
-
-                if (result.isSuccess) {
-                    pushEventManager.push(PushEvent.ReplaceKeyChange(walletId))
-                    _event.emit(OnChainSetUpTimelockEvent.Success)
-                } else {
-                    _event.emit(
-                        OnChainSetUpTimelockEvent.Error(
-                            result.exceptionOrNull()?.message ?: "Unknown error"
-                        )
-                    )
                 }
             } else {
                 // Use CreateTimelockUseCase for regular flow

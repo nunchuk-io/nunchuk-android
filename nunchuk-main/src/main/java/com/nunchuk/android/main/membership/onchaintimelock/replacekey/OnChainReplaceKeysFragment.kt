@@ -242,6 +242,7 @@ class OnChainReplaceKeysFragment : Fragment() {
                     },
                     // Primary only: the timelock request omits `fallback_index`.
                     onChangePrimaryTimelock = ::openReplaceTimelock,
+                    onChangeFallbackTimelock = ::openReplaceFallbackTimelock,
                     onConfigurableReplace = viewModel::onConfigurableReplaceClicked,
                     onConfigurableVerify = viewModel::onConfigurableVerifyClicked,
                     onCreateNewWalletSuccess = { walletId ->
@@ -343,6 +344,22 @@ class OnChainReplaceKeysFragment : Fragment() {
                 isReplaceKeyFlow = true,
                 walletId = (activity as MembershipActivity).walletId,
                 firstFallbackTimelock = viewModel.configurable.value?.fallbackTimelocks?.get(0)?.effective?.toTimelockExtra(),
+            )
+        )
+    }
+
+    /** TIME-02 for an existing fallback; saving posts the replacement timelock with its `fallback_index`. */
+    private fun openReplaceFallbackTimelock(index: Int) {
+        val configurable = viewModel.configurable.value ?: return
+        val target = configurable.fallbackTimelockTarget(index) ?: return
+        val timelock = configurable.fallbackTimelocks[index]?.effective
+        findNavController().navigate(
+            OnChainReplaceKeysFragmentDirections.actionOnChainReplaceKeysFragmentToOnChainSetUpTimelockFragment(
+                groupId = args.groupId,
+                timelockExtra = timelock?.toTimelockExtra(),
+                isReplaceKeyFlow = true,
+                walletId = (activity as MembershipActivity).walletId,
+                fallbackTarget = target,
             )
         )
     }
@@ -833,6 +850,7 @@ fun OnChainReplaceKeysScreen(
     onConfigurableReplace: (ReplaceKeyRow) -> Unit = {},
     onConfigurableVerify: (ReplaceKeyRow) -> Unit = {},
     onChangePrimaryTimelock: (WalletTimelock?) -> Unit = {},
+    onChangeFallbackTimelock: (index: Int) -> Unit = {},
 ) {
     val keys by viewModel.key.collectAsStateWithLifecycle()
     val configurable by viewModel.configurable.collectAsStateWithLifecycle()
@@ -861,6 +879,7 @@ fun OnChainReplaceKeysScreen(
         onConfigurableReplace = onConfigurableReplace,
         onConfigurableVerify = onConfigurableVerify,
         onChangePrimaryTimelock = onChangePrimaryTimelock,
+        onChangeFallbackTimelock = onChangeFallbackTimelock,
         snackState = snackState,
         onAddKeyClicked = onAddKeyClicked,
         onConfigTimelockClicked = onConfigTimelockClicked,
@@ -883,6 +902,7 @@ private fun OnChainReplaceKeysContent(
     onConfigurableReplace: (ReplaceKeyRow) -> Unit = {},
     onConfigurableVerify: (ReplaceKeyRow) -> Unit = {},
     onChangePrimaryTimelock: (WalletTimelock?) -> Unit = {},
+    onChangeFallbackTimelock: (index: Int) -> Unit = {},
     onAddKeyClicked: (AddReplaceKeyOnChainData) -> Unit = {},
     onConfigTimelockClicked: (AddReplaceKeyOnChainData) -> Unit = {},
     snackState: SnackbarHostState = remember { SnackbarHostState() },
@@ -969,6 +989,7 @@ private fun OnChainReplaceKeysContent(
                                     showRemoveDialog = true
                                 },
                                 onChangePrimaryTimelock = onChangePrimaryTimelock,
+                                onChangeFallbackTimelock = onChangeFallbackTimelock,
                             )
                             return@LazyColumn
                         }

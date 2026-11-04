@@ -33,7 +33,13 @@ fun ProviderNotificationSettingsContent(
     textColor: Color = MaterialTheme.colorScheme.controlFillPrimary,
     /** On-chain plans with fallbacks list which unlocks this person hears about (REV-01). */
     fallbackCount: Int = 0,
+    /** Set on a pending plan change (REV-11): only these values take [changedTextColor]. */
+    changes: RecipientNotificationChanges? = null,
+    changedTextColor: Color = textColor,
 ) {
+    fun colorFor(changed: RecipientNotificationChanges.() -> Boolean): Color =
+        if (changes?.changed() == true) changedTextColor else textColor
+
     Box(
         modifier = Modifier
             .padding(top = 16.dp)
@@ -61,7 +67,7 @@ fun ProviderNotificationSettingsContent(
                 NotificationSettingValueRow(
                     label = stringResource(id = MainR.string.nc_unlock_notices),
                     value = emailSettings.unlockNoticesSummary(fallbackCount),
-                    textColor = textColor,
+                    textColor = colorFor { unlockNotices },
                     // "Primary inheritance, Fallback 1, Fallback 2, …" grows with the plan: give it a
                     // fixed share so it wraps (REV-06) instead of squeezing the label out.
                     isValueWrapping = true,
@@ -70,20 +76,20 @@ fun ProviderNotificationSettingsContent(
                 NotificationSettingRow(
                     label = stringResource(id = R.string.nc_notify_when_timelock_expires),
                     value = emailSettings.notifyOnTimelockExpiry,
-                    textColor = textColor
+                    textColor = colorFor { unlockNotices }
                 )
             }
 
             NotificationSettingRow(
                 label = stringResource(id = R.string.nc_notify_when_wallet_changes),
                 value = emailSettings.notifyOnWalletChanges,
-                textColor = textColor
+                textColor = colorFor { walletChanges }
             )
 
             NotificationSettingRow(
                 label = stringResource(id = R.string.nc_also_include_wallet_configuration),
                 value = emailSettings.includeWalletConfiguration,
-                textColor = textColor
+                textColor = colorFor { includeWalletConfiguration }
             )
         }
     }

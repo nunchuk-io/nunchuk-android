@@ -214,4 +214,16 @@ class ConfigurableReplaceCardsTest {
         assertEquals("Jade 2", jade?.name)
         assertEquals(1, jade?.tags?.size)
     }
+
+    @Test
+    fun `changing Fallback 1 is bounded by the pending primary time and has no later fallback`() {
+        val laterPrimary = primaryTime.copy(timelockValue = 2100000000L)
+        val target = build(timelock = laterPrimary).fallbackTimelockTarget(0)
+
+        assertEquals(0, target?.index)
+        assertEquals(1, target?.keyCount)
+        assertEquals(laterPrimary.timelockValue, target?.previous?.value)
+        assertNull(target?.next)
+        assertNull(build().fallbackTimelockTarget(1))
+    }
 }

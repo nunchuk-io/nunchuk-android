@@ -1,5 +1,7 @@
 package com.nunchuk.android.main.membership.onchaintimelock.replacekey
 
+import com.nunchuk.android.main.membership.onchaintimelock.setuptimelock.FallbackTimelockTarget
+import com.nunchuk.android.model.toTimelockExtra
 import android.os.Parcelable
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.model.VerifyType
@@ -90,6 +92,21 @@ data class ConfigurableReplaceState(
     }
 
     fun targetOf(row: ReplaceKeyRow): ReplaceTarget? = targets[row.originalXfp.lowercase()]
+
+    /**
+     * Changing fallback [index]'s unlock time (TIME-02): it must stay after the previous route's
+     * effective time (primary for Fallback 1) and before the next fallback's, as pending now.
+     */
+    fun fallbackTimelockTarget(index: Int): FallbackTimelockTarget? {
+        val fallback = policy?.fallbacks?.firstOrNull { it.index == index } ?: return null
+        val previous = if (index == 0) primaryTimelock.effective else fallbackTimelocks[index - 1]?.effective
+        return FallbackTimelockTarget(
+            index = index,
+            keyCount = fallback.n,
+            previous = previous?.toTimelockExtra(),
+            next = fallbackTimelocks[index + 1]?.effective?.toTimelockExtra(),
+        )
+    }
 
     val hasChanges: Boolean
         get() = targets.values.any { it.isReplacing } ||

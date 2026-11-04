@@ -59,7 +59,7 @@ import com.nunchuk.android.type.SignerType
 /**
  * REP-01 below the "Before the timelock" heading: spending keys and the Platform key, then primary
  * inheritance (its keys and timelock) and each fallback, all in the server's card order. Only the
- * primary timelock has Change here; changing a fallback's time comes with the fallback phase.
+ * primary and every fallback timelock have Change (`fallback_index` on the replacement timelock).
  */
 internal fun LazyListScope.configurableReplaceItems(
     state: ConfigurableReplaceState,
@@ -67,6 +67,7 @@ internal fun LazyListScope.configurableReplaceItems(
     onVerifyClicked: (ReplaceKeyRow) -> Unit,
     onRemoveClicked: (originalXfp: String) -> Unit,
     onChangePrimaryTimelock: (WalletTimelock?) -> Unit,
+    onChangeFallbackTimelock: (index: Int) -> Unit = {},
 ) {
     val rowItem: @Composable (ReplaceKeyRow, Set<Int>) -> Unit = { row, highlighted ->
         ConfigurableReplaceKeyRow(
@@ -149,7 +150,7 @@ internal fun LazyListScope.configurableReplaceItems(
                     originalTimelock = timelock?.original,
                     newTimelock = timelock?.pending,
                     isHighlighted = state.validationErrors.isTimelockHighlighted(InheritanceSection.FALLBACK, fallback.index),
-                    onChangeClicked = null,
+                    onChangeClicked = { onChangeFallbackTimelock(fallback.index) },
                 )
                 InheritanceValidationErrors(
                     state.validationErrors.filter {

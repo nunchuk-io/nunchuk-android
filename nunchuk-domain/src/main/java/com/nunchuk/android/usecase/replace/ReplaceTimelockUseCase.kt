@@ -37,7 +37,8 @@ class ReplaceTimelockUseCase @Inject constructor(
             timelockValue = parameters.timelockValue,
             timezone = parameters.timezone,
             based = parameters.based,
-            blockHeight = parameters.blockHeight
+            blockHeight = parameters.blockHeight,
+            fallbackIndex = parameters.fallbackIndex,
         )
     }
 
@@ -47,7 +48,9 @@ class ReplaceTimelockUseCase @Inject constructor(
         val timelockValue: Long,
         val timezone: String,
         val based: TimelockBased = TimelockBased.TIME_LOCK,
-        val blockHeight: Long? = null
+        val blockHeight: Long? = null,
+        /** Zero-based fallback of a configurable wallet whose time changes; null changes the primary. */
+        val fallbackIndex: Int? = null,
     )
 }
 
