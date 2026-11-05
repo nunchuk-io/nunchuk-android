@@ -45,6 +45,7 @@ import com.nunchuk.android.usecase.signer.GetUnusedSignerFromMasterSignerV2UseCa
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.map
@@ -110,6 +111,12 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
                 .collect {
                     _uiState.update { state -> state.copy(isTestNet = it == Chain.TESTNET) }
                 }
+        }
+        // Configure wallet flags a key on a non-standard path as soon as it is assigned.
+        viewModelScope.launch {
+            _uiState.map { it.signers to it.addressType }
+                .distinctUntilChanged()
+                .collectLatest { checkNonStandardPathsNow() }
         }
     }
 
@@ -1075,10 +1082,12 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
 
     /** Flags the keys inline when Review wallet opens. */
     fun checkNonStandardPaths() {
-        viewModelScope.launch {
-            val keys = loadNonStandardPathKeys()
-            _uiState.update { it.copy(nonStandardPathKeys = keys) }
-        }
+        viewModelScope.launch { checkNonStandardPathsNow() }
+    }
+
+    private suspend fun checkNonStandardPathsNow() {
+        val keys = loadNonStandardPathKeys()
+        _uiState.update { it.copy(nonStandardPathKeys = keys) }
     }
 
     /**

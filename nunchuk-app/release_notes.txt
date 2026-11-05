@@ -1,3 +1,13 @@
+FIX in this build — Key compatibility warning on Miniscript Configure wallet (NUN-10341)
+
+- Free (personal) Miniscript → Configure wallet: a key on a non-standard BIP32 path is now flagged
+  in the policy tree as soon as it is added (path shown even when paths are hidden, then
+  "⚠︎ Not the standard path for this wallet type."). Also on Taproot key path / MuSig key path.
+- Remove the key, or tap its path and change it to a standard one: the flag goes away.
+- Review wallet and the Create wallet sheet behave as before.
+
+────────────────────────────────────────
+
 NEW in this build — Logged-in devices & Matrix session recovery
 
 1. Profile → Account settings → Logged-in devices

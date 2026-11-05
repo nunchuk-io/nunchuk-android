@@ -313,7 +313,8 @@ fun MiniscriptConfigWalletScreen(
                                 showBip32Path = showBip32Path,
                                 duplicateSignerKeys = if (uiState.showBip32PathForDuplicates) {
                                     getDuplicateSignerKeys(uiState.signers)
-                                } else emptySet()
+                                } else emptySet(),
+                                nonStandardPathKeys = uiState.nonStandardPathKeys,
                             ),
                             onChangeBip32Path = onChangeBip32Path,
                             onActionKey = { keyName, signer ->
@@ -473,7 +474,8 @@ private fun TaprootAddressContent(
                     showBip32Path = showBip32Path,
                     duplicateSignerKeys = if (uiState.showBip32PathForDuplicates) {
                         getDuplicateSignerKeys(uiState.signers)
-                    } else emptySet()
+                    } else emptySet(),
+                    nonStandardPathKeys = uiState.nonStandardPathKeys,
                 ),
                 signer = if (uiState.keyPaths.isNotEmpty()) uiState.signers[uiState.keyPaths.first()] else null,
                 onChangeBip32Path = onChangeBip32Path,
@@ -495,7 +497,8 @@ private fun TaprootAddressContent(
                         showBip32Path = showBip32Path,
                         duplicateSignerKeys = if (uiState.showBip32PathForDuplicates) {
                             getDuplicateSignerKeys(uiState.signers)
-                        } else emptySet()
+                        } else emptySet(),
+                        nonStandardPathKeys = uiState.nonStandardPathKeys,
                     ),
                     onChangeBip32Path = onChangeBip32Path,
                     onActionKey = onActionKey
