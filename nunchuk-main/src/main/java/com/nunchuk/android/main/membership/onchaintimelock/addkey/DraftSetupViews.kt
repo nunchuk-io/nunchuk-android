@@ -290,6 +290,8 @@ private fun CheckedLabel(text: String) {
 internal fun ChooseKeySheet(
     options: List<SignerModel>,
     fallbackNumber: Int? = null,
+    /** Replaces the setup copy, e.g. REP-07's "These keys are already in this wallet…". */
+    description: String? = null,
     onChooseKey: (xfp: String) -> Unit,
     onAddKey: () -> Unit,
     onDismiss: () -> Unit,
@@ -298,6 +300,7 @@ internal fun ChooseKeySheet(
         ChooseKeyContent(
             options = options,
             fallbackNumber = fallbackNumber,
+            description = description,
             onChooseKey = onChooseKey,
             onAddKey = onAddKey,
         )
@@ -308,6 +311,7 @@ internal fun ChooseKeySheet(
 private fun ChooseKeyContent(
     options: List<SignerModel>,
     fallbackNumber: Int? = null,
+    description: String? = null,
     onChooseKey: (xfp: String) -> Unit = {},
     onAddKey: () -> Unit = {},
 ) {
@@ -328,7 +332,7 @@ private fun ChooseKeyContent(
         )
         Text(
             modifier = Modifier.padding(top = 8.dp, bottom = 8.dp),
-            text = stringResource(
+            text = description ?: stringResource(
                 if (fallbackNumber != null) R.string.nc_choose_key_for_fallback_desc else R.string.nc_choose_a_key_desc
             ),
             style = NunchukTheme.typography.body,

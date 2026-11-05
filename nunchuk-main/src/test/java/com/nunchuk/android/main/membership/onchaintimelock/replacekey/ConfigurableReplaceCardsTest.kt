@@ -148,12 +148,126 @@ class ConfigurableReplaceCardsTest {
         )
         val unverified = build(replacements = replacement(VerifyType.NONE))
         assertTrue(unverified.targets.getValue("79eb35f4").isComplete)
-        assertFalse(unverified.targets.getValue("79eb35f4").isVerified)
+        assertFalse(unverified.targets.getValue("79eb35f4").isDone)
         assertFalse(unverified.canContinue)
 
         val verified = build(replacements = replacement(VerifyType.APP_VERIFIED))
-        assertTrue(verified.targets.getValue("79eb35f4").isVerified)
+        assertTrue(verified.targets.getValue("79eb35f4").isDone)
         assertTrue(verified.canContinue)
+    }
+
+    /** COLDCARD only on spending (both accounts), Trezor only on Fallback 1 next to Keystone Acct 2. */
+    private val spendingAndFallbackOnly = listOf(
+        card(InheritanceSection.SPENDING, key(0, 0, InheritanceSection.SPENDING), key(1, 1, InheritanceSection.PRIMARY)),
+        card(InheritanceSection.SPENDING, key(2, 0, InheritanceSection.SPENDING), key(3, 1, InheritanceSection.SPENDING)),
+        card(InheritanceSection.SPENDING, key(4, null, InheritanceSection.SPENDING), server = true),
+        card(InheritanceSection.PRIMARY, key(6, 0, InheritanceSection.PRIMARY)),
+        card(InheritanceSection.FALLBACK, key(8, 2, InheritanceSection.FALLBACK), key(9, 0, InheritanceSection.FALLBACK), fallbackIndex = 0),
+    )
+
+    private fun buildOnly(replacements: Map<String, List<SignerServer>> = emptyMap()) = buildConfigurableReplaceState(
+        policy = policy,
+        walletSigners = walletSigners + signer(9, "Trezor", "7d3a9e52", 0, "INHERITANCE"),
+        walletTimelock = primaryTime,
+        status = ReplaceWalletStatus(
+            replacements = replacements,
+            timelock = primaryTime,
+            inheritanceCards = spendingAndFallbackOnly,
+            fallbackTimelocks = listOf(fallbackTime),
+        ),
+    )
+
+    @Test
+    fun `a spending-only key is done once its accounts are in, Verify does not block`() {
+        val state = buildOnly(
+            replacements = mapOf(
+                "a47c3e19" to listOf(signer(2, "Passport", "8e41b2c7", 0), signer(3, "Passport", "8e41b2c7", 1))
+            )
+        )
+        val target = state.targets.getValue("a47c3e19")
+        assertFalse(target.needsVerification)
+        assertTrue(target.isDone)
+        assertTrue(state.canContinue)
+        // An inheritance-path key still needs Verify.
+        assertTrue(state.targets.getValue("79eb35f4").needsVerification)
+    }
+
+    @Test
+    fun `default 2-of-4 - a key on spending cards only gets an optional Verify on its card`() {
+        // COLDCARD's Acct 1 serves primary, but it sits on a spending card only: spending-only (REP Row 9).
+        val state = build(
+            replacements = mapOf(
+                "a47c3e19" to listOf(signer(2, "Passport", "8e41b2c7", 0), signer(3, "Passport", "8e41b2c7", 1))
+            )
+        )
+        val target = state.targets.getValue("a47c3e19")
+        assertFalse(state.isCustomizedPrimary)
+        assertFalse(target.needsVerification)
+        assertTrue(state.showsVerify(state.cards[1], target))
+        assertTrue(target.isDone)
+        assertTrue(state.canContinue)
+    }
+
+    @Test
+    fun `customized primary - Verify only on primary and fallback cards (REP-03c)`() {
+        val customized = policy.copy(primary = policy.primary!!.copy(isCustomized = true))
+        fun replacements(verify: VerifyType) = mapOf(
+            "79eb35f4" to listOf(
+                signer(0, "Passport", "8e41b2c7", 0).copy(verifyType = verify),
+                signer(1, "Passport", "8e41b2c7", 1).copy(verifyType = verify),
+                signer(8, "Passport", "8e41b2c7", 2).copy(verifyType = verify),
+            )
+        )
+        val state = buildConfigurableReplaceState(
+            policy = customized,
+            walletSigners = walletSigners,
+            walletTimelock = primaryTime,
+            status = ReplaceWalletStatus(
+                replacements = replacements(VerifyType.NONE), timelock = primaryTime,
+                inheritanceCards = cards, fallbackTimelocks = listOf(fallbackTime),
+            ),
+        )
+        val keystone = state.targets.getValue("79eb35f4")
+        assertTrue(state.isCustomizedPrimary)
+        assertFalse(state.showsVerify(state.cards[0], keystone)) // spending card: green once imported
+        assertTrue(state.showsVerify(state.cards[4], keystone)) // Fallback 1 card: Verify
+        assertFalse(state.canContinue) // on a fallback card, so Continue waits for Verify
+    }
+
+    @Test
+    fun `a fallback-only key offers the wallet's other keys, not its route's or the Platform key (REP-07)`() {
+        val state = buildOnly()
+        val trezor = state.targets.getValue("7d3a9e52")
+        assertTrue(trezor.isFallbackOnly)
+        assertFalse(state.targets.getValue("79eb35f4").isFallbackOnly)
+        assertEquals(1, state.fallbackNumberOf(trezor))
+        // Keystone shares Fallback 1 with Trezor, so only COLDCARD and Jade are offered.
+        assertEquals(listOf("a47c3e19", "6b35f210"), state.chooseKeyOptions(trezor).map { it.fingerPrint })
+    }
+
+    @Test
+    fun `REP-07 never offers a TAPSIGNER`() {
+        val withTapsigner = spendingAndFallbackOnly.toMutableList().apply {
+            set(1, card(InheritanceSection.SPENDING, key(2, 0, InheritanceSection.SPENDING), key(3, 1, InheritanceSection.SPENDING)))
+        }
+        val state = buildConfigurableReplaceState(
+            policy = policy,
+            walletSigners = walletSigners.map {
+                if (it.xfp == "a47c3e19") it.copy(type = SignerType.NFC) else it
+            } + signer(9, "Trezor", "7d3a9e52", 0, "INHERITANCE"),
+            walletTimelock = primaryTime,
+            status = ReplaceWalletStatus(timelock = primaryTime, inheritanceCards = withTapsigner, fallbackTimelocks = listOf(fallbackTime)),
+        )
+        val trezor = state.targets.getValue("7d3a9e52")
+        assertEquals(listOf("6b35f210"), state.chooseKeyOptions(trezor).map { it.fingerPrint })
+    }
+
+    @Test
+    fun `a chosen wallet key joins at its next free account (Acct N+1)`() {
+        val used = walletSigners.map { it.xfp.orEmpty() to it.derivationPath.orEmpty() }
+        assertEquals(2, nextFreeAccount("A47C3E19", used))
+        assertEquals(3, nextFreeAccount("79eb35f4", used))
+        assertEquals(0, nextFreeAccount("ffffffff", used))
     }
 
     @Test

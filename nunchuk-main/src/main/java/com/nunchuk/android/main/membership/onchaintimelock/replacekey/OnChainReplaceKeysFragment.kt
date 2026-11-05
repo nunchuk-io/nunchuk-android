@@ -95,6 +95,7 @@ import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.toReadableDrawableResId
 import com.nunchuk.android.core.util.toReadableSignerType
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.membership.onchaintimelock.addkey.ChooseKeySheet
 import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragment
 import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragmentArgs
@@ -890,6 +891,21 @@ fun OnChainReplaceKeysScreen(
         refresh = viewModel::getReplaceWalletStatus,
         isRefreshing = uiState.isRefreshing
     )
+
+    val chooseWalletKey by viewModel.chooseWalletKey.collectAsStateWithLifecycle()
+    chooseWalletKey?.let { prompt ->
+        // REP-07: replace a fallback-only key with a key already in this wallet.
+        NunchukTheme {
+            ChooseKeySheet(
+                options = prompt.options,
+                fallbackNumber = prompt.fallbackNumber,
+                description = stringResource(R.string.nc_replace_choose_wallet_key_desc),
+                onChooseKey = viewModel::onChooseWalletKeySelected,
+                onAddKey = viewModel::onChooseWalletKeyAddNew,
+                onDismiss = viewModel::dismissChooseWalletKey,
+            )
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

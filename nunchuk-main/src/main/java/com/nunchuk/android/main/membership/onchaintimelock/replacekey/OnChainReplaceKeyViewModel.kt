@@ -78,6 +78,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -222,12 +223,13 @@ class OnChainReplaceKeysViewModel @Inject constructor(
     private fun publishConfigurable() {
         val wallet = configurableWallet ?: return
         val status = lastStatus ?: return
-        _configurable.value = buildConfigurableReplaceState(
+        val state = buildConfigurableReplaceState(
             policy = wallet.onChainInheritancePolicy,
             walletSigners = wallet.signers,
             walletTimelock = wallet.timelock,
             status = status,
         )
+        _configurable.value = state
     }
 
     private suspend fun buildAddReplaceKeySteps(
@@ -368,6 +370,7 @@ class OnChainReplaceKeysViewModel @Inject constructor(
         viewModelScope.launch {
             loadWalletStatusJob?.cancel()
             _uiState.update { it.copy(isLoading = true, isFinalizing = true) }
+            // The backend checks verification at finalize; its error shows as a toast.
             finalizeReplaceAssistedWallet()
             _uiState.update { it.copy(isLoading = false, isFinalizing = false) }
         }
@@ -982,15 +985,53 @@ class OnChainReplaceKeysViewModel @Inject constructor(
      * that same device without asking again (REP-02).
      */
     fun onConfigurableReplaceClicked(row: ReplaceKeyRow) {
-        val target = _configurable.value?.targetOf(row) ?: return
+        val state = _configurable.value ?: return
+        val target = state.targetOf(row) ?: return
         val slot = target.nextMissingSlot ?: return
         savedStateHandle[REPLACE_XFP] = target.originalXfp
         initReplaceKey()
+        // REP-07: a fallback-only key can be replaced by a key already in this wallet.
+        val options = if (target.isFallbackOnly && target.replacementDevice == null) state.chooseKeyOptions(target) else emptyList()
+        if (options.isNotEmpty()) {
+            _chooseWalletKey.value = ChooseWalletKeyPrompt(
+                originalXfp = target.originalXfp,
+                fallbackNumber = state.fallbackNumberOf(target),
+                options = options,
+            )
+            return
+        }
         startConfigurableImport(target, slot, target.replacementDevice)
+    }
+
+    private val _chooseWalletKey = MutableStateFlow<ChooseWalletKeyPrompt?>(null)
+
+    /** REP-07 "Choose a key for Fallback N", while it is open. */
+    val chooseWalletKey = _chooseWalletKey.asStateFlow()
+
+    /** REP-07 "Choose key": that wallet key joins at its next free account, read off that device. */
+    fun onChooseWalletKeySelected(xfp: String) {
+        val prompt = _chooseWalletKey.getAndUpdate { null } ?: return
+        val target = _configurable.value?.targets?.get(prompt.originalXfp.lowercase()) ?: return
+        val slot = target.nextMissingSlot ?: return
+        val device = prompt.options.firstOrNull { it.fingerPrint.equals(xfp, ignoreCase = true) } ?: return
+        startConfigurableImport(target, slot, device, isWalletKey = true)
+    }
+
+    /** REP-07 "Use a different key": the usual device import. */
+    fun onChooseWalletKeyAddNew() {
+        val prompt = _chooseWalletKey.getAndUpdate { null } ?: return
+        val target = _configurable.value?.targets?.get(prompt.originalXfp.lowercase()) ?: return
+        val slot = target.nextMissingSlot ?: return
+        startConfigurableImport(target, slot, null)
+    }
+
+    fun dismissChooseWalletKey() {
+        _chooseWalletKey.value = null
     }
 
     /** After an account is in: import the next missing one off the same device, if any. */
     private fun continueConfigurableReplace(originalXfp: String) {
+        val isWalletKey = configurableRequest?.isWalletKey == true
         val target = _configurable.value?.targets?.get(originalXfp.lowercase())
         val slot = target?.nextMissingSlot
         val device = target?.replacementDevice
@@ -998,17 +1039,31 @@ class OnChainReplaceKeysViewModel @Inject constructor(
             savedStateHandle.remove<ConfigurableReplaceRequest>(KEY_CONFIGURABLE_REQUEST)
             return
         }
-        startConfigurableImport(target, slot, device)
+        startConfigurableImport(target, slot, device, isWalletKey)
     }
 
-    private fun startConfigurableImport(target: ReplaceTarget, slot: ReplaceSlot, device: SignerModel?) {
+    /** Accounts each XFP already gives the wallet or its pending replacement. */
+    private fun usedAccounts(): List<Pair<String, String>> {
+        val wallet = configurableWallet?.signers.orEmpty().map { it.xfp.orEmpty() to it.derivationPath.orEmpty() }
+        val pending = lastStatus?.replacements?.values.orEmpty().flatten().map { it.xfp.orEmpty() to it.derivationPath.orEmpty() }
+        return wallet + pending
+    }
+
+    private fun startConfigurableImport(
+        target: ReplaceTarget,
+        slot: ReplaceSlot,
+        device: SignerModel?,
+        isWalletKey: Boolean = false,
+    ) {
         val isInheritance = target.slots.any { it.original?.tags?.contains(SignerTag.INHERITANCE) == true }
         val request = ConfigurableReplaceRequest(
             originalXfp = target.originalXfp,
             keyIndex = slot.keyIndex,
-            accountIndex = slot.accountIndex,
+            // A wallet key (REP-07) takes Account N+1 of that device, not the old key's account.
+            accountIndex = if (isWalletKey && device != null) nextFreeAccount(device.fingerPrint, usedAccounts()) else slot.accountIndex,
             isInheritance = isInheritance,
             sameDevice = device,
+            isWalletKey = isWalletKey,
         )
         savedStateHandle[KEY_CONFIGURABLE_REQUEST] = request
         // Stand-in step for the device flows' inheritance/spending copy; the slot index is the request's.
@@ -1170,6 +1225,13 @@ sealed class OnChainReplaceKeyEvent {
     data class OpenConfigurableAdd(val request: ConfigurableReplaceRequest) : OnChainReplaceKeyEvent()
     data class ShowErrorRes(@StringRes val messageRes: Int, val args: List<Any> = emptyList()) : OnChainReplaceKeyEvent()
 }
+
+/** REP-07: replace the fallback-only key [originalXfp] with one of [options], keys already in this wallet. */
+data class ChooseWalletKeyPrompt(
+    val originalXfp: String,
+    val fallbackNumber: Int,
+    val options: List<SignerModel>,
+)
 
 data class OnChainReplaceKeysUiState(
     val isDataLoaded: Boolean = false,

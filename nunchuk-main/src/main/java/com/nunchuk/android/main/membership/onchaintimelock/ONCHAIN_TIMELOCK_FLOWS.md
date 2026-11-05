@@ -547,8 +547,19 @@ screen is built from the replacement status instead (`replacekey/ConfigurableRep
   greyed (REP-02) → Verify (REP-03) → Remove (REP-03b).
 * `status.timelock` is the effective primary time, `status.fallback_timelocks[i]` fallback i; they
   count as changed only when they differ from the wallet's policy.
-* Continue (`canContinue`) = something changed **and** every replaced key has all accounts and is
-  verified **and** `status.validation_errors` is empty. Errors are shown in their card; `keys`
+* Verify (Figma Row 9, updated 2026-11-05 evening): "spending-only" means the key sits on
+  spending cards only (`ReplaceSlot.cardSection`), even when an account serves primary (default
+  2-of-4 Acct 1). One check per device covers all its accounts and turns all its cards green.
+  * Default 2-of-4: every card of a complete, unverified replacement offers Verify, spending-only
+    keys too (optional there).
+  * Customized primary (`isCustomizedPrimary`): Verify only on Primary inheritance and fallback cards;
+    a spending card turns green once imported (REP-03c). `ConfigurableReplaceState.showsVerify(card, target)`.
+  * Only a key on a primary or fallback card blocks Continue (`ReplaceTarget.needsVerification`).
+  * The app does not skip for the user. Continue follows the rules above; the backend checks
+    verification at finalize (e.g. a default wallet left with no verified owner key) and its error
+    shows as a toast (Huy, 2026-11-05).
+* Continue (`canContinue`) = something changed **and** every replaced key is `isDone` (all accounts
+  in, and verified when on a primary or fallback card) **and** `status.validation_errors` is empty. Errors are shown in their card; `keys`
   errors circle the rows of `key_indices`, `timelock` errors the condition's timelock.
 
 Importing (`OnChainReplaceKeysViewModel`):
@@ -558,6 +569,14 @@ Importing (`OnChainReplaceKeysViewModel`):
   (`OpenConfigurableAdd`, `SignerIntroFlow.OnChainTimelockKey(keyIndex = account)`); the rest come
   off `sameDevice` — reused if the app/server already holds that account (TAPSIGNER: derived), else
   that device's own flow — and continue automatically after each import.
+* REP-07: Replace on a key used **only by fallbacks** (`isFallbackOnly`) first opens "Choose a key
+  for Fallback N" (`ChooseKeySheet`, `ConfigurableReplaceState.chooseKeyOptions`): the wallet's other
+  keys, without the key being replaced, the Platform key, a TAPSIGNER, or a key already on the same
+  card. A chosen
+  key joins at its next free account (`nextFreeAccount`, Account N+1 over the wallet and pending
+  replacements; the backend accepts an account other than the old key's), read off that device
+  (`ConfigurableReplaceRequest.isWalletKey`), then Verify as usual. "Use a different key" is the
+  usual import. Spending, primary and shared keys skip the sheet.
 * The slot's server index travels as `OnChainAddSignerParam.ReplaceInfo.keyIndex`
   (`replaceKeyIndex()`); COLDCARD / air-gap call `replace` with it. `onReplaceKey` refuses a key at
   another account or from another device.

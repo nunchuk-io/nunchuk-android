@@ -1060,6 +1060,7 @@
     <string name="nc_choose_key_for_fallback">Choose a key for Fallback %1$d</string>
     <string name="nc_choose_key_for_fallback_desc">You’ve already added these keys in this setup. Choose one, or use a different key.</string>
     <string name="nc_use_a_different_key">Use a different key</string>
+    <string name="nc_replace_choose_wallet_key_desc">These keys are already in this wallet. Choose one, or use a different key.</string>
     <string name="nc_set_up_fallback_timelock">Set up Fallback %1$d timelock</string>
     <string name="nc_edit_fallback_timelock">Edit Fallback %1$d timelock</string>
     <string name="nc_set_up_fallback_timelock_desc_primary">Fallback %1$d becomes available after this time. It must be later than your primary inheritance timelock.</string>

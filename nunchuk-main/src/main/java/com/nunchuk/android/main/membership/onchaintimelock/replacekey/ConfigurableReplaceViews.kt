@@ -69,10 +69,12 @@ internal fun LazyListScope.configurableReplaceItems(
     onChangePrimaryTimelock: (WalletTimelock?) -> Unit,
     onChangeFallbackTimelock: (index: Int) -> Unit = {},
 ) {
-    val rowItem: @Composable (ReplaceKeyRow, Set<Int>) -> Unit = { row, highlighted ->
+    val rowItem: @Composable (ReplaceCard, ReplaceKeyRow, Set<Int>) -> Unit = { card, row, highlighted ->
+        val target = state.targetOf(row)
         ConfigurableReplaceKeyRow(
             row = row,
-            target = state.targetOf(row),
+            target = target,
+            showsVerify = target != null && state.showsVerify(card, target),
             isHighlighted = row.keyIndices.any { it in highlighted },
             onReplaceClicked = { onReplaceClicked(row) },
             onVerifyClicked = { onVerifyClicked(row) },
@@ -80,7 +82,9 @@ internal fun LazyListScope.configurableReplaceItems(
         )
     }
     val spendingCards = state.cards.filter { it.section == InheritanceSection.SPENDING }
-    items(spendingCards.filterNot { it.isServerKey }.flatMap { it.rows }) { row -> rowItem(row, emptySet()) }
+    items(spendingCards.filterNot { it.isServerKey }.flatMap { card -> card.rows.map { card to it } }) { (card, row) ->
+        rowItem(card, row, emptySet())
+    }
     if (spendingCards.any { it.isServerKey }) {
         item { ReplaceServerCard() }
     }
@@ -107,8 +111,8 @@ internal fun LazyListScope.configurableReplaceItems(
             PrimaryInheritanceHeader(primary)
         }
     }
-    items(state.cards.filter { it.section == InheritanceSection.PRIMARY }.flatMap { it.rows }) { row ->
-        rowItem(row, primaryHighlighted)
+    items(state.cards.filter { it.section == InheritanceSection.PRIMARY }.flatMap { card -> card.rows.map { card to it } }) { (card, row) ->
+        rowItem(card, row, primaryHighlighted)
     }
     item {
         Column {
@@ -141,8 +145,8 @@ internal fun LazyListScope.configurableReplaceItems(
         items(
             state.cards
                 .filter { it.section == InheritanceSection.FALLBACK && it.card.fallbackIndex == fallback.index }
-                .flatMap { it.rows }
-        ) { row -> rowItem(row, highlighted) }
+                .flatMap { card -> card.rows.map { card to it } }
+        ) { (card, row) -> rowItem(card, row, highlighted) }
         item {
             val timelock = state.fallbackTimelocks[fallback.index]
             Column {
@@ -194,12 +198,14 @@ private fun FallbackReplaceHeader(fallback: FallbackInheritanceCondition) {
 /**
  * One key of a configurable wallet's card. Its look follows the replacement of the whole key, which
  * may span cards (REP-02 / REP-03 / REP-03b): not replaced → Replace; some accounts in (missing
- * ones greyed, dashed) → Replace to continue; all in → Verify; verified → Remove.
+ * ones greyed, dashed) → Replace to continue; all in → Verify where [showsVerify]; else → Remove.
  */
 @Composable
 private fun ConfigurableReplaceKeyRow(
     row: ReplaceKeyRow,
     target: ReplaceTarget?,
+    /** All accounts are in and this card offers Verify ([ConfigurableReplaceState.showsVerify]). */
+    showsVerify: Boolean,
     isHighlighted: Boolean,
     onReplaceClicked: () -> Unit,
     onVerifyClicked: () -> Unit,
@@ -211,8 +217,8 @@ private fun ConfigurableReplaceKeyRow(
     val background = when {
         !isReplacing -> colorResource(id = R.color.nc_background_primary)
         target?.isComplete != true -> colorResource(id = R.color.nc_fill_slime).copy(alpha = 0.4f)
-        target.isVerified -> colorResource(id = R.color.nc_fill_slime)
-        else -> colorResource(id = R.color.nc_fill_beewax)
+        showsVerify -> colorResource(id = R.color.nc_fill_beewax)
+        else -> colorResource(id = R.color.nc_fill_slime)
     }
     val borderColor = if (isHighlighted) MaterialTheme.colorScheme.error else colorResource(id = R.color.nc_stroke_primary)
     Column(modifier = Modifier.fillMaxWidth()) {
@@ -266,7 +272,7 @@ private fun ConfigurableReplaceKeyRow(
                 }
                 val (label, onClick) = when {
                     !isReplacing || target?.isComplete != true -> stringResource(R.string.nc_replace) to onReplaceClicked
-                    !target.isVerified -> stringResource(R.string.nc_verify) to onVerifyClicked
+                    showsVerify -> stringResource(R.string.nc_verify) to onVerifyClicked
                     else -> stringResource(R.string.nc_remove) to onRemoveClicked
                 }
                 NcOutlineButton(

@@ -14,6 +14,7 @@ import com.nunchuk.android.model.inheritance.bip32AccountIndex
 import com.nunchuk.android.model.signer.SignerServer
 import com.nunchuk.android.model.wallet.ReplaceWalletStatus
 import com.nunchuk.android.type.SignerTag
+import com.nunchuk.android.type.SignerType
 import kotlinx.parcelize.Parcelize
 
 /**
@@ -29,20 +30,35 @@ data class ReplaceSlot(
     val original: SignerModel?,
     val replacement: SignerModel? = null,
     val replacementVerifyType: VerifyType = VerifyType.NONE,
+    /** The card this slot sits on; a spending card can hold a primary account (default 2-of-4 Acct 1). */
+    val cardSection: InheritanceSection = section ?: InheritanceSection.SPENDING,
 ) {
     val originalXfp: String get() = original?.fingerPrint.orEmpty()
 }
 
 /**
  * Every account an original key supplies to the wallet, across all cards. A replacement has to
- * supply each of them from one new key, then be verified once (REP-02 / REP-03 / REP-03b).
+ * supply each of them from one new key (REP-02), then one check per device covers all its accounts
+ * (REP-03 / REP-03b). Only a key on a Primary inheritance or fallback card must be verified before
+ * Continue; a spending-only key (on spending cards only) never blocks it (Figma Row 9, 2026-11-05).
  */
 data class ReplaceTarget(val originalXfp: String, val slots: List<ReplaceSlot>) {
     val replacements: List<SignerModel> get() = slots.mapNotNull { it.replacement }
     val isReplacing: Boolean get() = replacements.isNotEmpty()
     val nextMissingSlot: ReplaceSlot? get() = slots.firstOrNull { it.replacement == null }
     val isComplete: Boolean get() = isReplacing && nextMissingSlot == null
-    val isVerified: Boolean get() = isComplete && slots.all { it.replacementVerifyType != VerifyType.NONE }
+
+    /** The key is on a Primary inheritance or fallback card: Continue waits for its Verify. */
+    val needsVerification: Boolean get() = slots.any { it.cardSection.isInheritancePath() }
+
+    /** The key is used only by fallbacks: Replace offers the wallet's other keys first (REP-07). */
+    val isFallbackOnly: Boolean get() = slots.isNotEmpty() && slots.all { it.section == InheritanceSection.FALLBACK }
+
+    /** The server holds a verification (or skip) for every imported account. */
+    val isMarkedVerified: Boolean get() = isComplete && slots.all { it.replacementVerifyType != VerifyType.NONE }
+
+    /** Nothing blocks Continue on this key: all accounts in, and verified when on an inheritance card. */
+    val isDone: Boolean get() = isComplete && (!needsVerification || isMarkedVerified)
 
     /** The new device, once its first account is in. */
     val replacementDevice: SignerModel? get() = replacements.firstOrNull()
@@ -118,7 +134,44 @@ data class ConfigurableReplaceState(
      */
     val canContinue: Boolean
         get() = hasChanges && validationErrors.isEmpty() &&
-            targets.values.filter { it.isReplacing }.all { it.isVerified }
+            targets.values.filter { it.isReplacing }.all { it.isDone }
+
+    /** Customized primary inheritance: spending cards get no Verify (REP-03c). */
+    val isCustomizedPrimary: Boolean get() = policy?.primary?.isCustomized == true
+
+    /**
+     * Whether [card]'s row of [target] offers Verify once all accounts are in. Default 2-of-4: every
+     * card of the key, spending ones too (optional there). Customized: only Primary inheritance and
+     * fallback cards; a spending card turns green once imported.
+     */
+    fun showsVerify(card: ReplaceCard, target: ReplaceTarget): Boolean =
+        target.isComplete && !target.isMarkedVerified &&
+            (!isCustomizedPrimary || card.section.isInheritancePath())
+
+    /** 1-based number of the first fallback [target] is on, for "Choose a key for Fallback N". */
+    fun fallbackNumberOf(target: ReplaceTarget): Int = cards
+        .firstOrNull { card ->
+            card.section == InheritanceSection.FALLBACK &&
+                card.rows.any { it.originalXfp.equals(target.originalXfp, ignoreCase = true) }
+        }
+        ?.card?.fallbackIndex?.plus(1) ?: 1
+
+    /**
+     * REP-07 "Choose a key for Fallback N": the wallet's other keys, without the key being replaced,
+     * the Platform key, a key already on a card [target] is on (a route takes a key once), or a
+     * TAPSIGNER (no seed phrase to hand over, so never an inheritance key; as setup's KEY-01a).
+     */
+    fun chooseKeyOptions(target: ReplaceTarget): List<SignerModel> {
+        val targetKeyIndices = target.slots.map { it.keyIndex }.toSet()
+        val sharedCards = cards.filter { card -> card.rows.any { row -> row.keyIndices.any { it in targetKeyIndices } } }
+        val excluded = sharedCards.flatMap { card -> card.rows.map { it.originalXfp.lowercase() } }.toSet() +
+            target.originalXfp.lowercase()
+        return cards.filterNot { it.isServerKey }
+            .flatMap { it.rows }
+            .mapNotNull { it.original }
+            .filter { it.type != SignerType.SERVER && it.type != SignerType.NFC && it.fingerPrint.lowercase() !in excluded }
+            .distinctBy { it.fingerPrint.lowercase() }
+    }
 }
 
 /**
@@ -134,7 +187,21 @@ data class ConfigurableReplaceRequest(
     val accountIndex: Int,
     val isInheritance: Boolean,
     val sameDevice: SignerModel? = null,
+    /** REP-07: a key already in the wallet, which joins at its next free account, not the slot's. */
+    val isWalletKey: Boolean = false,
 ) : Parcelable
+
+internal fun InheritanceSection?.isInheritancePath(): Boolean =
+    this == InheritanceSection.PRIMARY || this == InheritanceSection.FALLBACK
+
+/**
+ * The account a wallet key chosen in REP-07 joins at: one past the highest it already gives this
+ * wallet or its pending replacement ([used]: XFP and derivation path pairs), Account N+1.
+ */
+internal fun nextFreeAccount(xfp: String, used: List<Pair<String, String>>): Int =
+    used.filter { (usedXfp, _) -> usedXfp.equals(xfp, ignoreCase = true) }
+        .mapNotNull { (_, path) -> bip32AccountIndex(path) }
+        .maxOrNull()?.plus(1) ?: 0
 
 /**
  * Joins [status]'s cards with the wallet's keys ([walletSigners], by `key_index`) and the pending
@@ -167,6 +234,7 @@ internal fun buildConfigurableReplaceState(
                     replacement.derivationPath?.let(::bip32AccountIndex) ?: account
                 ),
                 replacementVerifyType = replacement?.verifyType ?: VerifyType.NONE,
+                cardSection = card.section,
             )
         }
         val rows = slots.groupBy { it.originalXfp.lowercase() }.values.map { ReplaceKeyRow(it) }
