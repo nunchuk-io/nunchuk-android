@@ -1,1 +1,4 @@
+- Key compatibility warning: keys on a non-standard BIP32 path are now flagged when creating a wallet
+- Logged-in devices: this phone is correctly identified, and every device is listed
+- Chat reconnects automatically without signing out
 - Bug fixes and improvements
