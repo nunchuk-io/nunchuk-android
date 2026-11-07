@@ -38,6 +38,7 @@ import com.nunchuk.android.core.sheet.input.InputBottomSheet
 import com.nunchuk.android.core.sheet.input.InputBottomSheetListener
 import com.nunchuk.android.core.util.copyToClipboard
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.isAirgapTag
 import com.nunchuk.android.core.util.isColdCard
 import com.nunchuk.android.core.util.isConfirmed
 import com.nunchuk.android.core.util.isPending
@@ -222,6 +223,10 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
 
                             SignerType.AIRGAP, SignerType.UNKNOWN -> showSignByAirgapOptions()
                             SignerType.HARDWARE -> when {
+                                // An air-gapped device added from the desktop app is HARDWARE + its
+                                // tag (e.g. JADE); sign it like AIRGAP + the same tag. Ahead of
+                                // isColdCard: old inheritance-key uploads added COLDCARD next to it.
+                                signer.tags.any { it.isAirgapTag } -> showSignByAirgapOptions()
                                 signer.isColdCard -> showSignByMk4Options()
                                 viewModel.isTrezorSigner(signer) -> viewModel.requestSignTransactionByTrezor()
                                 viewModel.isLedgerSigner(signer) ->

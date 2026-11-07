@@ -66,6 +66,11 @@ class SigningDeviceTest {
             SignerTag.LEDGER to SigningDevice.LEDGER,
             SignerTag.BITBOX to SigningDevice.BITBOX,
             SignerTag.TREZOR to SigningDevice.TREZOR,
+            SignerTag.JADE to SigningDevice.JADE,
+            SignerTag.KEYSTONE to SigningDevice.KEYSTONE,
+            SignerTag.SEEDSIGNER to SigningDevice.SEEDSIGNER,
+            SignerTag.PASSPORT to SigningDevice.PASSPORT,
+            SignerTag.KRUX to SigningDevice.KRUX,
             SignerTag.COLDCARD to SigningDevice.COLDCARD,
             SignerTag.KEEPKEY to SigningDevice.OTHER_HARDWARE,
         )
@@ -86,6 +91,7 @@ class SigningDeviceTest {
             SignerTag.LEDGER to SigningDevice.LEDGER,
             SignerTag.BITBOX to SigningDevice.BITBOX,
             SignerTag.TREZOR to SigningDevice.TREZOR,
+            SignerTag.JADE to SigningDevice.JADE,
         ).forEach { (tag, device) ->
             assertEquals(
                 device,

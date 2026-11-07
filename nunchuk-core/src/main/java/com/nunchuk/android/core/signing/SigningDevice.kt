@@ -39,6 +39,13 @@ fun signingDevice(type: SignerType, tags: List<SignerTag>): SigningDevice = when
         SignerTag.LEDGER in tags -> SigningDevice.LEDGER
         SignerTag.BITBOX in tags -> SigningDevice.BITBOX
         SignerTag.TREZOR in tags -> SigningDevice.TREZOR
+        // An air-gapped device added from the desktop app is HARDWARE + its tag (e.g. JADE); it
+        // signs like AIRGAP + the same tag.
+        SignerTag.JADE in tags -> SigningDevice.JADE
+        SignerTag.KEYSTONE in tags -> SigningDevice.KEYSTONE
+        SignerTag.SEEDSIGNER in tags -> SigningDevice.SEEDSIGNER
+        SignerTag.PASSPORT in tags -> SigningDevice.PASSPORT
+        SignerTag.KRUX in tags -> SigningDevice.KRUX
         SignerTag.COLDCARD in tags -> SigningDevice.COLDCARD
         else -> SigningDevice.OTHER_HARDWARE
     }

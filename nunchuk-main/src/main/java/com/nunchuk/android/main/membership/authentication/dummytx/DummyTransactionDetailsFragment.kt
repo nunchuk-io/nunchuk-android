@@ -60,6 +60,7 @@ import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.util.TrezorCallbackHolder
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.hideLoading
+import com.nunchuk.android.core.util.isAirgapTag
 import com.nunchuk.android.core.util.isColdCard
 import com.nunchuk.android.core.util.openTrezorSuiteLink
 import com.nunchuk.android.core.util.showOrHideLoading
@@ -473,7 +474,8 @@ class DummyTransactionDetailsFragment : BaseShareSaveFileFragment<ViewBinding>()
             && (singleSigner.type == SignerType.COLDCARD_NFC
                     || (singleSigner.type == SignerType.HARDWARE && singleSigner.tags.contains(
                 SignerTag.COLDCARD
-            )) || singleSigner.type == SignerType.AIRGAP)
+            )) || singleSigner.type == SignerType.AIRGAP
+                    || (singleSigner.type == SignerType.HARDWARE && singleSigner.tags.any { it.isAirgapTag }))
         ) {
             NCWarningDialog(requireActivity())
                 .showDialog(

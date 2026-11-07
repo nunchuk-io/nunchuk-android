@@ -47,6 +47,7 @@ import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.signer.toSingleSigner
 import com.nunchuk.android.core.util.CardIdManager
+import com.nunchuk.android.core.util.isAirgapTag
 import com.nunchuk.android.core.util.isNoInternetException
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.parseTrezorCallback
@@ -411,6 +412,12 @@ class WalletAuthenticationViewModel @Inject constructor(
 
             isBitBoxSigner(signerModel) ->
                 requestSignTransactionInApp(signerModel, SignerTag.BITBOX)
+
+            // An air-gapped device added from the desktop app is HARDWARE + its tag (e.g. JADE);
+            // it signs over QR/file like AIRGAP + the same tag. Ahead of COLDCARD, which old
+            // inheritance-key uploads added next to a HARDWARE key's own tag.
+            signerModel.type == SignerType.HARDWARE && signerModel.tags.any { it.isAirgapTag } ->
+                _event.emit(WalletAuthenticationEvent.ShowAirgapOption)
 
             signerModel.type == SignerType.COLDCARD_NFC
                     || (signerModel.type == SignerType.HARDWARE
