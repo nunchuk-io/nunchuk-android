@@ -24,6 +24,8 @@ import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.GetAppSettingUseCase
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.matrix.SessionHolder
+import com.nunchuk.android.core.persistence.InternalEncryptKeyStore
+import com.nunchuk.android.core.persistence.PreferenceKeyHasher
 import com.nunchuk.android.core.util.toMatrixContent
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.log.fileLog
@@ -56,7 +58,9 @@ class InitNunchukUseCase @Inject constructor(
     private val startConsumeGroupWalletEventUseCase: StartConsumeGroupWalletEventUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val applicationScope: CoroutineScope,
-    private val accountManager: AccountManager
+    private val accountManager: AccountManager,
+    private val internalEncryptKeyStore: InternalEncryptKeyStore,
+    private val preferenceKeyHasher: PreferenceKeyHasher,
 ) : UseCase<InitNunchukUseCase.Param, Boolean>(ioDispatcher) {
     private var lastParam: Param? = null
     private var lastSettings: AppSettings? = null
@@ -75,9 +79,6 @@ class InitNunchukUseCase @Inject constructor(
             )
         }
         if (parameters == lastParam && lastSettings == settings && lastDecoyPin == decoyPin) return false
-        lastSettings = settings
-        lastParam = parameters
-        lastDecoyPin = decoyPin
         Timber.d("InitNunchukUseCase: $settings")
         consumeJob?.cancel()
         initNunchuk(
@@ -87,6 +88,10 @@ class InitNunchukUseCase @Inject constructor(
             deviceId = deviceManager.getDeviceId(),
             decoyPin = decoyPin
         )
+        // Only after a successful init, so a failed one (e.g. key unreadable) is retried next time.
+        lastSettings = settings
+        lastParam = parameters
+        lastDecoyPin = decoyPin
         fileLog(message = "start nativeSdk enableGroupWalletUseCase")
         Timber.d("Thread: ${Thread.currentThread().name}")
         consumeJob = applicationScope.launch {
@@ -140,17 +145,52 @@ class InitNunchukUseCase @Inject constructor(
         decoyPin: String
     ) {
         initReceiver()
+        // Throws if the key exists but cannot be read: never open the DB without it, or new
+        // mnemonics would be written in the clear and encrypted ones would fail to load.
+        val encryptKey = internalEncryptKeyStore.getOrCreateKey()
+        val identity = storageIdentity(appSettings.chain, accountId, decoyPin)
+        val recovery = internalEncryptKeyStore.isRecoveryPending(identity)
         fileLog(message = "start nativeSdk initNunchuk")
-        nativeSdk.initNunchuk(
-            appSettings = appSettings,
-            passphrase = passphrase,
-            accountId = accountId,
-            deviceId = deviceId,
-            decoyPin = decoyPin,
-            baseApiUrl = if (appSettings.chain == Chain.MAIN) "https://api.nunchuk.io" else "https://api-testnet.nunchuk.io"
-        )
+        try {
+            nativeSdk.initNunchuk(
+                appSettings = appSettings,
+                passphrase = passphrase,
+                accountId = accountId,
+                deviceId = deviceId,
+                decoyPin = decoyPin,
+                baseApiUrl = if (appSettings.chain == Chain.MAIN) "https://api.nunchuk.io" else "https://api-testnet.nunchuk.io",
+                internalEncryptKey = encryptKey,
+                recoveryMode = recovery,
+            )
+        } finally {
+            encryptKey.fill(0)
+        }
+        if (recovery) sweepUnreadableSecrets(identity)
         fileLog("end nativeSdk initNunchuk")
     }
+
+    /**
+     * The previous internal encrypt key is gone, so this account's on-device mnemonics are
+     * unreadable. Listing the master signers reads every mnemonic / master xprv, and recovery mode
+     * erases each one it cannot decrypt (those signers become FOREIGN_SOFTWARE until the user
+     * recovers them from their backup). Recovery is switched off afterwards so a later bug that
+     * passes a wrong key fails loudly instead of erasing more.
+     */
+    private fun sweepUnreadableSecrets(identity: String) {
+        runCatching { nativeSdk.getMasterSigners() }
+            .onSuccess { internalEncryptKeyStore.markRecovered(identity) }
+            .onFailure { Timber.e(it, "Internal encrypt key recovery sweep failed") }
+        nativeSdk.recoveryMode(false)
+    }
+
+    /**
+     * One set of libnunchuk signer DBs per chain and account / decoy pin, each swept on its own.
+     * Hashed so neither the email nor the pin lands on disk.
+     */
+    private fun storageIdentity(chain: Chain, accountId: String, decoyPin: String): String =
+        preferenceKeyHasher.derive(
+            if (decoyPin.isNotEmpty()) "$chain:decoy:$decoyPin" else "$chain:account:$accountId"
+        )
 
     private fun initReceiver() {
         SendEventHelper.executor = object : SendEventExecutor {
