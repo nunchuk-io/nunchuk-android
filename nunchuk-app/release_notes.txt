@@ -1,3 +1,24 @@
+FIX in this build — Sign with an air-gapped key added from the desktop app (Jade, Keystone, SeedSigner, Passport, Krux)
+
+A Jade added from the desktop app is stored as HARDWARE + JADE (not AIRGAP + JADE). Android used to
+answer "Please use the desktop app to sign with this key". It now signs like AIRGAP + JADE (export /
+import signature via QR or file):
+1. Normal transaction → Sign with that key.
+2. Dummy transaction: change email, sign in via digital signature, key recovery / other membership
+   flows that ask for signatures.
+3. Inheritance claim: sign the claim transaction / verify message with that key.
+Other hardware keys behave as before (Ledger/Trezor/BitBox in-app, COLDCARD, others → desktop app).
+
+────────────────────────────────────────
+
+NEW in this build — Internal encrypt key for software keys (native SDK 1.2.29)
+
+- Mnemonics / master xprv of software (hot) keys are now encrypted with a per-device key kept in the
+  Android Keystore. Nothing to do: upgrade over 2.9.5 and check existing hot keys still sign, show
+  their seed phrase backup, and new hot keys can be created/recovered. Same for guest mode / decoy PIN.
+
+────────────────────────────────────────
+
 FIX in this build — Key compatibility warning on Miniscript Configure wallet (NUN-10341)
 
 - Free (personal) Miniscript → Configure wallet: a key on a non-standard BIP32 path is now flagged
