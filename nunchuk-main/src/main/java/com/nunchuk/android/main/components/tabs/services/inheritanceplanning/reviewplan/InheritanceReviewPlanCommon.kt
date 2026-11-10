@@ -278,20 +278,40 @@ fun NotificationPreferencesSection(
     textColor: Color = MaterialTheme.colorScheme.controlFillPrimary,
     emailTextColor: Color = MaterialTheme.colorScheme.controlFillPrimary,
     notifyTextColor: Color = MaterialTheme.colorScheme.controlFillPrimary,
+    /** On-chain plans with fallbacks show "Unlock notices" per recipient instead of a Yes/No. */
+    fallbackCount: Int = 0,
+    /**
+     * A pending plan change (REV-11): the settings before it. Each value that differs, and every
+     * value of a new recipient, takes [changedTextColor]; [textColor] applies to the rest.
+     */
+    previousPreferences: InheritanceNotificationSettings? = null,
+    changedTextColor: Color? = null,
 ) {
     if (isMiniscriptWallet && notificationPreferences != null) {
         Column(modifier = modifier) {
             if (userEmail.isNotEmpty()) {
+                val ownerChanged = changedTextColor != null &&
+                        notificationPreferences.emailMeWalletConfig != previousPreferences?.emailMeWalletConfig
                 UserNotificationSettingsContent(
                     emailMeWalletConfig = notificationPreferences.emailMeWalletConfig,
                     userEmail = userEmail,
-                    textColor = textColor,
+                    textColor = if (ownerChanged) changedTextColor else textColor,
                 )
             }
             notificationPreferences.perEmailSettings.forEach { emailSettings ->
                 ProviderNotificationSettingsContent(
                     emailSettings = emailSettings,
                     textColor = textColor,
+                    fallbackCount = fallbackCount,
+                    changes = if (changedTextColor != null) {
+                        emailSettings.changesFrom(
+                            previous = previousPreferences?.perEmailSettings?.find { it.email == emailSettings.email },
+                            fallbackCount = fallbackCount,
+                        )
+                    } else {
+                        null
+                    },
+                    changedTextColor = changedTextColor ?: textColor,
                 )
             }
         }
@@ -562,6 +582,7 @@ fun notificationPreferencesEqual(
         old.perEmailSettings.any { oldSettings ->
             oldSettings.email == newSettings.email &&
                     oldSettings.notifyOnTimelockExpiry == newSettings.notifyOnTimelockExpiry &&
+                    oldSettings.notifyFallbacks.orEmpty().sorted() == newSettings.notifyFallbacks.orEmpty().sorted() &&
                     oldSettings.notifyOnWalletChanges == newSettings.notifyOnWalletChanges &&
                     oldSettings.includeWalletConfiguration == newSettings.includeWalletConfiguration
         }

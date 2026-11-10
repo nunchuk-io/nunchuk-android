@@ -1,6 +1,7 @@
 package com.nunchuk.android.main.membership.onchaintimelock.replacekey
 
 import android.nfc.tech.IsoDep
+import androidx.annotation.StringRes
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -19,6 +20,7 @@ import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.gson
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.exception.NCNativeException
+import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.model.AddReplaceKeyOnChainData
 import com.nunchuk.android.main.membership.model.ReplaceStepData
 import com.nunchuk.android.main.membership.model.toAddReplaceKeyOnChainDataList
@@ -35,6 +37,10 @@ import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.StateEvent
 import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.model.WalletTimelock
+import com.nunchuk.android.model.WalletServer
+import com.nunchuk.android.model.inheritance.RecoveredKey
+import com.nunchuk.android.model.inheritance.bip32AccountIndex
+import com.nunchuk.android.model.wallet.ReplaceWalletStatus
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.model.getReplaceKeySteps
@@ -72,6 +78,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -131,6 +138,16 @@ class OnChainReplaceKeysViewModel @Inject constructor(
     private var loadWalletStatusJob: Job? = null
     private var initReplaceKeyJob: Job? = null
 
+    /** Set once the wallet turns out to be configurable; null for a legacy wallet. */
+    private var configurableWallet: WalletServer? = null
+    private var lastStatus: ReplaceWalletStatus? = null
+    private val _configurable = MutableStateFlow<ConfigurableReplaceState?>(null)
+    val configurable = _configurable.asStateFlow()
+
+    /** The configurable slot the running import fills; null on a legacy wallet. */
+    val configurableRequest: ConfigurableReplaceRequest?
+        get() = savedStateHandle.get<ConfigurableReplaceRequest>(KEY_CONFIGURABLE_REQUEST)
+
     init {
         viewModelScope.launch {
             pushEventManager.event.collect {
@@ -169,13 +186,13 @@ class OnChainReplaceKeysViewModel @Inject constructor(
             }
             viewModelScope.launch {
                 syncGroupWalletUseCase(args.groupId).onSuccess { wallet ->
-                    buildAddReplaceKeySteps(wallet.signers, wallet.timelock)
+                    onWalletLoaded(wallet)
                 }
             }
         } else {
             viewModelScope.launch {
                 getServerWalletUseCase(args.walletId).onSuccess { wallet ->
-                    buildAddReplaceKeySteps(wallet.signers, wallet.timelock)
+                    onWalletLoaded(wallet)
                 }
             }
         }
@@ -188,6 +205,31 @@ class OnChainReplaceKeysViewModel @Inject constructor(
         }
         getReplaceWalletStatus()
         loadSigners()
+    }
+
+    /**
+     * A configurable wallet (NUN-10320) is laid out from the replacement status' cards; its key
+     * indices have no [OnChainReplaceKeyStep]. A legacy wallet keeps the fixed step layout.
+     */
+    private suspend fun onWalletLoaded(wallet: WalletServer) {
+        if (wallet.onChainInheritancePolicy?.isConfigurable == true) {
+            configurableWallet = wallet
+            publishConfigurable()
+        } else {
+            buildAddReplaceKeySteps(wallet.signers, wallet.timelock)
+        }
+    }
+
+    private fun publishConfigurable() {
+        val wallet = configurableWallet ?: return
+        val status = lastStatus ?: return
+        val state = buildConfigurableReplaceState(
+            policy = wallet.onChainInheritancePolicy,
+            walletSigners = wallet.signers,
+            walletTimelock = wallet.timelock,
+            status = status,
+        )
+        _configurable.value = state
     }
 
     private suspend fun buildAddReplaceKeySteps(
@@ -251,6 +293,8 @@ class OnChainReplaceKeysViewModel @Inject constructor(
             getReplaceWalletStatusUseCase(
                 GetReplaceWalletStatusUseCase.Param(args.groupId, args.walletId)
             ).onSuccess { status ->
+                lastStatus = status
+                publishConfigurable()
                 val verifiedSigners = status.signers.values
                     .filter { signer -> signer.verifyType != VerifyType.NONE }
                     .mapNotNull { signer -> signer.xfp }
@@ -326,6 +370,7 @@ class OnChainReplaceKeysViewModel @Inject constructor(
         viewModelScope.launch {
             loadWalletStatusJob?.cancel()
             _uiState.update { it.copy(isLoading = true, isFinalizing = true) }
+            // The backend checks verification at finalize; its error shows as a toast.
             finalizeReplaceAssistedWallet()
             _uiState.update { it.copy(isLoading = false, isFinalizing = false) }
         }
@@ -387,6 +432,8 @@ class OnChainReplaceKeysViewModel @Inject constructor(
     }
 
     fun onReplaceKey(signer: SingleSigner) {
+        val request = configurableRequest
+        if (request != null && !acceptsConfigurableSigner(request, signer)) return
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             initReplaceKeyJob?.join()
@@ -396,11 +443,15 @@ class OnChainReplaceKeysViewModel @Inject constructor(
                     walletId = args.walletId,
                     xfp = savedStateHandle.get<String>(REPLACE_XFP).orEmpty(),
                     signer = signer,
-                    keyIndex = getCurrentStep()?.toIndex(args.groupId.isNotEmpty()) ?: 0
+                    keyIndex = request?.keyIndex ?: getCurrentStep()?.toIndex(args.groupId.isNotEmpty()) ?: 0
                 )
             ).onSuccess {
                 loadWalletStatusJob?.cancel()
                 getReplaceWalletStatus()
+                if (request != null) {
+                    loadWalletStatusJob?.join()
+                    continueConfigurableReplace(request.originalXfp)
+                }
             }.onFailure {
                 _uiState.update { state -> state.copy(message = it.message.orUnknownError()) }
             }
@@ -420,6 +471,7 @@ class OnChainReplaceKeysViewModel @Inject constructor(
                     walletId = args.walletId
                 )
             ).onSuccess {
+                savedStateHandle.remove<ConfigurableReplaceRequest>(KEY_CONFIGURABLE_REQUEST)
                 getReplaceWalletStatus()
             }.onFailure {
                 _uiState.update { state -> state.copy(message = it.message.orUnknownError()) }
@@ -456,6 +508,9 @@ class OnChainReplaceKeysViewModel @Inject constructor(
                 )
             ).onSuccess {
                 // Remove stepDataMap entries for the removed xfp
+                if (configurableRequest?.originalXfp.equals(xfp, ignoreCase = true)) {
+                    savedStateHandle.remove<ConfigurableReplaceRequest>(KEY_CONFIGURABLE_REQUEST)
+                }
                 _keys.update { currentKeys ->
                     currentKeys.map { keyData ->
                         if (keyData.fingerPrint == xfp) {
@@ -566,7 +621,7 @@ class OnChainReplaceKeysViewModel @Inject constructor(
      * fingerprint back from their own screens, which create nothing and leave the marking to us.
      * Coldcard and air-gap mark themselves verified inside their add-key screens instead.
      */
-    fun setReplaceKeyVerified(keyId: String) {
+    fun setReplaceKeyVerified(keyId: String, recoveredKey: RecoveredKey? = null) {
         viewModelScope.launch {
             setReplaceKeyVerifiedUseCase(
                 SetReplaceKeyVerifiedUseCase.Param(
@@ -574,7 +629,8 @@ class OnChainReplaceKeysViewModel @Inject constructor(
                     checkSum = "",
                     verifyType = VerifyType.SELF_VERIFIED,
                     groupId = args.groupId,
-                    walletId = args.walletId
+                    walletId = args.walletId,
+                    recoveredKey = recoveredKey,
                 )
             ).onSuccess {
                 getReplaceWalletStatus()
@@ -666,6 +722,10 @@ class OnChainReplaceKeysViewModel @Inject constructor(
         data: AddReplaceKeyOnChainData? = null,
         walletId: String? = null
     ) {
+        if (configurableRequest != null) {
+            onConfigurableDevicePicked(signerModel)
+            return
+        }
         viewModelScope.launch {
             if (signerModel.isMasterSigner && signerModel.type == SignerType.NFC) {
                 var masterSigner = masterSigners.find { it.id == signerModel.fingerPrint }
@@ -786,6 +846,16 @@ class OnChainReplaceKeysViewModel @Inject constructor(
     }
 
     fun handleSignerNewIndex(signer: SingleSigner, keyOnChainData: AddReplaceKeyOnChainData? = null) {
+        val request = configurableRequest
+        if (request != null) {
+            // A key picked or read at another account: fetch the slot's account of that device.
+            if (bip32AccountIndex(signer.derivationPath) == request.accountIndex) {
+                onReplaceKey(signer)
+            } else {
+                onConfigurableDevicePicked(signer.toModel())
+            }
+            return
+        }
         viewModelScope.launch {
             val currentStep = getCurrentStep()
                 ?: throw IllegalArgumentException("Current step empty")
@@ -909,6 +979,201 @@ class OnChainReplaceKeysViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Replace on a configurable wallet's key (REP-01). Every account the original key supplies, in
+     * any card, has to come off one new key: the first from a device the user picks, the rest off
+     * that same device without asking again (REP-02).
+     */
+    fun onConfigurableReplaceClicked(row: ReplaceKeyRow) {
+        val state = _configurable.value ?: return
+        val target = state.targetOf(row) ?: return
+        val slot = target.nextMissingSlot ?: return
+        savedStateHandle[REPLACE_XFP] = target.originalXfp
+        initReplaceKey()
+        // REP-07: a fallback-only key can be replaced by a key already in this wallet.
+        val options = if (target.isFallbackOnly && target.replacementDevice == null) state.chooseKeyOptions(target) else emptyList()
+        if (options.isNotEmpty()) {
+            _chooseWalletKey.value = ChooseWalletKeyPrompt(
+                originalXfp = target.originalXfp,
+                fallbackNumber = state.fallbackNumberOf(target),
+                options = options,
+            )
+            return
+        }
+        startConfigurableImport(target, slot, target.replacementDevice)
+    }
+
+    private val _chooseWalletKey = MutableStateFlow<ChooseWalletKeyPrompt?>(null)
+
+    /** REP-07 "Choose a key for Fallback N", while it is open. */
+    val chooseWalletKey = _chooseWalletKey.asStateFlow()
+
+    /** REP-07 "Choose key": that wallet key joins at its next free account, read off that device. */
+    fun onChooseWalletKeySelected(xfp: String) {
+        val prompt = _chooseWalletKey.getAndUpdate { null } ?: return
+        val target = _configurable.value?.targets?.get(prompt.originalXfp.lowercase()) ?: return
+        val slot = target.nextMissingSlot ?: return
+        val device = prompt.options.firstOrNull { it.fingerPrint.equals(xfp, ignoreCase = true) } ?: return
+        startConfigurableImport(target, slot, device, isWalletKey = true)
+    }
+
+    /** REP-07 "Use a different key": the usual device import. */
+    fun onChooseWalletKeyAddNew() {
+        val prompt = _chooseWalletKey.getAndUpdate { null } ?: return
+        val target = _configurable.value?.targets?.get(prompt.originalXfp.lowercase()) ?: return
+        val slot = target.nextMissingSlot ?: return
+        startConfigurableImport(target, slot, null)
+    }
+
+    fun dismissChooseWalletKey() {
+        _chooseWalletKey.value = null
+    }
+
+    /** After an account is in: import the next missing one off the same device, if any. */
+    private fun continueConfigurableReplace(originalXfp: String) {
+        val isWalletKey = configurableRequest?.isWalletKey == true
+        val target = _configurable.value?.targets?.get(originalXfp.lowercase())
+        val slot = target?.nextMissingSlot
+        val device = target?.replacementDevice
+        if (slot == null || device == null) {
+            savedStateHandle.remove<ConfigurableReplaceRequest>(KEY_CONFIGURABLE_REQUEST)
+            return
+        }
+        startConfigurableImport(target, slot, device, isWalletKey)
+    }
+
+    /** Accounts each XFP already gives the wallet or its pending replacement. */
+    private fun usedAccounts(): List<Pair<String, String>> {
+        val wallet = configurableWallet?.signers.orEmpty().map { it.xfp.orEmpty() to it.derivationPath.orEmpty() }
+        val pending = lastStatus?.replacements?.values.orEmpty().flatten().map { it.xfp.orEmpty() to it.derivationPath.orEmpty() }
+        return wallet + pending
+    }
+
+    private fun startConfigurableImport(
+        target: ReplaceTarget,
+        slot: ReplaceSlot,
+        device: SignerModel?,
+        isWalletKey: Boolean = false,
+    ) {
+        val isInheritance = target.slots.any { it.original?.tags?.contains(SignerTag.INHERITANCE) == true }
+        val request = ConfigurableReplaceRequest(
+            originalXfp = target.originalXfp,
+            keyIndex = slot.keyIndex,
+            // A wallet key (REP-07) takes Account N+1 of that device, not the old key's account.
+            accountIndex = if (isWalletKey && device != null) nextFreeAccount(device.fingerPrint, usedAccounts()) else slot.accountIndex,
+            isInheritance = isInheritance,
+            sameDevice = device,
+            isWalletKey = isWalletKey,
+        )
+        savedStateHandle[KEY_CONFIGURABLE_REQUEST] = request
+        // Stand-in step for the device flows' inheritance/spending copy; the slot index is the request's.
+        setCurrentStep(if (isInheritance) OnChainReplaceKeyStep.INHERITANCE_KEY else OnChainReplaceKeyStep.HARDWARE_KEY)
+        if (device == null) {
+            viewModelScope.launch { _event.emit(OnChainReplaceKeyEvent.OpenConfigurableAdd(request)) }
+        } else {
+            importConfigurableAccount(device, request)
+        }
+    }
+
+    /** A device was picked (or read at another account) for the running configurable import. */
+    fun onConfigurableDevicePicked(device: SignerModel) {
+        val request = configurableRequest ?: return
+        if (request.sameDevice != null && !request.sameDevice.fingerPrint.equals(device.fingerPrint, ignoreCase = true)) {
+            emitSameDeviceError(request)
+            return
+        }
+        importConfigurableAccount(device, request.copy(sameDevice = device), readFromDevice = request.sameDevice == null)
+    }
+
+    /**
+     * [request]'s account of [device]: reuse it when the app or the server already holds it (TAPSIGNER:
+     * derive it), else read exactly that account off the device. When the device itself just handed
+     * back another account ([readFromDevice] false), report the mismatch instead of asking again.
+     */
+    private fun importConfigurableAccount(
+        device: SignerModel,
+        request: ConfigurableReplaceRequest,
+        readFromDevice: Boolean = true,
+    ) {
+        savedStateHandle[KEY_CONFIGURABLE_REQUEST] = request
+        viewModelScope.launch {
+            if (device.type == SignerType.NFC) {
+                when (val result = getSignerFromMasterSignerByIndex(device.fingerPrint, request.accountIndex)) {
+                    is Result.Success -> result.data?.let { onReplaceKey(it) }
+                    is Result.Error -> {
+                        val error = result.exception
+                        if (error is NCNativeException && error.message.contains("-1009")) {
+                            savedStateHandle[KEY_TAPSIGNER_MASTER_ID] = device.fingerPrint
+                            savedStateHandle[KEY_TAPSIGNER_PATH] = getPath(request.accountIndex, isTestNet)
+                            savedStateHandle[KEY_TAPSIGNER_CONTEXT] =
+                                TapSignerCachingContext.HANDLE_CUSTOM_KEY_ACCOUNT_RESULT.name
+                            pendingTapSignerSignerModel = device
+                            requestCacheTapSignerXpub()
+                        } else {
+                            _event.emit(OnChainReplaceKeyEvent.ShowError(error.message.orUnknownError()))
+                        }
+                    }
+                }
+                return@launch
+            }
+            val known = getRemoteSignerByIndex(device.fingerPrint, request.accountIndex)
+            if (known is Result.Success && known.data != null) {
+                onReplaceKey(known.data!!)
+                return@launch
+            }
+            if (readFromDevice) {
+                _event.emit(OnChainReplaceKeyEvent.OpenConfigurableAdd(request))
+            } else {
+                _event.emit(OnChainReplaceKeyEvent.ShowErrorRes(R.string.nc_draft_key_wrong_account, listOf(request.accountIndex)))
+            }
+        }
+    }
+
+    /** The replacement must be [request]'s account, and every account must come off the same key. */
+    private fun acceptsConfigurableSigner(request: ConfigurableReplaceRequest, signer: SingleSigner): Boolean {
+        if (request.sameDevice != null && !request.sameDevice.fingerPrint.equals(signer.masterFingerprint, ignoreCase = true)) {
+            emitSameDeviceError(request)
+            return false
+        }
+        if (bip32AccountIndex(signer.derivationPath) != request.accountIndex) {
+            viewModelScope.launch {
+                _event.emit(OnChainReplaceKeyEvent.ShowErrorRes(R.string.nc_draft_key_wrong_account, listOf(request.accountIndex)))
+            }
+            return false
+        }
+        return true
+    }
+
+    private fun emitSameDeviceError(request: ConfigurableReplaceRequest) {
+        viewModelScope.launch {
+            _event.emit(
+                OnChainReplaceKeyEvent.ShowErrorRes(
+                    R.string.nc_replace_key_same_device,
+                    listOf(request.accountIndex, request.sameDevice?.fingerPrint.orEmpty().uppercase()),
+                )
+            )
+        }
+    }
+
+    /** Verify once the new key has every account (REP-03); one check covers all of them. */
+    fun onConfigurableVerifyClicked(row: ReplaceKeyRow) {
+        val target = _configurable.value?.targetOf(row)?.takeIf { it.isComplete } ?: return
+        val signer = target.replacementDevice ?: return
+        savedStateHandle[REPLACE_XFP] = target.originalXfp
+        val missingBackup = signer.type == SignerType.NFC &&
+            lastStatus?.replacements?.get(target.originalXfp)?.any { it.userBackUpFileName.isNullOrEmpty() } == true
+        viewModelScope.launch {
+            _event.emit(
+                OnChainReplaceKeyEvent.OnVerifySigner(
+                    signer = signer,
+                    filePath = nfcFileManager.buildFilePath(getStepInfo(OnChainReplaceKeyStep.HARDWARE_KEY).keyIdInServer),
+                    backUpFileName = "",
+                    isBackupNfc = missingBackup,
+                )
+            )
+        }
+    }
+
     private fun getPath(
         index: Int,
         isTestNet: Boolean = false,
@@ -932,6 +1197,7 @@ class OnChainReplaceKeysViewModel @Inject constructor(
         private const val KEY_TAPSIGNER_MASTER_ID = "tapsigner_master_id"
         private const val KEY_TAPSIGNER_PATH = "tapsigner_path"
         private const val KEY_TAPSIGNER_CONTEXT = "tapsigner_context"
+        private const val KEY_CONFIGURABLE_REQUEST = "configurable_replace_request"
     }
 }
 
@@ -954,7 +1220,18 @@ sealed class OnChainReplaceKeyEvent {
         OnChainReplaceKeyEvent()
     
     data class OpenUploadConfigurationScreen(val walletId: String) : OnChainReplaceKeyEvent()
+
+    /** Run the add-key flow for a configurable wallet slot ([ConfigurableReplaceRequest.sameDevice]: that device only). */
+    data class OpenConfigurableAdd(val request: ConfigurableReplaceRequest) : OnChainReplaceKeyEvent()
+    data class ShowErrorRes(@StringRes val messageRes: Int, val args: List<Any> = emptyList()) : OnChainReplaceKeyEvent()
 }
+
+/** REP-07: replace the fallback-only key [originalXfp] with one of [options], keys already in this wallet. */
+data class ChooseWalletKeyPrompt(
+    val originalXfp: String,
+    val fallbackNumber: Int,
+    val options: List<SignerModel>,
+)
 
 data class OnChainReplaceKeysUiState(
     val isDataLoaded: Boolean = false,

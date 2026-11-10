@@ -7,6 +7,7 @@ import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.isRecommendedMultiSigPath
+import com.nunchuk.android.core.util.matchesChain
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.nav.args.CheckFirmwareArgs
@@ -42,10 +43,9 @@ class CheckFirmwareViewModel @Inject constructor(
     val remainTime = membershipStepManager.remainingTime
 
     private lateinit var args: CheckFirmwareArgs
-    private var isTestNet: Boolean = false
+    private var chain: Chain = Chain.MAIN
 
     private val _filteredSigners = MutableStateFlow<List<SignerModel>>(emptyList())
-    val filteredSigners = _filteredSigners.asStateFlow()
 
     private val _firmwareVersion = MutableStateFlow<String>("")
     val firmwareVersion = _firmwareVersion.asStateFlow()
@@ -58,7 +58,7 @@ class CheckFirmwareViewModel @Inject constructor(
             getChainSettingFlowUseCase(Unit)
                 .map { it.getOrDefault(Chain.MAIN) }
                 .collect {
-                    isTestNet = it == Chain.TESTNET
+                    chain = it
                 }
         }
     }
@@ -130,7 +130,7 @@ class CheckFirmwareViewModel @Inject constructor(
     fun onContinueClicked() {
         viewModelScope.launch {
             val signers = _filteredSigners.value
-                .filter { signer -> signer.derivationPath.isRecommendedMultiSigPath }
+                .filter { signer -> signer.derivationPath.isRecommendedMultiSigPath && signer.derivationPath.matchesChain(chain) }
                 .let { filterExistingSigners(it) }
             if (args.onChainAddSignerParam?.isVerifyBackupSeedPhrase() == true) {
                 _event.emit(CheckFirmwareEvent.OpenNextScreen)
@@ -159,7 +159,7 @@ class CheckFirmwareViewModel @Inject constructor(
     }
 
     private fun getPath(index: Int): String {
-        return if (isTestNet) "m/48h/1h/${index}h/2h" else "m/48h/0h/${index}h/2h"
+        return if (chain == Chain.TESTNET) "m/48h/1h/${index}h/2h" else "m/48h/0h/${index}h/2h"
     }
 }
 

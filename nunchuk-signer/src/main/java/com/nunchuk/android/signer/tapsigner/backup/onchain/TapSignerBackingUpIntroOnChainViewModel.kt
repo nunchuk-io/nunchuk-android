@@ -41,6 +41,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.io.File
+import com.nunchuk.android.signer.tapsigner.backup.verify.TapSignerRecoveredKeyResolver
 import javax.inject.Inject
 
 @HiltViewModel
@@ -50,6 +51,7 @@ class TapSignerBackingUpIntroOnChainViewModel @Inject constructor(
     private val singleSignerMapper: SingleSignerMapper,
     private val setKeyVerifiedUseCase: SetKeyVerifiedUseCase,
     private val setReplaceKeyVerifiedUseCase: SetReplaceKeyVerifiedUseCase,
+    private val tapSignerRecoveredKeyResolver: TapSignerRecoveredKeyResolver,
     cardIdManager: CardIdManager,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
@@ -120,11 +122,18 @@ class TapSignerBackingUpIntroOnChainViewModel @Inject constructor(
 
     fun setKeyVerified(groupId: String, masterSignerId: String) {
         viewModelScope.launch {
+            // A configurable draft (NUN-10320) marks the owner's own backup verified against the
+            // account; a legacy draft records the skip as before.
+            val recoveredKey = tapSignerRecoveredKeyResolver.draftKey(groupId, masterSignerId).getOrElse {
+                _event.emit(TapSignerBackingUpIntroOnChainEvent.ShowError(it))
+                return@launch
+            }
             val result = setKeyVerifiedUseCase(
                 SetKeyVerifiedUseCase.Param(
                     groupId = groupId,
                     masterSignerId = masterSignerId,
-                    verifyType = VerifyType.SKIPPED_VERIFICATION
+                    verifyType = if (recoveredKey != null) VerifyType.SELF_VERIFIED else VerifyType.SKIPPED_VERIFICATION,
+                    recoveredKey = recoveredKey,
                 )
             )
             if (result.isSuccess) {
@@ -137,13 +146,20 @@ class TapSignerBackingUpIntroOnChainViewModel @Inject constructor(
 
     fun setReplaceKeyVerified(keyId: String, filePath: String, groupId: String, walletId: String) {
         viewModelScope.launch {
+            // A configurable wallet verifies against the replacement's account (NUN-10320).
+            val recoveredKey = tapSignerRecoveredKeyResolver.replacementKey(groupId, walletId, args.masterSignerId)
+                .getOrElse {
+                    _event.emit(TapSignerBackingUpIntroOnChainEvent.ShowError(it))
+                    return@launch
+                }
             setReplaceKeyVerifiedUseCase(
                 SetReplaceKeyVerifiedUseCase.Param(
                     keyId = keyId,
                     checkSum = "",
                     verifyType = VerifyType.SELF_VERIFIED,
                     groupId = groupId,
-                    walletId = walletId
+                    walletId = walletId,
+                    recoveredKey = recoveredKey,
                 )
             ).onSuccess {
                 _event.emit(TapSignerBackingUpIntroOnChainEvent.KeyVerifiedSuccess)

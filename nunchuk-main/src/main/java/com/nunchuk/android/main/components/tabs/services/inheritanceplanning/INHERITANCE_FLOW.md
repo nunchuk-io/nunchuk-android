@@ -154,6 +154,29 @@ notifyPref ─ miniscript? notificationSettings : reviewPlan
 reviewPlan ─► (sign) ─► createSuccess ─► shareSecret ─► shareSecretInfo ─► howItWorks
 ```
 
+**On-chain plans with fallbacks** (configurable policy, NUN-10320): `InheritancePlanningState`
+derives `primaryInheritance` and `fallbackInheritances` (`FallbackInheritanceInfo.kt`) from the
+wallet's `onchain_inheritance_policy` + the plan's `inheritance_keys` (section / `fallback_index`;
+keys are never inferred from signers). Review lists each fallback after the primary date:
+"Fallback N · M of N keys", the server-named keys, and that fallback's own "Claimable after".
+`notificationSettings` then shows, per recipient, a "Notify them when a timelock expires" switch
+with one checkbox per timelock (NOTIF-03): primary = `notify_timelock_expires`, Fallback N =
+index N-1 in `notify_fallbacks` (`notificationsettings/UnlockNotices.kt`); Review shows the picks
+as "Unlock notices". Without fallbacks both screens keep the single Yes/No timelock notice.
+
+The same `fallbackInheritances` drive the rest of the plan screens (Row 7 · SHARE, Row 4 · PLAN):
+- `shareSecretInfo` adds item 3 "For each fallback, share its keys with the person it's intended
+  for…" with a box listing "Fallback N" / "Fallback keys 2, 3 and 4 · any 2 of 3 required" (keys
+  numbered across fallbacks by `fallbackKeyNumbers()`: the server's names when every key is named,
+  otherwise continuing from the previous fallback), and the warning adds "and with anyone a
+  fallback is intended for".
+- `howItWorks`: the guided claim ends "…or the keys of a fallback whose timelock has expired", the
+  self-serve claim reads "…and the same keys".
+- Setup guidance (these run before the plan lists keys, so only M-of-N is used): Plan overview
+  items 2 / 3 name "Fallback 1" or "each fallback" (PLAN-07 / PLAN-10); Inheritance keys adds one
+  bullet per fallback and the inheritance-and-fallback backup copy (PLAN-08 / PLAN-11 / PLAN-11b);
+  About the timelock switches to "timelocks" and the fallback hint (PLAN-09 / PLAN-12).
+
 Supporting screens reachable from review/edit: `changetimezone`, `backupdownload`,
 `fallbacksettings`, `assetallocation`, `releasemethod`, `beneficiaryschedules`.
 
@@ -213,6 +236,20 @@ WALLET_ID)` + `finish()`.
 Continue rebuilds the *same* user data from the payload (not from local state) so the signature
 matches. `cancelChange()` deletes the dummy tx.
 
+`InheritanceAlertReviewScreen` (`oldFlowItems`, miniscript or lump-sum plans) highlights only what
+changed against the previous plan (`oldData`):
+
+* Configurable on-chain plans (`onChainInheritancePolicy.isConfigurable`) drop the timelock box —
+  each route's unlock time lives in the wallet policy, not in the plan (Figma REV-11 `4664:25401`).
+* Notification preferences go through the shared `NotificationPreferencesSection`. With fallbacks
+  (`fallbackCount` = the wallet policy's fallbacks) each recipient shows "Unlock notices"
+  (`unlockNoticeRoutes`); without them the single Yes/No timelock row.
+* Per recipient, `EmailNotificationSettings.changesFrom(previous, fallbackCount)`
+  (`reviewplan/NotificationPreferenceChanges.kt`) returns a `RecipientNotificationChanges`; only
+  the changed rows use `changedTextColor`. Recipients are matched by email; a new one is all
+  changed (`RecipientNotificationChanges.ALL`). The owner's "Email me wallet configuration" row is
+  highlighted when `emailMeWalletConfig` differs. With no `oldData` (plan creation) nothing is red.
+
 ### 1.9 `VIEW` flow — rehydrating an existing plan
 
 `Inheritance.toSetupOrReviewParamForView(...)` (bottom of `InheritancePlanningActivity.kt`) is the
@@ -237,7 +274,7 @@ immediately fetches status; otherwise it starts at `ClaimMagicPhraseRoute`.
 
 `ClaimData` is `@Parcelize` and held in a `MutableSaveStateFlow` (survives process death):
 `signers`, `signatures`, `magic`, `inheritanceAdditional`, `requiredKeyCount`, `walletType`,
-`keyOrigins`, `bsms`, `challenge`.
+`keyOrigins`, `bsms`, `challenge`, `requiredKeyCounts`, `pendingKeyOrigins`.
 
 `isOnChainClaim = bsms != null || walletType == MINISCRIPT` — the main branch in the whole claim
 flow (on-chain claims download a wallet; off-chain claims sign a challenge message).
@@ -246,16 +283,19 @@ flow (on-chain claims download a wallet; off-chain claims sign a challenge messa
 
 ```
 claimMagicPhrase          magic phrase → InheritanceClaimingInitUseCase
+   └─ several required_key_counts ─► claimKeyCount (CLM-KC) ─► one of the two below
    └─ >1 key ─► addInheritanceKey (index / totalKeys)
    └─ else ───► prepareInheritanceKey
-prepareInheritanceKey  ─ HARDWARE_DEVICE ─► SignerIntroActivity (OnChainAddSignerParam + magic)
+prepareInheritanceKey  ─ HARDWARE_DEVICE ─► [on-chain: claimSafetyNotice EXISTING_DEVICE] ─► SignerIntroActivity
                        └─ SEED_PHRASE ── on-chain? recoverInheritanceKey : claimBackupPassword
-recoverInheritanceKey  ─ hardware ─► restoreSeedPhraseHardware ─► SignerIntroActivity
-                       └─ seed ────► RecoverSeedScreen ─► createSoftwareSignerFromMnemonic
+recoverInheritanceKey  ─ hardware ─► claimSafetyNotice RESTORE_ON_DEVICE ─► restoreSeedPhraseHardware ─► SignerIntroActivity
+                       └─ seed ────► claimSafetyNotice SOFTWARE_SEED ─► RecoverSeedScreen ─► createSoftwareSignerFromMnemonic
 claimBackupPassword    ─► signers + InheritanceAdditional
                        └─ bufferPeriodCountdown != null ─► claimBufferPeriod (blocked)
 addSigner(signer)      ─ off-chain ─► verifyInheritanceMessage (sign the challenge)
                        ─ enough keys ─► downloadWalletForClaim ─► claimNote
+                       │                 ├─ buffer period ─► claimBufferPeriod
+                       │                 └─ more keys ─► key_origins (CLM-16 dialog) or addInheritanceKey
                        └─ else ──────► addInheritanceKey (next)
 claimNote  ─► claimWithdrawBitcoin | claimReleaseIntro ─► claimReleaseSchedule
 inheritanceError            (INHERITANCE_PLAN_NOT_FOUND / NOT_ACTIVE)
@@ -263,8 +303,45 @@ inheritanceError            (INHERITANCE_PLAN_NOT_FOUND / NOT_ACTIVE)
 
 Key details:
 
-- `addSigner` validates the signer against `keyOrigins` (xfp, plus derivation path for non-master
-  signers) and rejects duplicates (`KeyAlreadyAdded`).
+- `addSigner` validates the signer against `keyOrigins` (`isInPlanOrigins`: xfp, plus derivation
+  path for non-master signers) and rejects duplicates (`KeyAlreadyAdded`). XFPs compare ignoring
+  case and paths across `h` / `'` (`normalizedPath`). On-chain, `addOnChainSigner` runs the checks
+  in this order: a device with a pending account that came back at another one (usually Account 0
+  again, already added) → CLM-16 (`WrongAccount`; never for a software key, whose accounts the app
+  derives); then the plan check, skipped for a requested account since init's `key_origins` may
+  list only account 0 (`NotInPlan`); then the duplicate (`AlreadyAdded`).
+- **Configurable on-chain claims (NUN-10320 §7).** `claiming/init` returns `required_key_counts`
+  (`InheritanceClaimingInit.requiredKeyCounts`). It is empty from an older backend, which keeps the
+  single `inheritance_key_count` and the old per-signer counting. With several counts,
+  `claimKeyCount` (CLM-KC) sets `requiredKeyCount`; with one, the chooser is skipped. Keys then
+  count as *independent* keys (`ClaimData.addedKeyCount`: the accounts of one XFP count once).
+  - Account 0 of each key is collected, then `downloadWalletForClaim` sends them. The result
+    (`ClaimDownloadWalletResult`) is the wallet, a buffer period (`claimBufferPeriod`), or
+    `MoreKeysNeeded(validKeys, keyOrigins)`.
+  - `MoreKeysNeeded`: `ClaimData.withDownloadResult` keeps only the accepted accounts (the full
+    XFP/path/xpub) and stores the requested accounts as `pendingKeyOrigins`.
+    - Pure steps in `ClaimKeyCollection.kt`: `addOnChainSigner` and `nextAccountImport`.
+    - A software key's account is derived in the app. It is recorded only once sent, so a failed
+      derivation offers Retry, and one the backend rejects is not derived again (no loop).
+    - A device's account is asked for with the CLM-16 dialog ("Add Account N from this Jade"; for
+      wired devices, "Connect the Ledger…"). The dialog opens `SignerIntroActivity` with
+      `ClaimInheritance(keyIndex = N, accountDevice = device)`, which skips the picker and opens
+      that device's own flow (`SignerIntroCoordinator.directKeyType`): the guided account export,
+      or the wired device's connect screen. It skips the firmware gate and the saved-key offer. If
+      the device returns another account, the dialog shows again. Backing out of the device screen
+      returns to the claim's next-key screen (`returnsToKeyCollectionOnCancel`), keys kept.
+    - Each imported account is submitted at once with the accepted keys; the next response decides
+      what is still needed. A requested account never applies to a new device, which starts at
+      account 0.
+    - With no origins, the heir sees "Add another key to continue", or the incorrect-key error when
+      a key was dropped. Accepted keys are kept.
+  - A network failure offers Retry. Plan-not-found / not-active still go to `inheritanceError`,
+    whose message carries the condition's unlock time.
+  - The claim transaction gets one account per XFP (`requiredSigners`): the last one added, which
+    is the account the backend asked for.
+- **Safety notices** (Figma Row 8 CLM-01/02/03, on-chain only): `claimSafetyNotice` runs before
+  each new key, chosen by recovery method. Importing another account of a device already added
+  skips it.
 - Keys added from the **desktop app** arrive two ways: a `PushEvent.ClaimSignerAdded` push, and a
   `LifecycleResumeEffect` poll (`checkRequestedAddDesktopKey` → `GetAddedKeysForInheritanceUseCase`,
   de-duplicated via `handledRequestIds`).

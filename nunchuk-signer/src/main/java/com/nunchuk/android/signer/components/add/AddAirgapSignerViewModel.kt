@@ -48,7 +48,7 @@ import com.nunchuk.android.model.SignerExtra
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.model.inheritance.ClaimOption
-import com.nunchuk.android.model.toIndex
+import com.nunchuk.android.model.inheritance.RecoveredKey
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.AddAirgapSignerErrorEvent
 import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.AddAirgapSignerSuccessEvent
@@ -344,7 +344,7 @@ internal class AddAirgapSignerViewModel @Inject constructor(
                                 walletId = walletId,
                                 xfp = replacedXfp.orEmpty(),
                                 signer = airgap,
-                                keyIndex = onChainAddSignerParam?.replaceInfo?.step?.toIndex(groupId.isNotEmpty())
+                                keyIndex = onChainAddSignerParam?.replaceInfo?.replaceKeyIndex(groupId.isNotEmpty())
                             )
                         ).onFailure {
                             setEvent(AddAirgapSignerErrorEvent(it.message.orUnknownError()))
@@ -595,6 +595,7 @@ internal class AddAirgapSignerViewModel @Inject constructor(
         groupId: String,
         masterSignerId: String,
         verificationMethod: ClaimOption? = null,
+        recoveredKey: RecoveredKey? = null,
     ) {
         viewModelScope.launch {
             setKeyVerifiedUseCase(
@@ -603,6 +604,7 @@ internal class AddAirgapSignerViewModel @Inject constructor(
                     masterSignerId = masterSignerId,
                     verifyType = VerifyType.APP_VERIFIED,
                     verificationMethod = verificationMethod,
+                    recoveredKey = recoveredKey,
                 )
             ).onSuccess {
                 setEvent(KeyVerifiedSuccess)
@@ -617,6 +619,7 @@ internal class AddAirgapSignerViewModel @Inject constructor(
         groupId: String,
         walletId: String,
         verificationMethod: ClaimOption? = null,
+        recoveredKey: RecoveredKey? = null,
     ) {
         viewModelScope.launch {
             setReplaceKeyVerifiedUseCase(
@@ -627,6 +630,7 @@ internal class AddAirgapSignerViewModel @Inject constructor(
                     groupId = groupId,
                     walletId = walletId,
                     verificationMethod = verificationMethod,
+                    recoveredKey = recoveredKey,
                 )
             ).onSuccess {
                 setEvent(KeyVerifiedSuccess)

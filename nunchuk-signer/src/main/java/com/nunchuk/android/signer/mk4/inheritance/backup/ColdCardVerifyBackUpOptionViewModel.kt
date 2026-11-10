@@ -2,6 +2,8 @@ package com.nunchuk.android.signer.mk4.inheritance.backup
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.signer.OnChainVerifyKeyResolver
+import com.nunchuk.android.core.signer.skipVerifyType
 import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.model.inheritance.ClaimOption
 import com.nunchuk.android.usecase.membership.SetKeyVerifiedUseCase
@@ -16,6 +18,7 @@ import javax.inject.Inject
 class ColdCardVerifyBackUpOptionViewModel @Inject constructor(
     private val setKeyVerifiedUseCase: SetKeyVerifiedUseCase,
     private val setReplaceKeyVerifiedUseCase: SetReplaceKeyVerifiedUseCase,
+    private val onChainVerifyKeyResolver: OnChainVerifyKeyResolver,
 ) : ViewModel() {
 
     private val _event = MutableSharedFlow<ColdCardVerifyBackUpOptionEvent>()
@@ -52,14 +55,18 @@ class ColdCardVerifyBackUpOptionViewModel @Inject constructor(
                     )
                 )
             } else {
-                setKeyVerifiedUseCase(
-                    SetKeyVerifiedUseCase.Param(
-                        groupId = groupId,
-                        masterSignerId = masterSignerId,
-                        verifyType = VerifyType.SKIPPED_VERIFICATION,
-                        verificationMethod = verificationMethod,
+                // A configurable on-chain draft cannot skip: the key is marked verified instead.
+                onChainVerifyKeyResolver.draftKey(groupId, masterSignerId).onSuccess { recoveredKey ->
+                    setKeyVerifiedUseCase(
+                        SetKeyVerifiedUseCase.Param(
+                            groupId = groupId,
+                            masterSignerId = masterSignerId,
+                            verifyType = recoveredKey.skipVerifyType(),
+                            verificationMethod = verificationMethod,
+                            recoveredKey = recoveredKey,
+                        )
                     )
-                )
+                }
             }
             // Either way the flow is done; a failed write leaves the row asking again, which is
             // the honest outcome and better than trapping the owner on this screen.

@@ -31,6 +31,9 @@ sealed class PushEvent {
     data class DraftResetWallet(val groupId: String) : PushEvent()
     data class DraftWalletTimelockSet(val groupId: String) : PushEvent()
     data class DraftWalletCustomizationChanged(val groupId: String) : PushEvent()
+
+    /** `draft_wallet_updated`: on-chain inheritance cards, policy or validation changed (NUN-10320). */
+    data class DraftWalletUpdated(val groupId: String) : PushEvent()
     data class GroupMembershipRequestCreated(val groupId: String) : PushEvent()
     data object SharedWalletGroupInvitationChanged : PushEvent()
     data class GroupWalletCreated(val walletId: String) : PushEvent()

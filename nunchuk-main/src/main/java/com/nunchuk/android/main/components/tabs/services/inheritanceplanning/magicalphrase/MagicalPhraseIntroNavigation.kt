@@ -15,6 +15,7 @@ import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.Inh
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningActivity
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.MembershipStepEffect
+import com.nunchuk.android.model.InheritanceKey
 import com.nunchuk.android.widget.NCToastMessage
 import kotlinx.serialization.Serializable
 
@@ -22,7 +23,7 @@ import kotlinx.serialization.Serializable
 data object MagicalPhraseIntroRoute
 
 fun NavGraphBuilder.magicalPhraseIntro(
-    onContinueClicked: (magicalPhrase: String, inheritanceKeys: List<String>, beneficiaryAllocations: List<InheritanceBeneficiaryAllocation>) -> Unit,
+    onContinueClicked: (magicalPhrase: String, inheritanceKeys: List<InheritanceKey>, beneficiaryAllocations: List<InheritanceBeneficiaryAllocation>) -> Unit,
 ) {
     composable<MagicalPhraseIntroRoute> {
         val activity = LocalActivity.current as InheritancePlanningActivity

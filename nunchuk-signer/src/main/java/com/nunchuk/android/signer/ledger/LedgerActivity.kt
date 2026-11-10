@@ -94,8 +94,8 @@ class LedgerActivity : BaseComposeActivity() {
 
     /**
      * Verifying a seed-phrase backup: the key already exists and the user restored its seed onto
-     * this device, so connecting is the whole check. Read the fingerprint, hand it back and let
-     * the caller mark the key verified — no xpub, no key created.
+     * this device, so connecting is the whole check. Read the fingerprint and the account xpub, hand
+     * them back and let the caller mark the key verified — no key created.
      */
     private val isVerifyXfpOnly: Boolean by lazy {
         intent.getBooleanExtra(EXTRA_VERIFY_XFP_ONLY, false)
@@ -169,22 +169,23 @@ class LedgerActivity : BaseComposeActivity() {
                         viewModel.onError(getString(R.string.nc_added_key_xfp_mismatch))
                         return
                     }
+                    masterFingerprint = result
                     if (isVerifyXfpOnly) {
-                        setResult(
-                            RESULT_OK,
-                            Intent().apply {
-                                putExtra(EXTRA_VERIFIED_XFP, result.lowercase(Locale.getDefault()))
-                            }
-                        )
-                        finish()
+                        // Read the restored account too: a configurable on-chain draft verifies
+                        // the backup against it, not only the fingerprint.
+                        val config = viewModel.state.value
+                        controller.getExtendedPublicKey(config.walletType, config.addressType, config.accountIndex)
                         return
                     }
-                    masterFingerprint = result
                     val config = viewModel.state.value
                     controller.getExtendedPublicKey(config.walletType, config.addressType, config.accountIndex)
                 }
 
                 LedgerRequest.XPUB -> {
+                    if (isVerifyXfpOnly) {
+                        viewModel.onVerifyXpubReceived(masterFingerprint = masterFingerprint, xpub = result)
+                        return
+                    }
                     viewModel.onXpubReceived(
                         masterFingerprint = masterFingerprint,
                         xpub = result,
@@ -287,6 +288,17 @@ class LedgerActivity : BaseComposeActivity() {
 
                             is LedgerScanEvent.Error ->
                                 NCToastMessage(this@LedgerActivity).showError(event.message)
+
+                            is LedgerScanEvent.Verified -> {
+                                setResult(
+                                    RESULT_OK,
+                                    Intent().apply {
+                                        putExtra(EXTRA_VERIFIED_XFP, event.xfp)
+                                        event.key?.let { putExtra(GlobalResultKey.EXTRA_RECOVERED_KEY, it) }
+                                    }
+                                )
+                                finish()
+                            }
                         }
                     }
                 }

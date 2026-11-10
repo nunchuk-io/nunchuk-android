@@ -26,6 +26,8 @@ import androidx.navigation.fragment.findNavController
 import com.nunchuk.android.compose.ActionItem
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.core.signer.singleAccountRoute
+import com.nunchuk.android.core.signer.singleAccountRouteDescription
 import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.core.signer.isOnChainTimelockKey
 import com.nunchuk.android.core.signer.isVerifyOnChainTimelockBackup
@@ -130,9 +132,11 @@ internal fun AirgapActionIntroScreen(
                 // only it gets the "(n/2)" title and the spending-path copy. An off-chain
                 // inheritance key is a single ordinary add, the same as any other membership key.
                 val isOnChainTimelockKey = onChainAddSignerParam.isOnChainTimelockKey()
+                // A configurable draft's primary-inheritance or fallback key is a single account (KEY-05b/c).
+                val singleAccountRoute = onChainAddSignerParam.singleAccountRoute()
                 Text(
                     modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
-                    text = if (isOnChainTimelockKey) {
+                    text = if (isOnChainTimelockKey && singleAccountRoute == null) {
                         stringResource(R.string.nc_add_jade_step, stringResource(R.string.nc_add_jade), onChainKeyIndex + 1)
                     } else {
                         stringResource(R.string.nc_add_jade)
@@ -145,6 +149,8 @@ internal fun AirgapActionIntroScreen(
                         modifier = Modifier.padding(horizontal = 16.dp),
                         text = if (!isOnChainTimelockKey) {
                             stringResource(R.string.nc_airgap_re_add_key_after_timelock)
+                        } else if (singleAccountRoute != null) {
+                            singleAccountRouteDescription(singleAccountRoute, onChainKeyIndex)
                         } else if (onChainKeyIndex == 0) {
                             stringResource(R.string.nc_airgap_add_key_after_timelock)
                         } else {

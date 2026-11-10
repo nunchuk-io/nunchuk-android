@@ -29,6 +29,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -94,6 +95,7 @@ import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.toReadableDrawableResId
 import com.nunchuk.android.core.util.toReadableSignerType
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.membership.onchaintimelock.addkey.ChooseKeySheet
 import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragment
 import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragmentArgs
@@ -105,6 +107,9 @@ import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.TimelockBased
 import com.nunchuk.android.model.TimelockExtra
 import com.nunchuk.android.model.VerifyType
+import com.nunchuk.android.model.WalletTimelock
+import com.nunchuk.android.model.toTimelockExtra
+import com.nunchuk.android.model.inheritance.RecoveredKey
 import com.nunchuk.android.model.byzantine.isFacilitatorAdmin
 import com.nunchuk.android.model.isAddInheritanceKey
 import com.nunchuk.android.nav.NunchukNavigator
@@ -215,7 +220,9 @@ class OnChainReplaceKeysFragment : Fragment() {
             }
             val verifiedXfp = result.data?.getStringExtra(GlobalResultKey.EXTRA_VERIFIED_XFP)
             if (result.resultCode == Activity.RESULT_OK && !verifiedXfp.isNullOrEmpty()) {
-                viewModel.setReplaceKeyVerified(verifiedXfp)
+                // A configurable wallet verifies against the account the device reported.
+                val recoveredKey = result.data?.parcelable<RecoveredKey>(GlobalResultKey.EXTRA_RECOVERED_KEY)
+                viewModel.setReplaceKeyVerified(verifiedXfp, recoveredKey)
             }
         }
 
@@ -232,21 +239,13 @@ class OnChainReplaceKeysFragment : Fragment() {
                     viewModel = viewModel,
                     onAddKeyClicked = ::handleOnAddKey,
                     onConfigTimelockClicked = { data ->
-                        val walletTimelock = data.newTimelock ?: data.originalTimelock
-                        findNavController().navigate(
-                            OnChainReplaceKeysFragmentDirections.actionOnChainReplaceKeysFragmentToOnChainSetUpTimelockFragment(
-                                groupId = args.groupId,
-                                timelockExtra = TimelockExtra(
-                                    value = walletTimelock?.timelockValue ?: 0L,
-                                    timezone = walletTimelock?.timezone ?: "",
-                                    based = walletTimelock?.based ?: TimelockBased.TIME_LOCK,
-                                    blockHeight = walletTimelock?.blockHeight
-                                ),
-                                isReplaceKeyFlow = true,
-                                walletId = (activity as MembershipActivity).walletId
-                            )
-                        )
+                        openReplaceTimelock(data.newTimelock ?: data.originalTimelock)
                     },
+                    // Primary only: the timelock request omits `fallback_index`.
+                    onChangePrimaryTimelock = ::openReplaceTimelock,
+                    onChangeFallbackTimelock = ::openReplaceFallbackTimelock,
+                    onConfigurableReplace = viewModel::onConfigurableReplaceClicked,
+                    onConfigurableVerify = viewModel::onConfigurableVerifyClicked,
                     onCreateNewWalletSuccess = { walletId ->
                         findNavController().navigate(
                             OnChainReplaceKeysFragmentDirections.actionOnChainReplaceKeysFragmentToCreateWalletSuccessFragment(
@@ -333,6 +332,39 @@ class OnChainReplaceKeysFragment : Fragment() {
         membershipActivity?.clearTapSignerCachingCallback()
     }
 
+    private fun openReplaceTimelock(walletTimelock: WalletTimelock?) {
+        findNavController().navigate(
+            OnChainReplaceKeysFragmentDirections.actionOnChainReplaceKeysFragmentToOnChainSetUpTimelockFragment(
+                groupId = args.groupId,
+                timelockExtra = TimelockExtra(
+                    value = walletTimelock?.timelockValue ?: 0L,
+                    timezone = walletTimelock?.timezone ?: "",
+                    based = walletTimelock?.based ?: TimelockBased.TIME_LOCK,
+                    blockHeight = walletTimelock?.blockHeight
+                ),
+                isReplaceKeyFlow = true,
+                walletId = (activity as MembershipActivity).walletId,
+                firstFallbackTimelock = viewModel.configurable.value?.fallbackTimelocks?.get(0)?.effective?.toTimelockExtra(),
+            )
+        )
+    }
+
+    /** TIME-02 for an existing fallback; saving posts the replacement timelock with its `fallback_index`. */
+    private fun openReplaceFallbackTimelock(index: Int) {
+        val configurable = viewModel.configurable.value ?: return
+        val target = configurable.fallbackTimelockTarget(index) ?: return
+        val timelock = configurable.fallbackTimelocks[index]?.effective
+        findNavController().navigate(
+            OnChainReplaceKeysFragmentDirections.actionOnChainReplaceKeysFragmentToOnChainSetUpTimelockFragment(
+                groupId = args.groupId,
+                timelockExtra = timelock?.toTimelockExtra(),
+                isReplaceKeyFlow = true,
+                walletId = (activity as MembershipActivity).walletId,
+                fallbackTarget = target,
+            )
+        )
+    }
+
     private fun showFacilitatorInfoDialog() {
         NCInfoDialog(requireActivity())
             .showDialog(message = getString(R.string.nc_info_facilitator))
@@ -416,30 +448,93 @@ class OnChainReplaceKeysFragment : Fragment() {
     }
 
     /**
-     * A key slot here holds two accounts of the same device, so the account to read is however
-     * many signers the slot already has, and the second one has to come off the first one's device.
+     * The add-key run for a configurable wallet's slot: the key picker for the first account of a
+     * new key, or that key's own device flow for the rest (REP-02: no device choice again).
      */
+    private fun handleConfigurableAdd(request: ConfigurableReplaceRequest) {
+        currentKeyData = null
+        val device = request.sameDevice
+        if (device != null) {
+            handleSignerTypeLogic(device.type, device.tags.firstOrNull { it != SignerTag.INHERITANCE })
+            return
+        }
+        navigator.openSignerIntroScreen(
+            launcher = signerIntroLauncher,
+            activityContext = requireActivity(),
+            request = SignerIntroRequest(
+                walletId = (activity as MembershipActivity).walletId,
+                groupId = args.groupId,
+                flow = SignerIntroFlow.OnChainTimelockKey(
+                    isInheritanceKey = request.isInheritance,
+                    keyIndex = request.accountIndex,
+                    replaceInfo = configurableReplaceInfo(request),
+                ),
+                walletType = WalletType.MINISCRIPT,
+            ),
+        )
+    }
+
+    private fun configurableReplaceInfo(request: ConfigurableReplaceRequest) = OnChainAddSignerParam.ReplaceInfo(
+        replacedXfp = request.originalXfp,
+        step = viewModel.getCurrentStep(),
+        keyIndex = request.keyIndex,
+    )
+
+    /**
+     * The account the device flow reads: a configurable slot names it; a legacy card holds two
+     * accounts of one device, so it is however many signers the card already has.
+     */
+    private fun flowAccountIndex(): Int =
+        viewModel.configurableRequest?.accountIndex ?: currentKeyData?.getAllSigners()?.size ?: 0
+
+    /** The device the account has to come off, if one is already set. */
+    private fun flowCurrentSigner(): SignerModel? {
+        val request = viewModel.configurableRequest
+        return if (request != null) request.sameDevice else currentKeyData?.getAllSigners()?.firstOrNull()
+    }
+
+    private fun flowAddSignerParam(
+        nextStep: OnChainReplaceKeyStep?,
+        currentStep: OnChainReplaceKeyStep?,
+    ): OnChainAddSignerParam {
+        val request = viewModel.configurableRequest
+        val isInheritance = request?.isInheritance ?: (nextStep?.isAddInheritanceKey == true)
+        return OnChainAddSignerParam(
+            flags = if (isInheritance) OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER else OnChainAddSignerParam.FLAG_ADD_SIGNER,
+            keyIndex = flowAccountIndex(),
+            currentSigner = flowCurrentSigner(),
+            replaceInfo = if (request != null) {
+                configurableReplaceInfo(request)
+            } else {
+                currentStep?.let {
+                    OnChainAddSignerParam.ReplaceInfo(
+                        replacedXfp = viewModel.replacedXfp,
+                        step = it
+                    )
+                }
+            },
+        )
+    }
+
     private fun openLedgerFlow() {
-        val signers = currentKeyData?.getAllSigners().orEmpty()
         addLedgerLauncher.launch(
             LedgerActivity.buildIntent(
                 activityContext = requireActivity(),
                 isMembershipFlow = true,
-                accountIndex = signers.size,
-                expectedXfp = signers.firstOrNull()?.fingerPrint.orEmpty(),
+                accountIndex = flowAccountIndex(),
+                expectedXfp = flowCurrentSigner()?.fingerPrint.orEmpty(),
             )
         )
     }
 
     /** Same two-accounts-of-one-device rule as [openLedgerFlow]. */
     private fun openBitBoxFlow() {
-        val signers = currentKeyData?.getAllSigners().orEmpty()
         addBitBoxLauncher.launch(
             BitBoxActivity.buildIntent(
                 activityContext = requireActivity(),
                 isMembershipFlow = true,
-                accountIndex = signers.size,
-                expectedXfp = signers.firstOrNull()?.fingerPrint.orEmpty(),
+                accountIndex = flowAccountIndex(),
+                expectedXfp = flowCurrentSigner()?.fingerPrint.orEmpty(),
             )
         )
     }
@@ -463,17 +558,7 @@ class OnChainReplaceKeysFragment : Fragment() {
                 groupId = args.groupId,
                 replacedXfp = viewModel.replacedXfp,
                 walletId = args.walletId,
-                onChainAddSignerParam = OnChainAddSignerParam(
-                    flags = if (nextStep?.isAddInheritanceKey == true) OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER else OnChainAddSignerParam.FLAG_ADD_SIGNER,
-                    keyIndex = currentKeyData?.getAllSigners()?.size ?: 0,
-                    currentSigner = currentKeyData?.getAllSigners()?.firstOrNull(),
-                    replaceInfo = currentStep?.let {
-                        OnChainAddSignerParam.ReplaceInfo(
-                            replacedXfp = viewModel.replacedXfp,
-                            step = it
-                        )
-                    }
-                )
+                onChainAddSignerParam = flowAddSignerParam(nextStep, currentStep)
             )
         )
     }
@@ -523,6 +608,10 @@ class OnChainReplaceKeysFragment : Fragment() {
                 is OnChainReplaceKeyEvent.HandleSignerTypeLogic -> {
                     handleSignerTypeLogic(event.type, event.tag)
                 }
+
+                is OnChainReplaceKeyEvent.OpenConfigurableAdd -> handleConfigurableAdd(event.request)
+                is OnChainReplaceKeyEvent.ShowErrorRes ->
+                    showError(getString(event.messageRes, *event.args.toTypedArray()))
 
                 OnChainReplaceKeyEvent.OnKeyVerified -> openVerifyBackUpSuccess()
             }
@@ -672,17 +761,7 @@ class OnChainReplaceKeysFragment : Fragment() {
                 groupId = (activity as MembershipActivity).groupId,
                 walletId = (activity as MembershipActivity).walletId,
                 replacedXfp = viewModel.replacedXfp,
-                onChainAddSignerParam = OnChainAddSignerParam(
-                    flags = if (nextStep?.isAddInheritanceKey == true) OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER else OnChainAddSignerParam.FLAG_ADD_SIGNER,
-                    keyIndex = currentKeyData?.getAllSigners()?.size ?: 0,
-                    currentSigner = currentKeyData?.getAllSigners()?.firstOrNull(),
-                    replaceInfo = currentStep?.let {
-                        OnChainAddSignerParam.ReplaceInfo(
-                            replacedXfp = viewModel.replacedXfp,
-                            step = it
-                        )
-                    }
-                )
+                onChainAddSignerParam = flowAddSignerParam(nextStep, currentStep)
             )
         )
     }
@@ -755,17 +834,7 @@ class OnChainReplaceKeysFragment : Fragment() {
                 replacedXfp = viewModel.replacedXfp,
                 groupId = args.groupId,
                 walletId = (activity as MembershipActivity).walletId,
-                onChainAddSignerParam = OnChainAddSignerParam(
-                    flags = if (nextStep?.isAddInheritanceKey == true) OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER else OnChainAddSignerParam.FLAG_ADD_SIGNER,
-                    keyIndex = currentKeyData?.getAllSigners()?.size ?: 0,
-                    currentSigner = currentKeyData?.getAllSigners()?.firstOrNull(),
-                    replaceInfo = currentStep?.let {
-                        OnChainAddSignerParam.ReplaceInfo(
-                            replacedXfp = viewModel.replacedXfp,
-                            step = it
-                        )
-                    }
-                )
+                onChainAddSignerParam = flowAddSignerParam(nextStep, currentStep)
             )
         )
     }
@@ -778,9 +847,14 @@ fun OnChainReplaceKeysScreen(
     onConfigTimelockClicked: (AddReplaceKeyOnChainData) -> Unit,
     onCreateNewWalletSuccess: (String) -> Unit,
     onVerifyClicked: (AddReplaceKeyOnChainData) -> Unit,
-    onRemove: (String) -> Unit
+    onRemove: (String) -> Unit,
+    onConfigurableReplace: (ReplaceKeyRow) -> Unit = {},
+    onConfigurableVerify: (ReplaceKeyRow) -> Unit = {},
+    onChangePrimaryTimelock: (WalletTimelock?) -> Unit = {},
+    onChangeFallbackTimelock: (index: Int) -> Unit = {},
 ) {
     val keys by viewModel.key.collectAsStateWithLifecycle()
+    val configurable by viewModel.configurable.collectAsStateWithLifecycle()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackState = remember { SnackbarHostState() }
 
@@ -801,7 +875,12 @@ fun OnChainReplaceKeysScreen(
     OnChainReplaceKeysContent(
         uiState = uiState,
         keys = keys,
-        isEnableCreateWallet = viewModel.isEnableContinueButton(),
+        isEnableCreateWallet = configurable?.canContinue ?: viewModel.isEnableContinueButton(),
+        configurable = configurable,
+        onConfigurableReplace = onConfigurableReplace,
+        onConfigurableVerify = onConfigurableVerify,
+        onChangePrimaryTimelock = onChangePrimaryTimelock,
+        onChangeFallbackTimelock = onChangeFallbackTimelock,
         snackState = snackState,
         onAddKeyClicked = onAddKeyClicked,
         onConfigTimelockClicked = onConfigTimelockClicked,
@@ -812,6 +891,21 @@ fun OnChainReplaceKeysScreen(
         refresh = viewModel::getReplaceWalletStatus,
         isRefreshing = uiState.isRefreshing
     )
+
+    val chooseWalletKey by viewModel.chooseWalletKey.collectAsStateWithLifecycle()
+    chooseWalletKey?.let { prompt ->
+        // REP-07: replace a fallback-only key with a key already in this wallet.
+        NunchukTheme {
+            ChooseKeySheet(
+                options = prompt.options,
+                fallbackNumber = prompt.fallbackNumber,
+                description = stringResource(R.string.nc_replace_choose_wallet_key_desc),
+                onChooseKey = viewModel::onChooseWalletKeySelected,
+                onAddKey = viewModel::onChooseWalletKeyAddNew,
+                onDismiss = viewModel::dismissChooseWalletKey,
+            )
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -820,6 +914,11 @@ private fun OnChainReplaceKeysContent(
     uiState: OnChainReplaceKeysUiState = OnChainReplaceKeysUiState(),
     isEnableCreateWallet: Boolean = false,
     keys: List<AddReplaceKeyOnChainData> = emptyList(),
+    configurable: ConfigurableReplaceState? = null,
+    onConfigurableReplace: (ReplaceKeyRow) -> Unit = {},
+    onConfigurableVerify: (ReplaceKeyRow) -> Unit = {},
+    onChangePrimaryTimelock: (WalletTimelock?) -> Unit = {},
+    onChangeFallbackTimelock: (index: Int) -> Unit = {},
     onAddKeyClicked: (AddReplaceKeyOnChainData) -> Unit = {},
     onConfigTimelockClicked: (AddReplaceKeyOnChainData) -> Unit = {},
     snackState: SnackbarHostState = remember { SnackbarHostState() },
@@ -896,6 +995,20 @@ private fun OnChainReplaceKeysContent(
                         modifier = Modifier.fillMaxSize(),
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
+                        if (configurable != null) {
+                            configurableReplaceItems(
+                                state = configurable,
+                                onReplaceClicked = onConfigurableReplace,
+                                onVerifyClicked = onConfigurableVerify,
+                                onRemoveClicked = { xfp ->
+                                    removeXfp = xfp
+                                    showRemoveDialog = true
+                                },
+                                onChangePrimaryTimelock = onChangePrimaryTimelock,
+                                onChangeFallbackTimelock = onChangeFallbackTimelock,
+                            )
+                            return@LazyColumn
+                        }
                         items(keys.filter { it.isServerOrTimelockKey().not() }) { data ->
                             ReplaceKeyCard(
                                 data = data,
@@ -917,9 +1030,7 @@ private fun OnChainReplaceKeysContent(
                             val serverKey =
                                 keys.firstOrNull { it.type == OnChainReplaceKeyStep.SERVER_KEY }
                             serverKey?.let {
-                                ReplaceServerCard(
-                                    item = serverKey,
-                                )
+                                ReplaceServerCard(resId = serverKey.type.resId)
                             }
                         }
 
@@ -1242,8 +1353,8 @@ fun ReplaceKeyCard(
 }
 
 @Composable
-private fun ReplaceServerCard(
-    item: AddReplaceKeyOnChainData,
+internal fun ReplaceServerCard(
+    resId: Int = OnChainReplaceKeyStep.SERVER_KEY.resId,
 ) {
     Row(
         modifier = Modifier
@@ -1254,7 +1365,7 @@ private fun ReplaceServerCard(
             .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        NcCircleImage(resId = item.type.resId)
+        NcCircleImage(resId = resId)
         Column(
             modifier = Modifier
                 .weight(1.0f)
@@ -1274,9 +1385,29 @@ private fun TimelockReplaceCard(
     data: AddReplaceKeyOnChainData,
     onChangeClicked: () -> Unit = {},
 ) {
-    val isTimelockWithData = (data.newTimelock ?: data.originalTimelock) != null
-    val isTimelockReplaced = data.newTimelock != null
-    val displayedTimelock = data.newTimelock ?: data.originalTimelock
+    ReplaceTimelockCard(
+        modifier = modifier,
+        originalTimelock = data.originalTimelock,
+        newTimelock = data.newTimelock,
+        onChangeClicked = onChangeClicked,
+    )
+}
+
+/**
+ * "After <date>" with Change, and "Replacing existing timelock (<date>)" once a new time is pending.
+ * [onChangeClicked] null hides Change; [isHighlighted] circles it for a `timelock` validation error.
+ */
+@Composable
+internal fun ReplaceTimelockCard(
+    modifier: Modifier = Modifier,
+    originalTimelock: WalletTimelock?,
+    newTimelock: WalletTimelock?,
+    isHighlighted: Boolean = false,
+    onChangeClicked: (() -> Unit)? = {},
+) {
+    val isTimelockWithData = (newTimelock ?: originalTimelock) != null
+    val isTimelockReplaced = newTimelock != null
+    val displayedTimelock = newTimelock ?: originalTimelock
     val isHeightLock = displayedTimelock?.based == TimelockBased.HEIGHT_LOCK
     // First line: Date (with "Est." prefix for HEIGHT_LOCK)
     val formattedDate = if (isTimelockWithData && displayedTimelock != null) {
@@ -1298,7 +1429,10 @@ private fun TimelockReplaceCard(
                     shape = RoundedCornerShape(8.dp)
                 )
                 .border(
-                    BorderStroke(1.dp, colorResource(id = R.color.nc_stroke_primary)),
+                    BorderStroke(
+                        1.dp,
+                        if (isHighlighted) MaterialTheme.colorScheme.error else colorResource(id = R.color.nc_stroke_primary)
+                    ),
                     RoundedCornerShape(8.dp)
                 ),
             contentAlignment = Alignment.Center,
@@ -1334,15 +1468,17 @@ private fun TimelockReplaceCard(
                         }
                     }
                 }
-                NcOutlineButton(
-                    modifier = Modifier.height(36.dp),
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                    onClick = onChangeClicked,
-                ) {
-                    Text(
-                        text = stringResource(R.string.nc_change),
-                        style = NunchukTheme.typography.captionTitle,
-                    )
+                if (onChangeClicked != null) {
+                    NcOutlineButton(
+                        modifier = Modifier.height(36.dp),
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                        onClick = onChangeClicked,
+                    ) {
+                        Text(
+                            text = stringResource(R.string.nc_change),
+                            style = NunchukTheme.typography.captionTitle,
+                        )
+                    }
                 }
             }
         }
@@ -1357,7 +1493,7 @@ private fun TimelockReplaceCard(
                     contentDescription = stringResource(R.string.nc_membership_cd_replace_icon)
                 )
 
-                val formattedOriginalDate = data.originalTimelock?.let {
+                val formattedOriginalDate = originalTimelock?.let {
                     val dateFormat = SimpleDateFormat("MM/dd/yyyy", Locale.getDefault())
                     it.timezone.let { timezoneId ->
                         dateFormat.timeZone = TimeZone.getTimeZone(timezoneId)

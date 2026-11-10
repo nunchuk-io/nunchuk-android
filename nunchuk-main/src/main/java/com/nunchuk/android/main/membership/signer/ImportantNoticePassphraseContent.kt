@@ -21,6 +21,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
+import com.nunchuk.android.core.signer.OnChainInheritanceGuide
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
@@ -30,6 +31,7 @@ import com.nunchuk.android.main.R
 @Composable
 internal fun ImportantNoticePassphraseContent(
     remainTime: Int = 0,
+    guide: OnChainInheritanceGuide = OnChainInheritanceGuide.LEGACY,
     onMoreClicked: () -> Unit = {},
     onContinueClicked: () -> Unit = {},
 ) {
@@ -77,7 +79,23 @@ internal fun ImportantNoticePassphraseContent(
                 )
                 Text(
                     modifier = Modifier.padding(16.dp),
-                    text = buildAnnotatedString {
+                    text = if (guide != OnChainInheritanceGuide.LEGACY) {
+                        // KEY-04: configurable drafts.
+                        buildAnnotatedString {
+                            append(stringResource(R.string.nc_membership_passphrase_notice_intro))
+                            append("\n\n")
+                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                                append(
+                                    stringResource(
+                                        if (guide == OnChainInheritanceGuide.FALLBACK) R.string.nc_fallback_passphrase_notice_advice
+                                        else R.string.nc_onchain_passphrase_notice_advice
+                                    )
+                                )
+                            }
+                            append("\n\n")
+                            append(stringResource(R.string.nc_onchain_passphrase_notice_share))
+                        }
+                    } else buildAnnotatedString {
                         append(stringResource(R.string.nc_membership_passphrase_notice_intro))
                         append("\n\n")
                         withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {

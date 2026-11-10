@@ -27,7 +27,9 @@ import com.nunchuk.android.core.loader.ImageLoaderImpl
 import com.nunchuk.android.core.matrix.MatrixInterceptor
 import com.nunchuk.android.core.matrix.MatrixInterceptorImpl
 import com.nunchuk.android.core.network.NetworkRepositoryImpl
+import com.nunchuk.android.core.membership.SharedPrefsDraftKeySlotStore
 import com.nunchuk.android.core.push.PushEventManager
+import com.nunchuk.android.model.inheritance.DraftKeySlotStore
 import com.nunchuk.android.core.push.PushEventManagerImpl
 import com.nunchuk.android.repository.NetworkRepository
 import com.nunchuk.android.share.miniscript.BlockHeightManager
@@ -66,6 +68,9 @@ internal interface CoreModule {
     @Binds
     @Singleton
     fun bindPushEventManager(impl: PushEventManagerImpl): PushEventManager
+
+    @Binds
+    fun bindDraftKeySlotStore(impl: SharedPrefsDraftKeySlotStore): DraftKeySlotStore
 
     @Binds
     @Singleton

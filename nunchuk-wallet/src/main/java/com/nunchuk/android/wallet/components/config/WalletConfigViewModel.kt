@@ -745,10 +745,10 @@ internal class WalletConfigViewModel @Inject constructor(
     fun isArchived() = getState().walletExtended.wallet.archived
 
     /**
-     * Assisted (server) wallets can only be archived once they have been deactivated
-     * (replaced or locked) and no longer hold any funds. Everything else stays archivable.
+     * Assisted (server) wallets can be archived once they no longer hold any funds, whether or
+     * not they have been deactivated (replaced or locked). Everything else stays archivable.
      */
-    fun canArchiveWallet() = !isServerWallet() || (isReplacedOrLocked() && hasZeroBalance())
+    fun canArchiveWallet() = !isServerWallet() || hasZeroBalance()
 
     private fun hasZeroBalance() = getState().walletExtended.wallet.balance.value == 0L
 

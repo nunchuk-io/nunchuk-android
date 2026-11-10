@@ -53,6 +53,7 @@ import com.nunchuk.android.compose.greyLight
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.reviewplan.formatDateTimeInTimezone
 import com.nunchuk.android.model.inheritance.EmailNotificationSettings
 import com.nunchuk.android.model.inheritance.InheritanceNotificationSettings
 import com.nunchuk.android.share.membership.MembershipStepManager
@@ -78,18 +79,51 @@ fun InheritanceNotificationSettingsScreen(
         mutableStateOf(initialSettings.emailMeWalletConfig)
     }
 
+    val fallbacks = if (sharedUiState.isMiniscriptWallet) sharedUiState.fallbackInheritances else emptyList()
+    val unlockNoticeOptions = if (fallbacks.isEmpty()) emptyList() else buildList {
+        add(
+            UnlockNoticeOption(
+                route = UnlockNoticeRoute.Primary,
+                unlocksAfter = formatDateTimeInTimezone(
+                    timestamp = sharedUiState.setupOrReviewParam.activationDate,
+                    isOnChainTimelock = true,
+                    timeZoneId = sharedUiState.setupOrReviewParam.selectedZoneId,
+                ),
+            )
+        )
+        fallbacks.forEach { fallback ->
+            add(
+                UnlockNoticeOption(
+                    route = UnlockNoticeRoute.Fallback(fallback.index),
+                    unlocksAfter = formatDateTimeInTimezone(
+                        timestamp = (fallback.timelock?.timelockValue ?: 0L) * 1000,
+                        isOnChainTimelock = true,
+                        timeZoneId = fallback.timelock?.timezone.orEmpty()
+                            .ifEmpty { sharedUiState.setupOrReviewParam.selectedZoneId },
+                    ),
+                )
+            )
+        }
+    }
+
     val emails = inheritanceViewModel.setupOrReviewParam.emails
-    var emailSettingsList by remember {
+    // Keyed by the fallback count: the wallet (and so its fallbacks) can arrive after the first frame.
+    var emailSettingsList by remember(fallbacks.size) {
         mutableStateOf(
             emails.map { email ->
+                val saved = perEmailSettingsMap[email]
                 EmailNotificationSettings(
                     email = email,
-                    notifyOnTimelockExpiry = perEmailSettingsMap[email]?.notifyOnTimelockExpiry
+                    notifyOnTimelockExpiry = saved?.notifyOnTimelockExpiry
                         ?: true,
-                    notifyOnWalletChanges = perEmailSettingsMap[email]?.notifyOnWalletChanges
+                    notifyOnWalletChanges = saved?.notifyOnWalletChanges
                         ?: true,
-                    includeWalletConfiguration = perEmailSettingsMap[email]?.includeWalletConfiguration
-                        ?: true
+                    includeWalletConfiguration = saved?.includeWalletConfiguration
+                        ?: true,
+                    // Kept as the server sent it (null = not sent, so an update keeps the selection).
+                    // A new recipient starts on every timelock, like the primary notice above.
+                    notifyFallbacks = if (saved != null) saved.notifyFallbacks
+                    else List(fallbacks.size) { it }.takeIf { fallbacks.isNotEmpty() },
                 )
             }
         )
@@ -99,6 +133,7 @@ fun InheritanceNotificationSettingsScreen(
         userEmail = sharedUiState.userEmail,
         remainTime = remainTime,
         emailSettingsList = emailSettingsList,
+        unlockNoticeOptions = unlockNoticeOptions,
         planFlow = inheritanceViewModel.setupOrReviewParam.planFlow,
         isUpdateRequest = isUpdateRequest,
         emailMeWalletConfig = emailMeWalletConfig,
@@ -121,6 +156,7 @@ fun InheritanceNotificationSettingsScreenContent(
     userEmail: String = "",
     remainTime: Int = 0,
     emailSettingsList: List<EmailNotificationSettings> = emptyList(),
+    unlockNoticeOptions: List<UnlockNoticeOption> = emptyList(),
     planFlow: Int = InheritancePlanFlow.NONE,
     isUpdateRequest: Boolean = false,
     emailMeWalletConfig: Boolean = true,
@@ -215,6 +251,7 @@ fun InheritanceNotificationSettingsScreenContent(
                     emailSettingsList.forEachIndexed { index, emailSettings ->
                         EmailNotificationSection(
                             emailSettings = emailSettings,
+                            unlockNoticeOptions = unlockNoticeOptions,
                             onSettingsChange = { newSettings ->
                                 onEmailSettingsChange(index, newSettings)
                             }
@@ -246,6 +283,27 @@ private fun InheritanceNotificationSettingsScreenPreview() {
                 notifyOnWalletChanges = false,
                 includeWalletConfiguration = true
             )
+        ),
+    )
+}
+
+@PreviewLightDark
+@Composable
+private fun InheritanceNotificationSettingsWithFallbacksPreview() {
+    InheritanceNotificationSettingsScreenContent(
+        userEmail = "owner123@gmail.com",
+        unlockNoticeOptions = listOf(
+            UnlockNoticeOption(UnlockNoticeRoute.Primary, "05/29/2035 01:25"),
+            UnlockNoticeOption(UnlockNoticeRoute.Fallback(0), "05/29/2040 01:25"),
+            UnlockNoticeOption(UnlockNoticeRoute.Fallback(1), "05/29/2045 01:25"),
+        ),
+        emailSettingsList = listOf(
+            EmailNotificationSettings(email = "alice@gmail.com", notifyFallbacks = emptyList()),
+            EmailNotificationSettings(
+                email = "bob245@gmail.com",
+                notifyOnTimelockExpiry = false,
+                notifyFallbacks = listOf(0, 1),
+            ),
         ),
     )
 }

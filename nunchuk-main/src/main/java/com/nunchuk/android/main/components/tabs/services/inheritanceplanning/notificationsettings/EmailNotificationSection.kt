@@ -23,20 +23,39 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.nunchuk.android.compose.NcCheckBox
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.greyLight
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.inheritance.EmailNotificationSettings
 
+/** A timelock row under "Notify them when a timelock expires" (NOTIF-03). */
+data class UnlockNoticeOption(
+    val route: UnlockNoticeRoute,
+    /** Formatted unlock time; blank when it isn't known yet. */
+    val unlocksAfter: String,
+)
+
+/**
+ * [unlockNoticeOptions] is empty unless the on-chain plan has fallbacks; then the timelock switch
+ * picks which timelocks this person hears about (primary inheritance, Fallback 1, …).
+ */
 @Composable
 fun EmailNotificationSection(
     emailSettings: EmailNotificationSettings,
+    unlockNoticeOptions: List<UnlockNoticeOption> = emptyList(),
     onSettingsChange: (EmailNotificationSettings) -> Unit
 ) {
     var isExpanded by remember { mutableStateOf(true) }
+    val fallbackCount = unlockNoticeOptions.count { it.route is UnlockNoticeRoute.Fallback }
+    val notifiesOnUnlock = if (unlockNoticeOptions.isEmpty()) {
+        emailSettings.notifyOnTimelockExpiry
+    } else {
+        emailSettings.notifiesOnAnyUnlock(fallbackCount)
+    }
 
-    LaunchedEffect(emailSettings.notifyOnWalletChanges, emailSettings.notifyOnTimelockExpiry) {
-        if (!emailSettings.notifyOnWalletChanges && !emailSettings.notifyOnTimelockExpiry) {
+    LaunchedEffect(emailSettings.notifyOnWalletChanges, notifiesOnUnlock) {
+        if (!emailSettings.notifyOnWalletChanges && !notifiesOnUnlock) {
             onSettingsChange(emailSettings.copy(includeWalletConfiguration = false))
         }
     }
@@ -81,14 +100,24 @@ fun EmailNotificationSection(
             Column(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                NotificationToggleItem(
-                    title = stringResource(R.string.nc_notify_when_timelock_expires),
-                    description = stringResource(R.string.nc_notify_when_timelock_expires_desc),
-                    checked = emailSettings.notifyOnTimelockExpiry,
-                    onCheckedChange = {
-                        onSettingsChange(emailSettings.copy(notifyOnTimelockExpiry = it))
-                    }
-                )
+                if (unlockNoticeOptions.isEmpty()) {
+                    NotificationToggleItem(
+                        title = stringResource(R.string.nc_notify_when_timelock_expires),
+                        description = stringResource(R.string.nc_notify_when_timelock_expires_desc),
+                        checked = emailSettings.notifyOnTimelockExpiry,
+                        onCheckedChange = {
+                            onSettingsChange(emailSettings.copy(notifyOnTimelockExpiry = it))
+                        }
+                    )
+                } else {
+                    UnlockNoticesItem(
+                        emailSettings = emailSettings,
+                        options = unlockNoticeOptions,
+                        fallbackCount = fallbackCount,
+                        checked = notifiesOnUnlock,
+                        onSettingsChange = onSettingsChange,
+                    )
+                }
 
                 NotificationToggleItem(
                     title = stringResource(R.string.nc_notify_when_wallet_changes),
@@ -103,11 +132,67 @@ fun EmailNotificationSection(
                     title = stringResource(R.string.nc_also_include_wallet_configuration),
                     description = stringResource(R.string.nc_also_include_wallet_configuration_desc),
                     checked = emailSettings.includeWalletConfiguration,
-                    enabled = emailSettings.notifyOnWalletChanges || emailSettings.notifyOnTimelockExpiry,
+                    enabled = emailSettings.notifyOnWalletChanges || notifiesOnUnlock,
                     onCheckedChange = {
                         onSettingsChange(emailSettings.copy(includeWalletConfiguration = it))
                     }
                 )
+            }
+        }
+    }
+}
+/** NOTIF-03: the timelock switch plus one checkbox per timelock, shown while the switch is on. */
+@Composable
+private fun UnlockNoticesItem(
+    emailSettings: EmailNotificationSettings,
+    options: List<UnlockNoticeOption>,
+    fallbackCount: Int,
+    checked: Boolean,
+    onSettingsChange: (EmailNotificationSettings) -> Unit,
+) {
+    Column {
+        NotificationToggleItem(
+            title = stringResource(R.string.nc_notify_when_a_timelock_expires),
+            description = stringResource(R.string.nc_notify_when_a_timelock_expires_desc),
+            checked = checked,
+            onCheckedChange = {
+                onSettingsChange(emailSettings.withAllUnlockNotices(enabled = it, fallbackCount = fallbackCount))
+            }
+        )
+        if (checked) {
+            val picked = emailSettings.unlockNoticeRoutes(fallbackCount)
+            options.forEach { option ->
+                val isPicked = option.route in picked
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 12.dp)
+                        .clickable {
+                            onSettingsChange(
+                                emailSettings.withUnlockNotice(option.route, !isPicked, fallbackCount)
+                            )
+                        },
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    NcCheckBox(
+                        checked = isPicked,
+                        onCheckedChange = {
+                            onSettingsChange(emailSettings.withUnlockNotice(option.route, it, fallbackCount))
+                        },
+                    )
+                    Column(modifier = Modifier.padding(start = 8.dp)) {
+                        Text(
+                            text = option.route.label(),
+                            style = NunchukTheme.typography.titleSmall,
+                        )
+                        if (option.unlocksAfter.isNotBlank()) {
+                            Text(
+                                text = stringResource(R.string.nc_unlocks_after, option.unlocksAfter),
+                                style = NunchukTheme.typography.bodySmall,
+                            )
+                        }
+                    }
+                }
             }
         }
     }

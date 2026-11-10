@@ -590,11 +590,14 @@
     <string name="nc_before_timelock">Before the timelock: </string>
     <string name="nc_after_timelock">After the timelock: </string>
     <string name="nc_before_timelock_desc">spending requires two signatures from a 2-of-4 multisig.</string>
-    <string name="nc_after_timelock_desc">spending only requires one signature from a 1-of-3 multisig.</string>
     <string name="nc_before_timelock_group_desc">spending requires three signatures from a 3-of-5 multisig.</string>
     <string name="nc_after_timelock_group_desc">spending requires two signatures from a 2-of-4 multisig.</string>
-    <string name="nc_select_inheritance_key_instruction">Among your keys, select one key to be the inheritance key.</string>
     <string name="nc_select_inheritance_key_group_instruction">Among your keys, select two keys to be the inheritance keys.</string>
+    <string name="nc_onchain_wallet_spending_paths_with_fallback_desc">Your new wallet will have two spending paths, before and after the timelock, plus an optional path for each fallback:</string>
+    <string name="nc_after_timelock_primary_inheritance_desc">spending requires two signatures from a 2-of-4 multisig: your 3 keys plus 1 new inheritance key.</string>
+    <string name="nc_after_each_fallback_timelock">After each fallback timelock</string>
+    <string name="nc_after_each_fallback_timelock_desc">(optional): that fallback’s own keys can claim, such as 1 of 1 or any 2 of 3. Fallbacks unlock later, in order.</string>
+    <string name="nc_onchain_add_keys_and_timelock_instruction">Next, add the keys to the spending paths and configure the timelock.</string>
 
     <!-- Check Firmware Strings -->
     <string name="nc_check_coldcard_firmware_title">Check your ColdCard firmware</string>
@@ -618,8 +621,11 @@
     <string name="nc_12_or_24_word_inheritance_key_backup">Seed phrase of inheritance key you backed up earlier</string>
     
     <!-- Add inheritance key screen -->
-    <string name="nc_your_plan_requires">Your plan requires %1$d inheritance keys</string>
-    <string name="nc_add_first_key_desc">To unlock this inheritance plan, you must add 2 inheritance keys that belong to this plan. Start by adding the first inheritance key.</string>
+    <plurals name="nc_your_plan_requires">
+        <item quantity="one">Your plan requires %1$d inheritance key</item>
+        <item quantity="other">Your plan requires %1$d inheritance keys</item>
+    </plurals>
+    <string name="nc_add_first_key_desc">To unlock this inheritance plan, you must add %1$d inheritance keys that belong to this plan. Start by adding the first inheritance key.</string>
     <string name="nc_successfully_added_the_first">You\'ve successfully added the first inheritance key.</string>
     <string name="nc_add_second_key_desc">To unlock your plan, please add the second inheritance key.</string>
     <string name="nc_add_the_first_inheritance_key">Add the first inheritance key</string>
@@ -894,4 +900,254 @@
     <string name="nc_membership_invalid_address_with_value">Invalid address: %1$s</string>
     <string name="nc_membership_plan_change_later_comparison">You can change the plan later (new wallet required). Not sure which to choose? Read the in-depth comparison.</string>
     <string name="nc_membership_read_in_depth_comparison">Read the in-depth comparison.</string>
+
+    <!-- On-chain primary inheritance (M of N) -->
+    <string name="nc_primary_inheritance_any_keys">Primary inheritance · any %1$d of %2$d keys</string>
+    <string name="nc_primary_inheritance_all_keys">Primary inheritance · %1$d of %2$d keys</string>
+    <string name="nc_primary_inheritance_single_key">Primary inheritance · 1 of 1 key</string>
+    <string name="nc_seed_phrase_of_this_key_backed_up">Seed phrase of this key you backed up earlier</string>
+    <string name="nc_one_of_your_owner_keys">One of your %1$d owner keys</string>
+    <string name="nc_seed_phrase_of_owner_key_you_share">Seed phrase of the owner key you share</string>
+    <string name="nc_claimable_after">Claimable after:</string>
+    <string name="nc_customized_inheritance_need_these_info_title">Each way to claim needs the keys of one route, plus the Magic Phrase (with Nunchuk) or the wallet configuration file (without Nunchuk). A fallback can be for the same person or someone else:</string>
+    <string name="nc_onchain_item1_label_joint">The Trustee keeps the plan’s Magic Phrase and the wallet configuration (BSMS file). At least one is required to recover the wallet.</string>
+    <string name="nc_share_inheritance_key_and_owner_key">Share the inheritance key and one of your %1$d owner keys.</string>
+    <plurals name="nc_any_of_the_keys_needed">
+        <item quantity="one">Any %1$d of the %2$d is needed.</item>
+        <item quantity="other">Any %1$d of the %2$d are needed.</item>
+    </plurals>
+    <string name="nc_all_of_the_keys_needed">All %1$d are needed.</string>
+    <string name="nc_inheritance_keys_list">Inheritance keys %1$s and %2$d</string>
+    <string name="nc_onchain_share_default_primary_keys">The seed phrases of the inheritance key and one of your %1$d owner keys. Any %2$d of the %3$d keys are needed.</string>
+    <string name="nc_onchain_share_default_primary_keys_joint">The Beneficiary keeps the seed phrases of the inheritance key and one of your %1$d owner keys. Any %2$d of the %3$d keys are needed.</string>
+    <string name="nc_onchain_share_primary_keys">The seed phrases of the primary inheritance keys: %1$s. %2$s</string>
+    <string name="nc_onchain_share_primary_keys_joint">The Beneficiary keeps the seed phrases of the primary inheritance keys: %1$s. %2$s</string>
+    <string name="nc_onchain_share_primary_single_key">The seed phrase of the primary inheritance key: Inheritance key 1.</string>
+    <string name="nc_onchain_share_primary_single_key_joint">The Beneficiary keeps the seed phrase of the primary inheritance key: Inheritance key 1.</string>
+    <string name="nc_primary_keys_default_phrase">the inheritance key and one of your %1$d owner keys</string>
+    <string name="nc_primary_keys_any_phrase">any %1$d of the %2$d primary inheritance keys</string>
+    <string name="nc_primary_keys_all_phrase">all %1$d primary inheritance keys</string>
+    <string name="nc_primary_keys_single_phrase">the primary inheritance key</string>
+    <string name="nc_guided_claim_desc_default_primary">Guided claim using the Magic Phrase, the inheritance key and one of your %1$d owner keys.</string>
+    <string name="nc_guided_claim_desc_primary">Guided claim using the Magic Phrase and %1$s.</string>
+    <string name="nc_guided_claim_desc_primary_joint">Guided claim using the Trustee’s Magic Phrase and %1$s (kept by the Beneficiary).</string>
+    <string name="nc_self_serve_claim_desc_default_primary">Self-serve claim using the wallet configuration file (BSMS file), the inheritance key and one of your %1$d owner keys.</string>
+    <string name="nc_self_serve_claim_desc_primary">Self-serve claim using the wallet configuration file (BSMS file) and %1$s.</string>
+    <string name="nc_self_serve_claim_desc_primary_joint">Self-serve claim using the Trustee’s wallet configuration file (BSMS file) and %1$s.</string>
+    <string name="nc_neither_trustee_nor_beneficiary_can_claim_alone">Neither the Trustee nor the Beneficiary can claim alone.</string>
+    <!-- On-chain primary inheritance: plan setup guidance (Figma Row 4 PLAN-13 / PLAN-14 / PLAN-05 / PLAN-15) -->
+    <string name="nc_plan_overview_primary_inheritance_keys">The keys for primary inheritance</string>
+    <string name="nc_inheritance_keys_used_to_claim">Inheritance keys are used to claim funds after the timelock.</string>
+    <string name="nc_inheritance_key_tip_default_primary_route">[B]Primary inheritance:[/B] any %1$d of %2$d keys. Your inheritance key and one of your %3$d owner keys are the ones you share.</string>
+    <string name="nc_inheritance_key_tip_primary_route_any">[B]Primary inheritance:[/B] any %1$d of the %2$d keys you selected.</string>
+    <string name="nc_inheritance_key_tip_primary_route_all">[B]Primary inheritance:[/B] %1$d of the %2$d keys you selected.</string>
+    <string name="nc_inheritance_key_tip_primary_route_single">[B]Primary inheritance:[/B] 1 of 1 key you selected.</string>
+    <string name="nc_inheritance_key_tip_default_primary_backup">[B]Back up the seed phrases of your inheritance key and the owner key you share on a steel plate or another durable, non-digital medium.[/B] You will need to share both with your Beneficiary or Trustee.</string>
+    <string name="nc_inheritance_key_tip_primary_backup">[B]Back up the seed phrase of every primary inheritance key on a steel plate or another durable, non-digital medium.[/B] You will need to share each seed phrase with the person who will use it.</string>
+    <string name="nc_inheritance_key_tip_default_primary_hint">You can also give the Beneficiary the hardware devices for these keys. However, because electronics can fail, it is essential to share the seed phrases in an analog format that can last many decades.</string>
+    <string name="nc_inheritance_key_tip_primary_hint">You can also give each person the hardware devices for the keys they will use. However, because electronics can fail, it is essential to share the seed phrases in an analog format that can last many decades.</string>
+    <string name="nc_timelock_info_hint_primary">Even with the required keys, no one can claim through primary inheritance before the timelock expires.</string>
+    <!-- On-chain primary inheritance setup (NUN-10320, Figma SET-02a / PRI-02 / SET-12) -->
+    <string name="nc_membership_after_timelock_default_primary_desc">%1$s, spending requires two signatures from a 2-of-4 multisig: your 3 keys plus 1 inheritance key.</string>
+    <!-- %1$s = "After the timelock" (bold), %2$s = nc_customized_primary_signatures, %3$d-of-%4$d, %5$s = nc_customized_primary_selected_keys -->
+    <string name="nc_membership_after_timelock_customized_primary_desc">%1$s, spending requires %2$s from a %3$d-of-%4$d multisig: %5$s.</string>
+    <plurals name="nc_customized_primary_signatures">
+        <item quantity="one">%1$s signature</item>
+        <item quantity="other">%1$s signatures</item>
+    </plurals>
+    <plurals name="nc_customized_primary_selected_keys">
+        <item quantity="one">the %1$d key you selected</item>
+        <item quantity="other">the %1$d keys you selected</item>
+    </plurals>
+    <!-- Index = the number; past the end, the digits are shown. -->
+    <string-array name="nc_number_words">
+        <item>zero</item>
+        <item>one</item>
+        <item>two</item>
+        <item>three</item>
+        <item>four</item>
+        <item>five</item>
+        <item>six</item>
+        <item>seven</item>
+        <item>eight</item>
+        <item>nine</item>
+        <item>ten</item>
+    </string-array>
+    <string name="nc_hardware_key_number">Hardware key #%1$d</string>
+    <string name="nc_inheritance_key">Inheritance key</string>
+    <string name="nc_choose_a_key">Choose a key</string>
+    <string name="nc_choose_a_key_desc">Choose a key you’ve already added, or add a new one.</string>
+    <string name="nc_choose_key">Choose key</string>
+    <string name="nc_verify_backups">Verify backups</string>
+    <string name="nc_verify_backups_desc">Check that each key’s seed phrase backup works.</string>
+    <string name="nc_verify_backups_inheritance_key_required">Inheritance key · required</string>
+    <string name="nc_verify_backups_other_keys">Other keys in this wallet</string>
+    <string name="nc_verify_backups_other_keys_desc">Verify at least one of these: the key you’ll share with the Beneficiary.</string>
+    <string name="nc_verify_backups_no_other_keys">The keys you add for spending before the timelock will show here. Verify at least one of them: the key you’ll share with the Beneficiary.</string>
+    <string name="nc_primary_inheritance_section">Primary inheritance</string>
+    <string name="nc_primary_inheritance_requires_any_keys">Requires any %1$d of %2$d keys</string>
+    <string name="nc_primary_inheritance_requires_all_keys">Requires %1$d of %2$d keys</string>
+    <string name="nc_customize_inheritance_advanced">Customize (advanced)</string>
+    <string name="nc_customize_inheritance">Customize inheritance</string>
+    <string name="nc_customize_inheritance_desc">Choose the keys and required signatures for inheritance.</string>
+    <string name="nc_customize_inheritance_what_you_can_change">What you can change:</string>
+    <string name="nc_customize_inheritance_keys">Keys</string>
+    <string name="nc_customize_inheritance_keys_desc">Use keys you’ve already added or add new ones. The Platform key cannot be used for inheritance.</string>
+    <string name="nc_customize_inheritance_required_signatures">Required signatures</string>
+    <string name="nc_customize_inheritance_required_signatures_desc">Choose how many of the selected keys are needed to spend after the timelock.</string>
+    <string name="nc_customize_inheritance_spending_unchanged">Spending before the timelock stays the same.</string>
+    <string name="nc_customize_inheritance_single_key_hint">If primary inheritance needs only 1 key, that key can be a single point of failure: it alone can spend after the timelock. To avoid this, require multiple keys.</string>
+    <string name="nc_customize_inheritance_final_hint">Once the wallet is created, these choices can’t be changed without creating a new wallet and moving your funds.</string>
+    <string name="nc_keep_current_setup">Keep current setup</string>
+    <string name="nc_primary_inheritance_policy">Primary inheritance policy</string>
+    <string name="nc_cancel_customization">Cancel customization</string>
+    <string name="nc_cancel_customization_desc">Go back to 2 of 4 keys with a separate inheritance key.</string>
+    <string name="nc_draft_key_account_unavailable">This key can’t be used here yet. Choose another key or add a new one.</string>
+    <!-- Configurable on-chain inheritance key guide (Figma KEY-03 / guided default) and KEY-02 -->
+    <string name="nc_default_primary_key_intro_purpose">After the timelock, this key can claim the inheritance together with any one of your 3 other keys.</string>
+    <string name="nc_default_primary_key_intro_share">Later, you’ll share this seed phrase backup and one of your other keys with the person who will use this key. This key can’t claim on its own.</string>
+    <string name="nc_your_primary_inheritance_key">Your primary inheritance key</string>
+    <string name="nc_primary_key_intro_purpose">This key will be used for primary inheritance. After the timelock, it can claim the funds together with the other keys primary inheritance requires.</string>
+    <string name="nc_primary_key_intro_share">Later, you’ll share this seed phrase with the person you choose for primary inheritance.</string>
+    <string name="nc_onchain_passphrase_notice_advice">We strongly advise against using a passphrase for inheritance keys. It significantly complicates recovery and increases the risk of errors for whoever claims. It also doesn’t protect against a compromised device.</string>
+    <string name="nc_onchain_passphrase_notice_share">If you still choose to use a passphrase, recovering this key requires it along with the seed phrase backup. Share them together.</string>
+    <string name="nc_device_safety_title">Before you use this device</string>
+    <string name="nc_device_safety_risk_bold">A tampered device can expose your seed phrase and any passphrase you enter.</string>
+    <string name="nc_device_safety_risk">Check the device’s source and follow the manufacturer’s official security checks before using it. If anything seems wrong, stop and use another device.</string>
+    <string name="nc_device_safety_limits">These checks reduce risk, but can’t guarantee that a device hasn’t been tampered with.</string>
+    <string name="nc_device_safety_tip_manufacturer">Buy devices directly from the manufacturer when you can.</string>
+    <string name="nc_device_safety_tip_seed">Never use a seed phrase or PIN that came with a new device.</string>
+    <string name="nc_device_safety_tip_suspicious">If a device seems suspicious, don’t use it. Resetting it doesn’t fix possible hardware tampering.</string>
+    <string name="nc_draft_key_wrong_account">This key must be added from Account %1$d. Add Account %1$d to continue.</string>
+    <string name="nc_draft_key_slot_missing">This key could not be placed. Tap Add on the key’s card again.</string>
+    <string name="nc_draft_key_account_not_read">The account of this key could not be read from the device. Try again.</string>
+    <!-- Replace key or change timelock on a configurable on-chain wallet (Figma Row 9 · REP) -->
+    <string name="nc_replace_key_same_device">Add Account %1$d from the same new key (XFP: %2$s) to continue.</string>
+    <string name="nc_replace_fallbacks_section">Fallbacks</string>
+    <string name="nc_replace_fallback_title">Fallback %1$d</string>
+    <plurals name="nc_replace_fallback_requires_all">
+        <item quantity="one">Requires %1$d of %2$d key</item>
+        <item quantity="other">Requires %1$d of %2$d keys</item>
+    </plurals>
+    <plurals name="nc_replace_fallback_requires_any">
+        <item quantity="one">Requires any %1$d of %2$d key</item>
+        <item quantity="other">Requires any %1$d of %2$d keys</item>
+    </plurals>
+    <!-- Fallback inheritance setup (Figma Row 2 · FBK, Row 3 · TIME) -->
+    <string name="nc_your_fallback_key">Your Fallback %1$d key</string>
+    <string name="nc_fallback_key_intro_purpose">This key will be used for Fallback %1$d. After Fallback %1$d unlocks, it can spend the funds together with any other keys Fallback %1$d requires.</string>
+    <string name="nc_fallback_key_intro_share">Later, you’ll share this seed phrase with the person Fallback %1$d is intended for. That may be someone other than your primary inheritance recipient.</string>
+    <string name="nc_fallback_passphrase_notice_advice">We strongly advise against using a passphrase for fallback keys. It significantly complicates recovery and increases the risk of errors for whoever claims. It also doesn’t protect against a compromised device.</string>
+    <string name="nc_fallbacks_desc">Add another way to spend after a later unlock time.</string>
+    <string name="nc_add_fallback">Add fallback</string>
+    <string name="nc_add_another_fallback">Add another fallback</string>
+    <string name="nc_fallback_policy">Fallback %1$d policy</string>
+    <string name="nc_fallbacks_intro_desc">A fallback adds another way to claim the funds after a later unlock time. It can give the same person another way to claim, or provide a route for someone else if the original beneficiary cannot claim.</string>
+    <string name="nc_fallbacks_intro_each_has">Each fallback has:</string>
+    <string name="nc_fallbacks_intro_own_keys">Its own keys</string>
+    <string name="nc_fallbacks_intro_own_keys_desc">The keys required to claim through this route. Keys used in other routes are fine if this route adds a new way to claim. The Platform key can’t be used.</string>
+    <string name="nc_fallbacks_intro_own_timelock">Its own timelock</string>
+    <string name="nc_fallbacks_intro_own_timelock_desc">It unlocks after the route before it, starting after your primary inheritance timelock.</string>
+    <string name="nc_fallbacks_intro_single_key_hint">If a fallback needs only 1 key, that key can be a single point of failure: it alone can spend through the fallback after its unlock time. To avoid this, require multiple keys.</string>
+    <string name="nc_fallbacks_intro_no_reserve_hint">A fallback doesn’t replace earlier routes or reserve a separate share of the funds. Once it unlocks, any available route can be used to claim, with the keys of that one route.</string>
+    <string name="nc_remove_fallback_title">Remove Fallback %1$d?</string>
+    <plurals name="nc_remove_fallback_desc">
+        <item quantity="one">Its key and timelock will be removed from this wallet setup.</item>
+        <item quantity="other">Its keys and timelock will be removed from this wallet setup.</item>
+    </plurals>
+    <string name="nc_remove_fallback_renumber">Any later fallbacks move up one number and keep their keys and unlock times.</string>
+    <string name="nc_remove_fallback">Remove fallback</string>
+    <string name="nc_choose_key_for_fallback">Choose a key for Fallback %1$d</string>
+    <string name="nc_choose_key_for_fallback_desc">You’ve already added these keys in this setup. Choose one, or use a different key.</string>
+    <string name="nc_use_a_different_key">Use a different key</string>
+    <string name="nc_replace_choose_wallet_key_desc">These keys are already in this wallet. Choose one, or use a different key.</string>
+    <string name="nc_set_up_fallback_timelock">Set up Fallback %1$d timelock</string>
+    <string name="nc_edit_fallback_timelock">Edit Fallback %1$d timelock</string>
+    <string name="nc_set_up_fallback_timelock_desc_primary">Fallback %1$d becomes available after this time. It must be later than your primary inheritance timelock.</string>
+    <string name="nc_set_up_fallback_timelock_desc_fallback">Fallback %1$d becomes available after this time. It must be later than Fallback %2$d’s timelock.</string>
+    <string name="nc_set_up_fallback_timelock_immutable">On-chain timelocks are immutable. Once the wallet is created, this date can’t be changed without creating a new wallet and moving your funds.</string>
+    <string name="nc_edit_fallback_timelock_desc">Unlock times must stay in order, and no two can be the same. This fallback’s limits are shown below.</string>
+    <string name="nc_primary_inheritance_unlocks_after">Primary inheritance unlocks after</string>
+    <string name="nc_fallback_unlocks_after">Fallback %1$d unlocks after</string>
+    <string name="nc_timelock_not_set_yet">Not set yet</string>
+    <string name="nc_must_be_after_primary_inheritance">Must be after primary inheritance</string>
+    <string name="nc_must_be_after_fallback">Must be after Fallback %1$d</string>
+    <string name="nc_must_be_before_fallback">Must be before Fallback %1$d</string>
+    <!-- Plan screens with fallbacks (Figma Row 6 · REV, Row 5 · NOTIF) -->
+    <string name="nc_fallback_inheritance_any_keys">Fallback %1$d · any %2$d of %3$d keys</string>
+    <string name="nc_fallback_inheritance_all_keys">Fallback %1$d · %2$d of %3$d keys</string>
+    <string name="nc_fallback_inheritance_single_key">Fallback %1$d · 1 of 1 key</string>
+    <string name="nc_fallback_key">Fallback key</string>
+    <string name="nc_fallback_number">Fallback %1$d</string>
+    <string name="nc_unlock_notices">Unlock notices</string>
+    <string name="nc_notify_when_a_timelock_expires">Notify them when a timelock expires</string>
+    <string name="nc_notify_when_a_timelock_expires_desc">Choose which timelocks this person should hear about.</string>
+    <string name="nc_unlocks_after">Unlocks after %1$s</string>
+    <plurals name="nc_fallback_timelock_hint">
+        <item quantity="one">Even with the fallback key, no one can claim through Fallback %1$d before this time.</item>
+        <item quantity="other">Even with the fallback keys, no one can claim through Fallback %1$d before this time.</item>
+    </plurals>
+    <string name="nc_fallback_timelock_too_early_primary">Fallback %1$d must unlock after primary inheritance (%2$s). Two routes can’t unlock at the same time. Please select a later date.</string>
+    <string name="nc_fallback_timelock_too_early_fallback">Fallback %1$d must unlock after Fallback %2$d (%3$s). Two routes can’t unlock at the same time. Please select a later date.</string>
+    <string name="nc_fallback_timelock_too_late">Fallback %1$d must unlock before Fallback %2$d (%3$s). Please select an earlier date.</string>
+    <string name="nc_primary_timelock_too_late">Primary inheritance must unlock before Fallback 1 (%1$s). Please select an earlier date.</string>
+    <!-- Plan screens with fallbacks (Figma Row 7 · SHARE, Row 4 · PLAN-07…12 / PLAN-11b) -->
+    <string name="nc_onchain_share_fallbacks_beneficiary">For each fallback, share its keys with the person it’s intended for: the Beneficiary or someone else. That person also needs the Magic Phrase or the BSMS file. Each fallback needs only its own required keys:</string>
+    <string name="nc_onchain_share_fallbacks_trustee">For each fallback, share its keys with the person it’s intended for: the Trustee or someone else. That person also needs the Magic Phrase or the BSMS file. Each fallback needs only its own required keys:</string>
+    <string name="nc_onchain_share_fallbacks_joint">For each fallback, share its keys with the person it’s intended for: the Beneficiary, the Trustee or someone else. That person also needs the Magic Phrase or the BSMS file. Each fallback needs only its own required keys:</string>
+    <string name="nc_onchain_warning_fallbacks_beneficiary">You are solely responsible for sharing these items with the Beneficiary and with anyone a fallback is intended for. If you do not share these items, the inheritance cannot be claimed.</string>
+    <string name="nc_onchain_warning_fallbacks_trustee">You are solely responsible for sharing these items with the Trustee and with anyone a fallback is intended for. If you do not share these items, the inheritance cannot be claimed.</string>
+    <string name="nc_onchain_warning_fallbacks_joint">You are solely responsible for sharing these items with the Beneficiary and the Trustee and with anyone a fallback is intended for. If you do not share these items, the inheritance cannot be claimed.</string>
+    <string name="nc_fallback_key_number">Fallback key %1$d</string>
+    <string name="nc_fallback_keys_list">Fallback keys %1$s and %2$d</string>
+    <string name="nc_fallback_keys_required_single">1 of 1 required</string>
+    <string name="nc_fallback_keys_required_all">%1$d of %2$d required</string>
+    <string name="nc_fallback_keys_required_any">any %1$d of %2$d required</string>
+    <string name="nc_fallback_share_keys_line">%1$s · %2$s</string>
+    <string name="nc_wallet_configuration_bsms_file">Wallet configuration: BSMS file</string>
+    <string name="nc_guided_claim_desc_primary_or_fallback">Guided claim using the Magic Phrase and %1$s, or the keys of a fallback whose timelock has expired.</string>
+    <string name="nc_guided_claim_desc_primary_or_fallback_joint">Guided claim using the Trustee’s Magic Phrase and %1$s (kept by the Beneficiary), or the keys of a fallback whose timelock has expired.</string>
+    <string name="nc_self_serve_claim_desc_same_keys">Self-serve claim using the wallet configuration file (BSMS file) and the same keys.</string>
+    <string name="nc_self_serve_claim_desc_same_keys_joint">Self-serve claim using the Trustee’s wallet configuration file (BSMS file) and the same keys.</string>
+    <string name="nc_plan_overview_keys_with_one_fallback">The keys for primary inheritance and for Fallback 1</string>
+    <string name="nc_plan_overview_keys_with_fallbacks">The keys for primary inheritance and for each fallback</string>
+    <string name="nc_plan_overview_timelock_with_one_fallback">An on-chain timelock, plus a later timelock for Fallback 1</string>
+    <string name="nc_plan_overview_timelock_with_fallbacks">An on-chain timelock, plus a later timelock for each fallback</string>
+    <string name="nc_inheritance_and_fallback_keys_used_to_claim">Inheritance keys and fallback keys are used to claim funds after a route’s timelock. Each route needs its own required keys:</string>
+    <string name="nc_inheritance_key_tip_fallback_route_single">[B]Fallback %1$d:[/B] 1 key.</string>
+    <string name="nc_inheritance_key_tip_fallback_route_all">[B]Fallback %1$d:[/B] %2$d of its %3$d keys.</string>
+    <string name="nc_inheritance_key_tip_fallback_route_any">[B]Fallback %1$d:[/B] any %2$d of its %3$d keys.</string>
+    <string name="nc_inheritance_key_tip_fallback_backup">[B]Back up the seed phrase of every inheritance and fallback key on a steel plate or another durable, non-digital medium.[/B] You will need to share each seed phrase with the person who will use it: your Beneficiary or Trustee, or whoever a fallback is intended for.</string>
+    <string name="nc_about_the_timelock_description_1_one_fallback">Your inheritance plan uses on-chain timelocks, built-in delays that protect your funds. The wallet has two spending paths, before and after the timelock, plus a later path for Fallback 1, which unlocks after the primary timelock.</string>
+    <string name="nc_about_the_timelock_description_1_fallbacks">Your inheritance plan uses on-chain timelocks, built-in delays that protect your funds. The wallet has two spending paths, before and after the timelock, plus a later path for each fallback. Fallbacks unlock in order: Fallback 1 after the timelock, Fallback 2 after Fallback 1, and so on.</string>
+    <string name="nc_about_the_timelock_description_3_fallbacks">Review the plan annually and adjust the timelocks as needed.</string>
+    <string name="nc_timelock_info_hint_one_fallback">Even with the required keys, no one can claim through primary inheritance before its timelock expires. Fallback 1’s keys work only after its own, later timelock.</string>
+    <string name="nc_timelock_info_hint_fallbacks">Even with the required keys, no one can claim through primary inheritance before its timelock expires. Fallback keys work only after their own, later timelock.</string>
+    <!-- On-chain claim (Figma Row 8 · CLM) -->
+    <string name="nc_claim_key_count_title">How many keys or seed phrases did you receive?</string>
+    <string name="nc_claim_key_count_desc">Select how many different keys you received. A hardware device and its seed phrase backup count as one key.</string>
+    <plurals name="nc_claim_key_count_option">
+        <item quantity="one">%1$d key or seed phrase</item>
+        <item quantity="other">%1$d keys or seed phrases</item>
+    </plurals>
+    <string name="nc_claim_keys_added_progress">You’ve added %1$d of the %2$d required keys.</string>
+    <string name="nc_claim_keys_added">You’ve added %1$d keys.</string>
+    <string name="nc_claim_add_another_key_to_continue">Add another key to continue.</string>
+    <string name="nc_claim_add_another_key">Add another key</string>
+    <string name="nc_claim_safety_recover_title">Before you recover this key</string>
+    <string name="nc_claim_safety_restore_lead">Only restore this seed phrase on a device you trust.</string>
+    <string name="nc_claim_safety_restore_body">If you need more than one key, restore each seed phrase on its own device. Several seed phrases on one device mean a single compromise exposes all of them.</string>
+    <string name="nc_claim_safety_restore_warning">A compromised device can steal the seed phrase as you enter it. Follow the manufacturer’s official security checks first. If the device is suspicious, go back and use another device.</string>
+    <string name="nc_claim_safety_existing_lead">Only use a device you trust.</string>
+    <string name="nc_claim_safety_existing_body">• A device you received already set up isn’t, by itself, a sign of tampering.\n• Resetting a suspicious device doesn’t fix possible hardware tampering.</string>
+    <string name="nc_claim_safety_existing_warning">A compromised device can expose the key stored on it. Follow the manufacturer’s official security checks before connecting it. If the device seems suspicious, go back and choose another way to provide the key.</string>
+    <string name="nc_claim_safety_software_lead">Only enter this seed phrase on a phone or computer you trust.</string>
+    <string name="nc_claim_safety_software_body">If you need more than one key, entering several seed phrases on one phone or computer means a single compromise exposes all of them.</string>
+    <string name="nc_claim_safety_software_warning">Malware on it can capture the seed phrase as you type it. Use a device only you control, with up-to-date software. If anything seems wrong, go back and choose another way.</string>
+    <string name="nc_claim_add_account_title">Add Account %1$d from this %2$s</string>
+    <string name="nc_claim_add_account_desc">This %1$s is part of this plan, but the plan uses its Account %2$d. Add Account %2$d from the same %1$s to continue.</string>
+    <string name="nc_claim_add_account_wired_desc">This %1$s is part of this plan, but the plan uses its Account %2$d. Connect the %1$s and Nunchuk will add Account %2$d for you.</string>
+    <string name="nc_claim_add_account_action">Add Account %1$d</string>
+    <string name="nc_claim_show_me_how">Show me how</string>
+    <string name="nc_claim_this_device">device</string>
 </resources>

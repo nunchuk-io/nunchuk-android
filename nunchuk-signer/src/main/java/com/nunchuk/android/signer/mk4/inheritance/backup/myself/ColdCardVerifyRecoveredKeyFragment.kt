@@ -75,6 +75,7 @@ class ColdCardVerifyRecoveredKeyFragment : MembershipFragment() {
                 if (keyId.isNotEmpty()) {
                     viewModel.setReplaceKeyVerified(
                         keyId = keyId,
+                        xfp = mk4ViewModel.coldCardBackUpParam.xfp,
                         filePath = mk4ViewModel.coldCardBackUpParam.filePath,
                         groupId = (requireActivity() as? Mk4Activity)?.groupId.orEmpty(),
                         walletId = (requireActivity() as? Mk4Activity)?.walletId.orEmpty(),

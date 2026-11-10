@@ -28,7 +28,13 @@ data class InheritanceClaimingInit(
     val walletType: WalletType,
     val walletLocalId: String,
     val inheritanceKeyCount: Int,
-    val keyOrigins: List<KeyOrigin> = emptyList()
+    val keyOrigins: List<KeyOrigin> = emptyList(),
+    /**
+     * Distinct numbers of independent keys that can claim, one per claim condition (`[2]`, or `[1, 2]`
+     * when a fallback needs fewer keys than the primary), ascending. Empty from a backend that does
+     * not send `required_key_counts`; only [inheritanceKeyCount] applies then.
+     */
+    val requiredKeyCounts: List<Int> = emptyList(),
 ) : Parcelable
 
 @Parcelize

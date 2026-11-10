@@ -12,7 +12,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.nunchuk.android.core.base.BaseComposeActivity
+import com.nunchuk.android.core.locale.AppLanguageManager
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.serialization.Serializable
 
 @AndroidEntryPoint
 class DisplaySettingsActivity : BaseComposeActivity() {
@@ -30,19 +32,23 @@ class DisplaySettingsActivity : BaseComposeActivity() {
 
                     NavHost(
                         navController = navHostController,
-                        startDestination = "display_settings"
+                        startDestination = DisplaySettingsRoute
                     ) {
-                        composable("display_settings") {
+                        composable<DisplaySettingsRoute> {
                             DisplaySettingsContent(
                                 uiState = state,
                                 onWalletVisibilityClick = {
-                                    navHostController.navigate("home_screen_settings")
+                                    navHostController.navigate(HomeScreenSettingsRoute)
                                 },
                                 onDisplayUnitClick = {
                                     navigator.openDisplayUnitScreen(this@DisplaySettingsActivity)
                                 },
                                 onAppearanceClick = {
-                                    navHostController.navigate("appearance")
+                                    navHostController.navigate(AppearanceRoute)
+                                },
+                                languageLabel = AppLanguageManager.languageInUse(this@DisplaySettingsActivity).nativeName,
+                                onLanguageClick = {
+                                    navHostController.navigate(LanguageRoute)
                                 },
                                 onHideWalletDetailsChange = { _ ->
                                     viewModel.updateHideWalletDetail()
@@ -50,7 +56,7 @@ class DisplaySettingsActivity : BaseComposeActivity() {
                             )
                         }
 
-                        composable("appearance") {
+                        composable<AppearanceRoute> {
                             AppearanceScreen(
                                 uiState = state,
                                 onThemeModeChange = { themeMode ->
@@ -59,7 +65,11 @@ class DisplaySettingsActivity : BaseComposeActivity() {
                             )
                         }
 
-                        composable("home_screen_settings") {
+                        composable<LanguageRoute> {
+                            LanguageScreen()
+                        }
+
+                        composable<HomeScreenSettingsRoute> {
                             HomeScreenSettingsContent(
                                 uiState = state,
                                 onFontSizeChange = { largeFont ->
@@ -72,12 +82,12 @@ class DisplaySettingsActivity : BaseComposeActivity() {
                                     viewModel.onDisplayWalletShortcutsChange(displayWalletShortcuts)
                                 },
                                 onExchangeRateUnitClick = {
-                                    navHostController.navigate("exchange_rate_unit")
+                                    navHostController.navigate(ExchangeRateUnitRoute)
                                 }
                             )
                         }
 
-                        composable("exchange_rate_unit") {
+                        composable<ExchangeRateUnitRoute> {
                             ExchangeRateUnitContent(
                                 currentUnit = state.homeDisplaySetting.exchangeRateUnit,
                                 onUnitSelected = { unit ->
@@ -102,3 +112,18 @@ class DisplaySettingsActivity : BaseComposeActivity() {
         }
     }
 }
+
+@Serializable
+internal data object DisplaySettingsRoute
+
+@Serializable
+internal data object AppearanceRoute
+
+@Serializable
+internal data object LanguageRoute
+
+@Serializable
+internal data object HomeScreenSettingsRoute
+
+@Serializable
+internal data object ExchangeRateUnitRoute

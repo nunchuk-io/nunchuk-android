@@ -41,7 +41,7 @@ import com.nunchuk.android.model.SignerExtra
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.model.inheritance.ClaimOption
-import com.nunchuk.android.model.toIndex
+import com.nunchuk.android.model.inheritance.RecoveredKey
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.signer.util.isTestNetPath
 import com.nunchuk.android.type.Chain
@@ -411,7 +411,7 @@ class ColdcardRecoverViewModel @Inject constructor(
                 xfp = replacedXfp.orEmpty(),
                 walletId = walletId,
                 signer = coldcardSigner,
-                keyIndex = onChainAddSignerParam?.replaceInfo?.step?.toIndex(groupId.isNotEmpty())
+                keyIndex = onChainAddSignerParam?.replaceInfo?.replaceKeyIndex(groupId.isNotEmpty())
             )
         ).fold(
             onSuccess = { true },
@@ -426,6 +426,7 @@ class ColdcardRecoverViewModel @Inject constructor(
         groupId: String,
         masterSignerId: String,
         verificationMethod: ClaimOption? = null,
+        recoveredKey: RecoveredKey? = null,
     ) {
         viewModelScope.launch {
             setKeyVerifiedUseCase(
@@ -434,6 +435,7 @@ class ColdcardRecoverViewModel @Inject constructor(
                     masterSignerId = masterSignerId,
                     verifyType = VerifyType.APP_VERIFIED,
                     verificationMethod = verificationMethod,
+                    recoveredKey = recoveredKey,
                 )
             ).onSuccess {
                 _event.emit(ColdcardRecoverEvent.KeyVerifiedSuccess)
@@ -448,6 +450,7 @@ class ColdcardRecoverViewModel @Inject constructor(
         groupId: String,
         walletId: String,
         verificationMethod: ClaimOption? = null,
+        recoveredKey: RecoveredKey? = null,
     ) {
         viewModelScope.launch {
             setReplaceKeyVerifiedUseCase(
@@ -458,6 +461,7 @@ class ColdcardRecoverViewModel @Inject constructor(
                     groupId = groupId,
                     walletId = walletId,
                     verificationMethod = verificationMethod,
+                    recoveredKey = recoveredKey,
                 )
             ).onSuccess {
                 _event.emit(ColdcardRecoverEvent.KeyVerifiedSuccess)

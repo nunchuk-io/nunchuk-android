@@ -19,7 +19,6 @@
 
 package com.nunchuk.android.settings.walletsecurity.createpin
 
-import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -27,6 +26,7 @@ import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.CheckWalletPinUseCase
 import com.nunchuk.android.core.domain.CreateOrUpdateWalletPinUseCase
 import androidx.navigation.toRoute
+import com.nunchuk.android.core.util.UiText
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.settings.R
 import com.nunchuk.android.settings.walletsecurity.WalletSecurityCreatePinRoute
@@ -34,7 +34,6 @@ import com.nunchuk.android.usecase.pin.DecoyPinExistUseCase
 import com.nunchuk.android.usecase.pin.SetCustomPinConfigUseCase
 import com.nunchuk.android.usecase.wallet.CreateDecoyPinUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -51,7 +50,6 @@ class WalletSecurityCreatePinViewModel @Inject constructor(
     private val createDecoyPinUseCase: CreateDecoyPinUseCase,
     accountManager: AccountManager,
     private val setCustomPinConfigUseCase: SetCustomPinConfigUseCase,
-    @ApplicationContext private val context: Context,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
@@ -97,14 +95,14 @@ class WalletSecurityCreatePinViewModel @Inject constructor(
             if (_state.value.createPinFlow) {
                 val newPin = inputValue[0]!!.value
                 if (isPinTaken(newPin)) {
-                    _event.emit(WalletSecurityCreatePinEvent.Error(context.getString(R.string.nc_pin_exist)))
+                    _event.emit(WalletSecurityCreatePinEvent.Error(UiText.resource(R.string.nc_pin_exist)))
                 } else if (inputValue[0]?.value == inputValue[1]?.value) {
                     createDecoyPin(inputValue)
                 } else {
                     updateInputValue(
                         1,
                         inputValue[1]?.value!!,
-                        errorMsg = context.getString(R.string.nc_confirm_pin_does_not_match)
+                        errorMsg = UiText.resource(R.string.nc_confirm_pin_does_not_match)
                     )
                 }
             } else {
@@ -114,16 +112,16 @@ class WalletSecurityCreatePinViewModel @Inject constructor(
                     updateInputValue(
                         0,
                         inputValue[0]?.value!!,
-                        errorMsg = context.getString(R.string.nc_incorrect_current_pin)
+                        errorMsg = UiText.resource(R.string.nc_incorrect_current_pin)
                     )
                     _state.update { it.copy(attemptCount = it.attemptCount.inc()) }
                 } else if (isPinTaken(newPin)) {
-                    _event.emit(WalletSecurityCreatePinEvent.Error(context.getString(R.string.nc_pin_exist)))
+                    _event.emit(WalletSecurityCreatePinEvent.Error(UiText.resource(R.string.nc_pin_exist)))
                 } else if (inputValue[1] != inputValue[2]) {
                     updateInputValue(
                         2,
                         inputValue[2]?.value!!,
-                        errorMsg = context.getString(R.string.nc_confirm_pin_does_not_match)
+                        errorMsg = UiText.resource(R.string.nc_confirm_pin_does_not_match)
                     )
                 } else {
                     createDecoyPin(inputValue)
@@ -147,7 +145,7 @@ class WalletSecurityCreatePinViewModel @Inject constructor(
         ).onSuccess {
             createDecoyPinSuccess()
         }.onFailure {
-            updateInputValue(0, inputValue[0]?.value!!, errorMsg = it.message.orUnknownError())
+            updateInputValue(0, inputValue[0]?.value!!, errorMsg = UiText.Dynamic(it.message.orUnknownError()))
         }
     }
 
@@ -171,15 +169,15 @@ class WalletSecurityCreatePinViewModel @Inject constructor(
                     updateInputValue(
                         0,
                         newPin,
-                        errorMsg = context.getString(R.string.nc_pin_exist)
+                        errorMsg = UiText.resource(R.string.nc_pin_exist)
                     )
                 } else {
-                    var errorMsg = ""
+                    var errorMsg: UiText? = null
                     if (newPin == inputValue[1]?.value) {
                         createOrUpdateWalletPinUseCase(newPin)
                         _event.emit(WalletSecurityCreatePinEvent.CreateOrUpdateSuccess)
                     } else {
-                        errorMsg = context.getString(R.string.nc_confirm_pin_does_not_match)
+                        errorMsg = UiText.resource(R.string.nc_confirm_pin_does_not_match)
                     }
                     updateInputValue(1, inputValue[1]?.value!!, errorMsg = errorMsg)
                 }
@@ -189,7 +187,7 @@ class WalletSecurityCreatePinViewModel @Inject constructor(
                     updateInputValue(
                         0,
                         inputValue[0]?.value!!,
-                        errorMsg = context.getString(R.string.nc_incorrect_current_pin)
+                        errorMsg = UiText.resource(R.string.nc_incorrect_current_pin)
                     )
                     _state.update { it.copy(attemptCount = it.attemptCount.inc()) }
                 } else if (decoyPinExistUseCase(inputValue[1]!!.value).getOrDefault(false)) {
@@ -197,13 +195,13 @@ class WalletSecurityCreatePinViewModel @Inject constructor(
                     updateInputValue(
                         1,
                         inputValue[1]?.value!!,
-                        errorMsg = context.getString(R.string.nc_pin_exist)
+                        errorMsg = UiText.resource(R.string.nc_pin_exist)
                     )
                 } else if (inputValue[1] != inputValue[2]) {
                     updateInputValue(
                         2,
                         inputValue[2]?.value!!,
-                        errorMsg = context.getString(R.string.nc_confirm_pin_does_not_match)
+                        errorMsg = UiText.resource(R.string.nc_confirm_pin_does_not_match)
                     )
                 } else {
                     createOrUpdateWalletPinUseCase(inputValue[1]!!.value)
@@ -213,7 +211,7 @@ class WalletSecurityCreatePinViewModel @Inject constructor(
         }
     }
 
-    fun updateInputValue(index: Int, value: String, errorMsg: String = "") {
+    fun updateInputValue(index: Int, value: String, errorMsg: UiText? = null) {
         val inputValue = _state.value.inputValue.toMutableMap()
         val currentInputValue = inputValue[index]
         inputValue[index] = currentInputValue!!.copy(value = value, errorMsg = errorMsg)
@@ -223,7 +221,7 @@ class WalletSecurityCreatePinViewModel @Inject constructor(
 
 data class InputValue(
     val value: String = "",
-    val errorMsg: String = ""
+    val errorMsg: UiText? = null
 )
 
 data class WalletSecurityCreatePinState(
@@ -234,6 +232,6 @@ data class WalletSecurityCreatePinState(
 
 sealed class WalletSecurityCreatePinEvent {
     data class Loading(val loading: Boolean) : WalletSecurityCreatePinEvent()
-    data class Error(val message: String) : WalletSecurityCreatePinEvent()
+    data class Error(val message: UiText) : WalletSecurityCreatePinEvent()
     object CreateOrUpdateSuccess : WalletSecurityCreatePinEvent()
 }

@@ -33,6 +33,9 @@ import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.model.inheritance.ClaimOption
 import com.nunchuk.android.signer.R
+import com.nunchuk.android.signer.tapsigner.backup.verify.TapSignerRecoveredKeyResolver
+import com.nunchuk.android.signer.tapsigner.backup.verify.TapSignerVerifyAccount
+import com.nunchuk.android.model.inheritance.RecoveredKey
 import com.nunchuk.android.usecase.GetDownloadBackUpKeyReplacementUseCase
 import com.nunchuk.android.usecase.GetDownloadBackUpKeyUseCase
 import com.nunchuk.android.usecase.membership.SetKeyVerifiedUseCase
@@ -53,10 +56,11 @@ class CheckBackUpByAppViewModel @Inject constructor(
     private val verifyTapSignerBackupUseCase: VerifyTapSignerBackupUseCase,
     private val getTapSignerBackupUseCase: GetTapSignerBackupUseCase,
     private val setKeyVerifiedUseCase: SetKeyVerifiedUseCase,
+    private val tapSignerRecoveredKeyResolver: TapSignerRecoveredKeyResolver,
     private val setReplaceKeyVerifiedUseCase: SetReplaceKeyVerifiedUseCase,
     private val getDownloadBackUpKeyUseCase: GetDownloadBackUpKeyUseCase,
     private val getDownloadBackUpKeyReplacementUseCase: GetDownloadBackUpKeyReplacementUseCase,
-    savedStateHandle: SavedStateHandle,
+    private val savedStateHandle: SavedStateHandle,
     private val application: Application,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
@@ -99,19 +103,28 @@ class CheckBackUpByAppViewModel @Inject constructor(
                     )
                 )
             if (result.isSuccess && result.getOrThrow()) {
-                val apiResult =
-                    setKeyVerifiedUseCase(
-                        SetKeyVerifiedUseCase.Param(
-                            groupId = groupId,
-                            masterSignerId = masterSignerId,
-                            verifyType = VerifyType.APP_VERIFIED,
-                            verificationMethod = verificationMethod,
-                        )
-                    )
-                if (apiResult.isSuccess) {
-                    _event.emit(CheckBackUpByAppEvent.OnVerifyBackUpKeySuccess)
-                } else {
-                    _event.emit(CheckBackUpByAppEvent.ShowError(apiResult.exceptionOrNull()))
+                if (!isOnChainBackUp) {
+                    submitVerified(groupId, masterSignerId, verificationMethod, recoveredKey = null)
+                    return@launch
+                }
+                // A configurable on-chain draft verifies against the account (NUN-10320): never
+                // send it without one — tap the card for an uncached account, or stop with an error.
+                when (val account = tapSignerRecoveredKeyResolver(groupId, masterSignerId)) {
+                    TapSignerVerifyAccount.NotRequired ->
+                        submitVerified(groupId, masterSignerId, verificationMethod, recoveredKey = null)
+
+                    is TapSignerVerifyAccount.Resolved ->
+                        submitVerified(groupId, masterSignerId, verificationMethod, account.key)
+
+                    is TapSignerVerifyAccount.NeedsTap -> {
+                        savedStateHandle[KEY_PENDING_GROUP_ID] = groupId
+                        savedStateHandle[KEY_PENDING_MASTER_SIGNER_ID] = masterSignerId
+                        savedStateHandle[KEY_PENDING_PATH] = account.derivationPath
+                        savedStateHandle[KEY_PENDING_METHOD] = verificationMethod?.name
+                        _event.emit(CheckBackUpByAppEvent.ReadAccountFromCard)
+                    }
+
+                    is TapSignerVerifyAccount.Failed -> _event.emit(CheckBackUpByAppEvent.ShowError(account.error))
                 }
             } else {
                 tryCount++
@@ -120,6 +133,56 @@ class CheckBackUpByAppViewModel @Inject constructor(
                     _event.emit(CheckBackUpByAppEvent.OnVerifyFailedTooMuch)
                 }
             }
+        }
+    }
+
+    /**
+     * The card was tapped after [CheckBackUpByAppEvent.ReadAccountFromCard]: read the draft's
+     * account off it, then mark the backup verified with it. A failed read keeps the request, so
+     * the user can tap again.
+     */
+    fun readAccountWithTap(isoDep: IsoDep, cvc: String) {
+        val groupId = savedStateHandle.get<String>(KEY_PENDING_GROUP_ID) ?: return
+        val masterSignerId = savedStateHandle.get<String>(KEY_PENDING_MASTER_SIGNER_ID) ?: return
+        val path = savedStateHandle.get<String>(KEY_PENDING_PATH) ?: return
+        val method = savedStateHandle.get<String>(KEY_PENDING_METHOD)?.let { name ->
+            ClaimOption.entries.firstOrNull { it.name == name }
+        }
+        viewModelScope.launch {
+            _event.emit(CheckBackUpByAppEvent.NfcLoading(true))
+            val account = tapSignerRecoveredKeyResolver.readWithTap(isoDep, cvc, masterSignerId, path)
+            _event.emit(CheckBackUpByAppEvent.NfcLoading(false))
+            when (account) {
+                is TapSignerVerifyAccount.Resolved -> {
+                    listOf(KEY_PENDING_GROUP_ID, KEY_PENDING_MASTER_SIGNER_ID, KEY_PENDING_PATH, KEY_PENDING_METHOD)
+                        .forEach { savedStateHandle.remove<String>(it) }
+                    submitVerified(groupId, masterSignerId, method, account.key)
+                }
+
+                is TapSignerVerifyAccount.Failed -> _event.emit(CheckBackUpByAppEvent.ShowError(account.error))
+                else -> Unit
+            }
+        }
+    }
+
+    private suspend fun submitVerified(
+        groupId: String,
+        masterSignerId: String,
+        verificationMethod: ClaimOption?,
+        recoveredKey: RecoveredKey?,
+    ) {
+        setKeyVerifiedUseCase(
+            SetKeyVerifiedUseCase.Param(
+                groupId = groupId,
+                masterSignerId = masterSignerId,
+                verifyType = VerifyType.APP_VERIFIED,
+                verificationMethod = verificationMethod,
+                recoveredKey = recoveredKey,
+            )
+        ).onSuccess {
+            _event.emit(CheckBackUpByAppEvent.OnVerifyBackUpKeySuccess)
+        }.onFailure {
+            _event.emit(CheckBackUpByAppEvent.ShowError(it))
         }
     }
 
@@ -153,6 +216,15 @@ class CheckBackUpByAppViewModel @Inject constructor(
                     )
                 )
             if (result.isSuccess && result.getOrThrow()) {
+                // A configurable wallet verifies against the replacement's account (NUN-10320).
+                val recoveredKey = if (isOnChainBackUp) {
+                    tapSignerRecoveredKeyResolver.replacementKey(groupId, walletId, masterSignerId).getOrElse {
+                        _event.emit(CheckBackUpByAppEvent.ShowError(it))
+                        return@launch
+                    }
+                } else {
+                    null
+                }
                 val apiResult =
                     setReplaceKeyVerifiedUseCase(
                         SetReplaceKeyVerifiedUseCase.Param(
@@ -162,6 +234,7 @@ class CheckBackUpByAppViewModel @Inject constructor(
                             groupId = groupId,
                             walletId = walletId,
                             verificationMethod = verificationMethod,
+                            recoveredKey = recoveredKey,
                         )
                     )
                 if (apiResult.isSuccess) {
@@ -243,6 +316,10 @@ class CheckBackUpByAppViewModel @Inject constructor(
 
     companion object {
         private const val MAX_TRY = 5
+        private const val KEY_PENDING_GROUP_ID = "pending_account_group_id"
+        private const val KEY_PENDING_MASTER_SIGNER_ID = "pending_account_master_signer_id"
+        private const val KEY_PENDING_PATH = "pending_account_path"
+        private const val KEY_PENDING_METHOD = "pending_account_method"
     }
 }
 
@@ -252,4 +329,7 @@ sealed class CheckBackUpByAppEvent {
     data class NfcLoading(val isLoading: Boolean) : CheckBackUpByAppEvent()
     data class GetTapSignerBackupKeyEvent(val filePath: String) : CheckBackUpByAppEvent()
     data class ShowError(val e: Throwable?) : CheckBackUpByAppEvent()
+
+    /** The draft's account of this key is not cached: ask for a tap to read it. */
+    data object ReadAccountFromCard : CheckBackUpByAppEvent()
 }

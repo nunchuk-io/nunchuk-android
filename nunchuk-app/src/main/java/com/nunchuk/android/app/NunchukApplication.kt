@@ -26,6 +26,7 @@ import com.nunchuk.android.BuildConfig
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.appearance.ThemeManager
 import com.nunchuk.android.core.domain.GetDisplayUnitSettingUseCase
+import com.nunchuk.android.core.locale.AppLanguageManager
 import com.nunchuk.android.core.domain.data.CURRENT_DISPLAY_UNIT_TYPE
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.manager.ActivityManager
@@ -89,6 +90,7 @@ internal class NunchukApplication : MultiDexApplication(), Configuration.Provide
 
     override fun onCreate() {
         super.onCreate()
+        AppLanguageManager.keepEnglishForExistingInstall(this)
         applicationScope.launch {
             matrixInitializerUseCase.get()(Unit)
         }

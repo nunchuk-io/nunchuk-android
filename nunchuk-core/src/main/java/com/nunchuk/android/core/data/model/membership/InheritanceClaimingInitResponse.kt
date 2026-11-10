@@ -29,7 +29,9 @@ class InheritanceClaimingInitResponse(
     @SerializedName("inheritance_key_count")
     val inheritanceKeyCount: Int? = null,
     @SerializedName("key_origins")
-    val keyOrigins: List<KeyOriginDto>? = null
+    val keyOrigins: List<KeyOriginDto>? = null,
+    @SerializedName("required_key_counts")
+    val requiredKeyCounts: List<Int>? = null,
 )
 
 class KeyOriginDto(
@@ -41,6 +43,22 @@ class KeyOriginDto(
 
 class InheritanceClaimingDownloadWalletResponse(
     @SerializedName("wallet")
-    val wallet: WalletDto? = null
+    val wallet: WalletDto? = null,
+    @SerializedName("buffer_period_countdown")
+    val bufferPeriodCountdown: BufferPeriodCountdownResponse? = null,
+    // Null on a backend without configurable claims; a list (even empty) means "more keys needed".
+    @SerializedName("valid_keys")
+    val validKeys: List<ClaimValidKeyDto>? = null,
+    @SerializedName("key_origins")
+    val keyOrigins: List<KeyOriginDto>? = null,
+)
+
+class ClaimValidKeyDto(
+    @SerializedName("xfp")
+    val xfp: String? = null,
+    @SerializedName("derivation_path")
+    val derivationPath: String? = null,
+    @SerializedName("xpub")
+    val xpub: String? = null,
 )
 

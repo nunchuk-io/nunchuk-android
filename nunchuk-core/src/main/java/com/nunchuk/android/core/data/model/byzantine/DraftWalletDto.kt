@@ -1,12 +1,17 @@
 package com.nunchuk.android.core.data.model.byzantine
 
 import com.google.gson.annotations.SerializedName
+import com.nunchuk.android.core.data.model.membership.DraftInheritanceCardDto
+import com.nunchuk.android.core.data.model.membership.InheritanceValidationErrorDto
+import com.nunchuk.android.core.data.model.membership.OnChainInheritancePolicyDto
 import com.nunchuk.android.core.data.model.membership.SignerServerDto
 import com.nunchuk.android.core.data.model.membership.toModel
 import com.nunchuk.android.model.TimelockBased
 import com.nunchuk.android.model.WalletConfig
 import com.nunchuk.android.model.byzantine.DraftWallet
 import com.nunchuk.android.model.byzantine.DraftWalletTimelock
+import com.nunchuk.android.model.inheritance.OnChainInheritancePolicyType
+import com.nunchuk.android.model.toVerifyType
 import com.nunchuk.android.type.WalletType
 
 internal data class DraftWalletResponse(
@@ -28,6 +33,9 @@ internal data class DraftWalletDto(
     @SerializedName("address_type") val addressType: String? = null,
     @SerializedName("wallet_template") val walletTemplate: String? = null,
     @SerializedName("is_customized") val isCustomized: Boolean? = null,
+    @SerializedName("onchain_inheritance_policy") val onChainInheritancePolicy: OnChainInheritancePolicyDto? = null,
+    @SerializedName("cards") val cards: List<DraftInheritanceCardDto>? = null,
+    @SerializedName("validation_errors") val validationErrors: List<InheritanceValidationErrorDto>? = null,
 )
 
 internal data class WalletConfigDto(
@@ -84,11 +92,17 @@ internal fun TimelockDto?.toDraftWalletTimelock(): DraftWalletTimelock {
     )
 }
 
+internal val DraftWalletDto.isConfigurable: Boolean
+    get() = onChainInheritancePolicy?.type == OnChainInheritancePolicyType.CONFIGURABLE.name
+
 internal fun DraftWalletDto.toDraftWalletModel(): DraftWallet = DraftWallet(
     groupId = groupId,
     config = walletConfig.toModel(),
     isMasterSecurityQuestionSet = isMasterSecurityQuestionSet,
-    signers = signers.map { it.toModel() },
+    // A configurable draft (NUN-10320) reports every key's own verification; Continue depends on it.
+    signers = signers.map { dto ->
+        dto.toModel().let { if (isConfigurable) it.copy(verifyType = dto.verificationType.toVerifyType()) else it }
+    },
     walletType = walletType.toWalletType(),
     timelock = timelock.toDraftWalletTimelock(),
     replaceWallet = replaceWallet.toModel(),
@@ -97,4 +111,8 @@ internal fun DraftWalletDto.toDraftWalletModel(): DraftWallet = DraftWallet(
     addressType = addressType,
     walletTemplate = walletTemplate,
     isCustomized = isCustomized == true,
+    onChainInheritancePolicy = onChainInheritancePolicy?.toModel(),
+    inheritanceCards = cards.orEmpty().mapNotNull { it.toModel() },
+    validationErrors = validationErrors.orEmpty().map { it.toModel() },
+    finalized = finalized == true,
 )

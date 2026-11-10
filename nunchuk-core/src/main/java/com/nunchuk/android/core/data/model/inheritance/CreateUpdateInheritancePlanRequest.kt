@@ -60,7 +60,9 @@ data class BeneficiaryNotificationRequest(
     @SerializedName("notify_wallet_changes")
     val notifyWalletChanges: Boolean? = null,
     @SerializedName("include_wallet_config")
-    val includeWalletConfig: Boolean? = null
+    val includeWalletConfig: Boolean? = null,
+    @SerializedName("notify_fallbacks")
+    val notifyFallbacks: List<Int>? = null,
 )
 
 data class InheritanceFallbackPolicyRequest(

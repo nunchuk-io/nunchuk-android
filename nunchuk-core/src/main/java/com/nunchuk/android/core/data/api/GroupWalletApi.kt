@@ -7,6 +7,8 @@ import com.nunchuk.android.core.data.model.DeleteAssistedWalletRequest
 import com.nunchuk.android.core.data.model.LockdownUpdateRequest
 import com.nunchuk.android.core.data.model.SyncTransactionRequest
 import com.nunchuk.android.core.data.model.UpdateDraftWalletPayload
+import com.nunchuk.android.core.data.model.FallbackInheritancePayload
+import com.nunchuk.android.core.data.model.UpdatePrimaryInheritancePayload
 import com.nunchuk.android.core.data.model.UpdateWalletPayload
 import com.nunchuk.android.core.data.model.byzantine.CreateDraftWalletRequest
 import com.nunchuk.android.core.data.model.byzantine.CreateGroupRequest
@@ -115,6 +117,14 @@ internal interface GroupWalletApi {
         @Body payload: SignerServerDto,
     ): Data<SignerServerDto>
 
+    /** Imports one account into a configurable draft for the open `request-add-key` [requestId]. */
+    @POST("/v1.1/group-wallets/groups/{group_id}/draft-wallets/add-key")
+    suspend fun addKeyForRequest(
+        @Path("group_id") groupId: String,
+        @Query("request_id") requestId: String,
+        @Body payload: SignerServerDto,
+    ): Data<SignerServerDto>
+
 
     @POST("/v1.1/group-wallets/groups/{group_id}/server-keys")
     suspend fun createGroupServerKey(
@@ -149,6 +159,36 @@ internal interface GroupWalletApi {
     suspend fun createGroupDraftWalletTimelock(
         @Path("group_id") groupId: String,
         @Body payload: CreateTimelockPayload
+    ): Data<DraftWalletResponse>
+
+    @PUT("/v1.1/group-wallets/groups/{group_id}/draft-wallets/primary")
+    suspend fun updateDraftPrimaryInheritance(
+        @Path("group_id") groupId: String,
+        @Body payload: UpdatePrimaryInheritancePayload
+    ): Data<DraftWalletResponse>
+
+    @DELETE("/v1.1/group-wallets/groups/{group_id}/draft-wallets/primary")
+    suspend fun resetDraftPrimaryInheritance(
+        @Path("group_id") groupId: String,
+    ): Data<DraftWalletResponse>
+
+    @POST("/v1.1/group-wallets/groups/{group_id}/draft-wallets/fallbacks")
+    suspend fun addDraftFallbackInheritance(
+        @Path("group_id") groupId: String,
+        @Body payload: FallbackInheritancePayload
+    ): Data<DraftWalletResponse>
+
+    @PUT("/v1.1/group-wallets/groups/{group_id}/draft-wallets/fallbacks/{index}")
+    suspend fun updateDraftFallbackInheritance(
+        @Path("group_id") groupId: String,
+        @Path("index") index: Int,
+        @Body payload: FallbackInheritancePayload
+    ): Data<DraftWalletResponse>
+
+    @DELETE("/v1.1/group-wallets/groups/{group_id}/draft-wallets/fallbacks/{index}")
+    suspend fun removeDraftFallbackInheritance(
+        @Path("group_id") groupId: String,
+        @Path("index") index: Int,
     ): Data<DraftWalletResponse>
 
     @GET("/v1.1/group-wallets/permissions/default")

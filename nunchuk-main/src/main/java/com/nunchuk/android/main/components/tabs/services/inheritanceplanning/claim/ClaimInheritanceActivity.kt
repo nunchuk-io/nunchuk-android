@@ -2,6 +2,7 @@ package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.cl
 
 import com.nunchuk.android.core.util.resolve
 import android.app.Activity
+import android.content.Context
 import com.nunchuk.android.core.signing.signingDevice
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.enableEdgeToEdge
@@ -14,6 +15,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -23,6 +25,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.viewbinding.ViewBinding
 import com.nunchuk.android.compose.NcToastType
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.dialog.NcConfirmationDialog
 import com.nunchuk.android.compose.dialog.NcLoadingDialog
 import com.nunchuk.android.compose.showNunchukSnackbar
 import com.nunchuk.android.core.data.model.ClaimInheritanceTxParam
@@ -38,11 +41,16 @@ import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.signer.SignerIntroFlow
 import com.nunchuk.android.core.signer.SignerIntroRequest
 import com.nunchuk.android.core.util.BTC_SATOSHI_EXCHANGE_RATE
+import com.nunchuk.android.core.util.formattedName
+import com.nunchuk.android.core.util.isBitBox
+import com.nunchuk.android.core.util.isLedger
+import com.nunchuk.android.core.util.isTrezor
 import com.nunchuk.android.core.util.SelectWalletType
 import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.addkey.addInheritanceKey
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.addkey.navigateToAddInheritanceKey
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.addkey.navigateToFirstInheritanceKey
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.addkey.navigateToNextInheritanceKey
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.backuppassword.claimBackupPassword
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.backuppassword.navigateToClaimBackupPassword
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.bufferperiod.claimBufferPeriod
@@ -52,6 +60,8 @@ import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.cla
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.claimnote.navigateToClaimNote
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.exportcomplete.exportComplete
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.exportcomplete.navigateToExportComplete
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.keycount.claimKeyCount
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.keycount.navigateToClaimKeyCount
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.magicphrase.ClaimMagicPhraseRoute
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.magicphrase.claimMagicPhrase
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.noinheritancefound.inheritanceError
@@ -67,6 +77,9 @@ import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.cla
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.releaseschedule.navigateToClaimReleaseSchedule
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.restorehardware.navigateToRestoreSeedPhraseHardware
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.restorehardware.restoreSeedPhraseHardware
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.safety.ClaimSafetyNotice
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.safety.claimSafetyNotice
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.safety.navigateToClaimSafetyNotice
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.verifymessage.navigateToVerifyInheritanceMessage
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.verifymessage.verifyInheritanceMessage
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.withdrawbitcoin.claimWithdrawBitcoin
@@ -76,9 +89,12 @@ import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.nav.args.ClaimArgs
 import com.nunchuk.android.nav.args.UploadConfigurationType
 import com.nunchuk.android.share.result.GlobalResultKey
+import com.nunchuk.android.type.SignerTag
+import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.utils.parcelable
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
+import com.nunchuk.android.core.R as CoreR
 
 @AndroidEntryPoint
 class ClaimInheritanceActivity : BaseNfcActivity<ViewBinding>() {
@@ -146,6 +162,10 @@ private fun ClaimInheritanceGraph(
                 navController.popBackStack<ClaimMagicPhraseRoute>(false)
                 activityViewModel.addSigner(signer)
             }
+        } else if (activityViewModel.claimData.value.returnsToKeyCollectionOnCancel) {
+            // Backed out of adding a requested account (CLM-16): the claim screen behind it is the
+            // Magic Phrase, so go back to adding keys. The accepted keys are kept.
+            navController.navigateToNextInheritanceKey(activityViewModel.claimData.value)
         }
     }
 
@@ -181,17 +201,26 @@ private fun ClaimInheritanceGraph(
                 }
 
                 is ClaimInheritanceEvent.AddMoreSigners -> {
-                    navController.navigateToAddInheritanceKey(
-                        index = claimData.signers.size.inc(),
-                        totalKeys = claimData.requiredKeyCount
+                    navController.navigateToNextInheritanceKey(activityViewModel.claimData.value)
+                }
+
+                is ClaimInheritanceEvent.AddAnotherKey -> {
+                    navController.navigateToNextInheritanceKey(activityViewModel.claimData.value)
+                    snackbarHostState.showNunchukSnackbar(
+                        message = context.getString(
+                            if (event.rejectedKey) R.string.nc_main_incorrect_key_add_correct_key
+                            else R.string.nc_claim_add_another_key_to_continue
+                        ),
+                        type = NcToastType.ERROR
                     )
                 }
 
+                is ClaimInheritanceEvent.NavigateToBufferPeriod -> {
+                    navController.navigateToClaimBufferPeriod(event.countdown)
+                }
+
                 is ClaimInheritanceEvent.KeyAlreadyAdded -> {
-                    navController.navigateToAddInheritanceKey(
-                        index = claimData.signers.size.inc(),
-                        totalKeys = claimData.requiredKeyCount,
-                    )
+                    navController.navigateToNextInheritanceKey(activityViewModel.claimData.value)
                     snackbarHostState.showNunchukSnackbar(
                         message = context.getString(R.string.nc_error_add_same_key),
                         type = NcToastType.ERROR
@@ -271,6 +300,52 @@ private fun ClaimInheritanceGraph(
         if (sharedUiState.isLoading) {
             NcLoadingDialog()
         }
+        sharedUiState.retryDownloadMessage?.let { message ->
+            NcConfirmationDialog(
+                title = stringResource(CoreR.string.nc_error),
+                message = message,
+                positiveButtonText = stringResource(CoreR.string.nc_retry),
+                negativeButtonText = stringResource(CoreR.string.nc_cancel),
+                onPositiveClick = activityViewModel::retryDownload,
+                onDismiss = {
+                    activityViewModel.onRetryDownloadDismissed()
+                    navController.navigateToNextInheritanceKey(activityViewModel.claimData.value)
+                },
+            )
+        }
+        sharedUiState.addAccountPrompt?.let { prompt ->
+            val deviceName = prompt.device.claimDeviceName(context)
+            // CLM-16f: wired devices read the account themselves once connected.
+            val isWired = prompt.device.isLedger || prompt.device.isBitBox || prompt.device.isTrezor
+            NcConfirmationDialog(
+                title = stringResource(R.string.nc_claim_add_account_title, prompt.account, deviceName),
+                message = stringResource(
+                    if (isWired) R.string.nc_claim_add_account_wired_desc else R.string.nc_claim_add_account_desc,
+                    deviceName,
+                    prompt.account,
+                ),
+                positiveButtonText = if (isWired) {
+                    stringResource(R.string.nc_claim_add_account_action, prompt.account)
+                } else {
+                    stringResource(R.string.nc_claim_show_me_how)
+                },
+                negativeButtonText = stringResource(CoreR.string.nc_cancel),
+                onPositiveClick = {
+                    activityViewModel.onAddAccountPromptHandled()
+                    // That device's own flow at the account: guided export, or connect for wired devices.
+                    navigator.openSignerIntroScreen(
+                        launcher = signerIntroLauncher,
+                        activityContext = activity,
+                        request = prompt.signerIntroRequest(activityViewModel.claimData.value),
+                    )
+                },
+                onDismiss = {
+                    // Accepted keys stay; the heir can add the account later or another key.
+                    activityViewModel.onAddAccountPromptHandled()
+                    navController.navigateToNextInheritanceKey(activityViewModel.claimData.value)
+                },
+            )
+        }
         NavHost(
             navController = navController,
             startDestination = startScreen
@@ -284,13 +359,28 @@ private fun ClaimInheritanceGraph(
                     navController.navigateToPrepareInheritanceKey()
                 },
             )
+            claimKeyCount(
+                snackState = snackbarHostState,
+                onBackPressed = {
+                    navController.popBackStack()
+                },
+                onContinue = { count ->
+                    activityViewModel.selectRequiredKeyCount(count)
+                    navController.navigateToFirstInheritanceKey(count)
+                },
+            )
             prepareInheritanceKey(
                 snackState = snackbarHostState,
                 onBackPressed = {
                     navController.popBackStack()
                 },
                 onContinue = { option ->
-                    activityViewModel.generateClaimSigningChallengeIfNeeded(option)
+                    // On-chain claims show the safety notice for the chosen recovery method first.
+                    if (claimData.isOnChainClaim && option == InheritanceOption.HARDWARE_DEVICE) {
+                        navController.navigateToClaimSafetyNotice(ClaimSafetyNotice.EXISTING_DEVICE)
+                    } else {
+                        activityViewModel.generateClaimSigningChallengeIfNeeded(option)
+                    }
                 },
             )
             recoverInheritanceKey(
@@ -299,10 +389,24 @@ private fun ClaimInheritanceGraph(
                     navController.popBackStack()
                 },
                 onContinue = { isUseHardwareDevice ->
-                    if (isUseHardwareDevice) {
-                        navController.navigateToRestoreSeedPhraseHardware()
-                    } else {
-                        navigator.openRecoverSeedScreen(
+                    navController.navigateToClaimSafetyNotice(
+                        if (isUseHardwareDevice) ClaimSafetyNotice.RESTORE_ON_DEVICE else ClaimSafetyNotice.SOFTWARE_SEED
+                    )
+                },
+            )
+            claimSafetyNotice(
+                snackState = snackbarHostState,
+                onBackPressed = {
+                    navController.popBackStack()
+                },
+                onContinue = { notice ->
+                    when (notice) {
+                        ClaimSafetyNotice.EXISTING_DEVICE ->
+                            activityViewModel.generateClaimSigningChallengeIfNeeded(InheritanceOption.HARDWARE_DEVICE)
+
+                        ClaimSafetyNotice.RESTORE_ON_DEVICE -> navController.navigateToRestoreSeedPhraseHardware()
+
+                        ClaimSafetyNotice.SOFTWARE_SEED -> navigator.openRecoverSeedScreen(
                             launcher = importSeedLauncher,
                             activityContext = activity,
                             keyFlow = KeyFlow.ADD_AND_RETURN_PASSPHRASE
@@ -322,7 +426,8 @@ private fun ClaimInheritanceGraph(
                         request = SignerIntroRequest(
                             flow = SignerIntroFlow.ClaimInheritance(
                                 isOnChain = true,
-                                magic = claimData.magic
+                                magic = claimData.magic,
+                                keyIndex = claimData.nextKeyAccountIndex,
                             ),
                             walletType = claimData.walletType,
                         ),
@@ -336,13 +441,11 @@ private fun ClaimInheritanceGraph(
                 },
                 onContinue = { magicPhrase, initResult ->
                     activityViewModel.updateClaimInit(magicPhrase, initResult)
-                    if (initResult.inheritanceKeyCount > 1) {
-                        navController.navigateToAddInheritanceKey(
-                            index = 1,
-                            totalKeys = initResult.inheritanceKeyCount
-                        )
+                    val claimInit = activityViewModel.claimData.value
+                    if (claimInit.needsKeyCountChoice) {
+                        navController.navigateToClaimKeyCount()
                     } else {
-                        navController.navigateToPrepareInheritanceKey()
+                        navController.navigateToFirstInheritanceKey(claimInit.requiredKeyCount)
                     }
                 },
             )
@@ -446,10 +549,7 @@ private fun ClaimInheritanceGraph(
                     navController.popBackStack()
                 },
                 addMoreSigner = {
-                    navController.navigateToAddInheritanceKey(
-                        index = claimData.signers.size.inc(),
-                        totalKeys = claimData.requiredKeyCount
-                    )
+                    navController.navigateToNextInheritanceKey(claimData)
                 },
                 onNavigateToExportComplete = {
                     navController.navigateToExportComplete(
@@ -567,3 +667,15 @@ private fun ClaimInheritanceGraph(
         }
     }
 }
+
+/** Device name for CLM-16 ("Add Account 2 from this Jade"). */
+private fun SignerModel.claimDeviceName(context: Context): String = when (type) {
+    SignerType.NFC -> TAPSIGNER_NAME
+    SignerType.COLDCARD_NFC -> SignerTag.COLDCARD.formattedName
+    SignerType.PORTAL_NFC -> PORTAL_NAME
+    else -> tags.firstOrNull { it != SignerTag.INHERITANCE }?.formattedName
+        ?: context.getString(R.string.nc_claim_this_device)
+}
+
+private const val TAPSIGNER_NAME = "TAPSIGNER"
+private const val PORTAL_NAME = "Portal"

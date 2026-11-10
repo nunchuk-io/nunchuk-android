@@ -48,6 +48,12 @@ sealed class SignerIntroFlow : Parcelable {
         val existingSigners: List<SignerModel> = emptyList(),
     ) : SignerIntroFlow()
 
+    /**
+     * @property inheritanceGuide which "Your … inheritance key" copy the guide shows.
+     * @property fallbackNumber the 1-based fallback the key is for, with [OnChainInheritanceGuide.FALLBACK].
+     * @property showInheritanceGuide false once the guide ran in this wallet setup (configurable draft).
+     * @property showDeviceSafety show "Before you use this device" before a new device is used.
+     */
     @Parcelize
     data class OnChainTimelockKey(
         val isInheritanceKey: Boolean = false,
@@ -55,6 +61,12 @@ sealed class SignerIntroFlow : Parcelable {
         val currentSigner: SignerModel? = null,
         val existingSigners: List<SignerModel> = emptyList(),
         val replaceInfo: OnChainAddSignerParam.ReplaceInfo? = null,
+        val inheritanceGuide: OnChainInheritanceGuide = OnChainInheritanceGuide.LEGACY,
+        val fallbackNumber: Int = 0,
+        val showInheritanceGuide: Boolean = true,
+        val showDeviceSafety: Boolean = false,
+        /** Set for a configurable draft's primary-inheritance or fallback key; see [OnChainAddSignerParam.inheritanceRoute]. */
+        val inheritanceRoute: OnChainInheritanceRoute? = null,
     ) : SignerIntroFlow()
 
     /** Owner setting up (or replacing) an off-chain inheritance key. */
@@ -64,11 +76,16 @@ sealed class SignerIntroFlow : Parcelable {
         val replaceInfo: OnChainAddSignerParam.ReplaceInfo? = null,
     ) : SignerIntroFlow()
 
+    /**
+     * @property accountDevice set when the plan needs another account ([keyIndex]) of a device the heir
+     *   already added (CLM-16): that device's own flow opens directly, without the picker.
+     */
     @Parcelize
     data class ClaimInheritance(
         val magic: String,
         val isOnChain: Boolean,
         val keyIndex: Int = -1,
+        val accountDevice: SignerModel? = null,
     ) : SignerIntroFlow()
 
     @Parcelize
@@ -92,6 +109,7 @@ private val SignerIntroFlow.deviceParams: OnChainAddSignerParam?
             currentSigner = currentSigner,
             existingSigners = existingSigners,
             replaceInfo = replaceInfo,
+            inheritanceRoute = inheritanceRoute,
         )
         is SignerIntroFlow.OffChainInheritanceKey -> OnChainAddSignerParam(
             flags = OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER or
@@ -112,3 +130,18 @@ private val SignerIntroFlow.deviceParams: OnChainAddSignerParam?
             claimOption = claimOption,
         )
     }
+
+/** Copy of the inheritance-key guide shown before an on-chain inheritance key is added. */
+enum class OnChainInheritanceGuide {
+    /** The 1-of-3 HB plan. */
+    LEGACY,
+
+    /** Configurable draft, guided default: the separate key + one owner key (2 of 4). */
+    DEFAULT_PRIMARY,
+
+    /** Configurable draft, customized primary (KEY-03). */
+    PRIMARY,
+
+    /** Configurable draft, a fallback key (KEY-05 / KEY-06); the flow carries the fallback number. */
+    FALLBACK,
+}

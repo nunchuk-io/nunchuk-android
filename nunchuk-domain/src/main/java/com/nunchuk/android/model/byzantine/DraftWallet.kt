@@ -2,6 +2,9 @@ package com.nunchuk.android.model.byzantine
 
 import com.nunchuk.android.model.TimelockBased
 import com.nunchuk.android.model.WalletConfig
+import com.nunchuk.android.model.inheritance.DraftInheritanceCard
+import com.nunchuk.android.model.inheritance.InheritanceValidationError
+import com.nunchuk.android.model.inheritance.OnChainInheritancePolicy
 import com.nunchuk.android.model.signer.SignerServer
 import com.nunchuk.android.type.WalletType
 
@@ -18,6 +21,13 @@ data class DraftWallet(
     val addressType: String? = null,
     val walletTemplate: String? = null,
     val isCustomized: Boolean = false,
+    /** On-chain only; null when the server sends none. */
+    val onChainInheritancePolicy: OnChainInheritancePolicy? = null,
+    val inheritanceCards: List<DraftInheritanceCard> = emptyList(),
+    /** Inline issues. Empty does not on its own mean setup is complete — see `finalized`. */
+    val validationErrors: List<InheritanceValidationError> = emptyList(),
+    /** Backend readiness to create the wallet (`finalized`); no validation errors alone is not enough. */
+    val finalized: Boolean = false,
 )
 
 data class DraftWalletTimelock(

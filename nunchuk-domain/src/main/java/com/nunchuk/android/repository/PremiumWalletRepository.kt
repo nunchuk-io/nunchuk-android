@@ -66,6 +66,7 @@ import com.nunchuk.android.model.signer.SignerServer
 import com.nunchuk.android.model.transaction.ExtendedTransaction
 import com.nunchuk.android.model.transaction.ServerTransaction
 import com.nunchuk.android.model.wallet.ReplaceWalletStatus
+import com.nunchuk.android.model.inheritance.OnChainInheritancePolicyType
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.WalletType
 import kotlinx.coroutines.flow.Flow
@@ -566,7 +567,32 @@ interface PremiumWalletRepository {
         miniscriptTemplate: String? = null,
         addressType: String? = null,
         walletTemplate: String? = null,
+        inheritancePolicyType: OnChainInheritancePolicyType? = null,
     )
+
+    /** Customizes the on-chain draft's primary inheritance to any [m] of [n] keys (PUT /draft-wallets/primary). */
+    suspend fun updateDraftPrimaryInheritance(groupId: String?, m: Int, n: Int): com.nunchuk.android.model.byzantine.DraftWallet
+
+    /** Restores the default primary inheritance, keeping fallbacks (DELETE /draft-wallets/primary). */
+    suspend fun resetDraftPrimaryInheritance(groupId: String?): com.nunchuk.android.model.byzantine.DraftWallet
+
+    /** Appends a fallback of any [m] of [n] keys, unlock time unset (POST /draft-wallets/fallbacks). */
+    suspend fun addDraftFallbackInheritance(groupId: String?, m: Int, n: Int): com.nunchuk.android.model.byzantine.DraftWallet
+
+    /**
+     * Edits the zero-based fallback [index]: its M of N and/or its unlock time; a null argument keeps
+     * that field (PUT /draft-wallets/fallbacks/{index}).
+     */
+    suspend fun updateDraftFallbackInheritance(
+        groupId: String?,
+        index: Int,
+        m: Int? = null,
+        n: Int? = null,
+        timelock: com.nunchuk.android.model.WalletTimelock? = null,
+    ): com.nunchuk.android.model.byzantine.DraftWallet
+
+    /** Removes fallback [index]; later fallbacks shift down (DELETE /draft-wallets/fallbacks/{index}). */
+    suspend fun removeDraftFallbackInheritance(groupId: String?, index: Int): com.nunchuk.android.model.byzantine.DraftWallet
 
     /**
      * Updates the current draft wallet (PUT /draft-wallets/current).
@@ -594,7 +620,8 @@ interface PremiumWalletRepository {
         timelockValue: Long,
         timezone: String,
         based: TimelockBased = TimelockBased.TIME_LOCK,
-        blockHeight: Long? = null
+        blockHeight: Long? = null,
+        fallbackIndex: Int? = null,
     )
 
     suspend fun convertTimelock(

@@ -76,6 +76,8 @@ class InheritanceDto(
     val inheritanceKeys: List<InheritanceKeyDto>? = null,
     @SerializedName("timezone")
     val timezone: String? = null,
+    @SerializedName("onchain_inheritance_policy")
+    val onChainInheritancePolicy: OnChainInheritancePolicyDto? = null,
 )
 
 class InheritancePendingRequestResponse(
@@ -103,11 +105,19 @@ class BeneficiaryNotificationDto(
     val notifyWalletChanges: Boolean? = null,
     @SerializedName("include_wallet_config")
     val includeWalletConfig: Boolean? = null,
+    @SerializedName("notify_fallbacks")
+    val notifyFallbacks: List<Int>? = null,
 )
 
 class InheritanceKeyDto(
     @SerializedName("xfp")
     val xfp: String? = null,
+    @SerializedName("section")
+    val section: String? = null,
+    @SerializedName("name")
+    val name: String? = null,
+    @SerializedName("fallback_index")
+    val fallbackIndex: Int? = null,
 )
 
 class InheritanceFallbackPolicyDto(

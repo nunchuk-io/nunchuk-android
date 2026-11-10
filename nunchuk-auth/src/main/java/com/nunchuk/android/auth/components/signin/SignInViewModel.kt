@@ -57,6 +57,7 @@ import com.nunchuk.android.usecase.SetFirstCreatedChatIdUseCase
 import com.nunchuk.android.utils.EmailValidator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -94,6 +95,10 @@ internal class SignInViewModel @Inject constructor(
 
     private var staySignedIn = false
     private var pin = ""
+
+    // Clearing the previous session signs out after a network call, so anything that stores a
+    // new account must wait for it; otherwise the sign-out wipes the fresh token.
+    private var clearSessionJob: Job? = null
     val type = savedStateHandle.get<SignInType>(EXTRA_TYPE) ?: SignInType.EMAIL
     private val _state =
         MutableStateFlow(SignInUiState(type = type))
@@ -107,7 +112,7 @@ internal class SignInViewModel @Inject constructor(
         if (type != SignInType.EMAIL) {
             _state.update { state -> state.copy(email = accountManager.getAccount().email) }
         }
-        viewModelScope.launch {
+        clearSessionJob = viewModelScope.launch {
             val isSignOut = savedStateHandle.get<Boolean>(EXTRA_SIGN_OUT) ?: true
             if (isSignOut) {
                 clearInfoSessionUseCase(Unit)
@@ -206,6 +211,7 @@ internal class SignInViewModel @Inject constructor(
     }
 
     private suspend fun register(email: String) {
+        awaitSessionCleared()
         registerUseCase(RegisterUseCase.Param(name = email, email = email))
             .onSuccess {
                 _event.emit(SignInEvent.RequireChangePassword(isNew = true))
@@ -219,6 +225,7 @@ internal class SignInViewModel @Inject constructor(
         viewModelScope.launch {
             if (validatePassword(password)) {
                 _event.emit(ProcessingEvent())
+                awaitSessionCleared()
                 signInUseCase(
                     SignInUseCase.Param(
                         email = email,
@@ -261,6 +268,7 @@ internal class SignInViewModel @Inject constructor(
 
     fun initGuestModeNunchuk() {
         viewModelScope.launch {
+            awaitSessionCleared()
             autoSelectElectrumSeverUseCase(Unit)
             initNunchukUseCase(InitNunchukUseCase.Param(accountId = ""))
                 .onSuccess {
@@ -279,6 +287,10 @@ internal class SignInViewModel @Inject constructor(
                 accountId = account.email,
             )
         )
+    }
+
+    private suspend fun awaitSessionCleared() {
+        clearSessionJob?.join()
     }
 
     private suspend fun doAfterValidate(
@@ -301,6 +313,7 @@ internal class SignInViewModel @Inject constructor(
     fun onBiometricSignIn() {
         viewModelScope.launch {
             _event.emit(ProcessingEvent())
+            awaitSessionCleared()
             biometricLoginUseCase(Unit)
                 .onSuccess {
                     if (it == null) {
@@ -322,6 +335,7 @@ internal class SignInViewModel @Inject constructor(
     fun googleSignIn(token: String) {
         viewModelScope.launch {
             _event.emit(ProcessingEvent(true))
+            awaitSessionCleared()
             googleSignInUseCase(token)
                 .handleSocialLoginResult()
             _event.emit(ProcessingEvent(false))
@@ -331,6 +345,7 @@ internal class SignInViewModel @Inject constructor(
     fun appleSignIn(json: String) {
         viewModelScope.launch {
             _event.emit(ProcessingEvent(true))
+            awaitSessionCleared()
             appleSignInUseCase(json)
                 .handleSocialLoginResult()
             _event.emit(ProcessingEvent(false))

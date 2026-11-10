@@ -21,7 +21,7 @@ package com.nunchuk.android.core.domain.membership
 
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.SingleSigner
-import com.nunchuk.android.model.WalletServer
+import com.nunchuk.android.model.inheritance.ClaimDownloadWalletResult
 import com.nunchuk.android.repository.InheritanceRepository
 import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
@@ -30,9 +30,9 @@ import javax.inject.Inject
 class DownloadWalletForClaimUseCase @Inject constructor(
     @IoDispatcher dispatcher: CoroutineDispatcher,
     private val inheritanceRepository: InheritanceRepository,
-) : UseCase<DownloadWalletForClaimUseCase.Param, WalletServer>(dispatcher) {
+) : UseCase<DownloadWalletForClaimUseCase.Param, ClaimDownloadWalletResult>(dispatcher) {
 
-    override suspend fun execute(parameters: Param): WalletServer {
+    override suspend fun execute(parameters: Param): ClaimDownloadWalletResult {
         return inheritanceRepository.downloadWallet(
             magic = parameters.magic,
             keys = parameters.keys

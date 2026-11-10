@@ -154,7 +154,10 @@ class AddKeyStepViewModel @Inject constructor(
                 _event.emit(AddKeyStepEvent.UpdateReplaceWalletId(localId))
             }
             
-            val isConfigDone = if (draftWallet.walletType == WalletType.MINISCRIPT) {
+            val isConfigDone = if (draftWallet.onChainInheritancePolicy?.isConfigurable == true) {
+                // Slots, verification and route rules vary per policy; the backend owns readiness.
+                draftWallet.finalized && draftWallet.validationErrors.isEmpty()
+            } else if (draftWallet.walletType == WalletType.MINISCRIPT) {
                 val isSignerCountCorrect = draftWallet.signers.size == draftWallet.config.n * 2 - 1
                 val isTimelockSet = draftWallet.timelock.value > 0
                 val areInheritanceSignersVerified = draftWallet.signers.all { signer ->

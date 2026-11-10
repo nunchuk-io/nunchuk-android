@@ -17,6 +17,7 @@ import com.nunchuk.android.core.R
 import com.nunchuk.android.core.signer.SelectSignerArgs
 import com.nunchuk.android.core.signer.SelectSignerBottomSheet
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.signer.OnChainInheritanceGuide
 import com.nunchuk.android.core.signer.SignerIntroFlow
 import com.nunchuk.android.core.signer.SignerIntroRequest
 import com.nunchuk.android.signer.SignerIntroHostEvent
@@ -56,14 +57,18 @@ internal fun SignerIntroRoute(
                     is SignerIntroEvent.ShowInheritanceGuide -> navController.navigate(
                         InheritanceKeyIntroDestination(keyType = event.keyType.name)
                     ) { launchSingleTop = true }
+                    is SignerIntroEvent.ShowDeviceSafety -> navController.navigate(
+                        DeviceSafetyNoticeDestination(keyType = event.keyType.name)
+                    ) { launchSingleTop = true }
                     is SignerIntroHostEvent -> onEvent(event)
                 }
             }
         }
     }
 
+    val onChainKey = request.flow as? SignerIntroFlow.OnChainTimelockKey
     NunchukTheme {
-        if (viewModel.verifyingKeyType == null) {
+        if (viewModel.directKeyType == null) {
             NavHost(
                 navController = navController,
                 startDestination = SignerIntroDestination,
@@ -77,6 +82,8 @@ internal fun SignerIntroRoute(
                 )
                 inheritanceKeyIntroDestination(
                     remainTime = remainTime,
+                    guide = onChainKey?.inheritanceGuide ?: OnChainInheritanceGuide.LEGACY,
+                    fallbackNumber = onChainKey?.fallbackNumber ?: 0,
                     onMoreClicked = onMore,
                     onContinueClicked = { keyType ->
                         navController.navigate(InheritancePassphraseNoticeDestination(keyType = keyType.name)) {
@@ -86,11 +93,18 @@ internal fun SignerIntroRoute(
                 )
                 inheritancePassphraseNoticeDestination(
                     remainTime = remainTime,
+                    guide = onChainKey?.inheritanceGuide ?: OnChainInheritanceGuide.LEGACY,
                     onMoreClicked = onMore,
                     onContinueClicked = viewModel::onInheritanceGuideCompleted,
                 )
+                deviceSafetyNoticeDestination(
+                    remainTime = remainTime,
+                    onMoreClicked = onMore,
+                    onContinueClicked = viewModel::onDeviceSafetyCompleted,
+                )
                 checkFirmwareDestination(
                     onChainAddSignerParam = request.deviceParams,
+                    offersExistingKeys = onChainKey?.showDeviceSafety != true,
                     onMoreClicked = onMore,
                     onFilteredSignersReady = onSigner,
                     onOpenNextScreen = viewModel::onFirmwareChecked,

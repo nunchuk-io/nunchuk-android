@@ -39,7 +39,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -85,6 +88,7 @@ import com.nunchuk.android.core.util.getTextBtcUnit
 import com.nunchuk.android.core.util.toAmount
 import com.nunchuk.android.transaction.R
 import java.text.DecimalFormatSymbols
+import com.nunchuk.android.core.util.getCurrencyLocale
 import java.util.Locale
 
 private val SlimeDark = Color(0xFF1C652D)
@@ -94,35 +98,55 @@ private val SlimeDark = Color(0xFF1C652D)
 internal const val MAX_TOTAL_LENGTH = 20
 internal const val MAX_INTEGER_DIGITS = 16
 
-// NumberCommaTransformation reads from DecimalFormatSymbols.getInstance() — mirror that
-// so we never disagree with the visual transformation about which char is the decimal point.
-internal val decimalSeparator: Char get() = DecimalFormatSymbols.getInstance().decimalSeparator
-
 /**
- * Renders the raw numeric input as `"12,345 BTC"`, keeping the cursor between the number and
- * the suffix (matches the legacy XML where the EditText sat to the left of the BTC label).
- * When the input is empty the suffix is still shown, with the cursor positioned at offset 0 so
- * it doesn't land in the middle of the label.
+ * Renders the raw numeric input as `"12,345 BTC"` (matches the legacy XML where the EditText sat
+ * to the left of the BTC label). Offsets map through the grouping separators so selection works
+ * (select all → copy); anything in the suffix maps back to the end of the number, so the cursor
+ * never lands inside the label.
  */
-internal class AmountWithSuffixTransformation(private val suffix: String) : VisualTransformation {
+internal class AmountWithSuffixTransformation(
+    private val suffix: String,
+    private val locale: Locale = Locale.US,
+) : VisualTransformation {
     private val gap = if (suffix.isEmpty()) "" else " "
 
     override fun filter(text: AnnotatedString): TransformedText {
         val raw = text.text
-        val numberPart = if (raw.isEmpty()) "" else applyThousandsGrouping(raw)
+        val numberPart = if (raw.isEmpty()) "" else applyThousandsGrouping(raw, locale)
         // Always include the gap so the cursor doesn't sit flush against the suffix when empty.
         val display = numberPart + gap + suffix
-        // Cursor sits right after the number portion (or at 0 when there is none).
-        val cursorAt = numberPart.length
+        val originalToNumber = mapRawToGrouped(raw, numberPart)
 
         return TransformedText(
             text = AnnotatedString(display),
             offsetMapping = object : OffsetMapping {
-                override fun originalToTransformed(offset: Int): Int = cursorAt
-                override fun transformedToOriginal(offset: Int): Int = raw.length
+                override fun originalToTransformed(offset: Int): Int =
+                    originalToNumber[offset.coerceIn(0, raw.length)]
+
+                override fun transformedToOriginal(offset: Int): Int {
+                    val target = offset.coerceAtMost(numberPart.length)
+                    return originalToNumber.indexOfFirst { it >= target }.coerceAtLeast(0)
+                }
             }
         )
     }
+}
+
+/**
+ * For each offset in [raw] (0..raw.length), the matching offset in [grouped].
+ * [applyThousandsGrouping] inserts grouping separators and drops leading zeros (`00123` → `123`),
+ * so match from the right: separators are skipped, and the dropped zeros all map to offset 0.
+ */
+internal fun mapRawToGrouped(raw: String, grouped: String): IntArray {
+    val mapping = IntArray(raw.length + 1)
+    mapping[raw.length] = grouped.length
+    var t = grouped.lastIndex
+    for (o in raw.lastIndex downTo 0) {
+        while (t >= 0 && grouped[t] != raw[o]) t--
+        mapping[o] = t.coerceAtLeast(0)
+        if (t >= 0) t--
+    }
+    return mapping
 }
 
 @Composable
@@ -207,6 +231,7 @@ fun InputAmountScreen(
                     inputText = state.inputText,
                     unitLabel = unitLabel,
                     maxDecimalDigits = maxDecimalDigits,
+                    locale = if (state.useBtc) Locale.US else getCurrencyLocale(),
                     secondaryCurrency = secondaryCurrency,
                     onInputChanged = onInputChanged,
                 )
@@ -270,9 +295,18 @@ internal fun CurrencyInputBlock(
     maxDecimalDigits: Int,
     secondaryCurrency: String,
     onInputChanged: (String) -> Unit,
+    locale: Locale = Locale.US,
 ) {
+    val decimalSeparator = DecimalFormatSymbols(locale).decimalSeparator
     val focusRequester = remember { FocusRequester() }
-    val textFieldValue = remember(inputText) {
+    // Keep the user's selection (select all → copy, cursor moves) across recompositions; when the
+    // text is changed from outside (send all, currency switch), fall back to a cursor at the end.
+    var fieldValue by remember {
+        mutableStateOf(TextFieldValue(text = inputText, selection = TextRange(inputText.length)))
+    }
+    val textFieldValue = if (fieldValue.text == inputText) {
+        fieldValue
+    } else {
         TextFieldValue(text = inputText, selection = TextRange(inputText.length))
     }
     val textColor = MaterialTheme.colorScheme.textPrimary
@@ -304,6 +338,7 @@ internal fun CurrencyInputBlock(
                     rawInput = inputText,
                     unitLabel = unitLabel,
                     maxWidthPx = maxRowWidthPx,
+                    locale = locale,
                 ),
                 color = textColor,
             )
@@ -314,15 +349,25 @@ internal fun CurrencyInputBlock(
                     .focusRequester(focusRequester),
                 value = textFieldValue,
                 onValueChange = { newValue ->
+                    if (newValue.text == inputText) {
+                        fieldValue = newValue
+                        return@BasicTextField
+                    }
                     val filtered = filterCurrencyInput(
                         newValue.text,
                         allowDecimal = maxDecimalDigits > 0,
+                        locale = locale,
                     )
-                    val limited = CurrencyFormatter.format(filtered, maxDecimalDigits)
+                    val limited = CurrencyFormatter.format(filtered, maxDecimalDigits, locale)
                     val intDigits = limited.substringBefore(decimalSeparator).length
                     val withinLimits = intDigits <= MAX_INTEGER_DIGITS &&
                         limited.length <= MAX_TOTAL_LENGTH
                     if (withinLimits && limited != inputText) {
+                        fieldValue = if (limited == newValue.text) {
+                            newValue
+                        } else {
+                            TextFieldValue(text = limited, selection = TextRange(limited.length))
+                        }
                         onInputChanged(limited)
                     }
                 },
@@ -333,7 +378,7 @@ internal fun CurrencyInputBlock(
                     keyboardType = if (maxDecimalDigits > 0) KeyboardType.Decimal else KeyboardType.Number,
                     imeAction = ImeAction.Done,
                 ),
-                visualTransformation = AmountWithSuffixTransformation(unitLabel),
+                visualTransformation = AmountWithSuffixTransformation(unitLabel, locale),
             )
         }
         Spacer(modifier = Modifier.height(4.dp))
@@ -353,9 +398,10 @@ internal fun autoSizeFontSize(
     baseSp: Float = 44f,
     minSp: Float = 16f,
     stepSp: Float = 2f,
+    locale: Locale = Locale.US,
 ): TextUnit {
     if (maxWidthPx <= 0f) return baseSp.sp
-    val displayed = applyThousandsGrouping(rawInput)
+    val displayed = applyThousandsGrouping(rawInput, locale)
     // Reserve room for the 8.dp spacer between input and label, plus the label itself.
     val combined = if (displayed.isEmpty()) unitLabel else "$displayed  $unitLabel"
     val style = NunchukTheme.typography.heading
@@ -373,14 +419,14 @@ internal fun autoSizeFontSize(
     return size.sp
 }
 
-internal fun applyThousandsGrouping(raw: String): String {
+internal fun applyThousandsGrouping(raw: String, locale: Locale = Locale.US): String {
     if (raw.isEmpty()) return raw
-    val sep = decimalSeparator
+    val sep = DecimalFormatSymbols(locale).decimalSeparator
     val dot = raw.indexOf(sep)
     val intPart = if (dot >= 0) raw.substring(0, dot) else raw
     val fracPart = if (dot >= 0) raw.substring(dot) else ""
     val intLong = intPart.toLongOrNull() ?: return raw
-    val grouped = String.format(Locale.getDefault(), "%,d", intLong)
+    val grouped = String.format(locale, "%,d", intLong)
     return grouped + fracPart
 }
 
@@ -421,9 +467,10 @@ private fun BalanceBlock(
 internal fun filterCurrencyInput(
     input: String,
     allowDecimal: Boolean,
+    locale: Locale = Locale.US,
 ): String {
     if (input.isEmpty()) return input
-    val sep = decimalSeparator
+    val sep = DecimalFormatSymbols(locale).decimalSeparator
     val builder = StringBuilder()
     var hasDecimal = false
     for (ch in input) {

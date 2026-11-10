@@ -2,6 +2,7 @@ package com.nunchuk.android.signer.mk4.inheritance.backup.myself
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.signer.OnChainVerifyKeyResolver
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.model.inheritance.ClaimOption
@@ -21,6 +22,7 @@ import javax.inject.Inject
 class ColdCardVerifyRecoveredKeyViewModel @Inject constructor(
     private val setKeyVerifiedUseCase: SetKeyVerifiedUseCase,
     private val setReplaceKeyVerifiedUseCase: SetReplaceKeyVerifiedUseCase,
+    private val onChainVerifyKeyResolver: OnChainVerifyKeyResolver,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
@@ -33,15 +35,18 @@ class ColdCardVerifyRecoveredKeyViewModel @Inject constructor(
         verificationMethod: ClaimOption? = null,
     ) {
         viewModelScope.launch {
-            val result =
+            // A configurable on-chain draft is verified against the key's account.
+            val result = onChainVerifyKeyResolver.draftKey(groupId, masterSignerId).mapCatching { recoveredKey ->
                 setKeyVerifiedUseCase(
                     SetKeyVerifiedUseCase.Param(
                         groupId = groupId,
                         masterSignerId = masterSignerId,
                         verifyType = VerifyType.SELF_VERIFIED,
                         verificationMethod = verificationMethod,
+                        recoveredKey = recoveredKey,
                     )
-                )
+                ).getOrThrow()
+            }
             if (result.isSuccess) {
                 _event.emit(ColdCardVerifyRecoveredKeyEvent.OnExitSelfCheck)
             } else {
@@ -52,20 +57,24 @@ class ColdCardVerifyRecoveredKeyViewModel @Inject constructor(
 
     fun setReplaceKeyVerified(
         keyId: String, filePath: String,
+        xfp: String,
         groupId: String, walletId: String,
         verificationMethod: ClaimOption? = null,
     ) {
         viewModelScope.launch {
-            setReplaceKeyVerifiedUseCase(
-                SetReplaceKeyVerifiedUseCase.Param(
-                    keyId = keyId,
-                    checkSum = getChecksum(filePath),
-                    verifyType = VerifyType.SELF_VERIFIED,
-                    groupId = groupId,
-                    walletId = walletId,
-                    verificationMethod = verificationMethod,
-                )
-            ).onSuccess {
+            onChainVerifyKeyResolver.replacementKey(groupId, walletId, xfp).mapCatching { recoveredKey ->
+                setReplaceKeyVerifiedUseCase(
+                    SetReplaceKeyVerifiedUseCase.Param(
+                        keyId = keyId,
+                        checkSum = getChecksum(filePath),
+                        verifyType = VerifyType.SELF_VERIFIED,
+                        groupId = groupId,
+                        walletId = walletId,
+                        verificationMethod = verificationMethod,
+                        recoveredKey = recoveredKey,
+                    )
+                ).getOrThrow()
+            }.onSuccess {
                 _event.emit(ColdCardVerifyRecoveredKeyEvent.OnExitSelfCheck)
             }.onFailure {
                 _event.emit(ColdCardVerifyRecoveredKeyEvent.ShowError(it))

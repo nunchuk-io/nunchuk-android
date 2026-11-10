@@ -30,6 +30,8 @@ fun NavGraphBuilder.inheritanceKeyTip(
             numberOfKey = sharedState.inheritanceKeyCount,
             isMiniscriptWallet = sharedState.isMiniscriptWallet,
             seedPhraseKeyIndexes = sharedState.seedPhraseKeyIndexes,
+            primaryInheritance = sharedState.primaryInheritancePolicy,
+            fallbacks = sharedState.fallbackInheritances,
             onContinueClicked = onContinueClicked,
         )
     }

@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -40,26 +41,47 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcSpannedClickableText
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.SpanIndicator
+import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.util.openExternalLink
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.PrimaryInheritanceInfo
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.primaryKeysPhrase
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.sharesecret.InheritanceShareSecretType
+import com.nunchuk.android.model.InheritanceKey
+import com.nunchuk.android.model.inheritance.InheritanceSection
 
 @Composable
 internal fun InheritanceHowItWorksScreen(
     type: InheritanceShareSecretType,
+    primaryInheritance: PrimaryInheritanceInfo? = null,
+    hasFallbacks: Boolean = false,
     onDoneClick: () -> Unit = {}
 ) {
     InheritanceHowItWorksContent(
         type = type,
+        primaryInheritance = primaryInheritance,
+        hasFallbacks = hasFallbacks,
         onDoneClick = onDoneClick
     )
 }
 
+/**
+ * [primaryInheritance] is null for a legacy plan, which keeps the single-inheritance-key copy;
+ * otherwise both methods name the keys the plan's primary route actually needs.
+ * With [hasFallbacks] the guided claim adds "or the keys of a fallback whose timelock has expired" and
+ * the self-serve claim reads "the same keys" (SHARE-04 / SHARE-12 / SHARE-15).
+ */
 @Composable
 private fun InheritanceHowItWorksContent(
     type: InheritanceShareSecretType = InheritanceShareSecretType.DIRECT,
+    primaryInheritance: PrimaryInheritanceInfo? = null,
+    hasFallbacks: Boolean = false,
     onDoneClick: () -> Unit = {}
 ) {
+    // Only a customized route has Trustee-specific wording (SHARE-31); the guided default reads the
+    // same for every sharing method (SHARE-21 / 23 / 25).
+    val isCustomizedJointControl = type == InheritanceShareSecretType.JOINT_CONTROL &&
+        primaryInheritance?.isCustomized == true
     val context = LocalContext.current
     NunchukTheme {
         Scaffold(
@@ -123,9 +145,32 @@ private fun InheritanceHowItWorksContent(
                         style = NunchukTheme.typography.title
                     )
 
+                    val guidedClaimDesc = when {
+                        primaryInheritance == null -> stringResource(R.string.nc_guided_claim_desc)
+                        hasFallbacks -> stringResource(
+                            if (isCustomizedJointControl) R.string.nc_guided_claim_desc_primary_or_fallback_joint
+                            else R.string.nc_guided_claim_desc_primary_or_fallback,
+                            primaryKeysPhrase(primaryInheritance)
+                        )
+
+                        isCustomizedJointControl -> stringResource(
+                            R.string.nc_guided_claim_desc_primary_joint,
+                            primaryKeysPhrase(primaryInheritance)
+                        )
+
+                        !primaryInheritance.isCustomized -> stringResource(
+                            R.string.nc_guided_claim_desc_default_primary,
+                            primaryInheritance.ownerKeyCount
+                        )
+
+                        else -> stringResource(
+                            R.string.nc_guided_claim_desc_primary,
+                            primaryKeysPhrase(primaryInheritance)
+                        )
+                    }
                     Text(
                         modifier = Modifier.padding(start = 50.dp, end = 16.dp, top = 4.dp),
-                        text = stringResource(R.string.nc_guided_claim_desc),
+                        text = guidedClaimDesc,
                         style = NunchukTheme.typography.body
                     )
 
@@ -143,9 +188,31 @@ private fun InheritanceHowItWorksContent(
                         InheritanceShareSecretType.JOINT_CONTROL -> R.string.nc_self_serve_recovery_desc_joint
                     }
 
+                    val selfServeDesc = when {
+                        primaryInheritance == null -> stringResource(selfServeDescRes)
+                        hasFallbacks -> stringResource(
+                            if (isCustomizedJointControl) R.string.nc_self_serve_claim_desc_same_keys_joint
+                            else R.string.nc_self_serve_claim_desc_same_keys
+                        )
+
+                        isCustomizedJointControl -> stringResource(
+                            R.string.nc_self_serve_claim_desc_primary_joint,
+                            primaryKeysPhrase(primaryInheritance)
+                        )
+
+                        !primaryInheritance.isCustomized -> stringResource(
+                            R.string.nc_self_serve_claim_desc_default_primary,
+                            primaryInheritance.ownerKeyCount
+                        )
+
+                        else -> stringResource(
+                            R.string.nc_self_serve_claim_desc_primary,
+                            primaryKeysPhrase(primaryInheritance)
+                        )
+                    }
                     Text(
                         modifier = Modifier.padding(start = 50.dp, end = 16.dp, top = 4.dp),
-                        text = stringResource(selfServeDescRes),
+                        text = selfServeDesc,
                         style = NunchukTheme.typography.body
                     )
 
@@ -160,6 +227,15 @@ private fun InheritanceHowItWorksContent(
                         text = stringResource(bsmsDescRes),
                         style = NunchukTheme.typography.body
                     )
+
+                    if (isCustomizedJointControl) {
+                        Text(
+                            modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 24.dp),
+                            text = stringResource(R.string.nc_neither_trustee_nor_beneficiary_can_claim_alone),
+                            style = NunchukTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.textSecondary
+                        )
+                    }
                 }
             }
         }
@@ -182,4 +258,74 @@ private fun InheritanceHowItWorksScreenIndirectPreview() {
 @Composable
 private fun InheritanceHowItWorksScreenJointPreview() {
     InheritanceHowItWorksContent(type = InheritanceShareSecretType.JOINT_CONTROL)
+}
+
+@PreviewLightDark
+@Composable
+private fun InheritanceHowItWorksDefaultPrimaryPreview() {
+    InheritanceHowItWorksContent(
+        type = InheritanceShareSecretType.DIRECT,
+        primaryInheritance = PrimaryInheritanceInfo(
+            isCustomized = false,
+            requiredSignatures = 2,
+            totalKeys = 4,
+            inheritanceKeys = listOf(
+                InheritanceKey(xfp = "6b35f210", section = InheritanceSection.PRIMARY, name = "Inheritance key 1"),
+            ),
+        ),
+    )
+}
+
+@PreviewLightDark
+@Composable
+private fun InheritanceHowItWorksCustomizedJointPreview() {
+    InheritanceHowItWorksContent(
+        type = InheritanceShareSecretType.JOINT_CONTROL,
+        primaryInheritance = PrimaryInheritanceInfo(
+            isCustomized = true,
+            requiredSignatures = 2,
+            totalKeys = 3,
+            inheritanceKeys = listOf(
+                InheritanceKey(xfp = "79eb35f4", section = InheritanceSection.PRIMARY, name = "Inheritance key 1"),
+                InheritanceKey(xfp = "f91b570c", section = InheritanceSection.PRIMARY, name = "Inheritance key 2"),
+                InheritanceKey(xfp = "8e41b2c7", section = InheritanceSection.PRIMARY, name = "Inheritance key 3"),
+            ),
+        ),
+    )
+}
+
+@PreviewLightDark
+@Composable
+private fun InheritanceHowItWorksDefaultPrimaryWithFallbacksPreview() {
+    InheritanceHowItWorksContent(
+        type = InheritanceShareSecretType.DIRECT,
+        primaryInheritance = PrimaryInheritanceInfo(
+            isCustomized = false,
+            requiredSignatures = 2,
+            totalKeys = 4,
+            inheritanceKeys = listOf(
+                InheritanceKey(xfp = "6b35f210", section = InheritanceSection.PRIMARY, name = "Inheritance key 1"),
+            ),
+        ),
+        hasFallbacks = true,
+    )
+}
+
+@PreviewLightDark
+@Composable
+private fun InheritanceHowItWorksCustomizedJointWithFallbacksPreview() {
+    InheritanceHowItWorksContent(
+        type = InheritanceShareSecretType.JOINT_CONTROL,
+        primaryInheritance = PrimaryInheritanceInfo(
+            isCustomized = true,
+            requiredSignatures = 2,
+            totalKeys = 3,
+            inheritanceKeys = listOf(
+                InheritanceKey(xfp = "79eb35f4", section = InheritanceSection.PRIMARY, name = "Inheritance key 1"),
+                InheritanceKey(xfp = "f91b570c", section = InheritanceSection.PRIMARY, name = "Inheritance key 2"),
+                InheritanceKey(xfp = "8e41b2c7", section = InheritanceSection.PRIMARY, name = "Inheritance key 3"),
+            ),
+        ),
+        hasFallbacks = true,
+    )
 }

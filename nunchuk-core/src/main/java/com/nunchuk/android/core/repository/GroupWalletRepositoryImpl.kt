@@ -3,6 +3,7 @@ package com.nunchuk.android.core.repository
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.data.model.byzantine.DraftWalletDto
 import com.nunchuk.android.core.data.model.byzantine.HealthCheckRequest
+import com.nunchuk.android.core.data.model.byzantine.isConfigurable
 import com.nunchuk.android.core.data.model.byzantine.toDomainModel
 import com.nunchuk.android.core.data.model.byzantine.toDraftWalletModel
 import com.nunchuk.android.core.data.model.byzantine.toWalletType
@@ -126,7 +127,7 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
                 )
             } else {
                 val allowInheritance = draftWallet.walletConfig?.allowInheritance == true
-                val step = if (walletType == WalletType.MINISCRIPT) {
+                val legacyStep = if (walletType == WalletType.MINISCRIPT) {
                     when (key.index) {
                         0 -> MembershipStep.HONEY_ADD_INHERITANCE_KEY_TIMELOCK
                         1 -> MembershipStep.HONEY_ADD_INHERITANCE_KEY
@@ -134,7 +135,8 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
                         3 -> MembershipStep.HONEY_ADD_HARDWARE_KEY_1
                         4 -> MembershipStep.HONEY_ADD_HARDWARE_KEY_2_TIMELOCK
                         5 -> MembershipStep.HONEY_ADD_HARDWARE_KEY_2
-                        else -> throw IllegalArgumentException("Unexpected index ${key.index} for MINISCRIPT")
+                        // A configurable draft (NUN-10320) has slots past the legacy steps; they have no step.
+                        else -> if (draftWallet.isConfigurable) null else throw IllegalArgumentException("Unexpected index ${key.index} for MINISCRIPT")
                     }
                 } else {
                     when (key.index) {
@@ -144,6 +146,7 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
                         else -> throw IllegalArgumentException("Unexpected index ${key.index} for MULTI_SIG")
                     }
                 }
+                val step = legacyStep ?: return@forEach
                 val verifyType = if (walletType == WalletType.MINISCRIPT) {
                     key.verificationType.toVerifyType()
                 } else {
@@ -229,7 +232,7 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
                 }
             } else {
                 val allowInheritance = draftWallet.walletConfig?.allowInheritance == true
-                val step = if (walletType == WalletType.MINISCRIPT) {
+                val legacyStep = if (walletType == WalletType.MINISCRIPT) {
                     if (allowInheritance) {
                         when (key.index) {
                             0 -> MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_TIMELOCK
@@ -240,7 +243,7 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
                             5 -> MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0
                             6 -> MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1_TIMELOCK
                             7 -> MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1
-                            else -> throw IllegalArgumentException("Unexpected index ${key.index} for MINISCRIPT")
+                            else -> if (draftWallet.isConfigurable) null else throw IllegalArgumentException("Unexpected index ${key.index} for MINISCRIPT")
                         }
                     } else {
                         when (key.index) {
@@ -252,7 +255,7 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
                             5 -> MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2
                             6 -> MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_3_TIMELOCK
                             7 -> MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_3
-                            else -> throw IllegalArgumentException("Unexpected index ${key.index} for MINISCRIPT")
+                            else -> if (draftWallet.isConfigurable) null else throw IllegalArgumentException("Unexpected index ${key.index} for MINISCRIPT")
                         }
                     }
                 } else {
@@ -265,6 +268,7 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
                         else -> throw IllegalArgumentException("Unexpected index ${key.index} for MULTI_SIG")
                     }
                 }
+                val step = legacyStep ?: return@forEach
                 val info = membershipStepDao.getStep(chatId, chain.value, step, groupId)
                 val verifyType = if (walletType == WalletType.MINISCRIPT) {
                     key.verificationType.toVerifyType()

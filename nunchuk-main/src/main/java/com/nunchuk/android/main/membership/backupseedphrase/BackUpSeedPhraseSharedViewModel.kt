@@ -2,10 +2,11 @@ package com.nunchuk.android.main.membership.backupseedphrase
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.signer.OnChainVerifyKeyResolver
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.signer.skipVerifyType
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.MembershipPlan
-import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.model.inheritance.ClaimOption
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.usecase.membership.RestartWizardUseCase
@@ -25,7 +26,8 @@ class BackUpSeedPhraseSharedViewModel @Inject constructor(
     private val membershipStepManager: MembershipStepManager,
     private val setKeyVerifiedUseCase: SetKeyVerifiedUseCase,
     private val setReplaceKeyVerifiedUseCase: SetReplaceKeyVerifiedUseCase,
-    private val restartWizardUseCase: RestartWizardUseCase
+    private val restartWizardUseCase: RestartWizardUseCase,
+    private val onChainVerifyKeyResolver: OnChainVerifyKeyResolver,
 ) : ViewModel() {
 
     val remainTime = membershipStepManager.remainingTime
@@ -69,14 +71,18 @@ class BackUpSeedPhraseSharedViewModel @Inject constructor(
 
         if (replacedXfp.isEmpty()) {
             viewModelScope.launch {
-                val result = setKeyVerifiedUseCase(
-                    SetKeyVerifiedUseCase.Param(
-                        groupId = groupId,
-                        masterSignerId = masterSignerId,
-                        verifyType = VerifyType.SKIPPED_VERIFICATION,
-                        verificationMethod = verificationMethod,
-                    )
-                )
+                // A configurable on-chain draft cannot skip: the key is marked verified instead.
+                val result = onChainVerifyKeyResolver.draftKey(groupId, masterSignerId).mapCatching { recoveredKey ->
+                    setKeyVerifiedUseCase(
+                        SetKeyVerifiedUseCase.Param(
+                            groupId = groupId,
+                            masterSignerId = masterSignerId,
+                            verifyType = recoveredKey.skipVerifyType(),
+                            verificationMethod = verificationMethod,
+                            recoveredKey = recoveredKey,
+                        )
+                    ).getOrThrow()
+                }
                 if (result.isSuccess) {
                     _event.emit(BackUpSeedPhraseEvent.SkipVerificationSuccess)
                 } else {
@@ -100,16 +106,20 @@ class BackUpSeedPhraseSharedViewModel @Inject constructor(
         verificationMethod: ClaimOption? = null,
     ) {
         viewModelScope.launch {
-            setReplaceKeyVerifiedUseCase(
-                SetReplaceKeyVerifiedUseCase.Param(
-                    keyId = keyId,
-                    checkSum = "",
-                    verifyType = VerifyType.SKIPPED_VERIFICATION,
-                    groupId = groupId,
-                    walletId = walletId,
-                    verificationMethod = verificationMethod,
-                )
-            ).onSuccess {
+            // Same for a replacement on a configurable wallet.
+            onChainVerifyKeyResolver.replacementKey(groupId, walletId, keyId).mapCatching { recoveredKey ->
+                setReplaceKeyVerifiedUseCase(
+                    SetReplaceKeyVerifiedUseCase.Param(
+                        keyId = keyId,
+                        checkSum = "",
+                        verifyType = recoveredKey.skipVerifyType(),
+                        groupId = groupId,
+                        walletId = walletId,
+                        verificationMethod = verificationMethod,
+                        recoveredKey = recoveredKey,
+                    )
+                ).getOrThrow()
+            }.onSuccess {
                 _event.emit(BackUpSeedPhraseEvent.SkipVerificationSuccess)
             }.onFailure {
                 _event.emit(BackUpSeedPhraseEvent.SkipVerificationError(it))

@@ -349,7 +349,7 @@ private fun Inheritance.toSetupOrReviewParamForView(
         groupId = groupId,
         dummyTransactionId = dummyTransactionId,
         notificationSettings = notificationPreferences,
-        inheritanceKeys = inheritanceKeys.map { it.xfp },
+        inheritanceKeys = inheritanceKeys,
         selectedZoneId = timezone,
         setupFlowType = setupFlowType,
         releaseMethodType = releaseMethodType,

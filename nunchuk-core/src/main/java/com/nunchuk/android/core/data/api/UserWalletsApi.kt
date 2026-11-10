@@ -42,6 +42,8 @@ import com.nunchuk.android.core.data.model.InheritanceClaimDownloadBackupRequest
 import com.nunchuk.android.core.data.model.InheritanceClaimStatusRequest
 import com.nunchuk.android.core.data.model.InitWalletConfigRequest
 import com.nunchuk.android.core.data.model.UpdateDraftWalletPayload
+import com.nunchuk.android.core.data.model.FallbackInheritancePayload
+import com.nunchuk.android.core.data.model.UpdatePrimaryInheritancePayload
 import com.nunchuk.android.core.data.model.LiquidNetworkStatusResponse
 import com.nunchuk.android.core.data.model.LockdownUpdateRequest
 import com.nunchuk.android.core.data.model.MarkRecoverStatusRequest
@@ -462,6 +464,13 @@ internal interface UserWalletsApi {
         @Body payload: SignerServerDto,
     ): Data<SignerServerDto>
 
+    /** Imports one account into a configurable draft for the open `request-add-key` [requestId]. */
+    @POST("/v1.1/user-wallets/draft-wallets/add-key")
+    suspend fun addKeyForRequest(
+        @Query("request_id") requestId: String,
+        @Body payload: SignerServerDto,
+    ): Data<SignerServerDto>
+
     @POST("/v1.1/user-wallets/draft-wallets/set-server-key")
     suspend fun setServerKey(
         @Body payload: Map<String, String>,
@@ -486,6 +495,30 @@ internal interface UserWalletsApi {
     @PUT("/v1.1/user-wallets/draft-wallets/timelock")
     suspend fun createDraftWalletTimelock(
         @Body payload: CreateTimelockPayload
+    ): Data<DraftWalletResponse>
+
+    @PUT("/v1.1/user-wallets/draft-wallets/primary")
+    suspend fun updateDraftPrimaryInheritance(
+        @Body payload: UpdatePrimaryInheritancePayload
+    ): Data<DraftWalletResponse>
+
+    @DELETE("/v1.1/user-wallets/draft-wallets/primary")
+    suspend fun resetDraftPrimaryInheritance(): Data<DraftWalletResponse>
+
+    @POST("/v1.1/user-wallets/draft-wallets/fallbacks")
+    suspend fun addDraftFallbackInheritance(
+        @Body payload: FallbackInheritancePayload
+    ): Data<DraftWalletResponse>
+
+    @PUT("/v1.1/user-wallets/draft-wallets/fallbacks/{index}")
+    suspend fun updateDraftFallbackInheritance(
+        @Path("index") index: Int,
+        @Body payload: FallbackInheritancePayload
+    ): Data<DraftWalletResponse>
+
+    @DELETE("/v1.1/user-wallets/draft-wallets/fallbacks/{index}")
+    suspend fun removeDraftFallbackInheritance(
+        @Path("index") index: Int,
     ): Data<DraftWalletResponse>
 
     @GET("/v1.1/user-wallets/draft-wallets/request-add-key/{request_id}")

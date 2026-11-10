@@ -12,7 +12,7 @@ wallet IDs and a non-empty claim magic phrase are not operation selectors.
 | `OnChainTimelockKey` | Regular or inheritance slot of an assisted on-chain timelock wallet |
 | `OffChainAssistedKey` | Regular key of an assisted off-chain wallet; offers existing keys (not software) and returns the chosen key (`EXTRA_SIGNER`) or, for a new key, the picked `KeyType` (`EXTRA_KEY_TYPE`); the key list runs the membership setup |
 | `OffChainInheritanceKey` | Owner sets up or replaces an off-chain inheritance key |
-| `ClaimInheritance` | Beneficiary claim, explicitly on-chain or off-chain |
+| `ClaimInheritance` | Beneficiary claim, explicitly on-chain or off-chain. With `accountDevice` (another account of a device already added, CLM-16) the picker is skipped and that device opens at `keyIndex`, without the firmware gate or saved-key offer |
 | `VerifyBackup` | Re-read a restored device; never offer an existing key as verification |
 
 The four standard flows (`AddKey`, `AddWalletKey`, `AddAssistedWalletKey`, `ReplaceWalletKey`)
@@ -72,7 +72,7 @@ so it skips both. `KeyType.hasSeedPhrase` is an exhaustive `when`, so a new key 
 - Ledger/BitBox/Trezor claims return a `SingleSigner`, normalized to `SignerModel`; their desktop/USB
   fallback remains a device-specific result action.
 - Hardware backup verification returns the original verification result, not an added key.
-- When verification skips the picker, cancellation returns to the verification caller too.
+- When the picker is skipped (backup verification, a claim account of an added device), cancelling the device screen returns to the caller (`claimResultOutcome` for the claim hardware launchers); an empty intro screen is never left behind.
 - Air-gap replacement is completed by the device screen. Returning a signer again can replace twice.
 - Jade's firmware/claim guide completes its own hand-off. Ordinary Jade setup may return a signer.
 - Generic air-gap, Portal and hardware-tag selection keep their existing completion behavior.

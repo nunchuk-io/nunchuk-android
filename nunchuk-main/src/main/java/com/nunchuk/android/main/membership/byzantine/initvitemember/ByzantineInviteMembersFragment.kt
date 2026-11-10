@@ -82,6 +82,7 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.greyLight
 import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.core.domain.membership.TargetAction
+import com.nunchuk.android.core.util.asString
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.shorten
 import com.nunchuk.android.core.util.showError
@@ -409,7 +410,7 @@ private fun InviteMembersContent(
                             email = member.email,
                             name = member.name.orEmpty(),
                             role = member.role,
-                            error = member.err.orEmpty(),
+                            error = member.err?.asString().orEmpty(),
                             suggestionContacts = suggestionContacts,
                             isContact = member.isContact,
                             isNewAdded = member.isNewAdded,

@@ -7,11 +7,13 @@ import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.ui.TimeZoneDetail
 import com.nunchuk.android.model.TimelockBased
 import com.nunchuk.android.model.TimelockExtra
+import com.nunchuk.android.model.WalletTimelock
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.usecase.GetUserWalletConfigsSetupFromCacheUseCase
 import com.nunchuk.android.usecase.membership.ConvertTimelockUseCase
 import com.nunchuk.android.usecase.membership.CreateTimelockUseCase
 import com.nunchuk.android.usecase.replace.ReplaceTimelockUseCase
+import com.nunchuk.android.usecase.wallet.UpdateDraftFallbackInheritanceUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,6 +35,7 @@ class OnChainSetUpTimelockViewModel @Inject constructor(
     private val pushEventManager: PushEventManager,
     private val getUserWalletConfigsSetupFromCacheUseCase: GetUserWalletConfigsSetupFromCacheUseCase,
     private val convertTimelockUseCase: ConvertTimelockUseCase,
+    private val updateDraftFallbackInheritanceUseCase: UpdateDraftFallbackInheritanceUseCase,
 ) : ViewModel() {
 
     val remainTime = membershipStepManager.remainingTime
@@ -73,7 +76,9 @@ class OnChainSetUpTimelockViewModel @Inject constructor(
         selectedTimeZone: TimeZoneDetail,
         groupId: String? = null,
         isReplaceKeyFlow: Boolean = false,
-        walletId: String? = null
+        walletId: String? = null,
+        fallbackTarget: FallbackTimelockTarget? = null,
+        firstFallbackTimelock: TimelockExtra? = null,
     ) {
         viewModelScope.launch {
             val now = Calendar.getInstance()
@@ -81,6 +86,20 @@ class OnChainSetUpTimelockViewModel @Inject constructor(
             // Check if date is in the past
             if (selectedDate.before(now)) {
                 _state.update { it.copy(showInvalidDateDialog = true) }
+                return@launch
+            }
+
+            // A fallback stays between its neighbours (TIME-03 / TIME-04); the entered value is kept.
+            fallbackTarget?.boundViolation(selectedDate.timeInMillis / 1000)?.let { bound ->
+                _state.update { it.copy(fallbackBoundViolation = bound) }
+                return@launch
+            }
+
+            // The primary time stays before Fallback 1; the entered value is kept.
+            if (fallbackTarget == null &&
+                isPrimaryAtOrAfterFirstFallback(selectedDate.timeInMillis / 1000, firstFallbackTimelock)
+            ) {
+                _state.update { it.copy(showPrimaryTooLateDialog = true) }
                 return@launch
             }
 
@@ -110,7 +129,8 @@ class OnChainSetUpTimelockViewModel @Inject constructor(
                             selectedTimeZone = selectedTimeZone,
                             groupId = groupId,
                             isReplaceKeyFlow = isReplaceKeyFlow,
-                            walletId = walletId
+                            walletId = walletId,
+                            fallbackTarget = fallbackTarget,
                         ),
                         showConfirmTimelockDateDialog = true
                     )
@@ -119,8 +139,16 @@ class OnChainSetUpTimelockViewModel @Inject constructor(
             }
 
             // Date is valid, proceed with creating timelock
-            createTimelock(selectedDate, selectedTimeZone, groupId, isReplaceKeyFlow, walletId)
+            createTimelock(selectedDate, selectedTimeZone, groupId, isReplaceKeyFlow, walletId, fallbackTarget)
         }
+    }
+
+    fun onDismissFallbackBoundDialog() {
+        _state.update { it.copy(fallbackBoundViolation = null) }
+    }
+
+    fun onDismissPrimaryTooLateDialog() {
+        _state.update { it.copy(showPrimaryTooLateDialog = false) }
     }
 
     fun onConfirmBlockBasedTimelock() {
@@ -228,7 +256,8 @@ class OnChainSetUpTimelockViewModel @Inject constructor(
                 selectedTimeZone = data.selectedTimeZone,
                 groupId = data.groupId,
                 isReplaceKeyFlow = data.isReplaceKeyFlow,
-                walletId = data.walletId
+                walletId = data.walletId,
+                fallbackTarget = data.fallbackTarget,
             )
         }
     }
@@ -249,7 +278,8 @@ class OnChainSetUpTimelockViewModel @Inject constructor(
     private fun createTimelock(
         selectedDate: Calendar, selectedTimeZone: TimeZoneDetail, groupId: String?,
         isReplaceKeyFlow: Boolean = false,
-        walletId: String? = null
+        walletId: String? = null,
+        fallbackTarget: FallbackTimelockTarget? = null,
     ) {
         viewModelScope.launch {
             val timelockValue = selectedDate.timeInMillis / 1000
@@ -257,27 +287,41 @@ class OnChainSetUpTimelockViewModel @Inject constructor(
             val blockHeight = _state.value.blockHeight
 
             if (isReplaceKeyFlow && walletId != null) {
-                // Use ReplaceTimelockUseCase for replace key flow
-                val result = replaceTimelockUseCase(
+                // Replacement of an existing wallet: primary or, with fallback_index, a fallback (NUN-10320).
+                replaceTimelockUseCase(
                     ReplaceTimelockUseCase.Param(
                         groupId = groupId,
                         walletId = walletId,
                         timelockValue = timelockValue,
                         timezone = selectedTimeZone.id,
                         based = if (isBlockBased) TimelockBased.HEIGHT_LOCK else TimelockBased.TIME_LOCK,
-                        blockHeight = blockHeight
+                        blockHeight = blockHeight,
+                        fallbackIndex = fallbackTarget?.index,
                     )
-                )
-
-                if (result.isSuccess) {
+                ).onSuccess {
                     pushEventManager.push(PushEvent.ReplaceKeyChange(walletId))
                     _event.emit(OnChainSetUpTimelockEvent.Success)
-                } else {
-                    _event.emit(
-                        OnChainSetUpTimelockEvent.Error(
-                            result.exceptionOrNull()?.message ?: "Unknown error"
-                        )
+                }.onFailure {
+                    _event.emit(OnChainSetUpTimelockEvent.Error(it.message ?: "Unknown error"))
+                }
+            } else if (fallbackTarget != null) {
+                // A fallback's unlock time on a configurable draft (PUT draft-wallets/fallbacks/{index}).
+                updateDraftFallbackInheritanceUseCase(
+                    UpdateDraftFallbackInheritanceUseCase.Param(
+                        index = fallbackTarget.index,
+                        timelock = WalletTimelock(
+                            timelockValue = timelockValue,
+                            timezone = selectedTimeZone.id,
+                            based = if (isBlockBased) TimelockBased.HEIGHT_LOCK else TimelockBased.TIME_LOCK,
+                            blockHeight = blockHeight,
+                        ),
+                        groupId = groupId,
                     )
+                ).onSuccess {
+                    pushEventManager.push(PushEvent.DraftWalletUpdated(groupId.orEmpty()))
+                    _event.emit(OnChainSetUpTimelockEvent.Success)
+                }.onFailure {
+                    _event.emit(OnChainSetUpTimelockEvent.Error(it.message ?: "Unknown error"))
                 }
             } else {
                 // Use CreateTimelockUseCase for regular flow
@@ -312,7 +356,8 @@ data class PendingTimelockData(
     val selectedTimeZone: TimeZoneDetail,
     val groupId: String?,
     val isReplaceKeyFlow: Boolean = false,
-    val walletId: String? = null
+    val walletId: String? = null,
+    val fallbackTarget: FallbackTimelockTarget? = null,
 )
 
 data class OnChainSetUpTimelockState(
@@ -323,7 +368,11 @@ data class OnChainSetUpTimelockState(
     val pendingTimelockData: PendingTimelockData? = null,
     val isBlockBased: Boolean = false,
     val blockHeight: Long? = null,
-    val isLoading: Boolean = false
+    val isLoading: Boolean = false,
+    /** A fallback time outside its neighbours (TIME-03 / TIME-04); null when no dialog. */
+    val fallbackBoundViolation: FallbackTimelockBound? = null,
+    /** A primary time at or after Fallback 1's. */
+    val showPrimaryTooLateDialog: Boolean = false,
 )
 
 sealed class OnChainSetUpTimelockEvent {

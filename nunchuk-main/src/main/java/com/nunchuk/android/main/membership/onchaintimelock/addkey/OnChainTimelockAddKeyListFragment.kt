@@ -28,6 +28,11 @@ import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import com.nunchuk.android.model.inheritance.InheritanceSection
+import com.nunchuk.android.model.inheritance.RecoveredKey
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -83,12 +88,16 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTag
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.dialog.NcLoadingDialog
 import com.nunchuk.android.compose.provider.SignerModelProvider
 import com.nunchuk.android.compose.pullrefresh.PullRefreshIndicator
 import com.nunchuk.android.compose.pullrefresh.pullRefresh
 import com.nunchuk.android.compose.pullrefresh.rememberPullRefreshState
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
+import com.nunchuk.android.core.sheet.SheetOption
+import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.signer.OnChainAddSignerParam
+import com.nunchuk.android.core.signer.OnChainInheritanceRoute
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toSingleSigner
 import com.nunchuk.android.core.signer.SignerIntroFlow
@@ -102,6 +111,10 @@ import com.nunchuk.android.core.util.toReadableSignerType
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragment
+import com.nunchuk.android.main.membership.onchaintimelock.customize.CustomizeInheritanceIntroFragment
+import com.nunchuk.android.main.membership.onchaintimelock.customize.FallbackInheritanceIntroFragment
+import com.nunchuk.android.main.membership.onchaintimelock.setuptimelock.FallbackTimelockTarget
+import com.nunchuk.android.model.toTimelockExtra
 import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragmentArgs
 import com.nunchuk.android.main.membership.model.AddKeyOnChainData
 import com.nunchuk.android.main.membership.model.StepData
@@ -157,6 +170,7 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
             requireActivity().finish()
             return@registerForActivityResult
         }
+        if (result.resultCode == Activity.RESULT_OK) viewModel.onDraftSignerIntroCompleted()
         if (result.resultCode == Activity.RESULT_OK && result.data != null) {
             val data = result.data!!
             val signerModel = data.parcelable<SignerModel>(GlobalResultKey.EXTRA_SIGNER)
@@ -173,6 +187,23 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
         get() = args.role?.toRole?.isFacilitatorAdmin == true
 
     private var currentKeyData: AddKeyOnChainData? = null
+
+    /** Set while a configurable-draft slot is being filled: its account replaces "signers so far". */
+    private var currentDraftOptions: DraftAddOptions? = null
+
+    /** The account the device flow reads: the draft slot's, else one per signer already on the card. */
+    private fun targetAccountIndex(): Int =
+        currentDraftOptions?.accountIndex ?: currentKeyData?.signers?.size ?: 0
+
+    /** The device the account must come off, when it is another account of a known key. */
+    private fun targetSameDevice(): SignerModel? =
+        if (currentDraftOptions != null) currentDraftOptions?.sameDevice else currentKeyData?.signers?.firstOrNull()
+
+    private fun isTargetInheritanceKey(): Boolean =
+        currentDraftOptions?.isInheritance ?: (currentKeyData?.type?.isAddInheritanceKey == true)
+
+    /** A draft primary-inheritance or fallback slot is one account of the device (KEY-05b / KEY-05c). */
+    private fun targetInheritanceRoute(): OnChainInheritanceRoute? = currentDraftOptions?.inheritanceRoute()
 
     private val addTapSignerLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -201,7 +232,10 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
             }
             val verifiedXfp = result.data?.getStringExtra(GlobalResultKey.EXTRA_VERIFIED_XFP)
             if (result.resultCode == Activity.RESULT_OK && !verifiedXfp.isNullOrEmpty()) {
-                viewModel.setKeyVerified(verifiedXfp)
+                // The restored account, when the device handed it over (Ledger / BitBox).
+                val recoveredKey = result.data?.parcelable<RecoveredKey>(GlobalResultKey.EXTRA_RECOVERED_KEY)
+                    ?.takeIf { it.xfp.equals(verifiedXfp, ignoreCase = true) }
+                viewModel.setKeyVerified(verifiedXfp, recoveredKey)
             }
         }
 
@@ -247,6 +281,9 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                     groupId = args.groupId.orEmpty(),
                     isAddOnly = args.isAddOnly,
                     role = args.role,
+                    onCustomizePrimaryClicked = ::onCustomizePrimaryClicked,
+                    onAddFallbackClicked = ::onAddFallbackClicked,
+                    onFallbackTimelockClicked = ::onFallbackTimelockClicked,
                     onConfigTimelockClicked = { data ->
                         if (isKeyHolderLimited) {
                             showFacilitatorInfoDialog()
@@ -257,11 +294,94 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                         findNavController().navigate(
                             OnChainTimelockAddKeyListFragmentDirections.actionOnChainTimelockAddKeyListFragmentToOnChainSetUpTimelockFragment(
                                 groupId = args.groupId ?: (activity as MembershipActivity).groupId,
-                                timelockExtra = timelockExtra
+                                timelockExtra = timelockExtra,
+                                firstFallbackTimelock = viewModel.state.value.fallbacks
+                                    .firstOrNull { it.index == 0 }?.timelock?.toTimelockExtra(),
                             )
                         )
                     })
             }
+        }
+    }
+
+    /**
+     * SET-02a intro the first time (primary still the guided default), the PRI-02 policy sheet once
+     * the primary is customized.
+     */
+    private fun onCustomizePrimaryClicked() {
+        if (isKeyHolderLimited || isFacilitatorAdmin) {
+            showFacilitatorInfoDialog()
+            return
+        }
+        if (viewModel.state.value.isPrimaryCustomized) {
+            viewModel.showPrimaryPolicySheet()
+        } else {
+            findNavController().navigate(
+                OnChainTimelockAddKeyListFragmentDirections.actionOnChainTimelockAddKeyListFragmentToCustomizeInheritanceIntroFragment()
+            )
+        }
+    }
+
+    /** FBK-01 before the first fallback; the policy sheet (FBK-01a) straight away for the next ones. */
+    private fun onAddFallbackClicked() {
+        if (isKeyHolderLimited || isFacilitatorAdmin) {
+            showFacilitatorInfoDialog()
+            return
+        }
+        if (viewModel.state.value.fallbacks.isEmpty()) {
+            findNavController().navigate(
+                OnChainTimelockAddKeyListFragmentDirections.actionOnChainTimelockAddKeyListFragmentToFallbackInheritanceIntroFragment()
+            )
+        } else {
+            viewModel.showAddFallbackSheet()
+        }
+    }
+
+    /** Configure / Change on a fallback's timelock card (TIME-01 / TIME-02), bounded by its neighbours. */
+    private fun onFallbackTimelockClicked(index: Int) {
+        if (isKeyHolderLimited || isFacilitatorAdmin) {
+            showFacilitatorInfoDialog()
+            return
+        }
+        val state = viewModel.state.value
+        val fallbacks = state.fallbacks
+        val fallback = fallbacks.firstOrNull { it.index == index } ?: return
+        val previous = if (index == 0) {
+            state.inheritancePolicy?.primary?.timelock
+        } else {
+            fallbacks.firstOrNull { it.index == index - 1 }?.timelock
+        }
+        findNavController().navigate(
+            OnChainTimelockAddKeyListFragmentDirections.actionOnChainTimelockAddKeyListFragmentToOnChainSetUpTimelockFragment(
+                groupId = args.groupId ?: (activity as MembershipActivity).groupId,
+                timelockExtra = fallback.timelock?.toTimelockExtra(),
+                fallbackTarget = FallbackTimelockTarget(
+                    index = index,
+                    keyCount = fallback.n,
+                    previous = previous?.toTimelockExtra(),
+                    next = fallbacks.firstOrNull { it.index == index + 1 }?.timelock?.toTimelockExtra(),
+                ),
+            )
+        )
+    }
+
+    override fun extraMoreOptions(): List<SheetOption> =
+        if (viewModel.state.value.isPrimaryCustomized && !isKeyHolderLimited && !isFacilitatorAdmin) {
+            listOf(
+                SheetOption(
+                    type = SheetOptionType.TYPE_CANCEL_INHERITANCE_CUSTOMIZATION,
+                    label = getString(R.string.nc_cancel_customization),
+                    subStringId = R.string.nc_cancel_customization_desc,
+                )
+            )
+        } else {
+            emptyList()
+        }
+
+    override fun onOptionClicked(option: SheetOption) {
+        super.onOptionClicked(option)
+        if (option.type == SheetOptionType.TYPE_CANCEL_INHERITANCE_CUSTOMIZATION) {
+            viewModel.cancelPrimaryCustomization()
         }
     }
 
@@ -300,6 +420,18 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                 handleSignerTypeLogic(data.type, selectedSignerTag)
             }
             clearFragmentResult(TapSignerListBottomSheetFragment.REQUEST_KEY)
+        }
+        setFragmentResultListener(CustomizeInheritanceIntroFragment.REQUEST_KEY) { _, bundle ->
+            if (bundle.getBoolean(CustomizeInheritanceIntroFragment.EXTRA_CONTINUE)) {
+                viewModel.showPrimaryPolicySheet()
+            }
+            clearFragmentResult(CustomizeInheritanceIntroFragment.REQUEST_KEY)
+        }
+        setFragmentResultListener(FallbackInheritanceIntroFragment.REQUEST_KEY) { _, bundle ->
+            if (bundle.getBoolean(FallbackInheritanceIntroFragment.EXTRA_CONTINUE)) {
+                viewModel.showAddFallbackSheet()
+            }
+            clearFragmentResult(FallbackInheritanceIntroFragment.REQUEST_KEY)
         }
         setFragmentResultListener(ColdCardIntroFragment.REQUEST_KEY) { _, bundle ->
             val signerTag = bundle.getSerializable(GlobalResultKey.EXTRA_SIGNER_TAG) as? SignerTag
@@ -377,6 +509,12 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                 }
             }
 
+            // The key picker already offered this phone's keys after "Before you use this device":
+            // a tag back means "Add new key", so open the device instead of offering them again.
+            signerTag != null && currentDraftOptions?.showDeviceSafety == true -> {
+                openInAppHardwareOrDesktopFlow(signerTag)
+            }
+
             signerTag != null -> {
                 handleHardwareSignerTag(signerTag)
             }
@@ -400,8 +538,10 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
         }
     }
 
+    /** Keys already in this setup, so the key picker never offers one of them for another slot. */
     private fun getAllExistingSigners(): List<SignerModel> {
-        return viewModel.key.value.flatMap { it.getAllSigners() }
+        val draftSigners = viewModel.state.value.draftCards.flatMap { card -> card.slots.mapNotNull { it.signer } }
+        return viewModel.key.value.flatMap { it.getAllSigners() } + draftSigners
     }
 
     /**
@@ -421,26 +561,24 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
      * many signers the slot already has, and the second one has to come off the first one's device.
      */
     private fun openLedgerFlow() {
-        val signers = currentKeyData?.getAllSigners().orEmpty()
         addLedgerLauncher.launch(
             LedgerActivity.buildIntent(
                 activityContext = requireActivity(),
                 isMembershipFlow = true,
-                accountIndex = signers.size,
-                expectedXfp = signers.firstOrNull()?.fingerPrint.orEmpty(),
+                accountIndex = targetAccountIndex(),
+                expectedXfp = targetSameDevice()?.fingerPrint.orEmpty(),
             )
         )
     }
 
     /** Same two-accounts-of-one-device rule as [openLedgerFlow]. */
     private fun openBitBoxFlow() {
-        val signers = currentKeyData?.getAllSigners().orEmpty()
         addBitBoxLauncher.launch(
             BitBoxActivity.buildIntent(
                 activityContext = requireActivity(),
                 isMembershipFlow = true,
-                accountIndex = signers.size,
-                expectedXfp = signers.firstOrNull()?.fingerPrint.orEmpty(),
+                accountIndex = targetAccountIndex(),
+                expectedXfp = targetSameDevice()?.fingerPrint.orEmpty(),
             )
         )
     }
@@ -464,10 +602,11 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                 tag = tag,
                 step = membershipStepManager.currentStep,
                 onChainAddSignerParam = OnChainAddSignerParam(
-                    flags = if (currentKeyData?.type?.isAddInheritanceKey == true) OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER else OnChainAddSignerParam.FLAG_ADD_SIGNER,
-                    keyIndex = currentKeyData?.signers?.size ?: 0,
-                    currentSigner = currentKeyData?.signers?.firstOrNull(),
-                    existingSigners = getAllExistingSigners()
+                    flags = if (isTargetInheritanceKey()) OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER else OnChainAddSignerParam.FLAG_ADD_SIGNER,
+                    keyIndex = targetAccountIndex(),
+                    currentSigner = targetSameDevice(),
+                    existingSigners = getAllExistingSigners(),
+                    inheritanceRoute = targetInheritanceRoute(),
                 )
             )
         )
@@ -476,7 +615,10 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
     private fun observer() {
         flowObserver(viewModel.event) { event ->
             when (event) {
-                is AddKeyListEvent.OnAddKey -> handleOnAddKey(event.data)
+                is AddKeyListEvent.OnAddKey -> {
+                    currentDraftOptions = event.draftOptions
+                    handleOnAddKey(event.data)
+                }
                 is AddKeyListEvent.OnVerifySigner -> {
                     if (event.signer.type == SignerType.NFC) {
                         if (event.isBackupNfc) {
@@ -494,6 +636,12 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                 AddKeyListEvent.OnKeyVerified -> openVerifyBackUpSuccess()
 
                 is AddKeyListEvent.ShowError -> showError(event.message)
+                is AddKeyListEvent.ShowErrorRes -> showError(getString(event.messageRes, *event.args.toTypedArray()))
+                is AddKeyListEvent.OpenDraftDeviceFlow -> {
+                    currentKeyData = event.data
+                    currentDraftOptions = event.options
+                    handleSignerTypeLogic(event.type, event.tag)
+                }
                 AddKeyListEvent.SelectAirgapType -> {
 
                 }
@@ -557,6 +705,10 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
 
     private fun handleHardwareKeyAdd(data: AddKeyOnChainData) {
         currentKeyData = data
+        currentDraftOptions?.let { options ->
+            openDraftSignerIntro(options)
+            return
+        }
         // Get the next step to determine what to add
         val nextStep = data.getNextStepToAdd() ?: data.type
         val allSigners = data.getAllSigners()
@@ -639,6 +791,34 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
         }
     }
 
+    /**
+     * Key picker for a configurable-draft slot: the slot's account, the inheritance guide once per
+     * setup, and "Before you use this device" ahead of a new device.
+     */
+    private fun openDraftSignerIntro(options: DraftAddOptions) {
+        navigator.openSignerIntroScreen(
+            launcher = signerIntroLauncher,
+            activityContext = requireActivity(),
+            request = SignerIntroRequest(
+                canRestartWizard = canRestartWizard,
+                walletId = (activity as MembershipActivity).walletId,
+                groupId = args.groupId ?: (activity as MembershipActivity).groupId,
+                flow = SignerIntroFlow.OnChainTimelockKey(
+                    isInheritanceKey = options.isInheritance,
+                    keyIndex = options.accountIndex,
+                    currentSigner = options.sameDevice,
+                    existingSigners = getAllExistingSigners(),
+                    inheritanceGuide = options.inheritanceGuide,
+                    fallbackNumber = options.fallbackNumber,
+                    showInheritanceGuide = options.showInheritanceGuide,
+                    showDeviceSafety = options.showDeviceSafety,
+                    inheritanceRoute = options.inheritanceRoute(),
+                ),
+                walletType = WalletType.MINISCRIPT,
+            ),
+        )
+    }
+
     private fun handleSignerTypeLogic(type: SignerType, tag: SignerTag?) {
         when (type) {
             SignerType.NFC -> openSetupTapSigner()
@@ -685,10 +865,11 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                 groupId = groupId,
                 walletId = (activity as MembershipActivity).walletId,
                 onChainAddSignerParam = OnChainAddSignerParam(
-                    flags = if (currentKeyData?.type?.isAddInheritanceKey == true) OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER else OnChainAddSignerParam.FLAG_ADD_SIGNER,
-                    keyIndex = currentKeyData?.signers?.size ?: 0,
-                    currentSigner = currentKeyData?.signers?.firstOrNull(),
-                    existingSigners = getAllExistingSigners()
+                    flags = if (isTargetInheritanceKey()) OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER else OnChainAddSignerParam.FLAG_ADD_SIGNER,
+                    keyIndex = targetAccountIndex(),
+                    currentSigner = targetSameDevice(),
+                    existingSigners = getAllExistingSigners(),
+                    inheritanceRoute = targetInheritanceRoute(),
                 )
             )
         )
@@ -704,10 +885,11 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                 groupId = groupId,
                 walletId = (activity as MembershipActivity).walletId,
                 onChainAddSignerParam = OnChainAddSignerParam(
-                    flags = if (currentKeyData?.type?.isAddInheritanceKey == true) OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER else OnChainAddSignerParam.FLAG_ADD_SIGNER,
-                    keyIndex = currentKeyData?.signers?.size ?: 0,
-                    currentSigner = currentKeyData?.signers?.firstOrNull(),
-                    existingSigners = getAllExistingSigners()
+                    flags = if (isTargetInheritanceKey()) OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER else OnChainAddSignerParam.FLAG_ADD_SIGNER,
+                    keyIndex = targetAccountIndex(),
+                    currentSigner = targetSameDevice(),
+                    existingSigners = getAllExistingSigners(),
+                    inheritanceRoute = targetInheritanceRoute(),
                 )
             )
         )
@@ -778,6 +960,9 @@ fun AddKeyListScreen(
     groupId: String = "",
     isAddOnly: Boolean = false,
     role: String? = null,
+    onCustomizePrimaryClicked: () -> Unit = {},
+    onAddFallbackClicked: () -> Unit = {},
+    onFallbackTimelockClicked: (index: Int) -> Unit = {},
     onConfigTimelockClicked: (AddKeyOnChainData) -> Unit
 ) {
     val keys by viewModel.key.collectAsStateWithLifecycle()
@@ -798,8 +983,248 @@ fun AddKeyListScreen(
         onChangeTimelockClicked = onConfigTimelockClicked,
         isGroupWallet = isGroupWallet,
         isAddOnly = isAddOnly,
-        role = role?.toRole ?: AssistedWalletRole.NONE
+        role = role?.toRole ?: AssistedWalletRole.NONE,
+        onCustomizePrimaryClicked = onCustomizePrimaryClicked,
+        onPrimaryPolicyContinue = viewModel::updatePrimaryPolicy,
+        onPrimaryPolicyDismiss = viewModel::dismissPrimaryPolicySheet,
+        onDraftSlotAddClicked = viewModel::onDraftSlotAddClicked,
+        onDraftSlotVerifyClicked = viewModel::onDraftSlotVerifyClicked,
+        chooseKeyOptions = uiState.chooseKeyTarget?.let { viewModel.chooseKeyOptions(it.card) }.orEmpty(),
+        onChooseKeySelected = viewModel::onChooseKeySelected,
+        onChooseKeyAddNew = viewModel::onChooseKeyAddNew,
+        onChooseKeyDismiss = viewModel::dismissChooseKey,
+        onVerifyDraftKey = viewModel::verifyDraftKey,
+        onVerifyBackupsDone = viewModel::dismissVerifyBackups,
+        fallbackActions = FallbackSetupActions(
+            onAddFallback = onAddFallbackClicked,
+            onEditFallback = viewModel::showEditFallbackSheet,
+            onRemoveFallback = viewModel::requestRemoveFallback,
+            onFallbackTimelock = onFallbackTimelockClicked,
+            onPolicyContinue = viewModel::saveFallbackPolicy,
+            onPolicyDismiss = viewModel::dismissFallbackPolicySheet,
+            onRemoveConfirm = viewModel::confirmRemoveFallback,
+            onRemoveDismiss = viewModel::dismissRemoveFallback,
+        ),
     )
+}
+
+/** The fallback callbacks of the setup screen (Row 2 · FBK). */
+data class FallbackSetupActions(
+    val onAddFallback: () -> Unit = {},
+    val onEditFallback: (index: Int) -> Unit = {},
+    val onRemoveFallback: (index: Int) -> Unit = {},
+    val onFallbackTimelock: (index: Int) -> Unit = {},
+    val onPolicyContinue: (m: Int, n: Int) -> Unit = { _, _ -> },
+    val onPolicyDismiss: () -> Unit = {},
+    val onRemoveConfirm: () -> Unit = {},
+    val onRemoveDismiss: () -> Unit = {},
+)
+
+/**
+ * "Let's configure your wallet" for a configurable draft (SET-02 … SET-16): the server's cards in
+ * order — spending devices and the Platform key, then primary inheritance with its slots, timelock,
+ * setup issues and Customize / Edit. The Platform key and timelock keep their existing cards.
+ */
+private fun LazyListScope.configurableDraftItems(
+    uiState: AddKeyListState,
+    keys: List<AddKeyOnChainData>,
+    role: AssistedWalletRole,
+    isAddOnly: Boolean,
+    onConfigServerKeyClicked: (AddKeyOnChainData) -> Unit,
+    onConfigTimelockClicked: (AddKeyOnChainData) -> Unit,
+    onChangeTimelockClicked: (AddKeyOnChainData) -> Unit,
+    onDraftSlotAddClicked: (DraftSetupCard, DraftSetupSlot) -> Unit,
+    onDraftSlotVerifyClicked: (DraftSetupCard, DraftSetupSlot) -> Unit,
+    onCustomizePrimaryClicked: () -> Unit,
+    fallbackActions: FallbackSetupActions,
+) {
+    val isLimited = role == AssistedWalletRole.KEYHOLDER_LIMITED
+    val isDisabled = role.isFacilitatorAdmin
+    val serverKey = keys.firstOrNull { it.type == MembershipStep.ADD_SEVER_KEY }
+    val timelockKey = keys.firstOrNull { it.type == MembershipStep.TIMELOCK }
+    val primary = uiState.inheritancePolicy?.primary
+    val highlighted = uiState.validationErrors.highlightedKeyIndices(InheritanceSection.PRIMARY)
+
+    uiState.spendingCards.forEachIndexed { index, card ->
+        item(key = "spending_$index") {
+            if (card.isServerKey) {
+                serverKey?.let { key ->
+                    BlurView(isBlur = isLimited) { modifier ->
+                        AddKeyCard(
+                            modifier = modifier,
+                            item = key,
+                            onAddClicked = { if (!isLimited) onConfigServerKeyClicked(it) },
+                            isDisabled = isDisabled,
+                        )
+                    }
+                }
+            } else {
+                BlurView(isBlur = isLimited && card.device?.isVisible == false) { modifier ->
+                    Box(modifier) {
+                        DraftSpendingCard(
+                            card = card,
+                            number = uiState.spendingCards.take(index + 1).count { !it.isServerKey },
+                            isDisabled = isDisabled || isLimited,
+                            onAddClicked = onDraftSlotAddClicked,
+                        )
+                    }
+                }
+            }
+        }
+    }
+    item(key = "primary_header") {
+        Column {
+            Text(
+                modifier = Modifier.padding(bottom = 16.dp),
+                text = afterTimelockPrimaryDescription(primary),
+                style = NunchukTheme.typography.body,
+            )
+            PrimaryInheritanceHeader(primary = primary)
+        }
+    }
+    uiState.primaryCards.forEach { card ->
+        card.slots.forEach { slot ->
+            item(key = "primary_${slot.keyIndex}") {
+                DraftPrimarySlotCard(
+                    card = card,
+                    slot = slot,
+                    number = uiState.primarySlots.indexOf(slot) + 1,
+                    isCustomized = uiState.isPrimaryCustomized,
+                    isHighlighted = slot.keyIndex in highlighted,
+                    isVerificationPending = uiState.hasUnverifiedBackup,
+                    isPrimaryVerified = uiState.primarySlots.all { it.isVerified },
+                    isDisabled = isDisabled || isLimited,
+                    onAddClicked = onDraftSlotAddClicked,
+                    onVerifyClicked = onDraftSlotVerifyClicked,
+                )
+            }
+        }
+    }
+    if (timelockKey != null) {
+        item(key = "primary_timelock") {
+            val timelockBorder = if (uiState.validationErrors.isTimelockHighlighted(InheritanceSection.PRIMARY)) {
+                Modifier.border(1.dp, MaterialTheme.colorScheme.error, RoundedCornerShape(8.dp))
+            } else {
+                Modifier
+            }
+            BlurView(isBlur = isLimited) { modifier ->
+                Box(modifier.then(timelockBorder)) {
+                    AddKeyCard(
+                        item = timelockKey,
+                        onAddClicked = { if (!isLimited) onConfigTimelockClicked(it) },
+                        onChangeTimelockClicked = { if (!isLimited) onChangeTimelockClicked(it) },
+                        isDisabled = isDisabled,
+                    )
+                }
+            }
+        }
+    }
+    item(key = "primary_footer") {
+        Column {
+            InheritanceValidationErrors(errors = uiState.primaryValidationErrors)
+            if (!isAddOnly && !isLimited) {
+                Box(modifier = Modifier.padding(top = 12.dp)) {
+                    CustomizePrimaryInheritanceLink(
+                        isCustomized = uiState.isPrimaryCustomized,
+                        onClick = onCustomizePrimaryClicked,
+                    )
+                }
+            }
+        }
+    }
+    fallbackDraftItems(
+        uiState = uiState,
+        canEdit = !isAddOnly && !isLimited,
+        isDisabled = isDisabled || isLimited,
+        onDraftSlotAddClicked = onDraftSlotAddClicked,
+        onDraftSlotVerifyClicked = onDraftSlotVerifyClicked,
+        actions = fallbackActions,
+    )
+    if (uiState.otherValidationErrors.isNotEmpty()) {
+        item(key = "other_errors") {
+            InheritanceValidationErrors(errors = uiState.otherValidationErrors)
+        }
+    }
+}
+
+/**
+ * The Fallbacks section (SET-09 / FBK-02 / FBK-03 / SET-11): per fallback its header with Edit /
+ * Remove, one slot per key, its unlock time and its issues; then Add (another) fallback.
+ */
+private fun LazyListScope.fallbackDraftItems(
+    uiState: AddKeyListState,
+    canEdit: Boolean,
+    isDisabled: Boolean,
+    onDraftSlotAddClicked: (DraftSetupCard, DraftSetupSlot) -> Unit,
+    onDraftSlotVerifyClicked: (DraftSetupCard, DraftSetupSlot) -> Unit,
+    actions: FallbackSetupActions,
+) {
+    val fallbacks = uiState.fallbacks
+    if (fallbacks.isEmpty() && !canEdit) return
+    item(key = "fallbacks_header") { FallbacksSectionHeader() }
+    fallbacks.forEach { fallback ->
+        val slots = uiState.fallbackSlots(fallback.index)
+        val highlighted = uiState.validationErrors.highlightedKeyIndices(InheritanceSection.FALLBACK, fallback.index)
+        item(key = "fallback_${fallback.index}_header") {
+            FallbackSetupHeader(
+                fallback = fallback,
+                showActions = canEdit,
+                enabled = !isDisabled,
+                onEditClicked = { actions.onEditFallback(fallback.index) },
+                onRemoveClicked = { actions.onRemoveFallback(fallback.index) },
+            )
+        }
+        uiState.fallbackCards(fallback.index).forEach { card ->
+            card.slots.forEach { slot ->
+                item(key = "fallback_${fallback.index}_${slot.keyIndex}") {
+                    DraftPrimarySlotCard(
+                        card = card,
+                        slot = slot,
+                        number = slots.indexOf(slot) + 1,
+                        isCustomized = true,
+                        isHighlighted = slot.keyIndex in highlighted,
+                        isFallback = true,
+                        isDisabled = isDisabled,
+                        onAddClicked = onDraftSlotAddClicked,
+                        onVerifyClicked = onDraftSlotVerifyClicked,
+                    )
+                }
+            }
+        }
+        item(key = "fallback_${fallback.index}_timelock") {
+            val timelockBorder = if (uiState.validationErrors.isTimelockHighlighted(InheritanceSection.FALLBACK, fallback.index)) {
+                Modifier.border(1.dp, MaterialTheme.colorScheme.error, RoundedCornerShape(8.dp))
+            } else {
+                Modifier
+            }
+            Column {
+                Box(timelockBorder) {
+                    AddKeyCard(
+                        item = AddKeyOnChainData(steps = listOf(MembershipStep.TIMELOCK)).updateStep(
+                            step = MembershipStep.TIMELOCK,
+                            signer = null,
+                            // A set time draws the filled card with Change (SET-10), like the primary's.
+                            verifyType = if ((fallback.timelock?.timelockValue ?: 0L) > 0) VerifyType.APP_VERIFIED else VerifyType.NONE,
+                            timelock = fallback.timelock?.toTimelockExtra(),
+                        ),
+                        onAddClicked = { actions.onFallbackTimelock(fallback.index) },
+                        onChangeTimelockClicked = { actions.onFallbackTimelock(fallback.index) },
+                        isDisabled = isDisabled,
+                    )
+                }
+                InheritanceValidationErrors(errors = uiState.fallbackValidationErrors(fallback.index))
+            }
+        }
+    }
+    if (canEdit) {
+        item(key = "fallback_add") {
+            AddFallbackButton(
+                hasFallbacks = fallbacks.isNotEmpty(),
+                enabled = !isDisabled,
+                onClick = actions.onAddFallback,
+            )
+        }
+    }
 }
 
 @Composable
@@ -818,6 +1243,18 @@ fun OnChainTimelockAddKeyListContent(
     isGroupWallet: Boolean = false,
     isAddOnly: Boolean = false,
     role: AssistedWalletRole = AssistedWalletRole.NONE,
+    onCustomizePrimaryClicked: () -> Unit = {},
+    onPrimaryPolicyContinue: (m: Int, n: Int) -> Unit = { _, _ -> },
+    onPrimaryPolicyDismiss: () -> Unit = {},
+    onDraftSlotAddClicked: (DraftSetupCard, DraftSetupSlot) -> Unit = { _, _ -> },
+    onDraftSlotVerifyClicked: (DraftSetupCard, DraftSetupSlot) -> Unit = { _, _ -> },
+    chooseKeyOptions: List<SignerModel> = emptyList(),
+    onChooseKeySelected: (xfp: String) -> Unit = {},
+    onChooseKeyAddNew: () -> Unit = {},
+    onChooseKeyDismiss: () -> Unit = {},
+    onVerifyDraftKey: (SignerModel) -> Unit = {},
+    onVerifyBackupsDone: () -> Unit = {},
+    fallbackActions: FallbackSetupActions = FallbackSetupActions(),
 ) {
     val state = rememberPullRefreshState(isRefreshing, refresh)
 
@@ -844,15 +1281,20 @@ fun OnChainTimelockAddKeyListContent(
                             .fillMaxWidth()
                             .padding(16.dp),
                         onClick = onContinueClicked,
-                        enabled = keys.all { data ->
-                            data.steps.all { step ->
-                                data.stepDataMap[step]?.isComplete == true
-                            }
-                        } && keys.filter { it.type.isAddInheritanceKey }
-                            .all { it.verifyType != VerifyType.NONE }
-                                && keys.filter { data ->
-                            data.signers?.any { it.type == SignerType.NFC } == true
-                        }.all { it.verifyType != VerifyType.NONE }
+                        enabled = if (uiState.isConfigurableInheritance) {
+                            // Slots and verification come from the server's cards, readiness from `finalized`.
+                            uiState.isDraftReadyToContinue
+                        } else {
+                            keys.all { data ->
+                                data.steps.all { step ->
+                                    data.stepDataMap[step]?.isComplete == true
+                                }
+                            } && keys.filter { it.type.isAddInheritanceKey }
+                                .all { it.verifyType != VerifyType.NONE }
+                                    && keys.filter { data ->
+                                data.signers?.any { it.type == SignerType.NFC } == true
+                            }.all { it.verifyType != VerifyType.NONE }
+                        }
                     ) {
                         Text(text = stringResource(id = R.string.nc_text_continue))
                     }
@@ -892,6 +1334,21 @@ fun OnChainTimelockAddKeyListContent(
                         )
                     }
 
+                    if (uiState.isConfigurableInheritance) {
+                        configurableDraftItems(
+                            uiState = uiState,
+                            keys = keys,
+                            role = role,
+                            isAddOnly = isAddOnly,
+                            onConfigServerKeyClicked = onAddClicked,
+                            onConfigTimelockClicked = onConfigTimelockClicked,
+                            onChangeTimelockClicked = onChangeTimelockClicked,
+                            onDraftSlotAddClicked = onDraftSlotAddClicked,
+                            onDraftSlotVerifyClicked = onDraftSlotVerifyClicked,
+                            onCustomizePrimaryClicked = onCustomizePrimaryClicked,
+                            fallbackActions = fallbackActions,
+                        )
+                    } else {
                     items(keys.filter { it.type != MembershipStep.TIMELOCK }) { key ->
                         val keyIsBlur = (key.signers?.firstOrNull()?.isVisible == false || key.type == MembershipStep.ADD_SEVER_KEY) && role == AssistedWalletRole.KEYHOLDER_LIMITED
                         BlurView(
@@ -952,10 +1409,66 @@ fun OnChainTimelockAddKeyListContent(
                             }
                         }
                     }
+                    } // legacy layout
                 }
 
                 PullRefreshIndicator(isRefreshing, state, Modifier.align(Alignment.TopCenter))
             }
+        }
+
+        if (uiState.chooseKeyTarget != null) {
+            ChooseKeySheet(
+                options = chooseKeyOptions,
+                fallbackNumber = uiState.chooseKeyTarget.card.fallbackNumber.takeIf { it > 0 },
+                onChooseKey = onChooseKeySelected,
+                onAddKey = onChooseKeyAddNew,
+                onDismiss = onChooseKeyDismiss,
+            )
+        }
+        if (uiState.isVerifyBackupsVisible) {
+            VerifyBackupsScreen(
+                remainingTime = remainingTime,
+                inheritanceKeys = uiState.primarySlots.filter { it.isFilled },
+                ownerKeys = uiState.ownerKeys,
+                ownerAccounts = uiState.spendingCards
+                    .flatMap { it.slots }
+                    .mapNotNull { slot -> slot.signer?.let { it.fingerPrint.lowercase() to it.index } }
+                    .groupBy({ it.first }, { it.second })
+                    .mapValues { (_, accounts) -> accounts.distinct().sorted() },
+                onVerifyClicked = onVerifyDraftKey,
+                onMoreClicked = onMoreClicked,
+                onDone = onVerifyBackupsDone,
+            )
+        }
+        if (uiState.isPrimaryPolicySheetVisible) {
+            PrimaryInheritancePolicySheet(
+                primary = uiState.inheritancePolicy?.primary,
+                onContinue = onPrimaryPolicyContinue,
+                onDismiss = onPrimaryPolicyDismiss,
+            )
+        }
+        uiState.fallbackPolicyTarget?.let { target ->
+            val fallback = target.index?.let { index -> uiState.fallbacks.firstOrNull { it.index == index } }
+            InheritancePolicySheet(
+                title = stringResource(R.string.nc_fallback_policy, (target.index ?: uiState.fallbacks.size) + 1),
+                initialM = fallback?.m ?: DEFAULT_FALLBACK_REQUIRED_KEYS,
+                initialN = fallback?.n ?: DEFAULT_FALLBACK_TOTAL_KEYS,
+                onContinue = fallbackActions.onPolicyContinue,
+                onDismiss = fallbackActions.onPolicyDismiss,
+            )
+        }
+        uiState.removeFallbackIndex?.let { index ->
+            uiState.fallbacks.firstOrNull { it.index == index }?.let { fallback ->
+                RemoveFallbackSheet(
+                    fallback = fallback,
+                    fallbackCount = uiState.fallbacks.size,
+                    onConfirm = fallbackActions.onRemoveConfirm,
+                    onDismiss = fallbackActions.onRemoveDismiss,
+                )
+            }
+        }
+        if (uiState.isLoading) {
+            NcLoadingDialog()
         }
     }
 }

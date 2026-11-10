@@ -22,6 +22,7 @@ package com.nunchuk.android.repository
 import com.nunchuk.android.model.InheritanceClaimingInit
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.WalletServer
+import com.nunchuk.android.model.inheritance.ClaimDownloadWalletResult
 import com.nunchuk.android.model.inheritance.ClaimSigningChallenge
 import com.nunchuk.android.type.SignerTag
 import kotlinx.coroutines.flow.Flow
@@ -32,7 +33,7 @@ interface InheritanceRepository {
     suspend fun downloadWallet(
         magic: String,
         keys: List<SingleSigner>
-    ): WalletServer
+    ): ClaimDownloadWalletResult
 
     suspend fun isClaimWallet(walletId: String): Boolean
 

@@ -25,6 +25,7 @@ import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceBeneficiaryAllocation
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningParam
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceSetupFlowType
+import com.nunchuk.android.model.InheritanceKey
 import com.nunchuk.android.model.inheritance.InheritancePlanBeneficiary
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.usecase.membership.GetInheritanceUseCase
@@ -119,7 +120,7 @@ class MagicalPhraseIntroViewModel @Inject constructor(
                 _state.update {
                     it.copy(
                         magicalPhrase = inheritance.magic,
-                        inheritanceKeys = inheritance.inheritanceKeys.map { key -> key.xfp },
+                        inheritanceKeys = inheritance.inheritanceKeys,
                         isResultReady = true,
                     )
                 }
@@ -157,14 +158,14 @@ sealed class MagicalPhraseIntroEvent {
     data class Error(val message: String) : MagicalPhraseIntroEvent()
     data class OnContinueClicked(
         val magicalPhrase: String,
-        val inheritanceKeys: List<String>,
+        val inheritanceKeys: List<InheritanceKey>,
         val beneficiaryAllocations: List<InheritanceBeneficiaryAllocation> = emptyList(),
     ) : MagicalPhraseIntroEvent()
 }
 
 data class MagicalPhraseIntroState(
     val magicalPhrase: String? = null,
-    val inheritanceKeys: List<String> = emptyList(),
+    val inheritanceKeys: List<InheritanceKey> = emptyList(),
     val beneficiaryAllocations: List<InheritanceBeneficiaryAllocation> = emptyList(),
     val setupFlowType: InheritanceSetupFlowType = InheritanceSetupFlowType.OLD_FLOW,
     val isResultReady: Boolean = false,

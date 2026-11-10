@@ -54,6 +54,13 @@ object GlobalResultKey {
     const val EXTRA_VERIFIED_XFP = "extra_verified_xfp"
 
     /**
+     * The account read off the restored device alongside [EXTRA_VERIFIED_XFP], as a
+     * [com.nunchuk.android.model.inheritance.RecoveredKey]. A configurable on-chain draft verifies
+     * against it; absent when the device only reported its fingerprint.
+     */
+    const val EXTRA_RECOVERED_KEY = "extra_recovered_key"
+
+    /**
      * Name of the [com.nunchuk.android.signer.KeyType] the owner picked, handed back when the
      * picker itself does not run that key's flow: the regular key of an assisted off-chain wallet,
      * whose membership setup is owned by the key-list screen.

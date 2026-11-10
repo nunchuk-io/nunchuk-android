@@ -20,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
@@ -126,6 +127,9 @@ private fun OnChainTimelockExplanationContent(
             modifier = Modifier.navigationBarsPadding(),
             topBar = {
                 NcImageAppBar(
+                    // The column diagram runs edge to edge: scale it to the screen width so its side
+                    // padding is never cropped on a screen narrower than 375dp.
+                    contentScale = ContentScale.FillWidth,
                     backgroundRes = if (isGroupWallet) {
                        if (allowInheritance) {
                             if (isByzantinePro) {
@@ -137,7 +141,7 @@ private fun OnChainTimelockExplanationContent(
                             R.drawable.illustration_on_chain_without_inheritance_group_wallet
                         }
                     } else {
-                        R.drawable.bg_inheritance_onchain_offchain
+                        R.drawable.illustration_on_chain_personal_wallet
                     },
                     title = if (remainTime <= 0) "" else stringResource(
                         id = R.string.nc_estimate_remain_time,
@@ -186,7 +190,11 @@ private fun OnChainTimelockExplanationContent(
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Text(
-                        text = stringResource(R.string.nc_onchain_wallet_spending_paths_desc),
+                        text = if (isGroupWallet) {
+                            stringResource(R.string.nc_onchain_wallet_spending_paths_desc)
+                        } else {
+                            stringResource(R.string.nc_onchain_wallet_spending_paths_with_fallback_desc)
+                        },
                         style = NunchukTheme.typography.body
                     )
                     BulletPoint(
@@ -204,15 +212,31 @@ private fun OnChainTimelockExplanationContent(
                                 append(stringResource(R.string.nc_after_timelock))
                                 append(" ")
                             }
-                            append(if (isGroupWallet) stringResource(R.string.nc_after_timelock_group_desc) else stringResource(R.string.nc_after_timelock_desc))
+                            append(if (isGroupWallet) stringResource(R.string.nc_after_timelock_group_desc) else stringResource(R.string.nc_after_timelock_primary_inheritance_desc))
                         }
                     )
+                    if (!isGroupWallet) {
+                        BulletPoint(
+                            text = buildAnnotatedString {
+                                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                                    append(stringResource(R.string.nc_after_each_fallback_timelock))
+                                }
+                                append(" ")
+                                append(stringResource(R.string.nc_after_each_fallback_timelock_desc))
+                            }
+                        )
+                    }
                 }
 
-                // Instruction about inheritance key (only show when inheritance is allowed)
-                if (allowInheritance || isGroupWallet.not()) {
+                if (!isGroupWallet) {
                     Text(
-                        text = if (isGroupWallet) stringResource(R.string.nc_select_inheritance_key_group_instruction) else stringResource(R.string.nc_select_inheritance_key_instruction),
+                        text = stringResource(R.string.nc_onchain_add_keys_and_timelock_instruction),
+                        style = NunchukTheme.typography.body
+                    )
+                } else if (allowInheritance) {
+                    // Instruction about inheritance key (only show when inheritance is allowed)
+                    Text(
+                        text = stringResource(R.string.nc_select_inheritance_key_group_instruction),
                         style = NunchukTheme.typography.body
                     )
                 }
@@ -252,5 +276,14 @@ private fun OnChainTimelockExplanationScreenPreview() {
         allowInheritance = true,
         onContinueClicked = { },
         onMoreClicked = { }
+    )
+}
+
+@PreviewLightDark
+@Composable
+private fun OnChainTimelockExplanationPersonalPreview() {
+    OnChainTimelockExplanationContent(
+        groupId = "",
+        allowInheritance = true,
     )
 }

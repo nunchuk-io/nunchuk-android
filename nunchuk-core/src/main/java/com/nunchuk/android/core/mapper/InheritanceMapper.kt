@@ -1,10 +1,12 @@
 package com.nunchuk.android.core.mapper
 
 import com.nunchuk.android.core.data.model.byzantine.toWalletType
+import com.nunchuk.android.core.data.model.membership.BufferPeriodCountdownResponse
 import com.nunchuk.android.core.data.model.membership.BeneficiaryNotificationDto
 import com.nunchuk.android.core.data.model.membership.InheritanceBeneficiaryDto
 import com.nunchuk.android.core.data.model.membership.InheritanceClaimSigningChallengeResponse
 import com.nunchuk.android.core.data.model.membership.InheritanceClaimingInitResponse
+import com.nunchuk.android.core.data.model.membership.InheritanceClaimingDownloadWalletResponse
 import com.nunchuk.android.core.data.model.membership.InheritanceDto
 import com.nunchuk.android.core.data.model.membership.InheritanceExpandedInstallmentDto
 import com.nunchuk.android.core.data.model.membership.InheritanceFallbackPolicyDto
@@ -12,12 +14,20 @@ import com.nunchuk.android.core.data.model.membership.InheritanceKeyDto
 import com.nunchuk.android.core.data.model.membership.InheritanceNotificationPreferencesDto
 import com.nunchuk.android.core.data.model.membership.InheritanceStageDto
 import com.nunchuk.android.core.data.model.membership.KeyOriginDto
+import com.nunchuk.android.core.data.model.membership.toInheritanceSection
+import com.nunchuk.android.core.data.model.membership.toModel
+import com.nunchuk.android.core.network.ApiErrorCode
+import com.nunchuk.android.core.network.NunchukApiException
+import com.nunchuk.android.model.BufferPeriodCountdown
 import com.nunchuk.android.model.Inheritance
 import com.nunchuk.android.model.InheritanceClaimingInit
 import com.nunchuk.android.model.InheritanceKey
 import com.nunchuk.android.model.InheritancePendingRequest
 import com.nunchuk.android.model.InheritanceStatus
 import com.nunchuk.android.model.KeyOrigin
+import com.nunchuk.android.model.WalletServer
+import com.nunchuk.android.model.inheritance.ClaimDownloadWalletResult
+import com.nunchuk.android.model.inheritance.ClaimValidKey
 import com.nunchuk.android.model.inheritance.ClaimSigningChallenge
 import com.nunchuk.android.model.inheritance.EmailNotificationSettings
 import com.nunchuk.android.model.inheritance.InheritancePlanBeneficiary
@@ -69,6 +79,7 @@ internal fun InheritanceDto.toInheritance(): Inheritance {
         fallbackPolicy = fallbackPolicy?.toInheritancePlanFallbackPolicy(),
         stages = stages?.map { it.toInheritancePlanStage() }.orEmpty(),
         beneficiaries = beneficiaries?.map { it.toInheritancePlanBeneficiary() }.orEmpty(),
+        onChainInheritancePolicy = onChainInheritancePolicy?.toModel(),
     )
 }
 
@@ -86,9 +97,39 @@ internal fun InheritanceClaimingInitResponse.toInheritanceClaimingInit(): Inheri
         walletType = walletType.toWalletType() ?: WalletType.MULTI_SIG,
         walletLocalId = walletLocalId.orEmpty(),
         inheritanceKeyCount = inheritanceKeyCount ?: 0,
-        keyOrigins = keyOrigins?.map { it.toKeyOrigin() } ?: emptyList()
+        keyOrigins = keyOrigins?.map { it.toKeyOrigin() } ?: emptyList(),
+        requiredKeyCounts = requiredKeyCounts.orEmpty().filter { it > 0 }.distinct().sorted(),
     )
 }
+
+/**
+ * `wallet` wins; then the buffer period. A response without `valid_keys` / `key_origins` comes from
+ * a backend that predates configurable claims, where a missing wallet meant "no plan".
+ */
+internal fun InheritanceClaimingDownloadWalletResponse.toClaimDownloadWalletResult(
+    wallet: WalletServer?,
+): ClaimDownloadWalletResult {
+    if (wallet != null) return ClaimDownloadWalletResult.Downloaded(wallet)
+    bufferPeriodCountdown?.let { return ClaimDownloadWalletResult.BufferPeriod(it.toBufferPeriodCountdown()) }
+    if (validKeys == null && keyOrigins == null) {
+        throw NunchukApiException(code = ApiErrorCode.INHERITANCE_PLAN_NOT_FOUND)
+    }
+    return ClaimDownloadWalletResult.MoreKeysNeeded(
+        validKeys = validKeys.orEmpty().map {
+            ClaimValidKey(xfp = it.xfp.orEmpty(), derivationPath = it.derivationPath.orEmpty(), xpub = it.xpub.orEmpty())
+        },
+        keyOrigins = keyOrigins.orEmpty().map { it.toKeyOrigin() },
+    )
+}
+
+internal fun BufferPeriodCountdownResponse.toBufferPeriodCountdown() = BufferPeriodCountdown(
+    activationTimeMilis = activationTimeMilis ?: 0,
+    claimableTimeMilis = claimableTimeMilis ?: 0,
+    bufferInterval = bufferInterval.orEmpty(),
+    bufferIntervalCount = bufferIntervalCount ?: 0,
+    remainingCount = remainingCount ?: 0,
+    remainingDisplayName = remainingDisplayName.orEmpty()
+)
 
 private fun KeyOriginDto.toKeyOrigin(): KeyOrigin {
     return KeyOrigin(
@@ -102,13 +143,17 @@ internal fun BeneficiaryNotificationDto.toEmailNotificationSettings(): EmailNoti
         email = email.orEmpty(),
         notifyOnTimelockExpiry = notifyTimelockExpires ?: false,
         notifyOnWalletChanges = notifyWalletChanges ?: false,
-        includeWalletConfiguration = includeWalletConfig ?: false
+        includeWalletConfiguration = includeWalletConfig ?: false,
+        notifyFallbacks = notifyFallbacks,
     )
 }
 
 private fun InheritanceKeyDto.toInheritanceKey(): InheritanceKey {
     return InheritanceKey(
-        xfp = xfp.orEmpty()
+        xfp = xfp.orEmpty(),
+        section = section.toInheritanceSection(),
+        name = name.orEmpty(),
+        fallbackIndex = fallbackIndex,
     )
 }
 

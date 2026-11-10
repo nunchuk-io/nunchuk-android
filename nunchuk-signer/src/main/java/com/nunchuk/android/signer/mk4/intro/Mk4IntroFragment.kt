@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.signer.mk4.intro
 
+import com.nunchuk.android.core.signer.toRecoveredKey
 import com.nunchuk.android.core.util.resolve
 import android.app.Activity
 import android.content.Intent
@@ -172,12 +173,14 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
                                             groupId = (activity as Mk4Activity).groupId,
                                             walletId = (activity as Mk4Activity).walletId.orEmpty(),
                                             verificationMethod = onChainAddSignerParam.claimOption,
+                                            recoveredKey = it.signer.toRecoveredKey(),
                                         )
                                     } else {
                                         viewModel.setKeyVerified(
                                             groupId = (activity as Mk4Activity).groupId,
                                             masterSignerId = it.signer.masterFingerprint,
                                             verificationMethod = onChainAddSignerParam.claimOption,
+                                            recoveredKey = it.signer.toRecoveredKey(),
                                         )
                                     }
                                 } else {

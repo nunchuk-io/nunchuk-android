@@ -215,6 +215,9 @@ internal class InputAmountViewModel @Inject constructor(
         return if (useBtc && CURRENT_DISPLAY_UNIT_TYPE == SAT) {
             amount.fromBTCtoSAT().toLong().toString()
         } else {
+            rawDecimalFormat.decimalFormatSymbols = DecimalFormatSymbols(
+                if (useBtc) Locale.US else getCurrencyLocale()
+            )
             rawDecimalFormat.format(amount)
         }
     }

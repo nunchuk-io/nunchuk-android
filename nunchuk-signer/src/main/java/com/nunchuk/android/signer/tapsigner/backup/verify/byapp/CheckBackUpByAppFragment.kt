@@ -130,10 +130,22 @@ class CheckBackUpByAppFragment : MembershipFragment() {
                         }
 
                         is CheckBackUpByAppEvent.NfcLoading -> showOrHideNfcLoading(event.isLoading)
+                        CheckBackUpByAppEvent.ReadAccountFromCard ->
+                            (requireActivity() as NfcActionListener).startNfcFlow(
+                                BaseNfcActivity.REQUEST_NFC_TOPUP_XPUBS,
+                                getString(R.string.nc_tapsigner_read_account_to_verify),
+                            )
                     }
                 }
         }
 
+        flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == BaseNfcActivity.REQUEST_NFC_TOPUP_XPUBS }) { nfcScanInfo ->
+            viewModel.readAccountWithTap(
+                IsoDep.get(nfcScanInfo.tag) ?: return@flowObserver,
+                nfcViewModel.inputCvc.orEmpty()
+            )
+            nfcViewModel.clearScanInfo()
+        }
         flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == BaseNfcActivity.REQUEST_NFC_VIEW_BACKUP_KEY }) { nfcScanInfo ->
             viewModel.getTapSignerBackup(
                 IsoDep.get(nfcScanInfo.tag) ?: return@flowObserver,

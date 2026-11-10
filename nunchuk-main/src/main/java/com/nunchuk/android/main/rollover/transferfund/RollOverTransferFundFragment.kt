@@ -176,7 +176,7 @@ private fun RollOverTransferFundContent(
                         modifier = Modifier
                             .padding(16.dp)
                             .fillMaxWidth(),
-                        onClick = { onContinueClicked(isRemoveUnusedKeys) }) {
+                        onClick = { onContinueClicked(isRemoveUnusedKeys && rollOverWalletState.canRemoveUnusedKeys) }) {
                         Text(text = stringResource(R.string.nc_text_continue))
                     }
                 }
@@ -363,7 +363,7 @@ private fun RollOverTransferFundContent(
                     }
                 }
 
-                if (!rollOverWalletState.isFreeWallet && source == RollOverWalletSource.REPLACE_KEY) {
+                if (!rollOverWalletState.isFreeWallet && source == RollOverWalletSource.REPLACE_KEY && rollOverWalletState.canRemoveUnusedKeys) {
                     // 1dp spacer with top and bottom padding are 24dp and background whisper
                     HorizontalDivider(
                         modifier = Modifier
@@ -422,7 +422,8 @@ private fun RollOverTransferFundScreenContentPreview() {
     val mockState = RollOverWalletUiState(
         oldWallet = mockOldWallet,
         newWallet = mockNewWallet,
-        isFreeWallet = false
+        isFreeWallet = false,
+        isConfigurableInheritance = false
     )
 
     RollOverTransferFundContent(
@@ -459,7 +460,8 @@ private fun RollOverTransferFundMiniscriptPreview() {
             spendableNowAmount = mockSpendableNowAmount,
             timelockedAmount = mockTimelockedAmount,
             furthestTimelock = mockFurthestTimelock,
-            isFreeWallet = false
+            isFreeWallet = false,
+            isConfigurableInheritance = false
         )
         
         RollOverTransferFundContent(

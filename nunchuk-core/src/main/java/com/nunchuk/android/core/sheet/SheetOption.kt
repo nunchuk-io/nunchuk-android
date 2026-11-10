@@ -180,4 +180,7 @@ object SheetOptionType {
 
     /** Add a Krux, an air-gapped key added over QR/file like the other air-gap tags. */
     const val TYPE_ADD_AIRGAP_KRUX = 109
+
+    /** On-chain setup More menu: restore the default 2-of-4 primary inheritance. */
+    const val TYPE_CANCEL_INHERITANCE_CUSTOMIZATION = 110
 }

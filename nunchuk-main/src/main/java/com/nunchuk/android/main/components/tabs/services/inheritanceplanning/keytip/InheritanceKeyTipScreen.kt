@@ -19,8 +19,12 @@
 
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.keytip
 
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.FallbackInheritanceInfo
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.PrimaryInheritancePolicyInfo
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.estimateRemainTimeTitle
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.fallbackKeyTipRoute
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -49,8 +53,14 @@ internal fun InheritanceKeyTipContent(
     numberOfKey: Int = 1,
     isMiniscriptWallet: Boolean = false,
     seedPhraseKeyIndexes: List<Int> = emptyList(),
+    /** Configurable on-chain plans only (PLAN-14 / PLAN-05); null keeps the legacy copy. */
+    primaryInheritance: PrimaryInheritancePolicyInfo? = null,
+    /** The plan’s fallbacks (PLAN-08 / PLAN-11 / PLAN-11b); only read with [primaryInheritance]. */
+    fallbacks: List<FallbackInheritanceInfo> = emptyList(),
     onContinueClicked: () -> Unit = {}
 ) {
+    val primary = primaryInheritance?.takeIf { isMiniscriptWallet }
+    val primaryFallbacks = if (primary != null) fallbacks else emptyList()
     // The seed phrase is what the Beneficiary will hold, so the copy is about backing it up and the
     // hint about the device it came off. An on-chain timelock key is always handed over that way;
     // off-chain it depends on the sharing method the owner chose.
@@ -58,7 +68,11 @@ internal fun InheritanceKeyTipContent(
     val explainsSeedPhrase = isMiniscriptWallet || sharesSeedPhrase
     // The screen speaks about the keys it explains, which off-chain is only the ones the Beneficiary
     // receives as a seed phrase — the others were covered by their Backup Password screen.
-    val keysExplained = if (isMiniscriptWallet) numberOfKey else seedPhraseKeyIndexes.size.coerceAtLeast(1)
+    val keysExplained = when {
+        primary != null -> primary.sharedSeedPhraseCount + primaryFallbacks.sumOf { it.totalKeys }
+        isMiniscriptWallet -> numberOfKey
+        else -> seedPhraseKeyIndexes.size.coerceAtLeast(1)
+    }
     // With one key out of several, the heading names which one instead of counting.
     val singleKeyOfSeveral = seedPhraseKeyIndexes.singleOrNull()
         ?.takeIf { !isMiniscriptWallet && numberOfKey > 1 }
@@ -78,11 +92,21 @@ internal fun InheritanceKeyTipContent(
                             modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
                             messages = listOf(
                                 ClickAbleText(
-                                    pluralStringResource(
-                                        R.plurals.nc_inheritance_key_hardware_device_hint,
-                                        keysExplained,
-                                        keysExplained
-                                    )
+                                    when {
+                                        primaryFallbacks.isNotEmpty() ->
+                                            stringResource(R.string.nc_inheritance_key_tip_primary_hint)
+
+                                        primary?.isCustomized == false ->
+                                            stringResource(R.string.nc_inheritance_key_tip_default_primary_hint)
+
+                                        primary != null -> stringResource(R.string.nc_inheritance_key_tip_primary_hint)
+
+                                        else -> pluralStringResource(
+                                            R.plurals.nc_inheritance_key_hardware_device_hint,
+                                            keysExplained,
+                                            keysExplained
+                                        )
+                                    }
                                 )
                             )
                         )
@@ -122,27 +146,103 @@ internal fun InheritanceKeyTipContent(
                     },
                     style = NunchukTheme.typography.heading
                 )
-                NcHighlightText(
-                    modifier = Modifier.padding(16.dp),
-                    text = when {
-                        isMiniscriptWallet -> pluralStringResource(
-                            R.plurals.nc_inheritance_key_tip_desc_miniscript,
-                            numberOfKey,
-                            numberOfKey
-                        )
+                if (primary != null) {
+                    PrimaryInheritanceKeysBody(primary, primaryFallbacks)
+                } else {
+                    NcHighlightText(
+                        modifier = Modifier.padding(16.dp),
+                        text = when {
+                            isMiniscriptWallet -> pluralStringResource(
+                                R.plurals.nc_inheritance_key_tip_desc_miniscript,
+                                numberOfKey,
+                                numberOfKey
+                            )
 
-                        sharesSeedPhrase -> pluralStringResource(
-                            R.plurals.nc_inheritance_key_tip_desc_seed_phrase,
-                            keysExplained,
-                            keysExplained
-                        )
+                            sharesSeedPhrase -> pluralStringResource(
+                                R.plurals.nc_inheritance_key_tip_desc_seed_phrase,
+                                keysExplained,
+                                keysExplained
+                            )
 
-                        else -> stringResource(R.string.nc_inheritance_key_tip_desc)
-                    },
-                    style = NunchukTheme.typography.body
-                )
+                            else -> stringResource(R.string.nc_inheritance_key_tip_desc)
+                        },
+                        style = NunchukTheme.typography.body
+                    )
+                }
             }
         }
+    }
+}
+
+/**
+ * PLAN-14 (guided default) / PLAN-05 (customized): what claims after the timelock, and what to back
+ * up. With [fallbacks] (PLAN-08 / PLAN-11 / PLAN-11b) each route gets its own bullet and the backup
+ * sentence covers the fallback keys too.
+ */
+@Composable
+private fun PrimaryInheritanceKeysBody(
+    primary: PrimaryInheritancePolicyInfo,
+    fallbacks: List<FallbackInheritanceInfo> = emptyList(),
+) {
+    val hasFallbacks = fallbacks.isNotEmpty()
+    Text(
+        modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
+        text = stringResource(
+            if (hasFallbacks) R.string.nc_inheritance_and_fallback_keys_used_to_claim
+            else R.string.nc_inheritance_keys_used_to_claim
+        ),
+        style = NunchukTheme.typography.body
+    )
+    KeyTipBullet(
+        when {
+            !primary.isCustomized -> stringResource(
+                R.string.nc_inheritance_key_tip_default_primary_route,
+                primary.requiredSignatures,
+                primary.totalKeys,
+                primary.ownerKeyCount
+            )
+
+            primary.isSingleKey -> stringResource(R.string.nc_inheritance_key_tip_primary_route_single)
+            primary.requiredSignatures == primary.totalKeys -> stringResource(
+                R.string.nc_inheritance_key_tip_primary_route_all,
+                primary.requiredSignatures,
+                primary.totalKeys
+            )
+
+            else -> stringResource(
+                R.string.nc_inheritance_key_tip_primary_route_any,
+                primary.requiredSignatures,
+                primary.totalKeys
+            )
+        }
+    )
+    fallbacks.forEach { fallback -> KeyTipBullet(fallbackKeyTipRoute(fallback)) }
+    NcHighlightText(
+        modifier = Modifier.padding(16.dp),
+        text = stringResource(
+            when {
+                hasFallbacks -> R.string.nc_inheritance_key_tip_fallback_backup
+                primary.isCustomized -> R.string.nc_inheritance_key_tip_primary_backup
+                else -> R.string.nc_inheritance_key_tip_default_primary_backup
+            }
+        ),
+        style = NunchukTheme.typography.body
+    )
+}
+
+@Composable
+private fun KeyTipBullet(text: String) {
+    Row(modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp)) {
+        Text(
+            modifier = Modifier.padding(horizontal = 8.dp),
+            text = "•",
+            style = NunchukTheme.typography.body
+        )
+        NcHighlightText(
+            modifier = Modifier.weight(1f),
+            text = text,
+            style = NunchukTheme.typography.body
+        )
     }
 }
 
@@ -195,5 +295,63 @@ private fun InheritanceKeyTipScreenMiniscriptSinglePreview() {
         remainTime = 5,
         numberOfKey = 1,
         isMiniscriptWallet = true,
+    )
+}
+
+@PreviewLightDark
+@Composable
+private fun InheritanceKeyTipScreenDefaultPrimaryPreview() {
+    InheritanceKeyTipContent(
+        remainTime = 5,
+        isMiniscriptWallet = true,
+        primaryInheritance = PrimaryInheritancePolicyInfo(isCustomized = false, requiredSignatures = 2, totalKeys = 4),
+    )
+}
+
+@PreviewLightDark
+@Composable
+private fun InheritanceKeyTipScreenCustomizedPrimaryPreview() {
+    InheritanceKeyTipContent(
+        remainTime = 5,
+        isMiniscriptWallet = true,
+        primaryInheritance = PrimaryInheritancePolicyInfo(isCustomized = true, requiredSignatures = 3, totalKeys = 4),
+    )
+}
+
+@PreviewLightDark
+@Composable
+private fun InheritanceKeyTipScreenSingleKeyPrimaryPreview() {
+    InheritanceKeyTipContent(
+        remainTime = 5,
+        isMiniscriptWallet = true,
+        primaryInheritance = PrimaryInheritancePolicyInfo(isCustomized = true, requiredSignatures = 1, totalKeys = 1),
+    )
+}
+
+@PreviewLightDark
+@Composable
+private fun InheritanceKeyTipScreenDefaultPrimaryWithFallbacksPreview() {
+    InheritanceKeyTipContent(
+        remainTime = 5,
+        isMiniscriptWallet = true,
+        primaryInheritance = PrimaryInheritancePolicyInfo(isCustomized = false, requiredSignatures = 2, totalKeys = 4),
+        fallbacks = listOf(
+            FallbackInheritanceInfo(index = 0, requiredSignatures = 1, totalKeys = 1, keys = emptyList(), timelock = null),
+            FallbackInheritanceInfo(index = 1, requiredSignatures = 2, totalKeys = 3, keys = emptyList(), timelock = null),
+        ),
+    )
+}
+
+@PreviewLightDark
+@Composable
+private fun InheritanceKeyTipScreenCustomizedPrimaryWithFallbacksPreview() {
+    InheritanceKeyTipContent(
+        remainTime = 5,
+        isMiniscriptWallet = true,
+        primaryInheritance = PrimaryInheritancePolicyInfo(isCustomized = true, requiredSignatures = 3, totalKeys = 4),
+        fallbacks = listOf(
+            FallbackInheritanceInfo(index = 0, requiredSignatures = 1, totalKeys = 1, keys = emptyList(), timelock = null),
+            FallbackInheritanceInfo(index = 1, requiredSignatures = 2, totalKeys = 3, keys = emptyList(), timelock = null),
+        ),
     )
 }

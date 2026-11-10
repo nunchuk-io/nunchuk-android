@@ -95,7 +95,7 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
             navigator = navigator,
             request = request,
             membershipStep = { membershipStepManager.currentStep },
-            skipPicker = viewModel.verifyingKeyType != null,
+            skipPicker = viewModel.directKeyType != null,
             onSigner = ::returnSigner,
             onResult = ::relayResult,
         )

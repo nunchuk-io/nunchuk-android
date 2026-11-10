@@ -1,6 +1,7 @@
 package com.nunchuk.android.signer
 
 import com.nunchuk.android.core.signer.OnChainAddSignerParam
+import com.nunchuk.android.core.signer.OnChainInheritanceGuide
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.SignerIntroFlow
 import com.nunchuk.android.core.signer.SignerIntroRequest
@@ -247,8 +248,85 @@ class SignerIntroCoordinatorTest {
         assertEquals(SignerHardwareDevice.entries.toSet(), devices.toSet())
     }
 
+    @Test fun `claim account of an added device opens that device directly at the account`() {
+        for ((key, device) in hardware) {
+            val router = router(SignerIntroFlow.ClaimInheritance("claim", true, keyIndex = 2,
+                accountDevice = signer(SignerType.HARDWARE, listOf(device.tag))))
+            assertEquals(key, router.directKeyType)
+            // Wired devices connect and read Account 2 themselves.
+            assertEquals(SignerIntroAction.Hardware(device, HardwareMode.Claim(2)), router.select(key))
+        }
+        // Air-gapped devices go to their guided export without the firmware gate or a saved-key offer.
+        val jade = router(SignerIntroFlow.ClaimInheritance("claim", true, keyIndex = 2,
+            accountDevice = signer(SignerType.AIRGAP, listOf(SignerTag.JADE))))
+        assertEquals(KeyType.JADE, jade.directKeyType)
+        assertEquals(SignerIntroAction.Airgap(SignerTag.JADE, true, null), jade.select(KeyType.JADE))
+        val coldcard = router(SignerIntroFlow.ClaimInheritance("claim", true, keyIndex = 2,
+            accountDevice = signer(SignerType.COLDCARD_NFC, listOf(SignerTag.COLDCARD))))
+        assertEquals(KeyType.COLDCARD, coldcard.directKeyType)
+        assertEquals(SignerIntroAction.Coldcard(true), coldcard.select(KeyType.COLDCARD))
+        // TAPSIGNER must be tapped for the account, never picked from saved keys.
+        val tapsigner = router(SignerIntroFlow.ClaimInheritance("claim", true, keyIndex = 2,
+            accountDevice = signer(SignerType.NFC)))
+        assertEquals(SignerIntroAction.Tapsigner(true), tapsigner.select(KeyType.TAPSIGNER))
+    }
+
+    @Test fun `a new claim key still uses the picker, firmware gate and saved-key offer`() {
+        val router = router(SignerIntroFlow.ClaimInheritance("claim", true))
+        assertNull(router.directKeyType)
+        assertEquals(SignerIntroAction.CheckFirmware(SignerFirmwareDevice.JADE), router.select(KeyType.JADE))
+        assertEquals(SignerIntroAction.OfferExisting(KeyType.TAPSIGNER), router.select(KeyType.TAPSIGNER))
+    }
+
     private fun signer(type: SignerType, tags: List<SignerTag> = emptyList()) = SignerModel(
         id = "key", name = "Key", derivationPath = "m/48h/0h/0h/2h",
         fingerPrint = "1234abcd", type = type, tags = tags, isMasterSigner = true,
     )
+
+    @Test fun `configurable draft - the guide runs once, then device safety precedes a new device`() {
+        val first = router(
+            SignerIntroFlow.OnChainTimelockKey(
+                isInheritanceKey = true,
+                inheritanceGuide = OnChainInheritanceGuide.PRIMARY,
+                showDeviceSafety = true,
+            )
+        )
+        assertEquals(SignerIntroAction.ShowInheritanceGuide(KeyType.JADE), first.select(KeyType.JADE))
+        assertEquals(SignerIntroAction.ShowDeviceSafety(KeyType.JADE), first.guideCompleted(KeyType.JADE))
+        // After the notice, the keys already on this phone are offered on top of it; "Add new key"
+        // then opens the device exactly as it did before (Jade: its firmware gate), with no second notice.
+        assertEquals(SignerIntroAction.OfferExisting(KeyType.JADE), first.deviceSafetyCompleted(KeyType.JADE))
+        val legacy = router(SignerIntroFlow.OnChainTimelockKey(isInheritanceKey = true))
+        assertEquals(legacy.guideCompleted(KeyType.JADE), first.createNew(KeyType.JADE))
+
+        val later = router(
+            SignerIntroFlow.OnChainTimelockKey(isInheritanceKey = true, showInheritanceGuide = false, showDeviceSafety = true)
+        )
+        assertEquals(SignerIntroAction.ShowDeviceSafety(KeyType.LEDGER), later.select(KeyType.LEDGER))
+        // A software key involves no device.
+        assertNotEquals(SignerIntroAction.ShowDeviceSafety(KeyType.SOFTWARE), later.select(KeyType.SOFTWARE))
+    }
+
+    @Test fun `spending account of a new device also gets device safety, without the inheritance guide`() {
+        val router = router(SignerIntroFlow.OnChainTimelockKey(keyIndex = 1, showDeviceSafety = true))
+        assertEquals(SignerIntroAction.ShowDeviceSafety(KeyType.COLDCARD), router.select(KeyType.COLDCARD))
+    }
+
+    @Test fun `configurable draft - every device offers existing keys after device safety`() {
+        val router = router(SignerIntroFlow.OnChainTimelockKey(showDeviceSafety = true))
+        for ((key, device) in hardware) {
+            assertEquals(SignerIntroAction.ShowDeviceSafety(key), router.select(key))
+            assertEquals(SignerIntroAction.OfferExisting(key), router.deviceSafetyCompleted(key))
+            assertEquals(SignerIntroAction.ReturnHardwareTag(device.tag), router.createNew(key))
+        }
+        // TAPSIGNER waits for the notice too, instead of being offered before it.
+        assertEquals(SignerIntroAction.ShowDeviceSafety(KeyType.TAPSIGNER), router.select(KeyType.TAPSIGNER))
+    }
+
+    @Test fun `legacy on-chain flow is unchanged - no device safety`() {
+        val router = router(SignerIntroFlow.OnChainTimelockKey(isInheritanceKey = true))
+        for (key in seedPhraseKeys) {
+            assertFalse("$key", router.guideCompleted(key) is SignerIntroAction.ShowDeviceSafety)
+        }
+    }
 }

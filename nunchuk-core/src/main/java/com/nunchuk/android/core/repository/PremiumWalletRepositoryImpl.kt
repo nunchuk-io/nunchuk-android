@@ -42,7 +42,10 @@ import com.nunchuk.android.core.data.model.InheritanceClaimCreateTransactionRequ
 import com.nunchuk.android.core.data.model.InheritanceClaimDownloadBackupRequest
 import com.nunchuk.android.core.data.model.InheritanceClaimStatusRequest
 import com.nunchuk.android.core.data.model.InitWalletConfigRequest
+import com.nunchuk.android.core.data.model.PrimaryInheritancePayload
 import com.nunchuk.android.core.data.model.UpdateDraftWalletPayload
+import com.nunchuk.android.core.data.model.FallbackInheritancePayload
+import com.nunchuk.android.core.data.model.UpdatePrimaryInheritancePayload
 import com.nunchuk.android.core.data.model.LockdownUpdateRequest
 import com.nunchuk.android.core.data.model.MarkRecoverStatusRequest
 import com.nunchuk.android.core.data.model.QuestionsAndAnswerRequest
@@ -97,6 +100,7 @@ import com.nunchuk.android.core.data.model.membership.toModel
 import com.nunchuk.android.core.data.model.membership.toServerTransaction
 import com.nunchuk.android.core.data.model.membership.toTransactionStatus
 import com.nunchuk.android.core.data.model.membership.toWalletOption
+import com.nunchuk.android.core.data.model.membership.toWalletTimelock
 import com.nunchuk.android.core.data.model.replacement.replacementsToModel
 import com.nunchuk.android.core.data.model.toConvertedTimelock
 import com.nunchuk.android.core.domain.membership.TargetAction
@@ -107,6 +111,7 @@ import com.nunchuk.android.core.manager.UserWalletApiManager
 import com.nunchuk.android.core.mapper.ServerSignerMapper
 import com.nunchuk.android.core.mapper.toAlert
 import com.nunchuk.android.core.mapper.toBackupKey
+import com.nunchuk.android.core.mapper.toBufferPeriodCountdown
 import com.nunchuk.android.core.mapper.toByzantineGroup
 import com.nunchuk.android.core.mapper.toCalculateRequiredSignatures
 import com.nunchuk.android.core.mapper.toCalculateRequiredSignaturesEx
@@ -132,7 +137,6 @@ import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.core.util.toSignerType
 import com.nunchuk.android.model.Alert
 import com.nunchuk.android.model.BackupKey
-import com.nunchuk.android.model.BufferPeriodCountdown
 import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.CalculateRequiredSignatures
 import com.nunchuk.android.model.CalculateRequiredSignaturesAction
@@ -183,10 +187,16 @@ import com.nunchuk.android.model.byzantine.AssistedMember
 import com.nunchuk.android.model.byzantine.DraftWallet
 import com.nunchuk.android.model.byzantine.DummyTransactionPayload
 import com.nunchuk.android.model.byzantine.GroupWalletType
+import com.nunchuk.android.model.inheritance.DraftKeyAccountMismatchException
+import com.nunchuk.android.model.inheritance.DraftKeySlot
+import com.nunchuk.android.model.inheritance.DraftKeySlotHolder
+import com.nunchuk.android.model.inheritance.DraftKeySlotMissingException
+import com.nunchuk.android.model.inheritance.bip32AccountIndex
 import com.nunchuk.android.model.inheritance.InheritancePlanBeneficiary
 import com.nunchuk.android.model.inheritance.InheritancePlanExpandedInstallment
 import com.nunchuk.android.model.inheritance.InheritancePlanFallbackPolicy
 import com.nunchuk.android.model.inheritance.InheritancePlanStage
+import com.nunchuk.android.model.inheritance.OnChainInheritancePolicyType
 import com.nunchuk.android.model.inheritance.InheritanceNotificationSettings
 import com.nunchuk.android.model.isAddInheritanceKey
 import com.nunchuk.android.model.isAllowSetupInheritance
@@ -236,6 +246,7 @@ import javax.inject.Inject
 
 internal class PremiumWalletRepositoryImpl @Inject constructor(
     private val userWalletApiManager: UserWalletApiManager,
+    private val draftKeySlotHolder: DraftKeySlotHolder,
     private val membershipRepository: MembershipRepository,
     private val gson: Gson,
     private val nunchukNativeSdk: NunchukNativeSdk,
@@ -853,7 +864,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                             email = setting.email,
                             notifyTimelockExpires = setting.notifyOnTimelockExpiry,
                             notifyWalletChanges = setting.notifyOnWalletChanges,
-                            includeWalletConfig = setting.includeWalletConfiguration
+                            includeWalletConfig = setting.includeWalletConfiguration,
+                            notifyFallbacks = setting.notifyFallbacks,
                         )
                     }
                 )
@@ -934,18 +946,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 if (it.isSuccess) ncDataStore.setClaimedWalletUserId(accountManager.getAccount().chatId + chain.toString())
             }.data
 
-        val bufferPeriodCountdown = if (response.bufferPeriodCountdown == null) {
-            null
-        } else {
-            BufferPeriodCountdown(
-                activationTimeMilis = response.bufferPeriodCountdown.activationTimeMilis ?: 0,
-                claimableTimeMilis = response.bufferPeriodCountdown.claimableTimeMilis ?: 0,
-                bufferInterval = response.bufferPeriodCountdown.bufferInterval.orEmpty(),
-                bufferIntervalCount = response.bufferPeriodCountdown.bufferIntervalCount ?: 0,
-                remainingCount = response.bufferPeriodCountdown.remainingCount ?: 0,
-                remainingDisplayName = response.bufferPeriodCountdown.remainingDisplayName.orEmpty()
-            )
-        }
+        val bufferPeriodCountdown = response.bufferPeriodCountdown?.toBufferPeriodCountdown()
 
         return InheritanceAdditional(
             inheritance = response.inheritance?.toInheritance(),
@@ -1057,7 +1058,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                                         email = settings.email,
                                         notifyTimelockExpires = settings.notifyOnTimelockExpiry,
                                         notifyWalletChanges = settings.notifyOnWalletChanges,
-                                        includeWalletConfig = settings.includeWalletConfiguration
+                                        includeWalletConfig = settings.includeWalletConfiguration,
+                                        notifyFallbacks = settings.notifyFallbacks,
                                     )
                                 }
                             )
@@ -1934,6 +1936,16 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     override suspend fun syncKey(
         groupId: String, step: MembershipStep, signer: SingleSigner, walletType: WalletType, keySlot: String?,
     ) {
+        // A configurable on-chain draft names its own slot and imports through a request.
+        draftKeySlotHolder.slotFor(groupId)?.takeIf { walletType == WalletType.MINISCRIPT }?.let { slot ->
+            addKeyToDraftSlot(groupId, slot, signer)
+            pushEventManager.push(PushEvent.KeyAddedToGroup)
+            return
+        }
+        // Its slots have no step index: without a slot, refuse rather than import into a legacy index.
+        if (walletType == WalletType.MINISCRIPT && userWalletApiManager.isConfigurableDraft(groupId)) {
+            throw DraftKeySlotMissingException()
+        }
         val allowInheritance = if (walletType == WalletType.MINISCRIPT) {
             getAllowInheritanceFromDraftWallet(groupId)
         } else {
@@ -1953,6 +1965,48 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         pushEventManager.push(PushEvent.KeyAddedToGroup)
     }
 
+    /**
+     * NUN-10320 import: open a request for [slot], check [signer] is the account the request (or the
+     * card) asks for, then `add-key?request_id=…`. A wrong account or a rejected key cancels the request.
+     */
+    private suspend fun addKeyToDraftSlot(groupId: String, slot: DraftKeySlot, signer: SingleSigner) {
+        val requestResponse = if (groupId.isNotEmpty()) {
+            userWalletApiManager.groupWalletApi.requestAddKey(
+                groupId, DesktopKeyRequest(tags = slot.tags, keyIndex = slot.keyIndex)
+            )
+        } else {
+            userWalletApiManager.walletApi.requestAddKey(DesktopKeyRequest(tags = slot.tags, keyIndex = slot.keyIndex))
+        }
+        if (requestResponse.isSuccess.not()) throw requestResponse.error
+        val request = requestResponse.data.request ?: throw NullPointerException("request null")
+        val requestId = request.id.orEmpty()
+        val cancelRequest: suspend () -> Unit = {
+            runCatching {
+                if (groupId.isNotEmpty()) userWalletApiManager.groupWalletApi.cancelRequestAddKey(groupId, requestId)
+                else userWalletApiManager.walletApi.cancelRequestAddKey(requestId)
+            }
+        }
+        val expected = slot.expectedAccount(signer.masterFingerprint, request.derivationPath)
+        if (expected == null || bip32AccountIndex(signer.derivationPath) != expected) {
+            cancelRequest()
+            throw DraftKeyAccountMismatchException(expected)
+        }
+        val signerDto = serverSignerMapper(signer, slot.isInheritance)
+            .copy(index = request.keyIndex ?: slot.keyIndex)
+        // A rejected key (e.g. KEY_ORIGIN_MISMATCH) must not leave the request pending on the server.
+        try {
+            val response = if (groupId.isNotEmpty()) {
+                userWalletApiManager.groupWalletApi.addKeyForRequest(groupId, requestId, signerDto)
+            } else {
+                userWalletApiManager.walletApi.addKeyForRequest(requestId, signerDto)
+            }
+            if (response.isSuccess.not()) throw response.error
+        } catch (e: Throwable) {
+            cancelRequest()
+            throw e
+        }
+    }
+
     override suspend fun requestAddKey(
         groupId: String,
         step: MembershipStep,
@@ -1961,8 +2015,14 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         keySlot: String?,
     ): String {
         val chatId = accountManager.getAccount().chatId
+        val draftSlot = draftKeySlotHolder.slotFor(groupId).takeIf { walletType == WalletType.MINISCRIPT }
+        if (draftSlot == null && walletType == WalletType.MINISCRIPT && userWalletApiManager.isConfigurableDraft(groupId)) {
+            throw DraftKeySlotMissingException()
+        }
+        // Local key for the cached request: a draft slot is not identified by its step.
+        val localKeySlot = draftSlot?.let { "key_indices:" + it.keyIndices.joinToString(",") } ?: keySlot.orEmpty()
         var localRequest =
-            requestAddKeyDao.getRequest(chatId, chain.value, step, tags.joinToString(), groupId, keySlot.orEmpty())
+            requestAddKeyDao.getRequest(chatId, chain.value, step, tags.joinToString(), groupId, localKeySlot)
         if (localRequest != null) {
             val response =
                 if (groupId.isNotEmpty()) userWalletApiManager.groupWalletApi.getRequestAddKeyStatus(
@@ -1980,7 +2040,13 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             } else {
                 false
             }
-            val desktopKeyRequest = if (walletType == WalletType.MINISCRIPT) {
+            val desktopKeyRequest = if (draftSlot != null) {
+                DesktopKeyRequest(
+                    tags = (tags.map { it.name } + draftSlot.tags).distinct(),
+                    keyIndex = draftSlot.keyIndex.takeIf { draftSlot.keyIndices.size <= 1 },
+                    keyIndices = draftSlot.keyIndices.takeIf { it.size > 1 },
+                )
+            } else if (walletType == WalletType.MINISCRIPT) {
                 DesktopKeyRequest(
                     tags = tags.map { it.name },
                     keyIndex = step.toIndex(walletType, allowInheritance),
@@ -2009,7 +2075,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                     step = step,
                     tag = tags.joinToString(),
                     groupId = groupId,
-                    keySlot = keySlot.orEmpty()
+                    keySlot = localKeySlot
                 )
             )
             requestId
@@ -3111,7 +3177,10 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                     based = runCatching { TimelockBased.valueOf(it.based.orEmpty()) }.getOrDefault(TimelockBased.TIME_LOCK),
                     blockHeight = it.blockHeight
                 )
-            }
+            },
+            inheritanceCards = status.cards.orEmpty().mapNotNull { it.toModel() },
+            validationErrors = status.validationErrors.orEmpty().map { it.toModel() },
+            fallbackTimelocks = status.fallbackTimelocks.orEmpty().map { it.toWalletTimelock() },
         )
     }
 
@@ -3149,6 +3218,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         miniscriptTemplate: String?,
         addressType: String?,
         walletTemplate: String?,
+        inheritancePolicyType: OnChainInheritancePolicyType?,
     ) {
         val response = userWalletApiManager.walletApi.initDraftWallet(
             InitWalletConfigRequest(
@@ -3162,11 +3232,102 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 miniscriptTemplate = miniscriptTemplate,
                 addressType = addressType,
                 walletTemplate = walletTemplate,
+                inheritancePolicyType = inheritancePolicyType?.name,
             )
         )
         if (response.isSuccess.not()) {
             throw response.error
         }
+    }
+
+    override suspend fun updateDraftPrimaryInheritance(groupId: String?, m: Int, n: Int): DraftWallet {
+        val payload = UpdatePrimaryInheritancePayload(primary = PrimaryInheritancePayload(m = m, n = n))
+        val response = if (groupId.isNullOrEmpty()) {
+            userWalletApiManager.walletApi.updateDraftPrimaryInheritance(payload)
+        } else {
+            userWalletApiManager.groupWalletApi.updateDraftPrimaryInheritance(groupId, payload)
+        }
+        if (response.isSuccess.not()) {
+            throw response.error
+        }
+        val draftWallet =
+            response.data.draftWallet ?: throw NullPointerException("draftWallet null")
+        return draftWallet.toDraftWalletModel()
+    }
+
+    override suspend fun resetDraftPrimaryInheritance(groupId: String?): DraftWallet {
+        val response = if (groupId.isNullOrEmpty()) {
+            userWalletApiManager.walletApi.resetDraftPrimaryInheritance()
+        } else {
+            userWalletApiManager.groupWalletApi.resetDraftPrimaryInheritance(groupId)
+        }
+        if (response.isSuccess.not()) {
+            throw response.error
+        }
+        val draftWallet =
+            response.data.draftWallet ?: throw NullPointerException("draftWallet null")
+        return draftWallet.toDraftWalletModel()
+    }
+
+    override suspend fun addDraftFallbackInheritance(groupId: String?, m: Int, n: Int): DraftWallet {
+        val payload = FallbackInheritancePayload(m = m, n = n)
+        val response = if (groupId.isNullOrEmpty()) {
+            userWalletApiManager.walletApi.addDraftFallbackInheritance(payload)
+        } else {
+            userWalletApiManager.groupWalletApi.addDraftFallbackInheritance(groupId, payload)
+        }
+        if (response.isSuccess.not()) {
+            throw response.error
+        }
+        val draftWallet =
+            response.data.draftWallet ?: throw NullPointerException("draftWallet null")
+        return draftWallet.toDraftWalletModel()
+    }
+
+    override suspend fun updateDraftFallbackInheritance(
+        groupId: String?,
+        index: Int,
+        m: Int?,
+        n: Int?,
+        timelock: WalletTimelock?,
+    ): DraftWallet {
+        val payload = FallbackInheritancePayload(
+            m = m,
+            n = n,
+            timelock = timelock?.let {
+                TimelockPayload(
+                    value = it.timelockValue,
+                    timezone = it.timezone,
+                    based = it.based.name,
+                    blockHeight = it.blockHeight,
+                )
+            },
+        )
+        val response = if (groupId.isNullOrEmpty()) {
+            userWalletApiManager.walletApi.updateDraftFallbackInheritance(index, payload)
+        } else {
+            userWalletApiManager.groupWalletApi.updateDraftFallbackInheritance(groupId, index, payload)
+        }
+        if (response.isSuccess.not()) {
+            throw response.error
+        }
+        val draftWallet =
+            response.data.draftWallet ?: throw NullPointerException("draftWallet null")
+        return draftWallet.toDraftWalletModel()
+    }
+
+    override suspend fun removeDraftFallbackInheritance(groupId: String?, index: Int): DraftWallet {
+        val response = if (groupId.isNullOrEmpty()) {
+            userWalletApiManager.walletApi.removeDraftFallbackInheritance(index)
+        } else {
+            userWalletApiManager.groupWalletApi.removeDraftFallbackInheritance(groupId, index)
+        }
+        if (response.isSuccess.not()) {
+            throw response.error
+        }
+        val draftWallet =
+            response.data.draftWallet ?: throw NullPointerException("draftWallet null")
+        return draftWallet.toDraftWalletModel()
     }
 
     override suspend fun updateDraftWallet(
@@ -3257,7 +3418,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         timelockValue: Long,
         timezone: String,
         based: TimelockBased,
-        blockHeight: Long?
+        blockHeight: Long?,
+        fallbackIndex: Int?,
     ) {
         val verifyToken = ncDataStore.passwordToken.first()
         val payload = CreateTimelockPayload(
@@ -3266,7 +3428,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 timezone = timezone,
                 based = based.name,
                 blockHeight = blockHeight
-            )
+            ),
+            fallbackIndex = fallbackIndex,
         )
         val response = if (!groupId.isNullOrEmpty()) {
             userWalletApiManager.groupWalletApi.replaceTimelock(

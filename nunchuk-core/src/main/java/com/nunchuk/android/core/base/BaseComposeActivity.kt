@@ -19,7 +19,6 @@
 
 package com.nunchuk.android.core.base
 
-import android.content.Context
 import android.content.pm.ApplicationInfo
 import android.os.Build
 import android.os.Bundle
@@ -38,7 +37,6 @@ import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.widget.NCLoadingDialogCreator
 import com.nunchuk.android.widget.NCToastMessage
 import kotlinx.coroutines.flow.filterIsInstance
-import java.util.Locale
 import javax.inject.Inject
 import com.nunchuk.android.core.R
 
@@ -86,14 +84,6 @@ abstract class BaseComposeActivity : AppCompatActivity(), LoadingDialog {
         message: String?
     ) {
         if (loading) showLoading(title = title, message = message) else hideLoading()
-    }
-
-    override fun attachBaseContext(newBase: Context) {
-        newBase.resources.configuration.apply {
-            setLocale(Locale.US)
-        }
-        Locale.setDefault(Locale.US)
-        super.attachBaseContext(newBase)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

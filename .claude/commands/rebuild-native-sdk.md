@@ -14,6 +14,34 @@ Execute the following steps sequentially. Stop and report if any step fails.
 > served stale from the Gradle cache, force a refresh in Step 4 with
 > `--refresh-dependencies` (or the app may keep using the previously cached AAR).
 
+> **Publish under the version the app consumes.** If nativesdk's `VERSION` differs
+> from my-android's `nativeSdk` (e.g. someone already landed a "Release x.y.z"
+> commit on nativesdk), temporarily set `VERSION` to the app's `nativeSdk` value
+> for `./gradlew publish`, then `git checkout -- build.gradle`. Never edit
+> `libs.versions.toml` to match nativesdk — version bumps happen only at release.
+
+## Hotfix mode
+
+When the request is a **hotfix** for the lib (e.g. a libnunchuk security/bug fix
+that has to reach testers), do this instead of the dev flow below:
+
+1. **my-android**: `git checkout main && git pull --ff-only origin main` (working tree
+   must be clean — stop and ask otherwise). Tell the user which branch they were on.
+2. **nativesdk**: `git checkout main && git pull --ff-only origin main`.
+3. **libnunchuk**: `git fetch origin && git checkout origin/main`, then
+   `git submodule update --init --recursive` so the related dependencies
+   (`contrib/*`) match the pinned hashes. Leave pre-existing local edits inside
+   `contrib/*` (Android build patches) alone.
+4. Build + publish as in Steps 2–3 (respect the version rule above).
+5. **Update the submodule hash** in nativesdk: `git add src/main/native/libnunchuk`,
+   commit `Bump libnunchuk to <short-sha>: <reason>`, and `git push origin main`
+   (GitLab only — never `github_origin`).
+6. Instead of installing, **build and distribute Development Debug to Firebase**:
+   ```bash
+   cd /Users/mega_lh/MyProject/my-android && ./gradlew :nunchuk-app:assembleDevelopmentDebug :nunchuk-app:appDistributionUploadDevelopmentDebug --refresh-dependencies
+   ```
+   Report the Firebase release link.
+
 ### Step 1: Pull latest libnunchuk
 
 ```bash

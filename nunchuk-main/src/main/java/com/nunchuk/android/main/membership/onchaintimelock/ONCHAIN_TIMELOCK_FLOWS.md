@@ -144,13 +144,90 @@ State assembly, in `init` + `refresh()`:
    is empty are collected into `missingBackupKeys` (the card then shows **Upload backup** instead of
    **Verify**).
 3. `TIMELOCK` / `ADD_SEVER_KEY` steps are hydrated with `info.parseTimelockExtra()`.
-4. Push events `DraftWalletTimelockSet` and `DraftWalletCustomizationChanged` re-trigger `refresh()`;
+4. Push events `DraftWalletTimelockSet`, `DraftWalletCustomizationChanged` and `DraftWalletUpdated`
+   (`draft_wallet_updated`, NUN-10320) re-trigger `refresh()`;
    `KeyAddedToGroup` (only when `isAddOnly`) sets `shouldShowKeyAdded` → `keyAddedToGroupWalletFragment`.
 5. Pull-to-refresh and `onResume()` both call `refresh()`.
 
 Role handling in the UI: `KEYHOLDER_LIMITED` sees invisible keys, the server key and the timelock
 card blurred (`BlurView`) and gets no Continue button; `isFacilitatorAdmin` gets an info dialog on
 entry and disabled buttons.
+
+**Configurable drafts (NUN-10320).** Personal HB on-chain drafts are created with
+`inheritance_policy_type: CONFIGURABLE` (`InheritancePlanTypeViewModel`). For such a draft
+(`AddKeyListState.isConfigurableInheritance`) the screen is built from the server instead of the
+fixed step list:
+
+* `refresh()` keeps `onchain_inheritance_policy`, `cards`, `signers`, `validation_errors` and
+  `finalized`; `buildDraftSetupCards` (`DraftSetupCards.kt`) joins each card key to the signer with
+  the same `key_index`. Spending cards show one chip per account the policy uses; the Platform key
+  and timelock keep their legacy `AddKeyCard`; primary slots sit under "Primary inheritance".
+* **Adding a key** reuses the device dispatch above with stand-in steps
+  (`HONEY_ADD_HARDWARE_KEY_1(_TIMELOCK)` for spending accounts, `HONEY_ADD_INHERITANCE_KEY_TIMELOCK`
+  for inheritance slots); `DraftAddOptions` carries the slot's **account** (not "signers so far") into
+  every device helper (`targetAccountIndex()` / `targetSameDevice()`). The slot (index, tags, account,
+  `account_index_by_xfp`) is put in `DraftKeySlotHolder`; `PremiumWalletRepositoryImpl.syncKey` then
+  follows NUN-10320: `request-add-key {key_index, tags}` → check the account against
+  `request.derivation_path` (else the slot / XFP map; `DraftKeyAccountMismatchException` cancels the
+  request) → `add-key?request_id=…`. Desktop requests send `key_indices` / `key_index` + tags.
+  Another account of a device already on a spending card is reused from the app or the draft, derived
+  (TAPSIGNER), or read off that device at exactly that account. The slot is persisted
+  (`DraftKeySlotStore` → `NCSharePreferences`) and the VM's target account is in `SavedStateHandle`,
+  so an import resumed after process death still lands in its slot; the VM clears it after each import,
+  when it is destroyed, or when a legacy add starts. A configurable draft's import with no slot is
+  refused (`DraftKeySlotMissingException`), never sent to a legacy step index.
+* **Onboarding:** a new device goes through "Before you use this device"
+  (`DeviceSafetyNoticeNavigation.kt`, `showDeviceSafety`). The inheritance guide (intro + passphrase
+  notice, copy per `OnChainInheritanceGuide`) runs once per setup — skipped once a primary key is in or
+  the guide ran this session (`isInheritanceGuideSeen`). Picking a key already in the setup (KEY-01a
+  "Choose key") puts it in the slot straight away: no guide, no device-safety notice.
+* **Customized primary:** Add or Change (offered on every filled slot) opens `ChooseKeySheet` (KEY-01a)
+  when keys exist (never a TAPSIGNER: on-chain inheritance keys need a BIP39 seed phrase); the account comes from `DraftKeySlot.expectedAccount` (absent → 0, null → refused).
+  Cancel changes nothing.
+* **Verification** sends the recovered account (`key: {xfp, derivation_path, xpub}`): COLDCARD and
+  air-gap pass the re-added signer; Ledger / BitBox / Trezor return `EXTRA_RECOVERED_KEY`; TAPSIGNER
+  (backup checked by the app) derives the draft's account from the verified master signer
+  (`TapSignerRecoveredKeyResolver`), asking for a tap when that xpub is not cached and stopping with
+  an error otherwise. `KeyRepositoryImpl.setKeyVerified` refuses a configurable draft's verification
+  without the account (`RecoveredKeyRequiredException`); fingerprint-only stays for legacy drafts. The default's inheritance key keeps Verify — the way into
+  `VerifyBackupsScreen` (VER-01) — while any key on that screen (inheritance or owner) is
+  unverified (`hasUnverifiedBackup`, agreed in Slack 2026-10-26), even once Continue is allowed; a
+  customized primary verifies each slot inline (KEY-08). A configurable draft takes each key's
+  verification straight from `verification_type` (`toDraftWalletModel`), never the legacy
+  "non-inheritance hardware = APP_VERIFIED" default.
+* **Continue** = `finalized` && no `validation_errors` && (default only) inheritance key + one owner
+  key verified (`isDraftReadyToContinue`). `AddKeyStepViewModel` also uses `finalized` for these drafts.
+* "Customize (advanced)" → `CustomizeInheritanceIntroFragment` (SET-02a) → `PrimaryInheritancePolicySheet`
+  (PRI-02) → `UpdateDraftPrimaryInheritanceUseCase`; "Edit" opens the sheet; More → "Cancel
+  customization" → `ResetDraftPrimaryInheritanceUseCase`. Validation messages show under the primary
+  card (keys / timelock named by an error are circled), the rest at the end of the list.
+* **Fallbacks (Figma Row 2 · FBK, Row 3 · TIME)** sit under primary inheritance
+  (`fallbackDraftItems`, `FallbackInheritanceSetupViews.kt`); "Add fallback" shows even before the
+  primary time is set (SET-03). The first "Add fallback" runs `FallbackInheritanceIntroFragment`
+  (FBK-01), then the shared `InheritancePolicySheet` ("Fallback N policy", FBK-01a, starts at 1 of 1)
+  → `AddDraftFallbackInheritanceUseCase` (`POST draft-wallets/fallbacks`); later ones open the sheet
+  directly. Edit → the sheet with the fallback's M of N → `UpdateDraftFallbackInheritanceUseCase`
+  (`PUT …/fallbacks/{index}`); Remove → `RemoveFallbackSheet` (FBK-10 / FBK-11) →
+  `RemoveDraftFallbackInheritanceUseCase` (`DELETE …/fallbacks/{index}`; later fallbacks move down
+  and keep keys and times). Every call returns the draft, which is applied and then refreshed.
+  * Fallback slots (FALLBACK cards, joined by `fallback_index`) use `DraftPrimarySlotCard`; Add always
+    offers `ChooseKeySheet` in its fallback wording ("Choose a key for Fallback N", "Use a different
+    key") when other keys exist — a key already in the same route is not offered, and neither is a
+    TAPSIGNER (no BIP39 seed phrase, so never an on-chain inheritance key; `chooseKeyOptions`). The account comes
+    from the card's `account_index_by_xfp` as for the primary. The fallback guide
+    (`OnChainInheritanceGuide.FALLBACK` + `fallbackNumber`, KEY-05 / KEY-06) runs once per fallback
+    (`AddKeyListState.isGuideSeen`), also for a key picked from the setup.
+  * Verify on a fallback key runs that key's own backup check; every fallback key that is in must be
+    verified before Continue (`isRequiredVerificationDone`).
+  * The fallback's timelock card reuses `AddKeyCard` (Configure / Change) and opens
+    `OnChainSetUpTimelockFragment` with a `FallbackTimelockTarget` (index, N, the previous route's and
+    the next fallback's times): TIME-01 "Set up Fallback N timelock" / TIME-02 "Edit …" with the
+    limits, and the Invalid date dialog for a time at/before the previous route or at/after the next
+    fallback (TIME-03 / TIME-04). Save → `UpdateDraftFallbackInheritanceUseCase` with the timelock →
+    `DraftWalletUpdated`. Changing the primary time is not bounded here; the backend flags a fallback
+    that no longer fits (SET-13b).
+  * Errors for a fallback show under its timelock card (keys / timelock circled by
+    `highlightedKeyIndices` / `isTimelockHighlighted` with the fallback index).
 
 ### 3.3 "Add" — the dispatcher chain
 
@@ -304,7 +381,11 @@ Commit:
 | flow | use case | push event |
 |---|---|---|
 | creation (`isReplaceKeyFlow = false`) | `CreateTimelockUseCase(groupId, value, timezone, plan, based, blockHeight)` | `DraftWalletTimelockSet(groupId)` |
-| replace (`isReplaceKeyFlow = true`, `walletId != null`) | `ReplaceTimelockUseCase(groupId, walletId, value, timezone, based, blockHeight)` | `ReplaceKeyChange(walletId)` |
+| replace (`isReplaceKeyFlow = true`, `walletId != null`) | `ReplaceTimelockUseCase(groupId, walletId, value, timezone, based, blockHeight, fallbackIndex)` | `ReplaceKeyChange(walletId)` |
+
+The replace branch is checked first, so a replace with a `fallbackTarget` sends
+`fallback_index = fallbackTarget.index` (`CreateTimelockPayload.fallbackIndex`, omitted when null →
+primary) instead of updating a draft fallback.
 
 On success the screen simply pops (`onBackPressedDispatcher.onBackPressed()`); the list screen picks
 up the change through the push event. Errors surface as `NCToastMessage`.
@@ -450,6 +531,69 @@ onCreateWallet() → FinalizeReplaceKeyUseCase(groupId, walletId)
                       ? OpenUploadConfigurationScreen(newWalletId)   // navigator, isOnChainFlow = true
                       : createWalletSuccess → createWalletSuccessFragment(walletId, replacedWalletId)
 ```
+
+### 6.5 Configurable wallets (NUN-10320, Figma Row 9 · REP)
+
+A wallet whose `onchain_inheritance_policy.type` is `CONFIGURABLE` has no fixed key indices, so
+`OnChainReplaceKeyStep` does not apply. `onWalletLoaded` skips `buildAddReplaceKeySteps` and the
+screen is built from the replacement status instead (`replacekey/ConfigurableReplaceCards.kt`):
+
+* `status.cards` (server order) joined by `key_index` to the wallet's signers and to
+  `status.signers[].replacements[]` → `ConfigurableReplaceState`: one `ReplaceKeyRow` per device per
+  card. A `section: null` slot with no key is a retained, unused account and is skipped.
+* **`ReplaceTarget` = one original XFP across all cards.** Replacing a key means supplying every
+  account it gives the wallet (e.g. Acct 0/1 for spending, Acct 2 for Fallback 1), all from one new
+  key, then verifying once. The row look follows the target: Replace → dashed with missing accounts
+  greyed (REP-02) → Verify (REP-03) → Remove (REP-03b).
+* `status.timelock` is the effective primary time, `status.fallback_timelocks[i]` fallback i; they
+  count as changed only when they differ from the wallet's policy.
+* Verify (Figma Row 9, updated 2026-11-05 evening): "spending-only" means the key sits on
+  spending cards only (`ReplaceSlot.cardSection`), even when an account serves primary (default
+  2-of-4 Acct 1). One check per device covers all its accounts and turns all its cards green.
+  * Default 2-of-4: every card of a complete, unverified replacement offers Verify, spending-only
+    keys too (optional there).
+  * Customized primary (`isCustomizedPrimary`): Verify only on Primary inheritance and fallback cards;
+    a spending card turns green once imported (REP-03c). `ConfigurableReplaceState.showsVerify(card, target)`.
+  * Only a key on a primary or fallback card blocks Continue (`ReplaceTarget.needsVerification`).
+  * The app does not skip for the user. Continue follows the rules above; the backend checks
+    verification at finalize (e.g. a default wallet left with no verified owner key) and its error
+    shows as a toast (Huy, 2026-11-05).
+* Continue (`canContinue`) = something changed **and** every replaced key is `isDone` (all accounts
+  in, and verified when on a primary or fallback card) **and** `status.validation_errors` is empty. Errors are shown in their card; `keys`
+  errors circle the rows of `key_indices`, `timelock` errors the condition's timelock.
+
+Importing (`OnChainReplaceKeysViewModel`):
+
+* Replace → `ConfigurableReplaceRequest(originalXfp, keyIndex, accountIndex, isInheritance,
+  sameDevice)`, kept in `SavedStateHandle`. The first account opens the key picker
+  (`OpenConfigurableAdd`, `SignerIntroFlow.OnChainTimelockKey(keyIndex = account)`); the rest come
+  off `sameDevice` — reused if the app/server already holds that account (TAPSIGNER: derived), else
+  that device's own flow — and continue automatically after each import.
+* REP-07: Replace on a key used **only by fallbacks** (`isFallbackOnly`) first opens "Choose a key
+  for Fallback N" (`ChooseKeySheet`, `ConfigurableReplaceState.chooseKeyOptions`): the wallet's other
+  keys, without the key being replaced, the Platform key, a TAPSIGNER, or a key already on the same
+  card. A chosen
+  key joins at its next free account (`nextFreeAccount`, Account N+1 over the wallet and pending
+  replacements; the backend accepts an account other than the old key's), read off that device
+  (`ConfigurableReplaceRequest.isWalletKey`), then Verify as usual. "Use a different key" is the
+  usual import. Spending, primary and shared keys skip the sheet.
+* The slot's server index travels as `OnChainAddSignerParam.ReplaceInfo.keyIndex`
+  (`replaceKeyIndex()`); COLDCARD / air-gap call `replace` with it. `onReplaceKey` refuses a key at
+  another account or from another device.
+* Verify sends the recovered account (`SetReplaceKeyVerifiedUseCase.recoveredKey` → nested `key`):
+  COLDCARD, air-gap, Ledger / BitBox (`EXTRA_RECOVERED_KEY`), TAPSIGNER by-app, by-self and the
+  backup intro (`TapSignerRecoveredKeyResolver.replacementKey`, from the cached xpub at the
+  replacement's path). `KeyRepositoryImpl.setReplaceKeyVerified` refuses a configurable wallet
+  without it, except for a skip (`SKIPPED_VERIFICATION`), which proves no key.
+* Rollover after finalize: "Remove unused keys" is offered only once the new wallet is known not to
+  be configurable (`RollOverWalletUiState.canRemoveUnusedKeys`); otherwise `false` is sent.
+* Every timelock has Change. Primary → `replacement/timelock` without `fallback_index` (bounded
+  by Fallback 1, `firstFallbackTimelock`). Fallback i → `openReplaceFallbackTimelock(i)` opens the
+  timelock screen with `fallbackTarget = ConfigurableReplaceState.fallbackTimelockTarget(i)`
+  (TIME-02 "Edit Fallback N timelock"): `previous` is the effective time of the route before it
+  (primary for Fallback 1, else `fallback_timelocks[i-1]`), `next` that of `fallback_timelocks[i+1]`,
+  both taking a pending replacement over the wallet's value. Save → `replacement/timelock` with
+  `fallback_index = i`; the card then reads "Replacing existing timelock (…)".
 
 ---
 

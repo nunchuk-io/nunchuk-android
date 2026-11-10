@@ -147,6 +147,9 @@
     <string name="nc_coldcard_onchain_verify_backup_desc">Please re-add the key for the spending path [B]after the timelock[/B] to verify. On your device, select [B]account 0[/B] for this spending path.</string>
     <string name="nc_coldcard_onchain_first_key_desc">Each hardware device must be added twice, with both keys (before and after the timelock) coming from the same device but using different derivation paths.\n\nPlease add a key for the spending path [B]after the timelock.[/B] On your device, select [B]account 0[/B] for this spending path.</string>
     <string name="nc_coldcard_onchain_second_key_desc">Each hardware device must be added twice, with both keys (before and after the timelock) coming from the same device but using different derivation paths.\n\nNow add the second key from the same COLDCARD for the spending path [B]before the timelock[/B]. On your device, select [B]account %1$d[/B] for this spending path.</string>
+    <!-- Configurable draft: a primary-inheritance or fallback key is one account of the device (Figma KEY-05c / KEY-05b) -->
+    <string name="nc_onchain_add_primary_inheritance_key_desc">Please add a key for [B]primary inheritance[/B]. On your device, select [B]account %1$d[/B] for this key.</string>
+    <string name="nc_onchain_add_fallback_key_desc">Please add a key for [B]Fallback %1$d[/B]. On your device, select [B]account %2$d[/B] for this fallback.</string>
     <string name="nc_add_key">Add key</string>
     <string name="nc_add_inheritance_key">Add inheritance key</string>
     <string name="nc_re_add_restored_key">Re-add the restored key</string>
@@ -1106,6 +1109,8 @@
     <string name="nc_miniscript_num_signatures_required">Number of signatures required</string>
     <string name="nc_miniscript_total_number_of_keys">Total number of keys</string>
     <string name="nc_miniscript_total_number_of_pubkeys">Total number of public keys in the multisig</string>
+    <string name="nc_wallet_cd_decrement">Decrement</string>
+    <string name="nc_wallet_cd_increment">Increment</string>
     <string name="nc_miniscript_contract_policy">Contract policy:</string>
     <string name="nc_miniscript_multisig">multisig</string>
     <string name="nc_miniscript_will_auto_change">will automatically change to</string>
@@ -1171,7 +1176,7 @@
     <string name="nc_how_it_works_indirect_desc">With the secrets you provided, there are [A]two ways[/A] for the Trustee to access and claim the funds:</string>
     <string name="nc_how_it_works_joint_desc">With the secrets you provided, there are [A]two ways[/A] for the Beneficiary and Trustee to access and claim the funds together:</string>
     <string name="nc_with_nunchuk_service">With Nunchuk service</string>
-    <string name="nc_without_nunchuk_service">Without Nunchuk service (fallback option)</string>
+    <string name="nc_without_nunchuk_service">Without Nunchuk service</string>
     <string name="nc_guided_claim_desc">Guided claim using the Magic Phrase and the inheritance key</string>
     <string name="nc_self_serve_recovery_desc_beneficiary">Self-serve claim using the wallet configuration file (BSMS file) and the inheritance key.</string>
     <string name="nc_self_serve_recovery_desc_trustee">Self-serve claim using the wallet configuration file (BSMS file) and the inheritance key.</string>
@@ -1386,4 +1391,27 @@
         <item quantity="other">Remove non-standard keys</item>
     </plurals>
     <string name="nc_create_anyway">Create anyway</string>
+    <string name="nc_language">Language</string>
+    <string name="nc_search_languages">Search languages</string>
+    <string name="nc_follow_device_language">Follow device language</string>
+    <string name="nc_language_currently_using">Currently using %1$s</string>
+    <string name="nc_language_device_language">Device language: %1$s</string>
+    <string name="nc_language_device_fallback">Currently using English. Your device language (%1$s) isn\'t available yet.</string>
+    <string name="nc_no_languages_found">No languages found</string>
+    <string name="nc_clear_search">Clear search</string>
+    <string name="nc_change_language_failed">Couldn\'t change language. Try again.</string>
+    <string name="nc_language_name_english">English</string>
+    <string name="nc_language_name_arabic">Arabic</string>
+    <string name="nc_language_name_chinese_simplified">Chinese, Simplified</string>
+    <string name="nc_language_name_chinese_traditional">Chinese, Traditional</string>
+    <string name="nc_language_name_french">French</string>
+    <string name="nc_language_name_german">German</string>
+    <string name="nc_language_name_hindi">Hindi</string>
+    <string name="nc_language_name_indonesian">Indonesian</string>
+    <string name="nc_language_name_japanese">Japanese</string>
+    <string name="nc_language_name_korean">Korean</string>
+    <string name="nc_language_name_portuguese_brazil">Portuguese, Brazil</string>
+    <string name="nc_language_name_russian">Russian</string>
+    <string name="nc_language_name_spanish">Spanish</string>
+    <string name="nc_language_name_vietnamese">Vietnamese</string>
 </resources>

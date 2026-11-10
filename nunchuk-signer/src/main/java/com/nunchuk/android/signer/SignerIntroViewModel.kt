@@ -11,6 +11,7 @@ import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.signer.SignerIntroFlow
 import com.nunchuk.android.core.signer.SignerIntroRequest
 import com.nunchuk.android.core.util.isRecommendedMultiSigPath
+import com.nunchuk.android.core.util.matchesChain
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.MembershipPlan
@@ -55,6 +56,8 @@ data class SignerIntroState(
      */
     val eligibleSupportedSigners: List<SupportedSigner> = emptyList(),
     val signerDisplayInfos: List<SignerDisplayInfo> = emptyList(),
+    /** A configurable on-chain draft slot (primary or fallback): KEY-01 titles the picker "Add key". */
+    val isConfigurableDraft: Boolean = false,
 )
 
 @HiltViewModel
@@ -77,6 +80,7 @@ class SignerIntroViewModel @Inject constructor(
 
     private var onChainAddSignerParam: OnChainAddSignerParam? = null
     private var isTestNet: Boolean = false
+    private var chain: Chain = Chain.MAIN
     private var pickerPolicy: SignerIntroPickerPolicy? = null
 
     private val _state = MutableStateFlow(SignerIntroState())
@@ -88,13 +92,15 @@ class SignerIntroViewModel @Inject constructor(
     private val selectionState = SignerIntroSelectionState(savedStateHandle)
     /** Completes once the existing keys are known, so a fast pick cannot read the list as empty. */
     private val existingSignersLoaded = CompletableDeferred<Unit>()
-    val verifyingKeyType: KeyType? get() = requireNotNull(coordinator).verifyingKeyType
+    /** Opens this key type's flow without the picker (backup verification, a claim account). */
+    val directKeyType: KeyType? get() = requireNotNull(coordinator).directKeyType
 
     init {
         viewModelScope.launch {
             getChainSettingFlowUseCase(Unit)
                 .map { it.getOrDefault(Chain.MAIN) }
                 .collect {
+                    chain = it
                     isTestNet = it == Chain.TESTNET
                 }
         }
@@ -107,14 +113,14 @@ class SignerIntroViewModel @Inject constructor(
         onChainAddSignerParam = request.deviceParams
         val policy = SignerIntroPickerPolicy(request)
         pickerPolicy = policy
-        _state.update { it.copy(supportedSigners = policy.initialSigners) }
+        _state.update { it.copy(supportedSigners = policy.initialSigners, isConfigurableDraft = routing.isConfigurableDraft) }
         if (policy.usesWalletConfigs) fetchUserWalletConfigs()
         if (policy.loadsExistingSigners) loadAllSigners() else existingSignersLoaded.complete(Unit)
         updateSignerDisplayInfos()
         _state.update { it.copy(showRecoveryOptions = savedStateHandle[RECOVERY_VISIBLE] ?: false) }
-        if (routing.verifyingKeyType != null && savedStateHandle.get<Boolean>(VERIFICATION_OPENED) != true) {
+        if (routing.directKeyType != null && savedStateHandle.get<Boolean>(VERIFICATION_OPENED) != true) {
             savedStateHandle[VERIFICATION_OPENED] = true
-            onKeySelected(routing.verifyingKeyType)
+            onKeySelected(routing.directKeyType)
         }
     }
 
@@ -182,6 +188,11 @@ class SignerIntroViewModel @Inject constructor(
         dispatch(requireNotNull(coordinator).guideCompleted(keyType))
     }
 
+    /** The owner read "Before you use this device" for [keyType]. */
+    fun onDeviceSafetyCompleted(keyType: KeyType) {
+        dispatch(requireNotNull(coordinator).deviceSafetyCompleted(keyType))
+    }
+
     fun onFirmwareChecked(device: SignerFirmwareDevice) {
         dispatch(requireNotNull(coordinator).firmwareChecked(device))
     }
@@ -206,6 +217,7 @@ class SignerIntroViewModel @Inject constructor(
         when (action) {
             is SignerIntroAction.OfferExisting -> offerExisting(action.keyType)
             is SignerIntroAction.ShowInheritanceGuide -> sendEvent(SignerIntroEvent.ShowInheritanceGuide(action.keyType))
+            is SignerIntroAction.ShowDeviceSafety -> sendEvent(SignerIntroEvent.ShowDeviceSafety(action.keyType))
             SignerIntroAction.RecoverSoftware -> {
                 savedStateHandle[RECOVERY_VISIBLE] = true
                 _state.update { it.copy(showRecoveryOptions = true) }
@@ -229,7 +241,7 @@ class SignerIntroViewModel @Inject constructor(
             coordinator?.request?.flow is SignerIntroFlow.ClaimInheritance
         ) SignerTag.COLDCARD else deviceTag
         return filterExistingSigners(
-            filterSignerByType(type, tag).filter { it.derivationPath.isRecommendedMultiSigPath }
+            filterSignerByType(type, tag).filter { it.derivationPath.isRecommendedMultiSigPath && it.derivationPath.matchesChain(chain) }
         )
     }
 
@@ -337,6 +349,7 @@ class SignerIntroViewModel @Inject constructor(
 sealed interface SignerIntroEvent {
     data class CheckFirmware(val device: SignerFirmwareDevice) : SignerIntroEvent
     data class ShowInheritanceGuide(val keyType: KeyType) : SignerIntroEvent
+    data class ShowDeviceSafety(val keyType: KeyType) : SignerIntroEvent
     data class OpenDevice(val action: SignerDeviceAction) : SignerIntroHostEvent
     data class ReturnHardwareTag(val tag: SignerTag) : SignerIntroHostEvent
     data class ReturnKeyType(val keyType: KeyType) : SignerIntroHostEvent

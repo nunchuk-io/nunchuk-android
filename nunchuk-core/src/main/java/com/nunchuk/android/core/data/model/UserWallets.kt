@@ -38,7 +38,10 @@ internal data class CreateServerKeysPayload(
 
 internal data class CreateTimelockPayload(
     @SerializedName("timelock")
-    val timelock: TimelockPayload
+    val timelock: TimelockPayload,
+    /** Replacement only (NUN-10320): the existing fallback whose time changes; null (omitted) = primary. */
+    @SerializedName("fallback_index")
+    val fallbackIndex: Int? = null,
 )
 
 internal data class TimelockPayload(
@@ -225,6 +228,35 @@ internal data class InitWalletConfigRequest(
     // Optional. Current allowed value is DEFAULT.
     @SerializedName("wallet_template")
     val walletTemplate: String? = null,
+    // On-chain only: CONFIGURABLE enables primary/fallback editing. Omitted creates a legacy draft.
+    @SerializedName("inheritance_policy_type")
+    val inheritancePolicyType: String? = null,
+)
+
+/** Body for PUT /v1.1/(user|group)-wallets/.../draft-wallets/primary — customizes primary inheritance. */
+internal data class UpdatePrimaryInheritancePayload(
+    @SerializedName("primary")
+    val primary: PrimaryInheritancePayload,
+)
+
+internal data class PrimaryInheritancePayload(
+    @SerializedName("m")
+    val m: Int,
+    @SerializedName("n")
+    val n: Int,
+)
+
+/**
+ * Body for POST draft-wallets/fallbacks (append) and PUT draft-wallets/fallbacks/{index} (edit).
+ * Null fields are omitted, and an edit keeps whatever it omits.
+ */
+internal data class FallbackInheritancePayload(
+    @SerializedName("m")
+    val m: Int? = null,
+    @SerializedName("n")
+    val n: Int? = null,
+    @SerializedName("timelock")
+    val timelock: TimelockPayload? = null,
 )
 
 /**

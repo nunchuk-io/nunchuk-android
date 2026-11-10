@@ -47,6 +47,7 @@ data class WalletDto(
     @SerializedName("send_bsms_email") val sendBsmsEmail: Boolean = false,
     @SerializedName("requires_registration") val requiresRegistration: Boolean? = null,
     @SerializedName("timelock") val timelock: TimelockDto? = null,
+    @SerializedName("onchain_inheritance_policy") val onChainInheritancePolicy: OnChainInheritancePolicyDto? = null,
 )
 
 data class ReplaceByDto(
@@ -58,6 +59,13 @@ data class TimelockDto(
     @SerializedName("timezone") val timezone: String? = null,
     @SerializedName("based") val based: String? = null,
     @SerializedName("block_height") val blockHeight: Long? = null,
+)
+
+internal fun TimelockDto?.toWalletTimelock() = WalletTimelock(
+    timelockValue = this?.value ?: 0L,
+    timezone = this?.timezone.orEmpty(),
+    based = runCatching { TimelockBased.valueOf(this?.based.orEmpty()) }.getOrDefault(TimelockBased.TIME_LOCK),
+    blockHeight = this?.blockHeight
 )
 
 internal fun WalletDto.toModel(): WalletServer {
@@ -77,12 +85,8 @@ internal fun WalletDto.toModel(): WalletServer {
         walletType = walletType?.toWalletType() ?: WalletType.MULTI_SIG,
         sendBsmsEmail = sendBsmsEmail,
         requiresRegistration = requiresRegistration == true,
-        timelock = WalletTimelock(
-            timelockValue = timelock?.value ?: 0L,
-            timezone = timelock?.timezone ?: "",
-            based = runCatching { TimelockBased.valueOf(timelock?.based.orEmpty()) }.getOrDefault(TimelockBased.TIME_LOCK),
-            blockHeight = timelock?.blockHeight
-        )
+        timelock = timelock.toWalletTimelock(),
+        onChainInheritancePolicy = onChainInheritancePolicy?.toModel(),
     )
 }
 

@@ -13,6 +13,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
@@ -22,15 +23,24 @@ import com.nunchuk.android.compose.NcScaffold
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.main.R
 
+/**
+ * "Your plan requires N inheritance keys", before each key of a claim. [index] is the 1-based key
+ * about to be added; past [totalKeys] the backend asked for another key without a complete
+ * condition, so the copy only counts what was added.
+ */
 @Composable
 fun AddInheritanceKeyScreen(
     modifier: Modifier = Modifier,
     snackState: SnackbarHostState = remember { SnackbarHostState() },
     onBackPressed: () -> Unit = {},
     onAddKeyClick: () -> Unit = {},
-    isFirstKey: Boolean = true,
+    index: Int = 1,
     totalKeys: Int = 2,
 ) {
+    val isFirstKey = index <= 1
+    // The drawn copy for a 2-key plan; any other later key uses the "x of N" copy.
+    val isSecondOfTwo = index == 2 && totalKeys == 2
+    val addedKeys = index - 1
     val backgroundRes = if (isFirstKey) {
         R.drawable.bg_add_inheritance_to_claim_first
     } else {
@@ -48,12 +58,12 @@ fun AddInheritanceKeyScreen(
         },
         bottomBar = {
             Column(Modifier.padding(16.dp)) {
-                val buttonText = if (isFirstKey) {
-                    stringResource(R.string.nc_add_the_first_inheritance_key)
-                } else {
-                    stringResource(R.string.nc_add_the_second_inheritance_key)
+                val buttonText = when {
+                    isFirstKey -> stringResource(R.string.nc_add_the_first_inheritance_key)
+                    isSecondOfTwo -> stringResource(R.string.nc_add_the_second_inheritance_key)
+                    else -> stringResource(R.string.nc_claim_add_another_key)
                 }
-                
+
                 NcPrimaryDarkButton(
                     modifier = Modifier.fillMaxWidth(),
                     onClick = onAddKeyClick
@@ -72,25 +82,42 @@ fun AddInheritanceKeyScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                text = stringResource(R.string.nc_your_plan_requires, totalKeys),
+                text = pluralStringResource(R.plurals.nc_your_plan_requires, totalKeys, totalKeys),
                 style = NunchukTheme.typography.heading,
                 modifier = Modifier.padding(top = 24.dp)
             )
 
-            if (isFirstKey) {
-                Text(
-                    text = stringResource(R.string.nc_add_first_key_desc),
+            when {
+                isFirstKey -> Text(
+                    text = stringResource(R.string.nc_add_first_key_desc, totalKeys),
                     style = NunchukTheme.typography.body
                 )
-            } else {
-                Text(
-                    text = stringResource(R.string.nc_successfully_added_the_first),
-                    style = NunchukTheme.typography.body
-                )
-                Text(
-                    text = stringResource(R.string.nc_add_second_key_desc),
-                    style = NunchukTheme.typography.body
-                )
+
+                isSecondOfTwo -> {
+                    Text(
+                        text = stringResource(R.string.nc_successfully_added_the_first),
+                        style = NunchukTheme.typography.body
+                    )
+                    Text(
+                        text = stringResource(R.string.nc_add_second_key_desc),
+                        style = NunchukTheme.typography.body
+                    )
+                }
+
+                else -> {
+                    Text(
+                        text = if (addedKeys < totalKeys) {
+                            stringResource(R.string.nc_claim_keys_added_progress, addedKeys, totalKeys)
+                        } else {
+                            stringResource(R.string.nc_claim_keys_added, addedKeys)
+                        },
+                        style = NunchukTheme.typography.body
+                    )
+                    Text(
+                        text = stringResource(R.string.nc_claim_add_another_key_to_continue),
+                        style = NunchukTheme.typography.body
+                    )
+                }
             }
         }
     }
@@ -108,6 +135,14 @@ private fun AddInheritanceKeyScreenPreview() {
 @Composable
 private fun AddInheritanceKeyScreen2Preview() {
     NunchukTheme {
-        AddInheritanceKeyScreen(isFirstKey = false)
+        AddInheritanceKeyScreen(index = 2)
+    }
+}
+
+@PreviewLightDark
+@Composable
+private fun AddInheritanceKeyScreenNextOfThreePreview() {
+    NunchukTheme {
+        AddInheritanceKeyScreen(index = 3, totalKeys = 3)
     }
 }

@@ -30,15 +30,16 @@ import com.nunchuk.android.core.exception.RequestAddKeyCancelException
 import com.nunchuk.android.core.gateway.SignerGateway
 import com.nunchuk.android.core.manager.UserWalletApiManager
 import com.nunchuk.android.core.mapper.ServerSignerMapper
+import com.nunchuk.android.core.mapper.toClaimDownloadWalletResult
 import com.nunchuk.android.core.mapper.toClaimSigningChallenge
 import com.nunchuk.android.core.mapper.toInheritanceClaimingInit
-import com.nunchuk.android.core.network.NunchukApiException
 import com.nunchuk.android.core.persistence.NcDataStore
 import com.nunchuk.android.core.signer.toSignerTag
 import com.nunchuk.android.model.InheritanceClaimingInit
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.WalletServer
+import com.nunchuk.android.model.inheritance.ClaimDownloadWalletResult
 import com.nunchuk.android.model.inheritance.ClaimSigningChallenge
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.persistence.dao.RequestAddKeyDao
@@ -71,7 +72,7 @@ internal class InheritanceRepositoryImpl @Inject constructor(
     override suspend fun downloadWallet(
         magic: String,
         keys: List<SingleSigner>
-    ): WalletServer {
+    ): ClaimDownloadWalletResult {
         val keyDtos = keys.map { singleSigner ->
             val isInheritanceKey = singleSigner.tags.contains(SignerTag.INHERITANCE)
             serverSignerMapper(singleSigner, isInheritanceKey)
@@ -81,9 +82,9 @@ internal class InheritanceRepositoryImpl @Inject constructor(
             keys = keyDtos
         )
         val response =
-            userWalletApiManager.claimInheritanceApi.inheritanceClaimingDownloadWallet(request)
-        val walletServer =
-            response.data.wallet ?: throw NunchukApiException(code = 831) // inheritance not found
+            userWalletApiManager.claimInheritanceApi.inheritanceClaimingDownloadWallet(request).data
+        val walletServer = response.wallet
+            ?: return response.toClaimDownloadWalletResult(wallet = null)
         val walletLocalId = walletServer.localId.orEmpty()
 
         walletServer.signerServerDtos?.forEach { signer ->
@@ -117,7 +118,7 @@ internal class InheritanceRepositoryImpl @Inject constructor(
         val chain = ncDataStore.chain.first()
         ncDataStore.setClaimedWalletUserId(chatId + chain.toString())
 
-        return walletServer.toModel()
+        return response.toClaimDownloadWalletResult(wallet = walletServer.toModel())
     }
 
     override suspend fun isClaimWallet(walletId: String): Boolean {

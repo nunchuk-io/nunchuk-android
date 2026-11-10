@@ -105,7 +105,7 @@ fun SignerIntroScreenContent(
                 .verticalScroll(rememberScrollState())
         ) {
             Text(
-                text = if (onChainAddSignerParam?.isAddInheritanceSigner() == true) stringResource(
+                text = if (onChainAddSignerParam?.isAddInheritanceSigner() == true && !state.isConfigurableDraft) stringResource(
                     R.string.nc_add_inheritance_key
                 ) else if (onChainAddSignerParam?.isVerifyBackupSeedPhrase() == true) stringResource(
                     R.string.nc_re_add_restored_key
@@ -122,6 +122,7 @@ fun SignerIntroScreenContent(
 
             SignerSelection(
                 displayInfos = state.signerDisplayInfos,
+                isConfigurableDraft = state.isConfigurableDraft,
                 onClick = onClick,
             )
         }
@@ -131,6 +132,8 @@ fun SignerIntroScreenContent(
 @Composable
 internal fun SignerSelection(
     displayInfos: List<SignerDisplayInfo>,
+    /** KEY-01: a divider above the simple rows (Generic Airgap) and their titles in bold. */
+    isConfigurableDraft: Boolean = false,
     onClick: (KeyType) -> Unit,
 ) {
     val cardItems = displayInfos.filter { it.category == SignerDisplayCategory.CARD }
@@ -193,6 +196,9 @@ internal fun SignerSelection(
         }
     }
 
+    if (isConfigurableDraft && simpleRowItems.isNotEmpty()) {
+        HorizontalDivider(modifier = Modifier.padding(top = 16.dp))
+    }
     simpleRowItems.forEach { item ->
         Row(
             modifier = Modifier
@@ -211,7 +217,7 @@ internal fun SignerSelection(
             Text(
                 modifier = Modifier.padding(start = 12.dp),
                 text = stringResource(item.titleRes),
-                style = NunchukTheme.typography.body
+                style = if (isConfigurableDraft) NunchukTheme.typography.title else NunchukTheme.typography.body,
             )
         }
     }

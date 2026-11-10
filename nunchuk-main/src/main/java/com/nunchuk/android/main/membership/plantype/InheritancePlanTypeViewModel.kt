@@ -7,6 +7,7 @@ import com.nunchuk.android.core.domain.membership.SetLocalMembershipPlanFlowUseC
 import com.nunchuk.android.core.util.InheritancePlanType
 import com.nunchuk.android.model.WalletConfig
 import com.nunchuk.android.model.byzantine.GroupWalletType
+import com.nunchuk.android.model.inheritance.OnChainInheritancePolicyType
 import com.nunchuk.android.model.toMembershipPlan
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.GetUserWalletConfigsSetupFromCacheUseCase
@@ -142,7 +143,13 @@ class InheritancePlanTypeViewModel @Inject constructor(
                         n = type.n,
                         requiredServerKey = type.requiredServerKey
                     ),
-                    walletType = walletType
+                    walletType = walletType,
+                    // Personal Honey Badger on-chain: primary customization + fallbacks (NUN-10320).
+                    inheritancePolicyType = OnChainInheritancePolicyType.CONFIGURABLE.takeIf {
+                        walletType == WalletType.MINISCRIPT &&
+                            type == GroupWalletType.TWO_OF_FOUR_MULTISIG &&
+                            _state.value.groupId.isNullOrEmpty()
+                    },
                 )
             )
             setLocalMembershipPlanFlowUseCase(plan)

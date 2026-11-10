@@ -73,11 +73,18 @@ import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.FallbackInheritanceInfo
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceBeneficiaryAllocation
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceSetupFlowType
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.PrimaryInheritanceInfo
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.fallbackKeyNumbers
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.fallbackShareKeysLine
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.onChainSharePrimaryKeys
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.sharesecret.InheritanceShareSecretType
+import com.nunchuk.android.model.InheritanceKey
 import com.nunchuk.android.model.inheritance.ClaimOption
+import com.nunchuk.android.model.inheritance.InheritanceSection
 import com.nunchuk.android.utils.Utils
 
 @Composable
@@ -96,6 +103,8 @@ internal fun InheritanceShareSecretInfoScreen(
     val sharedUiState by sharedViewModel.state.collectAsStateWithLifecycle()
     InheritanceShareSecretInfoContent(
         isMiniscriptWallet = sharedUiState.isMiniscriptWallet,
+        primaryInheritance = sharedUiState.primaryInheritance,
+        fallbackInheritances = sharedUiState.fallbackInheritances,
         remainTime = remainTime,
         type = type,
         magicalPhrase = magicalPhrase,
@@ -114,6 +123,8 @@ internal fun InheritanceShareSecretInfoScreen(
 @Composable
 private fun InheritanceShareSecretInfoContent(
     isMiniscriptWallet: Boolean = false,
+    primaryInheritance: PrimaryInheritanceInfo? = null,
+    fallbackInheritances: List<FallbackInheritanceInfo> = emptyList(),
     remainTime: Int = 0,
     magicalPhrase: String = "",
     type: Int = 0,
@@ -129,6 +140,8 @@ private fun InheritanceShareSecretInfoContent(
     val routes = claimOptions.toInheritanceKeyRoutes()
     if (isMiniscriptWallet) {
         InheritanceOnChainShareSecretInfoContent(
+            primaryInheritance = primaryInheritance,
+            fallbackInheritances = fallbackInheritances,
             remainTime = remainTime,
             magicalPhrase = magicalPhrase,
             type = type,
@@ -576,6 +589,9 @@ private fun SecretCard(
 
 @Composable
 private fun InheritanceOnChainShareSecretInfoContent(
+    primaryInheritance: PrimaryInheritanceInfo? = null,
+    /** Empty unless the plan has fallbacks; each one adds itself to item 3 (SHARE-03 / SHARE-14). */
+    fallbackInheritances: List<FallbackInheritanceInfo> = emptyList(),
     remainTime: Int = 0,
     magicalPhrase: String = "",
     type: Int = 0,
@@ -603,11 +619,16 @@ private fun InheritanceOnChainShareSecretInfoContent(
             }, bottomBar = {
                 Column {
                     // Warning message
+                    val hasFallbacks = fallbackInheritances.isNotEmpty()
                     val warningDescRes = when (type) {
-                        InheritanceShareSecretType.DIRECT.ordinal -> R.string.nc_onchain_warning_beneficiary
-                        InheritanceShareSecretType.INDIRECT.ordinal -> R.string.nc_onchain_warning_trustee
-                        InheritanceShareSecretType.JOINT_CONTROL.ordinal -> R.string.nc_onchain_warning_joint
-                        else -> R.string.nc_onchain_warning_beneficiary
+                        InheritanceShareSecretType.INDIRECT.ordinal ->
+                            if (hasFallbacks) R.string.nc_onchain_warning_fallbacks_trustee else R.string.nc_onchain_warning_trustee
+
+                        InheritanceShareSecretType.JOINT_CONTROL.ordinal ->
+                            if (hasFallbacks) R.string.nc_onchain_warning_fallbacks_joint else R.string.nc_onchain_warning_joint
+
+                        else ->
+                            if (hasFallbacks) R.string.nc_onchain_warning_fallbacks_beneficiary else R.string.nc_onchain_warning_beneficiary
                     }
 
                     NcHintMessage(
@@ -655,7 +676,8 @@ private fun InheritanceOnChainShareSecretInfoContent(
                     val item1LabelRes = when (type) {
                         InheritanceShareSecretType.DIRECT.ordinal -> R.string.nc_onchain_item1_label_beneficiary
                         InheritanceShareSecretType.INDIRECT.ordinal -> R.string.nc_onchain_item1_label_trustee
-                        InheritanceShareSecretType.JOINT_CONTROL.ordinal -> R.string.nc_onchain_item1_label_trustee
+                        InheritanceShareSecretType.JOINT_CONTROL.ordinal ->
+                            if (primaryInheritance != null) R.string.nc_onchain_item1_label_joint else R.string.nc_onchain_item1_label_trustee
                         else -> R.string.nc_onchain_item1_label_beneficiary
                     }
 
@@ -707,7 +729,15 @@ private fun InheritanceOnChainShareSecretInfoContent(
                     ) {
                         Text(
                             modifier = Modifier.align(Alignment.Center),
-                            text = stringResource(R.string.nc_fallback_option_bsms_file),
+                            // A configurable plan has real fallback routes, so the BSMS file must not
+                            // read as another one (SHARE-03…31); legacy plans keep their label.
+                            text = stringResource(
+                                if (primaryInheritance != null || fallbackInheritances.isNotEmpty()) {
+                                    R.string.nc_wallet_configuration_bsms_file
+                                } else {
+                                    R.string.nc_fallback_option_bsms_file
+                                }
+                            ),
                             style = NunchukTheme.typography.body
                         )
 
@@ -719,16 +749,24 @@ private fun InheritanceOnChainShareSecretInfoContent(
                     }
 
                     // Item 2: Beneficiary keeps (for JOINT_CONTROL) or same person keeps (for DIRECT/INDIRECT)
-                    val item2LabelRes = when (type) {
-                        InheritanceShareSecretType.JOINT_CONTROL.ordinal -> R.string.nc_onchain_item2_label_beneficiary
-                        else -> R.string.nc_onchain_item2_label
+                    val isJointControl = type == InheritanceShareSecretType.JOINT_CONTROL.ordinal
+                    val item2Label = if (primaryInheritance != null) {
+                        onChainSharePrimaryKeys(primaryInheritance, isJointControl)
+                    } else {
+                        stringResource(
+                            if (isJointControl) R.string.nc_onchain_item2_label_beneficiary else R.string.nc_onchain_item2_label
+                        )
                     }
 
                     NCLabelWithIndex(
                         modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp),
                         index = 2,
-                        label = stringResource(item2LabelRes),
+                        label = item2Label,
                     )
+
+                    if (fallbackInheritances.isNotEmpty()) {
+                        OnChainShareFallbacksItem(type = type, fallbacks = fallbackInheritances)
+                    }
 
                     Spacer(modifier = Modifier.height(20.dp))
                 }
@@ -737,11 +775,141 @@ private fun InheritanceOnChainShareSecretInfoContent(
     }
 }
 
+/**
+ * Item 3 when the plan has fallbacks (SHARE-03 / SHARE-14): each fallback's keys go to whoever it is
+ * meant for, and the box lists every fallback with its keys (numbered across fallbacks) and M-of-N.
+ */
+@Composable
+private fun OnChainShareFallbacksItem(type: Int, fallbacks: List<FallbackInheritanceInfo>) {
+    NCLabelWithIndex(
+        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp),
+        index = 3,
+        label = stringResource(
+            when (type) {
+                InheritanceShareSecretType.INDIRECT.ordinal -> R.string.nc_onchain_share_fallbacks_trustee
+                InheritanceShareSecretType.JOINT_CONTROL.ordinal -> R.string.nc_onchain_share_fallbacks_joint
+                else -> R.string.nc_onchain_share_fallbacks_beneficiary
+            }
+        ),
+    )
+    val keyNumbers = fallbacks.fallbackKeyNumbers()
+    Column(
+        modifier = Modifier
+            .padding(start = 50.dp, top = 16.dp, end = 16.dp)
+            .fillMaxWidth()
+            .background(
+                color = MaterialTheme.colorScheme.greyLight,
+                shape = RoundedCornerShape(12.dp)
+            )
+            .padding(16.dp)
+    ) {
+        fallbacks.forEachIndexed { position, fallback ->
+            Text(
+                modifier = Modifier.padding(top = if (position == 0) 0.dp else 12.dp),
+                text = stringResource(R.string.nc_fallback_number, fallback.number),
+                style = NunchukTheme.typography.titleSmall
+            )
+            Text(
+                modifier = Modifier.padding(top = 4.dp),
+                text = fallbackShareKeysLine(fallback, keyNumbers[position]),
+                style = NunchukTheme.typography.bodySmall
+            )
+        }
+    }
+}
+
+private fun previewFallbacks() = listOf(
+    FallbackInheritanceInfo(
+        index = 0,
+        requiredSignatures = 1,
+        totalKeys = 1,
+        keys = listOf(
+            InheritanceKey(xfp = "5c2d81a0", section = InheritanceSection.FALLBACK, name = "Fallback key 1", fallbackIndex = 0),
+        ),
+        timelock = null,
+    ),
+    FallbackInheritanceInfo(index = 1, requiredSignatures = 2, totalKeys = 3, keys = emptyList(), timelock = null),
+)
+
+@PreviewLightDark
+@Composable
+private fun InheritanceOnChainShareSecretDefaultPrimaryWithFallbacksPreview() {
+    InheritanceOnChainShareSecretInfoContent(
+        primaryInheritance = PrimaryInheritanceInfo(
+            isCustomized = false,
+            requiredSignatures = 2,
+            totalKeys = 4,
+            inheritanceKeys = listOf(
+                InheritanceKey(xfp = "6b35f210", section = InheritanceSection.PRIMARY, name = "Inheritance key 1"),
+            ),
+        ),
+        fallbackInheritances = previewFallbacks(),
+        magicalPhrase = "dolphin concert apple",
+        type = InheritanceShareSecretType.DIRECT.ordinal,
+    )
+}
+
+@PreviewLightDark
+@Composable
+private fun InheritanceOnChainShareSecretCustomizedJointWithFallbacksPreview() {
+    InheritanceOnChainShareSecretInfoContent(
+        primaryInheritance = PrimaryInheritanceInfo(
+            isCustomized = true,
+            requiredSignatures = 2,
+            totalKeys = 3,
+            inheritanceKeys = listOf(
+                InheritanceKey(xfp = "79eb35f4", section = InheritanceSection.PRIMARY, name = "Inheritance key 1"),
+                InheritanceKey(xfp = "f91b570c", section = InheritanceSection.PRIMARY, name = "Inheritance key 2"),
+                InheritanceKey(xfp = "8e41b2c7", section = InheritanceSection.PRIMARY, name = "Inheritance key 3"),
+            ),
+        ),
+        fallbackInheritances = previewFallbacks(),
+        magicalPhrase = "dolphin concert apple",
+        type = InheritanceShareSecretType.JOINT_CONTROL.ordinal,
+    )
+}
+
 @PreviewLightDark
 @Composable
 private fun InheritanceShareSecretInfoScreenPreview() {
     InheritanceShareSecretInfoContent(
         isMiniscriptWallet = false
+    )
+}
+
+@PreviewLightDark
+@Composable
+private fun InheritanceOnChainShareSecretDefaultPrimaryPreview() {
+    InheritanceOnChainShareSecretInfoContent(
+        primaryInheritance = PrimaryInheritanceInfo(
+            isCustomized = false,
+            requiredSignatures = 2,
+            totalKeys = 4,
+            inheritanceKeys = listOf(
+                InheritanceKey(xfp = "6b35f210", section = InheritanceSection.PRIMARY, name = "Inheritance key 1"),
+            ),
+        ),
+        magicalPhrase = "dolphin concert apple",
+        type = InheritanceShareSecretType.DIRECT.ordinal,
+    )
+}
+
+@PreviewLightDark
+@Composable
+private fun InheritanceOnChainShareSecretCustomizedJointPreview() {
+    InheritanceOnChainShareSecretInfoContent(
+        primaryInheritance = PrimaryInheritanceInfo(
+            isCustomized = true,
+            requiredSignatures = 2,
+            totalKeys = 3,
+            inheritanceKeys = listOf(
+                InheritanceKey(xfp = "79eb35f4", section = InheritanceSection.PRIMARY, name = "Inheritance key 1"),
+                InheritanceKey(xfp = "f91b570c", section = InheritanceSection.PRIMARY, name = "Inheritance key 2"),
+                InheritanceKey(xfp = "8e41b2c7", section = InheritanceSection.PRIMARY, name = "Inheritance key 3"),
+            ),
+        ),
+        magicalPhrase = "dolphin concert apple",
+        type = InheritanceShareSecretType.JOINT_CONTROL.ordinal,
     )
 }
 

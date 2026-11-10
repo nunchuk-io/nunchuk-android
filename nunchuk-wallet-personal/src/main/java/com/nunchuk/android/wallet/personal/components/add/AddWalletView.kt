@@ -67,6 +67,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.nunchuk.android.compose.NcIcon
+import com.nunchuk.android.compose.NcRequiredKeysCounter
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcRadioButton
 import com.nunchuk.android.compose.NcSnackBarHost
@@ -885,92 +886,6 @@ private data class InviteEmailChipState(
 )
 
 @Composable
-fun KeyManagementSection(
-    title: String,
-    description: String,
-    value: Int,
-    enableIncrement: Boolean = true,
-    enableDecrement: Boolean = true,
-    onIncrement: () -> Unit,
-    onDecrement: () -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .padding(end = 12.dp)
-        ) {
-            Text(
-                text = title,
-                style = NunchukTheme.typography.body,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = description,
-                style = NunchukTheme.typography.bodySmall.copy(
-                    color = MaterialTheme.colorScheme.textSecondary,
-                    fontWeight = FontWeight.W400
-                )
-            )
-        }
-
-        Row(
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(36.dp)
-                    .alpha(if (enableDecrement) 1f else 0.4f)
-                    .border(1.dp, MaterialTheme.colorScheme.textPrimary, CircleShape)
-                    .clickable(enableDecrement) {
-                        onDecrement()
-                    },
-                contentAlignment = Alignment.Center
-            ) {
-                NcIcon(
-                    painter = painterResource(id = R.drawable.ic_minus),
-                    contentDescription = stringResource(R.string.nc_wallet_cd_decrement),
-                )
-            }
-
-            Box(
-                modifier = Modifier
-                    .padding(horizontal = 12.dp)
-                    .size(48.dp)
-                    .border(1.dp, Color.Gray, RoundedCornerShape(8.dp)),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = value.toString(),
-                    style = NunchukTheme.typography.body,
-                )
-            }
-
-            Box(
-                modifier = Modifier
-                    .size(36.dp)
-                    .alpha(if (enableIncrement) 1f else 0.4f)
-                    .border(1.dp, MaterialTheme.colorScheme.textPrimary, CircleShape)
-                    .clickable(enableIncrement) { onIncrement() },
-                contentAlignment = Alignment.Center
-            ) {
-                NcIcon(
-                    painter = painterResource(id = R.drawable.ic_plus),
-                    contentDescription = stringResource(R.string.nc_wallet_cd_increment),
-                )
-            }
-        }
-    }
-}
-
-@Composable
 fun KeysAndRequiredKeysScreen(
     freeGroupWalletConfig: GlobalGroupWalletConfig,
     m: Int,
@@ -995,7 +910,7 @@ fun KeysAndRequiredKeysScreen(
             onNumberChange(requiredKeys, keys)
         }
 
-        KeyManagementSection(
+        NcRequiredKeysCounter(
             title = stringResource(R.string.nc_title_signers),
             description = stringResource(R.string.nc_wallet_number_of_keys_desc, freeGroupWalletConfig.maxKey),
             value = keys,
@@ -1007,7 +922,7 @@ fun KeysAndRequiredKeysScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        KeyManagementSection(
+        NcRequiredKeysCounter(
             title = stringResource(R.string.nc_miniscript_required_keys),
             description = stringResource(R.string.nc_wallet_number_of_signatures_desc),
             value = requiredKeys,
