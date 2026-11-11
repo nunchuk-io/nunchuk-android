@@ -1,3 +1,20 @@
+NEW in this build — On-chain Primary Inheritance with fallbacks (hb-primary-inheritance merged into 2.9.6)
+
+Use a new draft wallet. TAPSIGNER can't be a primary-inheritance or fallback key.
+1. Primary inheritance setup: plan setup guidance, Review / Share / How it works screens, M-of-N copy.
+2. Fallbacks: add / edit / remove fallbacks with their timelocks; primary must unlock before Fallback 1.
+3. Add key for primary inheritance / a fallback (COLDCARD, Jade, other air-gapped): the intro says
+   "Add COLDCARD" (no "1/2") and "select account X…". Spending keys keep "(1/2)".
+4. Co-signer review of a plan change (wallet alert → View): only changed values are red; a new
+   recipient is red throughout.
+5. Replace key or change timelock: each fallback timelock has Change; the date must be after the
+   previous route and before the next fallback, otherwise "Invalid date".
+6. Claim with configurable conditions / fallbacks.
+
+Also merged: app language settings (Settings → Display → Language) and locale-safe amount input.
+
+────────────────────────────────────────
+
 FIX in this build — Sign with an air-gapped key added from the desktop app (Jade, Keystone, SeedSigner, Passport, Krux)
 
 A Jade added from the desktop app is stored as HARDWARE + JADE (not AIRGAP + JADE). Android used to
