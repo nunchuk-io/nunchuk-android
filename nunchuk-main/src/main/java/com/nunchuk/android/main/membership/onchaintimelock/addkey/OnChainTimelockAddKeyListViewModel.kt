@@ -480,7 +480,7 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
                 )
             ).onSuccess {
                 refresh()
-                _event.emit(AddKeyListEvent.OnKeyVerified)
+                _event.emit(AddKeyListEvent.OnKeyVerified(fallbackNumber = savedStateHandle[KEY_VERIFY_FALLBACK_NUMBER]))
             }.onFailure {
                 _event.emit(it.toAddKeyErrorEvent())
             }
@@ -788,15 +788,20 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
             _state.update { it.copy(isVerifyBackupsVisible = true) }
             return
         }
-        slot.signer?.let(::verifyDraftKey)
+        slot.signer?.let { verifyDraftKey(it, fallbackNumber = card.card.fallbackNumber.takeIf { n -> n > 0 }) }
     }
 
     fun dismissVerifyBackups() {
         _state.update { it.copy(isVerifyBackupsVisible = false) }
     }
 
-    /** Runs the existing seed-phrase backup check for [signer] (TapSigner: its backup file). */
-    fun verifyDraftKey(signer: SignerModel) {
+    /**
+     * Runs the existing seed-phrase backup check for [signer] (TapSigner: its backup file).
+     * [fallbackNumber] is set when Verify comes from a fallback card, so the backup screens name
+     * "Fallback N key" (FBK-13); it is kept for the success screen shown after the check.
+     */
+    fun verifyDraftKey(signer: SignerModel, fallbackNumber: Int? = null) {
+        savedStateHandle[KEY_VERIFY_FALLBACK_NUMBER] = fallbackNumber
         viewModelScope.launch {
             val info = membershipStepState.value.lastOrNull {
                 it.masterSignerId.equals(signer.fingerPrint, ignoreCase = true)
@@ -808,6 +813,7 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
                     filePath = nfcFileManager.buildFilePath(info?.keyIdInServer.orEmpty()),
                     backUpFileName = backUpFileName,
                     isBackupNfc = signer.type == SignerType.NFC && backUpFileName.isEmpty(),
+                    fallbackNumber = fallbackNumber,
                 )
             )
         }
@@ -924,6 +930,7 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
         membershipStepManager.isKeyExisted(masterSignerId)
 
     fun onVerifyClicked(data: AddKeyOnChainData) {
+        savedStateHandle[KEY_VERIFY_FALLBACK_NUMBER] = null
         viewModelScope.launch {
             // Find the first step that needs verification (has signer but needs verification)
             val stepToVerify = data.steps.firstOrNull { step ->
@@ -1346,6 +1353,7 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
         private val DRAFT_SPENDING_DISPATCH_STEP_ACCOUNT_1 = MembershipStep.HONEY_ADD_HARDWARE_KEY_1
         private val DRAFT_PRIMARY_DISPATCH_STEP = MembershipStep.HONEY_ADD_INHERITANCE_KEY_TIMELOCK
         private const val KEY_CURRENT_STEP = "current_step"
+        private const val KEY_VERIFY_FALLBACK_NUMBER = "verify_fallback_number"
         private const val KEY_ACTIVE_DRAFT_ACCOUNT = "active_draft_account"
         private const val KEY_INHERITANCE_GUIDE_SEEN = "inheritance_guide_seen"
         private const val KEY_FALLBACK_GUIDES_SEEN = "fallback_guides_seen"
@@ -1415,11 +1423,13 @@ sealed class AddKeyListEvent {
         val signer: SignerModel,
         val filePath: String,
         val backUpFileName: String,
-        val isBackupNfc: Boolean = false
+        val isBackupNfc: Boolean = false,
+        /** 1-based, when verifying from a fallback card. */
+        val fallbackNumber: Int? = null,
     ) : AddKeyListEvent()
 
     data object OnAddAllKey : AddKeyListEvent()
-    data object OnKeyVerified : AddKeyListEvent()
+    data class OnKeyVerified(val fallbackNumber: Int? = null) : AddKeyListEvent()
     data object SelectAirgapType : AddKeyListEvent()
     data object RequireReopenWallet : AddKeyListEvent()
     data class HandleSignerTypeLogic(val type: SignerType, val tag: SignerTag?) : AddKeyListEvent()

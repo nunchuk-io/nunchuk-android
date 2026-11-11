@@ -45,6 +45,7 @@ fun NavGraphBuilder.backUpSeedPhraseOptionDestination(
     masterSignerId: String = "",
     replacedXfp: String = "",
     claimOption: ClaimOption? = null,
+    fallbackNumber: Int? = null,
     onContinue: () -> Unit = {},
     onSkip: () -> Unit = {},
     onMoreClicked: () -> Unit = {}
@@ -56,6 +57,7 @@ fun NavGraphBuilder.backUpSeedPhraseOptionDestination(
             masterSignerId = masterSignerId,
             replacedXfp = replacedXfp,
             claimOption = claimOption,
+            fallbackNumber = fallbackNumber,
             onContinue = onContinue,
             onSkip = onSkip,
             onMoreClicked = onMoreClicked
@@ -70,6 +72,7 @@ private fun BackUpSeedPhraseOptionScreen(
     masterSignerId: String = "",
     replacedXfp: String = "",
     claimOption: ClaimOption? = null,
+    fallbackNumber: Int? = null,
     viewModel: BackUpSeedPhraseSharedViewModel = hiltViewModel(),
     onContinue: () -> Unit = {},
     onSkip: () -> Unit = {},
@@ -94,6 +97,7 @@ private fun BackUpSeedPhraseOptionScreen(
     }
     
     BackUpSeedPhraseOptionContent(
+        fallbackNumber = fallbackNumber,
         onContinueClicked = onContinue,
         onSkipClicked = {
             viewModel.skipVerification(
@@ -111,6 +115,7 @@ private fun BackUpSeedPhraseOptionScreen(
 
 @Composable
 private fun BackUpSeedPhraseOptionContent(
+    fallbackNumber: Int? = null,
     remainTime: Int = 0,
     onContinueClicked: () -> Unit = {},
     onSkipClicked: () -> Unit = {},
@@ -142,7 +147,11 @@ private fun BackUpSeedPhraseOptionContent(
             ) {
                 Text(
                     modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
-                    text = stringResource(R.string.nc_membership_verify_seed_phrase_title),
+                    text = if (fallbackNumber != null) {
+                        stringResource(R.string.nc_membership_verify_fallback_seed_phrase_title, fallbackNumber)
+                    } else {
+                        stringResource(R.string.nc_membership_verify_seed_phrase_title)
+                    },
                     style = NunchukTheme.typography.heading
                 )
                 Text(
@@ -152,7 +161,11 @@ private fun BackUpSeedPhraseOptionContent(
                 )
                 Text(
                     modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp),
-                    text = stringResource(R.string.nc_membership_verify_seed_phrase_ensure),
+                    text = if (fallbackNumber != null) {
+                        stringResource(R.string.nc_membership_verify_fallback_seed_phrase_ensure, fallbackNumber)
+                    } else {
+                        stringResource(R.string.nc_membership_verify_seed_phrase_ensure)
+                    },
                     style = NunchukTheme.typography.body
                 )
                 Text(

@@ -224,8 +224,9 @@ fixed step list:
     the next fallback's times): TIME-01 "Set up Fallback N timelock" / TIME-02 "Edit …" with the
     limits, and the Invalid date dialog for a time at/before the previous route or at/after the next
     fallback (TIME-03 / TIME-04). Save → `UpdateDraftFallbackInheritanceUseCase` with the timelock →
-    `DraftWalletUpdated`. Changing the primary time is not bounded here; the backend flags a fallback
-    that no longer fits (SET-13b).
+    `DraftWalletUpdated`. Changing the primary time is not bounded here: a primary time at/after
+    Fallback 1 is saved and the backend flags the fallback (SET-13b, Huy 2026-11-11). Replace key does
+    block it (below).
   * Errors for a fallback show under its timelock card (keys / timelock circled by
     `highlightedKeyIndices` / `isTimelockHighlighted` with the fallback index).
 
@@ -350,6 +351,14 @@ Paths are built locally: `m/48h/0h/{index}h/2h` (mainnet) or `m/48h/1h/{index}h/
 
 `setKeyVerified(xfp)` → `SetKeyVerifiedUseCase(verifyType = APP_VERIFIED)` → `refresh()` →
 `OnKeyVerified` → the success screen (`BackUpSeedPhraseType.SUCCESS`).
+
+**Fallback wording (Figma FBK-13, Huy 2026-11-11):** Verify from a fallback card (draft setup or
+configurable replace) carries `fallbackNumber` (1-based) in `OnVerifySigner` /
+`BackUpSeedPhraseArgs.fallbackNumber`, and every backup / verify / success / mismatch screen says
+"Fallback N key" where it would say "inheritance key". The number is kept in `SavedStateHandle`
+for `OnKeyVerified(fallbackNumber)`, and goes to the COLDCARD / air-gap device screens as
+`SignerIntroFlow.VerifyBackup.inheritanceRoute` → `OnChainAddSignerParam.verifiedFallbackNumber()`,
+which open the success screen themselves. Primary and spending keys keep the old copy.
 
 ### 3.8 Continue
 
@@ -588,7 +597,7 @@ Importing (`OnChainReplaceKeysViewModel`):
 * Rollover after finalize: "Remove unused keys" is offered only once the new wallet is known not to
   be configurable (`RollOverWalletUiState.canRemoveUnusedKeys`); otherwise `false` is sent.
 * Every timelock has Change. Primary → `replacement/timelock` without `fallback_index` (bounded
-  by Fallback 1, `firstFallbackTimelock`). Fallback i → `openReplaceFallbackTimelock(i)` opens the
+  by Fallback 1, `firstFallbackTimelock`; replace only, setup leaves it to SET-13b). Fallback i → `openReplaceFallbackTimelock(i)` opens the
   timelock screen with `fallbackTarget = ConfigurableReplaceState.fallbackTimelockTarget(i)`
   (TIME-02 "Edit Fallback N timelock"): `previous` is the effective time of the route before it
   (primary for Fallback 1, else `fallback_timelocks[i-1]`), `next` that of `fallback_timelocks[i+1]`,

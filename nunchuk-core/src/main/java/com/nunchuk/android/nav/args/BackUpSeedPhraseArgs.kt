@@ -47,6 +47,11 @@ data class BackUpSeedPhraseArgs(
     val walletType: WalletType? = null,
     /** Whether the wizard menu may offer Restart; see [com.nunchuk.android.core.signer.SignerIntroRequest.canRestartWizard]. */
     val canRestartWizard: Boolean = false,
+    /**
+     * 1-based number of the fallback whose key is being verified. The screens then name
+     * "Fallback N key" wherever they would say "inheritance key" (Figma FBK-13). Null otherwise.
+     */
+    val fallbackNumber: Int? = null,
 ) {
 
     fun buildBundle() = Bundle().apply {
@@ -58,6 +63,7 @@ data class BackUpSeedPhraseArgs(
         putString(CLAIM_OPTION, claimOption?.name)
         putSerializable(WALLET_TYPE, walletType)
         putBoolean(CAN_RESTART_WIZARD, canRestartWizard)
+        fallbackNumber?.let { putInt(FALLBACK_NUMBER, it) }
     }
 
     companion object {
@@ -71,6 +77,7 @@ data class BackUpSeedPhraseArgs(
             groupId: String,
             walletId: String,
             claimOption: ClaimOption?,
+            fallbackNumber: Int? = null,
         ) = BackUpSeedPhraseArgs(
             type = if (claimOption != null) {
                 BackUpSeedPhraseType.INHERITANCE_VERIFIED
@@ -81,6 +88,7 @@ data class BackUpSeedPhraseArgs(
             groupId = groupId,
             walletId = walletId,
             claimOption = claimOption,
+            fallbackNumber = fallbackNumber,
         )
 
         private const val TYPE = "type"
@@ -91,6 +99,7 @@ data class BackUpSeedPhraseArgs(
         private const val CLAIM_OPTION = "claim_option"
         private const val WALLET_TYPE = "wallet_type"
         private const val CAN_RESTART_WIZARD = "can_restart_wizard"
+        private const val FALLBACK_NUMBER = "fallback_number"
 
         fun deserializeFrom(intent: Intent): BackUpSeedPhraseArgs = BackUpSeedPhraseArgs(
             type = intent.extras?.getSerializable(TYPE) as? BackUpSeedPhraseType 
@@ -103,6 +112,7 @@ data class BackUpSeedPhraseArgs(
                 ?.let { name -> ClaimOption.entries.firstOrNull { it.name == name } },
             walletType = intent.extras?.getSerializable(WALLET_TYPE) as? WalletType,
             canRestartWizard = intent.extras?.getBoolean(CAN_RESTART_WIZARD) == true,
+            fallbackNumber = intent.extras?.takeIf { it.containsKey(FALLBACK_NUMBER) }?.getInt(FALLBACK_NUMBER),
         )
     }
 }

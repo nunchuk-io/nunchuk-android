@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.signer.components.add
 
+import com.nunchuk.android.core.signer.verifiedFallbackNumber
 import com.nunchuk.android.core.signer.toRecoveredKey
 import com.nunchuk.android.core.util.resolve
 import android.app.Activity
@@ -341,6 +342,7 @@ class AddAirgapSignerFragment : BaseCameraFragment<ViewBinding>(),
                             groupId = activity.groupId,
                             walletId = activity.walletId,
                             claimOption = param?.claimOption,
+                            fallbackNumber = param.verifiedFallbackNumber(),
                         )
                     )
                 }

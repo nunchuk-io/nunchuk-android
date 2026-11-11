@@ -855,6 +855,17 @@
     <string name="nc_membership_backup_step_turn_on">Turn on your hardware signing device</string>
     <string name="nc_membership_backup_step_find_recovery_words">Refer to your device’s instruction manual and find the option to view or back up the recovery words for this key (12 or 24 words)</string>
     <string name="nc_membership_backup_step_write_words">Write each word in the correct sequence and check the spelling carefully</string>
+    <!-- A fallback key's backup and verify screens: "Fallback N key" in place of "inheritance key" (Figma FBK-13). -->
+    <string name="nc_membership_backup_fallback_seed_phrase_title">Back up your Fallback %1$d key seed phrase</string>
+    <string name="nc_membership_backup_fallback_seed_phrase_steel_plate">Please back up the Fallback %1$d key seed phrase on a steel plate, or a durable format that is non-digital.</string>
+    <string name="nc_membership_backup_fallback_seed_phrase_share">You will need to share this seed phrase backup with the person Fallback %1$d is intended for.</string>
+    <string name="nc_membership_verify_fallback_seed_phrase_title">Verify your Fallback %1$d key seed phrase</string>
+    <string name="nc_membership_verify_fallback_seed_phrase_ensure">This ensures it is correct and can be used to recover the Fallback %1$d key in the future.</string>
+    <string name="nc_membership_verify_fallback_step_wipe_seed">Refer to your Fallback %1$d key device\'s instruction manual and locate the option to [B]Wipe the seed[/B] or [B]Set a temporary seed.[/B] If you choose to wipe the seed, make sure the existing seed has also been backed up.</string>
+    <string name="nc_membership_verify_fallback_step_enter_seed">Enter the Fallback %1$d key seed phrase carefully on the device</string>
+    <string name="nc_membership_verify_fallback_step_readd_key">Once the device is loaded with the seed phrase, [B]re-add the restored key[/B] to the Nunchuk app to verify that its public key matches the public key of your Fallback %1$d key</string>
+    <string name="nc_membership_restored_key_matches_fallback">The restored key’s public key matches the public key of your Fallback %1$d key.</string>
+    <string name="nc_key_does_not_match_fallback_desc">The key you re-added derives a different public key, so this seed phrase backup would not recover your Fallback %1$d key. Check the words and their order, then try again.</string>
     <string name="nc_membership_replacing_signer">Replacing %1$s (%2$s)</string>
     <string name="nc_membership_acct_x_placeholder">Acct X</string>
     <string name="nc_membership_acct_y_placeholder">Acct Y</string>

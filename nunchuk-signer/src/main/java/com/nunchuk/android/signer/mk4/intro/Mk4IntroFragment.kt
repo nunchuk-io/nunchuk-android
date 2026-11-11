@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.signer.mk4.intro
 
+import com.nunchuk.android.core.signer.verifiedFallbackNumber
 import com.nunchuk.android.core.signer.toRecoveredKey
 import com.nunchuk.android.core.util.resolve
 import android.app.Activity
@@ -292,6 +293,7 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
                             groupId = (activity as Mk4Activity).groupId,
                             walletId = (activity as Mk4Activity).walletId.orEmpty(),
                             claimOption = param?.claimOption,
+                            fallbackNumber = param.verifiedFallbackNumber(),
                         )
                     )
                 }

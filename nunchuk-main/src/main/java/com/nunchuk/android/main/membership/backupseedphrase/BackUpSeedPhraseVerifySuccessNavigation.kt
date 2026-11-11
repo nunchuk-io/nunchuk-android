@@ -38,11 +38,13 @@ import kotlinx.serialization.Serializable
 object BackUpSeedPhraseVerifySuccess
 
 fun NavGraphBuilder.backUpSeedPhraseVerifySuccessDestination(
+    fallbackNumber: Int? = null,
     onContinue: () -> Unit = {},
     onMoreClicked: () -> Unit = {}
 ) {
     composable<BackUpSeedPhraseVerifySuccess> {
         BackUpSeedPhraseVerifySuccessScreen(
+            fallbackNumber = fallbackNumber,
             onContinue = onContinue,
             onMoreClicked = onMoreClicked
         )
@@ -51,12 +53,14 @@ fun NavGraphBuilder.backUpSeedPhraseVerifySuccessDestination(
 
 @Composable
 private fun BackUpSeedPhraseVerifySuccessScreen(
+    fallbackNumber: Int? = null,
     viewModel: BackUpSeedPhraseSharedViewModel = hiltViewModel(),
     onContinue: () -> Unit = {},
     onMoreClicked: () -> Unit = {},
 ) {
     val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
     BackUpSeedPhraseVerifySuccessContent(
+        fallbackNumber = fallbackNumber,
         onContinueClicked = onContinue,
         remainTime = remainTime,
         onMoreClicked = onMoreClicked
@@ -65,6 +69,7 @@ private fun BackUpSeedPhraseVerifySuccessScreen(
 
 @Composable
 private fun BackUpSeedPhraseVerifySuccessContent(
+    fallbackNumber: Int? = null,
     remainTime: Int = 0,
     onContinueClicked: () -> Unit = {},
     onMoreClicked: () -> Unit = {},
@@ -111,7 +116,11 @@ private fun BackUpSeedPhraseVerifySuccessContent(
 
                 Text(
                     modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
-                    text = stringResource(R.string.nc_membership_restored_key_matches),
+                    text = if (fallbackNumber != null) {
+                        stringResource(R.string.nc_membership_restored_key_matches_fallback, fallbackNumber)
+                    } else {
+                        stringResource(R.string.nc_membership_restored_key_matches)
+                    },
                     style = NunchukTheme.typography.body
                 )
 

@@ -78,6 +78,10 @@ data class OnChainInheritanceRoute(val fallbackNumber: Int = 0) : Parcelable
 fun OnChainAddSignerParam?.singleAccountRoute(): OnChainInheritanceRoute? =
     this?.inheritanceRoute?.takeIf { isOnChainTimelockKey() }
 
+/** 1-based number of the fallback whose key this run verifies, or null for any other key. */
+fun OnChainAddSignerParam?.verifiedFallbackNumber(): Int? =
+    this?.inheritanceRoute?.fallbackNumber?.takeIf { isVerifyBackupSeedPhrase() && it > 0 }
+
 /**
  * True only for a key of the on-chain timelock wallet, the one flow that adds each device twice
  * (Acct X / Acct Y) around a timelocked spending path. That pair is what earns the "(n/2)" title

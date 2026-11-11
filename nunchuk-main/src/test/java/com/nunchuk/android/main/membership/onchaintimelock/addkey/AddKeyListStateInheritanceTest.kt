@@ -5,6 +5,7 @@ import com.nunchuk.android.core.signer.OnChainInheritanceGuide
 import com.nunchuk.android.core.signer.OnChainInheritanceRoute
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.singleAccountRoute
+import com.nunchuk.android.core.signer.verifiedFallbackNumber
 import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.model.inheritance.DraftInheritanceCard
 import com.nunchuk.android.model.inheritance.FallbackInheritanceCondition
@@ -352,5 +353,19 @@ class AddKeyListStateInheritanceTest {
         assertNull(add.copy(flags = OnChainAddSignerParam.FLAG_VERIFY_BACKUP_SEED_PHRASE).singleAccountRoute())
         assertNull(add.copy(magic = "claim").singleAccountRoute())
         assertNull(OnChainAddSignerParam(flags = OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER).singleAccountRoute())
+    }
+
+    @Test
+    fun `only a fallback key's backup check names its fallback`() {
+        val verify = OnChainAddSignerParam(
+            flags = OnChainAddSignerParam.FLAG_VERIFY_BACKUP_SEED_PHRASE,
+            inheritanceRoute = OnChainInheritanceRoute(fallbackNumber = 2),
+        )
+
+        assertEquals(2, verify.verifiedFallbackNumber())
+        assertNull(verify.copy(inheritanceRoute = OnChainInheritanceRoute(fallbackNumber = 0)).verifiedFallbackNumber())
+        assertNull(verify.copy(inheritanceRoute = null).verifiedFallbackNumber())
+        assertNull(verify.copy(flags = OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER).verifiedFallbackNumber())
+        assertNull((null as OnChainAddSignerParam?).verifiedFallbackNumber())
     }
 }

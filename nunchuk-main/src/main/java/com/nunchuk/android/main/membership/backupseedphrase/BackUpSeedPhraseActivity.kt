@@ -20,6 +20,7 @@ import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.signer.OnChainAddSignerParam
+import com.nunchuk.android.core.signer.OnChainInheritanceRoute
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.SignerIntroFlow
 import com.nunchuk.android.core.signer.SignerIntroRequest
@@ -124,6 +125,8 @@ class BackUpSeedPhraseActivity : BaseComposeActivity(), BottomSheetOptionListene
                     // Coldcard and air-gap mark the key verified on their own screens, so the method
                     // has to travel with the request.
                     claimOption = args.claimOption,
+                    // A fallback key's success screen, shown by the device flow, names "Fallback N key".
+                    inheritanceRoute = args.fallbackNumber?.let { OnChainInheritanceRoute(fallbackNumber = it) },
                 ),
             ),
         )
@@ -162,6 +165,7 @@ class BackUpSeedPhraseActivity : BaseComposeActivity(), BottomSheetOptionListene
                         startDestination = startDestination
                     ) {
                         backUpSeedPhraseIntroDestination(
+                            fallbackNumber = args.fallbackNumber,
                             onContinue = {
                                 navHostController.navigate(BackUpSeedPhraseOption)
                             },
@@ -174,6 +178,7 @@ class BackUpSeedPhraseActivity : BaseComposeActivity(), BottomSheetOptionListene
                             masterSignerId = args.signer?.fingerPrint.orEmpty(),
                             replacedXfp = args.replacedXfp.orEmpty(),
                             claimOption = args.claimOption,
+                            fallbackNumber = args.fallbackNumber,
                             onContinue = {
                                 navHostController.navigate(BackUpSeedPhraseVerify)
                             },
@@ -184,11 +189,13 @@ class BackUpSeedPhraseActivity : BaseComposeActivity(), BottomSheetOptionListene
                         )
 
                         backUpSeedPhraseVerifyDestination(
+                            fallbackNumber = args.fallbackNumber,
                             onContinue = ::openReAddKeyForVerification,
                             onMoreClicked = ::handleShowMore
                         )
 
                         backUpSeedPhraseVerifySuccessDestination(
+                            fallbackNumber = args.fallbackNumber,
                             onContinue = {
                                 navigator.returnMembershipScreen()
                             },
@@ -205,6 +212,7 @@ class BackUpSeedPhraseActivity : BaseComposeActivity(), BottomSheetOptionListene
                         backUpSeedPhraseVerifyMismatchDestination(
                             reAddedSigner = state.mismatchedSigner,
                             expectedXfp = args.signer?.fingerPrint.orEmpty(),
+                            fallbackNumber = args.fallbackNumber,
                             onTryAgain = {
                                 viewModel.onMismatchHandled()
                                 openReAddKeyForVerification()

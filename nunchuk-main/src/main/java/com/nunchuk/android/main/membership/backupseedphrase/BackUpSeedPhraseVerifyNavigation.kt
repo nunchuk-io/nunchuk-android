@@ -33,11 +33,13 @@ import kotlinx.serialization.Serializable
 object BackUpSeedPhraseVerify
 
 fun NavGraphBuilder.backUpSeedPhraseVerifyDestination(
+    fallbackNumber: Int? = null,
     onContinue: () -> Unit = {},
     onMoreClicked: () -> Unit = {}
 ) {
     composable<BackUpSeedPhraseVerify> {
         BackUpSeedPhraseVerifyScreen(
+            fallbackNumber = fallbackNumber,
             onContinue = onContinue,
             onMoreClicked = onMoreClicked
         )
@@ -46,12 +48,14 @@ fun NavGraphBuilder.backUpSeedPhraseVerifyDestination(
 
 @Composable
 private fun BackUpSeedPhraseVerifyScreen(
+    fallbackNumber: Int? = null,
     viewModel: BackUpSeedPhraseSharedViewModel = hiltViewModel(),
     onContinue: () -> Unit = {},
     onMoreClicked: () -> Unit = {},
 ) {
     val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
     BackUpSeedPhraseVerifyContent(
+        fallbackNumber = fallbackNumber,
         onContinueClicked = onContinue,
         remainTime = remainTime,
         onMoreClicked = onMoreClicked
@@ -60,6 +64,7 @@ private fun BackUpSeedPhraseVerifyScreen(
 
 @Composable
 private fun BackUpSeedPhraseVerifyContent(
+    fallbackNumber: Int? = null,
     remainTime: Int = 0,
     onContinueClicked: () -> Unit = {},
     onMoreClicked: () -> Unit = {},
@@ -104,14 +109,22 @@ private fun BackUpSeedPhraseVerifyContent(
             ) {
                 Text(
                     modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
-                    text = stringResource(R.string.nc_membership_verify_seed_phrase_title),
+                    text = if (fallbackNumber != null) {
+                        stringResource(R.string.nc_membership_verify_fallback_seed_phrase_title, fallbackNumber)
+                    } else {
+                        stringResource(R.string.nc_membership_verify_seed_phrase_title)
+                    },
                     style = NunchukTheme.typography.heading
                 )
 
                 NCLabelWithIndex(
                     modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
                     index = 1,
-                    label = stringResource(R.string.nc_membership_verify_step_wipe_seed),
+                    label = if (fallbackNumber != null) {
+                        stringResource(R.string.nc_membership_verify_fallback_step_wipe_seed, fallbackNumber)
+                    } else {
+                        stringResource(R.string.nc_membership_verify_step_wipe_seed)
+                    },
                 )
                 NCLabelWithIndex(
                     modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
@@ -121,12 +134,20 @@ private fun BackUpSeedPhraseVerifyContent(
                 NCLabelWithIndex(
                     modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
                     index = 3,
-                    label = stringResource(R.string.nc_membership_verify_step_enter_seed),
+                    label = if (fallbackNumber != null) {
+                        stringResource(R.string.nc_membership_verify_fallback_step_enter_seed, fallbackNumber)
+                    } else {
+                        stringResource(R.string.nc_membership_verify_step_enter_seed)
+                    },
                 )
                 NCLabelWithIndex(
                     modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
                     index = 4,
-                    label = stringResource(R.string.nc_membership_verify_step_readd_key),
+                    label = if (fallbackNumber != null) {
+                        stringResource(R.string.nc_membership_verify_fallback_step_readd_key, fallbackNumber)
+                    } else {
+                        stringResource(R.string.nc_membership_verify_step_readd_key)
+                    },
                 )
             }
         }

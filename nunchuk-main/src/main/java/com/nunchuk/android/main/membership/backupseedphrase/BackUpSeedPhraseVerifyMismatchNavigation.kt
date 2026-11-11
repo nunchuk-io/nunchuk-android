@@ -39,6 +39,7 @@ object BackUpSeedPhraseVerifyMismatch
 fun NavGraphBuilder.backUpSeedPhraseVerifyMismatchDestination(
     reAddedSigner: SignerModel? = null,
     expectedXfp: String = "",
+    fallbackNumber: Int? = null,
     onTryAgain: () -> Unit = {},
     onBackToSteps: () -> Unit = {},
 ) {
@@ -46,6 +47,7 @@ fun NavGraphBuilder.backUpSeedPhraseVerifyMismatchDestination(
         BackUpSeedPhraseVerifyMismatchScreen(
             reAddedSigner = reAddedSigner,
             expectedXfp = expectedXfp,
+            fallbackNumber = fallbackNumber,
             onTryAgain = onTryAgain,
             onBackToSteps = onBackToSteps,
         )
@@ -56,6 +58,7 @@ fun NavGraphBuilder.backUpSeedPhraseVerifyMismatchDestination(
 private fun BackUpSeedPhraseVerifyMismatchScreen(
     reAddedSigner: SignerModel? = null,
     expectedXfp: String = "",
+    fallbackNumber: Int? = null,
     viewModel: BackUpSeedPhraseSharedViewModel = hiltViewModel(),
     onTryAgain: () -> Unit = {},
     onBackToSteps: () -> Unit = {},
@@ -64,6 +67,7 @@ private fun BackUpSeedPhraseVerifyMismatchScreen(
     BackUpSeedPhraseVerifyMismatchContent(
         reAddedSigner = reAddedSigner,
         expectedXfp = expectedXfp,
+        fallbackNumber = fallbackNumber,
         remainTime = remainTime,
         onTryAgain = onTryAgain,
         onBackToSteps = onBackToSteps,
@@ -80,6 +84,7 @@ private fun BackUpSeedPhraseVerifyMismatchScreen(
 private fun BackUpSeedPhraseVerifyMismatchContent(
     reAddedSigner: SignerModel? = null,
     expectedXfp: String = "",
+    fallbackNumber: Int? = null,
     remainTime: Int = 0,
     onTryAgain: () -> Unit = {},
     onBackToSteps: () -> Unit = {},
@@ -135,7 +140,11 @@ private fun BackUpSeedPhraseVerifyMismatchContent(
                 )
                 Text(
                     modifier = Modifier.padding(top = 16.dp),
-                    text = stringResource(R.string.nc_key_does_not_match_desc),
+                    text = if (fallbackNumber != null) {
+                        stringResource(R.string.nc_key_does_not_match_fallback_desc, fallbackNumber)
+                    } else {
+                        stringResource(R.string.nc_key_does_not_match_desc)
+                    },
                     style = NunchukTheme.typography.body,
                     textAlign = TextAlign.Center,
                 )

@@ -613,7 +613,7 @@ class OnChainReplaceKeysFragment : Fragment() {
                 is OnChainReplaceKeyEvent.ShowErrorRes ->
                     showError(getString(event.messageRes, *event.args.toTypedArray()))
 
-                OnChainReplaceKeyEvent.OnKeyVerified -> openVerifyBackUpSuccess()
+                is OnChainReplaceKeyEvent.OnKeyVerified -> openVerifyBackUpSuccess(event.fallbackNumber)
             }
         }
     }
@@ -804,6 +804,7 @@ class OnChainReplaceKeysFragment : Fragment() {
                 // advertises an inheritance entry per wallet type, so without this the same
                 // device is listed once for each of them.
                 walletType = WalletType.MINISCRIPT,
+                fallbackNumber = event.fallbackNumber,
             ),
             // Keys that re-add themselves in-app (Ledger, BitBox) report the restored device back
             // here; Coldcard and air-gap finish verification on their own screens and return nothing.
@@ -811,7 +812,7 @@ class OnChainReplaceKeysFragment : Fragment() {
         )
     }
 
-    private fun openVerifyBackUpSuccess() {
+    private fun openVerifyBackUpSuccess(fallbackNumber: Int?) {
         navigator.openBackUpSeedPhraseActivity(
             requireActivity(),
             BackUpSeedPhraseArgs(
@@ -819,6 +820,7 @@ class OnChainReplaceKeysFragment : Fragment() {
                 signer = null,
                 groupId = (activity as MembershipActivity).groupId,
                 walletId = (activity as MembershipActivity).walletId,
+                fallbackNumber = fallbackNumber,
             )
         )
     }

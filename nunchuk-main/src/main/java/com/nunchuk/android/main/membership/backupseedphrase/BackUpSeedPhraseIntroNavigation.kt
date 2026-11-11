@@ -21,6 +21,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -37,11 +38,13 @@ import kotlinx.serialization.Serializable
 object BackUpSeedPhraseIntro
 
 fun NavGraphBuilder.backUpSeedPhraseIntroDestination(
+    fallbackNumber: Int? = null,
     onContinue: () -> Unit = {},
     onMoreClicked: () -> Unit = {}
 ) {
     composable<BackUpSeedPhraseIntro> {
         BackUpSeedPhraseIntroScreen(
+            fallbackNumber = fallbackNumber,
             onContinue = onContinue,
             onMoreClicked = onMoreClicked
         )
@@ -50,12 +53,14 @@ fun NavGraphBuilder.backUpSeedPhraseIntroDestination(
 
 @Composable
 private fun BackUpSeedPhraseIntroScreen(
+    fallbackNumber: Int? = null,
     viewModel: BackUpSeedPhraseSharedViewModel = hiltViewModel(),
     onContinue: () -> Unit = {},
     onMoreClicked: () -> Unit = {},
 ) {
     val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
     BackUpSeedPhraseIntroContent(
+        fallbackNumber = fallbackNumber,
         onContinueClicked = onContinue,
         remainTime = remainTime,
         onMoreClicked = onMoreClicked
@@ -64,6 +69,7 @@ private fun BackUpSeedPhraseIntroScreen(
 
 @Composable
 private fun BackUpSeedPhraseIntroContent(
+    fallbackNumber: Int? = null,
     remainTime: Int = 0,
     onContinueClicked: () -> Unit = {},
     onMoreClicked: () -> Unit = {},
@@ -110,17 +116,33 @@ private fun BackUpSeedPhraseIntroContent(
             ) {
                 Text(
                     modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
-                    text = stringResource(R.string.nc_membership_backup_seed_phrase_title),
+                    text = if (fallbackNumber != null) {
+                        stringResource(R.string.nc_membership_backup_fallback_seed_phrase_title, fallbackNumber)
+                    } else {
+                        stringResource(R.string.nc_membership_backup_seed_phrase_title)
+                    },
                     style = NunchukTheme.typography.heading
                 )
                 Text(
                     modifier = Modifier.padding(16.dp),
                     text = buildAnnotatedString {
                         withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                            append(stringResource(R.string.nc_membership_backup_seed_phrase_steel_plate))
+                            append(
+                                if (fallbackNumber != null) {
+                                    stringResource(R.string.nc_membership_backup_fallback_seed_phrase_steel_plate, fallbackNumber)
+                                } else {
+                                    stringResource(R.string.nc_membership_backup_seed_phrase_steel_plate)
+                                }
+                            )
                         }
                         append(" ")
-                        append(stringResource(R.string.nc_membership_backup_seed_phrase_share))
+                        append(
+                            if (fallbackNumber != null) {
+                                stringResource(R.string.nc_membership_backup_fallback_seed_phrase_share, fallbackNumber)
+                            } else {
+                                stringResource(R.string.nc_membership_backup_seed_phrase_share)
+                            }
+                        )
                     },
                     style = NunchukTheme.typography.body
                 )
@@ -151,4 +173,11 @@ private fun BackUpSeedPhraseIntroScreenPreview() {
     BackUpSeedPhraseIntroContent(
 
     )
+}
+
+/** FBK-13: the backup intro for a Fallback 1 key. */
+@PreviewLightDark
+@Composable
+private fun BackUpSeedPhraseIntroFallbackPreview() {
+    BackUpSeedPhraseIntroContent(fallbackNumber = 1)
 }

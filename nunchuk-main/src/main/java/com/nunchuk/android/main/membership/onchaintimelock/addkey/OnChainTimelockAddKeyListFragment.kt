@@ -295,8 +295,8 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                             OnChainTimelockAddKeyListFragmentDirections.actionOnChainTimelockAddKeyListFragmentToOnChainSetUpTimelockFragment(
                                 groupId = args.groupId ?: (activity as MembershipActivity).groupId,
                                 timelockExtra = timelockExtra,
-                                firstFallbackTimelock = viewModel.state.value.fallbacks
-                                    .firstOrNull { it.index == 0 }?.timelock?.toTimelockExtra(),
+                                // No firstFallbackTimelock: setup saves a primary time at/after
+                                // Fallback 1 and the backend flags the fallback (SET-13b, Huy 2026-11-11).
                             )
                         )
                     })
@@ -633,7 +633,7 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
 
                 AddKeyListEvent.OnAddAllKey -> onAddAllKey()
 
-                AddKeyListEvent.OnKeyVerified -> openVerifyBackUpSuccess()
+                is AddKeyListEvent.OnKeyVerified -> openVerifyBackUpSuccess(event.fallbackNumber)
 
                 is AddKeyListEvent.ShowError -> showError(event.message)
                 is AddKeyListEvent.ShowErrorRes -> showError(getString(event.messageRes, *event.args.toTypedArray()))
@@ -931,6 +931,7 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                 // advertises an inheritance entry per wallet type, so without this the same
                 // device is listed once for each of them.
                 walletType = WalletType.MINISCRIPT,
+                fallbackNumber = event.fallbackNumber,
             ),
             // Keys that re-add themselves in-app (Ledger, BitBox) report the restored device back
             // here; Coldcard and air-gap finish verification on their own screens and return nothing.
@@ -938,7 +939,7 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
         )
     }
 
-    private fun openVerifyBackUpSuccess() {
+    private fun openVerifyBackUpSuccess(fallbackNumber: Int?) {
         navigator.openBackUpSeedPhraseActivity(
             requireActivity(),
             BackUpSeedPhraseArgs(
@@ -946,7 +947,8 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                 canRestartWizard = canRestartWizard,
                 signer = null,
                 groupId = (activity as MembershipActivity).groupId,
-                walletId = (activity as MembershipActivity).walletId
+                walletId = (activity as MembershipActivity).walletId,
+                fallbackNumber = fallbackNumber,
             )
         )
     }

@@ -21,6 +21,7 @@ import com.nunchuk.android.core.util.gson
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.exception.NCNativeException
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.membership.onchaintimelock.addkey.fallbackNumber
 import com.nunchuk.android.main.membership.model.AddReplaceKeyOnChainData
 import com.nunchuk.android.main.membership.model.ReplaceStepData
 import com.nunchuk.android.main.membership.model.toAddReplaceKeyOnChainDataList
@@ -592,6 +593,7 @@ class OnChainReplaceKeysViewModel @Inject constructor(
     }
 
     fun onVerifyClicked(data: AddReplaceKeyOnChainData) {
+        savedStateHandle[KEY_VERIFY_FALLBACK_NUMBER] = null
         viewModelScope.launch {
             // Find the first step that needs verification (has signer but needs verification)
             val stepToVerify = data.steps.firstOrNull { step ->
@@ -634,7 +636,7 @@ class OnChainReplaceKeysViewModel @Inject constructor(
                 )
             ).onSuccess {
                 getReplaceWalletStatus()
-                _event.emit(OnChainReplaceKeyEvent.OnKeyVerified)
+                _event.emit(OnChainReplaceKeyEvent.OnKeyVerified(fallbackNumber = savedStateHandle[KEY_VERIFY_FALLBACK_NUMBER]))
             }.onFailure {
                 _event.emit(OnChainReplaceKeyEvent.ShowError(it.message.orUnknownError()))
             }
@@ -1160,6 +1162,10 @@ class OnChainReplaceKeysViewModel @Inject constructor(
         val target = _configurable.value?.targetOf(row)?.takeIf { it.isComplete } ?: return
         val signer = target.replacementDevice ?: return
         savedStateHandle[REPLACE_XFP] = target.originalXfp
+        // Verify tapped on a fallback card: the backup screens name "Fallback N key" (FBK-13).
+        val fallbackNumber = _configurable.value?.cards?.firstOrNull { row in it.rows }
+            ?.card?.fallbackNumber?.takeIf { it > 0 }
+        savedStateHandle[KEY_VERIFY_FALLBACK_NUMBER] = fallbackNumber
         val missingBackup = signer.type == SignerType.NFC &&
             lastStatus?.replacements?.get(target.originalXfp)?.any { it.userBackUpFileName.isNullOrEmpty() } == true
         viewModelScope.launch {
@@ -1169,6 +1175,7 @@ class OnChainReplaceKeysViewModel @Inject constructor(
                     filePath = nfcFileManager.buildFilePath(getStepInfo(OnChainReplaceKeyStep.HARDWARE_KEY).keyIdInServer),
                     backUpFileName = "",
                     isBackupNfc = missingBackup,
+                    fallbackNumber = fallbackNumber,
                 )
             )
         }
@@ -1198,6 +1205,7 @@ class OnChainReplaceKeysViewModel @Inject constructor(
         private const val KEY_TAPSIGNER_PATH = "tapsigner_path"
         private const val KEY_TAPSIGNER_CONTEXT = "tapsigner_context"
         private const val KEY_CONFIGURABLE_REQUEST = "configurable_replace_request"
+        private const val KEY_VERIFY_FALLBACK_NUMBER = "verify_fallback_number"
     }
 }
 
@@ -1207,11 +1215,13 @@ sealed class OnChainReplaceKeyEvent {
         val signer: SignerModel,
         val filePath: String,
         val backUpFileName: String,
-        val isBackupNfc: Boolean = false
+        val isBackupNfc: Boolean = false,
+        /** 1-based, when verifying from a fallback card. */
+        val fallbackNumber: Int? = null,
     ) : OnChainReplaceKeyEvent()
 
     data object OnAddAllKey : OnChainReplaceKeyEvent()
-    data object OnKeyVerified : OnChainReplaceKeyEvent()
+    data class OnKeyVerified(val fallbackNumber: Int? = null) : OnChainReplaceKeyEvent()
     data object SelectAirgapType : OnChainReplaceKeyEvent()
     data class ShowError(val message: String) : OnChainReplaceKeyEvent()
     data class UpdateSignerTag(val signer: SignerModel) : OnChainReplaceKeyEvent()

@@ -93,6 +93,8 @@ sealed class SignerIntroFlow : Parcelable {
         val currentSigner: SignerModel?,
         val replaceInfo: OnChainAddSignerParam.ReplaceInfo? = null,
         val claimOption: ClaimOption? = null,
+        /** The fallback card the key is verified from, so the success screen names "Fallback N key". */
+        val inheritanceRoute: OnChainInheritanceRoute? = null,
     ) : SignerIntroFlow()
 }
 
@@ -128,6 +130,7 @@ private val SignerIntroFlow.deviceParams: OnChainAddSignerParam?
             currentSigner = currentSigner,
             replaceInfo = replaceInfo,
             claimOption = claimOption,
+            inheritanceRoute = inheritanceRoute,
         )
     }
 
