@@ -22,6 +22,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.Dp
@@ -31,7 +32,7 @@ import com.nunchuk.android.core.R
 /**
  * A titled −/value/+ row, e.g. "Required keys" or "Total number of keys" of an M-of-N policy.
  * Callers own the bounds: pass [enableIncrement] / [enableDecrement] false at the limits.
- * [isValueBoxed] frames the value; [buttonSize] sizes the round − / + buttons.
+ * [isValueBoxed] frames the value; [buttonSize] sizes the round − / + buttons; [titleStyle] styles the title.
  */
 @Composable
 fun NcRequiredKeysCounter(
@@ -42,6 +43,7 @@ fun NcRequiredKeysCounter(
     enableDecrement: Boolean = true,
     isValueBoxed: Boolean = true,
     buttonSize: Dp = 36.dp,
+    titleStyle: TextStyle = NunchukTheme.typography.body,
     onIncrement: () -> Unit,
     onDecrement: () -> Unit
 ) {
@@ -59,7 +61,7 @@ fun NcRequiredKeysCounter(
         ) {
             Text(
                 text = title,
-                style = NunchukTheme.typography.body,
+                style = titleStyle,
                 color = MaterialTheme.colorScheme.onSurface
             )
             Spacer(modifier = Modifier.height(4.dp))

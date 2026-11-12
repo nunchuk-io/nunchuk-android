@@ -211,6 +211,7 @@ private fun InheritancePolicyContent(
             enableDecrement = m > 1,
             isValueBoxed = false,
             buttonSize = 48.dp,
+            titleStyle = NunchukTheme.typography.title,
             onIncrement = { if (m < n) m++ },
             onDecrement = { if (m > 1) m-- },
         )
@@ -222,6 +223,7 @@ private fun InheritancePolicyContent(
             enableDecrement = n > m,
             isValueBoxed = false,
             buttonSize = 48.dp,
+            titleStyle = NunchukTheme.typography.title,
             onIncrement = { if (n < MAX_PRIMARY_TOTAL_KEYS) n++ },
             onDecrement = { if (n > m) n-- },
         )
