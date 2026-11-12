@@ -30,9 +30,9 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.inheritance.FallbackInheritanceCondition
 
-/** A new fallback starts as 1 of 1 (FBK-01a). */
-internal const val DEFAULT_FALLBACK_REQUIRED_KEYS = 1
-internal const val DEFAULT_FALLBACK_TOTAL_KEYS = 1
+/** A new fallback starts as 2 of 2 (FBK-01a). */
+internal const val DEFAULT_FALLBACK_REQUIRED_KEYS = 2
+internal const val DEFAULT_FALLBACK_TOTAL_KEYS = 2
 
 /** The "Fallbacks" heading under primary inheritance (SET-09 / FBK-02). */
 @Composable
