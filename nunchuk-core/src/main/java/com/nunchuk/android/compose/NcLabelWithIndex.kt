@@ -36,6 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -45,13 +46,14 @@ fun NCLabelWithIndex(
     title: String? = null,
     label: String,
     style: TextStyle = NunchukTheme.typography.body,
+    borderWidth: Dp = 2.dp,
 ) {
     Row(modifier = modifier) {
         Box(
             modifier = Modifier
                 .size(24.dp)
                 .border(
-                    width = 2.dp,
+                    width = borderWidth,
                     color = MaterialTheme.colorScheme.textPrimary,
                     shape = CircleShape
                 ),

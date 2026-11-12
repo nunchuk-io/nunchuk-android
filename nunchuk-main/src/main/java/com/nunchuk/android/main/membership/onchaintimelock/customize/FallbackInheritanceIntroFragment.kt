@@ -123,11 +123,13 @@ private fun FallbackInheritanceIntroContent(
                     index = 1,
                     title = stringResource(R.string.nc_fallbacks_intro_own_keys),
                     label = stringResource(R.string.nc_fallbacks_intro_own_keys_desc),
+                    borderWidth = 1.5.dp,
                 )
                 NCLabelWithIndex(
                     index = 2,
                     title = stringResource(R.string.nc_fallbacks_intro_own_timelock),
                     label = stringResource(R.string.nc_fallbacks_intro_own_timelock_desc),
+                    borderWidth = 1.5.dp,
                 )
                 NcHintMessage(
                     messages = listOf(ClickAbleText(stringResource(R.string.nc_fallbacks_intro_single_key_hint))),
