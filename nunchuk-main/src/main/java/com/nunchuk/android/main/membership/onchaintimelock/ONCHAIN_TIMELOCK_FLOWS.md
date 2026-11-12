@@ -179,7 +179,10 @@ fixed step list:
 * **Onboarding:** a new device goes through "Before you use this device"
   (`DeviceSafetyNoticeNavigation.kt`, `showDeviceSafety`). The inheritance guide (intro + passphrase
   notice, copy per `OnChainInheritanceGuide`) runs once per setup — skipped once a primary key is in or
-  the guide ran this session (`isInheritanceGuideSeen`). Picking a key already in the setup (KEY-01a
+  the guide ran this session (`isInheritanceGuideSeen`). It opens *before* the key-type picker
+  (NUN-10374, Figma "8. Fallback inheritance" row 1): Add → intro → passphrase notice → "Before you use
+  this device" → picker → reuse offer / device, so the device safety notice is not shown again after the
+  pick. Once the guide was seen, Add opens the picker and a new device gets the notice after the pick. Picking a key already in the setup (KEY-01a
   "Choose key") puts it in the slot straight away: no guide, no device-safety notice.
 * **Customized primary:** Add or Change (offered on every filled slot) opens `ChooseKeySheet` (KEY-01a)
   when keys exist (never a TAPSIGNER: on-chain inheritance keys need a BIP39 seed phrase); the account comes from `DraftKeySlot.expectedAccount` (absent → 0, null → refused).
@@ -252,10 +255,15 @@ onAddClicked(card)  →  savedStateHandle[current_step] = card.getNextStepToAdd(
    → `SignerIntroActivity` with `FLAG_ADD_SIGNER`, `walletType = MINISCRIPT`.
 2. **Slot 0 empty**
    * inheritance step → `SignerIntroActivity` with `FLAG_ADD_INHERITANCE_SIGNER`,
-     `walletType = MINISCRIPT` (the server lists inheritance keys per wallet type). The key-type
-     picker comes first; for a key type with a seed phrase (anything but TAPSIGNER) it then shows
-     the seed-phrase intro and passphrase notice (`SignerIntroRoute`) before the device flow.
-     Replace (`OnChainReplaceKeysFragment`) takes the same path, carrying `replaceInfo`.
+     `walletType = MINISCRIPT` (the server lists inheritance keys per wallet type). In this legacy
+     step the key-type picker comes first; for a key type with a seed phrase (anything but TAPSIGNER)
+     it then shows the seed-phrase intro and passphrase notice (`SignerIntroRoute`) before the device
+     flow. Replace (`OnChainReplaceKeysFragment`) takes the same path, carrying `replaceInfo`.
+     A configurable draft's inheritance slot (primary or fallback) goes through
+     `openDraftSignerIntro` instead: while its guide has not run (`showInheritanceGuide`),
+     `SignerIntroRoute` starts at the intro → passphrase notice → "Before you use this device" and
+     only then shows the picker (`SignerIntroCoordinator.showsGuidesBeforePicker`); back from the
+     intro returns to the setup screen, back from the picker to the device safety notice.
    * otherwise → `SignerIntroActivity` with `FLAG_ADD_SIGNER`, `keyIndex = 0`.
 3. **Slot 0 filled** (adding the second account of the same device)
    * TapSigner (`SignerType.NFC`) → `viewModel.handleTapSignerAcct1Addition(...)` (§3.6).

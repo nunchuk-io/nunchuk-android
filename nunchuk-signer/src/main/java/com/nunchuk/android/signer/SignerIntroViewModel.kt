@@ -94,6 +94,11 @@ class SignerIntroViewModel @Inject constructor(
     private val existingSignersLoaded = CompletableDeferred<Unit>()
     /** Opens this key type's flow without the picker (backup verification, a claim account). */
     val directKeyType: KeyType? get() = requireNotNull(coordinator).directKeyType
+    /** The inheritance guides open before the key-type picker (configurable on-chain draft). */
+    val showsGuidesBeforePicker: Boolean get() = requireNotNull(coordinator).showsGuidesBeforePicker
+    /** Those guides end with "Before you use this device". */
+    val guidesBeforePickerIncludeDeviceSafety: Boolean
+        get() = requireNotNull(coordinator).guidesBeforePickerIncludeDeviceSafety
 
     init {
         viewModelScope.launch {

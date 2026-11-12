@@ -67,11 +67,18 @@ internal fun SignerIntroRoute(
     }
 
     val onChainKey = request.flow as? SignerIntroFlow.OnChainTimelockKey
+    // Guides opened before the picker carry no key type; Continue on the last one opens the picker,
+    // so back from the picker returns to it and back from the intro closes this screen.
+    val openPickerAfterGuides = {
+        navController.navigate(SignerIntroDestination) { launchSingleTop = true }
+    }
     NunchukTheme {
         if (viewModel.directKeyType == null) {
             NavHost(
                 navController = navController,
-                startDestination = SignerIntroDestination,
+                startDestination = if (viewModel.showsGuidesBeforePicker) {
+                    InheritanceKeyIntroDestination()
+                } else SignerIntroDestination,
             ) {
                 signerIntroDestination(
                     viewModel = viewModel,
@@ -86,7 +93,7 @@ internal fun SignerIntroRoute(
                     fallbackNumber = onChainKey?.fallbackNumber ?: 0,
                     onMoreClicked = onMore,
                     onContinueClicked = { keyType ->
-                        navController.navigate(InheritancePassphraseNoticeDestination(keyType = keyType.name)) {
+                        navController.navigate(InheritancePassphraseNoticeDestination(keyType = keyType?.name)) {
                             launchSingleTop = true
                         }
                     },
@@ -95,12 +102,22 @@ internal fun SignerIntroRoute(
                     remainTime = remainTime,
                     guide = onChainKey?.inheritanceGuide ?: OnChainInheritanceGuide.LEGACY,
                     onMoreClicked = onMore,
-                    onContinueClicked = viewModel::onInheritanceGuideCompleted,
+                    onContinueClicked = { keyType ->
+                        when {
+                            keyType != null -> viewModel.onInheritanceGuideCompleted(keyType)
+                            viewModel.guidesBeforePickerIncludeDeviceSafety -> navController.navigate(
+                                DeviceSafetyNoticeDestination()
+                            ) { launchSingleTop = true }
+                            else -> openPickerAfterGuides()
+                        }
+                    },
                 )
                 deviceSafetyNoticeDestination(
                     remainTime = remainTime,
                     onMoreClicked = onMore,
-                    onContinueClicked = viewModel::onDeviceSafetyCompleted,
+                    onContinueClicked = { keyType ->
+                        if (keyType != null) viewModel.onDeviceSafetyCompleted(keyType) else openPickerAfterGuides()
+                    },
                 )
                 checkFirmwareDestination(
                     onChainAddSignerParam = request.deviceParams,

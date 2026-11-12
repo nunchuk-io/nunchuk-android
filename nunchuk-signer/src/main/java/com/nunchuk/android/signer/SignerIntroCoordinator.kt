@@ -34,14 +34,30 @@ class SignerIntroCoordinator(val request: SignerIntroRequest) {
     val isConfigurableDraft: Boolean = onChainKey != null && onChainKey.inheritanceGuide != OnChainInheritanceGuide.LEGACY
 
     /**
-     * Adding an inheritance key with a seed phrase shows the seed-phrase and passphrase guides first;
-     * [guideCompleted] then resumes with the same key. A key without one (TAPSIGNER) has nothing to
-     * back up for the Beneficiary, so it goes straight on.
+     * A configurable draft's inheritance slot whose guide has not run yet: the inheritance key intro,
+     * the passphrase notice and "Before you use this device" (KEY-03 → KEY-04 → KEY-02) open before
+     * the key-type picker, as general information that does not depend on the key picked.
      */
-    fun select(keyType: KeyType): SignerIntroAction =
-        if (isAddingInheritanceKey && keyType.hasSeedPhrase && onChainKey?.showInheritanceGuide != false) {
-            SignerIntroAction.ShowInheritanceGuide(keyType)
+    val showsGuidesBeforePicker: Boolean =
+        isConfigurableDraft && onChainKey?.isInheritanceKey == true && onChainKey.showInheritanceGuide
+
+    /** Whether the pre-picker guides end with "Before you use this device". */
+    val guidesBeforePickerIncludeDeviceSafety: Boolean = showsGuidesBeforePicker && onChainKey?.showDeviceSafety == true
+
+    /**
+     * Elsewhere, adding an inheritance key with a seed phrase shows the seed-phrase and passphrase
+     * guides after the pick; [guideCompleted] then resumes with the same key. A key without one
+     * (TAPSIGNER) has nothing to back up for the Beneficiary, so it goes straight on.
+     */
+    fun select(keyType: KeyType): SignerIntroAction = when {
+        // The guides, device safety included, already ran before the picker.
+        showsGuidesBeforePicker -> if (showsDeviceSafety(keyType)) {
+            deviceSafetyCompleted(keyType)
         } else guideCompleted(keyType)
+        isAddingInheritanceKey && keyType.hasSeedPhrase && onChainKey?.showInheritanceGuide != false ->
+            SignerIntroAction.ShowInheritanceGuide(keyType)
+        else -> guideCompleted(keyType)
+    }
 
     /** Continue after the inheritance guides, without showing them a second time. */
     fun guideCompleted(keyType: KeyType): SignerIntroAction {

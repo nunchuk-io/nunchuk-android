@@ -36,28 +36,32 @@ import com.nunchuk.android.signer.KeyType
 import kotlinx.serialization.Serializable
 
 /**
- * What the inheritance key is and what the owner needs off the device before adding it.
+ * What the inheritance key is and what the owner needs off the device before adding it, followed
+ * by the passphrase notice.
  *
- * It runs *after* the key-type picker, and only for a key type that has a seed phrase — a TAPSIGNER
- * owner has none to view or back up — and is followed by the passphrase notice. [keyType] is the
- * picked [KeyType] name, carried through so the selection resumes once both guides are done.
+ * In a configurable on-chain draft it runs *before* the key-type picker ([keyType] null): general
+ * information about the inheritance key, then the passphrase notice and "Before you use this
+ * device", then the picker. Elsewhere (legacy on-chain step, off-chain setup) it runs *after* the
+ * picker, and only for a key type that has a seed phrase — a TAPSIGNER owner has none to view or
+ * back up; [keyType] is then the picked [KeyType] name, carried through so the selection resumes
+ * once both guides are done.
  */
 @Serializable
-data class InheritanceKeyIntroDestination(val keyType: String)
+data class InheritanceKeyIntroDestination(val keyType: String? = null)
 
 /** The passphrase warning that follows [InheritanceKeyIntroDestination], on- and off-chain. */
 @Serializable
-data class InheritancePassphraseNoticeDestination(val keyType: String)
+data class InheritancePassphraseNoticeDestination(val keyType: String? = null)
 
 fun NavGraphBuilder.inheritanceKeyIntroDestination(
     remainTime: Int = 0,
     guide: OnChainInheritanceGuide = OnChainInheritanceGuide.LEGACY,
     fallbackNumber: Int = 0,
     onMoreClicked: () -> Unit = {},
-    onContinueClicked: (KeyType) -> Unit = {},
+    onContinueClicked: (KeyType?) -> Unit = {},
 ) {
     composable<InheritanceKeyIntroDestination> { backStackEntry ->
-        val keyType = KeyType.valueOf(backStackEntry.toRoute<InheritanceKeyIntroDestination>().keyType)
+        val keyType = backStackEntry.toRoute<InheritanceKeyIntroDestination>().keyType?.let(KeyType::valueOf)
         InheritanceKeyIntroContent(
             remainTime = remainTime,
             guide = guide,
@@ -72,10 +76,10 @@ fun NavGraphBuilder.inheritancePassphraseNoticeDestination(
     remainTime: Int = 0,
     guide: OnChainInheritanceGuide = OnChainInheritanceGuide.LEGACY,
     onMoreClicked: () -> Unit = {},
-    onContinueClicked: (KeyType) -> Unit = {},
+    onContinueClicked: (KeyType?) -> Unit = {},
 ) {
     composable<InheritancePassphraseNoticeDestination> { backStackEntry ->
-        val keyType = KeyType.valueOf(backStackEntry.toRoute<InheritancePassphraseNoticeDestination>().keyType)
+        val keyType = backStackEntry.toRoute<InheritancePassphraseNoticeDestination>().keyType?.let(KeyType::valueOf)
         ImportantNoticePassphraseContent(
             remainTime = remainTime,
             guide = guide,

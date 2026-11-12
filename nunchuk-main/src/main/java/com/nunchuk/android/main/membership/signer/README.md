@@ -67,6 +67,13 @@ opens the picker first. For a key type with a seed phrase, `select` returns `Sho
 `KeyType`, and the notice's Continue calls `guideCompleted`. TAPSIGNER has no seed phrase to back up,
 so it skips both. `KeyType.hasSeedPhrase` is an exhaustive `when`, so a new key type has to decide.
 
+A configurable on-chain draft's inheritance slot (primary or fallback, `inheritanceGuide != LEGACY`)
+is the exception: while `showInheritanceGuide` is set, `SignerIntroRoute` *starts* at the intro, then
+the passphrase notice and — with `showDeviceSafety` — "Before you use this device" (KEY-03 → KEY-04 →
+KEY-02), all without a key type, and only then opens the picker (`showsGuidesBeforePicker`). Back from
+the intro closes the screen; back from the picker returns to the last guide. `select` then skips both
+notices: a device goes straight to `deviceSafetyCompleted` (the reuse offer).
+
 ## Completion details to preserve
 
 - Ledger/BitBox/Trezor claims return a `SingleSigner`, normalized to `SignerModel`; their desktop/USB

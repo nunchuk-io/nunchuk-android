@@ -34,17 +34,19 @@ import kotlinx.serialization.Serializable
 /**
  * KEY-02 "Before you use this device": shown before a newly introduced device is set up or read
  * (configurable on-chain drafts). Continue records that it was read and opens [keyType]'s flow.
+ * [keyType] is null when it is the last of the inheritance guides that run before the key-type
+ * picker; Continue then opens the picker.
  */
 @Serializable
-data class DeviceSafetyNoticeDestination(val keyType: String)
+data class DeviceSafetyNoticeDestination(val keyType: String? = null)
 
 fun NavGraphBuilder.deviceSafetyNoticeDestination(
     remainTime: Int = 0,
     onMoreClicked: () -> Unit = {},
-    onContinueClicked: (KeyType) -> Unit = {},
+    onContinueClicked: (KeyType?) -> Unit = {},
 ) {
     composable<DeviceSafetyNoticeDestination> { backStackEntry ->
-        val keyType = KeyType.valueOf(backStackEntry.toRoute<DeviceSafetyNoticeDestination>().keyType)
+        val keyType = backStackEntry.toRoute<DeviceSafetyNoticeDestination>().keyType?.let(KeyType::valueOf)
         DeviceSafetyNoticeContent(
             remainTime = remainTime,
             onMoreClicked = onMoreClicked,

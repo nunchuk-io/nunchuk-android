@@ -283,25 +283,62 @@ class SignerIntroCoordinatorTest {
         fingerPrint = "1234abcd", type = type, tags = tags, isMasterSigner = true,
     )
 
-    @Test fun `configurable draft - the guide runs once, then device safety precedes a new device`() {
-        val first = router(
+    @Test fun `configurable draft - the guides run before the picker, then the pick opens without them`() {
+        for (guide in OnChainInheritanceGuide.entries - OnChainInheritanceGuide.LEGACY) {
+            val first = router(
+                SignerIntroFlow.OnChainTimelockKey(
+                    isInheritanceKey = true,
+                    inheritanceGuide = guide,
+                    fallbackNumber = if (guide == OnChainInheritanceGuide.FALLBACK) 1 else 0,
+                    showDeviceSafety = true,
+                )
+            )
+            assertTrue("$guide", first.showsGuidesBeforePicker)
+            assertTrue("$guide", first.guidesBeforePickerIncludeDeviceSafety)
+            // Intro, passphrase notice and device safety already ran: a device goes straight to the
+            // keys already on this phone, and "Add new key" opens it (Jade: its firmware gate).
+            assertEquals(SignerIntroAction.OfferExisting(KeyType.JADE), first.select(KeyType.JADE))
+            val legacy = router(SignerIntroFlow.OnChainTimelockKey(isInheritanceKey = true))
+            assertEquals(legacy.guideCompleted(KeyType.JADE), first.createNew(KeyType.JADE))
+            for (key in KeyType.entries) {
+                val next = first.select(key)
+                assertFalse("$guide / $key", next is SignerIntroAction.ShowInheritanceGuide)
+                assertFalse("$guide / $key", next is SignerIntroAction.ShowDeviceSafety)
+            }
+            // No device involved: same as without any notice.
+            assertEquals(first.guideCompleted(KeyType.SOFTWARE), first.select(KeyType.SOFTWARE))
+        }
+    }
+
+    @Test fun `configurable draft - guides before the picker only for an inheritance slot whose guide has not run`() {
+        val primary = OnChainInheritanceGuide.DEFAULT_PRIMARY
+        assertFalse(router(SignerIntroFlow.OnChainTimelockKey(isInheritanceKey = true)).showsGuidesBeforePicker)
+        assertFalse(router(SignerIntroFlow.OnChainTimelockKey(inheritanceGuide = primary, showDeviceSafety = true)).showsGuidesBeforePicker)
+        assertFalse(
+            router(
+                SignerIntroFlow.OnChainTimelockKey(isInheritanceKey = true, inheritanceGuide = primary, showInheritanceGuide = false)
+            ).showsGuidesBeforePicker
+        )
+        assertFalse(router(SignerIntroFlow.OffChainInheritanceKey()).showsGuidesBeforePicker)
+        // Without device safety requested, the guides stop at the passphrase notice.
+        val noSafety = router(SignerIntroFlow.OnChainTimelockKey(isInheritanceKey = true, inheritanceGuide = primary))
+        assertTrue(noSafety.showsGuidesBeforePicker)
+        assertFalse(noSafety.guidesBeforePickerIncludeDeviceSafety)
+        assertEquals(noSafety.guideCompleted(KeyType.COLDCARD), noSafety.select(KeyType.COLDCARD))
+    }
+
+    @Test fun `configurable draft - once the guide ran, device safety follows the pick`() {
+        val later = router(
             SignerIntroFlow.OnChainTimelockKey(
                 isInheritanceKey = true,
                 inheritanceGuide = OnChainInheritanceGuide.PRIMARY,
+                showInheritanceGuide = false,
                 showDeviceSafety = true,
             )
         )
-        assertEquals(SignerIntroAction.ShowInheritanceGuide(KeyType.JADE), first.select(KeyType.JADE))
-        assertEquals(SignerIntroAction.ShowDeviceSafety(KeyType.JADE), first.guideCompleted(KeyType.JADE))
-        // After the notice, the keys already on this phone are offered on top of it; "Add new key"
-        // then opens the device exactly as it did before (Jade: its firmware gate), with no second notice.
-        assertEquals(SignerIntroAction.OfferExisting(KeyType.JADE), first.deviceSafetyCompleted(KeyType.JADE))
-        val legacy = router(SignerIntroFlow.OnChainTimelockKey(isInheritanceKey = true))
-        assertEquals(legacy.guideCompleted(KeyType.JADE), first.createNew(KeyType.JADE))
-
-        val later = router(
-            SignerIntroFlow.OnChainTimelockKey(isInheritanceKey = true, showInheritanceGuide = false, showDeviceSafety = true)
-        )
+        assertFalse(later.showsGuidesBeforePicker)
+        assertEquals(SignerIntroAction.ShowDeviceSafety(KeyType.JADE), later.select(KeyType.JADE))
+        assertEquals(SignerIntroAction.OfferExisting(KeyType.JADE), later.deviceSafetyCompleted(KeyType.JADE))
         assertEquals(SignerIntroAction.ShowDeviceSafety(KeyType.LEDGER), later.select(KeyType.LEDGER))
         // A software key involves no device.
         assertNotEquals(SignerIntroAction.ShowDeviceSafety(KeyType.SOFTWARE), later.select(KeyType.SOFTWARE))
