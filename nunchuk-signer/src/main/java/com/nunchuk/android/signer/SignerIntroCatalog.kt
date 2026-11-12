@@ -146,6 +146,14 @@ val defaultSupportedSigners = listOf(
 )
 
 /**
+ * Card order of the on-chain timelock picker: the app's standard key order, the one
+ * [defaultSupportedSigners] is written in (and the BYOH design order follows). The server lists the
+ * on-chain keys in an order of its own, which put COLDCARD second.
+ */
+internal val onChainTimelockCardOrder: List<KeyType> =
+    defaultSupportedSigners.mapNotNull { it.toKeyType() }
+
+/**
  * Key types offered for a regular key of an assisted off-chain wallet: every type its old option
  * sheet listed, so the picker drops none of them. Unlike the inheritance slot this list is not
  * server-driven; the flow itself narrows it (software key, limited keyholder). Declared after

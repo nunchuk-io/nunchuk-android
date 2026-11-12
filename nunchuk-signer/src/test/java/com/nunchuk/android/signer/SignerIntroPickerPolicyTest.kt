@@ -51,6 +51,25 @@ class SignerIntroPickerPolicyTest {
         assertEquals(listOf(KeyType.TAPSIGNER, KeyType.GENERIC_AIRGAP), policy.displayInfos(state).map { it.keyType })
     }
 
+    @Test fun `on-chain picker uses the standard card order, not the server's`() {
+        val policy = SignerIntroPickerPolicy(SignerIntroRequest(
+            flow = SignerIntroFlow.OnChainTimelockKey(), walletType = WalletType.MINISCRIPT,
+        ))
+        // The server's order for the configure-wallet slot, which put COLDCARD second (NUN-10368).
+        val state = policy.applyConfigs(SignerIntroState(), listOf(
+            config(WalletType.MINISCRIPT, false, SignerType.NFC),
+            config(WalletType.MINISCRIPT, false, SignerType.COLDCARD_NFC),
+            config(WalletType.MINISCRIPT, false, SignerType.AIRGAP, SignerTag.JADE),
+            config(WalletType.MINISCRIPT, false, SignerType.HARDWARE, SignerTag.LEDGER),
+            config(WalletType.MINISCRIPT, false, SignerType.HARDWARE, SignerTag.BITBOX),
+            config(WalletType.MINISCRIPT, false, SignerType.AIRGAP, SignerTag.KRUX),
+        ))
+        assertEquals(
+            listOf(KeyType.TAPSIGNER, KeyType.JADE, KeyType.COLDCARD, KeyType.BITBOX, KeyType.LEDGER, KeyType.KRUX, KeyType.GENERIC_AIRGAP),
+            policy.displayInfos(state).map { it.keyType },
+        )
+    }
+
     private val oldSheetKeyTypes = listOf(
         KeyType.TAPSIGNER, KeyType.TREZOR, KeyType.JADE, KeyType.PORTAL, KeyType.SEEDSIGNER,
         KeyType.KEYSTONE, KeyType.FOUNDATION, KeyType.COLDCARD, KeyType.BITBOX, KeyType.LEDGER,

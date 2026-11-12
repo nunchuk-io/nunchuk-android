@@ -157,15 +157,16 @@ internal class SignerIntroPickerPolicy(private val request: SignerIntroRequest) 
     }
 
     /**
-     * The BYOH and claim pickers' card order is fixed by the design, so neither the server's
-     * ordering of supported_signers nor the order the fallback list is written in may decide it.
-     * Anything the design does not name keeps its relative position at the end. Every other flow
-     * is left in the order it was given.
+     * The BYOH, claim and on-chain timelock pickers' card order is fixed by the design, so neither
+     * the server's ordering of supported_signers nor the order the fallback list is written in may
+     * decide it. Anything the design does not name keeps its relative position at the end. Every
+     * other flow is left in the order it was given.
      */
     private fun List<SupportedSigner>.inPickerOrder(): List<SupportedSigner> {
         val order = when {
             isAddInheritanceOffChainSetup -> offChainInheritanceCardOrder
             isOffChainClaim -> offChainInheritanceClaimCardOrder
+            request.flow is SignerIntroFlow.OnChainTimelockKey -> onChainTimelockCardOrder
             else -> return this
         }
         return sortedBy { signer -> order.indexOf(signer.toKeyType()).takeIf { it >= 0 } ?: Int.MAX_VALUE }
