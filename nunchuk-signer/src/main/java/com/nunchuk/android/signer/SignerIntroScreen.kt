@@ -132,7 +132,7 @@ fun SignerIntroScreenContent(
 @Composable
 internal fun SignerSelection(
     displayInfos: List<SignerDisplayInfo>,
-    /** KEY-01: a divider above the simple rows (Generic Airgap) and their titles in bold. */
+    /** KEY-01: a divider above the simple rows (Generic Airgap). */
     isConfigurableDraft: Boolean = false,
     onClick: (KeyType) -> Unit,
 ) {
@@ -217,7 +217,7 @@ internal fun SignerSelection(
             Text(
                 modifier = Modifier.padding(start = 12.dp),
                 text = stringResource(item.titleRes),
-                style = if (isConfigurableDraft) NunchukTheme.typography.title else NunchukTheme.typography.body,
+                style = NunchukTheme.typography.body,
             )
         }
     }
