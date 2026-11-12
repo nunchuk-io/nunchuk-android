@@ -42,8 +42,21 @@ curl -s -u "$EMAIL:$TOKEN" -L \
   -o "<SCRATCHPAD>/<filename>"
 ```
 
-Then `Read` the downloaded file. Videos/`.mp4` can't be read — say so and ask the user to describe
-the relevant frame rather than guessing.
+Then `Read` the downloaded file.
+
+**Videos (`.mp4`, `.mov`, …) — extract frames, never skip them.** `Read` can't open a video, but
+`ffmpeg` (`/opt/homebrew/bin/ffmpeg`) can turn it into contact strips you can Read:
+
+```bash
+V="<SCRATCHPAD>/<video>"
+ffprobe -v error -show_entries format=duration -of csv=p=0 "$V"            # length in seconds
+ffmpeg -v error -i "$V" -vf "fps=2,scale=360:-1,tile=6x1" -frames:v 1 "<SCRATCHPAD>/strip1.png" -y
+ffmpeg -v error -ss 3 -i "$V" -vf "fps=2,scale=360:-1,tile=6x1" -frames:v 1 "<SCRATCHPAD>/strip2.png" -y
+```
+
+Each strip covers `6 / fps` seconds; add more strips with `-ss <start>` until the whole video is
+covered (raise `fps` around the moment the bug happens). Read every strip; the last frames usually
+show the wrong screen. Only if `ffmpeg` is missing, say so and ask the user to describe the frame.
 
 Transcribe the exact on-screen copy from the circled region and grep **that** string in Step 2 —
 it is the shortest path from the screenshot to the `strings.xml` entry and the composable that
