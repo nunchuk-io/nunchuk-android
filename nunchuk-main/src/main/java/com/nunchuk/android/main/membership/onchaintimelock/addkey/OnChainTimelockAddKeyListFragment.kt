@@ -428,9 +428,9 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
             clearFragmentResult(CustomizeInheritanceIntroFragment.REQUEST_KEY)
         }
         setFragmentResultListener(FallbackInheritanceIntroFragment.REQUEST_KEY) { _, bundle ->
-            if (bundle.getBoolean(FallbackInheritanceIntroFragment.EXTRA_CONTINUE)) {
-                viewModel.showAddFallbackSheet()
-            }
+            val m = bundle.getInt(FallbackInheritanceIntroFragment.EXTRA_M)
+            val n = bundle.getInt(FallbackInheritanceIntroFragment.EXTRA_N)
+            if (m > 0 && n > 0) viewModel.addFallback(m, n)
             clearFragmentResult(FallbackInheritanceIntroFragment.REQUEST_KEY)
         }
         setFragmentResultListener(ColdCardIntroFragment.REQUEST_KEY) { _, bundle ->

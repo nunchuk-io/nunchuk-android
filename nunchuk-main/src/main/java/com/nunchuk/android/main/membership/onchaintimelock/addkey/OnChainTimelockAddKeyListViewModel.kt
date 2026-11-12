@@ -863,6 +863,13 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
      */
     fun saveFallbackPolicy(m: Int, n: Int) {
         val target = _state.value.fallbackPolicyTarget ?: return
+        saveFallbackPolicy(target, m, n)
+    }
+
+    /** FBK-01a Continue from the Fallbacks intro (FBK-01), whose sheet sits on that screen. */
+    fun addFallback(m: Int, n: Int) = saveFallbackPolicy(FallbackPolicyTarget(index = null), m, n)
+
+    private fun saveFallbackPolicy(target: FallbackPolicyTarget, m: Int, n: Int) {
         runDraftUpdate(beforeRun = { it.copy(fallbackPolicyTarget = null) }) {
             if (target.index == null) {
                 addDraftFallbackInheritanceUseCase(

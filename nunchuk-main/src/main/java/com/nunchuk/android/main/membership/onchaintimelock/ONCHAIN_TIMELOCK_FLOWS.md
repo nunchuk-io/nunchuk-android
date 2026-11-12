@@ -204,9 +204,10 @@ fixed step list:
 * **Fallbacks (Figma Row 2 · FBK, Row 3 · TIME)** sit under primary inheritance
   (`fallbackDraftItems`, `FallbackInheritanceSetupViews.kt`); "Add fallback" shows even before the
   primary time is set (SET-03). The first "Add fallback" runs `FallbackInheritanceIntroFragment`
-  (FBK-01), then the shared `InheritancePolicySheet` ("Fallback N policy", FBK-01a, starts at 1 of 1)
-  → `AddDraftFallbackInheritanceUseCase` (`POST draft-wallets/fallbacks`); later ones open the sheet
-  directly. Edit → the sheet with the fallback's M of N → `UpdateDraftFallbackInheritanceUseCase`
+  (FBK-01), whose Continue opens the shared `InheritancePolicySheet` ("Fallback 1 policy", FBK-01a)
+  on the intro itself (Figma 3502:390); the sheet's Continue pops back with M of N as a fragment
+  result (`addFallback`) → `AddDraftFallbackInheritanceUseCase` (`POST draft-wallets/fallbacks`); later ones open the sheet
+  directly on the setup screen. Edit → the sheet with the fallback's M of N → `UpdateDraftFallbackInheritanceUseCase`
   (`PUT …/fallbacks/{index}`); Remove → `RemoveFallbackSheet` (FBK-10 / FBK-11) →
   `RemoveDraftFallbackInheritanceUseCase` (`DELETE …/fallbacks/{index}`; later fallbacks move down
   and keep keys and times). Every call returns the draft, which is applied and then refreshed.
