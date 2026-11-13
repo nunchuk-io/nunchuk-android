@@ -63,6 +63,8 @@ import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.cla
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.keycount.claimKeyCount
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.keycount.navigateToClaimKeyCount
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.magicphrase.ClaimMagicPhraseRoute
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.separatedevices.claimSeparateDevices
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.separatedevices.navigateToClaimSeparateDevices
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.magicphrase.claimMagicPhrase
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.noinheritancefound.inheritanceError
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.noinheritancefound.navigateToInheritanceError
@@ -366,7 +368,21 @@ private fun ClaimInheritanceGraph(
                 },
                 onContinue = { count ->
                     activityViewModel.selectRequiredKeyCount(count)
-                    navController.navigateToFirstInheritanceKey(count)
+                    if (activityViewModel.claimData.value.needsSeparateDevicesNotice(count)) {
+                        navController.navigateToClaimSeparateDevices(count)
+                    } else {
+                        navController.navigateToFirstInheritanceKey(count)
+                    }
+                },
+            )
+            claimSeparateDevices(
+                snackState = snackbarHostState,
+                onBackPressed = {
+                    navController.popBackStack()
+                },
+                onContinue = { count ->
+                    // Back from the first key returns here, not to Magic Phrase.
+                    navController.navigateToFirstInheritanceKey(count, keepBackStack = true)
                 },
             )
             prepareInheritanceKey(
@@ -444,6 +460,8 @@ private fun ClaimInheritanceGraph(
                     val claimInit = activityViewModel.claimData.value
                     if (claimInit.needsKeyCountChoice) {
                         navController.navigateToClaimKeyCount()
+                    } else if (claimInit.needsSeparateDevicesNotice(claimInit.requiredKeyCount)) {
+                        navController.navigateToClaimSeparateDevices(claimInit.requiredKeyCount)
                     } else {
                         navController.navigateToFirstInheritanceKey(claimInit.requiredKeyCount)
                     }

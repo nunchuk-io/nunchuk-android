@@ -34,23 +34,29 @@ fun NavGraphBuilder.addInheritanceKey(
     }
 }
 
+/**
+ * Opens the add-key screen for key [index] of [totalKeys]. Earlier claim screens are cleared back to
+ * Magic Phrase unless [keepBackStack] is set, which keeps the current screen (CLM-KCa/KCb) one back.
+ */
 fun NavController.navigateToAddInheritanceKey(
-    index: Int, totalKeys: Int
+    index: Int, totalKeys: Int, keepBackStack: Boolean = false,
 ) {
     navigate(
         AddInheritanceKeyRoute(index, totalKeys),
         navOptions {
-            popUpTo<ClaimMagicPhraseRoute> {
-                inclusive = false
+            if (!keepBackStack) {
+                popUpTo<ClaimMagicPhraseRoute> {
+                    inclusive = false
+                }
             }
         }
     )
 }
 
 /** Starts collecting keys: the "requires N keys" intro for several keys, else straight to the first key. */
-fun NavController.navigateToFirstInheritanceKey(requiredKeyCount: Int) {
+fun NavController.navigateToFirstInheritanceKey(requiredKeyCount: Int, keepBackStack: Boolean = false) {
     if (requiredKeyCount > 1) {
-        navigateToAddInheritanceKey(index = 1, totalKeys = requiredKeyCount)
+        navigateToAddInheritanceKey(index = 1, totalKeys = requiredKeyCount, keepBackStack = keepBackStack)
     } else {
         navigateToPrepareInheritanceKey()
     }

@@ -3,6 +3,7 @@ package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.cl
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.model.KeyOrigin
 import com.nunchuk.android.model.inheritance.ClaimValidKey
+import com.nunchuk.android.type.WalletType
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -46,6 +47,16 @@ class ClaimDataTest {
         assertTrue(ClaimData(requiredKeyCounts = listOf(1, 2)).needsKeyCountChoice)
         assertFalse(ClaimData(requiredKeyCounts = listOf(2)).needsKeyCountChoice)
         assertFalse(ClaimData().needsKeyCountChoice)
+    }
+
+    @Test
+    fun `separate devices notice only for on-chain claims of 2 or more keys`() {
+        val onChain = ClaimData(walletType = WalletType.MINISCRIPT)
+        assertFalse(onChain.needsSeparateDevicesNotice(1))
+        assertTrue(onChain.needsSeparateDevicesNotice(2))
+        assertTrue(onChain.needsSeparateDevicesNotice(3))
+        assertTrue(ClaimData(bsms = "BSMS 1.0").needsSeparateDevicesNotice(2))
+        assertFalse(ClaimData(walletType = WalletType.MULTI_SIG).needsSeparateDevicesNotice(2))
     }
 
     @Test

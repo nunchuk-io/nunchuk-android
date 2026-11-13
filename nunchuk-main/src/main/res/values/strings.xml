@@ -1141,6 +1141,13 @@
         <item quantity="one">%1$d key or seed phrase</item>
         <item quantity="other">%1$d keys or seed phrases</item>
     </plurals>
+    <string name="nc_claim_separate_devices_title_two">Keep the 2 keys on separate devices</string>
+    <string name="nc_claim_separate_devices_title_many">Keep the keys on separate devices</string>
+    <string name="nc_claim_separate_devices_lead">We recommend using a separate hardware device for each key, ideally from different vendors.</string>
+    <string name="nc_claim_separate_devices_one_device_two">If you only have one device, restore one seed phrase on it and enter the other directly in the Nunchuk app as a software key.</string>
+    <string name="nc_claim_separate_devices_one_device_many">If you don’t have a device for each key, enter one of them directly in the Nunchuk app as a software key.</string>
+    <string name="nc_claim_separate_devices_independent_two">This keeps the 2 keys in independent environments, so if one is compromised, the other stays secure.</string>
+    <string name="nc_claim_separate_devices_independent_many">This keeps the keys in independent environments, so if one is compromised, the others stay secure.</string>
     <string name="nc_claim_keys_added_progress">You’ve added %1$d of the %2$d required keys.</string>
     <string name="nc_claim_keys_added">You’ve added %1$d keys.</string>
     <string name="nc_claim_add_another_key_to_continue">Add another key to continue.</string>

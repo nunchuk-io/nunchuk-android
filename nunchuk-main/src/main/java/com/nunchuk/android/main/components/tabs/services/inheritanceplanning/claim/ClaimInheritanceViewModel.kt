@@ -662,6 +662,9 @@ data class ClaimData(
     val isOnChainClaim: Boolean
         get() = !bsms.isNullOrEmpty() || walletType == WalletType.MINISCRIPT
 
+    /** CLM-KCa/KCb: an on-chain claim that collects [keyCount] ≥ 2 keys first recommends separate devices. */
+    fun needsSeparateDevicesNotice(keyCount: Int): Boolean = isOnChainClaim && keyCount >= 2
+
     /**
      * One path per [requiredSigners] entry, in that order — the two lists travel together into
      * the claiming transaction and are read by index. The plan's key origins are the source; a
