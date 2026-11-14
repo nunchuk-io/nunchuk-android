@@ -1104,7 +1104,8 @@ private fun LazyListScope.configurableDraftItems(
     }
     if (timelockKey != null) {
         item(key = "primary_timelock") {
-            val timelockBorder = if (uiState.validationErrors.isTimelockHighlighted(InheritanceSection.PRIMARY)) {
+            val isTimelockError = uiState.validationErrors.isTimelockHighlighted(InheritanceSection.PRIMARY)
+            val timelockBorder = if (isTimelockError) {
                 Modifier.border(1.dp, MaterialTheme.colorScheme.error, RoundedCornerShape(8.dp))
             } else {
                 Modifier
@@ -1116,6 +1117,7 @@ private fun LazyListScope.configurableDraftItems(
                         onAddClicked = { if (!isLimited) onConfigTimelockClicked(it) },
                         onChangeTimelockClicked = { if (!isLimited) onChangeTimelockClicked(it) },
                         isDisabled = isDisabled,
+                        isError = isTimelockError,
                     )
                 }
             }
@@ -1194,7 +1196,8 @@ private fun LazyListScope.fallbackDraftItems(
             }
         }
         item(key = "fallback_${fallback.index}_timelock") {
-            val timelockBorder = if (uiState.validationErrors.isTimelockHighlighted(InheritanceSection.FALLBACK, fallback.index)) {
+            val isTimelockError = uiState.validationErrors.isTimelockHighlighted(InheritanceSection.FALLBACK, fallback.index)
+            val timelockBorder = if (isTimelockError) {
                 Modifier.border(1.dp, MaterialTheme.colorScheme.error, RoundedCornerShape(8.dp))
             } else {
                 Modifier
@@ -1212,6 +1215,7 @@ private fun LazyListScope.fallbackDraftItems(
                         onAddClicked = { actions.onFallbackTimelock(fallback.index) },
                         onChangeTimelockClicked = { actions.onFallbackTimelock(fallback.index) },
                         isDisabled = isDisabled,
+                        isError = isTimelockError,
                     )
                 }
                 InheritanceValidationErrors(errors = uiState.fallbackValidationErrors(fallback.index))
@@ -1498,6 +1502,8 @@ private fun AddKeyCard(
     isDisabled: Boolean = false,
     isStandard: Boolean = false,
     isMissingBackup: Boolean = false,
+    // A validation error circles the configured timelock: white fill under the red border, not green.
+    isError: Boolean = false,
     onAddClicked: (data: AddKeyOnChainData) -> Unit = {},
     onVerifyClicked: (data: AddKeyOnChainData) -> Unit = {},
     onChangeTimelockClicked: (data: AddKeyOnChainData) -> Unit = {}
@@ -1669,7 +1675,7 @@ private fun AddKeyCard(
                     Box(
                         modifier = modifier
                             .background(
-                                colorResource(id = R.color.nc_fill_slime),
+                                if (isError) MaterialTheme.colorScheme.background else colorResource(id = R.color.nc_fill_slime),
                                 shape = RoundedCornerShape(8.dp)
                             ),
                         contentAlignment = Alignment.Center,
