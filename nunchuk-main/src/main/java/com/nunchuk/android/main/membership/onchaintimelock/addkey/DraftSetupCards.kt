@@ -115,6 +115,29 @@ internal fun List<DraftSetupCard>.chooseKeyOptions(card: DraftInheritanceCard): 
         .distinctBy { it.fingerPrint.lowercase() }
 }
 
+/**
+ * KEY-10: indices of the fallbacks holding Account 0 of [xfp] that an import of [account] into
+ * [card] takes away from them. A fallback keeps Account 0 only while no primary-inheritance account
+ * uses it (Note to dev 4355:18152), so once the import lands the backend drops that key from the
+ * fallback. A spending card imports every empty account at once, so it takes Account 0 when one of
+ * those is Account 0. A fallback import never takes another fallback's account.
+ */
+internal fun List<DraftSetupCard>.fallbacksLosingKey(card: DraftSetupCard, xfp: String, account: Int): Set<Int> {
+    if (card.section == InheritanceSection.FALLBACK) return emptySet()
+    val takesAccountZero = account == 0 ||
+        (card.section == InheritanceSection.SPENDING && card.slots.any { !it.isFilled && it.accountIndex == 0 })
+    if (!takesAccountZero) return emptySet()
+    return filter { it.section == InheritanceSection.FALLBACK }
+        .filter { fallback ->
+            fallback.slots.any { slot ->
+                val signer = slot.signer ?: return@any false
+                signer.fingerPrint.equals(xfp, ignoreCase = true) && signer.index == 0
+            }
+        }
+        .mapNotNull { it.card.fallbackIndex }
+        .toSet()
+}
+
 /** A draft key the app has no copy of; unknown tags are dropped rather than failing the screen. */
 private fun SignerServer.toSlotSigner(account: Int) = SignerModel(
     id = xfp.orEmpty(),

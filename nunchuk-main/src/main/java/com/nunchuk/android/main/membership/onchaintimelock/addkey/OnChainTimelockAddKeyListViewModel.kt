@@ -176,6 +176,12 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
             else savedStateHandle[KEY_ACTIVE_DRAFT_ACCOUNT] = value
         }
 
+    /** The import KEY-10 holds back until the user answers it. */
+    private var pendingConflictImport: (() -> Unit)? = null
+
+    /** The key the user already let take its fallbacks' account in this add (asked once per add). */
+    private var confirmedConflictXfp: String? = null
+
     // Context for TapSigner caching
     private var pendingTapSignerData: AddKeyOnChainData? = null
     private var pendingTapSignerWalletId: String? = null
@@ -380,6 +386,64 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
     }
 
     fun onSelectedExistingHardwareSigner(signer: SingleSigner, keyData: AddKeyOnChainData? = null) {
+        // A configurable-draft slot being filled: a key a fallback holds asks first (KEY-10).
+        val draftCard = draftKeySlotHolder.slotFor(groupId)
+            ?.takeIf { activeDraftAccount != null }
+            ?.let { cardOfKey(it.keyIndex) }
+        val account = bip32AccountIndex(signer.derivationPath) ?: activeDraftAccount ?: 0
+        confirmFallbackConflict(draftCard, signer.masterFingerprint, account) {
+            syncExistingSigner(signer, keyData)
+        }
+    }
+
+    /**
+     * KEY-10: when importing [account] of [xfp] into [card] takes the key out of a fallback, show
+     * "<key> is used in a fallback" and hold [import] until Continue; otherwise run it now.
+     */
+    private fun confirmFallbackConflict(card: DraftSetupCard?, xfp: String, account: Int, import: () -> Unit) {
+        val state = _state.value
+        val losing = card?.let { state.draftCards.fallbacksLosingKey(it, xfp, account) }.orEmpty()
+        if (losing.isEmpty() || confirmedConflictXfp.equals(xfp, ignoreCase = true)) {
+            import()
+            return
+        }
+        val keyName = state.draftCards
+            .filter { it.section == InheritanceSection.FALLBACK }
+            .flatMap { it.slots }
+            .firstNotNullOfOrNull { slot -> slot.signer?.takeIf { it.fingerPrint.equals(xfp, ignoreCase = true) } }
+            ?.name
+            .orEmpty()
+            .ifEmpty { xfp.uppercase() }
+        pendingConflictImport = import
+        _state.update {
+            it.copy(
+                fallbackKeyConflict = FallbackKeyConflict(
+                    xfp = xfp,
+                    keyName = keyName,
+                    fallbacks = it.fallbacks.filter { fallback -> fallback.index in losing },
+                ),
+            )
+        }
+    }
+
+    /** KEY-10 Continue: import anyway; the backend takes the key out of those fallbacks. */
+    fun onFallbackConflictContinue() {
+        val conflict = _state.value.fallbackKeyConflict ?: return
+        val import = pendingConflictImport
+        pendingConflictImport = null
+        confirmedConflictXfp = conflict.xfp
+        _state.update { it.copy(fallbackKeyConflict = null) }
+        import?.invoke()
+    }
+
+    /** KEY-10 Cancel (or dismiss): nothing is imported and the slot stays empty. */
+    fun onFallbackConflictCancel() {
+        pendingConflictImport = null
+        _state.update { it.copy(fallbackKeyConflict = null) }
+        clearDraftSlot()
+    }
+
+    private fun syncExistingSigner(signer: SingleSigner, keyData: AddKeyOnChainData?) {
         viewModelScope.launch {
             val actualSigner = if (signer.xpub.isNotEmpty()) signer else singleSigners.find {
                 it.masterFingerprint == signer.masterFingerprint
@@ -536,6 +600,7 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
      * this setup (KEY-01a).
      */
     fun onDraftSlotAddClicked(card: DraftSetupCard, slot: DraftSetupSlot) {
+        confirmedConflictXfp = null
         val offersChoice = card.section == InheritanceSection.FALLBACK ||
             (card.section == InheritanceSection.PRIMARY && _state.value.isPrimaryCustomized)
         if (offersChoice && chooseKeyOptions(card.card).isNotEmpty()) {
@@ -688,6 +753,13 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
      * (TAPSIGNER: derive it), else read exactly [account] off that device.
      */
     private fun importDraftAccount(card: DraftSetupCard, slot: DraftSetupSlot, device: SignerModel, account: Int) {
+        // The device is known up front, so KEY-10 asks before anything is read off it.
+        confirmFallbackConflict(card, device.fingerPrint, account) {
+            startDraftAccountImport(card, slot, device, account)
+        }
+    }
+
+    private fun startDraftAccountImport(card: DraftSetupCard, slot: DraftSetupSlot, device: SignerModel, account: Int) {
         val isInheritance = card.section != InheritanceSection.SPENDING
         startDraftSlot(card, slot, account)
         val step = dispatchStep(isInheritance, account)
@@ -770,6 +842,7 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
     }
 
     private fun clearDraftSlot() {
+        confirmedConflictXfp = null
         activeDraftAccount = null
         draftKeySlotHolder.clear()
     }
@@ -1379,6 +1452,16 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
 /** The slot the choose-key sheet fills: the card plus the slot's `key_index`. */
 data class ChooseKeyTarget(val card: DraftInheritanceCard, val keyIndex: Int)
 
+/**
+ * KEY-10: importing [xfp] here takes it out of [fallbacks]; [keyName] is the key as those fallbacks
+ * show it.
+ */
+data class FallbackKeyConflict(
+    val xfp: String,
+    val keyName: String,
+    val fallbacks: List<FallbackInheritanceCondition>,
+)
+
 /** The fallback the policy sheet (FBK-01a) edits; [index] null adds a new one. */
 data class FallbackPolicyTarget(val index: Int?)
 
@@ -1485,6 +1568,8 @@ data class AddKeyListState(
     val fallbackPolicyTarget: FallbackPolicyTarget? = null,
     /** The fallback the remove confirmation (FBK-10 / FBK-11) is for; null when hidden. */
     val removeFallbackIndex: Int? = null,
+    /** KEY-10 "<key> is used in a fallback", shown before the import; null when hidden. */
+    val fallbackKeyConflict: FallbackKeyConflict? = null,
 ) {
     /**
      * The inheritance guide runs once per wallet setup: it ran in this session, or a primary key is

@@ -995,6 +995,8 @@ fun AddKeyListScreen(
         onChooseKeySelected = viewModel::onChooseKeySelected,
         onChooseKeyAddNew = viewModel::onChooseKeyAddNew,
         onChooseKeyDismiss = viewModel::dismissChooseKey,
+        onFallbackConflictContinue = viewModel::onFallbackConflictContinue,
+        onFallbackConflictCancel = viewModel::onFallbackConflictCancel,
         onVerifyDraftKey = viewModel::verifyDraftKey,
         onVerifyBackupsDone = viewModel::dismissVerifyBackups,
         fallbackActions = FallbackSetupActions(
@@ -1260,6 +1262,8 @@ fun OnChainTimelockAddKeyListContent(
     onChooseKeySelected: (xfp: String) -> Unit = {},
     onChooseKeyAddNew: () -> Unit = {},
     onChooseKeyDismiss: () -> Unit = {},
+    onFallbackConflictContinue: () -> Unit = {},
+    onFallbackConflictCancel: () -> Unit = {},
     onVerifyDraftKey: (SignerModel) -> Unit = {},
     onVerifyBackupsDone: () -> Unit = {},
     fallbackActions: FallbackSetupActions = FallbackSetupActions(),
@@ -1431,6 +1435,14 @@ fun OnChainTimelockAddKeyListContent(
                 onChooseKey = onChooseKeySelected,
                 onAddKey = onChooseKeyAddNew,
                 onDismiss = onChooseKeyDismiss,
+            )
+        }
+        uiState.fallbackKeyConflict?.let { conflict ->
+            KeyUsedInFallbackSheet(
+                keyName = conflict.keyName,
+                fallbacks = conflict.fallbacks,
+                onContinue = onFallbackConflictContinue,
+                onDismiss = onFallbackConflictCancel,
             )
         }
         if (uiState.isVerifyBackupsVisible) {

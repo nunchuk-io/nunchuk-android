@@ -1068,6 +1068,8 @@
     </plurals>
     <string name="nc_remove_fallback_renumber">Any later fallbacks move up one number and keep their keys and unlock times.</string>
     <string name="nc_remove_fallback">Remove fallback</string>
+    <string name="nc_key_used_in_fallback_title">%1$s is used in a fallback</string>
+    <string name="nc_key_used_in_fallback_desc">Adding it here removes it from the fallback below. You’ll need to add a key to it again.</string>
     <string name="nc_choose_key_for_fallback">Choose a key for Fallback %1$d</string>
     <string name="nc_choose_key_for_fallback_desc">You’ve already added these keys in this setup. Choose one, or use a different key.</string>
     <string name="nc_use_a_different_key">Use a different key</string>

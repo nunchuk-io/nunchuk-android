@@ -159,4 +159,45 @@ class DraftSetupCardsTest {
         restored.clear()
         assertNull(DraftKeySlotHolder(store).slotFor(""))
     }
+
+    // KEY-10: Fallback 1 holds BitBox (xfp 2a9f3d10) at Account 0; Fallback 2 holds it at Account 3.
+    private val fallback1 = primary.copy(
+        section = InheritanceSection.FALLBACK, fallbackIndex = 0, keys = listOf(key(8, null, InheritanceSection.FALLBACK)),
+    )
+    private val fallback2 = fallback1.copy(fallbackIndex = 1, keys = listOf(key(9, null, InheritanceSection.FALLBACK)))
+    private val conflictCards = buildDraftSetupCards(
+        listOf(spendingA, spendingB, primary, fallback1, fallback2),
+        signers.take(2) + listOf(
+            SignerServer(index = 8, name = "BitBox", xfp = "2A9F3D10", derivationPath = "m/48'/0'/0'/2'", type = SignerType.HARDWARE),
+            SignerServer(index = 9, name = "BitBox", xfp = "2A9F3D10", derivationPath = "m/48'/0'/3'/2'", type = SignerType.HARDWARE),
+        ),
+    )
+
+    @Test
+    fun `a spending card taking Account 0 takes the key from the fallback holding Account 0`() {
+        val emptySpending = conflictCards[1]
+        assertEquals(setOf(0), conflictCards.fallbacksLosingKey(emptySpending, "2a9f3d10", account = 0))
+    }
+
+    @Test
+    fun `a primary slot at Account 0 takes the key from that fallback too`() {
+        val primaryCard = conflictCards[2]
+        assertEquals(setOf(0), conflictCards.fallbacksLosingKey(primaryCard, "2a9f3d10", account = 0))
+    }
+
+    @Test
+    fun `no conflict for another key, a non-zero account, or a fallback import`() {
+        val primaryCard = conflictCards[2]
+        assertTrue(conflictCards.fallbacksLosingKey(primaryCard, "1111aaaa", account = 0).isEmpty())
+        assertTrue(conflictCards.fallbacksLosingKey(primaryCard, "2a9f3d10", account = 2).isEmpty())
+        assertTrue(conflictCards.fallbacksLosingKey(conflictCards[4], "2a9f3d10", account = 0).isEmpty())
+    }
+
+    @Test
+    fun `a spending card whose Account 0 is already in leaves the fallback alone`() {
+        val onlyAccount1Empty = conflictCards[1].let { card ->
+            card.copy(slots = card.slots.map { if (it.accountIndex == 0) it.copy(signer = conflictCards[0].device) else it })
+        }
+        assertTrue(conflictCards.fallbacksLosingKey(onlyAccount1Empty, "2a9f3d10", account = 1).isEmpty())
+    }
 }

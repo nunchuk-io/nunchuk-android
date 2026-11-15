@@ -129,12 +129,17 @@ internal fun fallbackBoundMessage(target: FallbackTimelockTarget, bound: Fallbac
     )
 }
 
+/** "05/29/2040 01:25" in the lock's own time zone. */
+internal fun formatTimelockDate(timelock: TimelockExtra): String {
+    val format = SimpleDateFormat("MM/dd/yyyy HH:mm", Locale.getDefault())
+    timelock.timezone?.takeIf { it.isNotEmpty() }?.let { format.timeZone = TimeZone.getTimeZone(it) }
+    return format.format(Date(timelock.value * 1000))
+}
+
 /** "05/29/2040 01:25 (GMT+07:00)" in the lock's own time zone. */
 internal fun formatTimelockWithZone(timelock: TimelockExtra): String {
     val zoneId = timelock.timezone?.takeIf { it.isNotEmpty() }
-    val format = SimpleDateFormat("MM/dd/yyyy HH:mm", Locale.getDefault())
-    zoneId?.let { format.timeZone = TimeZone.getTimeZone(it) }
-    val date = format.format(Date(timelock.value * 1000))
+    val date = formatTimelockDate(timelock)
     val offset = zoneId?.let { runCatching { it.toTimeZoneDetail()?.offset }.getOrNull() }
     return if (offset.isNullOrEmpty()) date else "$date ($offset)"
 }
