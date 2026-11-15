@@ -8,7 +8,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.HorizontalDivider
@@ -229,34 +231,42 @@ private fun KeyUsedInFallbackContent(
             .padding(vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        Text(
-            modifier = Modifier.fillMaxWidth(),
-            text = stringResource(R.string.nc_key_used_in_fallback_title, keyName),
-            style = NunchukTheme.typography.title,
-            textAlign = TextAlign.Center,
-        )
-        Text(text = stringResource(R.string.nc_key_used_in_fallback_desc), style = NunchukTheme.typography.body)
-        fallbacks.forEach { fallback ->
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.greyLight, RoundedCornerShape(12.dp))
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                Text(
-                    text = stringResource(R.string.nc_fallback_number, fallback.index + 1),
-                    style = NunchukTheme.typography.title,
-                )
-                fallback.timelock?.takeIf { it.timelockValue > 0 }?.let { timelock ->
+        // Many fallbacks or a large font scroll here, so Continue / Cancel always stay reachable.
+        Column(
+            modifier = Modifier
+                .weight(1f, fill = false)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            Text(
+                modifier = Modifier.fillMaxWidth(),
+                text = stringResource(R.string.nc_key_used_in_fallback_title, keyName),
+                style = NunchukTheme.typography.title,
+                textAlign = TextAlign.Center,
+            )
+            Text(text = stringResource(R.string.nc_key_used_in_fallback_desc), style = NunchukTheme.typography.body)
+            fallbacks.forEach { fallback ->
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.greyLight, RoundedCornerShape(12.dp))
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
                     Text(
-                        text = stringResource(
-                            R.string.nc_miniscript_after_value,
-                            formatTimelockDate(timelock.toTimelockExtra()),
-                        ),
-                        style = NunchukTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.textSecondary,
+                        text = stringResource(R.string.nc_fallback_number, fallback.index + 1),
+                        style = NunchukTheme.typography.title,
                     )
+                    fallback.timelock?.takeIf { it.timelockValue > 0 }?.let { timelock ->
+                        Text(
+                            text = stringResource(
+                                R.string.nc_miniscript_after_value,
+                                formatTimelockDate(timelock.toTimelockExtra()),
+                            ),
+                            style = NunchukTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.textSecondary,
+                        )
+                    }
                 }
             }
         }
