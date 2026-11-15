@@ -1118,6 +1118,7 @@ private fun LazyListScope.configurableDraftItems(
                         onChangeTimelockClicked = { if (!isLimited) onChangeTimelockClicked(it) },
                         isDisabled = isDisabled,
                         isError = isTimelockError,
+                        showHeightLockEstimate = false,
                     )
                 }
             }
@@ -1216,6 +1217,7 @@ private fun LazyListScope.fallbackDraftItems(
                         onChangeTimelockClicked = { actions.onFallbackTimelock(fallback.index) },
                         isDisabled = isDisabled,
                         isError = isTimelockError,
+                        showHeightLockEstimate = false,
                     )
                 }
                 InheritanceValidationErrors(errors = uiState.fallbackValidationErrors(fallback.index))
@@ -1504,6 +1506,8 @@ private fun AddKeyCard(
     isMissingBackup: Boolean = false,
     // A validation error circles the configured timelock: white fill under the red border, not green.
     isError: Boolean = false,
+    // See ConfigItem: false draws a height-based timelock as "After <date>", without block height.
+    showHeightLockEstimate: Boolean = true,
     onAddClicked: (data: AddKeyOnChainData) -> Unit = {},
     onVerifyClicked: (data: AddKeyOnChainData) -> Unit = {},
     onChangeTimelockClicked: (data: AddKeyOnChainData) -> Unit = {}
@@ -1683,6 +1687,7 @@ private fun AddKeyCard(
                         ConfigItem(
                             item,
                             isDisabled = isDisabled,
+                            showHeightLockEstimate = showHeightLockEstimate,
                             onChangeTimelockClicked = onChangeTimelockClicked
                         )
                     }
@@ -1693,6 +1698,7 @@ private fun AddKeyCard(
                             onAddClicked = onAddClicked,
                             isDisabled = isDisabled,
                             isStandard = isStandard,
+                            showHeightLockEstimate = showHeightLockEstimate,
                             onChangeTimelockClicked = onChangeTimelockClicked
                         )
                     }
@@ -1720,6 +1726,9 @@ private fun ConfigItem(
     onAddClicked: ((data: AddKeyOnChainData) -> Unit)? = null,
     isDisabled: Boolean = false,
     isStandard: Boolean = false,
+    // The configurable setup (SET-13b) shows every unlock time as "After <date>" — even one past
+    // Y2K38, which is height-based — without the legacy "Est. <date>" + block-height lines.
+    showHeightLockEstimate: Boolean = true,
     onChangeTimelockClicked: (data: AddKeyOnChainData) -> Unit = {}
 ) {
     val signers = item.signers ?: emptyList()
@@ -1728,7 +1737,7 @@ private fun ConfigItem(
     val isTimelockWithData = item.type == MembershipStep.TIMELOCK &&
             item.stepDataMap[MembershipStep.TIMELOCK]?.timelock?.value.orDefault(0) > 0
     val timelockExtra = item.stepDataMap[MembershipStep.TIMELOCK]?.timelock
-    val isHeightLock = timelockExtra?.based == TimelockBased.HEIGHT_LOCK
+    val isHeightLock = showHeightLockEstimate && timelockExtra?.based == TimelockBased.HEIGHT_LOCK
     Row(
         modifier = Modifier.padding(12.dp),
         verticalAlignment = Alignment.CenterVertically
