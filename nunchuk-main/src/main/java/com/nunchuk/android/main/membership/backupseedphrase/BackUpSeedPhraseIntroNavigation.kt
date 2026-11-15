@@ -80,8 +80,13 @@ private fun BackUpSeedPhraseIntroContent(
             topBar = {
                 NcImageAppBar(
                     // The seed-plate illustration the design asks for here is the numbered one —
-                    // "Seed phrase" over words 1-12 — which the claim flow already carries.
-                    backgroundRes = R.drawable.bg_inheritance_recover_seed_phrase,
+                    // "Seed phrase" over words 1-12 — which the claim flow already carries. A fallback
+                    // key isn't the inheritance key, so its plate drops the "Inheritance" badge.
+                    backgroundRes = if (fallbackNumber != null) {
+                        R.drawable.bg_fallback_backup_seed_phrase
+                    } else {
+                        R.drawable.bg_inheritance_recover_seed_phrase
+                    },
                     title = if (remainTime <= 0) "" else stringResource(
                         id = R.string.nc_estimate_remain_time,
                         remainTime

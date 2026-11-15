@@ -74,7 +74,12 @@ private fun BackUpSeedPhraseVerifyContent(
             modifier = Modifier.navigationBarsPadding(),
             topBar = {
                 NcImageAppBar(
-                    backgroundRes = R.drawable.bg_seed_phrase_verify_illustration,
+                    // A fallback key isn't the inheritance key: its plate carries no "Inheritance" badge.
+                    backgroundRes = if (fallbackNumber != null) {
+                        R.drawable.bg_fallback_verify_seed_phrase
+                    } else {
+                        R.drawable.bg_seed_phrase_verify_illustration
+                    },
                     title = if (remainTime <= 0) "" else stringResource(
                         id = R.string.nc_estimate_remain_time,
                         remainTime
