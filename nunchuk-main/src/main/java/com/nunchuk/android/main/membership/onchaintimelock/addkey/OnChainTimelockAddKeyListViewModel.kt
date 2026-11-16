@@ -740,7 +740,7 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
             isInheritance = isInheritance,
             inheritanceGuide = inheritanceGuide(card.card),
             fallbackNumber = card.card.fallbackNumber,
-            showInheritanceGuide = isInheritance && !_state.value.isGuideSeen(card.card),
+            showInheritanceGuide = isInheritance,
             showDeviceSafety = true,
         )
         viewModelScope.launch {
