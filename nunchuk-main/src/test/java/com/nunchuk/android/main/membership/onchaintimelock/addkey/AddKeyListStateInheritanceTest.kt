@@ -270,6 +270,16 @@ class AddKeyListStateInheritanceTest {
     }
 
     @Test
+    fun `a key chosen from the setup does not count as the fallback guide having run`() {
+        // "j" is the primary inheritance key, reused in Fallback 1 through Choose key (no guide).
+        val state = withFallbacks(0 to listOf(fallbackSlot(8, "J", false), fallbackSlot(9, null, false)))
+        val fallback = state.fallbackCards(0).single().card
+
+        assertFalse(state.isGuideSeen(fallback))
+        assertTrue(state.copy(fallbackGuidesSeenInSession = setOf(0)).isGuideSeen(fallback))
+    }
+
+    @Test
     fun `an owner key reused in a fallback needs its new account verified`() {
         // Owner A is verified on its spending accounts; its fallback account (Account 2) is new.
         val state = withFallbacks(0 to listOf(fallbackSlot(8, "a", false)))

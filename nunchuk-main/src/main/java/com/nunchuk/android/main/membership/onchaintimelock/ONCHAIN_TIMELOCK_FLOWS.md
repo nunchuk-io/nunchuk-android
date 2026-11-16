@@ -220,7 +220,8 @@ fixed step list:
     TAPSIGNER (no BIP39 seed phrase, so never an on-chain inheritance key; `chooseKeyOptions`). The account comes
     from the card's `account_index_by_xfp` as for the primary. The fallback guide
     (`OnChainInheritanceGuide.FALLBACK` + `fallbackNumber`, KEY-05 / KEY-06) runs once per fallback
-    (`AddKeyListState.isGuideSeen`), also for a key picked from the setup.
+    (`AddKeyListState.isGuideSeen`); a key picked from the setup (Choose key) skips it and does not count as
+    the guide having run for that fallback (NUN-10387).
   * Verify on a fallback key runs that key's own backup check; every fallback key that is in must be
     verified before Continue (`isRequiredVerificationDone`).
   * The fallback's timelock card reuses `AddKeyCard` (Configure / Change) and opens

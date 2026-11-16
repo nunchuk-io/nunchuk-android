@@ -1580,12 +1580,23 @@ data class AddKeyListState(
 
     /**
      * Whether a key going into [card] still needs its guide: the primary guide runs once per setup,
-     * a fallback's once per fallback (or not at all once that fallback holds a key).
+     * a fallback's once per fallback (or not at all once that fallback holds a key it introduced).
+     * A key reused from elsewhere in the setup went in through KEY-01a "Choose key", which skips the
+     * guide, so it does not count (NUN-10387).
      */
     fun isGuideSeen(card: DraftInheritanceCard): Boolean {
         if (card.section != InheritanceSection.FALLBACK) return isInheritanceGuideSeen
         val index = card.fallbackIndex ?: return true
-        return index in fallbackGuidesSeenInSession || fallbackSlots(index).any { it.isFilled }
+        if (index in fallbackGuidesSeenInSession) return true
+        val elsewhere = draftCards
+            .filterNot { it.section == InheritanceSection.FALLBACK && it.card.fallbackIndex == index }
+            .flatMap { it.slots }
+            .mapNotNull { it.signer?.fingerPrint?.lowercase() }
+            .toSet()
+        return fallbackSlots(index).any { slot ->
+            val xfp = slot.signer?.fingerPrint?.lowercase() ?: return@any false
+            xfp !in elsewhere
+        }
     }
 
     val spendingCards: List<DraftSetupCard>
