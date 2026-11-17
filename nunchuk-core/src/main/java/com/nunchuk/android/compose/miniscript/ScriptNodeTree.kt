@@ -132,9 +132,16 @@ fun ScriptNodeTree(
             && node.idString.startsWith(data.topLevelDisableNode.idString)
     val isSatisfiableNode = data.satisfiableMap[node.idString] != false
     val isPathDisabled = data.mode == ScriptMode.SELECTING && data.isPathDisabled(node.id)
+    // A timelock stays highlighted while signing, unless a branch above it is unsatisfiable:
+    // then it greys out with the rest of that branch.
+    val isInUnsatisfiableBranch = data.satisfiableMap.any { (id, isSatisfiable) ->
+        !isSatisfiable && id.length < node.idString.length && node.idString.startsWith(id) &&
+                node.idString[id.length].isDigit().not()
+    }
     val contentAlpha = when {
         data.mode.isConfigOrChange() -> 1f
-        data.mode == ScriptMode.SIGN && (node.type == ScriptNodeType.AFTER.name || node.type == ScriptNodeType.OLDER.name) -> 1f
+        data.mode == ScriptMode.SIGN && !isInUnsatisfiableBranch &&
+                (node.type == ScriptNodeType.AFTER.name || node.type == ScriptNodeType.OLDER.name) -> 1f
         data.mode == ScriptMode.SIGN && isSatisfiableNode -> 1f
         (data.mode == ScriptMode.VIEW || data.mode == ScriptMode.SINGLE_SELECT) && isNormalNode -> 1f
         data.mode == ScriptMode.SELECTING && !isPathDisabled -> 1f
