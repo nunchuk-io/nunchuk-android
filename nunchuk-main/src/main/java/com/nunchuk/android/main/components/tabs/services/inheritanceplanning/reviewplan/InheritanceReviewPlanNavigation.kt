@@ -8,6 +8,9 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -75,10 +78,19 @@ fun NavGraphBuilder.inheritanceReviewPlan(
             onDispose { activity.setBottomSheetOptionListener(null) }
         }
 
+        // Set while a server-created dummy transaction is open: the request is already pending, so
+        // closing that screen (X / back) leaves the plan flow instead of returning to Review your plan.
+        var pendingDummyTransactionId by rememberSaveable { mutableStateOf("") }
+
         val launcher = rememberLauncherForActivityResult(
             ActivityResultContracts.StartActivityForResult()
         ) {
             val data = it.data?.extras
+            if (it.resultCode != Activity.RESULT_OK && pendingDummyTransactionId.isNotEmpty()) {
+                activity.finish()
+                return@rememberLauncherForActivityResult
+            }
+            pendingDummyTransactionId = ""
             if (it.resultCode == Activity.RESULT_OK && data != null) {
                 val isDoLater = data.getBoolean(GlobalResultKey.DUMMY_TX_INTRO_DO_LATER, false)
                 if (isDoLater) {
@@ -109,6 +121,7 @@ fun NavGraphBuilder.inheritanceReviewPlan(
                 .collect { event ->
                     when (event) {
                         is InheritanceReviewPlanEvent.CalculateRequiredSignaturesSuccess -> {
+                            pendingDummyTransactionId = event.dummyTransactionId
                             navigator.openWalletAuthentication(
                                 walletId = event.walletId,
                                 userData = event.userData,
