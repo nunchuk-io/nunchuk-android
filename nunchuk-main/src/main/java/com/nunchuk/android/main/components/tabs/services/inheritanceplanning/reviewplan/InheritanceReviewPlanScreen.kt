@@ -1428,31 +1428,26 @@ fun SpecialDetailPlanItem(
                 tint = colorResource(id = R.color.nc_grey_g7),
                 contentDescription = ""
             )
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                verticalAlignment = Alignment.Bottom
-            ) {
-                Text(
-                    modifier = Modifier.padding(start = 8.dp),
-                    text = title,
-                    color = colorResource(id = R.color.nc_grey_g7),
-                    style = NunchukTheme.typography.title
-                )
-
-                if (subTitle.isNotEmpty()) {
-                    Text(
-                        text = stringResource(R.string.nc_main_text_in_parentheses, subTitle),
-                        color = colorResource(id = R.color.nc_grey_g7),
-                        style = NunchukTheme.typography.bodySmall
-                    )
-                }
-            }
-            Spacer(modifier = Modifier.weight(weight = 1f))
+            // Design: the XFP sits in the title, same bold style ("Inheritance key 1 (XFP: …)").
+            Text(
+                modifier = Modifier
+                    .padding(start = 8.dp)
+                    .weight(1f),
+                text = if (subTitle.isNotEmpty()) {
+                    "$title ${stringResource(R.string.nc_main_text_in_parentheses, subTitle)}"
+                } else {
+                    title
+                },
+                color = colorResource(id = R.color.nc_grey_g7),
+                style = NunchukTheme.typography.title
+            )
             if (editable) {
                 Text(
-                    modifier = Modifier.clickable {
-                        onClick()
-                    },
+                    modifier = Modifier
+                        .padding(start = 8.dp)
+                        .clickable {
+                            onClick()
+                        },
                     text = actionText,
                     color = colorResource(id = R.color.nc_grey_g7),
                     style = NunchukTheme.typography.title,
