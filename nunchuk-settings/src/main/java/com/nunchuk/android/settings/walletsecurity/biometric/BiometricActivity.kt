@@ -1,5 +1,6 @@
 package com.nunchuk.android.settings.walletsecurity.biometric
 
+import android.app.Dialog
 import android.os.Bundle
 import androidx.activity.compose.BackHandler
 import androidx.activity.enableEdgeToEdge
@@ -56,24 +57,15 @@ class BiometricActivity : BaseComposeActivity() {
                             finish()
                         }
                         is BiometricPromptManager.BiometricResult.AuthenticationError -> {
-
+                            // This activity has no content, so a cancelled/failed prompt would
+                            // leave the user on a blank screen with back disabled.
+                            showRetryOrSignInDialog(it.error)
                         }
                         is BiometricPromptManager.BiometricResult.FeatureUnavailable -> {
                             showToast(getString(com.nunchuk.android.settings.R.string.nc_settings_feature_unavailable))
                         }
                         is BiometricPromptManager.BiometricResult.AuthenticationNotSet -> {
-                            NCInfoDialog(this@BiometricActivity)
-                                .showDialog(
-                                    message = getString(R.string.nc_biometric_is_not_enable_this_device),
-                                    btnYes = getString(R.string.nc_try_again),
-                                    btnInfo = getString(R.string.nc_sign_in_using_password),
-                                    onYesClick = {
-                                        biometricPromptManager.showBiometricPrompt()
-                                    },
-                                    onInfoClick = {
-                                        viewModel.signOut()
-                                    }
-                                )
+                            showRetryOrSignInDialog(getString(R.string.nc_biometric_is_not_enable_this_device))
                         }
                         else -> {}
                     }
@@ -81,6 +73,33 @@ class BiometricActivity : BaseComposeActivity() {
             }
         }
         biometricPromptManager.showBiometricPrompt()
+    }
+
+    private var retryDialog: Dialog? = null
+
+    override fun onRestart() {
+        super.onRestart()
+        // The prompt is cancelled when the app goes to background, and that result is dropped
+        // because results are only collected while STARTED. Ask again when the user comes back.
+        if (retryDialog?.isShowing != true) {
+            biometricPromptManager.showBiometricPrompt()
+        }
+    }
+
+    private fun showRetryOrSignInDialog(message: String) {
+        retryDialog?.dismiss()
+        retryDialog = NCInfoDialog(this)
+            .showDialog(
+                message = message,
+                btnYes = getString(R.string.nc_try_again),
+                btnInfo = getString(R.string.nc_sign_in_using_password),
+                onYesClick = {
+                    biometricPromptManager.showBiometricPrompt()
+                },
+                onInfoClick = {
+                    viewModel.signOut()
+                }
+            )
     }
 
     private val backCallback = object : androidx.activity.OnBackPressedCallback(true) {
