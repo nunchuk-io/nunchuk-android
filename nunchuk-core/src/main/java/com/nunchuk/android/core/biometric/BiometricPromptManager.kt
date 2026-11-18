@@ -55,7 +55,7 @@ class BiometricPromptManager(private val activity: FragmentActivity) {
             object : BiometricPrompt.AuthenticationCallback() {
                 override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
                     super.onAuthenticationError(errorCode, errString)
-                    resultChannel.trySend(BiometricResult.AuthenticationError(errString.toString()))
+                    resultChannel.trySend(BiometricResult.AuthenticationError(errString.toString(), errorCode))
                 }
 
                 override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
@@ -106,7 +106,13 @@ class BiometricPromptManager(private val activity: FragmentActivity) {
     sealed interface BiometricResult {
         data object HardwareUnavailable : BiometricResult
         data object FeatureUnavailable : BiometricResult
-        data class AuthenticationError(val error: String) : BiometricResult
+        data class AuthenticationError(val error: String, val errorCode: Int = 0) : BiometricResult {
+            /** The user dismissed the prompt (Cancel button, tap outside, or app sent to background). */
+            val isCancelledByUser: Boolean
+                get() = errorCode == BiometricPrompt.ERROR_NEGATIVE_BUTTON ||
+                    errorCode == BiometricPrompt.ERROR_USER_CANCELED ||
+                    errorCode == BiometricPrompt.ERROR_CANCELED
+        }
         data object AuthenticationFailed : BiometricResult
         data object AuthenticationSuccess : BiometricResult
         data object AuthenticationNotSet : BiometricResult

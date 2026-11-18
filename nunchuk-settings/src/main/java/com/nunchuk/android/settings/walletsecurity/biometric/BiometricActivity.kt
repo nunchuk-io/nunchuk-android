@@ -59,7 +59,14 @@ class BiometricActivity : BaseComposeActivity() {
                         is BiometricPromptManager.BiometricResult.AuthenticationError -> {
                             // This activity has no content, so a cancelled/failed prompt would
                             // leave the user on a blank screen with back disabled.
-                            showRetryOrSignInDialog(it.error)
+                            // On Cancel the system's error text is just the button label, so use our own copy.
+                            showRetryOrSignInDialog(
+                                if (it.isCancelledByUser) {
+                                    getString(com.nunchuk.android.settings.R.string.nc_biometric_unlock_cancelled)
+                                } else {
+                                    it.error
+                                }
+                            )
                         }
                         is BiometricPromptManager.BiometricResult.FeatureUnavailable -> {
                             showToast(getString(com.nunchuk.android.settings.R.string.nc_settings_feature_unavailable))
