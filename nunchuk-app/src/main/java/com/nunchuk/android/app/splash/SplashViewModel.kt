@@ -85,8 +85,10 @@ internal class SplashViewModel @Inject constructor(
 
                 isAccountExisted && isStaySignedIn.not() -> {
                     val askPin = shouldAskPin && isDecoyDisablePin
-                    val askBiometric = isBiometricEnable && mode.isGuestMode().not() && mode.isPrimaryKey().not()
-                    _event.emit(SplashEvent.NavSignInEvent(askPin = askPin, askBiometric = askBiometric))
+                    // Signed out: there is no session to unlock, and the sign-in screen already
+                    // offers fingerprint sign-in. Asking here put a blank BiometricActivity on top
+                    // of sign-in on every launch.
+                    _event.emit(SplashEvent.NavSignInEvent(askPin = askPin, askBiometric = false))
                 }
 
                 isAccountExisted && accountManager.isAccountActivated() || mode.isGuestMode() -> {

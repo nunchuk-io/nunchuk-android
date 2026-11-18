@@ -194,6 +194,7 @@
     <string name="nc_settings_decoy_wallet_title">Decoy Wallet</string>
     <string name="nc_settings_feature_unavailable">Feature Unavailable</string>
     <string name="nc_biometric_unlock_cancelled">Fingerprint authentication was cancelled. Try again, or sign in using your password.</string>
+    <string name="nc_biometric_unlock_unavailable">Fingerprint is not available on this device right now. Try again, or sign in using your password.</string>
     <string name="nc_settings_pin_turned_off">PIN has been turned off</string>
     <string name="nc_settings_enter_server_address">Enter the server’s address</string>
     <string name="nc_settings_icon_user">Icon user</string>

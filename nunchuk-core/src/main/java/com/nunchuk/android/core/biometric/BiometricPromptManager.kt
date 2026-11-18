@@ -107,11 +107,14 @@ class BiometricPromptManager(private val activity: FragmentActivity) {
         data object HardwareUnavailable : BiometricResult
         data object FeatureUnavailable : BiometricResult
         data class AuthenticationError(val error: String, val errorCode: Int = 0) : BiometricResult {
-            /** The user dismissed the prompt (Cancel button, tap outside, or app sent to background). */
+            /** The user dismissed the prompt (Cancel button or tap outside). */
             val isCancelledByUser: Boolean
                 get() = errorCode == BiometricPrompt.ERROR_NEGATIVE_BUTTON ||
-                    errorCode == BiometricPrompt.ERROR_USER_CANCELED ||
-                    errorCode == BiometricPrompt.ERROR_CANCELED
+                    errorCode == BiometricPrompt.ERROR_USER_CANCELED
+
+            /** The system cancelled the prompt, e.g. the app went to background or a new prompt replaced it. */
+            val isCancelledBySystem: Boolean
+                get() = errorCode == BiometricPrompt.ERROR_CANCELED
         }
         data object AuthenticationFailed : BiometricResult
         data object AuthenticationSuccess : BiometricResult
