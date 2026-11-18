@@ -6,6 +6,8 @@
   <path
       android:pathData="M0,0h375v300h-375z"
       android:fillColor="@color/nc_fill_denim"/>
+  <!-- Shift the illustration below the image app bar so it does not overlap the title -->
+  <group android:translateY="44">
   <path
       android:pathData="M314,53.24H61V232.26H314V53.24Z"
       android:strokeLineJoin="round"
@@ -89,4 +91,5 @@
       android:strokeWidth="1.2"
       android:fillColor="#00000000"
       android:strokeColor="#333333"/>
+  </group>
 </vector>
