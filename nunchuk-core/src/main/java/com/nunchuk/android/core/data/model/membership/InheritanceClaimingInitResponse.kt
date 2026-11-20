@@ -32,6 +32,8 @@ class InheritanceClaimingInitResponse(
     val keyOrigins: List<KeyOriginDto>? = null,
     @SerializedName("required_key_counts")
     val requiredKeyCounts: List<Int>? = null,
+    @SerializedName("show_seed_phrase_guidance")
+    val showSeedPhraseGuidance: Boolean? = null,
 )
 
 class KeyOriginDto(

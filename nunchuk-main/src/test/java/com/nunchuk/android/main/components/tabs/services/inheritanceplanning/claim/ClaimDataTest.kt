@@ -50,7 +50,31 @@ class ClaimDataTest {
     }
 
     @Test
-    fun `separate devices notice only for on-chain claims of 2 or more keys`() {
+    fun `server guidance flag decides the separate devices notice for 2 or more keys`() {
+        val offChain = ClaimData(walletType = WalletType.MULTI_SIG, requiredKeyCount = 2)
+        assertTrue(offChain.copy(showSeedPhraseGuidance = true).needsSeparateDevicesNotice(2))
+        assertFalse(offChain.copy(showSeedPhraseGuidance = true).needsSeparateDevicesNotice(1))
+        // Backup Password only keys (TAPSIGNER): the server sends false.
+        assertFalse(offChain.copy(showSeedPhraseGuidance = false).needsSeparateDevicesNotice(2))
+        val onChain = ClaimData(walletType = WalletType.MINISCRIPT, showSeedPhraseGuidance = false)
+        assertFalse(onChain.needsSeparateDevicesNotice(2))
+    }
+
+    @Test
+    fun `off-chain notice follows the first key intro, on-chain precedes it`() {
+        val offChain = ClaimData(walletType = WalletType.MULTI_SIG, requiredKeyCount = 2, showSeedPhraseGuidance = true)
+        assertTrue(offChain.needsSeparateDevicesAfterIntro(keyIndex = 1))
+        assertFalse(offChain.needsSeparateDevicesAfterIntro(keyIndex = 2))
+        assertFalse(offChain.needsSeparateDevicesBeforeIntro(2))
+        assertFalse(offChain.copy(requiredKeyCount = 1).needsSeparateDevicesAfterIntro(keyIndex = 1))
+
+        val onChain = ClaimData(walletType = WalletType.MINISCRIPT, requiredKeyCount = 2, showSeedPhraseGuidance = true)
+        assertTrue(onChain.needsSeparateDevicesBeforeIntro(2))
+        assertFalse(onChain.needsSeparateDevicesAfterIntro(keyIndex = 1))
+    }
+
+    @Test
+    fun `without the server flag only on-chain claims of 2 or more keys show the notice`() {
         val onChain = ClaimData(walletType = WalletType.MINISCRIPT)
         assertFalse(onChain.needsSeparateDevicesNotice(1))
         assertTrue(onChain.needsSeparateDevicesNotice(2))

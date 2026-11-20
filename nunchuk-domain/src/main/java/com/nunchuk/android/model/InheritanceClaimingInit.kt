@@ -35,6 +35,12 @@ data class InheritanceClaimingInit(
      * not send `required_key_counts`; only [inheritanceKeyCount] applies then.
      */
     val requiredKeyCounts: List<Int> = emptyList(),
+    /**
+     * `show_seed_phrase_guidance`: whether a claim of 2+ keys first recommends separate devices
+     * (CLM-KCa). False when the plan's keys only have a Backup Password (TAPSIGNER). Null from a
+     * backend that does not send it.
+     */
+    val showSeedPhraseGuidance: Boolean? = null,
 ) : Parcelable
 
 @Parcelize

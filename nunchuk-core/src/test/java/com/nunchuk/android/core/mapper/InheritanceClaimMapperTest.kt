@@ -36,6 +36,16 @@ class InheritanceClaimMapperTest {
     }
 
     @Test
+    fun `seed phrase guidance flag is mapped and stays null when absent`() {
+        assertEquals(
+            true,
+            InheritanceClaimingInitResponse(inheritanceKeyCount = 2, showSeedPhraseGuidance = true)
+                .toInheritanceClaimingInit().showSeedPhraseGuidance,
+        )
+        assertEquals(null, InheritanceClaimingInitResponse(inheritanceKeyCount = 2).toInheritanceClaimingInit().showSeedPhraseGuidance)
+    }
+
+    @Test
     fun `no wallet with valid keys and origins asks for more accounts`() {
         val result = InheritanceClaimingDownloadWalletResponse(
             validKeys = listOf(ClaimValidKeyDto("1111aaaa", "m/48'/0'/0'/2'", "xpubA0")),

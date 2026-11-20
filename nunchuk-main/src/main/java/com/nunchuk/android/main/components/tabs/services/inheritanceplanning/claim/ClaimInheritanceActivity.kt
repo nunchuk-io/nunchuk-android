@@ -357,8 +357,14 @@ private fun ClaimInheritanceGraph(
                 onBackPressed = {
                     navController.popBackStack()
                 },
-                onAddKeyClick = {
-                    navController.navigateToPrepareInheritanceKey()
+                onAddKeyClick = { index ->
+                    val data = activityViewModel.claimData.value
+                    // OFF-CLM-KCa: off-chain shows it here, before the claim method choice.
+                    if (data.needsSeparateDevicesAfterIntro(index)) {
+                        navController.navigateToClaimSeparateDevices(data.requiredKeyCount)
+                    } else {
+                        navController.navigateToPrepareInheritanceKey()
+                    }
                 },
             )
             claimKeyCount(
@@ -368,7 +374,7 @@ private fun ClaimInheritanceGraph(
                 },
                 onContinue = { count ->
                     activityViewModel.selectRequiredKeyCount(count)
-                    if (activityViewModel.claimData.value.needsSeparateDevicesNotice(count)) {
+                    if (activityViewModel.claimData.value.needsSeparateDevicesBeforeIntro(count)) {
                         navController.navigateToClaimSeparateDevices(count)
                     } else {
                         navController.navigateToFirstInheritanceKey(count)
@@ -381,8 +387,13 @@ private fun ClaimInheritanceGraph(
                     navController.popBackStack()
                 },
                 onContinue = { count ->
-                    // Back from the first key returns here, not to Magic Phrase.
-                    navController.navigateToFirstInheritanceKey(count, keepBackStack = true)
+                    if (activityViewModel.claimData.value.isOnChainClaim) {
+                        // Back from the first key returns here, not to Magic Phrase.
+                        navController.navigateToFirstInheritanceKey(count, keepBackStack = true)
+                    } else {
+                        // Off-chain: the "requires 2 keys" intro was already shown.
+                        navController.navigateToPrepareInheritanceKey()
+                    }
                 },
             )
             prepareInheritanceKey(
@@ -460,7 +471,7 @@ private fun ClaimInheritanceGraph(
                     val claimInit = activityViewModel.claimData.value
                     if (claimInit.needsKeyCountChoice) {
                         navController.navigateToClaimKeyCount()
-                    } else if (claimInit.needsSeparateDevicesNotice(claimInit.requiredKeyCount)) {
+                    } else if (claimInit.needsSeparateDevicesBeforeIntro(claimInit.requiredKeyCount)) {
                         navController.navigateToClaimSeparateDevices(claimInit.requiredKeyCount)
                     } else {
                         navController.navigateToFirstInheritanceKey(claimInit.requiredKeyCount)

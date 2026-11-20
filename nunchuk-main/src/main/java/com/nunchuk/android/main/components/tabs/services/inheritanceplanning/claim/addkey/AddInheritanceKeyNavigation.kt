@@ -20,7 +20,7 @@ data class AddInheritanceKeyRoute(
 fun NavGraphBuilder.addInheritanceKey(
     snackState: SnackbarHostState,
     onBackPressed: () -> Unit = {},
-    onAddKeyClick: () -> Unit = {},
+    onAddKeyClick: (index: Int) -> Unit = {},
 ) {
     composable<AddInheritanceKeyRoute> {
         val args = it.toRoute<AddInheritanceKeyRoute>()
@@ -29,7 +29,7 @@ fun NavGraphBuilder.addInheritanceKey(
             index = args.index,
             totalKeys = args.totalKeys,
             onBackPressed = onBackPressed,
-            onAddKeyClick = onAddKeyClick,
+            onAddKeyClick = { onAddKeyClick(args.index) },
         )
     }
 }

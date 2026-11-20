@@ -99,6 +99,7 @@ internal fun InheritanceClaimingInitResponse.toInheritanceClaimingInit(): Inheri
         inheritanceKeyCount = inheritanceKeyCount ?: 0,
         keyOrigins = keyOrigins?.map { it.toKeyOrigin() } ?: emptyList(),
         requiredKeyCounts = requiredKeyCounts.orEmpty().filter { it > 0 }.distinct().sorted(),
+        showSeedPhraseGuidance = showSeedPhraseGuidance,
     )
 }
 

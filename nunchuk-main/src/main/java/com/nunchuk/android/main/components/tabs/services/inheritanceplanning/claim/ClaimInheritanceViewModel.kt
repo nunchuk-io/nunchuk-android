@@ -120,6 +120,7 @@ class ClaimInheritanceViewModel @Inject constructor(
                 pendingKeyOrigins = emptyList(),
                 walletType = init.walletType,
                 keyOrigins = init.keyOrigins,
+                showSeedPhraseGuidance = init.showSeedPhraseGuidance,
                 challenge = null
             )
         }
@@ -610,6 +611,8 @@ data class ClaimData(
     val requiredKeyCounts: List<Int> = emptyList(),
     /** Further accounts of accepted devices that download-wallet asked for (`key_origins`). */
     val pendingKeyOrigins: List<KeyOrigin> = emptyList(),
+    /** `show_seed_phrase_guidance` from claim init; null from a backend that does not send it. */
+    val showSeedPhraseGuidance: Boolean? = null,
 ) : Parcelable {
     /**
      * The backend counts independent keys: several accounts of one device (one XFP) are one key.
@@ -662,8 +665,24 @@ data class ClaimData(
     val isOnChainClaim: Boolean
         get() = !bsms.isNullOrEmpty() || walletType == WalletType.MINISCRIPT
 
-    /** CLM-KCa/KCb: an on-chain claim that collects [keyCount] ≥ 2 keys first recommends separate devices. */
-    fun needsSeparateDevicesNotice(keyCount: Int): Boolean = isOnChainClaim && keyCount >= 2
+    /**
+     * CLM-KCa/KCb: a claim that collects [keyCount] ≥ 2 keys first recommends separate devices when
+     * the server sends `show_seed_phrase_guidance`. Without it (older backend) only on-chain claims
+     * show it, as before.
+     */
+    fun needsSeparateDevicesNotice(keyCount: Int): Boolean =
+        keyCount >= 2 && (showSeedPhraseGuidance ?: isOnChainClaim)
+
+    /** On-chain CLM-KCa/KCb sits before the "requires N keys" intro (or the key-count chooser). */
+    fun needsSeparateDevicesBeforeIntro(keyCount: Int): Boolean =
+        isOnChainClaim && needsSeparateDevicesNotice(keyCount)
+
+    /**
+     * OFF-CLM-KCa sits after the "requires 2 keys" intro of the first key, before the claim method
+     * choice (Backup Password check).
+     */
+    fun needsSeparateDevicesAfterIntro(keyIndex: Int): Boolean =
+        !isOnChainClaim && keyIndex == 1 && needsSeparateDevicesNotice(requiredKeyCount)
 
     /**
      * One path per [requiredSigners] entry, in that order — the two lists travel together into
