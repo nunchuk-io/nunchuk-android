@@ -40,6 +40,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nunchuk.android.compose.CosignStatusView
@@ -1552,6 +1553,18 @@ fun KeyItem(
     }
 }
 
+/**
+ * Start padding of a tree item relative to its parent. Children are laid out inside the parent's
+ * content, so this padding stacks: a per-level step of `level * 10dp` grows quadratically and squeezes
+ * deep branches down to one character per line. The step is 10dp under the root and 20dp below that
+ * (the parent's 11dp thread curve plus the same 10dp gap).
+ */
+private fun treeIndentation(level: Int): Dp = when {
+    level <= 0 -> 0.dp
+    level == 1 -> 10.dp
+    else -> 20.dp
+}
+
 @Composable
 fun TreeBranchContainer(
     node: ScriptNode,
@@ -1563,7 +1576,7 @@ fun TreeBranchContainer(
     indentationLevel: Int = 0,
     content: @Composable BoxScope.(modifier: Modifier, showThreadCurve: Boolean, showDetail: Boolean) -> Unit
 ) {
-    val indentationPadding = if (indentationLevel > 0) (indentationLevel * 10).dp else 0.dp
+    val indentationPadding = treeIndentation(indentationLevel)
     val shouldDrawLine = drawLine && indentationLevel > 0
     val showThreadCurve = indentationLevel > 0
     val showExpand = (data.collapsedNode?.id == node.id && node.type != ScriptNodeType.PK.name)
@@ -1664,7 +1677,7 @@ fun KeyContainer(
     indentationLevel: Int = 0,
     content: @Composable (modifier: Modifier, showThreadCurve: Boolean) -> Unit
 ) {
-    val indentationPadding = if (indentationLevel > 0) (indentationLevel * 10).dp else 0.dp
+    val indentationPadding = treeIndentation(indentationLevel)
     val shouldDrawLine = drawLine && indentationLevel > 0
     val showThreadCurve = indentationLevel > 0
     val lineAlpha = LocalScriptContentAlpha.current
