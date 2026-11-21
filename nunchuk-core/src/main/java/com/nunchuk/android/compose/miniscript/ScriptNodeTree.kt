@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
@@ -38,10 +39,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nunchuk.android.compose.CosignStatusView
 import com.nunchuk.android.compose.NcBadgeOutline
@@ -790,9 +793,9 @@ fun AndOrView(
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     Row {
-                        Text(
+                        TreeTitleText(
                             text = "${node.idString}. ${node.displayName}",
-                            style = NunchukTheme.typography.body
+                            modifier = Modifier.weight(1f, fill = false)
                         )
                         if (isShowTapscriptBadge) {
                             NcBadgeOutline(
@@ -903,9 +906,9 @@ fun MusigItem(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    Text(
+                    TreeTitleText(
                         text = "${node.idString}. ${node.displayName}",
-                        style = NunchukTheme.typography.body
+                        modifier = Modifier.weight(1f, fill = false)
                     )
                     // Pending info: nonces in round 1, signatures in round 2
                     if (data.mode == ScriptMode.SIGN && isSatisfiable && keySet != null && !isCompleted) {
@@ -1121,9 +1124,8 @@ fun ThreshMultiItem(
                     .weight(1f)
                     .padding(top = topPadding.dp)
             ) {
-                Text(
-                    text = "${node.idString}. ${node.displayName}",
-                    style = NunchukTheme.typography.body
+                TreeTitleText(
+                    text = "${node.idString}. ${node.displayName}"
                 )
                 if (node.descriptionText.isNotEmpty()) {
                     Text(
@@ -1280,9 +1282,8 @@ fun TimelockItem(
                         .weight(1f)
                         .padding(start = 8.dp)
                 ) {
-                    Text(
+                    TreeTitleText(
                         text = "${node.idString}. $title",
-                        style = NunchukTheme.typography.body,
                         modifier = if (hasReplacedTimelock) {
                             Modifier
                                 .background(
@@ -1398,9 +1399,8 @@ fun HashlockItem(
                     .weight(1f)
                     .padding(start = 8.dp)
             ) {
-                Text(
-                    text = "${node.idString}. ${node.type.capitalize()}",
-                    style = NunchukTheme.typography.body
+                TreeTitleText(
+                    text = "${node.idString}. ${node.type.capitalize()}"
                 )
                 if (description.isNotEmpty()) {
                     Text(
@@ -1494,9 +1494,8 @@ fun KeyItem(
                         .weight(1f),
                     verticalArrangement = Arrangement.Center,
                 ) {
-                    Text(
+                    TreeTitleText(
                         text = if (position.isNotEmpty()) "$position. $title" else title,
-                        style = NunchukTheme.typography.body,
                         modifier = if (hasReplacedSigner) {
                             Modifier
                                 .background(
@@ -1552,6 +1551,28 @@ fun KeyItem(
         }
     }
 }
+
+/**
+ * A node or key title in the tree. As on iOS, a title too long for one line shrinks (down to
+ * [TREE_TITLE_MIN_FONT_SIZE]) instead of wrapping, so titles deep in the tree stay readable.
+ */
+@Composable
+private fun TreeTitleText(text: String, modifier: Modifier = Modifier) {
+    val style = NunchukTheme.typography.body
+    Text(
+        text = text,
+        style = style,
+        modifier = modifier,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+        autoSize = TextAutoSize.StepBased(
+            minFontSize = TREE_TITLE_MIN_FONT_SIZE,
+            maxFontSize = style.fontSize,
+        ),
+    )
+}
+
+private val TREE_TITLE_MIN_FONT_SIZE = 12.sp
 
 /**
  * Start padding of a tree item relative to its parent. Children are laid out inside the parent's
