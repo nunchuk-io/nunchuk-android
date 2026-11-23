@@ -23,6 +23,7 @@ import android.content.Context
 import androidx.core.content.ContextCompat
 import com.nunchuk.android.core.R
 import com.nunchuk.android.model.Transaction
+import com.nunchuk.android.model.TxOutput
 import com.nunchuk.android.type.CoinStatus
 import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.type.TransactionStatus.*
@@ -78,6 +79,15 @@ fun Transaction.formatAddress(context: Context) : String {
 }
 
 fun Transaction.hasChangeIndex() = outputs.any { it.isChange }
+
+/**
+ * Change outputs keyed by vout. An inheritance-claim transaction is built from a server PSBT, so its
+ * outputs carry no `isChange` flag; pass [useChangeIndex] to also treat the output at [Transaction.changeIndex] as change.
+ */
+fun Transaction.changeOutputsByVout(useChangeIndex: Boolean = false): List<Pair<Int, TxOutput>> =
+    outputs.mapIndexedNotNull { vout, output ->
+        if (output.isChange || (useChangeIndex && vout == changeIndex)) vout to output else null
+    }
 
 fun CoinStatus.toName(context: Context) : String {
     return when(this) {

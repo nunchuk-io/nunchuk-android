@@ -261,7 +261,7 @@ private fun ClaimTransactionScreen(
             }
         }
         TransactionDetailView(
-            isHideChangeIndex = true, // claim off chain transaction is hide change index
+            isInheritanceClaim = true,
             isDummyTx = false,
             walletId = "",
             txId = args.transaction.txId,

@@ -493,7 +493,6 @@ private fun TransactionConfirmScreen(
             totalAmountBtc = totalAmountPrimary,
             totalAmountCurrency = totalAmountSecondary,
             changeOutputs = uiState.changeOutputs,
-            isOffChainClaim = viewModel.isOffChainClaimingFlow(),
             privateNote = args.privateNote,
             inputs = args.inputs,
             allTags = uiState.allTags,
@@ -539,7 +538,6 @@ internal fun TransactionConfirmContent(
     totalAmountBtc: String = "",
     totalAmountCurrency: String = "",
     changeOutputs: List<TxOutput> = emptyList(),
-    isOffChainClaim: Boolean = false,
     privateNote: String = "",
     inputs: List<UnspentOutput> = emptyList(),
     allTags: Map<Int, CoinTag> = emptyMap(),
@@ -746,7 +744,7 @@ internal fun TransactionConfirmContent(
             }
 
             // Change address
-            if (!isOffChainClaim && changeOutputs.isNotEmpty()) {
+            if (changeOutputs.isNotEmpty()) {
                 Box(
                     modifier = Modifier
                         .padding(top = 24.dp)

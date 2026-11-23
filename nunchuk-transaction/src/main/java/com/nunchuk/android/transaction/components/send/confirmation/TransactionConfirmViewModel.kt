@@ -26,11 +26,11 @@ import com.nunchuk.android.core.data.model.ClaimInheritanceTxParam
 import com.nunchuk.android.core.data.model.RollOverWalletParam
 import com.nunchuk.android.core.data.model.TxReceipt
 import com.nunchuk.android.core.data.model.isInheritanceClaimFlow
-import com.nunchuk.android.core.data.model.isOffChainClaim
 import com.nunchuk.android.core.domain.membership.InheritanceClaimCreateTransactionUseCase
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
+import com.nunchuk.android.core.util.changeOutputsByVout
 import com.nunchuk.android.core.util.fromBTCToCurrency
 import com.nunchuk.android.core.util.hasChangeIndex
 import com.nunchuk.android.core.util.nativeErrorCode
@@ -497,19 +497,23 @@ class TransactionConfirmViewModel @Inject constructor(
     private suspend fun onDraftTransactionSuccess(data: Transaction) {
         // Derive the display outputs and change address here (rather than in one-shot events) so
         // they live in uiState and survive navigating away to the "Top up LBTC" screen and back.
+        val isClaim = isInheritanceClaimingFlow()
+        // Claim transactions mark change only by changeIndex; show it under "Change address" so the
+        // heir can verify it against a hardware device before signing.
+        val changeOutputs = data.changeOutputsByVout(useChangeIndex = isClaim)
         val outputs = if (data.outputs.size == 1) {
             data.outputs
-        } else if (isInheritanceClaimingFlow() && data.hasChangeIndex()) {
-            data.outputs.filter { !it.isChange }
+        } else if (isClaim) {
+            val changeVouts = changeOutputs.map { it.first }.toSet()
+            data.outputs.filterIndexed { vout, _ -> vout !in changeVouts }
         } else {
             data.outputs.filter { isMyCoin(it) == data.isReceive }
         }
-        val changeOutputs = data.outputs.filter { it.isChange }
         _state.update { state ->
             state.copy(
                 transaction = data,
                 outputs = outputs,
-                changeOutputs = changeOutputs,
+                changeOutputs = changeOutputs.map { it.second },
             )
         }
         _event.emit(DraftTransactionSuccess(data))
@@ -656,8 +660,6 @@ class TransactionConfirmViewModel @Inject constructor(
     }
 
     fun isInheritanceClaimingFlow() = claimInheritanceTxParam.isInheritanceClaimFlow()
-
-    fun isOffChainClaimingFlow() = claimInheritanceTxParam.isOffChainClaim()
 
     private fun createNewTransaction(
         isQuickCreateTransaction: Boolean,

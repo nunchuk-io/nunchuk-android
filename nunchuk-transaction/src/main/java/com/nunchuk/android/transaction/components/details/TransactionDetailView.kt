@@ -64,6 +64,7 @@ import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.InheritanceClaimTxDetailInfo
 import com.nunchuk.android.core.util.canBroadCast
+import com.nunchuk.android.core.util.changeOutputsByVout
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getLbtcAmount
 import com.nunchuk.android.core.util.getUsdtTokenAmount
@@ -102,7 +103,7 @@ import java.util.Date
 @Composable
 fun TransactionDetailView(
     isDummyTx: Boolean = false,
-    isHideChangeIndex: Boolean = false,
+    isInheritanceClaim: Boolean = false,
     inheritanceClaimTxDetailInfo: InheritanceClaimTxDetailInfo? = null,
     walletId: String,
     txId: String,
@@ -129,14 +130,15 @@ fun TransactionDetailView(
     var isExpanded by rememberSaveable(isValueKeySetDisable) { mutableStateOf(isValueKeySetDisable) }
     var preImageScriptMode by rememberSaveable { mutableStateOf<ScriptNode?>(null) }
     val preimageBottomSheetState = rememberModalBottomSheetState()
+    val isClaimTransaction = inheritanceClaimTxDetailInfo != null || isInheritanceClaim
     val transaction =
         if (inheritanceClaimTxDetailInfo != null) state.transaction.copy(changeIndex = inheritanceClaimTxDetailInfo.changePos) else state.transaction
     val outputs = when {
         transaction.isReceive -> transaction.receiveOutputs
-        // Inheritance-claim transactions carry no per-output change flag, only a change position.
-        // The off-chain claim screen (isHideChangeIndex) carries it in transaction.changeIndex.
-        inheritanceClaimTxDetailInfo != null || isHideChangeIndex ->
-            transaction.outputs.filterIndexed { index, _ -> index != transaction.changeIndex }
+        // Inheritance-claim transactions carry no per-output change flag, only a change position
+        // (transaction.changeIndex); the change output is listed under "Change address" instead.
+        isClaimTransaction ->
+            transaction.outputs.filterIndexed { index, output -> index != transaction.changeIndex && !output.isChange }
 
         else -> transaction.outputs.filter { !it.isChange }
     }
@@ -145,10 +147,8 @@ fun TransactionDetailView(
         transaction.receiveOutputs
     } else transaction.outputs.filter { !it.isReceive }
     // The index in outputs is the vout.
-    val changeOutputs = remember(transaction) {
-        transaction.outputs.mapIndexedNotNull { vout, output ->
-            if (output.isChange) vout to output else null
-        }
+    val changeOutputs = remember(transaction, isClaimTransaction) {
+        transaction.changeOutputsByVout(useChangeIndex = isClaimTransaction)
     }
     val signerMap by remember(state.signers) {
         derivedStateOf {
@@ -284,7 +284,7 @@ fun TransactionDetailView(
                     }
                 }
 
-                if (hasChange && inheritanceClaimTxDetailInfo == null && !isHideChangeIndex) {
+                if (hasChange) {
                     item {
                         Box(
                             modifier = Modifier
