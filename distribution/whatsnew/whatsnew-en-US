@@ -1,2 +1,6 @@
-- Add warnings when using the wrong derivation path for multisig and Miniscript wallets
+- On-chain inheritance: set up a primary inheritance plan with fallback keys and timelocks
+- Claim an inheritance with configurable conditions
+- Choose the app language in Settings
+- Archive any zero-balance assisted wallet
+- Encrypt key secrets on this device with an internal key
 - Bug fixes and improvements
